@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "CMakeFiles\\RFF.dir\\src\\rff\\opengl\\GLShaderLoader.cpp.obj",
+            "outputs": [
+                "C:\\Users\\nudet\\Desktop\\Main\\Developments\\cpp\\Projects\\RFF\\cmake-build-debug\\vc140.pdb",
+                "CMakeFiles\\RFF.dir\\src\\rff\\opengl\\GLShaderLoader.cpp.obj.ddi"
+            ],
+            "requires": []
+        }
+    ]
+}

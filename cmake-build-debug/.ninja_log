@@ -1,0 +1,19 @@
+# ninja log v6
+647	1764	7677925424095347	CMakeFiles/RFF.dir/main.cpp.obj	85e8657da1bf1927
+7	80	7677961182584361	CMakeFiles/RFF.dir/merutilm/rff/main.rc.res	874b0ecbeb2dc45d
+1950	2133	7678057429386278	RFF.exe	b23c251b4fd2da22
+4	188	7678071525021127	build.ninja	573a1fbc268a7eb3
+6	590	7677925417677833	CMakeFiles/RFF.dir/main.cpp.obj.ddi	b214469210348d68
+627	679	7678057416159899	CMakeFiles/RFF.dir/CXX.dd	3f23bf62b620e9a1
+627	679	7678057416159899	C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/cmake-build-debug/CMakeFiles/RFF.dir/CXXModules.json	3f23bf62b620e9a1
+4	417	7677973581914069	CMakeFiles/RFF.dir/merutilm/rff/ui/main.cpp.obj.ddi	561dddcfabd2d783
+627	679	7678057416159899	CMakeFiles/RFF.dir/src/rff/opengl/GLShaderLoader.cpp.obj.modmap	3f23bf62b620e9a1
+591	644	7677925423531912	CMakeFiles/RFF.dir/main.cpp.obj.modmap	7c8b020db4dad531
+418	461	7677973586049884	CMakeFiles/RFF.dir/merutilm/rff/ui/main.cpp.obj.modmap	1d58568fc67add00
+464	1990	7677973586516977	CMakeFiles/RFF.dir/merutilm/rff/ui/main.cpp.obj	204868bcdc413026
+4	626	7678057409934649	CMakeFiles/RFF.dir/src/rff/ui/main.cpp.obj.ddi	88b50c180e916c3
+4	645	7678057131452778	CMakeFiles/RFF.dir/src/rff/opengl/GLShaderLoader.cpp.obj.ddi	86ee622656b1bde0
+627	679	7678057416159899	CMakeFiles/RFF.dir/src/rff/ui/main.cpp.obj.modmap	3f23bf62b620e9a1
+682	1949	7678057416714394	CMakeFiles/RFF.dir/src/rff/ui/main.cpp.obj	3ef695b89d655cdd
+696	1977	7678057138376328	CMakeFiles/RFF.dir/src/rff/opengl/GLShaderLoader.cpp.obj	1fa1e5ea4bae990d
+38	721	7678042665173964	CMakeFiles/RFF.dir/src/glad.c.obj	310bbee29901679b

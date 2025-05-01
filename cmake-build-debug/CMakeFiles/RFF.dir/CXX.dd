@@ -1,0 +1,5 @@
+ninja_dyndep_version = 1.0
+build CMakeFiles\RFF.dir\src\rff\ui\main.cpp.obj: dyndep
+
+build CMakeFiles\RFF.dir\src\rff\opengl\GLShaderLoader.cpp.obj: dyndep
+
