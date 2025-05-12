@@ -1,11 +1,7 @@
 #pragma once
 
 #include <array>
-#include <gmp.h>
 #include <memory>
-#include <thread>
-
-#include "GMPDecimal.h"
 #include "GMPDecimalCalculator.h"
 
 class GMPComplexCalculator {
@@ -17,7 +13,7 @@ class GMPComplexCalculator {
 public:
     explicit GMPComplexCalculator(const std::string &re, const std::string &im, int exp10);
 
-    explicit GMPComplexCalculator(const GMPDecimalCalculator &re, const GMPDecimalCalculator &im);
+    explicit GMPComplexCalculator(const GMPDecimalCalculator &re, const GMPDecimalCalculator &im, int exp10);
 
     explicit GMPComplexCalculator(double re, double im, int exp10);
 
@@ -42,6 +38,8 @@ private:
 
     static void mpc_square(GMPComplexCalculator &a);
 
+    static void mpc_doubled(GMPComplexCalculator &a);
+
 public:
     static GMPComplexCalculator init(const std::string &re, const std::string &im, int precision);
 
@@ -54,6 +52,12 @@ public:
     GMPComplexCalculator &operator/=(const GMPComplexCalculator &b);
 
     GMPComplexCalculator &square();
+
+    GMPComplexCalculator &doubled();
+
+    GMPDecimalCalculator &getReal();
+
+    GMPDecimalCalculator &getImag();
 
     GMPDecimalCalculator getRealClone() const;
 

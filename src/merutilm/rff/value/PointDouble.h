@@ -5,12 +5,12 @@
 #pragma once
 
 class PointDouble {
-    const int x;
-    const int y;
+    const double x;
+    const double y;
     public:
-    PointDouble(int x, int y);
-    PointDouble();
+    explicit PointDouble(double x, double y);
+    explicit PointDouble();
 
-    int getX() const;
-    int getY() const;
+    double getX() const;
+    double getY() const;
 };

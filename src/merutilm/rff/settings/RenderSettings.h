@@ -1,8 +1,9 @@
 #pragma once
 
 
-class RenderSettings {
-
+struct RenderSettings {
+    float clarityMultiplier;
+    bool antialiasing;
 };
 
 

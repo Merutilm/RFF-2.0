@@ -3,7 +3,12 @@
 //
 
 #pragma once
+#include "AnimationSettings.h"
+#include "DataSettings.h"
+#include "ExportSettings.h"
 
-class VideoSettings {
-
+struct VideoSettings {
+    DataSettings dataSettings;
+    AnimationSettings animationSettings;
+    ExportSettings exportSettings;
 };

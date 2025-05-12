@@ -16,6 +16,7 @@
 			"add_executable",
 			"link_directories",
 			"target_link_libraries",
+			"add_compile_options",
 			"include_directories"
 		],
 		"files" : 
@@ -30,7 +31,7 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 11,
+				"line" : 20,
 				"parent" : 0
 			},
 			{
@@ -42,17 +43,23 @@
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 58,
+				"line" : 100,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
+				"line" : 11,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
 				"line" : 4,
 				"parent" : 0
 			},
 			{
-				"command" : 3,
+				"command" : 4,
 				"file" : 0,
 				"line" : 5,
 				"parent" : 0
@@ -66,16 +73,32 @@
 			[
 				{
 					"fragment" : "-g -std=gnu++20 -fdiagnostics-color=always"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-O3"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-ffast-math"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-march=native"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-funroll-loops"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"path" : "C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern"
 				}
 			],
@@ -102,7 +125,18 @@
 				36,
 				38,
 				40,
-				42
+				42,
+				45,
+				46,
+				49,
+				52,
+				58,
+				60,
+				67,
+				69,
+				71,
+				73,
+				75
 			]
 		},
 		{
@@ -110,16 +144,32 @@
 			[
 				{
 					"fragment" : "-g -fdiagnostics-color=always"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-O3"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-ffast-math"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-march=native"
+				},
+				{
+					"backtrace" : 4,
+					"fragment" : "-funroll-loops"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 4,
+					"backtrace" : 5,
 					"path" : "C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 6,
 					"path" : "C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern"
 				}
 			],
@@ -193,7 +243,18 @@
 				36,
 				38,
 				40,
-				42
+				42,
+				45,
+				46,
+				49,
+				52,
+				58,
+				60,
+				67,
+				69,
+				71,
+				73,
+				75
 			]
 		},
 		{
@@ -228,7 +289,29 @@
 				37,
 				39,
 				41,
-				43
+				43,
+				44,
+				47,
+				48,
+				50,
+				51,
+				53,
+				54,
+				55,
+				56,
+				57,
+				59,
+				61,
+				62,
+				63,
+				64,
+				65,
+				66,
+				68,
+				70,
+				72,
+				74,
+				76
 			]
 		}
 	],
@@ -283,12 +366,12 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/merutilm/rff/ui/RFFRenderWindow.cpp",
+			"path" : "src/merutilm/rff/ui/RFFMasterWindow.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/ui/RFFRenderWindow.h",
+			"path" : "src/merutilm/rff/ui/RFFMasterWindow.h",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -439,12 +522,12 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/merutilm/rff/ui/RFFRenderer.cpp",
+			"path" : "src/merutilm/rff/ui/RFFRenderScene.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/ui/RFFRenderer.h",
+			"path" : "src/merutilm/rff/ui/RFFRenderScene.h",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -461,12 +544,188 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/merutilm/rff/calc/Perturbator.cpp",
+			"path" : "src/merutilm/rff/formula/Perturbator.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/calc/Perturbator.h",
+			"path" : "src/merutilm/rff/formula/Perturbator.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/ui/RFFScene.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/ui/RFFScene.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/io/RFFMap.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/io/RFFMap.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/data/Matrix.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/opengl/GLRendererIteration.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLRendererIteration.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/settings/ColorSmoothingSettings.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/data/Color.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/data/Color.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/settings/StripeType.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/settings/AnimationSettings.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLTimeRenderer.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLTimeProvider.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/formula/LightMandelbrotReference.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/formula/LightMandelbrotReference.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/parallel/ParallelRenderState.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/parallel/ParallelRenderState.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/approx/ApproxMath.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/approx/ArrayCompressionTool.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/approx/ArrayCompressor.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/parallel/ParallelArrayDispatcher.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/ui/RFFLogger.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/formula/LightMandelbrotPerturbator.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/approx/LightPA.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/approx/LightPA.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/approx/LightMPATable.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/approx/LightMPATable.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/approx/MPAPeriod.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/approx/MPAPeriod.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/ui/RFFSettingsWindow.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/ui/RFFSettingsWindow.h",
 			"sourceGroupIndex" : 1
 		}
 	],

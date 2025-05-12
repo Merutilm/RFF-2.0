@@ -8,6 +8,15 @@ link_directories(${CMAKE_SOURCE_DIR}/lib)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_SOURCE_DIR}/bin)
 
+add_compile_options(
+        -O3
+        -ffast-math
+        -march=native
+        -funroll-loops
+)
+
+
+
 add_executable(
         RFF
         src/merutilm/rff/ui/RFF.cpp
@@ -18,8 +27,8 @@ add_executable(
         src/merutilm/rff/opengl/GLRenderer.h
         src/merutilm/rff/precision/GMPComplexCalculator.cpp
         src/merutilm/rff/precision/GMPComplexCalculator.h
-        src/merutilm/rff/ui/RFFRenderWindow.cpp
-        src/merutilm/rff/ui/RFFRenderWindow.h
+        src/merutilm/rff/ui/RFFMasterWindow.cpp
+        src/merutilm/rff/ui/RFFMasterWindow.h
         src/merutilm/rff/ui/RFFConstants.h
         src/merutilm/rff/settings/Settings.h
         src/merutilm/rff/settings/CalculationSettings.h
@@ -48,11 +57,44 @@ add_executable(
         src/merutilm/rff/precision/GMPDecimal.h
         src/merutilm/rff/ui/RFFGL.cpp
         src/merutilm/rff/ui/RFFGL.h
-        src/merutilm/rff/ui/RFFRenderer.cpp
-        src/merutilm/rff/ui/RFFRenderer.h
+        src/merutilm/rff/ui/RFFRenderScene.cpp
+        src/merutilm/rff/ui/RFFRenderScene.h
         src/merutilm/rff/value/PointDouble.cpp
         src/merutilm/rff/value/PointDouble.h
-        src/merutilm/rff/calc/Perturbator.cpp
-        src/merutilm/rff/calc/Perturbator.h
+        src/merutilm/rff/formula/Perturbator.cpp
+        src/merutilm/rff/formula/Perturbator.h
+        src/merutilm/rff/ui/RFFScene.h
+        src/merutilm/rff/ui/RFFScene.cpp
+        src/merutilm/rff/io/RFFMap.cpp
+        src/merutilm/rff/io/RFFMap.h
+        src/merutilm/rff/data/Matrix.h
+        src/merutilm/rff/opengl/GLRendererIteration.cpp
+        src/merutilm/rff/opengl/GLRendererIteration.h
+        src/merutilm/rff/settings/ColorSmoothingSettings.h
+        src/merutilm/rff/data/Color.cpp
+        src/merutilm/rff/data/Color.h
+        src/merutilm/rff/settings/StripeType.h
+        src/merutilm/rff/settings/AnimationSettings.h
+        src/merutilm/rff/opengl/GLTimeRenderer.h
+        src/merutilm/rff/opengl/GLTimeProvider.h
+        src/merutilm/rff/formula/LightMandelbrotReference.cpp
+        src/merutilm/rff/formula/LightMandelbrotReference.h
+        src/merutilm/rff/parallel/ParallelRenderState.cpp
+        src/merutilm/rff/parallel/ParallelRenderState.h
+        src/merutilm/rff/approx/ApproxMath.h
+        src/merutilm/rff/approx/ArrayCompressionTool.h
+        src/merutilm/rff/approx/ArrayCompressor.h
+        src/merutilm/rff/parallel/ParallelArrayDispatcher.h
+        src/merutilm/rff/ui/RFFLogger.h
+        src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp
+        src/merutilm/rff/formula/LightMandelbrotPerturbator.h
+        src/merutilm/rff/approx/LightPA.cpp
+        src/merutilm/rff/approx/LightPA.h
+        src/merutilm/rff/approx/LightMPATable.cpp
+        src/merutilm/rff/approx/LightMPATable.h
+        src/merutilm/rff/approx/MPAPeriod.cpp
+        src/merutilm/rff/approx/MPAPeriod.h
+        src/merutilm/rff/ui/RFFSettingsWindow.cpp
+        src/merutilm/rff/ui/RFFSettingsWindow.h
 )
 target_link_libraries(RFF PRIVATE opengl32 gmp)

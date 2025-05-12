@@ -4,6 +4,9 @@
 
 #pragma once
 
-class BloomSettings {
-
+struct BloomSettings {
+    float threshold;
+    float radius;
+    float softness;
+    float intensity;
 };

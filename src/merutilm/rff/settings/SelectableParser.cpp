@@ -10,7 +10,7 @@
 
 std::string SelectableParser::parse(const DecimalizeIterationMethod &value) {
     switch (value) {
-        using enum DecimalizeIterationMethod;
+            using enum DecimalizeIterationMethod;
         case NONE: return "None";
         case LINEAR: return "Linear";
         case SQUARE_ROOT: return "Square root";
@@ -22,31 +22,50 @@ std::string SelectableParser::parse(const DecimalizeIterationMethod &value) {
 
 std::string SelectableParser::parse(const ReuseReferenceMethod &value) {
     switch (value) {
-        using enum ReuseReferenceMethod;
+            using enum ReuseReferenceMethod;
         case CURRENT_REFERENCE: return "Current";
         case CENTERED_REFERENCE: return "Centered";
         case DISABLED: return "Disabled";
         default: return RFFConstants::Parser::UNKNOWN;
     }
-
 }
 
 std::string SelectableParser::parse(const MPASelectionMethod &value) {
     switch (value) {
-        using enum MPASelectionMethod;
-        case LOWEST : return "Lowest";
-        case HIGHEST : return "Highest";
+            using enum MPASelectionMethod;
+        case LOWEST: return "Lowest";
+        case HIGHEST: return "Highest";
         default: return RFFConstants::Parser::UNKNOWN;
     }
 }
 
 std::string SelectableParser::parse(const MPACompressionMethod &value) {
     switch (value) {
-        using enum MPACompressionMethod;
-        case NO_COMPRESSION : return "No compression";
-        case LITTLE_COMPRESSION : return "Little compression";
-        case STRONGEST : return "Strongest";
+            using enum MPACompressionMethod;
+        case NO_COMPRESSION: return "No compression";
+        case LITTLE_COMPRESSION: return "Little compression";
+        case STRONGEST: return "Strongest";
         default: return RFFConstants::Parser::UNKNOWN;
     }
 }
 
+std::string SelectableParser::parse(const ColorSmoothingSettings &value) {
+    switch (value) {
+            using enum ColorSmoothingSettings;
+        case NONE: return "None";
+        case NORMAL: return "Normal";
+        case REVERSED: return "Reversed";
+        default: return RFFConstants::Parser::UNKNOWN;
+    }
+}
+
+std::string SelectableParser::parse(const StripeType &value) {
+    switch (value) {
+            using enum StripeType;
+        case NONE: return "None";
+        case SINGLE_DIRECTION: return "Single Direction";
+        case SMOOTH: return "Smooth";
+        case SQUARED: return "Squared";
+        default: return RFFConstants::Parser::UNKNOWN;
+    }
+}

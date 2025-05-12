@@ -4,6 +4,7 @@
 
 #pragma once
 
-class ExportSettings {
-
+struct ExportSettings {
+    float fps;
+    uint32_t bitrate;
 };

@@ -21,6 +21,7 @@ struct GMPDecimalCalculator final {
 
     ~GMPDecimalCalculator();
 
+
     GMPDecimalCalculator(const GMPDecimalCalculator &other);
 
     GMPDecimalCalculator &operator=(const GMPDecimalCalculator &other);

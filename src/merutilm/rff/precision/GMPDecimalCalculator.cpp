@@ -21,21 +21,8 @@ GMPDecimalCalculator::GMPDecimalCalculator() {
 GMPDecimalCalculator::GMPDecimalCalculator(const mpz_srcptr value, const int exp2) {
     mpz_init(this->value);
     mpz_init(temp);
-
-    mpf_t d1;
+    mpz_set(this->value, value);
     this->exp2 = exp2;
-
-    mpf_init2(d1, -exp2);
-    mpf_set_z(d1, value);
-
-    if(exp2 < 0){
-        mpf_mul_2exp(d1, d1, -exp2);
-    }else{
-        mpf_div_2exp(d1, d1, exp2);
-    }
-
-    mpz_set_f(this->value, d1);
-    mpf_clear(d1);
 }
 
 

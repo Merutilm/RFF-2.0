@@ -4,6 +4,7 @@
 
 #pragma once
 
-class FogSettings {
-
+struct FogSettings {
+    float radius;
+    float opacity;
 };

@@ -3,7 +3,10 @@
 //
 
 #include "GMPDecimal.h"
+
+#include <iostream>
 #include <string>
+#include <bits/ostream.tcc>
 
 #include "GMPDecimalCalculator.h"
 
@@ -41,12 +44,14 @@ GMPDecimal::GMPDecimal(GMPDecimal &&other) noexcept {
     this->exp2 = other.exp2;
     mpz_init(this->value);
     mpz_swap(this->value, other.value);
+    mpz_set_ui(other.value, 0);
 }
 
 GMPDecimal &GMPDecimal::operator=(GMPDecimal &&other) noexcept {
     if (this != &other) {
         this->exp2 = other.exp2;
         mpz_swap(this->value, other.value);
+        mpz_set_ui(other.value, 0);
     }
     return *this;
 }

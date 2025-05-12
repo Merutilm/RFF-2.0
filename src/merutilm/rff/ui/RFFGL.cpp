@@ -22,13 +22,12 @@ void RFFGL::initGL() {
     assert(RegisterClassEx(&wc));
 
     SetProcessDPIAware();
-    constexpr DWORD style = WS_OVERLAPPEDWINDOW | WS_SYSMENU;
 
     const auto dummyWnd = CreateWindowEx(
         0,
         wc.lpszClassName,
         "RFF 2.0",
-        style,
+        WS_OVERLAPPEDWINDOW | WS_SYSMENU,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         CW_USEDEFAULT,

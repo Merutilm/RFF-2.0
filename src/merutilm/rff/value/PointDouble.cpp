@@ -7,12 +7,12 @@
 
 PointDouble::PointDouble() : PointDouble(0, 0){}
 
-PointDouble::PointDouble(const int x, const int y) : x(x), y(y) {}
+PointDouble::PointDouble(const double x, const double y) : x(x), y(y) {}
 
-int PointDouble::getX() const {
+double PointDouble::getX() const {
     return x;
 }
 
-int PointDouble::getY() const {
+double PointDouble::getY() const {
     return y;
 }

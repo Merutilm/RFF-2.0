@@ -4,6 +4,6 @@
 
 #pragma once
 
-class DataSettings {
-
+struct DataSettings {
+    float defaultZoomIncrement;
 };

@@ -51,108 +51,185 @@ build cmake_object_order_depends_target_RFF: phony || .
 
 build CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFF.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/ui/RFF.cpp || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\ui\RFF.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\ui
 
 build CMakeFiles/RFF.dir/extern/glad.c.obj: C_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern/glad.c || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\extern\glad.c.obj.d
-  FLAGS = -g -fdiagnostics-color=always
+  FLAGS = -g -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\extern
 
 build CMakeFiles/RFF.dir/extern/glad_wgl.c.obj: C_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern/glad_wgl.c || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\extern\glad_wgl.c.obj.d
-  FLAGS = -g -fdiagnostics-color=always
+  FLAGS = -g -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\extern
 
 build CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLShaderLoader.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/opengl/GLShaderLoader.cpp || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\opengl\GLShaderLoader.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\opengl
 
 build CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRenderer.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/opengl/GLRenderer.cpp || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\opengl\GLRenderer.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\opengl
 
 build CMakeFiles/RFF.dir/src/merutilm/rff/precision/GMPComplexCalculator.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/precision/GMPComplexCalculator.cpp || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\precision\GMPComplexCalculator.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\precision
 
-build CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFRenderWindow.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/ui/RFFRenderWindow.cpp || cmake_object_order_depends_target_RFF
-  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\ui\RFFRenderWindow.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+build CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFMasterWindow.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/ui/RFFMasterWindow.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\ui\RFFMasterWindow.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\ui
 
 build CMakeFiles/RFF.dir/src/merutilm/rff/precision/Center.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/precision/Center.cpp || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\precision\Center.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\precision
 
 build CMakeFiles/RFF.dir/src/merutilm/rff/settings/SelectableParser.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/settings/SelectableParser.cpp || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\settings\SelectableParser.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\settings
 
 build CMakeFiles/RFF.dir/src/merutilm/rff/precision/GMPDecimalCalculator.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/precision/GMPDecimalCalculator.cpp || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\precision\GMPDecimalCalculator.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\precision
 
 build CMakeFiles/RFF.dir/src/merutilm/rff/precision/GMPDecimal.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/precision/GMPDecimal.cpp || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\precision\GMPDecimal.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\precision
 
 build CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFGL.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/ui/RFFGL.cpp || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\ui\RFFGL.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\ui
 
-build CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFRenderer.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/ui/RFFRenderer.cpp || cmake_object_order_depends_target_RFF
-  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\ui\RFFRenderer.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+build CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFRenderScene.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/ui/RFFRenderScene.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\ui\RFFRenderScene.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\ui
 
 build CMakeFiles/RFF.dir/src/merutilm/rff/value/PointDouble.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/value/PointDouble.cpp || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\value\PointDouble.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\value
 
-build CMakeFiles/RFF.dir/src/merutilm/rff/calc/Perturbator.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/calc/Perturbator.cpp || cmake_object_order_depends_target_RFF
-  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\calc\Perturbator.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
+build CMakeFiles/RFF.dir/src/merutilm/rff/formula/Perturbator.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/formula/Perturbator.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\formula\Perturbator.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
   INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
   OBJECT_DIR = CMakeFiles\RFF.dir
-  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\calc
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\formula
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFScene.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/ui/RFFScene.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\ui\RFFScene.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\ui
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/io/RFFMap.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/io/RFFMap.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\io\RFFMap.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\io
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererIteration.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/opengl/GLRendererIteration.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\opengl\GLRendererIteration.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\opengl
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/data/Color.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/data/Color.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\data\Color.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\data
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/formula/LightMandelbrotReference.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/formula/LightMandelbrotReference.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\formula\LightMandelbrotReference.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\formula
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/parallel/ParallelRenderState.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/parallel/ParallelRenderState.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\parallel\ParallelRenderState.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\parallel
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\formula\LightMandelbrotPerturbator.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\formula
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/approx/LightPA.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/approx/LightPA.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\approx\LightPA.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\approx
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/approx/LightMPATable.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/approx/LightMPATable.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\approx\LightMPATable.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\approx
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/approx/MPAPeriod.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/approx/MPAPeriod.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\approx\MPAPeriod.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\approx
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFSettingsWindow.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/ui/RFFSettingsWindow.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\ui\RFFSettingsWindow.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -O3 -ffast-math -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\ui
 
 
 # =============================================================================
@@ -162,7 +239,7 @@ build CMakeFiles/RFF.dir/src/merutilm/rff/calc/Perturbator.cpp.obj: CXX_COMPILER
 #############################################
 # Link the executable C:\Users\nudet\Desktop\Main\Developments\cpp\Projects\RFF\bin\RFF.exe
 
-build C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/bin/RFF.exe: CXX_EXECUTABLE_LINKER__RFF_Debug CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFF.cpp.obj CMakeFiles/RFF.dir/extern/glad.c.obj CMakeFiles/RFF.dir/extern/glad_wgl.c.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLShaderLoader.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRenderer.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/precision/GMPComplexCalculator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFRenderWindow.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/precision/Center.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/settings/SelectableParser.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/precision/GMPDecimalCalculator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/precision/GMPDecimal.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFGL.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFRenderer.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/value/PointDouble.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/calc/Perturbator.cpp.obj
+build C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/bin/RFF.exe: CXX_EXECUTABLE_LINKER__RFF_Debug CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFF.cpp.obj CMakeFiles/RFF.dir/extern/glad.c.obj CMakeFiles/RFF.dir/extern/glad_wgl.c.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLShaderLoader.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRenderer.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/precision/GMPComplexCalculator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFMasterWindow.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/precision/Center.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/settings/SelectableParser.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/precision/GMPDecimalCalculator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/precision/GMPDecimal.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFGL.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFRenderScene.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/value/PointDouble.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/Perturbator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFScene.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/io/RFFMap.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererIteration.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/data/Color.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/LightMandelbrotReference.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/parallel/ParallelRenderState.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/approx/LightPA.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/approx/LightMPATable.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/approx/MPAPeriod.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFSettingsWindow.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lopengl32  -lgmp  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   LINK_PATH = -LC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/lib

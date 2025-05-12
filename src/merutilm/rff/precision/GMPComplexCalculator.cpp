@@ -3,6 +3,8 @@
 #include <iostream>
 #include <memory>
 
+#include "Center.h"
+
 
 GMPComplexCalculator::GMPComplexCalculator(const std::string &re, const std::string &im, const int exp10) {
     this->real = GMPDecimalCalculator(re, exp10);
@@ -12,14 +14,21 @@ GMPComplexCalculator::GMPComplexCalculator(const std::string &re, const std::str
         temp1 = GMPDecimalCalculator("0", exp10);
     }
 }
-GMPComplexCalculator::GMPComplexCalculator(const GMPDecimalCalculator &re, const GMPDecimalCalculator &im) {
+GMPComplexCalculator::GMPComplexCalculator(const GMPDecimalCalculator &re, const GMPDecimalCalculator &im, const int exp10) {
     this->real = re;
     this->imag = im;
+    setExp10(exp10);
+    for (auto &temp1: temp) {
+        temp1 = GMPDecimalCalculator("0", exp10);
+    }
 }
 
 GMPComplexCalculator::GMPComplexCalculator(const double re, const double im, const int exp10) {
     this->real = GMPDecimalCalculator(re, exp10);
     this->imag = GMPDecimalCalculator(im, exp10);
+    for (auto &temp1: temp) {
+        temp1 = GMPDecimalCalculator("0", exp10);
+    }
 }
 
 
@@ -120,13 +129,17 @@ void GMPComplexCalculator::mpc_square(GMPComplexCalculator &a) {
     //(a+bi)^2
     //REAL : a^2-b^2 = (a+b)(a-b)
     //IMAG : 2ab
-
     GMPDecimalCalculator::fst_add(a.temp[0], a.real, a.imag);
     GMPDecimalCalculator::fst_sub(a.temp[1], a.real, a.imag);
     GMPDecimalCalculator::fst_mul(a.temp[2], a.temp[0], a.temp[1]);
     GMPDecimalCalculator::fst_mul(a.temp[3], a.real, a.imag);
     GMPDecimalCalculator::fst_swap(a.real, a.temp[2]);
     GMPDecimalCalculator::fst_dbl(a.imag, a.temp[3]);
+}
+
+void GMPComplexCalculator::mpc_doubled(GMPComplexCalculator &a) {
+    GMPDecimalCalculator::fst_dbl(a.real, a.real);
+    GMPDecimalCalculator::fst_dbl(a.imag, a.imag);
 }
 
 
@@ -155,6 +168,18 @@ GMPComplexCalculator &GMPComplexCalculator::square() {
     return *this;
 }
 
+GMPComplexCalculator &GMPComplexCalculator::doubled() {
+    mpc_doubled(*this);
+    return *this;
+}
+
+GMPDecimalCalculator &GMPComplexCalculator::getReal() {
+    return real;
+}
+
+GMPDecimalCalculator &GMPComplexCalculator::getImag() {
+    return imag;
+}
 
 GMPDecimalCalculator GMPComplexCalculator::getRealClone() const {
     return real;
@@ -167,4 +192,7 @@ GMPDecimalCalculator GMPComplexCalculator::getImagClone() const {
 void GMPComplexCalculator::setExp10(const int exp10) {
     real.setExp10(exp10);
     imag.setExp10(exp10);
+    for (auto &temp1: temp) {
+        temp1.setExp10(exp10);
+    }
 }
