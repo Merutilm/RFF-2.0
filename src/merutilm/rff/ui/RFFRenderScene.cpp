@@ -466,3 +466,7 @@ void RFFRenderScene::compute0(const Settings &settings) {
 void RFFRenderScene::setStatusMessage(const int index, const std::string_view &message) const {
     (*statusMessageRef)[index] = std::string("  ").append(message);
 }
+
+Settings &RFFRenderScene::getSettings() {
+    return settings;
+}

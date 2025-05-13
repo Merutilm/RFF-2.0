@@ -4,8 +4,6 @@
 
 #include "ParallelRenderState.h"
 
-#include <future>
-#include <memory>
 #include <mutex>
 
 void ParallelRenderState::createThread(std::function<void(std::stop_token)> &&func) {

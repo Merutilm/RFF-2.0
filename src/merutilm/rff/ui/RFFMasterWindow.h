@@ -2,15 +2,15 @@
 // Created by Merutilm on 2025-05-07.
 //
 #pragma once
-#include <Windows.h>
 
 #include "RFFRenderScene.h"
-#include "../settings/Settings.h"
-
+#include "RFFSettingsMenu.h"
+#include "RFFSettingsWindow.h"
 
 class RFFMasterWindow {
 
     RFFRenderScene renderer;
+    std::unique_ptr<RFFSettingsMenu> settingsMenu = nullptr;
     HWND masterWindow;
     HWND renderWindow;
     HWND statusBar;
@@ -20,9 +20,9 @@ class RFFMasterWindow {
     bool running = false;
     std::array<std::string, RFFConstants::Status::LENGTH> statusMessages = {};
 
-    static LRESULT WndMasterProc(HWND masterWindow, UINT message, WPARAM wParam, LPARAM lParam);
+    static LRESULT masterWindowProc(HWND masterWindow, UINT message, WPARAM wParam, LPARAM lParam);
 
-    static LRESULT WndRendererProc(HWND renderWindow, UINT message, WPARAM wParam, LPARAM lParam);
+    static LRESULT renderSceneProc(HWND renderWindow, UINT message, WPARAM wParam, LPARAM lParam);
 
 public:
     RFFMasterWindow();
@@ -37,9 +37,7 @@ public:
 
     RFFMasterWindow& operator=(RFFMasterWindow&& other) noexcept = delete;
 
-    static void initMenu(HMENU hMenubar);
-
-    static UINT_PTR castMenu(HMENU menu);
+    void initMenu(HMENU hMenubar);
 
     void initWindow();
 
@@ -51,15 +49,15 @@ public:
 
     void createStatusBar();
 
-    void createRenderWindow();
+    void createRenderScene();
 
-    void createMasterWindow(DWORD style, HMENU hMenubar);
+    void createMasterWindow(HMENU hMenubar);
 
     void renderLoop();
 
-    void destroy() const;
+    RFFRenderScene &getRenderScene();
 
-    void exit();
+
 
 };
 

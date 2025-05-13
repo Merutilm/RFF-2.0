@@ -93,4 +93,6 @@ public:
 
     void setStatusMessage(int index, const std::string_view &message) const;
 
+    Settings &getSettings();
+
 };

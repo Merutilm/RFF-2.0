@@ -4,7 +4,6 @@
 
 #pragma once
 #include "ParallelRenderState.h"
-#include <execution>
 #include "../data/Matrix.h"
 
 template<typename T>

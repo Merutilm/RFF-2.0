@@ -26,3 +26,4 @@ enum class DecimalizeIterationMethod {
      */
     LOG_LOG
 };
+

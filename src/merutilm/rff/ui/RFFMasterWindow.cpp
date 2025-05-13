@@ -7,70 +7,80 @@
 #include <assert.h>
 #include <commctrl.h>
 
+#include "RFFSettingsMenu.h"
 
 
-LRESULT CALLBACK RFFMasterWindow::WndMasterProc(const HWND masterWindow, const UINT message, const WPARAM wParam,
-                                          const LPARAM lParam) {
-
-    const auto wnd = reinterpret_cast<RFFMasterWindow *>(GetWindowLongPtr(masterWindow, GWLP_USERDATA));
+LRESULT CALLBACK RFFMasterWindow::masterWindowProc(const HWND masterWindow, const UINT message, const WPARAM wParam,
+                                                   const LPARAM lParam) {
+    auto &wnd = *reinterpret_cast<RFFMasterWindow *>(GetWindowLongPtr(masterWindow, GWLP_USERDATA));
 
     switch (message) {
         case WM_SIZE: {
             RECT rect;
             GetClientRect(masterWindow, &rect);
-            rect.bottom -= wnd->statusHeight;
-            wnd->adjustClient(rect);
-            wnd->renderer.requestResize();
-            wnd->renderer.requestRecompute();
+            rect.bottom -= wnd.statusHeight;
+            wnd.adjustClient(rect);
+            wnd.renderer.requestResize();
+            wnd.renderer.requestRecompute();
             return 0;
         }
-        case WM_CLOSE:
-            wnd->exit();
+        case WM_COMMAND: {
+            wnd.settingsMenu->executeAction(wnd.renderer, wParam);
             return 0;
+        }
+        case WM_CLOSE: {
+            wnd.running = false;
+            return 0;
+        }
+
+        case WM_DESTROY: {
+            PostQuitMessage(0);
+            wglDeleteContext(wnd.context);
+            wnd.context = nullptr;
+            ReleaseDC(masterWindow, wnd.hdc);
+            wnd.hdc = nullptr;
+            return 0;
+        }
         default:
             return DefWindowProc(masterWindow, message, wParam, lParam);
     }
 }
 
-LRESULT CALLBACK RFFMasterWindow::WndRendererProc(const HWND renderWindow, const UINT message, const WPARAM wParam,
-                                          const LPARAM lParam) {
-    const auto wnd = reinterpret_cast<RFFMasterWindow *>(GetWindowLongPtr(renderWindow, GWLP_USERDATA));
-    wnd->renderer.runAction(message, wParam);
-    return DefWindowProc(renderWindow, message, wParam, lParam);
+LRESULT CALLBACK RFFMasterWindow::renderSceneProc(const HWND renderWindow, const UINT message, const WPARAM wParam,
+                                                  const LPARAM lParam) {
+    auto &wnd = *reinterpret_cast<RFFMasterWindow *>(GetWindowLongPtr(renderWindow, GWLP_USERDATA));
+    wnd.renderer.runAction(message, wParam);
+    switch (message) {
+        case WM_CLOSE: {
+            DestroyWindow(renderWindow);
+            return 0;
+        }
+        case WM_DESTROY: {
+            PostQuitMessage(0);
+            return 0;
+        }
+        default: return DefWindowProc(renderWindow, message, wParam, lParam);
+    }
 }
 
 RFFMasterWindow::RFFMasterWindow() : renderer(RFFRenderScene()) {
     initWindow();
 }
 
-UINT_PTR RFFMasterWindow::castMenu(HMENU menu) {
-    return reinterpret_cast<UINT_PTR>(menu);
-}
-
 void RFFMasterWindow::initMenu(const HMENU hMenubar) {
-    //TODO : create menu class and implement here
-    std::string menus[] = {
-        "File", "Fractal", "Image", "Shader", "Preset", "Video", "Explore"
-    };
-
-    for (const auto &menu: menus) {
-        const HMENU hMenu = CreateMenu();
-        AppendMenu(hMenubar, MF_POPUP, castMenu(hMenu), menu.c_str());
-    }
+    settingsMenu = std::make_unique<RFFSettingsMenu>(hMenubar);
 }
 
 
 void RFFMasterWindow::initWindow() {
-
-
     SetProcessDPIAware();
 
     const HMENU hMenubar = CreateMenu();
     initMenu(hMenubar);
 
 
-    createMasterWindow(WS_OVERLAPPEDWINDOW | WS_SYSMENU, hMenubar);
-    createRenderWindow();
+    createMasterWindow(hMenubar);
+    createRenderScene();
     createStatusBar();
 
     statusHeight = 0;
@@ -89,16 +99,16 @@ void RFFMasterWindow::initWindow() {
 
 
 void RFFMasterWindow::initClientSize(const int width, const int height) const {
-    const RECT rect = { 0, 0, width, height};
+    const RECT rect = {0, 0, width, height};
     RECT adjusted = rect;
-    AdjustWindowRect(&adjusted,  WS_OVERLAPPEDWINDOW | WS_SYSMENU, true);
+    AdjustWindowRect(&adjusted, WS_OVERLAPPEDWINDOW | WS_SYSMENU, true);
 
-    SetWindowPos(masterWindow, nullptr, 0, 0, adjusted.right - adjusted.left,  adjusted.bottom - adjusted.top + statusHeight, SWP_NOMOVE | SWP_NOZORDER);
+    SetWindowPos(masterWindow, nullptr, 0, 0, adjusted.right - adjusted.left,
+                 adjusted.bottom - adjusted.top + statusHeight, SWP_NOMOVE | SWP_NOZORDER);
     adjustClient(rect);
 }
 
 void RFFMasterWindow::adjustClient(const RECT &rect) const {
-
     SetWindowPos(renderWindow, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
     SetWindowPos(statusBar, nullptr, 0, rect.bottom - rect.top, rect.right - rect.left, statusHeight, SWP_NOZORDER);
 
@@ -112,17 +122,15 @@ void RFFMasterWindow::adjustClient(const RECT &rect) const {
     }
 
     SendMessage(statusBar, SB_SETPARTS, RFFConstants::Status::LENGTH, (LPARAM) rightEdges.data());
-
 }
 
 void RFFMasterWindow::refreshStatusBar() const {
     for (int i = 0; i < RFFConstants::Status::LENGTH; ++i) {
-        SendMessage(statusBar, SB_SETTEXT, i, (LPARAM)TEXT(statusMessages[i].data()));
+        SendMessage(statusBar, SB_SETTEXT, i, (LPARAM) TEXT(statusMessages[i].data()));
     }
 }
 
 void RFFMasterWindow::createStatusBar() {
-
     statusBar = CreateWindowEx(
         0,
         STATUSCLASSNAME,
@@ -133,47 +141,47 @@ void RFFMasterWindow::createStatusBar() {
         nullptr,
         nullptr,
         nullptr);
-
-
 }
-void RFFMasterWindow::createMasterWindow(const DWORD style, const HMENU hMenubar) {
+
+void RFFMasterWindow::createMasterWindow(const HMENU hMenubar) {
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.lpszClassName = RFFConstants::Win32::CLASS_MASTER_WINDOW;
-    wc.lpfnWndProc = WndMasterProc;
+    wc.lpfnWndProc = masterWindowProc;
+    wc.hIcon = (HICON) LoadImage(nullptr, RFFConstants::Win32::ICON_DEFAULT_PATH, IMAGE_ICON, 0, 0,
+                                 LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_DEFAULTSIZE);
 
     assert(RegisterClassEx(&wc));
     masterWindow = CreateWindowEx(
-            0,
-             wc.lpszClassName,
-             wc.lpszClassName,
-            style,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,
-            CW_USEDEFAULT,nullptr, hMenubar, nullptr, nullptr
+        0,
+        wc.lpszClassName,
+        wc.lpszClassName,
+        WS_OVERLAPPEDWINDOW | WS_SYSMENU,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT, nullptr, hMenubar, nullptr, nullptr
     );
 
     SetWindowLongPtr(masterWindow, GWLP_USERDATA, (LONG_PTR) this);
-
 }
 
-void RFFMasterWindow::createRenderWindow() {
+void RFFMasterWindow::createRenderScene() {
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.lpszClassName = RFFConstants::Win32::CLASS_RENDER_SCENE;
-    wc.lpfnWndProc = WndRendererProc;
+    wc.lpfnWndProc = renderSceneProc;
 
     assert(RegisterClassEx(&wc));
     renderWindow = CreateWindowEx(
-       0,
-       wc.lpszClassName,
-       wc.lpszClassName,
-       WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPSIBLINGS,
-       CW_USEDEFAULT,
-       CW_USEDEFAULT,
-       CW_USEDEFAULT,
-       CW_USEDEFAULT, masterWindow, nullptr, nullptr, nullptr);
+        0,
+        wc.lpszClassName,
+        wc.lpszClassName,
+        WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPSIBLINGS,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT,
+        CW_USEDEFAULT, masterWindow, nullptr, nullptr, nullptr);
 
     if (!masterWindow) {
         std::cout << "Failed to create window!\n";
@@ -219,32 +227,27 @@ void RFFMasterWindow::createRenderWindow() {
 void RFFMasterWindow::renderLoop() {
     renderer.configure(renderWindow, hdc, context, &statusMessages);
     MSG msg;
+    auto lastRender = std::chrono::high_resolution_clock::now();
+    constexpr int ms = 1000 / RFFConstants::Win32::INIT_RENDER_SCENE_FPS;
 
     while (running) {
         if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            if (msg.message == WM_QUIT) {
-                running = false;
-                break;
-            }
             TranslateMessage(&msg);
             DispatchMessage(&msg);
+        } else std::this_thread::sleep_until(lastRender + std::chrono::milliseconds(ms));
 
+        if (auto currentTime = std::chrono::high_resolution_clock::now();
+            currentTime - lastRender > std::chrono::milliseconds(ms)) {
+            renderer.renderGL();
+            refreshStatusBar();
+            lastRender = currentTime;
         }
-
-        refreshStatusBar();
-        renderer.renderGL();
-        Sleep(1000 / RFFConstants::Win32::INIT_RENDER_SCENE_FPS);
     }
-    destroy();
-}
-
-void RFFMasterWindow::destroy() const {
-    wglDeleteContext(context);
-    DeleteDC(hdc);
-    DestroyWindow(renderWindow);
     DestroyWindow(masterWindow);
 }
 
-void RFFMasterWindow::exit() {
-    running = false;
+
+RFFRenderScene &RFFMasterWindow::getRenderScene() {
+    return renderer;
 }
+

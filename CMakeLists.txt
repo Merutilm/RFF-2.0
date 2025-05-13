@@ -49,8 +49,7 @@ add_executable(
         src/merutilm/rff/settings/DecimalizeIterationMethod.h
         src/merutilm/rff/settings/ReferenceCompressionSettings.h
         src/merutilm/rff/settings/ReuseReferenceMethod.h
-        src/merutilm/rff/settings/SelectableParser.cpp
-        src/merutilm/rff/settings/SelectableParser.h
+        src/merutilm/rff/settings/Selectable.h
         src/merutilm/rff/precision/GMPDecimalCalculator.cpp
         src/merutilm/rff/precision/GMPDecimalCalculator.h
         src/merutilm/rff/precision/GMPDecimal.cpp
@@ -96,5 +95,13 @@ add_executable(
         src/merutilm/rff/approx/MPAPeriod.h
         src/merutilm/rff/ui/RFFSettingsWindow.cpp
         src/merutilm/rff/ui/RFFSettingsWindow.h
+        src/merutilm/rff/ui/RFFSettingsMenu.cpp
+        src/merutilm/rff/ui/RFFSettingsMenu.h
+        src/merutilm/rff/ui/RFFCallbackFile.cpp
+        src/merutilm/rff/ui/RFFCallbackFile.h
+        src/merutilm/rff/ui/RFFCallbackFractal.cpp
+        src/merutilm/rff/ui/RFFCallbackFractal.h
+        src/merutilm/rff/ui/RFFCallbackRender.cpp
+        src/merutilm/rff/ui/RFFCallbackRender.h
 )
-target_link_libraries(RFF PRIVATE opengl32 gmp)
+target_link_libraries(RFF PRIVATE opengl32 gmp comctl32)
