@@ -8,7 +8,7 @@
 #include "RFFSettingsMenu.h"
 
 struct RFFCallbackRender {
-    static const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> SET_RESOLUTION;
-    static const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> ANTIALIASING;
+    static const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> SET_CLARITY;
+    static const std::function<bool*(RFFRenderScene&)> ANTIALIASING;
 
 };

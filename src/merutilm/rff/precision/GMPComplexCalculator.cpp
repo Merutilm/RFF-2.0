@@ -142,6 +142,11 @@ void GMPComplexCalculator::mpc_doubled(GMPComplexCalculator &a) {
     GMPDecimalCalculator::fst_dbl(a.imag, a.imag);
 }
 
+void GMPComplexCalculator::mpc_halved(GMPComplexCalculator &a) {
+    GMPDecimalCalculator::fst_hvl(a.real, a.real);
+    GMPDecimalCalculator::fst_hvl(a.imag, a.imag);
+}
+
 
 GMPComplexCalculator &GMPComplexCalculator::operator+=(const GMPComplexCalculator &b) {
     mpc_add(*this, b);
@@ -173,6 +178,17 @@ GMPComplexCalculator &GMPComplexCalculator::doubled() {
     return *this;
 }
 
+GMPComplexCalculator &GMPComplexCalculator::halved() {
+    mpc_halved(*this);
+    return *this;
+}
+
+GMPComplexCalculator &GMPComplexCalculator::negate() {
+    GMPDecimalCalculator::negate(real);
+    GMPDecimalCalculator::negate(imag);
+    return *this;
+}
+
 GMPDecimalCalculator &GMPComplexCalculator::getReal() {
     return real;
 }
@@ -188,6 +204,7 @@ GMPDecimalCalculator GMPComplexCalculator::getRealClone() const {
 GMPDecimalCalculator GMPComplexCalculator::getImagClone() const {
     return imag;
 }
+
 
 void GMPComplexCalculator::setExp10(const int exp10) {
     real.setExp10(exp10);

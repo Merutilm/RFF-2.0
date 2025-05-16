@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <windows.h>
-#include "RFFConstants.h"
+#include "RFF.h"
 #include <assert.h>
 #include <commctrl.h>
 
@@ -24,8 +24,38 @@ LRESULT CALLBACK RFFMasterWindow::masterWindowProc(const HWND masterWindow, cons
             wnd.renderer.requestRecompute();
             return 0;
         }
+        case WM_INITMENUPOPUP: {
+            const auto popup = reinterpret_cast<HMENU>(wParam);
+            const int count = GetMenuItemCount(popup);
+            for (int i = 0; i < count; ++i) { //synchronize current settings
+                MENUITEMINFO info = {};
+                info.cbSize = sizeof(MENUITEMINFO);
+                info.fMask = MIIM_ID;
+                if (GetMenuItemInfo(popup, i, TRUE, &info)) {
+                    if (const UINT id = info.wID;
+                        wnd.settingsMenu->hasCheckbox(id)
+                        ) {
+                        const bool* ref = wnd.settingsMenu->getBool(wnd.renderer, id);
+                        assert(ref != nullptr);
+                        CheckMenuItem(popup, id, MF_BYCOMMAND | (*ref ? MF_CHECKED : MF_UNCHECKED));
+                    }
+                }
+            }
+            return 0;
+        }
         case WM_COMMAND: {
-            wnd.settingsMenu->executeAction(wnd.renderer, wParam);
+            const HMENU menu = GetMenu(masterWindow);
+            if (const int menuID = LOWORD(wParam);
+                wnd.settingsMenu->hasCheckbox(menuID)
+            ) {
+                bool *ref = wnd.settingsMenu->getBool(wnd.renderer, menuID);
+                assert(ref != nullptr);
+                *ref = !*ref;
+                wnd.settingsMenu->executeAction(wnd.renderer, menuID);
+                CheckMenuItem(menu, menuID, *ref ? MF_CHECKED : MF_UNCHECKED);
+            } else {
+                wnd.settingsMenu->executeAction(wnd.renderer, menuID);
+            }
             return 0;
         }
         case WM_CLOSE: {
@@ -92,7 +122,7 @@ void RFFMasterWindow::initWindow() {
 
     running = true;
 
-    initClientSize(RFFConstants::Win32::INIT_RENDER_SCENE_WIDTH, RFFConstants::Win32::INIT_RENDER_SCENE_HEIGHT);
+    initClientSize(RFF::Win32::INIT_RENDER_SCENE_WIDTH, RFF::Win32::INIT_RENDER_SCENE_HEIGHT);
     ShowWindow(masterWindow, SW_SHOW);
     UpdateWindow(masterWindow);
 }
@@ -112,20 +142,20 @@ void RFFMasterWindow::adjustClient(const RECT &rect) const {
     SetWindowPos(renderWindow, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
     SetWindowPos(statusBar, nullptr, 0, rect.bottom - rect.top, rect.right - rect.left, statusHeight, SWP_NOZORDER);
 
-    auto rightEdges = std::array<int, RFFConstants::Status::LENGTH>{};
+    auto rightEdges = std::array<int, RFF::Status::LENGTH>{};
 
-    const int statusBarWidth = rect.right / RFFConstants::Status::LENGTH;
+    const int statusBarWidth = rect.right / RFF::Status::LENGTH;
     int rightEdge = statusBarWidth;
-    for (int i = 0; i < RFFConstants::Status::LENGTH; i++) {
+    for (int i = 0; i < RFF::Status::LENGTH; i++) {
         rightEdges[i] = rightEdge;
         rightEdge += statusBarWidth;
     }
 
-    SendMessage(statusBar, SB_SETPARTS, RFFConstants::Status::LENGTH, (LPARAM) rightEdges.data());
+    SendMessage(statusBar, SB_SETPARTS, RFF::Status::LENGTH, (LPARAM) rightEdges.data());
 }
 
 void RFFMasterWindow::refreshStatusBar() const {
-    for (int i = 0; i < RFFConstants::Status::LENGTH; ++i) {
+    for (int i = 0; i < RFF::Status::LENGTH; ++i) {
         SendMessage(statusBar, SB_SETTEXT, i, (LPARAM) TEXT(statusMessages[i].data()));
     }
 }
@@ -146,9 +176,9 @@ void RFFMasterWindow::createStatusBar() {
 void RFFMasterWindow::createMasterWindow(const HMENU hMenubar) {
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof(WNDCLASSEX);
-    wc.lpszClassName = RFFConstants::Win32::CLASS_MASTER_WINDOW;
+    wc.lpszClassName = RFF::Win32::CLASS_MASTER_WINDOW;
     wc.lpfnWndProc = masterWindowProc;
-    wc.hIcon = (HICON) LoadImage(nullptr, RFFConstants::Win32::ICON_DEFAULT_PATH, IMAGE_ICON, 0, 0,
+    wc.hIcon = (HICON) LoadImage(nullptr, RFF::Win32::ICON_DEFAULT_PATH, IMAGE_ICON, 0, 0,
                                  LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_DEFAULTSIZE);
 
     assert(RegisterClassEx(&wc));
@@ -169,7 +199,7 @@ void RFFMasterWindow::createMasterWindow(const HMENU hMenubar) {
 void RFFMasterWindow::createRenderScene() {
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof(WNDCLASSEX);
-    wc.lpszClassName = RFFConstants::Win32::CLASS_RENDER_SCENE;
+    wc.lpszClassName = RFF::Win32::CLASS_RENDER_SCENE;
     wc.lpfnWndProc = renderSceneProc;
 
     assert(RegisterClassEx(&wc));
@@ -228,13 +258,15 @@ void RFFMasterWindow::renderLoop() {
     renderer.configure(renderWindow, hdc, context, &statusMessages);
     MSG msg;
     auto lastRender = std::chrono::high_resolution_clock::now();
-    constexpr int ms = 1000 / RFFConstants::Win32::INIT_RENDER_SCENE_FPS;
+    constexpr int ms = 1000 / RFF::Win32::INIT_RENDER_SCENE_FPS;
 
     while (running) {
-        if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
-        } else std::this_thread::sleep_until(lastRender + std::chrono::milliseconds(ms));
+        }
+
+        std::this_thread::sleep_until(lastRender + std::chrono::milliseconds(ms));
 
         if (auto currentTime = std::chrono::high_resolution_clock::now();
             currentTime - lastRender > std::chrono::milliseconds(ms)) {
@@ -250,4 +282,3 @@ void RFFMasterWindow::renderLoop() {
 RFFRenderScene &RFFMasterWindow::getRenderScene() {
     return renderer;
 }
-

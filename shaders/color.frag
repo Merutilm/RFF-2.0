@@ -113,19 +113,7 @@ vec3 addHue(vec3 col, float add) {
 
 void main() {
 
-    vec2 coord = gl_FragCoord.xy / resolution;
-
-    float x = coord.x;
-    float y = coord.y;
-
-    if (x < 0 || y < 0) {
-        discard;
-    }
-    if (x >= 1 || y >= 1) {
-        discard;
-    }
-
-    vec3 c = texture(inputTex, coord).rgb;
+    vec3 c = texelFetch(inputTex, ivec2(gl_FragCoord.xy), 0).rgb;
 
     c = fixColor(pow(c.rgb, vec3(1 / gamma)));
     c = fixColor(c * (1 + exposure) / (1 - exposure));

@@ -24,6 +24,17 @@ public:
                   const MPASettings *mpaSettings, double dcMax, std::vector<std::vector<LightPA>> &&previousAllocatedTable,
                   std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
+
+    ~LightMPATable() = default;
+
+    LightMPATable(const LightMPATable &) = delete;
+
+    LightMPATable &operator=(const LightMPATable &) = delete;
+
+    LightMPATable(LightMPATable &&) noexcept;
+
+    LightMPATable &operator=(LightMPATable &&) noexcept = delete;
+
     void generateTable(const ParallelRenderState &state, double dcMax,
                        std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 

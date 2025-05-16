@@ -5,31 +5,35 @@
 #include <string>
 
 #include "windows.h"
+#include <commctrl.h>
+
+#include "../formula/LightMandelbrotReference.h"
 
 using TextureFormat = std::array<GLuint, 3>;
 
-namespace RFFConstants {
+namespace RFF {
     namespace Win32 {
         constexpr short INIT_RENDER_SCENE_WIDTH = 1280;
         constexpr short INIT_RENDER_SCENE_HEIGHT = 720;
-        constexpr short INIT_RENDER_SCENE_FPS = 144;
-        constexpr short INIT_SETTINGS_WINDOW_WIDTH = 400;
-        constexpr short INIT_SETTINGS_WINDOW_MIN_HEIGHT = 400;
+        constexpr short INIT_RENDER_SCENE_FPS = 60;
+        constexpr short INIT_SETTINGS_WINDOW_WIDTH = 700;
         constexpr short HEIGHT_SETTINGS_INPUT = 30;
         constexpr short GAP_SETTINGS_INPUT = 15;
-        constexpr short SETTINGS_LABEL_WIDTH_DIVISOR = 4;
+        constexpr short SETTINGS_LABEL_WIDTH_DIVISOR = 2;
         constexpr short MAX_AMOUNT_COMBOBOX = 7;
         constexpr auto CLASS_MASTER_WINDOW = "RFF 2.0";
         constexpr auto CLASS_RENDER_SCENE = "RFF 2.0 Renderer";
         constexpr auto CLASS_SETTINGS_WINDOW = "RFF Settings";
         constexpr auto FONT_DEFAULT = "Segoe UI";
         constexpr short FONT_SIZE = 25;
+        constexpr DWORD STYLE_EX_TOOLTIP = WS_EX_TOPMOST;
         constexpr DWORD STYLE_EX_SETTINGS_WINDOW = WS_EX_TOOLWINDOW | WS_EX_TOPMOST;
+        constexpr DWORD STYLE_TOOLTIP = WS_POPUP | TTS_NOPREFIX | TTS_BALLOON | TTS_ALWAYSTIP;
         constexpr DWORD STYLE_SETTINGS_WINDOW = WS_SYSMENU | WS_BORDER;
         constexpr DWORD STYLE_LABEL = WS_CHILD | WS_VISIBLE | ES_CENTER | SS_NOTIFY;
         constexpr DWORD STYLE_RADIOBUTTON = WS_CHILD | WS_TABSTOP | WS_VISIBLE | BS_AUTORADIOBUTTON;
         constexpr DWORD STYLE_CHECKBOX = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | BS_CHECKBOX;
-        constexpr DWORD STYLE_TEXT_FIELD = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_MULTILINE;
+        constexpr DWORD STYLE_TEXT_FIELD = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_AUTOHSCROLL;
         constexpr DWORD STYLE_COMBOBOX = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | ES_CENTER | CBS_DROPDOWNLIST |
                                          WS_VSCROLL;
         constexpr int ID_MENUS = 0x2000;
@@ -48,8 +52,12 @@ namespace RFFConstants {
         constexpr int EXIT_CHECK_INTERVAL = 256;
         constexpr float ZOOM_MIN = 1.0f;
         constexpr float ZOOM_INTERVAL = 0.235f;
+        constexpr float ZOOM_DEADLINE = 290;
         constexpr uint64_t MINIMUM_ITERATION = 3000;
         constexpr int AUTOMATIC_ITERATION_MULTIPLIER = 50;
+        constexpr int GAUSSIAN_MAX_WIDTH = 200;
+        constexpr int GAUSSIAN_REQUIRES_BOX = 3;
+        inline static const unsigned long long INIT_TIME = std::chrono::system_clock::now().time_since_epoch().count();
     }
 
     namespace Precision {
@@ -76,6 +84,18 @@ namespace RFFConstants {
     }
 
     namespace ValidCondition {
+        constexpr auto POSITIVE_CHAR = [](const char &e) { return e > 0; };
+        constexpr auto NEGATIVE_CHAR = [](const char &e) { return e < 0; };
+        constexpr auto POSITIVE_CHAR_ZERO = [](const char &e) { return e >= 0; };
+        constexpr auto NEGATIVE_CHAR_ZERO = [](const char &e) { return e <= 0; };
+        constexpr auto POSITIVE_U_CHAR = [](const unsigned char &e) { return e > 0; };
+        constexpr auto ALL_U_CHAR = [](const unsigned char &) { return true; };
+        constexpr auto POSITIVE_SHORT = [](const short &e) { return e > 0; };
+        constexpr auto NEGATIVE_SHORT = [](const short &e) { return e < 0; };
+        constexpr auto POSITIVE_SHORT_ZERO = [](const short &e) { return e >= 0; };
+        constexpr auto NEGATIVE_SHORT_ZERO = [](const short &e) { return e <= 0; };
+        constexpr auto POSITIVE_U_SHORT = [](const unsigned short &e) { return e > 0; };
+        constexpr auto ALL_U_SHORT = [](const unsigned short &) { return true; };
         constexpr auto POSITIVE_INT = [](const int &e) { return e > 0; };
         constexpr auto NEGATIVE_INT = [](const int &e) { return e < 0; };
         constexpr auto POSITIVE_INT_ZERO = [](const int &e) { return e >= 0; };
@@ -92,10 +112,16 @@ namespace RFFConstants {
         constexpr auto ALL_U_LONG = [](const unsigned long) { return true; };
         constexpr auto POSITIVE_U_LONG_LONG = [](const unsigned long long &e) { return e > 0; };
         constexpr auto ALL_U_LONG_LONG = [](const unsigned long long) { return true; };
+        constexpr auto FLOAT_ZERO_TO_ONE = [](const float &e) { return e >= 0 && e <= 1; };
+        constexpr auto FLOAT_DEGREE = [](const float &e) { return e >= 0 && e < 360; };
+        constexpr auto ALL_FLOAT = [](const float &) { return true; };
         constexpr auto POSITIVE_FLOAT = [](const float &e) { return e > 0; };
         constexpr auto NEGATIVE_FLOAT = [](const float &e) { return e < 0; };
         constexpr auto POSITIVE_FLOAT_ZERO = [](const float &e) { return e >= 0; };
         constexpr auto NEGATIVE_FLOAT_ZERO = [](const float &e) { return e <= 0; };
+        constexpr auto DOUBLE_ZERO_TO_ONE = [](const double &e) { return e >= 0 && e <= 1; };
+        constexpr auto DOUBLE_DEGREE = [](const double &e) { return e >= 0 && e < 360; };
+        constexpr auto ALL_DOUBLE = [](const double &) { return true; };
         constexpr auto POSITIVE_DOUBLE = [](const double &e) { return e > 0; };
         constexpr auto NEGATIVE_DOUBLE = [](const double &e) { return e < 0; };
         constexpr auto POSITIVE_DOUBLE_ZERO = [](const double &e) { return e >= 0; };
@@ -106,7 +132,16 @@ namespace RFFConstants {
         constexpr auto NEGATIVE_LONG_DOUBLE_ZERO = [](const long double &e) { return e <= 0; };
     }
 
+    namespace Callback {
+        constexpr auto NOTHING = [] {};
+    }
+
     namespace Parser {
+        constexpr auto STRING = [](const std::string &s) { return s; };
+        constexpr auto CHAR = [](const std::string &s) { return static_cast<char>(std::stoi(s) & 0xFF); };
+        constexpr auto U_CHAR = [](const std::string &s) { return static_cast<unsigned char>(std::stoul(s) & 0xFF); };
+        constexpr auto SHORT = [](const std::string &s) { return static_cast<short>(std::stoi(s) & 0xFFFF); };
+        constexpr auto U_SHORT = [](const std::string &s) { return static_cast<unsigned short>(std::stoul(s) & 0xFFFF); };
         constexpr auto INT = [](const std::string &s) { return std::stoi(s); };
         constexpr auto LONG = [](const std::string &s) { return std::stol(s); };
         constexpr auto LONG_LONG = [](const std::string &s) { return std::stoll(s); };
@@ -118,6 +153,11 @@ namespace RFFConstants {
     }
 
     namespace Unparser {
+        constexpr auto STRING = [](const std::string &s) { return s; };
+        constexpr auto CHAR = [](const char &s) { return std::to_string(s); };
+        constexpr auto U_CHAR = [](const unsigned char &s) { return std::to_string(s); };
+        constexpr auto SHORT = [](const short &s) { return std::to_string(s); };
+        constexpr auto U_SHORT = [](const unsigned short &s) { return std::to_string(s); };
         constexpr auto INT = [](const int &s) { return std::to_string(s); };
         constexpr auto LONG = [](const long &s) { return std::to_string(s); };
         constexpr auto LONG_LONG = [](const long long &s) { return std::to_string(s); };
@@ -138,8 +178,16 @@ namespace RFFConstants {
         constexpr int SET_PROCESS_INTERVAL_MS = 10;
     }
 
+    namespace NullPointer {
+        constexpr auto PROCESS_TERMINATED_REFERENCE = nullptr;
+    }
+
     namespace Approximation {
         constexpr int REQUIRED_PERTURBATION = 2;
+    }
+    namespace Locator {
+        constexpr float MINIBROT_LOG_ZOOM_OFFSET = 1.5;
+        constexpr float ZOOM_INCREMENT_LIMIT = 0.01;
     }
 
     namespace GLConfig {
@@ -149,4 +197,5 @@ namespace RFFConstants {
         constexpr auto FRAGMENT_PATH_SUFFIX = ".frag";
         constexpr auto MESSAGE_CANNOT_OPEN_FILE = "Error: Could not open file: ";
     }
+
 }

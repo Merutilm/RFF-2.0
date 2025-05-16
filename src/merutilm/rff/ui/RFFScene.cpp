@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "glad_wgl.h"
-#include "RFFConstants.h"
+#include "RFF.h"
 
 
 void RFFScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {

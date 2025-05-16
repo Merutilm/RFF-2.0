@@ -39,8 +39,12 @@ public:
 
     std::unique_ptr<LightMandelbrotPerturbator> reuse(const CalculationSettings &calc, double dcMax, int exp10);
 
-    const LightMandelbrotReference &getReference() const {
-        return *reference;
+    const LightMandelbrotReference *getReference() const {
+        return reference.get();
+    }
+
+    const CalculationSettings &getCalculationSettings() const {
+        return calc;
     }
 
     LightMPATable &getTable() const {

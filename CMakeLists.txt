@@ -29,7 +29,7 @@ add_executable(
         src/merutilm/rff/precision/GMPComplexCalculator.h
         src/merutilm/rff/ui/RFFMasterWindow.cpp
         src/merutilm/rff/ui/RFFMasterWindow.h
-        src/merutilm/rff/ui/RFFConstants.h
+        src/merutilm/rff/ui/RFF.h
         src/merutilm/rff/settings/Settings.h
         src/merutilm/rff/settings/CalculationSettings.h
         src/merutilm/rff/settings/RenderSettings.h
@@ -84,7 +84,7 @@ add_executable(
         src/merutilm/rff/approx/ArrayCompressionTool.h
         src/merutilm/rff/approx/ArrayCompressor.h
         src/merutilm/rff/parallel/ParallelArrayDispatcher.h
-        src/merutilm/rff/ui/RFFLogger.h
+        src/merutilm/rff/ui/RFFUtilities.h
         src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp
         src/merutilm/rff/formula/LightMandelbrotPerturbator.h
         src/merutilm/rff/approx/LightPA.cpp
@@ -103,5 +103,29 @@ add_executable(
         src/merutilm/rff/ui/RFFCallbackFractal.h
         src/merutilm/rff/ui/RFFCallbackRender.cpp
         src/merutilm/rff/ui/RFFCallbackRender.h
+        src/merutilm/rff/opengl/GLMultipassRenderer.cpp
+        src/merutilm/rff/opengl/GLMultipassRenderer.h
+        src/merutilm/rff/opengl/GLRendererStripe.cpp
+        src/merutilm/rff/opengl/GLRendererStripe.h
+        src/merutilm/rff/opengl/GLRendererSlope.cpp
+        src/merutilm/rff/opengl/GLRendererSlope.h
+        src/merutilm/rff/opengl/GLRendererColor.cpp
+        src/merutilm/rff/opengl/GLRendererColor.h
+        src/merutilm/rff/opengl/GLRendererBoxBlur.cpp
+        src/merutilm/rff/opengl/GLRendererBoxBlur.h
+        src/merutilm/rff/opengl/GLRendererGaussianBlur.cpp
+        src/merutilm/rff/opengl/GLRendererGaussianBlur.h
+        src/merutilm/rff/opengl/GLRendererBloom.cpp
+        src/merutilm/rff/opengl/GLRendererBloom.h
+        src/merutilm/rff/opengl/GLRendererFog.cpp
+        src/merutilm/rff/opengl/GLRendererFog.h
+        src/merutilm/rff/opengl/GLRendererAntialiasing.cpp
+        src/merutilm/rff/opengl/GLRendererAntialiasing.h
+        src/merutilm/rff/ui/RFFCallbackShader.cpp
+        src/merutilm/rff/ui/RFFCallbackShader.h
+        src/merutilm/rff/locator/MandelbrotLocator.cpp
+        src/merutilm/rff/locator/MandelbrotLocator.h
+        src/merutilm/rff/ui/RFFCallbackExplore.cpp
+        src/merutilm/rff/ui/RFFCallbackExplore.h
 )
 target_link_libraries(RFF PRIVATE opengl32 gmp comctl32)

@@ -12,6 +12,6 @@ struct RFFCallbackFractal {
     static const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> REFERENCE;
     static const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> ITERATIONS;
     static const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> MPA;
-    static const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> AUTOMATIC_ITERATIONS;
-    static const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> ABSOLUTE_ITERATION_MODE;
+    static const std::function<bool*(RFFRenderScene&)> AUTOMATIC_ITERATIONS;
+    static const std::function<bool*(RFFRenderScene&)> ABSOLUTE_ITERATION_MODE;
 };

@@ -37,4 +37,5 @@ public:
     bool isNegative() const;
 
     GMPDecimalCalculator edit() const;
+
 };

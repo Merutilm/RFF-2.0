@@ -9,16 +9,16 @@
 
 class RFFMasterWindow {
 
-    RFFRenderScene renderer;
     std::unique_ptr<RFFSettingsMenu> settingsMenu = nullptr;
-    HWND masterWindow;
-    HWND renderWindow;
-    HWND statusBar;
     HDC hdc;
     HGLRC context;
     int statusHeight = 0;
     bool running = false;
-    std::array<std::string, RFFConstants::Status::LENGTH> statusMessages = {};
+    std::array<std::string, RFF::Status::LENGTH> statusMessages = {};
+    HWND masterWindow = nullptr;
+    HWND renderWindow = nullptr;
+    HWND statusBar;
+    RFFRenderScene renderer;
 
     static LRESULT masterWindowProc(HWND masterWindow, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -56,8 +56,6 @@ public:
     void renderLoop();
 
     RFFRenderScene &getRenderScene();
-
-
 
 };
 

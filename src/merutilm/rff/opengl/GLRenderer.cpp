@@ -8,7 +8,8 @@
 #include <mutex>
 
 
-GLRenderer::GLRenderer(const std::string_view name) : shader(GLShaderLoader(RFFConstants::GLConfig::VERTEX_PATH_DEFAULT, name)) {
+GLRenderer::GLRenderer(const std::string_view name) : shader(
+    GLShaderLoader(RFF::GLConfig::VERTEX_PATH_DEFAULT, name)) {
     //-----------------------------------------------
     //Generate FBO
     //-----------------------------------------------
@@ -17,17 +18,26 @@ GLRenderer::GLRenderer(const std::string_view name) : shader(GLShaderLoader(RFFC
 }
 
 
+GLRenderer::~GLRenderer() {
+    if (glIsFramebuffer(fbo)) {
+        glDeleteFramebuffers(1, &fbo);
+    }
+    if (glIsTexture(fboTextureID)) {
+        glDeleteTextures(1, &fboTextureID);
+    }
+}
+
 void GLRenderer::reloadSize(const int width, const int height) {
     this->w = width;
     this->h = height;
     resetFBOTexture(w, h);
 }
 
-void GLRenderer::beforeUpdate() const {
+void GLRenderer::beforeUpdate() {
     bindFBO();
 }
 
-void GLRenderer::afterUpdate() const {
+void GLRenderer::afterUpdate() {
     unbindFBO();
     int error = glGetError();
     while (error != GL_NO_ERROR) {
@@ -66,8 +76,9 @@ void GLRenderer::resetFBOTexture(const int panelWidth, const int panelHeight) {
     if (fbo == 0) {
         return;
     }
-    fboTextureID = GLShaderLoader::recreateTexture2D(fboTextureID, panelWidth, panelHeight, RFFConstants::TextureFormats::FLOAT4,
-                                     false);
+    fboTextureID = GLShaderLoader::recreateTexture2D(fboTextureID, panelWidth, panelHeight,
+                                                     RFF::TextureFormats::FLOAT4,
+                                                     false);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTextureID, 0);
     glViewport(0, 0, panelWidth, panelHeight);
@@ -113,13 +124,3 @@ void GLRenderer::render() {
     GLShaderLoader::detach();
     afterUpdate();
 }
-
-
-void GLRenderer::destroy() {
-    //no operation because this is a template
-}
-
-
-
-
-

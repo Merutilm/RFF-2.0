@@ -4,6 +4,7 @@
 
 #pragma once
 #include <functional>
+#include <mutex>
 #include <thread>
 
 
@@ -14,7 +15,14 @@ class ParallelRenderState {
 public:
     ParallelRenderState() = default;
 
-    void createThread(std::function<void(std::stop_token)> &&func);
+    template<typename T>
+    void createThread(T &&func) {
+        std::scoped_lock lock(mutex);
+        cancelUnsafe();
+        thread = std::jthread([f = std::move(func)](const std::stop_token &interrupted) mutable {
+            f(interrupted);
+        });
+    }
 
     std::stop_token stopToken() const;
 

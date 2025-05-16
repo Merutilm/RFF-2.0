@@ -13,7 +13,7 @@
 LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                        const double dcMax, const int exp10,
                                                        const uint64_t initialPeriod,
-                                                       std::vector<std::vector<LightPA>> &&previousAllocatedTable,
+                                                       std::vector<std::vector<LightPA> > &&previousAllocatedTable,
                                                        std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                                        std::function<void(uint64_t, double)> &&
                                                        actionPerCreatingTableIteration) : LightMandelbrotPerturbator(
@@ -24,7 +24,7 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
 LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                        const double dcMax, const int exp10,
                                                        const uint64_t initialPeriod,
-                                                       std::vector<std::vector<LightPA>> &&previousAllocatedTable,
+                                                       std::vector<std::vector<LightPA> > &&previousAllocatedTable,
                                                        std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                                        std::function<void(uint64_t, double)> &&
                                                        actionPerCreatingTableIteration,
@@ -36,7 +36,7 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
 LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                        const double dcMax, const int exp10,
                                                        const uint64_t initialPeriod,
-                                                       std::vector<std::vector<LightPA>> &&previousAllocatedTable,
+                                                       std::vector<std::vector<LightPA> > &&previousAllocatedTable,
                                                        std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                                        std::function<void(uint64_t, double)> &&
                                                        actionPerCreatingTableIteration,
@@ -44,8 +44,7 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
                                                        std::unique_ptr<LightMandelbrotReference> reusedReference,
                                                        std::unique_ptr<LightMPATable> reusedTable,
                                                        const double offR,
-                                                       const double offI) : state(state), calc(calc),
-                                                                            dcMax(dcMax), offR(offR), offI(offI),
+                                                       const double offI) : state(state), calc(calc), dcMax(dcMax), offR(offR), offI(offI),
                                                                             arbitraryPrecisionFPGBn(
                                                                                 arbitraryPrecisionFPGBn) {
     if (reusedReference == nullptr) {
@@ -57,16 +56,18 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
     }
 
     if (reusedTable == nullptr) {
-        table = std::make_unique<LightMPATable>(state, reference.get(), &calc.mpaSettings, dcMax, std::move(previousAllocatedTable), std::move(actionPerCreatingTableIteration));
-    }else {
+        table = std::make_unique<LightMPATable>(state, reference.get(), &calc.mpaSettings, dcMax,
+                                                std::move(previousAllocatedTable),
+                                                std::move(actionPerCreatingTableIteration));
+    } else {
         table = std::move(reusedTable);
     }
-
-
 }
 
 
 double LightMandelbrotPerturbator::iterate(const double dcr, const double dci) const {
+    if (state.interruptRequested()) return 0.0;
+
     const double dcr1 = dcr + offR;
     const double dci1 = dci + offI;
 
@@ -145,7 +146,7 @@ double LightMandelbrotPerturbator::iterate(const double dcr, const double dci) c
             break;
         }
 
-        if (absIteration % RFFConstants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
+        if (absIteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
     }
 
     if (isAbs) {
@@ -166,17 +167,31 @@ double LightMandelbrotPerturbator::iterate(const double dcr, const double dci) c
 std::unique_ptr<LightMandelbrotPerturbator> LightMandelbrotPerturbator::reuse(
     const CalculationSettings &calc, const double dcMax,
     const int exp10) {
-    GMPComplexCalculator centerOffset = calc.center.edit(exp10);
-    centerOffset -= reference->center.edit(exp10);
+    double offR = 0;
+    double offI = 0;
+    uint64_t longestPeriod = 1;
+    std::unique_ptr<LightMandelbrotReference> reusedReference = nullptr;
 
-    const double offR = centerOffset.getReal().doubleValue();
-    const double offI = centerOffset.getImag().doubleValue();
+    if (reference == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE) {
+        //try to use process-terminated reference
+        MessageBox(nullptr, "Please do not try to use PROCESS-TERMINATED Reference.", "Warning",
+                   MB_OK | MB_ICONWARNING);
+    } else {
+        GMPComplexCalculator centerOffset = calc.center.edit(exp10);
+        centerOffset -= reference->center.edit(exp10);
+        offR = centerOffset.getReal().doubleValue();
+        offI = centerOffset.getImag().doubleValue();
+        longestPeriod = reference->longestPeriod();
+        reusedReference = std::move(reference);
+    }
 
 
-    return std::make_unique<LightMandelbrotPerturbator>(state, calc, dcMax, exp10, reference->longestPeriod(), std::vector<std::vector<LightPA>>(),
+    return std::make_unique<LightMandelbrotPerturbator>(state, calc, dcMax, exp10, longestPeriod,
+                                                        std::vector<std::vector<LightPA> >(),
                                                         [](uint64_t) {
                                                             //no action because the reference is already declared
                                                         }, [](uint64_t, double) {
                                                             //same reason
-                                                        }, arbitraryPrecisionFPGBn, std::move(reference), std::move(table), offR, offI);
+                                                        }, arbitraryPrecisionFPGBn, std::move(reusedReference),
+                                                        std::move(table), offR, offI);
 }

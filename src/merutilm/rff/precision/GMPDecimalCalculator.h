@@ -40,7 +40,11 @@ struct GMPDecimalCalculator final {
 
     static void fst_dbl(GMPDecimalCalculator &out, const GMPDecimalCalculator &target);
 
+    static void fst_hvl(GMPDecimalCalculator &out, const GMPDecimalCalculator &target);
+
     static void fst_swap(GMPDecimalCalculator &a, GMPDecimalCalculator &b);
+
+    static void negate(GMPDecimalCalculator &target);
 
     static int exp2ToExp10(int exp2);
 

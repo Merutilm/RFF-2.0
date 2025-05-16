@@ -10,8 +10,8 @@
 #include <format>
 
 #include "glad.h"
-#include "RFFConstants.h"
-#include "RFFLogger.h"
+#include "RFF.h"
+#include "RFFUtilities.h"
 #include "../approx/ApproxMath.h"
 #include "../formula/Perturbator.h"
 #include "../parallel/ParallelArrayDispatcher.h"
@@ -21,28 +21,36 @@
 RFFRenderScene::RFFRenderScene() : referenceRenderState(ParallelRenderState()), settings(initSettings()) {
 }
 
+RFFRenderScene::~RFFRenderScene() {
+    referenceRenderState.cancel();
+}
 
 Settings RFFRenderScene::initSettings() {
     return Settings{
         .calculationSettings = CalculationSettings{
-            .center = Center("-0.85", "0", Perturbator::logZoomToExp10(2)),
-            .logZoom = 2,
-            .maxIteration = 1000,
+            .center = Center(
+                "-0.85",
+                //"-1.7433380976879299408417853435676017785972000052524291128107561584529660103218876836645852866195456038569337053542405",
+                "0",
+                //"-0.00000180836819716880795128873613161993554089471597685393367018109950768833467685704762711890797154859214327088989719746641",
+                Perturbator::logZoomToExp10(85)),
+            .logZoom = 2, //85.190033f,
+            .maxIteration = 10000000000,
             .bailout = 2,
             .decimalizeIterationMethod = DecimalizeIterationMethod::LOG_LOG,
             .mpaSettings = MPASettings{
-                .minSkipReference = 4,
+                .minSkipReference = 8,
                 .maxMultiplierBetweenLevel = 2,
-                .epsilonPower = -4,
+                .epsilonPower = -3,
                 .mpaSelectionMethod = MPASelectionMethod::HIGHEST,
-                .mpaCompressionMethod = MPACompressionMethod::STRONGEST
+                .mpaCompressionMethod = MPACompressionMethod::NO_COMPRESSION,
             },
             .referenceCompressionSettings = ReferenceCompressionSettings{
-                .compressCriteria = 1,
+                .compressCriteria = 1000000,
                 .compressionThresholdPower = 6,
             },
             .reuseReferenceMethod = ReuseReferenceMethod::DISABLED,
-            .autoIteration = true,
+            .autoMaxIteration = true,
             .absoluteIterationMode = false
         },
         .renderSettings = {
@@ -53,22 +61,22 @@ Settings RFFRenderScene::initSettings() {
             .paletteSettings = {
                 .colors = std::vector{Color{1, 0, 1, 1}, Color{0, 1, 1, 1}, Color{1, 1, 0, 1}},
                 .colorSmoothing = ColorSmoothingSettings::NORMAL,
-                .iterationInterval = 1400,
+                .iterationInterval = 8000,
                 .offsetRatio = 0,
-                .animationSpeed = 0
+                .animationSpeed = 1000
             },
             .stripeSettings = {
-                .stripeType = StripeType::NONE,
-                .firstInterval = 1,
-                .secondInterval = 1,
-                .opacity = 0,
+                .stripeType = StripeType::SINGLE_DIRECTION,
+                .firstInterval = 10,
+                .secondInterval = 50,
+                .opacity = 1,
                 .offset = 0,
-                .animationSpeed = 0
+                .animationSpeed = 0.5f
             },
             .slopeSettings = {
-                .depth = 0,
-                .reflectionRatio = 0,
-                .opacity = 0,
+                .depth = 300,
+                .reflectionRatio = 0.5f,
+                .opacity = 1,
                 .zenith = 60,
                 .azimuth = 135
             },
@@ -81,14 +89,14 @@ Settings RFFRenderScene::initSettings() {
                 .contrast = 0
             },
             .fogSettings = {
-                .radius = 0,
-                .opacity = 0
+                .radius = 0.1f,
+                .opacity = 0.5f
             },
             .bloomSettings = {
                 .threshold = 0,
-                .radius = 0,
+                .radius = 0.1f,
                 .softness = 0,
-                .intensity = 0
+                .intensity = 1
             }
         },
         .videoSettings = {
@@ -121,34 +129,43 @@ void RFFRenderScene::runAction(const UINT message, const WPARAM wParam) {
             SetCursor(LoadCursor(nullptr, IDC_CROSS));
         }
         case WM_MOUSEMOVE: {
+            const int x = getMouseXOnIterationBuffer();
+            const int y = getMouseYOnIterationBuffer();
             if (wParam == MK_LBUTTON) {
                 SetCursor(LoadCursor(nullptr, IDC_SIZEALL));
-                const int x = getMouseXOnIterationBuffer();
-                const int y = getMouseYOnIterationBuffer();
                 const int dx = mouseX - x;
                 const int dy = mouseY - y;
+                const float m = settings.renderSettings.clarityMultiplier;
                 const float logZoom = settings.calculationSettings.logZoom;
                 Center &center = settings.calculationSettings.center;
-                center = center.addCenterDouble(dx / getDivisor(settings), dy / getDivisor(settings),
+                center = center.addCenterDouble(static_cast<float>(dx) / m / getDivisor(settings),
+                                                static_cast<float>(dy) / m / getDivisor(settings),
                                                 Perturbator::logZoomToExp10(logZoom));
                 mouseX = x;
                 mouseY = y;
                 requestRecompute();
             } else {
                 SetCursor(LoadCursor(nullptr, IDC_CROSS));
+                if (currentMap == nullptr) {
+                    return;
+                }
+
+
+                auto it = static_cast<uint64_t>((*iterationMatrix)(x, y));
+                setStatusMessage(RFF::Status::ITERATION_STATUS, std::format("Iterations : {} ({},{})", it, x, y));
             }
             break;
         }
         case WM_MOUSEWHEEL: {
             const int value = GET_WHEEL_DELTA_WPARAM(wParam) > 0 ? 1 : -1;
-            constexpr float increment = RFFConstants::Render::ZOOM_INTERVAL;
+            constexpr float increment = RFF::Render::ZOOM_INTERVAL;
 
-            settings.calculationSettings.logZoom = std::max(RFFConstants::Render::ZOOM_MIN,
+            settings.calculationSettings.logZoom = std::max(RFF::Render::ZOOM_MIN,
                                                             settings.calculationSettings.logZoom);
             if (value == 1) {
                 const PointDouble offset = offsetConversion(settings, getMouseXOnIterationBuffer(),
                                                             getMouseYOnIterationBuffer());
-                const double mzi = 1.0 / pow(10, RFFConstants::Render::ZOOM_INTERVAL);
+                const double mzi = 1.0 / pow(10, RFF::Render::ZOOM_INTERVAL);
                 float &logZoom = settings.calculationSettings.logZoom;
                 logZoom += increment;
                 settings.calculationSettings.center = settings.calculationSettings.center.addCenterDouble(
@@ -157,7 +174,7 @@ void RFFRenderScene::runAction(const UINT message, const WPARAM wParam) {
             if (value == -1) {
                 const PointDouble offset = offsetConversion(settings, getMouseXOnIterationBuffer(),
                                                             getMouseYOnIterationBuffer());
-                const double mzo = 1.0 / pow(10, -RFFConstants::Render::ZOOM_INTERVAL);
+                const double mzo = 1.0 / pow(10, -RFF::Render::ZOOM_INTERVAL);
                 float &logZoom = settings.calculationSettings.logZoom;
                 logZoom -= increment;
                 settings.calculationSettings.center = settings.calculationSettings.center.addCenterDouble(
@@ -177,8 +194,10 @@ void RFFRenderScene::runAction(const UINT message, const WPARAM wParam) {
 
 PointDouble RFFRenderScene::offsetConversion(const Settings &settings, const int mx, const int my) const {
     return PointDouble(
-        (static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth(settings)) / 2.0) / getDivisor(settings),
+        (static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth(settings)) / 2.0) / getDivisor(settings)
+        / settings.renderSettings.clarityMultiplier,
         (static_cast<double>(my) - static_cast<double>(getIterationBufferHeight(settings)) / 2.0) / getDivisor(settings)
+        / settings.renderSettings.clarityMultiplier
     );
 }
 
@@ -210,24 +229,43 @@ int RFFRenderScene::getIterationBufferHeight(const Settings &settings) const {
 
 
 void RFFRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context,
-                            std::array<std::string, RFFConstants::Status::LENGTH> *statusMessageRef) {
+                               std::array<std::string, RFF::Status::LENGTH> *statusMessageRef) {
     RFFScene::configure(wnd, hdc, context);
     this->statusMessageRef = statusMessageRef;
 
     makeContextCurrent();
-    rendererIteration = std::make_unique<GLRendererIteration>();
-    rendererIteration->setAsLastFBO();
+    renderer = std::make_unique<GLMultipassRenderer>();
 
-    requestColor();
+    rendererIteration = std::make_unique<GLRendererIteration>();
+    rendererStripe = std::make_unique<GLRendererStripe>();
+    rendererSlope = std::make_unique<GLRendererSlope>();
+    rendererColorFilter = std::make_unique<GLRendererColor>();
+    rendererFog = std::make_unique<GLRendererFog>();
+    rendererBloom = std::make_unique<GLRendererBloom>();
+    rendererAntialiasing = std::make_unique<GLRendererAntialiasing>();
+
+
+    renderer->add(rendererIteration.get());
+    renderer->add(rendererStripe.get());
+    renderer->add(rendererSlope.get());
+    renderer->add(rendererColorFilter.get());
+    renderer->add(rendererFog.get());
+    renderer->add(rendererBloom.get());
+    renderer->add(rendererAntialiasing.get());
+
+    requestClarity();
     requestResize();
+    requestColor();
     requestRecompute();
 }
 
 void RFFRenderScene::renderGL() {
-    if (canBeDisplayed) {
+    renderer->setTime(RFFUtilities::getTime());
+
+    if (canDisplayed) {
         makeContextCurrent();
         glClear(GL_COLOR_BUFFER_BIT);
-        rendererIteration->render();
+        renderer->render();
         swapBuffers();
     }
 
@@ -239,6 +277,10 @@ void RFFRenderScene::renderGL() {
         resizeRequested = false;
         referenceRenderState.cancel();
         applyResize();
+    }
+    if (clarityRequested) {
+        clarityRequested = false;
+        applyClarity();
     }
     if (recomputeRequested) {
         isComputing = true;
@@ -256,30 +298,42 @@ void RFFRenderScene::requestResize() {
     resizeRequested = true;
 }
 
+void RFFRenderScene::requestClarity() {
+    clarityRequested = true;
+}
+
 void RFFRenderScene::requestRecompute() {
-    canBeDisplayed = false;
     recomputeRequested = true;
 }
 
 void RFFRenderScene::applyColor(const Settings &settings) const {
-    rendererIteration->setPaletteSettings(&settings.shaderSettings.paletteSettings);
+    rendererIteration->setPaletteSettings(settings.shaderSettings.paletteSettings);
+    rendererStripe->setStripeSettings(settings.shaderSettings.stripeSettings);
+    rendererSlope->setSlopeSettings(settings.shaderSettings.slopeSettings);
+    rendererColorFilter->setColorSettings(settings.shaderSettings.colorSettings);
+    rendererFog->setFogSettings(settings.shaderSettings.fogSettings);
+    rendererBloom->setBloomSettings(settings.shaderSettings.bloomSettings);
+    rendererAntialiasing->setUse(settings.renderSettings.antialiasing);
 }
 
 void RFFRenderScene::applyResize() const {
     glViewport(0, 0, getClientWidth(), getClientHeight());
-    rendererIteration->reloadSize(getClientWidth(), getClientHeight());
-}
-
-
-void RFFRenderScene::applyComputationalSettings() {
-    if (settings.calculationSettings.autoIteration) {
-        settings.calculationSettings.maxIteration = std::max(RFFConstants::Render::MINIMUM_ITERATION,
-                                                             lastPeriod *
-                                                             RFFConstants::Render::AUTOMATIC_ITERATION_MULTIPLIER);
-    }
-
+    renderer->reloadSize(getClientWidth(), getClientHeight());
     rendererIteration->reloadIterationBuffer(getIterationBufferWidth(settings), getIterationBufferHeight(settings),
                                              settings.calculationSettings.maxIteration);
+}
+
+void RFFRenderScene::applyClarity() const {
+    rendererIteration->reloadIterationBuffer(getIterationBufferWidth(settings), getIterationBufferHeight(settings),
+                                             settings.calculationSettings.maxIteration);
+}
+
+void RFFRenderScene::applyComputationalSettings() {
+    if (settings.calculationSettings.autoMaxIteration) {
+        settings.calculationSettings.maxIteration = std::max(RFF::Render::MINIMUM_ITERATION,
+                                                             lastPeriod *
+                                                             RFF::Render::AUTOMATIC_ITERATION_MULTIPLIER);
+    }
 }
 
 int RFFRenderScene::getMouseXOnIterationBuffer() const {
@@ -295,25 +349,26 @@ int RFFRenderScene::getMouseYOnIterationBuffer() const {
     GetCursorPos(&cursor);
     ScreenToClient(getRenderWindow(), &cursor);
     const float multiplier = settings.renderSettings.clarityMultiplier;
-    return static_cast<int>(static_cast<float>(getIterationBufferHeight(settings) - cursor.y) * multiplier);
+    return getIterationBufferHeight(settings) - static_cast<int>(static_cast<float>(cursor.y) * multiplier);
 }
 
 
 void RFFRenderScene::recompute() {
     referenceRenderState.createThread([this](std::stop_token) {
-        compute();
-        if (referenceRenderState.interruptRequested()) {
-            RFFLogger::log("Recompute cancelled.");
-        }
+        const Settings settings = this->settings; //clone the settings
+        beforeCompute(settings);
+        compute(settings);
+        afterCompute();
     });
 }
 
-void RFFRenderScene::compute() {
-    compute0(settings);
+void RFFRenderScene::beforeCompute(const Settings &settings) {
+    canDisplayed = false;
+    rendererIteration->resetToZero(settings.calculationSettings.maxIteration);
 }
 
 
-void RFFRenderScene::compute0(const Settings &settings) {
+void RFFRenderScene::compute(const Settings &settings) {
     const Settings settingsToUse = settings;
     int w = getIterationBufferWidth(settingsToUse);
     int h = getIterationBufferHeight(settingsToUse);
@@ -324,25 +379,25 @@ void RFFRenderScene::compute0(const Settings &settings) {
     iterationMatrix = std::make_unique<Matrix<double> >(w, h);
 
     float logZoom = calc.logZoom;
-    int precision = Perturbator::logZoomToExp10(logZoom);
+    int exp10 = Perturbator::logZoomToExp10(logZoom);
 
     if (referenceRenderState.interruptRequested()) return;
 
-    setStatusMessage(RFFConstants::Status::ZOOM_STATUS,
+    setStatusMessage(RFF::Status::ZOOM_STATUS,
                      std::format("Zoom : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
     PointDouble offset = offsetConversion(settingsToUse, 0, 0);
     double dcMax = ApproxMath::hypotApproximate(offset.getX(), offset.getY());
 
-    const auto refreshInterval = static_cast<int>(100000.0 / logZoom);
+    const auto refreshInterval = RFFUtilities::getRefreshInterval(logZoom);
     std::function actionPerRefCalcIteration = [refreshInterval, this](const uint64_t p) {
         if (p % refreshInterval == 0) {
-            setStatusMessage(RFFConstants::Status::RENDER_STATUS, std::format(std::locale(), "Period {:L}", p));
+            setStatusMessage(RFF::Status::RENDER_STATUS, std::format(std::locale(), "Period {:L}", p));
         }
     };
     std::function actionPerCreatingTableIteration = [refreshInterval, this](const uint64_t p, const double i) {
         if (p % refreshInterval == 0) {
-            setStatusMessage(RFFConstants::Status::RENDER_STATUS, std::format("Creating Table... {:.2f}%", i * 100));
+            setStatusMessage(RFF::Status::RENDER_STATUS, std::format("Creating Table... {:.3f}%", i * 100));
         }
     };
 
@@ -353,7 +408,7 @@ void RFFRenderScene::compute0(const Settings &settings) {
     switch (calc.reuseReferenceMethod) {
             using enum ReuseReferenceMethod;
         case CURRENT_REFERENCE: {
-            currentPerturbator = currentPerturbator->reuse(calc, currentPerturbator->getDcMax(), precision);
+            currentPerturbator = currentPerturbator->reuse(calc, currentPerturbator->getDcMax(), exp10);
             break;
         }
         // case CENTERED_REFERENCE: {
@@ -396,13 +451,11 @@ void RFFRenderScene::compute0(const Settings &settings) {
             //                                                        actionPerRefCalcIteration,
             //                                                        actionPerCreatingTableIteration);
             // } else {
-
             auto vector = currentPerturbator == nullptr
-                              ? std::vector<std::vector<LightPA>>()
+                              ? std::vector<std::vector<LightPA> >()
                               : std::move(currentPerturbator->getTable().extractVector());
-
             currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(
-                referenceRenderState, calc, dcMax, precision,
+                referenceRenderState, calc, dcMax, exp10,
                 0, std::move(vector), std::move(actionPerRefCalcIteration),
                 std::move(actionPerCreatingTableIteration));
             break;
@@ -412,14 +465,16 @@ void RFFRenderScene::compute0(const Settings &settings) {
         }
     }
 
-    if (referenceRenderState.interruptRequested()) return;
+    const LightMandelbrotReference *reference = currentPerturbator->getReference();
+    if (reference == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE || referenceRenderState.interruptRequested())
+        return;
 
-    lastPeriod = currentPerturbator->getReference().longestPeriod();
-    size_t length = currentPerturbator->getReference().length();
-    //currentMap = new RFFMap(calc.logZoom(), period, calc.maxIteration(), iterations);
 
-    setStatusMessage(RFFConstants::Status::PERIOD_STATUS, std::format("Period : {:L}", lastPeriod));
-    setStatusMessage(RFFConstants::Status::RENDER_STATUS, "Preparing...");
+    lastPeriod = reference->longestPeriod();
+    size_t length = reference->length();
+
+    setStatusMessage(RFF::Status::PERIOD_STATUS, std::format("Period : {:L}({:L})", lastPeriod, length));
+    setStatusMessage(RFF::Status::RENDER_STATUS, "Preparing...");
 
 
     if (referenceRenderState.interruptRequested()) return;
@@ -434,8 +489,8 @@ void RFFRenderScene::compute0(const Settings &settings) {
             const double iteration = currentPerturbator->iterate(dc.getX(), dc.getY());
             rendererIteration->setIteration(x, y, iteration);
 
-            if (x == xRes - 1) {
-                canBeDisplayed = true;
+            if (x == xRes - 1 && !canDisplayed) {
+                canDisplayed = true;
             }
             ++renderPixelsCount;
             return iteration;
@@ -447,19 +502,28 @@ void RFFRenderScene::compute0(const Settings &settings) {
             const auto elapsed = std::chrono::milliseconds((current - start).count() / 1000000);
             auto hms = std::chrono::hh_mm_ss(elapsed);
             float ratio = static_cast<float>(renderPixelsCount.load()) / static_cast<float>(w * h) * 100;
-            setStatusMessage(RFFConstants::Status::TIME_STATUS,
+            setStatusMessage(RFF::Status::TIME_STATUS,
                              std::format("Time : {:02d}:{:02d}:{:02d}:{:03d}", hms.hours().count(),
                                          hms.minutes().count(), hms.seconds().count(), hms.subseconds().count()));
-            setStatusMessage(RFFConstants::Status::RENDER_STATUS, std::format("Calculating... {:.3f}%", ratio));
+            setStatusMessage(RFF::Status::RENDER_STATUS, std::format("Calculating... {:.3f}%", ratio));
 
-            Sleep(RFFConstants::Status::SET_PROCESS_INTERVAL_MS);
+            Sleep(RFF::Status::SET_PROCESS_INTERVAL_MS);
         }
     });
 
     generator.dispatch();
     statusThread.request_stop();
     statusThread.join();
-    setStatusMessage(RFFConstants::Status::RENDER_STATUS, std::string("Done"));
+
+    currentMap = std::make_unique<RFFMap>(calc.logZoom, lastPeriod, calc.maxIteration, *iterationMatrix);
+
+    setStatusMessage(RFF::Status::RENDER_STATUS, std::string("Done"));
+}
+
+void RFFRenderScene::afterCompute() const {
+    if (referenceRenderState.interruptRequested()) {
+        RFFUtilities::log("Recompute cancelled.");
+    }
 }
 
 
@@ -469,4 +533,22 @@ void RFFRenderScene::setStatusMessage(const int index, const std::string_view &m
 
 Settings &RFFRenderScene::getSettings() {
     return settings;
+}
+
+ParallelRenderState &RFFRenderScene::getState() {
+    return referenceRenderState;
+}
+
+LightMandelbrotPerturbator *RFFRenderScene::getCurrentPerturbator() const {
+    return currentPerturbator.get();
+}
+
+std::unique_ptr<LightMandelbrotPerturbator> RFFRenderScene::extractCurrentPerturbator() {
+    auto ptr = std::move(currentPerturbator);
+    currentPerturbator = nullptr;
+    return ptr;
+}
+
+void RFFRenderScene::setCurrentPerturbator(std::unique_ptr<LightMandelbrotPerturbator> perturbator) {
+    this->currentPerturbator = std::move(perturbator);
 }

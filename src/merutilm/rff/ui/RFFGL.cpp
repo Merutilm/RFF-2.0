@@ -10,7 +10,7 @@
 #include <assert.h>
 
 #include "glad.h"
-#include "RFFConstants.h"
+#include "RFF.h"
 
 void RFFGL::initGL() {
     WNDCLASSEX wc = {};

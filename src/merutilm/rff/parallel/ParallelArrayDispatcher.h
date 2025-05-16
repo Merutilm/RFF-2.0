@@ -103,7 +103,7 @@ private:
         }
 
         for (int x = 0; x < xRes; ++x) {
-            if (x % RFFConstants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            if (x % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
 
@@ -119,7 +119,7 @@ private:
 
     void renderBackward(const int xRes, const int yRes, const int len, std::vector<std::atomic<bool> > &rendered) {
         for (int i = len - 1; i >= 0; --i) {
-            if (i % RFFConstants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            if (i % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
             const auto [px, py] = matrix.getLocation(i);

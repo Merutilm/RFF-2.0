@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <mutex>
@@ -7,7 +6,6 @@
 
 
 class GLRenderer {
-
     GLShaderLoader shader;
     int w = 0;
     int h = 0;
@@ -17,15 +15,15 @@ class GLRenderer {
     std::mutex mutex;
 
 protected:
-
     explicit GLRenderer(std::string_view name);
 
-    virtual ~GLRenderer() = default;
+    virtual ~GLRenderer();
+
     virtual void update() = 0;
 
-    void beforeUpdate() const;
+    virtual void beforeUpdate();
 
-    void afterUpdate() const;
+    virtual void afterUpdate();
 
 public:
     int getWidth() const;
@@ -44,13 +42,11 @@ public:
 
     void unbindFBO() const;
 
-    void setPreviousFBOTextureID(GLuint previousFBOTextureID);
+    virtual void setPreviousFBOTextureID(GLuint previousFBOTextureID);
 
     GLShaderLoader &getShaderLoader();
 
-    void reloadSize(int width, int height);
+    virtual void reloadSize(int width, int height);
 
     void render();
-
-    virtual void destroy();
 };

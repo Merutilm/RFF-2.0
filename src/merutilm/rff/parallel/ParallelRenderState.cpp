@@ -4,17 +4,10 @@
 
 #include "ParallelRenderState.h"
 
+#include <iostream>
 #include <mutex>
 
-void ParallelRenderState::createThread(std::function<void(std::stop_token)> &&func) {
-    std::scoped_lock lock(mutex);
-    if (thread.joinable()) {
-        cancelUnsafe();
-    }
-    thread = std::jthread([f = std::move(func)](const std::stop_token &interrupted) {
-        f(interrupted);
-    });
-}
+
 
 std::stop_token ParallelRenderState::stopToken() const {
     return thread.get_stop_token();
@@ -35,6 +28,8 @@ void ParallelRenderState::cancel() {
 
 
 void ParallelRenderState::cancelUnsafe() {
-    interrupt();
-    thread.join();
+    if (thread.joinable()) {
+        interrupt();
+        thread.join();
+    }
 }

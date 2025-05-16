@@ -7,6 +7,15 @@
 GLRendererIteration::GLRendererIteration() : GLRenderer("iteration_palette") {
 }
 
+GLRendererIteration::~GLRendererIteration() {
+    if (glIsTexture(iterationTextureID)) {
+        glDeleteTextures(1, &iterationTextureID);
+    }
+    if (glIsTexture(paletteTextureID)) {
+        glDeleteTextures(1, &paletteTextureID);
+    }
+}
+
 void GLRendererIteration::setIteration(const int x, const int y, const double iteration) {
     const int index = (y * iterWidth + x) * 2;
     auto [a, b] = doubleToTwoFloatBits(iteration);
@@ -22,33 +31,38 @@ void GLRendererIteration::setMaxIteration(const int maxIteration) {
     this->maxIteration = maxIteration;
 }
 
+GLuint GLRendererIteration::getIterationTextureID() {
+    return iterationTextureID;
+}
+
+float GLRendererIteration::getClarityMultiplier() {
+    return static_cast<float>(iterWidth) / static_cast<float>(getWidth());
+}
+
 void GLRendererIteration::reloadIterationBuffer(const int iterWidth, const int iterHeight,
                                                 const uint64_t maxIteration) {
     this->iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
     this->iterationTextureID = GLShaderLoader::recreateTexture2D(iterationTextureID, iterWidth, iterHeight,
-                                                                   RFFConstants::TextureFormats::FLOAT2, false);
+                                                                 RFF::TextureFormats::FLOAT2, false);
     this->maxIteration = static_cast<double>(maxIteration);
     this->iterWidth = iterWidth;
     this->iterHeight = iterHeight;
 }
 
-void GLRendererIteration::setPaletteSettings(const PaletteSettings *paletteSettings) {
-    this->paletteSettings = paletteSettings;
-    this->paletteLength = static_cast<int>(paletteSettings->colors.size());
+void GLRendererIteration::setPaletteSettings(const PaletteSettings &paletteSettings) {
+    this->paletteSettings = &paletteSettings;
+    this->paletteLength = static_cast<int>(paletteSettings.colors.size());
     GLint max;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
     this->paletteWidth = std::min(max, paletteLength);
     this->paletteHeight = (paletteLength - 1) / paletteWidth + 1;
-    this->paletteBuffer = createPaletteBuffer(*paletteSettings, paletteWidth, paletteHeight);
-    this->paletteTextureID = GLShaderLoader::recreateTexture2D(paletteTextureID, paletteWidth, paletteHeight, RFFConstants::TextureFormats::FLOAT4, true);
+    this->paletteBuffer = createPaletteBuffer(paletteSettings, paletteWidth, paletteHeight);
+    this->paletteTextureID = GLShaderLoader::recreateTexture2D(paletteTextureID, paletteWidth, paletteHeight,
+                                                               RFF::TextureFormats::FLOAT4, true);
 }
 
 int GLRendererIteration::getIterationTextureID() const {
     return iterationTextureID;
-}
-
-float GLRendererIteration::getResolutionMultiplier() const {
-    return static_cast<float>(iterWidth) / static_cast<float>(getWidth());
 }
 
 void GLRendererIteration::update() {
@@ -61,8 +75,8 @@ void GLRendererIteration::update() {
             return;
         }
         shader.uploadTexture2D("iterations", GL_TEXTURE0, iterationTextureID, iterationBuffer.data(), iterWidth,
-                               iterHeight, RFFConstants::TextureFormats::FLOAT2);
-        shader.uploadFloat("resolutionMultiplier", getResolutionMultiplier());
+                               iterHeight, RFF::TextureFormats::FLOAT2);
+        shader.uploadFloat("resolutionMultiplier", getClarityMultiplier());
     } else {
         shader.uploadTexture2D("iterations", GL_TEXTURE0, previousFBOTextureID);
         shader.uploadFloat("resolutionMultiplier", 1);
@@ -71,7 +85,7 @@ void GLRendererIteration::update() {
     shader.uploadDouble("maxIteration", maxIteration);
 
     shader.uploadTexture2D("palette", GL_TEXTURE1, paletteTextureID, paletteBuffer.data(), paletteWidth, paletteHeight,
-                           RFFConstants::TextureFormats::FLOAT4);
+                           RFF::TextureFormats::FLOAT4);
     shader.uploadInt("paletteWidth", paletteWidth);
     shader.uploadInt("paletteHeight", paletteHeight);
     shader.uploadInt("paletteLength", paletteLength);
@@ -94,6 +108,11 @@ std::vector<float> GLRendererIteration::emptyIterationBuffer(const int iterWidth
     return std::vector<float>(iterWidth * iterHeight * 2);
 }
 
+void GLRendererIteration::resetToZero(const uint64_t maxIteration) {
+    std::ranges::fill(iterationBuffer, 0);
+    this->maxIteration = maxIteration;
+}
+
 void GLRendererIteration::setAllIterations(Matrix<double> &iterations) {
     iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
     for (int i = 0; i < iterWidth * iterHeight; i++) {
@@ -103,11 +122,12 @@ void GLRendererIteration::setAllIterations(Matrix<double> &iterations) {
     }
 }
 
-std::vector<float> GLRendererIteration::createPaletteBuffer(const PaletteSettings &paletteSettings, const int paletteWidth, const int paletteHeight) {
+std::vector<float> GLRendererIteration::createPaletteBuffer(const PaletteSettings &paletteSettings,
+                                                            const int paletteWidth, const int paletteHeight) {
     const std::vector<Color> &colors = paletteSettings.colors;
     auto result = std::vector<float>();
     result.reserve(paletteWidth * paletteHeight * 4);
-    for (const auto &[r, g, b, a] : colors) {
+    for (const auto &[r, g, b, a]: colors) {
         result.push_back(r);
         result.push_back(g);
         result.push_back(b);
@@ -115,10 +135,3 @@ std::vector<float> GLRendererIteration::createPaletteBuffer(const PaletteSetting
     }
     return result;
 }
-
-
-void GLRendererIteration::destroy() {
-    glDeleteTextures(1, &iterationTextureID);
-    glDeleteTextures(1, &paletteTextureID);
-}
-

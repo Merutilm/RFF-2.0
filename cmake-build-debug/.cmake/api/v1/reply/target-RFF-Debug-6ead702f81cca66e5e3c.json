@@ -43,7 +43,7 @@
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 107,
+				"line" : 131,
 				"parent" : 0
 			},
 			{
@@ -139,7 +139,19 @@
 				76,
 				78,
 				80,
-				82
+				82,
+				84,
+				86,
+				88,
+				90,
+				92,
+				94,
+				96,
+				98,
+				100,
+				102,
+				104,
+				106
 			]
 		},
 		{
@@ -265,7 +277,19 @@
 				76,
 				78,
 				80,
-				82
+				82,
+				84,
+				86,
+				88,
+				90,
+				92,
+				94,
+				96,
+				98,
+				100,
+				102,
+				104,
+				106
 			]
 		},
 		{
@@ -326,7 +350,19 @@
 				77,
 				79,
 				81,
-				83
+				83,
+				85,
+				87,
+				89,
+				91,
+				93,
+				95,
+				97,
+				99,
+				101,
+				103,
+				105,
+				107
 			]
 		}
 	],
@@ -391,7 +427,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/ui/RFFConstants.h",
+			"path" : "src/merutilm/rff/ui/RFF.h",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -679,7 +715,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/ui/RFFLogger.h",
+			"path" : "src/merutilm/rff/ui/RFFUtilities.h",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -779,6 +815,138 @@
 		{
 			"backtrace" : 1,
 			"path" : "src/merutilm/rff/ui/RFFCallbackRender.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/opengl/GLMultipassRenderer.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLMultipassRenderer.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/opengl/GLRendererStripe.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLRendererStripe.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/opengl/GLRendererSlope.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLRendererSlope.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/opengl/GLRendererColor.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLRendererColor.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/opengl/GLRendererBoxBlur.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLRendererBoxBlur.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/opengl/GLRendererGaussianBlur.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLRendererGaussianBlur.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/opengl/GLRendererBloom.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLRendererBloom.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/opengl/GLRendererFog.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLRendererFog.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/opengl/GLRendererAntialiasing.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/opengl/GLRendererAntialiasing.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/ui/RFFCallbackShader.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/ui/RFFCallbackShader.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/locator/MandelbrotLocator.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/locator/MandelbrotLocator.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/merutilm/rff/ui/RFFCallbackExplore.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/ui/RFFCallbackExplore.h",
 			"sourceGroupIndex" : 1
 		}
 	],

@@ -99,3 +99,4 @@ bool GMPDecimal::isNegative() const {
 GMPDecimalCalculator GMPDecimal::edit() const{
     return GMPDecimalCalculator(value, exp2);
 }
+

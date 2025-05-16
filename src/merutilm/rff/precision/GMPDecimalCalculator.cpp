@@ -9,7 +9,7 @@
 #include <math.h>
 
 #include "GMPComplexCalculator.h"
-#include "../ui/RFFConstants.h"
+#include "../ui/RFF.h"
 
 
 GMPDecimalCalculator::GMPDecimalCalculator() {
@@ -152,13 +152,14 @@ void GMPDecimalCalculator::fst_mul(GMPDecimalCalculator &out, const GMPDecimalCa
  */
 void GMPDecimalCalculator::fst_div(GMPDecimalCalculator &out, const GMPDecimalCalculator &a, const GMPDecimalCalculator &b) {
     const auto vbl = static_cast<int>(mpz_sizeinbase(b.value, 2));
+
     const int e = b.exp2 + vbl;
     mpz_mul_2exp(out.temp, a.value, vbl);
     mpz_div(out.temp, out.temp, b.value);
     if (e < 0) {
-        mpz_mul_2exp(out.value, out.temp, e);
+        mpz_mul_2exp(out.value, out.temp, -e);
     }else {
-        mpz_div_2exp(out.value, out.temp, -e);
+        mpz_div_2exp(out.value, out.temp, e);
     }
 }
 /**
@@ -169,7 +170,14 @@ void GMPDecimalCalculator::fst_div(GMPDecimalCalculator &out, const GMPDecimalCa
 void GMPDecimalCalculator::fst_dbl(GMPDecimalCalculator &out, const GMPDecimalCalculator &target) {
     mpz_mul_2exp(out.value, target.value, 1);
 }
-
+/**
+ * Halves value. It assumes that the exponents of both numbers are the same.
+ * @param out the result
+ * @param target input B
+ */
+void GMPDecimalCalculator::fst_hvl(GMPDecimalCalculator &out, const GMPDecimalCalculator &target) {
+    mpz_div_2exp(out.value, target.value, 1);
+}
 /**
  * Do swap. It assumes that the exponents of both numbers are the same.
  * @param a input A
@@ -179,13 +187,16 @@ void GMPDecimalCalculator::fst_swap(GMPDecimalCalculator &a, GMPDecimalCalculato
     mpz_swap(a.value, b.value);
 }
 
+void GMPDecimalCalculator::negate(GMPDecimalCalculator &target) {
+    mpz_neg(target.value, target.value);
+}
 
 int GMPDecimalCalculator::exp2ToExp10(const int exp2) {
-    return static_cast<int>(static_cast<float>(exp2) * RFFConstants::Precision::LOG10_2);
+    return static_cast<int>(static_cast<float>(exp2) * RFF::Precision::LOG10_2);
 }
 
 int GMPDecimalCalculator::exp10ToExp2(const int precision){
-    return static_cast<int>(static_cast<float>(precision) / RFFConstants::Precision::LOG10_2);
+    return static_cast<int>(static_cast<float>(precision) / RFF::Precision::LOG10_2);
 }
 
 
@@ -198,7 +209,7 @@ double GMPDecimalCalculator::doubleValue() {
 
     mpz_abs(temp, value);
     const size_t len = mpz_sizeinbase(temp, 2);
-    const auto shift = static_cast<int>(len - RFFConstants::Precision::DOUBLE_PRECISION - 1);
+    const auto shift = static_cast<int>(len - RFF::Precision::DOUBLE_PRECISION - 1);
     if(shift < 0) {
         mpz_mul_2exp(temp, temp, -shift);
     }else {
@@ -209,7 +220,7 @@ double GMPDecimalCalculator::doubleValue() {
     mpz_export(&mantissa, &cnt, -1, sizeof(mantissa), 0, 0, temp);
 
 
-    const int fExp2 = exp2 + shift + RFFConstants::Precision::DOUBLE_PRECISION;
+    const int fExp2 = exp2 + shift + RFF::Precision::DOUBLE_PRECISION;
     //0100 0000 0000 : 2^1
     //0000 0000 0000 : 2^-1023
     //0111 1111 1111 : 2^1024
@@ -217,10 +228,10 @@ double GMPDecimalCalculator::doubleValue() {
         return signum == 1 ? INFINITY : -INFINITY;
     }
     const int mantissaShift = fExp2 <= -0x03ff ? -0x03ff - fExp2 + 1 : 0;
-    mantissa = (mantissa >> mantissaShift) & RFFConstants::Precision::DECIMAL_SIGNUM_BITS;
+    mantissa = (mantissa >> mantissaShift) & RFF::Precision::DECIMAL_SIGNUM_BITS;
 
-    const uint64_t exponent =  fExp2 <= -0x03ff ? 0 : RFFConstants::Precision::EXP0_BITS + (static_cast<uint64_t>(fExp2) << RFFConstants::Precision::DOUBLE_PRECISION);
-    const uint64_t sig = signum == 1 ? 0 : RFFConstants::Precision::SIGNUM_BIT;
+    const uint64_t exponent =  fExp2 <= -0x03ff ? 0 : RFF::Precision::EXP0_BITS + (static_cast<uint64_t>(fExp2) << RFF::Precision::DOUBLE_PRECISION);
+    const uint64_t sig = signum == 1 ? 0 : RFF::Precision::SIGNUM_BIT;
     return std::bit_cast<double>(sig | exponent | mantissa);
 }
 

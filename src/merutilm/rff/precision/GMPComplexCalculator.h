@@ -40,6 +40,8 @@ private:
 
     static void mpc_doubled(GMPComplexCalculator &a);
 
+    static void mpc_halved(GMPComplexCalculator &a);
+
 public:
     static GMPComplexCalculator init(const std::string &re, const std::string &im, int precision);
 
@@ -54,6 +56,10 @@ public:
     GMPComplexCalculator &square();
 
     GMPComplexCalculator &doubled();
+
+    GMPComplexCalculator &halved();
+
+    GMPComplexCalculator &negate();
 
     GMPDecimalCalculator &getReal();
 

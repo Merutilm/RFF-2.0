@@ -9,7 +9,7 @@
 #include <execution>
 
 #include "ApproxMath.h"
-#include "../ui/RFFConstants.h"
+#include "../ui/RFF.h"
 
 
 LightMPATable::LightMPATable(const ParallelRenderState &state, const LightMandelbrotReference *reference,
@@ -23,6 +23,15 @@ LightMPATable::LightMPATable(const ParallelRenderState &state, const LightMandel
         generateTable(state, dcMax, std::move(actionPerCreatingTableIteration));
     }
 }
+
+
+LightMPATable::LightMPATable(LightMPATable && other) noexcept : mpaSettings(std::move(other.mpaSettings)){
+    this->reference = std::move(other.reference);
+    this->table = std::move(other.table);
+    this->mpaPeriod = std::move(other.mpaPeriod);
+    this->pulledMPACompressor = std::move(other.pulledMPACompressor);
+}
+
 
 
 void LightMPATable::generateTable(const ParallelRenderState &state, const double dcMax,
@@ -64,7 +73,7 @@ void LightMPATable::generateTable(const ParallelRenderState &state, const double
     table.reserve(size);
 
     while (iteration <= longestPeriod) {
-        if (absIteration % RFFConstants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return;
+        if (absIteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return;
 
         func(iteration, static_cast<double>(iteration) / static_cast<double>(longestPeriod));
         const uint64_t pulledTableIndex = iterationToPulledTableIndex(*mpaPeriod, iteration);
@@ -123,7 +132,7 @@ void LightMPATable::generateTable(const ParallelRenderState &state, const double
                 currentPA[i] = LightPA::Generator::create(*reference, epsilon, dcMax, iteration);
             }
 
-            if (currentPA[i] != nullptr && periodCount[i] + RFFConstants::Approximation::REQUIRED_PERTURBATION <
+            if (currentPA[i] != nullptr && periodCount[i] + RFF::Approximation::REQUIRED_PERTURBATION <
                 tablePeriod[i]) {
                 currentPA[i]->step();
             }
@@ -134,7 +143,7 @@ void LightMPATable::generateTable(const ParallelRenderState &state, const double
             if (periodCount[i] == tablePeriod[i]) {
                 if (const LightPA::Generator *currentLevel = currentPA[i].get();
                     currentLevel != nullptr &&
-                    currentLevel->getSkip() == tablePeriod[i] - RFFConstants::Approximation::REQUIRED_PERTURBATION
+                    currentLevel->getSkip() == tablePeriod[i] - RFF::Approximation::REQUIRED_PERTURBATION
                 ) {
                     //If the skip count is lower than its current period - perturbation,
                     //it can be replaced to several lower-level PA.
@@ -311,7 +320,7 @@ uint64_t LightMPATable::iterationToPulledTableIndex(const MPAPeriod &mpaPeriod, 
         if (remainder < tablePeriod[i - 1]) {
             continue;
         }
-        if (i < tablePeriod.size() && remainder + tablePeriod[0] - RFFConstants::Approximation::REQUIRED_PERTURBATION +
+        if (i < tablePeriod.size() && remainder + tablePeriod[0] - RFF::Approximation::REQUIRED_PERTURBATION +
             1 > tablePeriod[i]) {
             return UINT64_MAX;
             //Insufficient length, ("Pulled Table Index" must be skipped for at least "shortest period")

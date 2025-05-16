@@ -27,4 +27,6 @@ struct Center {
     Center addCenterDouble(double re, double im, int exp10) const;
 
     GMPComplexCalculator edit(int exp10) const;
+
+
 };

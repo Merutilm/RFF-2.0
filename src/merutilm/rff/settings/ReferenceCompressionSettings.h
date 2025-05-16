@@ -5,8 +5,6 @@
 #pragma once
 
 struct ReferenceCompressionSettings final{
-    const uint32_t compressCriteria;
-    const uint8_t compressionThresholdPower;
-
-
+    uint32_t compressCriteria;
+    uint8_t compressionThresholdPower;
 };

@@ -5,7 +5,7 @@
 #include <string>
 #include <glad.h>
 
-#include "../ui/RFFConstants.h"
+#include "../ui/RFF.h"
 
 class GLShaderLoader {
     GLuint shaderProgram;
@@ -26,7 +26,7 @@ class GLShaderLoader {
     int getLocation(const std::string &varName) const;
 
 public:
-    GLShaderLoader(std::string_view vertexName, std::string_view fragmentName);
+    explicit GLShaderLoader(std::string_view vertexName, std::string_view fragmentName);
 
     void use() const;
 

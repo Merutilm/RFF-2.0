@@ -11,43 +11,62 @@
 
 #include "../data/Matrix.h"
 #include "../formula/LightMandelbrotPerturbator.h"
+#include "../io/RFFMap.h"
+#include "../opengl/GLMultipassRenderer.h"
+#include "../opengl/GLRendererAntialiasing.h"
+#include "../opengl/GLRendererBloom.h"
+#include "../opengl/GLRendererColor.h"
+#include "../opengl/GLRendererFog.h"
 #include "../opengl/GLRendererIteration.h"
+#include "../opengl/GLRendererSlope.h"
+#include "../opengl/GLRendererStripe.h"
 #include "../parallel/ParallelRenderState.h"
 #include "../value/PointDouble.h"
 
 
-class RFFRenderScene final : private RFFScene{
-
+class RFFRenderScene final : private RFFScene {
     ParallelRenderState referenceRenderState;
     Settings settings;
     int mouseX = 0;
     int mouseY = 0;
-    bool recomputeRequested = false;
-    bool resizeRequested = false;
-    bool colorRequested = false;
     uint64_t lastPeriod = 1;
-    bool canBeDisplayed = false;
-    bool isComputing = false;
 
-    std::array<std::string, RFFConstants::Status::LENGTH> *statusMessageRef = nullptr;
+    std::atomic<bool> recomputeRequested = false;
+    std::atomic<bool> resizeRequested = false;
+    std::atomic<bool> colorRequested = false;
+    std::atomic<bool> clarityRequested = false;
+    std::atomic<bool> isComputing = false;
 
-    std::unique_ptr<Matrix<double>> iterationMatrix = nullptr;
+    std::atomic<bool> canDisplayed = false;
+
+    std::array<std::string, RFF::Status::LENGTH> *statusMessageRef = nullptr;
+    std::unique_ptr<RFFMap> currentMap = nullptr;
+    std::unique_ptr<Matrix<double> > iterationMatrix = nullptr;
     std::unique_ptr<LightMandelbrotPerturbator> currentPerturbator = nullptr;
-    std::unique_ptr<GLRendererIteration> rendererIteration = nullptr;
 
+    std::unique_ptr<GLMultipassRenderer> renderer = nullptr;
+    std::unique_ptr<GLRendererIteration> rendererIteration = nullptr;
+    std::unique_ptr<GLRendererStripe> rendererStripe = nullptr;
+    std::unique_ptr<GLRendererSlope> rendererSlope = nullptr;
+    std::unique_ptr<GLRendererColor> rendererColorFilter = nullptr;
+    std::unique_ptr<GLRendererFog> rendererFog = nullptr;
+    std::unique_ptr<GLRendererBloom> rendererBloom = nullptr;
+    std::unique_ptr<GLRendererAntialiasing> rendererAntialiasing = nullptr;
 
 public:
     RFFRenderScene();
 
-    ~RFFRenderScene() override = default;
+    ~RFFRenderScene() override;
 
-    RFFRenderScene(const RFFRenderScene&) = delete;
-    RFFRenderScene& operator=(const RFFRenderScene&) = delete;
-    RFFRenderScene(RFFRenderScene&&) noexcept = delete;
-    RFFRenderScene& operator=(RFFRenderScene&&) = delete;
+    RFFRenderScene(const RFFRenderScene &) = delete;
+
+    RFFRenderScene &operator=(const RFFRenderScene &) = delete;
+
+    RFFRenderScene(RFFRenderScene &&) noexcept = delete;
+
+    RFFRenderScene &operator=(RFFRenderScene &&) = delete;
 
 private:
-
     static Settings initSettings();
 
 public:
@@ -65,7 +84,8 @@ public:
 
     int getIterationBufferHeight(const Settings &settings) const;
 
-    void configure(HWND wnd, HDC hdc, HGLRC context, std::array<std::string, RFFConstants::Status::LENGTH> *statusMessageRef);
+    void configure(HWND wnd, HDC hdc, HGLRC context,
+                   std::array<std::string, RFF::Status::LENGTH> *statusMessageRef);
 
     void renderGL() override;
 
@@ -73,11 +93,15 @@ public:
 
     void requestResize();
 
+    void requestClarity();
+
     void requestRecompute();
 
     void applyColor(const Settings &settings) const;
 
     void applyResize() const;
+
+    void applyClarity() const;
 
     void applyComputationalSettings();
 
@@ -87,12 +111,21 @@ public:
 
     void recompute();
 
-    void compute();
+    void beforeCompute(const Settings &settings);
 
-    void compute0(const Settings &settings);
+    void compute(const Settings &settings);
+
+    void afterCompute() const;
 
     void setStatusMessage(int index, const std::string_view &message) const;
 
     Settings &getSettings();
 
+    ParallelRenderState &getState();
+
+    LightMandelbrotPerturbator *getCurrentPerturbator() const;
+
+    std::unique_ptr<LightMandelbrotPerturbator> extractCurrentPerturbator();
+
+    void setCurrentPerturbator(std::unique_ptr<LightMandelbrotPerturbator> perturbator);
 };

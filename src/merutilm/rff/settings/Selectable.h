@@ -12,7 +12,7 @@
 #include "MPASelectionMethod.h"
 #include "ReuseReferenceMethod.h"
 #include "StripeType.h"
-#include "../ui/RFFConstants.h"
+#include "../ui/RFF.h"
 
 struct Selectable {
     template<typename E> requires std::is_enum_v<E> || std::is_same_v<E, bool>

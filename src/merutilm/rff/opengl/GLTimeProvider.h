@@ -6,5 +6,5 @@
 
 struct GLTimeProvider {
     virtual ~GLTimeProvider() = default;
-    virtual void getTime() = 0;
+    virtual float getTime() = 0;
 };

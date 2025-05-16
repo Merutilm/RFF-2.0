@@ -42,12 +42,12 @@ double Perturbator::getDoubleValueIteration(const uint64_t iteration, const doub
             break;
         }
         case LOG : {
-            ratio = log(ratio + 1) / log(bailout);
+            ratio = log10(ratio + 1) / RFF::Precision::LOG10_2;
             break;
         }
         case LOG_LOG : {
-            const double logBailout = log(bailout);
-            ratio = log(log(ratio + 1) / logBailout + 1) / logBailout;
+            constexpr double logBailout = RFF::Precision::LOG10_2;
+            ratio = log10(log10(ratio + 1) / logBailout + 1) / logBailout;
             break;
         }
         default : break;

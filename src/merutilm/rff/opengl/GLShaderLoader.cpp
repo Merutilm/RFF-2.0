@@ -3,25 +3,25 @@
 #include <fstream>
 #include <iostream>
 
-#include "../ui/RFFConstants.h"
+#include "../ui/RFF.h"
 
 
 GLShaderLoader::GLShaderLoader(std::string_view vertexName, std::string_view fragmentName) {
     try {
         std::string fullVertexName;
-        fullVertexName.append(RFFConstants::GLConfig::SHADER_PATH_PREFIX).append(vertexName).append(RFFConstants::GLConfig::VERTEX_PATH_SUFFIX);
+        fullVertexName.append(RFF::GLConfig::SHADER_PATH_PREFIX).append(vertexName).append(RFF::GLConfig::VERTEX_PATH_SUFFIX);
         std::string fullFragmentName;
-        fullFragmentName.append(RFFConstants::GLConfig::SHADER_PATH_PREFIX).append(fragmentName).append(RFFConstants::GLConfig::FRAGMENT_PATH_SUFFIX);
+        fullFragmentName.append(RFF::GLConfig::SHADER_PATH_PREFIX).append(fragmentName).append(RFF::GLConfig::FRAGMENT_PATH_SUFFIX);
         std::ifstream vertexFile(fullVertexName);
         std::ifstream fragmentFile(fullFragmentName);
 
         if (vertexFile.fail()) {
-            std::cout << RFFConstants::GLConfig::MESSAGE_CANNOT_OPEN_FILE << fullVertexName << std::endl;
+            std::cout << RFF::GLConfig::MESSAGE_CANNOT_OPEN_FILE << fullVertexName << std::endl;
             return;
         }
 
         if (fragmentFile.fail()) {
-            std::cout << RFFConstants::GLConfig::MESSAGE_CANNOT_OPEN_FILE << fullFragmentName << std::endl;
+            std::cout << RFF::GLConfig::MESSAGE_CANNOT_OPEN_FILE << fullFragmentName << std::endl;
             return;
         }
 
@@ -162,9 +162,9 @@ int GLShaderLoader::recreateTexture2D(GLuint textureID, const int width, const i
     }
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, textureFormat[RFFConstants::TextureFormats::INTERNAL], width, height, 0,
-                 textureFormat[RFFConstants::TextureFormats::FORMAT],
-                 textureFormat[RFFConstants::TextureFormats::TYPE], nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, textureFormat[RFF::TextureFormats::INTERNAL], width, height, 0,
+                 textureFormat[RFF::TextureFormats::FORMAT],
+                 textureFormat[RFF::TextureFormats::TYPE], nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     if (linearInterpolation) {
@@ -189,8 +189,8 @@ void GLShaderLoader::uploadTexture2D(const std::string &varName, const int textu
                                      const TextureFormat textureFormat) const {
     glActiveTexture(textureUnit);
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, textureFormat[RFFConstants::TextureFormats::FORMAT],
-                    textureFormat[RFFConstants::TextureFormats::TYPE], buffer);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, textureFormat[RFF::TextureFormats::FORMAT],
+                    textureFormat[RFF::TextureFormats::TYPE], buffer);
 
 
     uploadInt(varName, textureUnitToIndex(textureUnit));

@@ -3,62 +3,66 @@
 //
 
 #include "RFFSettingsWindow.h"
-#include "RFFConstants.h"
+#include "RFF.h"
 
 
 RFFSettingsWindow::RFFSettingsWindow(const std::string_view &name) {
-    window = CreateWindowEx(RFFConstants::Win32::STYLE_EX_SETTINGS_WINDOW, RFFConstants::Win32::CLASS_SETTINGS_WINDOW,
+    window = CreateWindowEx(RFF::Win32::STYLE_EX_SETTINGS_WINDOW, RFF::Win32::CLASS_SETTINGS_WINDOW,
                             name.data(),
                             WS_SYSMENU, 0, 0,
-                            RFFConstants::Win32::INIT_SETTINGS_WINDOW_WIDTH,
-                            RFFConstants::Win32::INIT_SETTINGS_WINDOW_MIN_HEIGHT, nullptr, nullptr, nullptr, nullptr);
+                            RFF::Win32::INIT_SETTINGS_WINDOW_WIDTH, 0, nullptr, nullptr, nullptr, nullptr);
 
 
     SetWindowLongPtr(window, GWLP_USERDATA, (LONG_PTR) this);
 
     ShowWindow(window, SW_SHOW);
     UpdateWindow(window);
-    font = reinterpret_cast<LPARAM>(CreateFont(RFFConstants::Win32::FONT_SIZE, 0, 0, 0, FW_THIN, FALSE, FALSE, FALSE,
+    font = reinterpret_cast<LPARAM>(CreateFont(RFF::Win32::FONT_SIZE, 0, 0, 0, FW_THIN, FALSE, FALSE, FALSE,
                                                ANSI_CHARSET, OUT_DEFAULT_PRECIS,
                                                CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_SWISS,
-                                               RFFConstants::Win32::FONT_DEFAULT));
+                                               RFF::Win32::FONT_DEFAULT));
 }
 
 
 int RFFSettingsWindow::getFixedNameWidth() const {
     RECT rect;
     GetClientRect(window, &rect);
-    return (rect.right - rect.left) / RFFConstants::Win32::SETTINGS_LABEL_WIDTH_DIVISOR;
+    return (rect.right - rect.left) / RFF::Win32::SETTINGS_LABEL_WIDTH_DIVISOR;
 }
 
 int RFFSettingsWindow::getFixedValueWidth() const {
     RECT rect;
     GetClientRect(window, &rect);
-    return (RFFConstants::Win32::SETTINGS_LABEL_WIDTH_DIVISOR - 1) * (rect.right - rect.left) /
-           RFFConstants::Win32::SETTINGS_LABEL_WIDTH_DIVISOR - RFFConstants::Win32::GAP_SETTINGS_INPUT;
+    return (RFF::Win32::SETTINGS_LABEL_WIDTH_DIVISOR - 1) * (rect.right - rect.left) /
+           RFF::Win32::SETTINGS_LABEL_WIDTH_DIVISOR - RFF::Win32::GAP_SETTINGS_INPUT;
 }
 
 void RFFSettingsWindow::adjustWindowHeight() const {
-    SetWindowPos(window, nullptr, 0, 0, RFFConstants::Win32::INIT_SETTINGS_WINDOW_WIDTH,
-                 std::max<int>(RFFConstants::Win32::INIT_SETTINGS_WINDOW_MIN_HEIGHT,
-                               getYOffset() + RFFConstants::Win32::HEIGHT_SETTINGS_INPUT), SWP_NOMOVE);
+    RECT rect = {
+        0, 0, RFF::Win32::INIT_SETTINGS_WINDOW_WIDTH,
+        getYOffset() + RFF::Win32::HEIGHT_SETTINGS_INPUT + RFF::Win32::GAP_SETTINGS_INPUT,
+    };
+    AdjustWindowRectEx(&rect, RFF::Win32::STYLE_SETTINGS_WINDOW, FALSE, RFF::Win32::STYLE_EX_SETTINGS_WINDOW);
+
+    SetWindowPos(window, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOMOVE);
 }
 
 void RFFSettingsWindow::initClass() {
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof(WNDCLASSEX);
-    wc.lpszClassName = RFFConstants::Win32::CLASS_SETTINGS_WINDOW;
+    wc.lpszClassName = RFF::Win32::CLASS_SETTINGS_WINDOW;
     wc.lpfnWndProc = settingsProc;
+    wc.hbrBackground = CreateSolidBrush(RFF::Win32::COLOR_LABEL_BACKGROUND);
     RegisterClassEx(&wc);
 }
 
 int RFFSettingsWindow::getIndex(const HWND wnd) {
-    return GetDlgCtrlID(wnd) - RFFConstants::Win32::ID_OPTIONS & 0x00ff;
+    return GetDlgCtrlID(wnd) - RFF::Win32::ID_OPTIONS & 0x00ff;
 }
 
 int RFFSettingsWindow::getRadioIndex(const HWND wnd) {
-    const int offset = GetDlgCtrlID(wnd) - RFFConstants::Win32::ID_OPTIONS;
-    return offset / RFFConstants::Win32::ID_OPTIONS_RADIO;
+    const int offset = GetDlgCtrlID(wnd) - RFF::Win32::ID_OPTIONS;
+    return offset / RFF::Win32::ID_OPTIONS_RADIO;
 }
 
 bool RFFSettingsWindow::checkIndex(const int index) const {
@@ -66,22 +70,18 @@ bool RFFSettingsWindow::checkIndex(const int index) const {
 }
 
 int RFFSettingsWindow::getYOffset() const {
-    return elements * (getInputHeight() + RFFConstants::Win32::GAP_SETTINGS_INPUT) +
-           RFFConstants::Win32::GAP_SETTINGS_INPUT;
-}
-
-int RFFSettingsWindow::getInputHeight() {
-    return RFFConstants::Win32::HEIGHT_SETTINGS_INPUT;
+    return elements * (RFF::Win32::HEIGHT_SETTINGS_INPUT + RFF::Win32::GAP_SETTINGS_INPUT) +
+           RFF::Win32::GAP_SETTINGS_INPUT;
 }
 
 void RFFSettingsWindow::createLabel(const std::string_view &settingsName, const std::string_view descriptionTitle,
                                     const std::string_view descriptionDetail, const int nw) {
     const HWND text = CreateWindowEx(0, WC_STATIC, settingsName.data(),
-                                     RFFConstants::Win32::STYLE_LABEL, 0,
+                                     RFF::Win32::STYLE_LABEL, 0,
                                      getYOffset(), nw,
-                                     getInputHeight(), window, nullptr, nullptr, nullptr);
-    const HWND tooltip = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, "",
-                                        WS_POPUP | TTS_NOPREFIX | TTS_BALLOON | TTS_ALWAYSTIP,
+                                     RFF::Win32::HEIGHT_SETTINGS_INPUT, window, nullptr, nullptr, nullptr);
+    const HWND tooltip = CreateWindowEx(RFF::Win32::STYLE_EX_TOOLTIP, TOOLTIPS_CLASS, "",
+                                        RFF::Win32::STYLE_TOOLTIP,
                                         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, window, nullptr,
                                         nullptr, nullptr);
 
@@ -92,7 +92,7 @@ void RFFSettingsWindow::createLabel(const std::string_view &settingsName, const 
     toolInfo.uId = reinterpret_cast<UINT_PTR>(text);
     toolInfo.lpszText = LPSTR(descriptionDetail.data());
 
-    SendMessage(tooltip, TTM_SETMAXTIPWIDTH, 0, RFFConstants::Win32::INIT_SETTINGS_WINDOW_WIDTH); //enable line break
+    SendMessage(tooltip, TTM_SETMAXTIPWIDTH, 0, RFF::Win32::INIT_SETTINGS_WINDOW_WIDTH); //enable line break
     SendMessage(tooltip, TTM_ADDTOOL, 0, (LPARAM) &toolInfo);
     SendMessage(tooltip, TTM_SETTITLE, 0, (LPARAM) descriptionTitle.data());
     SendMessage(tooltip, WM_SETFONT, font, TRUE);
@@ -118,11 +118,15 @@ LRESULT RFFSettingsWindow::settingsProc(const HWND window, const UINT message, c
                 if (HIWORD(wParam) == CBN_SELCHANGE) {
                     const auto combobox = (HWND) lParam;
                     const auto selectedIndex = static_cast<int>(SendMessage(combobox, CB_GETCURSEL, 0, 0));
-                    (*wnd.callbacks[index])((*wnd.valuesSel[index])[selectedIndex]);
+                    std::any &value = (*wnd.enumValues[index])[selectedIndex];
+                    (*wnd.callbacks[index])(value);
+                    wnd.references[index] = value;
                 }
                 if (HIWORD(wParam) == BN_CLICKED) {
                     const int radioIndex = getRadioIndex(editor);
-                    (*wnd.callbacks[index])((*wnd.valuesSel[index])[radioIndex]);
+                    std::any &value = (*wnd.enumValues[index])[radioIndex];
+                    (*wnd.callbacks[index])(value);
+                    wnd.references[index] = value;
                 }
             }
 
@@ -131,7 +135,7 @@ LRESULT RFFSettingsWindow::settingsProc(const HWND window, const UINT message, c
         case WM_CLOSE: {
             for (const auto hwnd: wnd.createdChildWindows) DestroyWindow(hwnd);
             DestroyWindow(window);
-            wnd.windowCloseFunction(wnd);
+            wnd.windowCloseFunction();
             return 0;
         }
         case WM_DESTROY: {
@@ -149,19 +153,22 @@ LRESULT RFFSettingsWindow::settingsProc(const HWND window, const UINT message, c
             }
 
             if (wnd.error[index]) {
-                SetTextColor(hdcEdit, RFFConstants::Win32::COLOR_TEXT_ERROR);
+                SetTextColor(hdcEdit, RFF::Win32::COLOR_TEXT_ERROR);
             } else if (wnd.edited[index]) {
-                SetTextColor(hdcEdit, RFFConstants::Win32::COLOR_TEXT_EDITED);
+                SetTextColor(hdcEdit, RFF::Win32::COLOR_TEXT_EDITED);
             } else if (wnd.modified[index]) {
-                SetTextColor(hdcEdit, RFFConstants::Win32::COLOR_TEXT_MODIFIED);
+                SetTextColor(hdcEdit, RFF::Win32::COLOR_TEXT_MODIFIED);
             } else {
-                SetTextColor(hdcEdit, RFFConstants::Win32::COLOR_TEXT_DEFAULT);
+                SetTextColor(hdcEdit, RFF::Win32::COLOR_TEXT_DEFAULT);
             }
             return (INT_PTR) GetStockObject(WHITE_BRUSH);
         }
 
         case WM_CTLCOLORSTATIC: {
-            return (INT_PTR) GetStockObject(WHITE_BRUSH);
+            const auto hwndStatic = (HWND) lParam;
+            return IsWindowEnabled(hwndStatic)
+                       ? (INT_PTR) GetStockObject(WHITE_BRUSH)
+                       : DefWindowProc(window, message, wParam, lParam);
         }
         default: return DefWindowProc(window, message, wParam, lParam);
     }
@@ -179,7 +186,7 @@ LRESULT RFFSettingsWindow::textFieldProc(const HWND window, const UINT message, 
             wnd.edited[index] = true;
         }
         if (wParam == VK_ESCAPE && wnd.checkIndex(index)) {
-            SetWindowText(window, wnd.previousInputs[index].data());
+            SetWindowText(window, (*wnd.unparsers[index])(wnd.references[index]).data());
         }
         if (wParam == VK_RETURN && wnd.checkIndex(index)) {
             const int length = GetWindowTextLength(window) + 1; //include NULL character
@@ -188,25 +195,20 @@ LRESULT RFFSettingsWindow::textFieldProc(const HWND window, const UINT message, 
 
             const HDC hdc = GetDC(window);
             try {
-                if (const std::any &value = (*wnd.parsers[index])(buf);
+                if (std::any value = (*wnd.parsers[index])(buf);
                     (*wnd.validConditions[index])(value)
                 ) {
                     (*wnd.callbacks[index])(value);
-                    wnd.previousInputs[index] = (*wnd.unparsers[index])(value);
+                    wnd.references[index] = value;
                     wnd.modified[index] = true;
                     wnd.edited[index] = false;
                 } else {
-                    wnd.error[index] = true;
-                    errorMessage(window);
-                    wnd.error[index] = false;
+                    wnd.callError(index);
                 }
-                SetWindowText(window, wnd.previousInputs[index].data());
             } catch (std::invalid_argument &) {
-                wnd.error[index] = true;
-                errorMessage(window);
-                SetWindowText(window, wnd.previousInputs[index].data());
-                wnd.error[index] = false;
+                wnd.callError(index);
             }
+            SetWindowText(window, wnd.currValueToString(index).data());
             ReleaseDC(window, hdc);
         }
     }
@@ -214,7 +216,19 @@ LRESULT RFFSettingsWindow::textFieldProc(const HWND window, const UINT message, 
     return DefSubclassProc(window, message, wParam, lParam);
 }
 
+void RFFSettingsWindow::callError(const int index) {
+    error[index] = true;
+    MessageBox(window, "Invalid value!!", "Error", MB_OK | MB_ICONERROR);
+    error[index] = false;
+}
 
-void RFFSettingsWindow::setWindowCloseFunction(std::function<void(RFFSettingsWindow &)> &&function) {
+
+
+std::string RFFSettingsWindow::currValueToString(const int index) const {
+    return (*unparsers[index])(references[index]);
+}
+
+
+void RFFSettingsWindow::setWindowCloseFunction(std::function<void()> &&function) {
     this->windowCloseFunction = std::move(function);
 }

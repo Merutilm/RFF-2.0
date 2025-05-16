@@ -12,34 +12,50 @@
 #include "RFFSettingsWindow.h"
 
 struct RFFSettingsMenu {
-
     HMENU menubar;
     int count = 0;
     std::vector<HMENU> childMenus = {};
-    std::vector<std::function<void(RFFSettingsMenu&, RFFRenderScene&)>> callbacks = {};
+    std::vector<std::function<void(RFFSettingsMenu &, RFFRenderScene &)> > callbacks = {};
+    std::vector<bool> hasCheckboxes = {};
+    std::vector<std::optional<std::function<bool*(RFFRenderScene &)> > > checkboxActions = {};
     std::unique_ptr<RFFSettingsWindow> currentActiveSettingsWindow = nullptr;
 
     explicit RFFSettingsMenu(HMENU hMenubar);
 
     ~RFFSettingsMenu();
 
-    RFFSettingsMenu(const RFFSettingsMenu&) = delete;
+    bool hasCheckbox(int menuID);
 
-    RFFSettingsMenu& operator=(const RFFSettingsMenu&) = delete;
+    RFFSettingsMenu(const RFFSettingsMenu &) = delete;
 
-    RFFSettingsMenu(RFFSettingsMenu&&) = delete;
+    RFFSettingsMenu &operator=(const RFFSettingsMenu &) = delete;
 
-    RFFSettingsMenu& operator=(RFFSettingsMenu&&) = delete;
+    RFFSettingsMenu(RFFSettingsMenu &&) = delete;
+
+    RFFSettingsMenu &operator=(RFFSettingsMenu &&) = delete;
 
     void configure();
 
     HMENU addChildMenu(HMENU target, std::string_view child);
 
-    HMENU addChildItem(HMENU target, std::string_view child, const std::function<void(RFFSettingsMenu&, RFFRenderScene &)> &callback);
+    HMENU addChildItem(HMENU target, std::string_view child,
+                       const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> &callback);
 
-    HMENU add(HMENU target, std::string_view child, const std::function<void(RFFSettingsMenu&, RFFRenderScene &)> &callback, bool hasChild);
+    HMENU addChildCheckbox(HMENU target, std::string_view child,
+                           const std::function<bool*(RFFRenderScene &)>
+                           &checkboxAction);
 
-    void executeAction(RFFRenderScene &scene, WPARAM wparam);
+    HMENU add(HMENU target, std::string_view child,
+              const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> &callback, bool
+              hasChild, bool hasCheckbox, const std::optional<std::function<bool*(RFFRenderScene &)>> &checkboxAction);
+
+    void executeAction(RFFRenderScene &scene, int menuID);
 
     void setCurrentActiveSettingsWindow(std::unique_ptr<RFFSettingsWindow> &&scene);
+
+    bool* getBool(RFFRenderScene &scene, int menuID) const;
+
+    static int getIndex(int menuID);
+
+    bool checkIndex(int index) const;
 };

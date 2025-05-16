@@ -11,7 +11,7 @@
 
 #include "../approx/ApproxMath.h"
 #include "../approx/ArrayCompressor.h"
-#include "../ui/RFFConstants.h"
+#include "../ui/RFF.h"
 
 
 LightMandelbrotReference::LightMandelbrotReference(Center &&center, std::vector<double> &&refReal,
@@ -32,13 +32,13 @@ LightMandelbrotReference::LightMandelbrotReference(Center &&center, std::vector<
  * @param dcMax the length of center-to-vertex of screen.
  * @param strictFPGBn use arbitrary-precision operation for FPG-Bn calculation
  * @param actionPerRefCalcIteration the action of every iteration
- * @return the result of generation. but returns @code nullptr@endcode if the process is terminated
+ * @return the result of generation. but returns @code PROCESS_TERMINATED_REFERENCE@endcode if the process is terminated
  */
 std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createReference(
     const ParallelRenderState &state, const CalculationSettings &calc, int exp10, uint64_t initialPeriod, double dcMax,
     bool strictFPGBn, std::function<void(uint64_t)> &&actionPerRefCalcIteration) {
     if (state.interruptRequested()) {
-        return nullptr;
+        return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
     }
 
     auto rr = std::vector<double>();
@@ -75,8 +75,8 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
     double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
 
     while (zr * zr + zi * zi < bailoutSquared && iteration < maxIteration) {
-        if (iteration % RFFConstants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
-            return nullptr;
+        if (iteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
         }
 
         // use Fast-Period-Guessing, and create R3A Table
@@ -103,6 +103,7 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
         if (strictFPGBn) {
             fpgBn *= z.doubled();
             fpgBn += one;
+            z.halved();
         }
 
         fpgBnr = fpgBnrTemp;

@@ -16,7 +16,7 @@ struct CalculationSettings final{
     MPASettings mpaSettings;
     ReferenceCompressionSettings referenceCompressionSettings;
     ReuseReferenceMethod reuseReferenceMethod;
-    bool autoIteration;
+    bool autoMaxIteration;
     bool absoluteIterationMode;
 };
 
