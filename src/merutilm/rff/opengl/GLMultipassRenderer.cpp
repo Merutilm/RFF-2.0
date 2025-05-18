@@ -14,7 +14,7 @@ void GLMultipassRenderer::add(GLRenderer *renderer) {
 }
 
 
-void GLMultipassRenderer::reloadSize(const int w, const int h) {
+void GLMultipassRenderer::reloadSize(const int w, const int h) const {
     for (GLRenderer *renderer: renderers) {
         renderer->reloadSize(w, h);
     }

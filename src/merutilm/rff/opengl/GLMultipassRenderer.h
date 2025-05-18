@@ -28,7 +28,7 @@ public:
 
     void add(GLRenderer *renderer);
 
-    void reloadSize(int w, int h);
+    void reloadSize(int w, int h) const;
 
     void setTime(float timeSec);
 

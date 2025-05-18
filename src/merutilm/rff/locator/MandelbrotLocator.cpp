@@ -6,39 +6,40 @@
 
 #include "../formula/Perturbator.h"
 #include <cmath>
-#include <iostream>
+
+#include "../formula/DeepMandelbrotPerturbator.h"
 
 
-std::unique_ptr<Center> MandelbrotLocator::findCenter(const LightMandelbrotPerturbator *perturbator) {
+std::unique_ptr<fp_complex> MandelbrotLocator::findCenter(const MandelbrotPerturbator *perturbator) {
     const int exp10 = Perturbator::logZoomToExp10(perturbator->getCalculationSettings().logZoom);
-    GMPComplexCalculator center = perturbator->getReference()->center.edit(exp10);
-    const GMPComplexCalculator dc = findCenterOffset(*perturbator)->edit(exp10);
-    const double dr = dc.getRealClone().doubleValue();
-    const double di = dc.getImagClone().doubleValue();
-    if (const double dcMax = perturbator->getDcMax();
+    fp_complex_calculator center = perturbator->getReference()->center.edit(exp10);
+    const fp_complex_calculator dc = findCenterOffset(*perturbator)->edit(exp10);
+    const double dr = dc.getRealClone().double_value();
+    const double di = dc.getImagClone().double_value();
+    if (const double_exp dcMax = perturbator->getDcMaxExp();
         dr * dr + di * di > dcMax * dcMax) {
         return nullptr;
     }
     center += dc;
-    return std::make_unique<Center>(center);
+    return std::make_unique<fp_complex>(center);
 }
 
 
-std::unique_ptr<Center> MandelbrotLocator::findCenterOffset(const LightMandelbrotPerturbator &perturbator) {
+std::unique_ptr<fp_complex> MandelbrotLocator::findCenterOffset(const MandelbrotPerturbator &perturbator) {
     const int exp10 = Perturbator::logZoomToExp10(perturbator.getCalculationSettings().logZoom);
-    const LightMandelbrotReference *reference = perturbator.getReference();
+    const MandelbrotReference *reference = perturbator.getReference();
     if (reference == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE) {
         return nullptr;
     }
 
-    GMPComplexCalculator bn = reference->fpgBn.edit(exp10);
-    GMPComplexCalculator z = reference->lastReference.edit(exp10);
+    fp_complex_calculator bn = reference->fpgBn.edit(exp10);
+    fp_complex_calculator z = reference->lastReference.edit(exp10);
     z /= bn.negate();
-    return std::make_unique<Center>(z);
+    return std::make_unique<fp_complex>(z);
 }
 
 std::unique_ptr<MandelbrotLocator> MandelbrotLocator::locateMinibrot(ParallelRenderState &state,
-                                                                     std::unique_ptr<LightMandelbrotPerturbator> perturbator,
+                                                                     std::unique_ptr<MandelbrotPerturbator> perturbator,
                                                                      const std::function<void(uint64_t, int)> &
                                                                      actionWhileFindingMinibrotCenter,
                                                                      const std::function<void (uint64_t, float)> &
@@ -54,10 +55,10 @@ std::unique_ptr<MandelbrotLocator> MandelbrotLocator::locateMinibrot(ParallelRen
     // specific small number. O(log N)
 
 
-    std::unique_ptr<LightMandelbrotPerturbator> result = findAccurateCenterPerturbator(state, std::move(perturbator), actionWhileFindingMinibrotCenter, actionWhileCreatingTable);
-    perturbator = nullptr;
+    std::unique_ptr<MandelbrotPerturbator> result = findAccurateCenterPerturbator(
+        state, std::move(perturbator), actionWhileFindingMinibrotCenter, actionWhileCreatingTable);
 
-    double resultDcMax = result->getDcMax();
+    double_exp resultDcMax = result->getDcMaxExp();
     CalculationSettings resultCalc = result->getCalculationSettings();
     float resultZoom = resultCalc.logZoom;
     const uint64_t maxIteration = resultCalc.maxIteration;
@@ -79,7 +80,12 @@ std::unique_ptr<MandelbrotLocator> MandelbrotLocator::locateMinibrot(ParallelRen
         actionWhileFindingMinibrotZoom(resultZoom);
 
         resultCalc.logZoom = resultZoom;
-        result = result->reuse(resultCalc, resultDcMax, Perturbator::logZoomToExp10(resultZoom));
+        if (const auto v = dynamic_cast<LightMandelbrotPerturbator*>(result.get())) {
+            result = v->reuse(resultCalc, static_cast<double>(resultDcMax), Perturbator::logZoomToExp10(resultZoom));
+        }
+        if (const auto v = dynamic_cast<DeepMandelbrotPerturbator*>(result.get())) {
+            result = v->reuse(resultCalc, resultDcMax, Perturbator::logZoomToExp10(resultZoom));
+        }
         zoomIncrement /= 2;
     }
 
@@ -95,34 +101,34 @@ std::unique_ptr<MandelbrotLocator> MandelbrotLocator::locateMinibrot(ParallelRen
  * @param actionWhileCreatingTable action 2
  * @return result table
  */
-std::unique_ptr<LightMandelbrotPerturbator> MandelbrotLocator::findAccurateCenterPerturbator(ParallelRenderState &state,
-                                                                                             std::unique_ptr<LightMandelbrotPerturbator> perturbator,
-                                                                                             const std::function<void(uint64_t, int)> &
-                                                                                             actionWhileFindingMinibrotCenter,
-                                                                                             const std::function<void(uint64_t, float)> &
-                                                                                             actionWhileCreatingTable) {
+std::unique_ptr<MandelbrotPerturbator> MandelbrotLocator::findAccurateCenterPerturbator(ParallelRenderState &state,
+    std::unique_ptr<MandelbrotPerturbator> perturbator,
+    const std::function<void(uint64_t, int)> &
+    actionWhileFindingMinibrotCenter,
+    const std::function<void(uint64_t, float)> &
+    actionWhileCreatingTable) {
     // multiply zoom by 2 and find center offset.
     // set the center to center + centerOffset.
 
     uint64_t longestPeriod = perturbator->getReference()->longestPeriod();
 
-    const int logZoom = perturbator->getCalculationSettings().logZoom;
+    const float logZoom = perturbator->getCalculationSettings().logZoom;
     const CalculationSettings &calc = perturbator->getCalculationSettings();
     CalculationSettings doubledZoomCalc = calc;
     const uint64_t maxIteration = doubledZoomCalc.maxIteration;
-    const int doubledLogZoom = logZoom * 2;
-    const int exp10 = Perturbator::logZoomToExp10(doubledLogZoom);
+    const float doubledLogZoom = logZoom * 2;
+    const int doubledExp10 = Perturbator::logZoomToExp10(doubledLogZoom);
 
-    doubledZoomCalc.center = Center(doubledZoomCalc.center.edit(exp10) += findCenterOffset(*perturbator.get())->edit(exp10));
-    doubledZoomCalc.logZoom = static_cast<float>(doubledLogZoom);
+    doubledZoomCalc.center = fp_complex(
+        doubledZoomCalc.center.edit(doubledExp10) += findCenterOffset(*perturbator.get())->edit(doubledExp10));
+    doubledZoomCalc.logZoom = doubledLogZoom;
 
-    double doubledZoomDcMax = perturbator->getDcMax() / pow(10, logZoom);
+    double_exp doubledZoomDcMax = perturbator->getDcMaxExp() / pow(10, logZoom);
 
 
     int centerFixCount = 0;
 
-    std::unique_ptr<LightMandelbrotPerturbator> doubledZoomPerturbator = std::move(perturbator);
-    perturbator = nullptr;
+    std::unique_ptr<MandelbrotPerturbator> doubledZoomPerturbator = std::move(perturbator);
 
     while (!checkMaxIterationOnly(*doubledZoomPerturbator, maxIteration)) {
         if (state.interruptRequested()) {
@@ -130,27 +136,35 @@ std::unique_ptr<LightMandelbrotPerturbator> MandelbrotLocator::findAccurateCente
             //try to save the vector
         }
 
-        Center off = *findCenterOffset(*doubledZoomPerturbator);
-        doubledZoomCalc.center = Center(doubledZoomCalc.center.edit(exp10) += off.edit(exp10));
+        fp_complex off = *findCenterOffset(*doubledZoomPerturbator);
+        doubledZoomCalc.center = fp_complex(doubledZoomCalc.center.edit(doubledExp10) += off.edit(doubledExp10));
 
         ++centerFixCount;
-        // if(perturbator.getExp10() < DoubleExponent.EXP_DEADLINE / 2){
-        doubledZoomPerturbator = std::make_unique<LightMandelbrotPerturbator>(
-            state, doubledZoomCalc, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
-            doubledZoomPerturbator->getTable().extractVector(), //IT MOVES THE TABLE!!!!!!!!!!!!!!!!!!!!!!
-            [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
-                actionWhileFindingMinibrotCenter(p, centerFixCount);
-            }, actionWhileCreatingTable, true);
-        // }else{
-        //     doubledZoomScene = new DeepMandelbrotPerturbator(state, currentID, doubledZoomCalc, doubledZoomDcMax, doubledZoomExp10, longestPeriod, p -> actionWhileFindingMinibrotCenter.accept(p, centerFixCount.get()), actionWhileCreatingTable, true);
-        // }
+        MPATable &table = doubledZoomPerturbator->getTable();
+
+        if (logZoom < RFF::Precision::EXP_DEADLINE / 2) {
+            doubledZoomPerturbator = std::make_unique<LightMandelbrotPerturbator>(
+                state, doubledZoomCalc, static_cast<double>(doubledZoomDcMax), Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
+                dynamic_cast<LightMPATable*>(&table)->extractVector(), //IT MOVES THE TABLE!!!!!!!!!!!!!!!!!!!!!!
+                [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
+                    actionWhileFindingMinibrotCenter(p, centerFixCount);
+                }, actionWhileCreatingTable, true);
+        } else {
+            doubledZoomPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
+                state, doubledZoomCalc, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
+                dynamic_cast<DeepMPATable*>(&table)->extractVector(),
+                [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
+                    actionWhileFindingMinibrotCenter(p, centerFixCount);
+                }, actionWhileCreatingTable, true);
+        }
     }
 
 
     return doubledZoomPerturbator;
 }
 
-bool MandelbrotLocator::checkMaxIterationOnly(const LightMandelbrotPerturbator &perturbator,
+bool MandelbrotLocator::checkMaxIterationOnly(const MandelbrotPerturbator &perturbator,
                                               const uint64_t maxIteration) {
-    return perturbator.iterate(perturbator.getDcMax(), 0) / static_cast<double>(maxIteration) == 1;
+    return perturbator.iterate(perturbator.getDcMaxExp(), RFF::Precision::DEX_ZERO) / static_cast<double>(maxIteration) == 1;
+
 }

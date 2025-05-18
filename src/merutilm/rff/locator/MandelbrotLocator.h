@@ -4,27 +4,27 @@
 
 #pragma once
 #include "../formula/LightMandelbrotPerturbator.h"
-#include "../precision/Center.h"
+#include "../calc/fp_complex.h"
 
 struct MandelbrotLocator {
-    std::unique_ptr<LightMandelbrotPerturbator> perturbator;
+    std::unique_ptr<MandelbrotPerturbator> perturbator;
 
-    static std::unique_ptr<Center> findCenter(const LightMandelbrotPerturbator *perturbator);
+    static std::unique_ptr<fp_complex> findCenter(const MandelbrotPerturbator *perturbator);
 
-    static std::unique_ptr<Center> findCenterOffset(const LightMandelbrotPerturbator &perturbator);
+    static std::unique_ptr<fp_complex> findCenterOffset(const MandelbrotPerturbator &perturbator);
 
     static std::unique_ptr<MandelbrotLocator> locateMinibrot(ParallelRenderState &state,
-                                                             std::unique_ptr<LightMandelbrotPerturbator> perturbator,
+                                                             std::unique_ptr<MandelbrotPerturbator> perturbator,
                                                              const std::function<void(uint64_t, int)> &
                                                              actionWhileFindingMinibrotCenter,
                                                              const std::function<void(uint64_t, float)> &actionWhileCreatingTable,
                                                              const std::function<void(float)> &actionWhileFindingMinibrotZoom);
 
 private:
-    static std::unique_ptr<LightMandelbrotPerturbator> findAccurateCenterPerturbator(ParallelRenderState &state,
-        std::unique_ptr<LightMandelbrotPerturbator> perturbator,
+    static std::unique_ptr<MandelbrotPerturbator> findAccurateCenterPerturbator(ParallelRenderState &state,
+        std::unique_ptr<MandelbrotPerturbator> perturbator,
         const std::function<void(uint64_t, int)> &actionWhileFindingMinibrotCenter,
         const std::function<void(uint64_t, float)> &actionWhileCreatingTable);
 
-    static bool checkMaxIterationOnly(const LightMandelbrotPerturbator &perturbator, uint64_t maxIteration);
+    static bool checkMaxIterationOnly(const MandelbrotPerturbator &perturbator, uint64_t maxIteration);
 };

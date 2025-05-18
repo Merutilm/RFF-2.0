@@ -12,10 +12,10 @@
 #include "glad.h"
 #include "RFF.h"
 #include "RFFUtilities.h"
-#include "../approx/ApproxMath.h"
+#include "../calc/double_exp_math.h"
+#include "../formula/DeepMandelbrotPerturbator.h"
 #include "../formula/Perturbator.h"
 #include "../parallel/ParallelArrayDispatcher.h"
-#include "../value/PointDouble.h"
 
 
 RFFRenderScene::RFFRenderScene() : referenceRenderState(ParallelRenderState()), settings(initSettings()) {
@@ -28,25 +28,25 @@ RFFRenderScene::~RFFRenderScene() {
 Settings RFFRenderScene::initSettings() {
     return Settings{
         .calculationSettings = CalculationSettings{
-            .center = Center(
+            .center = fp_complex(
                 "-0.85",
                 //"-1.7433380976879299408417853435676017785972000052524291128107561584529660103218876836645852866195456038569337053542405",
                 "0",
                 //"-0.00000180836819716880795128873613161993554089471597685393367018109950768833467685704762711890797154859214327088989719746641",
                 Perturbator::logZoomToExp10(85)),
             .logZoom = 2, //85.190033f,
-            .maxIteration = 10000000000,
+            .maxIteration = 3000,
             .bailout = 2,
             .decimalizeIterationMethod = DecimalizeIterationMethod::LOG_LOG,
             .mpaSettings = MPASettings{
-                .minSkipReference = 8,
+                .minSkipReference = 4,
                 .maxMultiplierBetweenLevel = 2,
                 .epsilonPower = -3,
                 .mpaSelectionMethod = MPASelectionMethod::HIGHEST,
                 .mpaCompressionMethod = MPACompressionMethod::NO_COMPRESSION,
             },
             .referenceCompressionSettings = ReferenceCompressionSettings{
-                .compressCriteria = 1000000,
+                .compressCriteria = 0,
                 .compressionThresholdPower = 6,
             },
             .reuseReferenceMethod = ReuseReferenceMethod::DISABLED,
@@ -137,9 +137,9 @@ void RFFRenderScene::runAction(const UINT message, const WPARAM wParam) {
                 const int dy = mouseY - y;
                 const float m = settings.renderSettings.clarityMultiplier;
                 const float logZoom = settings.calculationSettings.logZoom;
-                Center &center = settings.calculationSettings.center;
-                center = center.addCenterDouble(static_cast<float>(dx) / m / getDivisor(settings),
-                                                static_cast<float>(dy) / m / getDivisor(settings),
+                fp_complex &center = settings.calculationSettings.center;
+                center = center.addCenterDouble(double_exp::value(static_cast<float>(dx) / m) / getDivisor(settings),
+                                                double_exp::value(static_cast<float>(dy) / m) / getDivisor(settings),
                                                 Perturbator::logZoomToExp10(logZoom));
                 mouseX = x;
                 mouseY = y;
@@ -163,22 +163,22 @@ void RFFRenderScene::runAction(const UINT message, const WPARAM wParam) {
             settings.calculationSettings.logZoom = std::max(RFF::Render::ZOOM_MIN,
                                                             settings.calculationSettings.logZoom);
             if (value == 1) {
-                const PointDouble offset = offsetConversion(settings, getMouseXOnIterationBuffer(),
-                                                            getMouseYOnIterationBuffer());
+                const std::array<double_exp, 2> offset = offsetConversion(settings, getMouseXOnIterationBuffer(),
+                                                                          getMouseYOnIterationBuffer());
                 const double mzi = 1.0 / pow(10, RFF::Render::ZOOM_INTERVAL);
                 float &logZoom = settings.calculationSettings.logZoom;
                 logZoom += increment;
                 settings.calculationSettings.center = settings.calculationSettings.center.addCenterDouble(
-                    offset.getX() * (1 - mzi), offset.getY() * (1 - mzi), Perturbator::logZoomToExp10(logZoom));
+                    offset[0] * (1 - mzi), offset[1] * (1 - mzi), Perturbator::logZoomToExp10(logZoom));
             }
             if (value == -1) {
-                const PointDouble offset = offsetConversion(settings, getMouseXOnIterationBuffer(),
-                                                            getMouseYOnIterationBuffer());
+                const std::array<double_exp, 2> offset = offsetConversion(settings, getMouseXOnIterationBuffer(),
+                                                                          getMouseYOnIterationBuffer());
                 const double mzo = 1.0 / pow(10, -RFF::Render::ZOOM_INTERVAL);
                 float &logZoom = settings.calculationSettings.logZoom;
                 logZoom -= increment;
                 settings.calculationSettings.center = settings.calculationSettings.center.addCenterDouble(
-                    offset.getX() * (1 - mzo), offset.getY() * (1 - mzo), Perturbator::logZoomToExp10(logZoom));
+                    offset[0] * (1 - mzo), offset[1] * (1 - mzo), Perturbator::logZoomToExp10(logZoom));
             }
 
 
@@ -192,17 +192,21 @@ void RFFRenderScene::runAction(const UINT message, const WPARAM wParam) {
 }
 
 
-PointDouble RFFRenderScene::offsetConversion(const Settings &settings, const int mx, const int my) const {
-    return PointDouble(
-        (static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth(settings)) / 2.0) / getDivisor(settings)
+std::array<double_exp, 2> RFFRenderScene::offsetConversion(const Settings &settings, const int mx, const int my) const {
+    return {
+        double_exp::value(static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth(settings)) / 2.0) /
+        getDivisor(settings)
         / settings.renderSettings.clarityMultiplier,
-        (static_cast<double>(my) - static_cast<double>(getIterationBufferHeight(settings)) / 2.0) / getDivisor(settings)
+        double_exp::value(static_cast<double>(my) - static_cast<double>(getIterationBufferHeight(settings)) / 2.0) /
+        getDivisor(settings)
         / settings.renderSettings.clarityMultiplier
-    );
+    };
 }
 
-double RFFRenderScene::getDivisor(const Settings &settings) {
-    return pow(10, settings.calculationSettings.logZoom);
+double_exp RFFRenderScene::getDivisor(const Settings &settings) {
+    double_exp v = RFF::Precision::DEX_ZERO;
+    dex_exp::exp10(&v, settings.calculationSettings.logZoom);
+    return v;
 }
 
 int RFFRenderScene::getClientWidth() const {
@@ -280,6 +284,7 @@ void RFFRenderScene::renderGL() {
     }
     if (clarityRequested) {
         clarityRequested = false;
+        referenceRenderState.cancel();
         applyClarity();
     }
     if (recomputeRequested) {
@@ -386,8 +391,9 @@ void RFFRenderScene::compute(const Settings &settings) {
     setStatusMessage(RFF::Status::ZOOM_STATUS,
                      std::format("Zoom : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
-    PointDouble offset = offsetConversion(settingsToUse, 0, 0);
-    double dcMax = ApproxMath::hypotApproximate(offset.getX(), offset.getY());
+    const std::array<double_exp, 2> offset = offsetConversion(settingsToUse, 0, 0);
+    double_exp dcMax = RFF::Precision::DEX_ZERO;
+    dex_trigonometric::hypot_approx(&dcMax, offset[0], offset[1]);
 
     const auto refreshInterval = RFFUtilities::getRefreshInterval(logZoom);
     std::function actionPerRefCalcIteration = [refreshInterval, this](const uint64_t p) {
@@ -408,7 +414,12 @@ void RFFRenderScene::compute(const Settings &settings) {
     switch (calc.reuseReferenceMethod) {
             using enum ReuseReferenceMethod;
         case CURRENT_REFERENCE: {
-            currentPerturbator = currentPerturbator->reuse(calc, currentPerturbator->getDcMax(), exp10);
+            if (auto p = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get())) {
+                currentPerturbator = p->reuse(calc, static_cast<double>(currentPerturbator->getDcMaxExp()), exp10);
+            }
+            if (auto p = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
+                currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxExp(), exp10);
+            }
             break;
         }
         // case CENTERED_REFERENCE: {
@@ -446,18 +457,26 @@ void RFFRenderScene::compute(const Settings &settings) {
         // break;
         // }
         case DISABLED: {
-            // if (logZoom > DoubleExponent.EXP_DEADLINE) {
-            //     currentPerturbator = new DeepMandelbrotPerturbator(state, currentID, calc, dcMax, precision, -1,
-            //                                                        actionPerRefCalcIteration,
-            //                                                        actionPerCreatingTableIteration);
-            // } else {
-            auto vector = currentPerturbator == nullptr
-                              ? std::vector<std::vector<LightPA> >()
-                              : std::move(currentPerturbator->getTable().extractVector());
-            currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(
-                referenceRenderState, calc, dcMax, exp10,
-                0, std::move(vector), std::move(actionPerRefCalcIteration),
-                std::move(actionPerCreatingTableIteration));
+            if (logZoom > RFF::Precision::EXP_DEADLINE) {
+                auto p = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get());
+
+                auto vector = p == nullptr
+                                  ? std::vector<std::vector<DeepPA> >()
+                                  : std::move(p->getTable().extractVector());
+                currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
+                    referenceRenderState, calc, dcMax, exp10,
+                    0, std::move(vector), std::move(actionPerRefCalcIteration),
+                    std::move(actionPerCreatingTableIteration));
+            } else {
+                auto p = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get());
+                auto vector = p == nullptr
+                                  ? std::vector<std::vector<LightPA> >()
+                                  : std::move(p->getTable().extractVector());
+                currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(
+                    referenceRenderState, calc, static_cast<double>(dcMax), exp10,
+                    0, std::move(vector), std::move(actionPerRefCalcIteration),
+                    std::move(actionPerCreatingTableIteration));
+            }
             break;
         }
         default: {
@@ -465,7 +484,7 @@ void RFFRenderScene::compute(const Settings &settings) {
         }
     }
 
-    const LightMandelbrotReference *reference = currentPerturbator->getReference();
+    const MandelbrotReference *reference = currentPerturbator->getReference();
     if (reference == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE || referenceRenderState.interruptRequested())
         return;
 
@@ -485,8 +504,8 @@ void RFFRenderScene::compute(const Settings &settings) {
         referenceRenderState, *iterationMatrix,
         [settingsToUse, this, &renderPixelsCount](const int x, const int y, const int xRes, int, float, float, int,
                                                   double) {
-            const PointDouble dc = offsetConversion(settingsToUse, x, y);
-            const double iteration = currentPerturbator->iterate(dc.getX(), dc.getY());
+            const auto dc = offsetConversion(settingsToUse, x, y);
+            const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
             rendererIteration->setIteration(x, y, iteration);
 
             if (x == xRes - 1 && !canDisplayed) {
@@ -539,16 +558,16 @@ ParallelRenderState &RFFRenderScene::getState() {
     return referenceRenderState;
 }
 
-LightMandelbrotPerturbator *RFFRenderScene::getCurrentPerturbator() const {
+MandelbrotPerturbator *RFFRenderScene::getCurrentPerturbator() const {
     return currentPerturbator.get();
 }
 
-std::unique_ptr<LightMandelbrotPerturbator> RFFRenderScene::extractCurrentPerturbator() {
+std::unique_ptr<MandelbrotPerturbator> RFFRenderScene::extractCurrentPerturbator() {
     auto ptr = std::move(currentPerturbator);
     currentPerturbator = nullptr;
     return ptr;
 }
 
-void RFFRenderScene::setCurrentPerturbator(std::unique_ptr<LightMandelbrotPerturbator> perturbator) {
+void RFFRenderScene::setCurrentPerturbator(std::unique_ptr<MandelbrotPerturbator> perturbator) {
     this->currentPerturbator = std::move(perturbator);
 }

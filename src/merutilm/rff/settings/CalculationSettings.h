@@ -4,11 +4,11 @@
 #include "MPASettings.h"
 #include "ReferenceCompressionSettings.h"
 #include "ReuseReferenceMethod.h"
-#include "../precision/Center.h"
+#include "../calc/fp_complex.h"
 
 
 struct CalculationSettings final{
-    Center center;
+    fp_complex center;
     float logZoom;
     uint64_t maxIteration;
     float bailout;

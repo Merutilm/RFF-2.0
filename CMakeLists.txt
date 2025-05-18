@@ -25,8 +25,8 @@ add_executable(
         src/merutilm/rff/opengl/GLShaderLoader.cpp
         src/merutilm/rff/opengl/GLRenderer.cpp
         src/merutilm/rff/opengl/GLRenderer.h
-        src/merutilm/rff/precision/GMPComplexCalculator.cpp
-        src/merutilm/rff/precision/GMPComplexCalculator.h
+        src/merutilm/rff/calc/fp_complex_calculator.cpp
+        src/merutilm/rff/calc/fp_complex_calculator.h
         src/merutilm/rff/ui/RFFMasterWindow.cpp
         src/merutilm/rff/ui/RFFMasterWindow.h
         src/merutilm/rff/ui/RFF.h
@@ -44,22 +44,20 @@ add_executable(
         src/merutilm/rff/settings/DataSettings.h
         src/merutilm/rff/settings/ExportSettings.h
         src/merutilm/rff/settings/MpaSettings.h
-        src/merutilm/rff/precision/Center.cpp
-        src/merutilm/rff/precision/Center.h
+        src/merutilm/rff/calc/fp_complex.cpp
+        src/merutilm/rff/calc/fp_complex.h
         src/merutilm/rff/settings/DecimalizeIterationMethod.h
         src/merutilm/rff/settings/ReferenceCompressionSettings.h
         src/merutilm/rff/settings/ReuseReferenceMethod.h
         src/merutilm/rff/settings/Selectable.h
-        src/merutilm/rff/precision/GMPDecimalCalculator.cpp
-        src/merutilm/rff/precision/GMPDecimalCalculator.h
-        src/merutilm/rff/precision/GMPDecimal.cpp
-        src/merutilm/rff/precision/GMPDecimal.h
+        src/merutilm/rff/calc/fp_decimal_calculator.cpp
+        src/merutilm/rff/calc/fp_decimal_calculator.h
+        src/merutilm/rff/calc/fp_decimal.cpp
+        src/merutilm/rff/calc/fp_decimal.h
         src/merutilm/rff/ui/RFFGL.cpp
         src/merutilm/rff/ui/RFFGL.h
         src/merutilm/rff/ui/RFFRenderScene.cpp
         src/merutilm/rff/ui/RFFRenderScene.h
-        src/merutilm/rff/value/PointDouble.cpp
-        src/merutilm/rff/value/PointDouble.h
         src/merutilm/rff/formula/Perturbator.cpp
         src/merutilm/rff/formula/Perturbator.h
         src/merutilm/rff/ui/RFFScene.h
@@ -80,19 +78,19 @@ add_executable(
         src/merutilm/rff/formula/LightMandelbrotReference.h
         src/merutilm/rff/parallel/ParallelRenderState.cpp
         src/merutilm/rff/parallel/ParallelRenderState.h
-        src/merutilm/rff/approx/ApproxMath.h
-        src/merutilm/rff/approx/ArrayCompressionTool.h
-        src/merutilm/rff/approx/ArrayCompressor.h
+        src/merutilm/rff/calc/approx_math.h
+        src/merutilm/rff/mrtbrilliant/ArrayCompressionTool.h
+        src/merutilm/rff/mrtbrilliant/ArrayCompressor.h
         src/merutilm/rff/parallel/ParallelArrayDispatcher.h
         src/merutilm/rff/ui/RFFUtilities.h
         src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp
         src/merutilm/rff/formula/LightMandelbrotPerturbator.h
-        src/merutilm/rff/approx/LightPA.cpp
-        src/merutilm/rff/approx/LightPA.h
-        src/merutilm/rff/approx/LightMPATable.cpp
-        src/merutilm/rff/approx/LightMPATable.h
-        src/merutilm/rff/approx/MPAPeriod.cpp
-        src/merutilm/rff/approx/MPAPeriod.h
+        src/merutilm/rff/mrtbrilliant/LightPA.cpp
+        src/merutilm/rff/mrtbrilliant/LightPA.h
+        src/merutilm/rff/mrtbrilliant/LightMPATable.cpp
+        src/merutilm/rff/mrtbrilliant/LightMPATable.h
+        src/merutilm/rff/mrtbrilliant/MPAPeriod.cpp
+        src/merutilm/rff/mrtbrilliant/MPAPeriod.h
         src/merutilm/rff/ui/RFFSettingsWindow.cpp
         src/merutilm/rff/ui/RFFSettingsWindow.h
         src/merutilm/rff/ui/RFFSettingsMenu.cpp
@@ -127,5 +125,24 @@ add_executable(
         src/merutilm/rff/locator/MandelbrotLocator.h
         src/merutilm/rff/ui/RFFCallbackExplore.cpp
         src/merutilm/rff/ui/RFFCallbackExplore.h
+        src/merutilm/rff/calc/double_exp.cpp
+        src/merutilm/rff/calc/double_exp.h
+        src/merutilm/rff/formula/DeepMandelbrotReference.cpp
+        src/merutilm/rff/formula/DeepMandelbrotReference.h
+        src/merutilm/rff/formula/MandelbrotReference.cpp
+        src/merutilm/rff/formula/MandelbrotReference.h
+        src/merutilm/rff/calc/dex_std.h
+        src/merutilm/rff/calc/double_exp_math.h
+        src/merutilm/rff/formula/DeepMandelbrotPerturbator.cpp
+        src/merutilm/rff/formula/DeepMandelbrotPerturbator.h
+        src/merutilm/rff/formula/MandelbrotPerturbator.cpp
+        src/merutilm/rff/formula/MandelbrotPerturbator.h
+        src/merutilm/rff/mrtbrilliant/DeepPA.cpp
+        src/merutilm/rff/mrtbrilliant/DeepPA.h
+        src/merutilm/rff/mrtbrilliant/DeepMPATable.cpp
+        src/merutilm/rff/mrtbrilliant/DeepMPATable.h
+        src/merutilm/rff/mrtbrilliant/MPATable.cpp
+        src/merutilm/rff/mrtbrilliant/MPATable.h
+        src/merutilm/rff/mrtbrilliant/PA.h
 )
 target_link_libraries(RFF PRIVATE opengl32 gmp comctl32)

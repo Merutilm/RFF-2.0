@@ -27,12 +27,12 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackExplor
 };
 const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackExplore::FIND_CENTER = [
         ](const RFFSettingsMenu &, RFFRenderScene &scene) {
-    const LightMandelbrotPerturbator *perturbator = scene.getCurrentPerturbator();
+    const MandelbrotPerturbator *perturbator = scene.getCurrentPerturbator();
     if (perturbator == nullptr || perturbator->getReference() == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE) {
         return;
     }
 
-    if (const std::unique_ptr<Center> c = MandelbrotLocator::findCenter(perturbator); c == nullptr) {
+    if (const std::unique_ptr<fp_complex> c = MandelbrotLocator::findCenter(perturbator); c == nullptr) {
         MessageBox(nullptr, "No center found!", "Caution", MB_OK | MB_ICONWARNING);
     } else {
         scene.getSettings().calculationSettings.center = *c;
@@ -48,7 +48,8 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackExplor
         return;
     }
 
-    std::unique_ptr<LightMandelbrotPerturbator> perturbator = scene.extractCurrentPerturbator();
+    scene.getState().cancel();
+    std::unique_ptr<MandelbrotPerturbator> perturbator = scene.extractCurrentPerturbator();
     assert(perturbator != nullptr);
 
     scene.getState().createThread(
@@ -81,7 +82,7 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackExplor
                 }
             );
 
-            std::unique_ptr<LightMandelbrotPerturbator> locatorPerturbator = std::move(locator->perturbator);
+            std::unique_ptr<MandelbrotPerturbator> locatorPerturbator = std::move(locator->perturbator);
             const CalculationSettings &locatorCalc = locatorPerturbator->getCalculationSettings();
 
             if (scene.getState().interruptRequested()) {

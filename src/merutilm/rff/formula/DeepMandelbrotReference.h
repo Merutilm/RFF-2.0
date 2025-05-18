@@ -1,0 +1,41 @@
+//
+// Created by Merutilm on 2025-05-18.
+//
+
+#pragma once
+#include <vector>
+
+#include "MandelbrotReference.h"
+#include "../calc/fp_complex.h"
+#include "../parallel/ParallelRenderState.h"
+#include "../settings/CalculationSettings.h"
+
+struct ArrayCompressionTool;
+
+struct DeepMandelbrotReference final : public MandelbrotReference{
+    const std::vector<double_exp> refReal;
+    const std::vector<double_exp> refImag;
+
+
+    DeepMandelbrotReference(fp_complex &&center, std::vector<double_exp> &&refReal,
+                             std::vector<double_exp> &&refImag, std::vector<ArrayCompressionTool> &&compressor,
+                             std::vector<uint64_t> &&period, fp_complex &&lastReference, fp_complex &&fpgBn);
+
+    static std::unique_ptr<DeepMandelbrotReference> createReference(const ParallelRenderState &state,
+                                                                     const CalculationSettings &calc, int exp10,
+                                                                     uint64_t initialPeriod, double_exp dcMax, bool
+                                                                     strictFPG,
+                                                                     std::function<void(uint64_t)> &&
+                                                                     actionPerRefCalcIteration);
+
+
+    
+    double_exp real(uint64_t refIteration) const;
+
+    double_exp imag(uint64_t refIteration) const;
+
+    size_t length() const override;
+    
+    uint64_t longestPeriod() const override;
+
+};

@@ -1,13 +1,13 @@
 #pragma once
-#include <glad.h>
-#include <array>
-#include <cstdint>
-#include <string>
 
+#include <glad.h>
 #include "windows.h"
 #include <commctrl.h>
+#include <cmath>
+#include <array>
+#include <chrono>
 
-#include "../formula/LightMandelbrotReference.h"
+#include "../calc/double_exp.h"
 
 using TextureFormat = std::array<GLuint, 3>;
 
@@ -61,12 +61,21 @@ namespace RFF {
     }
 
     namespace Precision {
-        constexpr float LOG10_2 = 0.3010299956639811952137388947244930267681898814621085375f;
+        constexpr double LOG_2 = 0.693147180559945309417232121458;
+        constexpr double LOG_10 = 2.302585092994045684017991454684;
+        constexpr double LOG10_2 = 0.301029995663981195213738894724;
         constexpr int DOUBLE_PRECISION = 52;
-        constexpr uint64_t SIGNUM_BIT = 0x8000000000000000LL;
-        constexpr uint64_t EXP0_BITS = 0x3ff0000000000000LL;
-        constexpr uint64_t DECIMAL_SIGNUM_BITS = 0x800fffffffffffffLL;
+        constexpr uint64_t SIGNUM_BIT = 0x8000000000000000;
+        constexpr uint64_t EXP0_BITS = 0x3ff0000000000000;
+        constexpr uint64_t DECIMAL_SIGNUM_BITS = 0x800fffffffffffff;
         constexpr int PRECISION_ADDITION = 15;
+        constexpr double EXP_DEADLINE = 295;
+        inline static const auto DEX_ZERO = double_exp(0, 0);
+        inline static const auto DEX_ONE = double_exp(0, 1);
+        inline static const auto DEX_NAN = double_exp(0, NAN);
+        inline static const auto DEX_POSITIVE_INFINITY = double_exp(INT_MAX, INFINITY);
+        inline static const auto DEX_NEGATIVE_INFINITY = double_exp(INT_MAX, -INFINITY);
+
     }
 
     namespace TextureFormats {
@@ -133,7 +142,7 @@ namespace RFF {
     }
 
     namespace Callback {
-        constexpr auto NOTHING = [] {};
+        constexpr auto NOTHING = [] { /*NO CALLBACKS*/ };
     }
 
     namespace Parser {
@@ -186,8 +195,8 @@ namespace RFF {
         constexpr int REQUIRED_PERTURBATION = 2;
     }
     namespace Locator {
-        constexpr float MINIBROT_LOG_ZOOM_OFFSET = 1.5;
-        constexpr float ZOOM_INCREMENT_LIMIT = 0.01;
+        constexpr float MINIBROT_LOG_ZOOM_OFFSET = 1.5f;
+        constexpr float ZOOM_INCREMENT_LIMIT = 0.01f;
     }
 
     namespace GLConfig {

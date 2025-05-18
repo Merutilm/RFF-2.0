@@ -13,7 +13,7 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackFracta
     auto window = std::make_unique<RFFSettingsWindow>("Reference");
 
     auto centerPtr = std::make_shared<std::array<std::string, 2> >();
-    *centerPtr = {calc.center.real.toString(), calc.center.imag.toString()};
+    *centerPtr = {calc.center.real.to_string(), calc.center.imag.to_string()};
 
     auto zoomPtr = std::make_shared<float>(calc.logZoom);
     auto locationChanged = std::make_shared<bool>(false);
@@ -39,7 +39,7 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackFracta
                                            }, [centerPtr, locationChanged] {
                                                *locationChanged = true;
                                            }, "Imag", "Sets the imaginary part of center.");
-    window->registerTextInput<float>("Log Zoom", &calc.logZoom, RFF::Unparser::FLOAT,
+    window->registerTextInput<float>("Log Zoom", zoomPtr.get(), RFF::Unparser::FLOAT,
                                      RFF::Parser::FLOAT, RFF::ValidCondition::POSITIVE_FLOAT,
                                      [zoomPtr, locationChanged] {
                                          *locationChanged = true;
@@ -69,7 +69,7 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackFracta
         [centerPtr, zoomPtr, locationChanged, &settingsMenu, &scene, &calc] {
             const int exp10 = Perturbator::logZoomToExp10(*zoomPtr);
             if (*locationChanged) {
-                calc.center = Center((*centerPtr)[0], (*centerPtr)[1], exp10);
+                calc.center = fp_complex((*centerPtr)[0], (*centerPtr)[1], exp10);
                 calc.logZoom = *zoomPtr;
                 scene.requestRecompute();
             }

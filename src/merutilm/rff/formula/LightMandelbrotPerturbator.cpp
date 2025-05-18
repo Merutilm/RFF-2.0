@@ -44,9 +44,8 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
                                                        std::unique_ptr<LightMandelbrotReference> reusedReference,
                                                        std::unique_ptr<LightMPATable> reusedTable,
                                                        const double offR,
-                                                       const double offI) : state(state), calc(calc), dcMax(dcMax), offR(offR), offI(offI),
-                                                                            arbitraryPrecisionFPGBn(
-                                                                                arbitraryPrecisionFPGBn) {
+                                                       const double offI) : MandelbrotPerturbator(state, calc),
+                                                                            dcMax(dcMax), offR(offR), offI(offI) {
     if (reusedReference == nullptr) {
         reference = LightMandelbrotReference::createReference(state, calc, exp10, initialPeriod, dcMax,
                                                               arbitraryPrecisionFPGBn,
@@ -65,11 +64,11 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
 }
 
 
-double LightMandelbrotPerturbator::iterate(const double dcr, const double dci) const {
+double LightMandelbrotPerturbator::iterate(const double_exp &dcr, const double_exp &dci) const {
     if (state.interruptRequested()) return 0.0;
 
-    const double dcr1 = dcr + offR;
-    const double dci1 = dci + offI;
+    const double dcr1 = static_cast<double>(dcr) + offR;
+    const double dci1 = static_cast<double>(dci) + offI;
 
     uint64_t iteration = 0;
     uint64_t refIteration = 0;
@@ -160,7 +159,7 @@ double LightMandelbrotPerturbator::iterate(const double dcr, const double dci) c
     pd = sqrt(pd);
     cd = sqrt(cd);
 
-    return Perturbator::getDoubleValueIteration(iteration, pd, cd, calc.decimalizeIterationMethod, bailout);
+    return getDoubleValueIteration(iteration, pd, cd, calc.decimalizeIterationMethod, bailout);
 }
 
 
@@ -177,10 +176,10 @@ std::unique_ptr<LightMandelbrotPerturbator> LightMandelbrotPerturbator::reuse(
         MessageBox(nullptr, "Please do not try to use PROCESS-TERMINATED Reference.", "Warning",
                    MB_OK | MB_ICONWARNING);
     } else {
-        GMPComplexCalculator centerOffset = calc.center.edit(exp10);
+        fp_complex_calculator centerOffset = calc.center.edit(exp10);
         centerOffset -= reference->center.edit(exp10);
-        offR = centerOffset.getReal().doubleValue();
-        offI = centerOffset.getImag().doubleValue();
+        offR = centerOffset.getReal().double_value();
+        offI = centerOffset.getImag().double_value();
         longestPeriod = reference->longestPeriod();
         reusedReference = std::move(reference);
     }
@@ -192,6 +191,6 @@ std::unique_ptr<LightMandelbrotPerturbator> LightMandelbrotPerturbator::reuse(
                                                             //no action because the reference is already declared
                                                         }, [](uint64_t, double) {
                                                             //same reason
-                                                        }, arbitraryPrecisionFPGBn, std::move(reusedReference),
+                                                        }, false, std::move(reusedReference),
                                                         std::move(table), offR, offI);
 }

@@ -21,7 +21,6 @@
 #include "../opengl/GLRendererSlope.h"
 #include "../opengl/GLRendererStripe.h"
 #include "../parallel/ParallelRenderState.h"
-#include "../value/PointDouble.h"
 
 
 class RFFRenderScene final : private RFFScene {
@@ -42,7 +41,7 @@ class RFFRenderScene final : private RFFScene {
     std::array<std::string, RFF::Status::LENGTH> *statusMessageRef = nullptr;
     std::unique_ptr<RFFMap> currentMap = nullptr;
     std::unique_ptr<Matrix<double> > iterationMatrix = nullptr;
-    std::unique_ptr<LightMandelbrotPerturbator> currentPerturbator = nullptr;
+    std::unique_ptr<MandelbrotPerturbator> currentPerturbator = nullptr;
 
     std::unique_ptr<GLMultipassRenderer> renderer = nullptr;
     std::unique_ptr<GLRendererIteration> rendererIteration = nullptr;
@@ -72,9 +71,9 @@ private:
 public:
     void runAction(UINT message, WPARAM wParam);
 
-    PointDouble offsetConversion(const Settings &settings, int mx, int my) const;
+    std::array<double_exp, 2> offsetConversion(const Settings &settings, int mx, int my) const;
 
-    static double getDivisor(const Settings &settings);
+    static double_exp getDivisor(const Settings &settings);
 
     int getClientWidth() const;
 
@@ -123,9 +122,9 @@ public:
 
     ParallelRenderState &getState();
 
-    LightMandelbrotPerturbator *getCurrentPerturbator() const;
+    MandelbrotPerturbator *getCurrentPerturbator() const;
 
-    std::unique_ptr<LightMandelbrotPerturbator> extractCurrentPerturbator();
+    std::unique_ptr<MandelbrotPerturbator> extractCurrentPerturbator();
 
-    void setCurrentPerturbator(std::unique_ptr<LightMandelbrotPerturbator> perturbator);
+    void setCurrentPerturbator(std::unique_ptr<MandelbrotPerturbator> perturbator);
 };

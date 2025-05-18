@@ -6,21 +6,24 @@
 
 #include <cmath>
 #include <complex>
-#include <iostream>
 #include <optional>
 
-#include "../approx/ApproxMath.h"
-#include "../approx/ArrayCompressor.h"
+#include "../calc/approx_math.h"
+#include "../mrtbrilliant/ArrayCompressor.h"
 #include "../ui/RFF.h"
 
 
-LightMandelbrotReference::LightMandelbrotReference(Center &&center, std::vector<double> &&refReal,
+LightMandelbrotReference::LightMandelbrotReference(fp_complex &&center, std::vector<double> &&refReal,
                                                    std::vector<double> &&refImag,
                                                    std::vector<ArrayCompressionTool> &&compressor,
                                                    std::vector<uint64_t> &&period,
-                                                   Center &&lastReference, Center &&fpgBn) : center(std::move(center)),
-    refReal(std::move(refReal)), refImag(std::move(refImag)), compressor(std::move(compressor)),
-    period(std::move(period)), lastReference(std::move(lastReference)), fpgBn(std::move(fpgBn)) {
+                                                   fp_complex &&lastReference,
+                                                   fp_complex &&fpgBn) : MandelbrotReference(std::move(center),
+                                                                             std::move(compressor), std::move(period),
+                                                                             std::move(lastReference),
+                                                                             std::move(fpgBn)),
+                                                                         refReal(std::move(refReal)),
+                                                                         refImag(std::move(refImag)) {
 }
 
 /**
@@ -30,13 +33,13 @@ LightMandelbrotReference::LightMandelbrotReference(Center &&center, std::vector<
  * @param exp10 the exponent of 10 for arbitrary-precision operation
  * @param initialPeriod the initial period. default value is 0. i.e. maximum iterations of arbitrary-precision operation
  * @param dcMax the length of center-to-vertex of screen.
- * @param strictFPGBn use arbitrary-precision operation for FPG-Bn calculation
+ * @param strictFPG use arbitrary-precision operation for fpg_bn calculation
  * @param actionPerRefCalcIteration the action of every iteration
  * @return the result of generation. but returns @code PROCESS_TERMINATED_REFERENCE@endcode if the process is terminated
  */
 std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createReference(
     const ParallelRenderState &state, const CalculationSettings &calc, int exp10, uint64_t initialPeriod, double dcMax,
-    bool strictFPGBn, std::function<void(uint64_t)> &&actionPerRefCalcIteration) {
+    const bool strictFPG, std::function<void(uint64_t)> &&actionPerRefCalcIteration) {
     if (state.interruptRequested()) {
         return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
     }
@@ -46,11 +49,12 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
     rr.push_back(0);
     ri.push_back(0);
 
-    Center center = calc.center;
+    fp_complex center = calc.center;
     auto c = center.edit(exp10);
-    auto z = GMPComplexCalculator(0, 0, exp10);
-    auto fpgBn = GMPComplexCalculator(0, 0, exp10);
-    auto one = GMPComplexCalculator(1.0, 0.0, exp10);
+    auto z = fp_complex_calculator(0, 0, exp10);
+    auto fpgBn = fp_complex_calculator(0, 0, exp10);
+    auto one = fp_complex_calculator(1.0, 0.0, exp10);
+    double bailoutSqr = calc.bailout * calc.bailout;
 
     double fpgBnr = 0;
     double fpgBni = 0;
@@ -59,7 +63,6 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
     double zr = 0;
     double zi = 0;
     uint64_t period = 1;
-
     auto periodArray = std::vector<uint64_t>();
 
     auto minZRadius = DBL_MAX;
@@ -67,32 +70,29 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
 
     auto tools = std::vector<ArrayCompressionTool>();
     uint64_t compressed = 0;
-    double bailoutSquared = calc.bailout * calc.bailout;
     uint64_t maxIteration = calc.maxIteration;
     auto [compressCriteria, compressionThresholdPower] = calc.referenceCompressionSettings;
     auto func = std::move(actionPerRefCalcIteration);
 
     double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
 
-    while (zr * zr + zi * zi < bailoutSquared && iteration < maxIteration) {
+    while (zr * zr + zi * zi < bailoutSqr && iteration < maxIteration) {
         if (iteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
             return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
         }
 
         // use Fast-Period-Guessing, and create R3A Table
         double radius2 = zr * zr + zi * zi;
-        double fpgLimit = radius2 / dcMax;
 
+        double fpgLimit = radius2 / dcMax;
         double fpgBnrTemp = fpgBnr * zr * 2 - fpgBni * zi * 2 + 1;
         double fpgBniTemp = fpgBnr * zi * 2 + fpgBni * zr * 2;
-        double fpgRadius = ApproxMath::hypotApproximate(fpgBnrTemp, fpgBniTemp);
-
+        double fpgRadius = approx_math::hypot_approx(fpgBnrTemp, fpgBniTemp);
 
         if (minZRadius > radius2 && radius2 > 0) {
             minZRadius = radius2;
             periodArray.push_back(iteration);
         }
-
 
         if ((iteration >= 1 && fpgRadius > fpgLimit) || iteration == maxIteration - 1 || (
                 initialPeriod != 0 && initialPeriod == iteration)) {
@@ -100,7 +100,7 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
             break;
         }
 
-        if (strictFPGBn) {
+        if (strictFPG) {
             fpgBn *= z.doubled();
             fpgBn += one;
             z.halved();
@@ -113,8 +113,8 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
         func(iteration);
         z.square();
         z += c;
-        zr = z.getReal().doubleValue();
-        zi = z.getImag().doubleValue();
+        zr = z.getReal().double_value();
+        zi = z.getImag().double_value();
 
         if (compressCriteria > 0 && iteration >= 1) {
             if (const int64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
@@ -151,8 +151,8 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
         }
     }
 
-    if (!strictFPGBn) {
-        fpgBn = GMPComplexCalculator(fpgBnr, fpgBni, exp10);
+    if (!strictFPG) {
+        fpgBn = fp_complex_calculator(fpgBnr, fpgBni, exp10);
     }
 
     rr.resize(period - compressed + 1);
@@ -162,7 +162,7 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
     periodArray = periodArray.empty() ? std::vector(1, period) : periodArray;
 
     return std::make_unique<LightMandelbrotReference>(std::move(center), std::move(rr), std::move(ri), std::move(tools),
-                                                      std::move(periodArray), Center(z), Center(fpgBn));
+                                                      std::move(periodArray), fp_complex(z), fp_complex(fpgBn));
 }
 
 

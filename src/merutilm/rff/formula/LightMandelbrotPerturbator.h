@@ -5,54 +5,61 @@
 #pragma once
 
 #include "LightMandelbrotReference.h"
-#include "../approx/LightMPATable.h"
+#include "MandelbrotPerturbator.h"
+#include "../mrtbrilliant/LightMPATable.h"
 
-class LightMandelbrotPerturbator {
-    ParallelRenderState &state;
-    const CalculationSettings calc;
+class LightMandelbrotPerturbator final : public MandelbrotPerturbator{
     std::unique_ptr<LightMandelbrotReference> reference = nullptr;
     std::unique_ptr<LightMPATable> table = nullptr;
 
     const double dcMax;
     const double offR;
     const double offI;
-    const bool arbitraryPrecisionFPGBn;
 
 public:
-    LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
+    explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
                                uint64_t initialPeriod, std::vector<std::vector<LightPA>> &&previousAllocatedTable, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
-    LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
+    explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
                                uint64_t initialPeriod, std::vector<std::vector<LightPA>> &&previousAllocatedTable, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
                                bool arbitraryPrecisionFPGBn);
 
-    LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
+    explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
                                uint64_t initialPeriod, std::vector<std::vector<LightPA>> &&previousAllocatedTable, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
                                bool arbitraryPrecisionFPGBn, std::unique_ptr<LightMandelbrotReference> reusedReference, std::unique_ptr<LightMPATable> reusedTable,
                                double offR, double offI);
 
 
-    double iterate(double dcr, double dci) const;
+    double iterate(const double_exp &dcr, const double_exp &dci) const override;
 
     std::unique_ptr<LightMandelbrotPerturbator> reuse(const CalculationSettings &calc, double dcMax, int exp10);
 
-    const LightMandelbrotReference *getReference() const {
-        return reference.get();
-    }
+    const LightMandelbrotReference *getReference() const override;
 
-    const CalculationSettings &getCalculationSettings() const {
-        return calc;
-    }
+    LightMPATable &getTable() const override;
 
-    LightMPATable &getTable() const {
-        return *table;
-    }
+    double getDcMax() const;
 
-    double getDcMax() const {
-        return dcMax;
-    }
-
+    double_exp getDcMaxExp() const override;
 };
+
+
+
+inline const LightMandelbrotReference *LightMandelbrotPerturbator::getReference() const {
+    return reference.get();
+}
+
+inline LightMPATable &LightMandelbrotPerturbator::getTable() const {
+    return *table;
+}
+
+inline double LightMandelbrotPerturbator::getDcMax() const {
+    return dcMax;
+}
+
+inline double_exp LightMandelbrotPerturbator::getDcMaxExp() const {
+    return double_exp::value(dcMax);
+}
