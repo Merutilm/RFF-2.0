@@ -89,7 +89,7 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackExplor
                 RFFUtilities::log("Locate Minibrot Cancelled.");
             } else {
                 settings.calculationSettings.center = locatorCalc.center;
-                settings.calculationSettings.logZoom = locatorCalc.logZoom - RFF::Locator::MINIBROT_LOG_ZOOM_OFFSET;
+                settings.calculationSettings.logZoom = locatorCalc.logZoom - MandelbrotLocator::MINIBROT_LOG_ZOOM_OFFSET;
             }
             scene.setCurrentPerturbator(std::move(locatorPerturbator));
             scene.requestRecompute();

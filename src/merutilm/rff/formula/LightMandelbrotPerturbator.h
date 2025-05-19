@@ -6,7 +6,7 @@
 
 #include "LightMandelbrotReference.h"
 #include "MandelbrotPerturbator.h"
-#include "../mrtbrilliant/LightMPATable.h"
+#include "../mrthy/LightMPATable.h"
 
 class LightMandelbrotPerturbator final : public MandelbrotPerturbator{
     std::unique_ptr<LightMandelbrotReference> reference = nullptr;

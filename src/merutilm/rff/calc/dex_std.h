@@ -4,7 +4,6 @@
 
 #pragma once
 #include "double_exp.h"
-#include "../ui/RFF.h"
 
 
 struct dex_std {
@@ -33,7 +32,7 @@ inline void dex_std::max(double_exp *result, const double_exp &a, const double_e
 }
 
 inline double_exp dex_std::max(const double_exp &a, const double_exp &b) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     max(&result, a, b);
     return result;
 }
@@ -43,7 +42,7 @@ inline void dex_std::min(double_exp *result, const double_exp &a, const double_e
 }
 
 inline double_exp dex_std::min(const double_exp &a, const double_exp &b) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     min(&result, a, b);
     return result;
 }
@@ -56,7 +55,7 @@ inline void dex_std::clamp(double_exp *result, const double_exp &target, const d
 }
 
 inline double_exp dex_std::clamp(const double_exp &target, const double_exp &mn, const double_exp &mx) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     clamp(&result, target, mn, mx);
     return result;
 }
@@ -67,7 +66,7 @@ inline void dex_std::abs(double_exp *result, const double_exp &v) {
 }
 
 inline double_exp dex_std::abs(const double_exp &v) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     abs(&result, v);
     return result;
 }

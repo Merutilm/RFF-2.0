@@ -31,7 +31,7 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 20,
+				"line" : 19,
 				"parent" : 0
 			},
 			{
@@ -43,7 +43,7 @@
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 148,
+				"line" : 147,
 				"parent" : 0
 			},
 			{
@@ -76,11 +76,7 @@
 				},
 				{
 					"backtrace" : 4,
-					"fragment" : "-O3"
-				},
-				{
-					"backtrace" : 4,
-					"fragment" : "-ffast-math"
+					"fragment" : "-Ofast"
 				},
 				{
 					"backtrace" : 4,
@@ -151,14 +147,13 @@
 				100,
 				102,
 				104,
-				106,
-				108,
-				110,
-				114,
-				116,
-				118,
-				120,
-				122
+				107,
+				109,
+				113,
+				115,
+				117,
+				119,
+				121
 			]
 		},
 		{
@@ -169,11 +164,7 @@
 				},
 				{
 					"backtrace" : 4,
-					"fragment" : "-O3"
-				},
-				{
-					"backtrace" : 4,
-					"fragment" : "-ffast-math"
+					"fragment" : "-Ofast"
 				},
 				{
 					"backtrace" : 4,
@@ -296,14 +287,13 @@
 				100,
 				102,
 				104,
-				106,
-				108,
-				110,
-				114,
-				116,
-				118,
-				120,
-				122
+				107,
+				109,
+				113,
+				115,
+				117,
+				119,
+				121
 			]
 		},
 		{
@@ -376,15 +366,16 @@
 				101,
 				103,
 				105,
-				107,
-				109,
+				106,
+				108,
+				110,
 				111,
 				112,
-				113,
-				115,
-				117,
-				119,
-				121,
+				114,
+				116,
+				118,
+				120,
+				122,
 				123,
 				124
 			]
@@ -713,12 +704,12 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/mrtbrilliant/ArrayCompressionTool.h",
+			"path" : "src/merutilm/rff/mrthy/ArrayCompressionTool.h",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/mrtbrilliant/ArrayCompressor.h",
+			"path" : "src/merutilm/rff/mrthy/ArrayCompressor.h",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -745,34 +736,34 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/merutilm/rff/mrtbrilliant/LightPA.cpp",
+			"path" : "src/merutilm/rff/mrthy/LightPA.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/mrtbrilliant/LightPA.h",
+			"path" : "src/merutilm/rff/mrthy/LightPA.h",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/merutilm/rff/mrtbrilliant/LightMPATable.cpp",
+			"path" : "src/merutilm/rff/mrthy/LightMPATable.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/mrtbrilliant/LightMPATable.h",
+			"path" : "src/merutilm/rff/mrthy/LightMPATable.h",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/merutilm/rff/mrtbrilliant/MPAPeriod.cpp",
+			"path" : "src/merutilm/rff/mrthy/MPAPeriod.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/mrtbrilliant/MPAPeriod.h",
+			"path" : "src/merutilm/rff/mrthy/MPAPeriod.h",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -964,12 +955,6 @@
 		},
 		{
 			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "src/merutilm/rff/calc/double_exp.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
 			"path" : "src/merutilm/rff/calc/double_exp.h",
 			"sourceGroupIndex" : 1
 		},
@@ -1030,39 +1015,44 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/merutilm/rff/mrtbrilliant/DeepPA.cpp",
+			"path" : "src/merutilm/rff/mrthy/DeepPA.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/mrtbrilliant/DeepPA.h",
+			"path" : "src/merutilm/rff/mrthy/DeepPA.h",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/merutilm/rff/mrtbrilliant/DeepMPATable.cpp",
+			"path" : "src/merutilm/rff/mrthy/DeepMPATable.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/mrtbrilliant/DeepMPATable.h",
+			"path" : "src/merutilm/rff/mrthy/DeepMPATable.h",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "src/merutilm/rff/mrtbrilliant/MPATable.cpp",
+			"path" : "src/merutilm/rff/mrthy/MPATable.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/mrtbrilliant/MPATable.h",
+			"path" : "src/merutilm/rff/mrthy/MPATable.h",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/merutilm/rff/mrtbrilliant/PA.h",
+			"path" : "src/merutilm/rff/mrthy/PA.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/merutilm/rff/ui/RFFCallback.h",
 			"sourceGroupIndex" : 1
 		}
 	],

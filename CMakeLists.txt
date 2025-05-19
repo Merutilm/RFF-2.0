@@ -9,8 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_SOURCE_DIR}/bin)
 
 add_compile_options(
-        -O3
-        -ffast-math
+        -Ofast
         -march=native
         -funroll-loops
 )
@@ -79,18 +78,18 @@ add_executable(
         src/merutilm/rff/parallel/ParallelRenderState.cpp
         src/merutilm/rff/parallel/ParallelRenderState.h
         src/merutilm/rff/calc/approx_math.h
-        src/merutilm/rff/mrtbrilliant/ArrayCompressionTool.h
-        src/merutilm/rff/mrtbrilliant/ArrayCompressor.h
+        src/merutilm/rff/mrthy/ArrayCompressionTool.h
+        src/merutilm/rff/mrthy/ArrayCompressor.h
         src/merutilm/rff/parallel/ParallelArrayDispatcher.h
         src/merutilm/rff/ui/RFFUtilities.h
         src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp
         src/merutilm/rff/formula/LightMandelbrotPerturbator.h
-        src/merutilm/rff/mrtbrilliant/LightPA.cpp
-        src/merutilm/rff/mrtbrilliant/LightPA.h
-        src/merutilm/rff/mrtbrilliant/LightMPATable.cpp
-        src/merutilm/rff/mrtbrilliant/LightMPATable.h
-        src/merutilm/rff/mrtbrilliant/MPAPeriod.cpp
-        src/merutilm/rff/mrtbrilliant/MPAPeriod.h
+        src/merutilm/rff/mrthy/LightPA.cpp
+        src/merutilm/rff/mrthy/LightPA.h
+        src/merutilm/rff/mrthy/LightMPATable.cpp
+        src/merutilm/rff/mrthy/LightMPATable.h
+        src/merutilm/rff/mrthy/MPAPeriod.cpp
+        src/merutilm/rff/mrthy/MPAPeriod.h
         src/merutilm/rff/ui/RFFSettingsWindow.cpp
         src/merutilm/rff/ui/RFFSettingsWindow.h
         src/merutilm/rff/ui/RFFSettingsMenu.cpp
@@ -125,7 +124,6 @@ add_executable(
         src/merutilm/rff/locator/MandelbrotLocator.h
         src/merutilm/rff/ui/RFFCallbackExplore.cpp
         src/merutilm/rff/ui/RFFCallbackExplore.h
-        src/merutilm/rff/calc/double_exp.cpp
         src/merutilm/rff/calc/double_exp.h
         src/merutilm/rff/formula/DeepMandelbrotReference.cpp
         src/merutilm/rff/formula/DeepMandelbrotReference.h
@@ -137,12 +135,13 @@ add_executable(
         src/merutilm/rff/formula/DeepMandelbrotPerturbator.h
         src/merutilm/rff/formula/MandelbrotPerturbator.cpp
         src/merutilm/rff/formula/MandelbrotPerturbator.h
-        src/merutilm/rff/mrtbrilliant/DeepPA.cpp
-        src/merutilm/rff/mrtbrilliant/DeepPA.h
-        src/merutilm/rff/mrtbrilliant/DeepMPATable.cpp
-        src/merutilm/rff/mrtbrilliant/DeepMPATable.h
-        src/merutilm/rff/mrtbrilliant/MPATable.cpp
-        src/merutilm/rff/mrtbrilliant/MPATable.h
-        src/merutilm/rff/mrtbrilliant/PA.h
+        src/merutilm/rff/mrthy/DeepPA.cpp
+        src/merutilm/rff/mrthy/DeepPA.h
+        src/merutilm/rff/mrthy/DeepMPATable.cpp
+        src/merutilm/rff/mrthy/DeepMPATable.h
+        src/merutilm/rff/mrthy/MPATable.cpp
+        src/merutilm/rff/mrthy/MPATable.h
+        src/merutilm/rff/mrthy/PA.h
+        src/merutilm/rff/ui/RFFCallback.h
 )
 target_link_libraries(RFF PRIVATE opengl32 gmp comctl32)

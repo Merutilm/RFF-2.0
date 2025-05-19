@@ -7,6 +7,9 @@
 #include "../calc/fp_complex.h"
 
 struct MandelbrotLocator {
+    static constexpr float MINIBROT_LOG_ZOOM_OFFSET = 1.5f;
+    static constexpr float ZOOM_INCREMENT_LIMIT = 0.01f;
+
     std::unique_ptr<MandelbrotPerturbator> perturbator;
 
     static std::unique_ptr<fp_complex> findCenter(const MandelbrotPerturbator *perturbator);

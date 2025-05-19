@@ -1,0 +1,108 @@
+//
+// Created by Merutilm on 2025-05-11.
+//
+
+#pragma once
+#include <vector>
+
+#include "LightPA.h"
+#include "MPAPeriod.h"
+#include "MPATable.h"
+#include "../calc/approx_math.h"
+#include "../formula/LightMandelbrotReference.h"
+#include "../settings/MPASettings.h"
+
+class LightMPATable final : public MPATable{
+    const LightMandelbrotReference *reference;
+    std::vector<std::vector<LightPA>> table = std::vector<std::vector<LightPA>>();
+
+public:
+
+
+    explicit LightMPATable(const ParallelRenderState &state, const LightMandelbrotReference *reference,
+                  const MPASettings *mpaSettings, double dcMax, std::vector<std::vector<LightPA>> &&previousAllocatedTable,
+                  std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
+
+
+    ~LightMPATable() override = default;
+
+    LightMPATable(const LightMPATable &) = delete;
+
+    LightMPATable &operator=(const LightMPATable &) = delete;
+
+    LightMPATable(LightMPATable &&) noexcept = delete;
+
+    LightMPATable &operator=(LightMPATable &&) noexcept = delete;
+
+    void generateTable(const ParallelRenderState &state, double dcMax,
+                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
+
+    void initTable(const LightMandelbrotReference &reference);
+
+    std::vector<std::vector<LightPA>> &&extractVector() {
+        return std::move(table);
+    };
+
+    LightPA *lookup(uint64_t refIteration, double dzr, double dzi);
+
+private:
+    static void allocateTableSize(std::vector<std::vector<LightPA>> &table, uint64_t index, uint64_t levels);
+
+};
+
+// DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE
+// DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE
+// DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE
+// DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE
+// DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE
+
+inline LightPA *LightMPATable::lookup(const uint64_t refIteration, const double dzr, const double dzi) {
+    if (refIteration == 0 || mpaPeriod == nullptr) {
+        return nullptr;
+    }
+    const uint64_t index = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
+                                                     refIteration);
+
+    if (index >= table.size()) {
+        return nullptr;
+    }
+
+    std::vector<LightPA> &table = this->table[index];
+    if (table.empty()) {
+        return nullptr;
+    }
+
+    const double r = approx_math::hypot_approx(dzr, dzi);
+
+    switch (mpaSettings.mpaSelectionMethod) {
+        using enum MPASelectionMethod;
+        case LOWEST: {
+            LightPA *pa = nullptr;
+
+            for (LightPA &test: table) {
+                if (test.isValid(r)) {
+                    pa = &test;
+                } else return pa;
+            }
+            return pa;
+        }
+        case HIGHEST: {
+            LightPA &pa = table.front();
+            //This table cannot be empty because the pre-processing is done.
+
+            if (!pa.isValid(r)) {
+                return nullptr;
+            }
+
+            for (uint64_t j = table.size(); j > 0; --j) {
+                LightPA &test = table[j - 1];
+                if (test.isValid(r)) {
+                    return &test;
+                }
+            }
+
+            return &pa;
+        }
+        default: return nullptr;
+    }
+}

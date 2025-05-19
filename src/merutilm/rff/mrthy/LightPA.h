@@ -72,3 +72,7 @@ inline uint64_t LightPA::Generator::getSkip() const {
     return skip;
 }
 
+inline bool LightPA::isValid(const double dzRad) const {
+    return dzRad < radius;
+}
+

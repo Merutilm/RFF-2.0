@@ -56,7 +56,10 @@ struct DeepPA final : public PA{
         }
     };
 
-    bool isValid(const double_exp &dzRad) const;
+    bool isValid(double_exp *temp, const double_exp &dzRad) const;
+
+    double_exp getRadius() const;
+
 };
 
 inline std::unique_ptr<DeepPA::Generator> DeepPA::Generator::create(const DeepMandelbrotReference &reference,
@@ -72,4 +75,15 @@ inline uint64_t DeepPA::Generator::getStart() const {
 inline uint64_t DeepPA::Generator::getSkip() const {
     return skip;
 }
+
+inline double_exp DeepPA::getRadius() const {
+    return radius;
+}
+
+
+inline bool DeepPA::isValid(double_exp *temp, const double_exp &dzRad) const {
+    double_exp::dex_sub(temp, radius, dzRad);
+    return temp->sgn() > 0;
+}
+
 

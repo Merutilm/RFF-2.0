@@ -56,8 +56,3 @@ void LightPA::Generator::step() {
     bnr = bnrStep;
     bni = bniStep;
 }
-
-
-bool LightPA::isValid(const double dzRad) const {
-    return dzRad < radius;
-}

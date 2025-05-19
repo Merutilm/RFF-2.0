@@ -4,7 +4,6 @@
 
 #pragma once
 #include "double_exp.h"
-#include "../ui/RFF.h"
 
 
 struct dex_exp {
@@ -35,12 +34,12 @@ inline void dex_exp::exp10(double_exp *result, const double v) {
     const auto exp2 = static_cast<int>(raw_exp2);
     result->exp2 = exp2;
     result->mantissa = std::pow(2, raw_exp2 - exp2);
-    double_exp::fix_value(result);
+    double_exp::normalize(result);
 }
 
 inline double_exp dex_exp::exp10(const double v) {
-    double_exp result = RFF::Precision::DEX_ZERO;
-    exp(&result, v);
+    double_exp result = double_exp::DEX_ZERO;
+    exp10(&result, v);
     return result;
 }
 
@@ -53,11 +52,11 @@ inline void dex_exp::exp(double_exp *result, const double v) {
     const auto exp2 = static_cast<int>(raw_exp2);
     result->exp2 = exp2;
     result->mantissa = std::pow(2, raw_exp2 - exp2);
-    double_exp::fix_value(result);
+    double_exp::normalize(result);
 }
 
 inline double_exp dex_exp::exp(const double v) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     exp(&result, v);
     return result;
 }

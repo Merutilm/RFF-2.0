@@ -264,7 +264,7 @@ double fp_decimal_calculator::double_value() {
 double_exp fp_decimal_calculator::double_exp_value() {
     const int sgn = mpz_sgn(value);
     if (sgn == 0) {
-        return RFF::Precision::DEX_ZERO;
+        return double_exp::DEX_ZERO;
     }
 
     mpz_abs(temp, value);
@@ -282,7 +282,7 @@ double_exp fp_decimal_calculator::double_exp_value() {
     const double mantissa = std::bit_cast<double>(RFF::Precision::EXP0_BITS | mantissa_bit);
 
     double_exp result(fExp2, mantissa);
-    double_exp::fix_value(&result);
+    double_exp::normalize(&result);
     return sgn == 1 ? result : -result;
 }
 

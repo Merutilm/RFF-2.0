@@ -5,11 +5,11 @@
 #include "LightMandelbrotReference.h"
 
 #include <cmath>
-#include <complex>
+#include <iostream>
 #include <optional>
 
 #include "../calc/approx_math.h"
-#include "../mrtbrilliant/ArrayCompressor.h"
+#include "../mrthy/ArrayCompressor.h"
 #include "../ui/RFF.h"
 
 
@@ -66,14 +66,13 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
     auto periodArray = std::vector<uint64_t>();
 
     auto minZRadius = DBL_MAX;
-    int reuseIndex = 0;
+    uint64_t reuseIndex = 0;
 
     auto tools = std::vector<ArrayCompressionTool>();
     uint64_t compressed = 0;
     uint64_t maxIteration = calc.maxIteration;
     auto [compressCriteria, compressionThresholdPower] = calc.referenceCompressionSettings;
     auto func = std::move(actionPerRefCalcIteration);
-
     double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
 
     while (zr * zr + zi * zi < bailoutSqr && iteration < maxIteration) {
@@ -81,8 +80,9 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
             return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
         }
 
-        // use Fast-Period-Guessing, and create R3A Table
+        // use Fast-Period-Guessing, and create MPA Table
         double radius2 = zr * zr + zi * zi;
+
 
         double fpgLimit = radius2 / dcMax;
         double fpgBnrTemp = fpgBnr * zr * 2 - fpgBni * zi * 2 + 1;

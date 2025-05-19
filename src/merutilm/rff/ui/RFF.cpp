@@ -3,7 +3,7 @@
 #include "RFFGL.h"
 #include "RFFMasterWindow.h"
 #include "RFFSettingsWindow.h"
-
+#include "../calc/dex_exp.h"
 
 
 int main() {

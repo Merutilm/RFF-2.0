@@ -5,7 +5,7 @@
 #pragma once
 #include "MandelbrotReference.h"
 #include "Perturbator.h"
-#include "../mrtbrilliant/MPATable.h"
+#include "../mrthy/MPATable.h"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/CalculationSettings.h"
 

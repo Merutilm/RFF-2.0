@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "../calc/fp_complex.h"
-#include "../mrtbrilliant/ArrayCompressionTool.h"
+#include "../mrthy/ArrayCompressionTool.h"
 
 struct MandelbrotReference {
     const fp_complex center;

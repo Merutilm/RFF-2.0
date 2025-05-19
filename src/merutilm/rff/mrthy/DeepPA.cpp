@@ -16,9 +16,9 @@ DeepPA::DeepPA(const double_exp &anr, const double_exp &ani, const double_exp &b
 
 
 DeepPA::Generator::Generator(const DeepMandelbrotReference &reference, const double epsilon, const double_exp &dcMax,
-                             const uint64_t start) : anr(RFF::Precision::DEX_ONE), ani(RFF::Precision::DEX_ZERO),
-                                                     bnr(RFF::Precision::DEX_ZERO), bni(RFF::Precision::DEX_ZERO),
-                                                     skip(0), radius(RFF::Precision::DEX_POSITIVE_INFINITY), start(start),
+                             const uint64_t start) : anr(double_exp::DEX_ONE), ani(double_exp::DEX_ZERO),
+                                                     bnr(double_exp::DEX_ZERO), bni(double_exp::DEX_ZERO),
+                                                     skip(0), radius(double_exp::DEX_POSITIVE_INFINITY), start(start),
                                                      compressors(reference.compressor),
                                                      refReal(reference.refReal), refImag(reference.refImag),
                                                      epsilon(epsilon),
@@ -64,9 +64,4 @@ void DeepPA::Generator::step() {
     ani = aniStep;
     bnr = bnrStep;
     bni = bniStep;
-}
-
-
-bool DeepPA::isValid(const double_exp &dzRad) const {
-    return dzRad < radius;
 }

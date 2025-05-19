@@ -6,7 +6,7 @@
 
 #include "../calc/double_exp_math.h"
 #include "../calc/approx_math.h"
-#include "../mrtbrilliant/ArrayCompressor.h"
+#include "../mrthy/ArrayCompressor.h"
 #include "../ui/RFF.h"
 
 DeepMandelbrotReference::DeepMandelbrotReference(fp_complex &&center, std::vector<double_exp> &&refReal,
@@ -42,8 +42,8 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
 
     auto rr = std::vector<double_exp>();
     auto ri = std::vector<double_exp>();
-    rr.push_back(RFF::Precision::DEX_ZERO);
-    ri.push_back(RFF::Precision::DEX_ZERO);
+    rr.push_back(double_exp::DEX_ZERO);
+    ri.push_back(double_exp::DEX_ZERO);
 
     fp_complex center = calc.center;
     auto c = center.edit(exp10);
@@ -52,17 +52,17 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
     auto one = fp_complex_calculator(1.0, 0.0, exp10);
     double bailoutSqr = calc.bailout * calc.bailout;
 
-    double_exp fpgBnr = RFF::Precision::DEX_ZERO;
-    double_exp fpgBni = RFF::Precision::DEX_ZERO;
+    double_exp fpgBnr = double_exp::DEX_ZERO;
+    double_exp fpgBni = double_exp::DEX_ZERO;
 
     uint64_t iteration = 0;
-    double_exp zr = RFF::Precision::DEX_ZERO;
-    double_exp zi = RFF::Precision::DEX_ZERO;
+    double_exp zr = double_exp::DEX_ZERO;
+    double_exp zi = double_exp::DEX_ZERO;
     uint64_t period = 1;
     auto periodArray = std::vector<uint64_t>();
 
-    double_exp minZRadius = RFF::Precision::DEX_POSITIVE_INFINITY;
-    int reuseIndex = 0;
+    double_exp minZRadius = double_exp::DEX_POSITIVE_INFINITY;
+    uint64_t reuseIndex = 0;
 
     auto tools = std::vector<ArrayCompressionTool>();
     uint64_t compressed = 0;

@@ -28,13 +28,13 @@ RFFRenderScene::~RFFRenderScene() {
 Settings RFFRenderScene::initSettings() {
     return Settings{
         .calculationSettings = CalculationSettings{
-            .center = fp_complex(
-                "-0.85",
-                //"-1.7433380976879299408417853435676017785972000052524291128107561584529660103218876836645852866195456038569337053542405",
-                "0",
+            .center = fp_complex( "-0.85", "0",
+                 //"-1.29255707077531686131098415679305324693162987219277534742408945445699102528813182208390942132824552642640105852802031375797639923173781472397893283277669022615909880587638643429120957543820179919830492623879949932",
+                  //"-1.7433380976879299408417853435676017785972000052524291128107561584529660103218876836645852866195456038569337053542405",
+               // "0.438169590583770312890168860021043433478705507119371935117854030759551072299659171256225012539071884716681573917133522314360175105572598172732723792994562397110248396170036793222839041625954944698185617470725880129",
                 //"-0.00000180836819716880795128873613161993554089471597685393367018109950768833467685704762711890797154859214327088989719746641",
-                Perturbator::logZoomToExp10(85)),
-            .logZoom = 2, //85.190033f,
+                Perturbator::logZoomToExp10(2)),
+            .logZoom = 2,//186.47, //85.190033f,
             .maxIteration = 3000,
             .bailout = 2,
             .decimalizeIterationMethod = DecimalizeIterationMethod::LOG_LOG,
@@ -43,10 +43,10 @@ Settings RFFRenderScene::initSettings() {
                 .maxMultiplierBetweenLevel = 2,
                 .epsilonPower = -3,
                 .mpaSelectionMethod = MPASelectionMethod::HIGHEST,
-                .mpaCompressionMethod = MPACompressionMethod::NO_COMPRESSION,
+                .mpaCompressionMethod = MPACompressionMethod::STRONGEST,
             },
             .referenceCompressionSettings = ReferenceCompressionSettings{
-                .compressCriteria = 0,
+                .compressCriteria = 10000,
                 .compressionThresholdPower = 6,
             },
             .reuseReferenceMethod = ReuseReferenceMethod::DISABLED,
@@ -204,7 +204,7 @@ std::array<double_exp, 2> RFFRenderScene::offsetConversion(const Settings &setti
 }
 
 double_exp RFFRenderScene::getDivisor(const Settings &settings) {
-    double_exp v = RFF::Precision::DEX_ZERO;
+    double_exp v = double_exp::DEX_ZERO;
     dex_exp::exp10(&v, settings.calculationSettings.logZoom);
     return v;
 }
@@ -392,7 +392,7 @@ void RFFRenderScene::compute(const Settings &settings) {
                      std::format("Zoom : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
     const std::array<double_exp, 2> offset = offsetConversion(settingsToUse, 0, 0);
-    double_exp dcMax = RFF::Precision::DEX_ZERO;
+    double_exp dcMax = double_exp::DEX_ZERO;
     dex_trigonometric::hypot_approx(&dcMax, offset[0], offset[1]);
 
     const auto refreshInterval = RFFUtilities::getRefreshInterval(logZoom);
@@ -434,7 +434,7 @@ void RFFRenderScene::compute(const Settings &settings) {
         //                                                                 getActionWhileFindingMinibrotZoom(
         //                                                                     panel)
         //     );
-        //     currentPerturbator = null; //try to call gc
+        //     currentPerturbator = null;
         //
         //     CalculationSettings refCalc = calc.edit().setCenter(center.center()).setLogZoom(center.logZoom()).build();
         //     int refPrecision = Perturbator.precision(center.logZoom());

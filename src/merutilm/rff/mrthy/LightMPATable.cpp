@@ -8,7 +8,6 @@
 #include <execution>
 
 #include "../calc/approx_math.h"
-#include "../ui/RFF.h"
 
 
 LightMPATable::LightMPATable(const ParallelRenderState &state, const LightMandelbrotReference *reference,
@@ -125,7 +124,7 @@ void LightMPATable::generateTable(const ParallelRenderState &state, const double
                 currentPA[i] = LightPA::Generator::create(*reference, epsilon, dcMax, iteration);
             }
 
-            if (currentPA[i] != nullptr && periodCount[i] + RFF::Approximation::REQUIRED_PERTURBATION <
+            if (currentPA[i] != nullptr && periodCount[i] + REQUIRED_PERTURBATION <
                 tablePeriod[i]) {
                 currentPA[i]->step();
             }
@@ -136,7 +135,7 @@ void LightMPATable::generateTable(const ParallelRenderState &state, const double
             if (periodCount[i] == tablePeriod[i]) {
                 if (const LightPA::Generator *currentLevel = currentPA[i].get();
                     currentLevel != nullptr &&
-                    currentLevel->getSkip() == tablePeriod[i] - RFF::Approximation::REQUIRED_PERTURBATION
+                    currentLevel->getSkip() == tablePeriod[i] - REQUIRED_PERTURBATION
                 ) {
                     //If the skip count is lower than its current period - perturbation,
                     //it can be replaced to several lower-level PA.
@@ -196,55 +195,4 @@ void LightMPATable::allocateTableSize(std::vector<std::vector<LightPA> > &table,
         table.back().reserve(levels);
     }
     table[index].reserve(levels);
-}
-
-LightPA *LightMPATable::lookup(const uint64_t refIteration, const double dzr, const double dzi) {
-    if (refIteration == 0 || mpaPeriod == nullptr) {
-        return nullptr;
-    }
-    const uint64_t index = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
-                                                     refIteration);
-
-    if (index >= table.size()) {
-        return nullptr;
-    }
-
-    std::vector<LightPA> &table = this->table[index];
-    if (table.empty()) {
-        return nullptr;
-    }
-
-    const double r = approx_math::hypot_approx(dzr, dzi);
-
-    switch (mpaSettings.mpaSelectionMethod) {
-            using enum MPASelectionMethod;
-        case LOWEST: {
-            LightPA *pa = nullptr;
-
-            for (LightPA &test: table) {
-                if (test.isValid(r)) {
-                    pa = &test;
-                } else return pa;
-            }
-            return pa;
-        }
-        case HIGHEST: {
-            LightPA &pa = table.front();
-            //This table cannot be empty because the pre-processing is done.
-
-            if (!pa.isValid(r)) {
-                return nullptr;
-            }
-
-            for (uint64_t j = table.size(); j > 0; --j) {
-                LightPA &test = table[j - 1];
-                if (test.isValid(r)) {
-                    return &test;
-                }
-            }
-
-            return &pa;
-        }
-        default: return nullptr;
-    }
 }

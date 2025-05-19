@@ -67,8 +67,8 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
 double LightMandelbrotPerturbator::iterate(const double_exp &dcr, const double_exp &dci) const {
     if (state.interruptRequested()) return 0.0;
 
-    const double dcr1 = static_cast<double>(dcr) + offR;
-    const double dci1 = static_cast<double>(dci) + offI;
+    const double dcr1 = static_cast<double>(dcr) + offR + dcMax / RFF::Render::INTENTIONAL_ERROR_DCPTB;
+    const double dci1 = static_cast<double>(dci) + offI + dcMax / RFF::Render::INTENTIONAL_ERROR_DCPTB;
 
     uint64_t iteration = 0;
     uint64_t refIteration = 0;
@@ -85,6 +85,7 @@ double LightMandelbrotPerturbator::iterate(const double_exp &dcr, const double_e
     const bool isAbs = calc.absoluteIterationMode;
     const uint64_t maxIteration = calc.maxIteration;
     const float bailout = calc.bailout;
+    const float bailout2 = bailout * bailout;
 
 
     while (iteration < maxIteration) {
@@ -141,7 +142,7 @@ double LightMandelbrotPerturbator::iterate(const double_exp &dcr, const double_e
         }
 
 
-        if (cd > bailout * bailout) {
+        if (cd > bailout2) {
             break;
         }
 

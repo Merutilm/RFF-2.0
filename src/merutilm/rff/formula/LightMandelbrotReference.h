@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "MandelbrotReference.h"
-#include "../mrtbrilliant/ArrayCompressor.h"
+#include "../mrthy/ArrayCompressor.h"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/CalculationSettings.h"
 

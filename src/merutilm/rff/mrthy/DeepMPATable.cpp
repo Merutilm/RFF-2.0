@@ -8,7 +8,6 @@
 
 #include "ArrayCompressor.h"
 #include "../calc/double_exp.h"
-#include "../calc/double_exp_math.h"
 
 
 DeepMPATable::DeepMPATable(const ParallelRenderState &state, const DeepMandelbrotReference *reference,
@@ -125,7 +124,7 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
                 currentPA[i] = DeepPA::Generator::create(*reference, epsilon, dcMax, iteration);
             }
 
-            if (currentPA[i] != nullptr && periodCount[i] + RFF::Approximation::REQUIRED_PERTURBATION <
+            if (currentPA[i] != nullptr && periodCount[i] + REQUIRED_PERTURBATION <
                 tablePeriod[i]) {
                 currentPA[i]->step();
             }
@@ -136,7 +135,7 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
             if (periodCount[i] == tablePeriod[i]) {
                 if (const DeepPA::Generator *currentLevel = currentPA[i].get();
                     currentLevel != nullptr &&
-                    currentLevel->getSkip() == tablePeriod[i] - RFF::Approximation::REQUIRED_PERTURBATION
+                    currentLevel->getSkip() == tablePeriod[i] - REQUIRED_PERTURBATION
                 ) {
                     //If the skip count is lower than its current period - perturbation,
                     //it can be replaced to several lower-level PA.
@@ -196,55 +195,4 @@ void DeepMPATable::allocateTableSize(std::vector<std::vector<DeepPA> > &table, c
         table.back().reserve(levels);
     }
     table[index].reserve(levels);
-}
-
-DeepPA *DeepMPATable::lookup(const uint64_t refIteration, const double_exp &dzr, const double_exp &dzi) {
-    if (refIteration == 0 || mpaPeriod == nullptr) {
-        return nullptr;
-    }
-    const uint64_t index = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
-                                                     refIteration);
-
-    if (index >= table.size()) {
-        return nullptr;
-    }
-
-    std::vector<DeepPA> &table = this->table[index];
-    if (table.empty()) {
-        return nullptr;
-    }
-
-    const double_exp r = dex_trigonometric::hypot_approx(dzr, dzi);
-
-    switch (mpaSettings.mpaSelectionMethod) {
-            using enum MPASelectionMethod;
-        case LOWEST: {
-            DeepPA *pa = nullptr;
-
-            for (DeepPA &test: table) {
-                if (test.isValid(r)) {
-                    pa = &test;
-                } else return pa;
-            }
-            return pa;
-        }
-        case HIGHEST: {
-            DeepPA &pa = table.front();
-            //This table cannot be empty because the pre-processing is done.
-
-            if (!pa.isValid(r)) {
-                return nullptr;
-            }
-
-            for (uint64_t j = table.size(); j > 0; --j) {
-                DeepPA &test = table[j - 1];
-                if (test.isValid(r)) {
-                    return &test;
-                }
-            }
-
-            return &pa;
-        }
-        default: return nullptr;
-    }
 }

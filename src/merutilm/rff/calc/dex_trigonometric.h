@@ -50,7 +50,7 @@ inline void dex_trigonometric::atan2(double_exp *result, const double_exp &y, co
 }
 
 inline double_exp dex_trigonometric::atan2(const double_exp &y, const double_exp &x) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     atan2(&result, y, x);
     return result;
 }
@@ -66,7 +66,7 @@ inline void dex_trigonometric::sin(double_exp *result, const double_exp &v) {
 
 
 inline double_exp dex_trigonometric::sin(const double_exp &v) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     sin(&result, v);
     return result;
 }
@@ -77,7 +77,7 @@ inline void dex_trigonometric::cos(double_exp *result, const double_exp &v) {
 }
 
 inline double_exp dex_trigonometric::cos(const double_exp &v) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     cos(&result, v);
     return result;
 }
@@ -91,7 +91,7 @@ inline void dex_trigonometric::tan(double_exp *result, const double_exp &v) {
 }
 
 inline double_exp dex_trigonometric::tan(const double_exp &v) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     tan(&result, v);
     return result;
 }
@@ -109,7 +109,7 @@ inline void dex_trigonometric::hypot_approx(double_exp *result, const double_exp
     }
 
     if (mx.is_zero()) {
-        double_exp::dex_cpy(result, RFF::Precision::DEX_ZERO);
+        double_exp::dex_cpy(result, double_exp::DEX_ZERO);
         return;
     }
     double_exp::dex_sqr(result, mn);
@@ -119,7 +119,7 @@ inline void dex_trigonometric::hypot_approx(double_exp *result, const double_exp
 }
 
 inline double_exp dex_trigonometric::hypot_approx(const double_exp &a, const double_exp &b) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     hypot_approx(&result, a, b);
     return result;
 }
@@ -130,20 +130,20 @@ inline void dex_trigonometric::hypot(double_exp *result, const double_exp &a, co
 }
 
 inline double_exp dex_trigonometric::hypot(const double_exp &a, const double_exp &b) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     hypot(&result, a, b);
     return result;
 }
 
 inline void dex_trigonometric::hypot2(double_exp *result, const double_exp &a, const double_exp &b) {
-    double_exp sqr_temp = RFF::Precision::DEX_ZERO;
+    double_exp sqr_temp = double_exp::DEX_ZERO;
     double_exp::dex_sqr(&sqr_temp, a);
     double_exp::dex_sqr(result, b);
     double_exp::dex_add(result, *result, sqr_temp);
 }
 
 inline double_exp dex_trigonometric::hypot2(const double_exp &a, const double_exp &b) {
-    double_exp result = RFF::Precision::DEX_ZERO;
+    double_exp result = double_exp::DEX_ZERO;
     hypot2(&result, a, b);
     return result;
 }
