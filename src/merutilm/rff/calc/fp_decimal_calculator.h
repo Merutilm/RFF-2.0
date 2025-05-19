@@ -55,7 +55,7 @@ struct fp_decimal_calculator final {
 
     double double_value();
 
-    double_exp double_exp_value();
+    void double_exp_value(double_exp *result);
 
     void setExp10(int exp10);
 };

@@ -52,7 +52,7 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
     auto one = fp_complex_calculator(1.0, 0.0, exp10);
     double bailoutSqr = calc.bailout * calc.bailout;
 
-    double_exp fpgBnr = double_exp::DEX_ZERO;
+    double_exp fpgBnr = double_exp::DEX_ONE;
     double_exp fpgBni = double_exp::DEX_ZERO;
 
     uint64_t iteration = 0;
@@ -71,29 +71,49 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
     auto func = std::move(actionPerRefCalcIteration);
 
     double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
-
+    auto temps = std::array<double_exp, 8>();
     while (dex_trigonometric::hypot2(zr, zi) < bailoutSqr && iteration < maxIteration) {
         if (iteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
             return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
         }
 
-        // use Fast-Period-Guessing, and create R3A Table
-        double_exp radius2 = dex_trigonometric::hypot2(zr, zi);;
+        // use Fast-Period-Guessing, and create MPA Table
+        if (iteration > 0) {
+            dex_trigonometric::hypot2(&temps[0], zr, zi);
+            double_exp::dex_div(&temps[1], temps[0], dcMax);
+            double_exp::dex_mul(&temps[2], fpgBnr, zr);
+            double_exp::dex_mul_2exp(&temps[2], temps[2], 1);
+            double_exp::dex_mul(&temps[3], fpgBni, zi);
+            double_exp::dex_mul_2exp(&temps[3], temps[3], 1);
+            double_exp::dex_sub(&temps[2], temps[2], temps[3]);
+            double_exp::dex_add(&temps[2], temps[2], double_exp::DEX_ONE);
+            double_exp::dex_mul(&temps[3], fpgBnr, zi);
+            double_exp::dex_mul_2exp(&temps[3], temps[3], 1);
+            double_exp::dex_mul(&temps[4], fpgBni, zr);
+            double_exp::dex_mul_2exp(&temps[4], temps[4], 1);
+            double_exp::dex_add(&temps[3], temps[3], temps[4]);
+            dex_trigonometric::hypot_approx(&temps[4], temps[2], temps[3]);
 
-        double_exp fpgLimit = radius2 / dcMax;
-        double_exp fpgBnrTemp = fpgBnr * zr * 2 - fpgBni * zi * 2 + 1;
-        double_exp fpgBniTemp = fpgBnr * zi * 2 + fpgBni * zr * 2;
-        double_exp fpgRadius = dex_trigonometric::hypot_approx(fpgBnrTemp, fpgBniTemp);
 
-        if (minZRadius > radius2 && radius2 > 0) {
-            minZRadius = radius2;
-            periodArray.push_back(iteration);
-        }
+            if (temps[2].normalize_required()) double_exp::normalize(&temps[2]);
+            if (temps[3].normalize_required()) double_exp::normalize(&temps[3]);
 
-        if ((iteration >= 1 && fpgRadius > fpgLimit) || iteration == maxIteration - 1 || (
-                initialPeriod != 0 && initialPeriod == iteration)) {
-            periodArray.push_back(iteration);
-            break;
+
+            double_exp::dex_sub(&temps[5], minZRadius, temps[0]);
+            if (minZRadius.isinf() || temps[5].sgn() == 1) {
+                double_exp::dex_cpy(&minZRadius, temps[0]);
+                periodArray.push_back(iteration);
+            }
+            double_exp::dex_sub(&temps[4], temps[4], temps[1]);
+
+            if (temps[4].sgn() == 1 || iteration == maxIteration - 1 || (
+                    initialPeriod != 0 && initialPeriod == iteration)) {
+                periodArray.push_back(iteration);
+                break;
+            }
+
+            double_exp::dex_cpy(&fpgBnr, temps[2]);
+            double_exp::dex_cpy(&fpgBni, temps[3]);
         }
 
         if (strictFPG) {
@@ -102,21 +122,21 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
             z.halved();
         }
 
-        fpgBnr = fpgBnrTemp;
-        fpgBni = fpgBniTemp;
-
         //Let's do arbitrary-precision operation!!
         func(iteration);
         z.square();
         z += c;
-        zr = z.getReal().double_exp_value();
-        zi = z.getImag().double_exp_value();
+        z.getReal().double_exp_value(&zr);
+        z.getImag().double_exp_value(&zi);
 
         if (compressCriteria > 0 && iteration >= 1) {
+
+            const int64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
+            double_exp::dex_div(&temps[0], zr, rr[refIndex]);
+            double_exp::dex_div(&temps[1], zi, ri[refIndex]);
             if (
-                const int64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
-                dex_std::abs(zr / rr[refIndex] - 1) <= compressionThreshold &&
-                dex_std::abs(zi / ri[refIndex] - 1) <= compressionThreshold
+                std::abs(static_cast<double>(temps[0]) - 1) <= compressionThreshold &&
+                std::abs(static_cast<double>(temps[1]) - 1) <= compressionThreshold
             ) {
                 ++reuseIndex;
             } else if (reuseIndex != 0) {

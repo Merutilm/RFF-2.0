@@ -29,6 +29,7 @@ struct DeepPA final : public PA{
         uint64_t skip;
         double_exp radius;
         uint64_t start;
+        std::array<double_exp, 8> &temps;
         const std::vector<ArrayCompressionTool> &compressors;
         const std::vector<double_exp> &refReal;
         const std::vector<double_exp> &refImag;
@@ -36,11 +37,11 @@ struct DeepPA final : public PA{
         double_exp dcMax;
 
     public:
-        explicit Generator(const DeepMandelbrotReference &reference, double epsilon, const double_exp &dcMax, uint64_t start);
+        explicit Generator(const DeepMandelbrotReference &reference, double epsilon, const double_exp &dcMax, uint64_t start, std::array<double_exp, 8> &temps);
 
         static std::unique_ptr<Generator> create(const DeepMandelbrotReference &reference, double epsilon,
                                                  const double_exp &dcMax,
-                                                 uint64_t start);
+                                                 uint64_t start, std::array<double_exp, 8> &temps);
 
         uint64_t getStart() const;
 
@@ -64,8 +65,8 @@ struct DeepPA final : public PA{
 
 inline std::unique_ptr<DeepPA::Generator> DeepPA::Generator::create(const DeepMandelbrotReference &reference,
                                                                       const double epsilon, const double_exp &dcMax,
-                                                                      const uint64_t start) {
-    return std::make_unique<Generator>(reference, epsilon, dcMax, start);
+                                                                      const uint64_t start, std::array<double_exp, 8> &temps) {
+    return std::make_unique<Generator>(reference, epsilon, dcMax, start, temps);
 }
 
 inline uint64_t DeepPA::Generator::getStart() const {

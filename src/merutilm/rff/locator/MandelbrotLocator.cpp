@@ -144,18 +144,20 @@ std::unique_ptr<MandelbrotPerturbator> MandelbrotLocator::findAccurateCenterPert
         ++centerFixCount;
         MPATable &table = doubledZoomPerturbator->getTable();
 
-        if (logZoom < RFF::Precision::EXP_DEADLINE / 2) {
+        if (logZoom < RFF::Render::ZOOM_DEADLINE / 2) {
+            const auto table2 = dynamic_cast<LightMPATable *>(&table);
             doubledZoomPerturbator = std::make_unique<LightMandelbrotPerturbator>(
                 state, doubledZoomCalc, static_cast<double>(doubledZoomDcMax),
                 Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
-                dynamic_cast<LightMPATable *>(&table)->extractVector(), //IT MOVES THE TABLE!!!!!!!!!!!!!!!!!!!!!!
+                table2 == nullptr ? std::vector<std::vector<LightPA>>() : table2->extractVector(), //IT MOVES THE TABLE!!!!!!!!!!!!!!!!!!!!!!
                 [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                     actionWhileFindingMinibrotCenter(p, centerFixCount);
                 }, actionWhileCreatingTable, true);
         } else {
+            const auto table2 = dynamic_cast<DeepMPATable *>(&table);
             doubledZoomPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
                 state, doubledZoomCalc, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
-                dynamic_cast<DeepMPATable *>(&table)->extractVector(),
+                table2 == nullptr ? std::vector<std::vector<DeepPA>>() : table2->extractVector(),
                 [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                     actionWhileFindingMinibrotCenter(p, centerFixCount);
                 }, actionWhileCreatingTable, true);

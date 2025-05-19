@@ -457,7 +457,7 @@ void RFFRenderScene::compute(const Settings &settings) {
         // break;
         // }
         case DISABLED: {
-            if (logZoom > RFF::Precision::EXP_DEADLINE) {
+            if (logZoom > RFF::Render::ZOOM_DEADLINE) {
                 auto p = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get());
 
                 auto vector = p == nullptr

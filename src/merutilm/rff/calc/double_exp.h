@@ -51,7 +51,11 @@ public:
 
     static void dex_div_2exp(double_exp *result, const double_exp &v, int exp2);
 
+    static void dex_neg(double_exp *result);
+
     static void dex_cpy(double_exp *result, double v);
+
+    static void dex_cpy(double_exp *result, int exp2, double mantissa);
 
     static void dex_cpy(double_exp *result, const double_exp &v);
 
@@ -193,11 +197,19 @@ inline void double_exp::dex_div_2exp(double_exp *result, const double_exp &v, co
     result->exp2 = v.exp2 - exp2;
     result->mantissa = v.mantissa;
 }
+inline void double_exp::dex_neg(double_exp *result) {
+    result->mantissa = -result->mantissa;
+}
 
 inline void double_exp::dex_cpy(double_exp *result, const double v) {
     result->exp2 = 0;
     result->mantissa = v;
     normalize(result);
+}
+
+inline void double_exp::dex_cpy(double_exp *result, const int exp2, const double mantissa) {
+    result->exp2 = exp2;
+    result->mantissa = mantissa;
 }
 
 

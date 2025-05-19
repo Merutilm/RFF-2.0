@@ -64,6 +64,8 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
     });
     table.reserve(size);
 
+    auto temps = std::array<double_exp, 8>();
+
     while (iteration <= longestPeriod) {
         if (absIteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return;
 
@@ -104,7 +106,7 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
                 } else {
                     if (currentPA[i] == nullptr) {
                         //its count is zero but has no element? -> Artificial PA
-                        auto generator = DeepPA::Generator::create(*reference, epsilon, dcMax, iteration);
+                        auto generator = DeepPA::Generator::create(*reference, epsilon, dcMax, iteration, temps);
                         generator->merge(mainReferencePA);
                         currentPA[i] = std::move(generator);
                     } else {
@@ -121,7 +123,7 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
         for (uint64_t level = levels; level > 0; --level) {
             const uint64_t i = level - 1;
             if (periodCount[i] == 0 && independent) {
-                currentPA[i] = DeepPA::Generator::create(*reference, epsilon, dcMax, iteration);
+                currentPA[i] = DeepPA::Generator::create(*reference, epsilon, dcMax, iteration, temps);
             }
 
             if (currentPA[i] != nullptr && periodCount[i] + REQUIRED_PERTURBATION <

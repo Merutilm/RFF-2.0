@@ -70,7 +70,6 @@ namespace RFF {
         constexpr uint64_t EXP0_BITS = 0x3ff0000000000000;
         constexpr uint64_t DECIMAL_SIGNUM_BITS = 0x800fffffffffffff;
         constexpr int PRECISION_ADDITION = 15;
-        constexpr double EXP_DEADLINE = 295;
 
     }
 

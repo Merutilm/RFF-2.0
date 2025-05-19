@@ -207,8 +207,8 @@ std::unique_ptr<DeepMandelbrotPerturbator> DeepMandelbrotPerturbator::reuse(
     } else {
         fp_complex_calculator centerOffset = calc.center.edit(exp10);
         centerOffset -= reference->center.edit(exp10);
-        offR = centerOffset.getReal().double_exp_value();
-        offI = centerOffset.getImag().double_exp_value();
+        centerOffset.getReal().double_exp_value(&offR);
+        centerOffset.getImag().double_exp_value(&offI);
         longestPeriod = reference->longestPeriod();
         reusedReference = std::move(reference);
     }
