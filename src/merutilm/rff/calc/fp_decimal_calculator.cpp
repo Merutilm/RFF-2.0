@@ -232,7 +232,7 @@ double fp_decimal_calculator::double_value() {
 
     mpz_abs(temp, value);
     const size_t len = mpz_sizeinbase(temp, 2);
-    const auto shift = static_cast<int>(len - RFF::Precision::DOUBLE_PRECISION - 1);
+    const auto shift = static_cast<int>(len - 53);
     if (shift < 0) {
         mpz_mul_2exp(temp, temp, -shift);
     } else {
@@ -243,7 +243,7 @@ double fp_decimal_calculator::double_value() {
     mpz_export(&mantissa, &cnt, -1, sizeof(mantissa), 0, 0, temp);
 
 
-    const int fExp2 = exp2 + shift + RFF::Precision::DOUBLE_PRECISION;
+    const int fExp2 = exp2 + shift + 52;
     //0100 0000 0000 : 2^1
     //0000 0000 0000 : 2^-1023
     //0111 1111 1111 : 2^1024
@@ -251,13 +251,13 @@ double fp_decimal_calculator::double_value() {
         return sgn == 1 ? INFINITY : -INFINITY;
     }
     const int mantissa_shift = fExp2 <= -0x03ff ? -0x03ff - fExp2 + 1 : 0;
-    mantissa = (mantissa >> mantissa_shift) & RFF::Precision::DECIMAL_SIGNUM_BITS;
+    mantissa = (mantissa >> mantissa_shift) & 0x800fffffffffffffULL;
 
     const uint64_t exponent = fExp2 <= -0x03ff
                                   ? 0
-                                  : RFF::Precision::EXP0_BITS + (
-                                        static_cast<uint64_t>(fExp2) << RFF::Precision::DOUBLE_PRECISION);
-    const uint64_t sig = sgn == 1 ? 0 : RFF::Precision::SIGNUM_BIT;
+                                  : 0x3ff0000000000000ULL + (
+                                        static_cast<uint64_t>(fExp2) << 52);
+    const uint64_t sig = sgn == 1 ? 0 : 0x8000000000000000ULL;
     return std::bit_cast<double>(sig | exponent | mantissa);
 }
 
@@ -270,7 +270,7 @@ void fp_decimal_calculator::double_exp_value(double_exp *result) {
 
     mpz_abs(temp, value);
     const size_t len = mpz_sizeinbase(temp, 2);
-    const auto shift = static_cast<int>(len - RFF::Precision::DOUBLE_PRECISION - 1);
+    const auto shift = static_cast<int>(len - 53);
     if (shift < 0) {
         mpz_mul_2exp(temp, temp, -shift);
     } else {
@@ -279,8 +279,8 @@ void fp_decimal_calculator::double_exp_value(double_exp *result) {
     uint64_t mantissa_bit;
     size_t cnt;
     mpz_export(&mantissa_bit, &cnt, -1, sizeof(mantissa_bit), 0, 0, temp);
-    const int fExp2 = exp2 + shift + RFF::Precision::DOUBLE_PRECISION;
-    const double mantissa = std::bit_cast<double>(RFF::Precision::EXP0_BITS | mantissa_bit);
+    const int fExp2 = exp2 + shift + 52;
+    const double mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
 
     double_exp::dex_cpy(result, mantissa);
     double_exp::dex_mul_2exp(result, *result, fExp2);

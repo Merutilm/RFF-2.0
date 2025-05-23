@@ -5,6 +5,7 @@
 #pragma once
 #include "../formula/LightMandelbrotPerturbator.h"
 #include "../calc/fp_complex.h"
+#include "../data/ApproxTableCache.h"
 
 struct MandelbrotLocator {
     static constexpr float MINIBROT_LOG_ZOOM_OFFSET = 1.5f;
@@ -17,7 +18,8 @@ struct MandelbrotLocator {
     static std::unique_ptr<fp_complex> findCenterOffset(const MandelbrotPerturbator &perturbator);
 
     static std::unique_ptr<MandelbrotLocator> locateMinibrot(ParallelRenderState &state,
-                                                             std::unique_ptr<MandelbrotPerturbator> perturbator,
+                                                             const MandelbrotPerturbator *perturbator,
+                                                             ApproxTableCache &approxTableCache,
                                                              const std::function<void(uint64_t, int)> &
                                                              actionWhileFindingMinibrotCenter,
                                                              const std::function<void(uint64_t, float)> &actionWhileCreatingTable,
@@ -25,9 +27,11 @@ struct MandelbrotLocator {
 
 private:
     static std::unique_ptr<MandelbrotPerturbator> findAccurateCenterPerturbator(ParallelRenderState &state,
-        std::unique_ptr<MandelbrotPerturbator> perturbator,
-        const std::function<void(uint64_t, int)> &actionWhileFindingMinibrotCenter,
-        const std::function<void(uint64_t, float)> &actionWhileCreatingTable);
+        const MandelbrotPerturbator *perturbator,
+        ApproxTableCache &approxTableCache,
+        const std::function<void(uint64_t, int)> &
+        actionWhileFindingMinibrotCenter, const std::function<void(uint64_t, float)> &
+        actionWhileCreatingTable);
 
     static bool checkMaxIterationOnly(const MandelbrotPerturbator &perturbator, uint64_t maxIteration);
 };

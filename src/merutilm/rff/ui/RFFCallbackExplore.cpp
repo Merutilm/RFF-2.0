@@ -49,22 +49,24 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackExplor
     }
 
     scene.getState().cancel();
-    std::unique_ptr<MandelbrotPerturbator> perturbator = scene.extractCurrentPerturbator();
+    const MandelbrotPerturbator* perturbator = scene.getCurrentPerturbator();
     assert(perturbator != nullptr);
 
     scene.getState().createThread(
-        [&scene, logZoom = settings.calculationSettings.logZoom, ptr = std::move(perturbator), &settings](
-    std::stop_token) mutable {
+        [&scene, logZoom = settings.calculationSettings.logZoom, perturbator, &settings](
+    std::stop_token)  {
+
+            ApproxTableCache &approxTableCache = scene.getApproxTableCache();
             int interval = RFFUtilities::getRefreshInterval(logZoom);
-            uint64_t longestPeriod = ptr->getReference()->longestPeriod();
+            uint64_t longestPeriod = perturbator->getReference()->longestPeriod();
 
             const std::unique_ptr<MandelbrotLocator> locator = MandelbrotLocator::locateMinibrot(
-                scene.getState(), std::move(ptr),
+                scene.getState(), perturbator, approxTableCache,
 
                 [interval, &scene, longestPeriod](const uint64_t p, int i) {
                     if (p % interval == 0) {
                         scene.setStatusMessage(RFF::Status::RENDER_STATUS,
-                                               std::format("Locating Center... {:.3f}%[{}]",
+                                               std::format("C : {:.3f}%[{}]",
                                                            static_cast<float>(100 * p) / static_cast<float>(
                                                                longestPeriod),
                                                            i));
@@ -73,24 +75,23 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackExplor
                 [interval, &scene](const uint64_t p, const float i) {
                     if (p % interval == 0) {
                         scene.setStatusMessage(RFF::Status::RENDER_STATUS,
-                                               std::format("Creating Table... {:.3f}%", i * 100));
+                                               std::format("MPA : {:.3f}%", i * 100));
                     }
                 },
                 [ &scene](float zoom) {
                     scene.setStatusMessage(RFF::Status::RENDER_STATUS,
-                                           std::format("Finding Zoom... 10^{}", zoom));
+                                           std::format("Z : 10^{}", zoom));
                 }
             );
 
+            if (locator == nullptr) {
+                RFFUtilities::log("Locate Minibrot Cancelled.");
+                return;
+            }
             std::unique_ptr<MandelbrotPerturbator> locatorPerturbator = std::move(locator->perturbator);
             const CalculationSettings &locatorCalc = locatorPerturbator->getCalculationSettings();
-
-            if (scene.getState().interruptRequested()) {
-                RFFUtilities::log("Locate Minibrot Cancelled.");
-            } else {
-                settings.calculationSettings.center = locatorCalc.center;
-                settings.calculationSettings.logZoom = locatorCalc.logZoom - MandelbrotLocator::MINIBROT_LOG_ZOOM_OFFSET;
-            }
+            settings.calculationSettings.center = locatorCalc.center;
+            settings.calculationSettings.logZoom = locatorCalc.logZoom - MandelbrotLocator::MINIBROT_LOG_ZOOM_OFFSET;
             scene.setCurrentPerturbator(std::move(locatorPerturbator));
             scene.requestRecompute();
         }

@@ -7,15 +7,17 @@
 #include <execution>
 
 #include "ArrayCompressor.h"
+#include "DeepPAGenerator.h"
 #include "../calc/double_exp.h"
+#include "../ui/RFFUtilities.h"
 
 
 DeepMPATable::DeepMPATable(const ParallelRenderState &state, const DeepMandelbrotReference *reference,
                            const MPASettings *mpaSettings, const double_exp &dcMax,
-                           std::vector<std::vector<DeepPA> > &&previousAllocatedTable,
+                           std::vector<std::vector<DeepPA> > &deepTableRef,
                            std::function<void(uint64_t, double)> &&
                            actionPerCreatingTableIteration) : MPATable(mpaSettings), reference(reference),
-                                                              table(std::move(previousAllocatedTable)) {
+                                                              table(deepTableRef) {
     if (reference != nullptr) {
         initTable(*reference);
         generateTable(state, dcMax, std::move(actionPerCreatingTableIteration));
@@ -27,8 +29,8 @@ DeepMPATable::DeepMPATable(const ParallelRenderState &state, const DeepMandelbro
 
 
 void DeepMPATable::generateTable(const ParallelRenderState &state, const double_exp &dcMax,
-                                  std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) {
-    const auto func = std::move(actionPerCreatingTableIteration);
+                                  std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) const {
+     const auto func = std::move(actionPerCreatingTableIteration);
 
     if (mpaPeriod == nullptr) {
         return;
@@ -50,11 +52,10 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
 
     const size_t levels = tablePeriod.size();
     auto periodCount = std::vector<uint64_t>(levels, 0);
-    auto currentPA = std::vector<std::unique_ptr<DeepPA::Generator> >();
+    auto currentPA = std::vector<std::unique_ptr<DeepPAGenerator> >();
     currentPA.resize(levels);
 
 
-    std::vector<DeepPA> *mainReferenceMPAPtr = nullptr;
 
     const uint64_t size = iterationToCompTableIndex(mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
                                                     longestPeriod + 1);
@@ -63,8 +64,10 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
         v.clear();
     });
     table.reserve(size);
-
+    allocateTableSize(table, 0, levels);
+    const std::vector<DeepPA> &mainReferenceMPA = table[0];
     auto temps = std::array<double_exp, 8>();
+
 
     while (iteration <= longestPeriod) {
         if (absIteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return;
@@ -78,18 +81,17 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
                                                             ? nullptr
                                                             : &pulledMPACompressor[containedIndex];
             containedTool != nullptr &&
-            containedTool->start == pulledTableIndex + 1 &&
-            mainReferenceMPAPtr != nullptr
+            containedTool->start == pulledTableIndex + 1
         ) {
             const uint64_t level = binarySearch(tableElements, containedTool->end - containedTool->start + 2);
             //count itself and periodic point, +2
 
             const uint64_t compTableIndex = iterationToCompTableIndex(mpaCompressionMethod, *mpaPeriod,
                                                                       pulledMPACompressor, iteration);
+
+
             allocateTableSize(table, compTableIndex, levels);
 
-
-            std::vector<DeepPA> &mainReferenceMPA = *mainReferenceMPAPtr;
             auto &pa = table[compTableIndex];
             const DeepPA &mainReferencePA = mainReferenceMPA[level];
             const uint64_t skip = mainReferencePA.skip;
@@ -106,13 +108,23 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
                 } else {
                     if (currentPA[i] == nullptr) {
                         //its count is zero but has no element? -> Artificial PA
-                        auto generator = DeepPA::Generator::create(*reference, epsilon, dcMax, iteration, temps);
+                        auto generator = DeepPAGenerator::create(*reference, epsilon, dcMax, iteration, temps);
                         generator->merge(mainReferencePA);
                         currentPA[i] = std::move(generator);
                     } else {
                         currentPA[i]->merge(mainReferencePA);
                     }
                     periodCount[i] += skip;
+
+                    if (periodCount[i] >= tablePeriod[i]) {
+                        // This case is undefined behavior.
+                        // When try to define an MPA at a location where the period is defined "incompletely", it is incomplete.
+                        // The case is when an unexpected match of reference orbit results the compressor which is larger than allowed skip value.
+                        // This must never cause in a case where the longest period is completely defined.
+                        RFFUtilities::log(std::format("warning : the skipped iteration {} is larger than allowed period {}.", periodCount[i], tablePeriod[i]));
+                        currentPA[i] = nullptr;
+                        periodCount[i] %= tablePeriod[i];
+                    }
                 }
             }
 
@@ -123,7 +135,7 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
         for (uint64_t level = levels; level > 0; --level) {
             const uint64_t i = level - 1;
             if (periodCount[i] == 0 && independent) {
-                currentPA[i] = DeepPA::Generator::create(*reference, epsilon, dcMax, iteration, temps);
+                currentPA[i] = DeepPAGenerator::create(*reference, epsilon, dcMax, iteration, temps);
             }
 
             if (currentPA[i] != nullptr && periodCount[i] + REQUIRED_PERTURBATION <
@@ -135,7 +147,7 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
             periodCount[i]++;
 
             if (periodCount[i] == tablePeriod[i]) {
-                if (const DeepPA::Generator *currentLevel = currentPA[i].get();
+                if (const DeepPAGenerator *currentLevel = currentPA[i].get();
                     currentLevel != nullptr &&
                     currentLevel->getSkip() == tablePeriod[i] - REQUIRED_PERTURBATION
                 ) {
@@ -144,14 +156,16 @@ void DeepMPATable::generateTable(const ParallelRenderState &state, const double_
 
                     const uint64_t compTableIndex = iterationToCompTableIndex(
                         mpaCompressionMethod, *mpaPeriod, pulledMPACompressor, currentLevel->getStart());
-                    allocateTableSize(table, compTableIndex, levels);
 
-                    auto &pa = table[compTableIndex];
-                    pa.push_back(currentLevel->build());
-
-                    if (compTableIndex == 0) {
-                        mainReferenceMPAPtr = &pa;
+                    if (compTableIndex == UINT64_MAX) {
+                        RFFUtilities::log(std::format("warning : start value is out of bounds.", periodCount[i], tablePeriod[i]));
+                    }else {
+                        allocateTableSize(table, compTableIndex, levels);
+                        auto &pa = table[compTableIndex];
+                        pa.push_back(currentLevel->build());
                     }
+
+
                 }
                 //Stop all lower level iteration for efficiency
                 //because it is too hard to skipping to next part of the periodic point

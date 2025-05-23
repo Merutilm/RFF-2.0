@@ -10,13 +10,13 @@
 
 class DeepMPATable final : public MPATable{
     const DeepMandelbrotReference *reference;
-    std::vector<std::vector<DeepPA>> table = std::vector<std::vector<DeepPA>>();
+    std::vector<std::vector<DeepPA>> &table;
 
 public:
 
 
     explicit DeepMPATable(const ParallelRenderState &state, const DeepMandelbrotReference *reference,
-                  const MPASettings *mpaSettings, const double_exp &dcMax, std::vector<std::vector<DeepPA>> &&previousAllocatedTable,
+                  const MPASettings *mpaSettings, const double_exp &dcMax, std::vector<std::vector<DeepPA>> &deepTableRef,
                   std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
 
@@ -31,16 +31,18 @@ public:
     DeepMPATable &operator=(DeepMPATable &&) noexcept = delete;
 
     void generateTable(const ParallelRenderState &state, const double_exp &dcMax,
-                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
+                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) const;
 
     void initTable(const DeepMandelbrotReference &reference);
 
-    std::vector<std::vector<DeepPA>> &&extractVector() {
-        return std::move(table);
-    };
+    std::vector<std::vector<DeepPA>> &getVector() const {
+        return table;
+    }
 
-    DeepPA *lookup(uint64_t refIteration, const double_exp &dzr, const double_exp &dzi, std::array<double_exp, 4> &temps);
-    
+    DeepPA *lookup(uint64_t refIteration, const double_exp &dzr, const double_exp &dzi, std::array<double_exp, 4> &temps) const;
+
+    int getLength() override;
+
 private:
     static void allocateTableSize(std::vector<std::vector<DeepPA>> &table, uint64_t index, uint64_t levels);
 };
@@ -52,7 +54,7 @@ private:
 // DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE
 
 
-inline DeepPA *DeepMPATable::lookup(const uint64_t refIteration, const double_exp &dzr, const double_exp &dzi, std::array<double_exp, 4> &temps) {
+inline DeepPA *DeepMPATable::lookup(const uint64_t refIteration, const double_exp &dzr, const double_exp &dzi, std::array<double_exp, 4> &temps) const {
 
     if (refIteration == 0 || mpaPeriod == nullptr) {
         return nullptr;
@@ -103,4 +105,8 @@ inline DeepPA *DeepMPATable::lookup(const uint64_t refIteration, const double_ex
         }
         default: return nullptr;
     }
+}
+
+inline int DeepMPATable::getLength() {
+    return table.size();
 }

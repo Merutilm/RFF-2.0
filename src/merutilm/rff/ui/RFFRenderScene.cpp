@@ -43,10 +43,10 @@ Settings RFFRenderScene::initSettings() {
                 .maxMultiplierBetweenLevel = 2,
                 .epsilonPower = -3,
                 .mpaSelectionMethod = MPASelectionMethod::HIGHEST,
-                .mpaCompressionMethod = MPACompressionMethod::STRONGEST,
+                .mpaCompressionMethod = MPACompressionMethod::NO_COMPRESSION,
             },
             .referenceCompressionSettings = ReferenceCompressionSettings{
-                .compressCriteria = 10000,
+                .compressCriteria = 0,
                 .compressionThresholdPower = 6,
             },
             .reuseReferenceMethod = ReuseReferenceMethod::DISABLED,
@@ -152,7 +152,7 @@ void RFFRenderScene::runAction(const UINT message, const WPARAM wParam) {
 
 
                 auto it = static_cast<uint64_t>((*iterationMatrix)(x, y));
-                setStatusMessage(RFF::Status::ITERATION_STATUS, std::format("Iterations : {} ({},{})", it, x, y));
+                setStatusMessage(RFF::Status::ITERATION_STATUS, std::format("I : {} ({}, {})", it, x, y));
             }
             break;
         }
@@ -389,7 +389,7 @@ void RFFRenderScene::compute(const Settings &settings) {
     if (referenceRenderState.interruptRequested()) return;
 
     setStatusMessage(RFF::Status::ZOOM_STATUS,
-                     std::format("Zoom : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
+                     std::format("Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
     const std::array<double_exp, 2> offset = offsetConversion(settingsToUse, 0, 0);
     double_exp dcMax = double_exp::DEX_ZERO;
@@ -398,12 +398,12 @@ void RFFRenderScene::compute(const Settings &settings) {
     const auto refreshInterval = RFFUtilities::getRefreshInterval(logZoom);
     std::function actionPerRefCalcIteration = [refreshInterval, this](const uint64_t p) {
         if (p % refreshInterval == 0) {
-            setStatusMessage(RFF::Status::RENDER_STATUS, std::format(std::locale(), "Period {:L}", p));
+            setStatusMessage(RFF::Status::RENDER_STATUS, std::format(std::locale(), "P : {:L}", p));
         }
     };
     std::function actionPerCreatingTableIteration = [refreshInterval, this](const uint64_t p, const double i) {
         if (p % refreshInterval == 0) {
-            setStatusMessage(RFF::Status::RENDER_STATUS, std::format("Creating Table... {:.3f}%", i * 100));
+            setStatusMessage(RFF::Status::RENDER_STATUS, std::format("MPA : {:.3f}%", i * 100));
         }
     };
 
@@ -458,23 +458,14 @@ void RFFRenderScene::compute(const Settings &settings) {
         // }
         case DISABLED: {
             if (logZoom > RFF::Render::ZOOM_DEADLINE) {
-                auto p = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get());
-
-                auto vector = p == nullptr
-                                  ? std::vector<std::vector<DeepPA> >()
-                                  : std::move(p->getTable().extractVector());
                 currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
                     referenceRenderState, calc, dcMax, exp10,
-                    0, std::move(vector), std::move(actionPerRefCalcIteration),
+                    0, approxTableCache.deepTable, std::move(actionPerRefCalcIteration),
                     std::move(actionPerCreatingTableIteration));
             } else {
-                auto p = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get());
-                auto vector = p == nullptr
-                                  ? std::vector<std::vector<LightPA> >()
-                                  : std::move(p->getTable().extractVector());
                 currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(
                     referenceRenderState, calc, static_cast<double>(dcMax), exp10,
-                    0, std::move(vector), std::move(actionPerRefCalcIteration),
+                    0, approxTableCache.lightTable, std::move(actionPerRefCalcIteration),
                     std::move(actionPerCreatingTableIteration));
             }
             break;
@@ -491,10 +482,9 @@ void RFFRenderScene::compute(const Settings &settings) {
 
     lastPeriod = reference->longestPeriod();
     size_t length = reference->length();
+    size_t mpaLen = currentPerturbator->getTable().getLength();
 
-    setStatusMessage(RFF::Status::PERIOD_STATUS, std::format("Period : {:L}({:L})", lastPeriod, length));
-    setStatusMessage(RFF::Status::RENDER_STATUS, "Preparing...");
-
+    setStatusMessage(RFF::Status::PERIOD_STATUS, std::format("P : {:L} ({:L}, {:L})", lastPeriod, length, mpaLen));
 
     if (referenceRenderState.interruptRequested()) return;
 
@@ -522,9 +512,9 @@ void RFFRenderScene::compute(const Settings &settings) {
             auto hms = std::chrono::hh_mm_ss(elapsed);
             float ratio = static_cast<float>(renderPixelsCount.load()) / static_cast<float>(w * h) * 100;
             setStatusMessage(RFF::Status::TIME_STATUS,
-                             std::format("Time : {:02d}:{:02d}:{:02d}:{:03d}", hms.hours().count(),
+                             std::format("T : {:02d}:{:02d}:{:02d}:{:03d}", hms.hours().count(),
                                          hms.minutes().count(), hms.seconds().count(), hms.subseconds().count()));
-            setStatusMessage(RFF::Status::RENDER_STATUS, std::format("Calculating... {:.3f}%", ratio));
+            setStatusMessage(RFF::Status::RENDER_STATUS, std::format("C : {:.3f}%", ratio));
 
             Sleep(RFF::Status::SET_PROCESS_INTERVAL_MS);
         }
@@ -562,12 +552,11 @@ MandelbrotPerturbator *RFFRenderScene::getCurrentPerturbator() const {
     return currentPerturbator.get();
 }
 
-std::unique_ptr<MandelbrotPerturbator> RFFRenderScene::extractCurrentPerturbator() {
-    auto ptr = std::move(currentPerturbator);
-    currentPerturbator = nullptr;
-    return ptr;
-}
 
 void RFFRenderScene::setCurrentPerturbator(std::unique_ptr<MandelbrotPerturbator> perturbator) {
     this->currentPerturbator = std::move(perturbator);
+}
+
+ApproxTableCache &RFFRenderScene::getApproxTableCache() {
+    return approxTableCache;
 }

@@ -65,10 +65,6 @@ namespace RFF {
         constexpr double LOG_2 = 0.693147180559945309417232121458;
         constexpr double LOG_10 = 2.302585092994045684017991454684;
         constexpr double LOG10_2 = 0.301029995663981195213738894724;
-        constexpr int DOUBLE_PRECISION = 52;
-        constexpr uint64_t SIGNUM_BIT = 0x8000000000000000;
-        constexpr uint64_t EXP0_BITS = 0x3ff0000000000000;
-        constexpr uint64_t DECIMAL_SIGNUM_BITS = 0x800fffffffffffff;
         constexpr int PRECISION_ADDITION = 15;
 
     }

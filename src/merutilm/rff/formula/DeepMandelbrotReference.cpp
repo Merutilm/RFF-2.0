@@ -61,7 +61,7 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
     uint64_t period = 1;
     auto periodArray = std::vector<uint64_t>();
 
-    double_exp minZRadius = double_exp::DEX_POSITIVE_INFINITY;
+    double_exp minZRadius = double_exp::DEX_ONE;
     uint64_t reuseIndex = 0;
 
     auto tools = std::vector<ArrayCompressionTool>();
@@ -72,7 +72,7 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
 
     double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
     auto temps = std::array<double_exp, 8>();
-    while (dex_trigonometric::hypot2(zr, zi) < bailoutSqr && iteration < maxIteration) {
+    while ((iteration == 0 || dex_trigonometric::hypot2(zr, zi) < bailoutSqr) && iteration < maxIteration) {
         if (iteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
             return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
         }
@@ -94,10 +94,9 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
             double_exp::dex_add(&temps[3], temps[3], temps[4]);
             dex_trigonometric::hypot_approx(&temps[4], temps[2], temps[3]);
 
-
-            if (temps[2].normalize_required()) double_exp::normalize(&temps[2]);
-            if (temps[3].normalize_required()) double_exp::normalize(&temps[3]);
-
+            temps[2].try_normalize();
+            temps[3].try_normalize();
+            temps[4].try_normalize();
 
             double_exp::dex_sub(&temps[5], minZRadius, temps[0]);
             if (minZRadius.isinf() || temps[5].sgn() == 1) {

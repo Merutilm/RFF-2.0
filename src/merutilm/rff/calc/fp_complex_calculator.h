@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <memory>
 
 #include "double_exp.h"
 #include "fp_decimal_calculator.h"
@@ -49,13 +48,26 @@ private:
 public:
     static fp_complex_calculator init(const std::string &re, const std::string &im, int precision);
 
-    fp_complex_calculator &operator+=(const fp_complex_calculator &b);
 
-    fp_complex_calculator &operator*=(const fp_complex_calculator &b);
+    friend fp_complex_calculator &operator+=(fp_complex_calculator &a, const fp_complex_calculator &b) {
+        mpc_add(a, b);
+        return a;
+    }
 
-    fp_complex_calculator &operator-=(const fp_complex_calculator &b);
+    friend fp_complex_calculator &operator*=(fp_complex_calculator &a, const fp_complex_calculator &b) {
+        mpc_mul(a, b);
+        return a;
+    }
 
-    fp_complex_calculator &operator/=(const fp_complex_calculator &b);
+    friend fp_complex_calculator &operator-=(fp_complex_calculator &a, const fp_complex_calculator &b) {
+        mpc_sub(a, b);
+        return a;
+    }
+
+    friend fp_complex_calculator &operator/=(fp_complex_calculator &a, const fp_complex_calculator &b) {
+        mpc_div(a, b);
+        return a;
+    }
 
     fp_complex_calculator &square();
 

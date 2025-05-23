@@ -14,13 +14,13 @@
 
 class LightMPATable final : public MPATable{
     const LightMandelbrotReference *reference;
-    std::vector<std::vector<LightPA>> table = std::vector<std::vector<LightPA>>();
+    std::vector<std::vector<LightPA>> &table;
 
 public:
 
 
     explicit LightMPATable(const ParallelRenderState &state, const LightMandelbrotReference *reference,
-                  const MPASettings *mpaSettings, double dcMax, std::vector<std::vector<LightPA>> &&previousAllocatedTable,
+                  const MPASettings *mpaSettings, double dcMax, std::vector<std::vector<LightPA>> &lightTableRef,
                   std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
 
@@ -35,15 +35,17 @@ public:
     LightMPATable &operator=(LightMPATable &&) noexcept = delete;
 
     void generateTable(const ParallelRenderState &state, double dcMax,
-                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
+                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) const;
 
     void initTable(const LightMandelbrotReference &reference);
 
-    std::vector<std::vector<LightPA>> &&extractVector() {
-        return std::move(table);
+    std::vector<std::vector<LightPA>> &getVector() const {
+        return table;
     };
 
-    LightPA *lookup(uint64_t refIteration, double dzr, double dzi);
+    LightPA *lookup(uint64_t refIteration, double dzr, double dzi) const;
+
+    int getLength() override;
 
 private:
     static void allocateTableSize(std::vector<std::vector<LightPA>> &table, uint64_t index, uint64_t levels);
@@ -56,7 +58,7 @@ private:
 // DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE
 // DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE  DEFINITION OF LIGHT MPA TABLE
 
-inline LightPA *LightMPATable::lookup(const uint64_t refIteration, const double dzr, const double dzi) {
+inline LightPA *LightMPATable::lookup(const uint64_t refIteration, const double dzr, const double dzi) const {
     if (refIteration == 0 || mpaPeriod == nullptr) {
         return nullptr;
     }
@@ -105,4 +107,8 @@ inline LightPA *LightMPATable::lookup(const uint64_t refIteration, const double 
         }
         default: return nullptr;
     }
+}
+
+inline int LightMPATable::getLength() {
+    return table.size();
 }

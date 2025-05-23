@@ -16,46 +16,9 @@ struct DeepPA final : public PA{
     const double_exp ani;
     const double_exp bnr;
     const double_exp bni;
-    const uint64_t skip;
     const double_exp radius;
 
     DeepPA(const double_exp &anr, const double_exp &ani, const double_exp &bnr, const double_exp &bni, uint64_t skip, const double_exp &radius);
-
-    class Generator {
-        double_exp anr;
-        double_exp ani;
-        double_exp bnr;
-        double_exp bni;
-        uint64_t skip;
-        double_exp radius;
-        uint64_t start;
-        std::array<double_exp, 8> &temps;
-        const std::vector<ArrayCompressionTool> &compressors;
-        const std::vector<double_exp> &refReal;
-        const std::vector<double_exp> &refImag;
-        double epsilon;
-        double_exp dcMax;
-
-    public:
-        explicit Generator(const DeepMandelbrotReference &reference, double epsilon, const double_exp &dcMax, uint64_t start, std::array<double_exp, 8> &temps);
-
-        static std::unique_ptr<Generator> create(const DeepMandelbrotReference &reference, double epsilon,
-                                                 const double_exp &dcMax,
-                                                 uint64_t start, std::array<double_exp, 8> &temps);
-
-        uint64_t getStart() const;
-
-        uint64_t getSkip() const;
-
-
-        void merge(const DeepPA &pa);
-
-        void step();
-
-        DeepPA build() const {
-            return DeepPA(anr, ani, bnr, bni, skip, radius);
-        }
-    };
 
     bool isValid(double_exp *temp, const double_exp &dzRad) const;
 
@@ -63,19 +26,12 @@ struct DeepPA final : public PA{
 
 };
 
-inline std::unique_ptr<DeepPA::Generator> DeepPA::Generator::create(const DeepMandelbrotReference &reference,
-                                                                      const double epsilon, const double_exp &dcMax,
-                                                                      const uint64_t start, std::array<double_exp, 8> &temps) {
-    return std::make_unique<Generator>(reference, epsilon, dcMax, start, temps);
+inline DeepPA::DeepPA(const double_exp &anr, const double_exp &ani, const double_exp &bnr, const double_exp &bni,
+               const uint64_t skip, const double_exp &radius) : PA(skip), anr(anr), ani(ani), bnr(bnr), bni(bni),
+                                                                radius(radius) {
 }
 
-inline uint64_t DeepPA::Generator::getStart() const {
-    return start;
-}
 
-inline uint64_t DeepPA::Generator::getSkip() const {
-    return skip;
-}
 
 inline double_exp DeepPA::getRadius() const {
     return radius;

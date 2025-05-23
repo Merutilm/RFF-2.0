@@ -13,30 +13,30 @@
 LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                        const double dcMax, const int exp10,
                                                        const uint64_t initialPeriod,
-                                                       std::vector<std::vector<LightPA> > &&previousAllocatedTable,
+                                                       std::vector<std::vector<LightPA> > &lightTableRef,
                                                        std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                                        std::function<void(uint64_t, double)> &&
                                                        actionPerCreatingTableIteration) : LightMandelbrotPerturbator(
-    state, calc, dcMax, exp10, initialPeriod, std::move(previousAllocatedTable), std::move(actionPerRefCalcIteration),
+    state, calc, dcMax, exp10, initialPeriod, lightTableRef, std::move(actionPerRefCalcIteration),
     std::move(actionPerCreatingTableIteration), false) {
 }
 
 LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                        const double dcMax, const int exp10,
                                                        const uint64_t initialPeriod,
-                                                       std::vector<std::vector<LightPA> > &&previousAllocatedTable,
+                                                       std::vector<std::vector<LightPA> > &lightTableRef,
                                                        std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                                        std::function<void(uint64_t, double)> &&
                                                        actionPerCreatingTableIteration,
                                                        const bool arbitraryPrecisionFPGBn) : LightMandelbrotPerturbator(
-    state, calc, dcMax, exp10, initialPeriod, std::move(previousAllocatedTable), std::move(actionPerRefCalcIteration),
+    state, calc, dcMax, exp10, initialPeriod, lightTableRef, std::move(actionPerRefCalcIteration),
     std::move(actionPerCreatingTableIteration), arbitraryPrecisionFPGBn, nullptr, nullptr, 0, 0) {
 }
 
 LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                        const double dcMax, const int exp10,
                                                        const uint64_t initialPeriod,
-                                                       std::vector<std::vector<LightPA> > &&previousAllocatedTable,
+                                                       std::vector<std::vector<LightPA> > &lightTableRef,
                                                        std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                                        std::function<void(uint64_t, double)> &&
                                                        actionPerCreatingTableIteration,
@@ -56,7 +56,7 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
 
     if (reusedTable == nullptr) {
         table = std::make_unique<LightMPATable>(state, reference.get(), &calc.mpaSettings, dcMax,
-                                                std::move(previousAllocatedTable),
+                                                lightTableRef,
                                                 std::move(actionPerCreatingTableIteration));
     } else {
         table = std::move(reusedTable);
@@ -187,7 +187,7 @@ std::unique_ptr<LightMandelbrotPerturbator> LightMandelbrotPerturbator::reuse(
 
 
     return std::make_unique<LightMandelbrotPerturbator>(state, calc, dcMax, exp10, longestPeriod,
-                                                        std::vector<std::vector<LightPA> >(),
+                                                        table->getVector(),
                                                         [](uint64_t) {
                                                             //no action because the reference is already declared
                                                         }, [](uint64_t, double) {

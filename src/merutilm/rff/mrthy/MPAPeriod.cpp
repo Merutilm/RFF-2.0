@@ -40,7 +40,7 @@ std::vector<uint64_t> MPAPeriod::generatePeriodElements(const std::vector<uint64
         uint64_t elements = 0;
         uint64_t remainder = tablePeriod[i];
         for (int j = i - 1; j >= 0; j--) {
-            uint64_t groupAmount = remainder / tablePeriod[j];
+            const uint64_t groupAmount = remainder / tablePeriod[j];
             remainder %= tablePeriod[j];
             elements += groupAmount * tablePeriodElements[j];
         }

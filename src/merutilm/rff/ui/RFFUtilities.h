@@ -26,7 +26,7 @@ struct RFFUtilities {
         return static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count() - RFF::Render::INIT_TIME) / 1e9;
     }
 
-    static int getRefreshInterval(float logZoom) {
+    static int getRefreshInterval(const float logZoom) {
         return std::max(1, static_cast<int>(100000.0 / logZoom));
     };
 };

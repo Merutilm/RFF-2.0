@@ -155,25 +155,6 @@ void fp_complex_calculator::mpc_halved(fp_complex_calculator &a) {
 }
 
 
-fp_complex_calculator &fp_complex_calculator::operator+=(const fp_complex_calculator &b) {
-    mpc_add(*this, b);
-    return *this;
-}
-
-fp_complex_calculator &fp_complex_calculator::operator*=(const fp_complex_calculator &b) {
-    mpc_mul(*this, b);
-    return *this;
-}
-
-fp_complex_calculator &fp_complex_calculator::operator-=(const fp_complex_calculator &b) {
-    mpc_sub(*this, b);
-    return *this;
-}
-
-fp_complex_calculator &fp_complex_calculator::operator/=(const fp_complex_calculator &b) {
-    mpc_div(*this, b);
-    return *this;
-}
 
 fp_complex_calculator &fp_complex_calculator::square() {
     mpc_square(*this);

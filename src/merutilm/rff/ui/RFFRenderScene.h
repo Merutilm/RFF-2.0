@@ -8,10 +8,12 @@
 #include <windows.h>
 
 #include "RFFScene.h"
+#include "../data/ApproxTableCache.h"
 
 #include "../data/Matrix.h"
 #include "../formula/LightMandelbrotPerturbator.h"
 #include "../io/RFFMap.h"
+#include "../mrthy/DeepPA.h"
 #include "../opengl/GLMultipassRenderer.h"
 #include "../opengl/GLRendererAntialiasing.h"
 #include "../opengl/GLRendererBloom.h"
@@ -29,6 +31,8 @@ class RFFRenderScene final : private RFFScene {
     int mouseX = 0;
     int mouseY = 0;
     uint64_t lastPeriod = 1;
+
+    ApproxTableCache approxTableCache = ApproxTableCache();
 
     std::atomic<bool> recomputeRequested = false;
     std::atomic<bool> resizeRequested = false;
@@ -124,7 +128,7 @@ public:
 
     MandelbrotPerturbator *getCurrentPerturbator() const;
 
-    std::unique_ptr<MandelbrotPerturbator> extractCurrentPerturbator();
-
     void setCurrentPerturbator(std::unique_ptr<MandelbrotPerturbator> perturbator);
+
+    ApproxTableCache &getApproxTableCache();
 };

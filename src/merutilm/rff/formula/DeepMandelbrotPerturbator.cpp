@@ -11,23 +11,23 @@
 DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                      const double_exp &dcMax, const int exp10,
                                                      const uint64_t initialPeriod,
-                                                     std::vector<std::vector<DeepPA> > &&previousAllocatedTable,
+                                                     std::vector<std::vector<DeepPA> > &deepTableRef,
                                                      std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                                      std::function<void(uint64_t, double)> &&
                                                      actionPerCreatingTableIteration) : DeepMandelbrotPerturbator(
-    state, calc, dcMax, exp10, initialPeriod, std::move(previousAllocatedTable), std::move(actionPerRefCalcIteration),
+    state, calc, dcMax, exp10, initialPeriod, deepTableRef, std::move(actionPerRefCalcIteration),
     std::move(actionPerCreatingTableIteration), false) {
 }
 
 DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                      const double_exp &dcMax, const int exp10,
                                                      const uint64_t initialPeriod,
-                                                     std::vector<std::vector<DeepPA> > &&previousAllocatedTable,
+                                                     std::vector<std::vector<DeepPA> > &deepTableRef,
                                                      std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                                      std::function<void(uint64_t, double)> &&
                                                      actionPerCreatingTableIteration,
                                                      const bool arbitraryPrecisionFPGBn) : DeepMandelbrotPerturbator(
-    state, calc, dcMax, exp10, initialPeriod, std::move(previousAllocatedTable), std::move(actionPerRefCalcIteration),
+    state, calc, dcMax, exp10, initialPeriod, deepTableRef, std::move(actionPerRefCalcIteration),
     std::move(actionPerCreatingTableIteration), arbitraryPrecisionFPGBn, nullptr, nullptr, double_exp::DEX_ZERO,
     double_exp::DEX_ZERO) {
 }
@@ -35,7 +35,7 @@ DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state,
 DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                      const double_exp &dcMax, const int exp10,
                                                      const uint64_t initialPeriod,
-                                                     std::vector<std::vector<DeepPA> > &&previousAllocatedTable,
+                                                     std::vector<std::vector<DeepPA> > &deepTableRef,
                                                      std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                                      std::function<void(uint64_t, double)> &&
                                                      actionPerCreatingTableIteration,
@@ -55,7 +55,7 @@ DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state,
 
     if (reusedTable == nullptr) {
         table = std::make_unique<DeepMPATable>(state, reference.get(), &calc.mpaSettings, dcMax,
-                                               std::move(previousAllocatedTable),
+                                               deepTableRef,
                                                std::move(actionPerCreatingTableIteration));
     } else {
         table = std::move(reusedTable);
@@ -171,8 +171,8 @@ double DeepMandelbrotPerturbator::iterate(const double_exp &dcr, const double_ex
             double_exp::dex_cpy(&dzi, zi);
         }
 
-        if (dzr.normalize_required()) double_exp::normalize(&dzr);
-        if (dzi.normalize_required()) double_exp::normalize(&dzi);
+        dzr.try_normalize();
+        dzi.try_normalize();
         if (cd > bailout2) break;
         if (absIteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
     }
@@ -215,7 +215,7 @@ std::unique_ptr<DeepMandelbrotPerturbator> DeepMandelbrotPerturbator::reuse(
 
 
     return std::make_unique<DeepMandelbrotPerturbator>(state, calc, dcMax, exp10, longestPeriod,
-                                                       std::vector<std::vector<DeepPA> >(),
+                                                       table->getVector(),
                                                        [](uint64_t) {
                                                            //no action because the reference is already declared
                                                        }, [](uint64_t, double) {

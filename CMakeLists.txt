@@ -84,9 +84,7 @@ add_executable(
         src/merutilm/rff/ui/RFFUtilities.h
         src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp
         src/merutilm/rff/formula/LightMandelbrotPerturbator.h
-        src/merutilm/rff/mrthy/LightPA.cpp
         src/merutilm/rff/mrthy/LightPA.h
-        src/merutilm/rff/mrthy/LightMPATable.cpp
         src/merutilm/rff/mrthy/LightMPATable.h
         src/merutilm/rff/mrthy/MPAPeriod.cpp
         src/merutilm/rff/mrthy/MPAPeriod.h
@@ -135,13 +133,19 @@ add_executable(
         src/merutilm/rff/formula/DeepMandelbrotPerturbator.h
         src/merutilm/rff/formula/MandelbrotPerturbator.cpp
         src/merutilm/rff/formula/MandelbrotPerturbator.h
-        src/merutilm/rff/mrthy/DeepPA.cpp
         src/merutilm/rff/mrthy/DeepPA.h
-        src/merutilm/rff/mrthy/DeepMPATable.cpp
         src/merutilm/rff/mrthy/DeepMPATable.h
-        src/merutilm/rff/mrthy/MPATable.cpp
         src/merutilm/rff/mrthy/MPATable.h
         src/merutilm/rff/mrthy/PA.h
         src/merutilm/rff/ui/RFFCallback.h
+        src/merutilm/rff/mrthy/PAGenerator.h
+        src/merutilm/rff/mrthy/LightPAGenerator.cpp
+        src/merutilm/rff/mrthy/LightPAGenerator.h
+        src/merutilm/rff/mrthy/DeepPAGenerator.cpp
+        src/merutilm/rff/mrthy/DeepPAGenerator.h
+        src/merutilm/rff/mrthy/LightMPATable.cpp
+        src/merutilm/rff/mrthy/MPATable.cpp
+        src/merutilm/rff/mrthy/DeepMPATable.cpp
+        src/merutilm/rff/data/ApproxTableCache.h
 )
 target_link_libraries(RFF PRIVATE opengl32 gmp comctl32)

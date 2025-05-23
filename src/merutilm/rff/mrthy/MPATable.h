@@ -49,6 +49,9 @@ protected:
                                               const std::vector<ArrayCompressionTool> &pulledMPACompressor,
                                               uint64_t iteration);
 
+public:
+    virtual int getLength() = 0;
+
 };
 
 // DEFINITION OF MPA TABLE  DEFINITION OF MPA TABLE  DEFINITION OF MPA TABLE  DEFINITION OF MPA TABLE  DEFINITION OF MPA TABLE  DEFINITION OF MPA TABLE
@@ -116,6 +119,11 @@ inline uint64_t MPATable::iterationToPulledTableIndex(const MPAPeriod &mpaPeriod
         if (remainder < tablePeriod[i - 1]) {
             continue;
         }
+        // p[4, 1000]
+        // 1 5 9 13 .... 993 997 1001
+        // 997 % 1000 = 997
+        // 997 % 4 = 1
+        // 997 + 4 - 2 + 1 = 1000
         if (i < tablePeriod.size() && remainder + tablePeriod[0] - REQUIRED_PERTURBATION +
             1 > tablePeriod[i]) {
             return UINT64_MAX;
@@ -128,3 +136,4 @@ inline uint64_t MPATable::iterationToPulledTableIndex(const MPAPeriod &mpaPeriod
     }
     return remainder == 1 ? index : UINT64_MAX;
 }
+

@@ -18,16 +18,16 @@ class LightMandelbrotPerturbator final : public MandelbrotPerturbator{
 
 public:
     explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
-                               uint64_t initialPeriod, std::vector<std::vector<LightPA>> &&previousAllocatedTable, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                               uint64_t initialPeriod, std::vector<std::vector<LightPA>> &lightTableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
     explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
-                               uint64_t initialPeriod, std::vector<std::vector<LightPA>> &&previousAllocatedTable, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                               uint64_t initialPeriod, std::vector<std::vector<LightPA>> &lightTableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
                                bool arbitraryPrecisionFPGBn);
 
     explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
-                               uint64_t initialPeriod, std::vector<std::vector<LightPA>> &&previousAllocatedTable, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                               uint64_t initialPeriod, std::vector<std::vector<LightPA>> &lightTableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
                                bool arbitraryPrecisionFPGBn, std::unique_ptr<LightMandelbrotReference> reusedReference, std::unique_ptr<LightMPATable> reusedTable,
                                double offR, double offI);

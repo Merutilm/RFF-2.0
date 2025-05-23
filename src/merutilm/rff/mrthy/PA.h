@@ -5,5 +5,5 @@
 #pragma once
 
 struct PA {
-
+    const uint64_t skip;
 };
