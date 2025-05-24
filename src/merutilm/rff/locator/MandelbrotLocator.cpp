@@ -84,10 +84,10 @@ std::unique_ptr<MandelbrotLocator> MandelbrotLocator::locateMinibrot(ParallelRen
         actionWhileFindingMinibrotZoom(resultZoom);
         resultCalc.logZoom = resultZoom;
         if (const auto v = dynamic_cast<LightMandelbrotPerturbator *>(result.get())) {
-            result = v->reuse(resultCalc, static_cast<double>(resultDcMax), Perturbator::logZoomToExp10(resultZoom));
+            result = v->reuse(resultCalc, static_cast<double>(resultDcMax), approxTableCache, Perturbator::logZoomToExp10(resultZoom));
         }
         if (const auto v = dynamic_cast<DeepMandelbrotPerturbator *>(result.get())) {
-            result = v->reuse(resultCalc, resultDcMax, Perturbator::logZoomToExp10(resultZoom));
+            result = v->reuse(resultCalc, resultDcMax, approxTableCache, Perturbator::logZoomToExp10(resultZoom));
         }
         zoomIncrement /= 2;
     }
@@ -149,14 +149,14 @@ std::unique_ptr<MandelbrotPerturbator> MandelbrotLocator::findAccurateCenterPert
             doubledZoomPerturbator = std::make_unique<LightMandelbrotPerturbator>(
                 state, doubledZoomCalc, static_cast<double>(doubledZoomDcMax),
                 Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
-                approxTableCache.lightTable,
+                approxTableCache,
                 [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                     actionWhileFindingMinibrotCenter(p, centerFixCount);
                 }, actionWhileCreatingTable, true);
         } else {
             doubledZoomPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
                 state, doubledZoomCalc, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
-                approxTableCache.deepTable,
+                approxTableCache,
                 [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                     actionWhileFindingMinibrotCenter(p, centerFixCount);
                 }, actionWhileCreatingTable, true);

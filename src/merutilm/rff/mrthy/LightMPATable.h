@@ -6,21 +6,18 @@
 #include <vector>
 
 #include "LightPA.h"
-#include "MPAPeriod.h"
 #include "MPATable.h"
 #include "../calc/approx_math.h"
 #include "../formula/LightMandelbrotReference.h"
 #include "../settings/MPASettings.h"
 
-class LightMPATable final : public MPATable{
-    const LightMandelbrotReference *reference;
-    std::vector<std::vector<LightPA>> &table;
+class LightMPATable final : public MPATable<LightMandelbrotReference, double>{
 
 public:
 
 
-    explicit LightMPATable(const ParallelRenderState &state, const LightMandelbrotReference *reference,
-                  const MPASettings *mpaSettings, double dcMax, std::vector<std::vector<LightPA>> &lightTableRef,
+    explicit LightMPATable(const ParallelRenderState &state, const LightMandelbrotReference &reference,
+                  const MPASettings *mpaSettings, double dcMax, ApproxTableCache &tableRef,
                   std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
 
@@ -34,21 +31,9 @@ public:
 
     LightMPATable &operator=(LightMPATable &&) noexcept = delete;
 
-    void generateTable(const ParallelRenderState &state, double dcMax,
-                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) const;
-
-    void initTable(const LightMandelbrotReference &reference);
-
-    std::vector<std::vector<LightPA>> &getVector() const {
-        return table;
-    };
-
     LightPA *lookup(uint64_t refIteration, double dzr, double dzi) const;
 
-    int getLength() override;
-
-private:
-    static void allocateTableSize(std::vector<std::vector<LightPA>> &table, uint64_t index, uint64_t levels);
+    size_t getLength() override;
 
 };
 
@@ -65,11 +50,11 @@ inline LightPA *LightMPATable::lookup(const uint64_t refIteration, const double 
     const uint64_t index = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
                                                      refIteration);
 
-    if (index >= table.size()) {
+    if (index >= tableRef.lightTable.size()) {
         return nullptr;
     }
 
-    std::vector<LightPA> &table = this->table[index];
+    std::vector<LightPA> &table = tableRef.lightTable[index];
     if (table.empty()) {
         return nullptr;
     }
@@ -109,6 +94,6 @@ inline LightPA *LightMPATable::lookup(const uint64_t refIteration, const double 
     }
 }
 
-inline int LightMPATable::getLength() {
-    return table.size();
+inline size_t LightMPATable::getLength() {
+    return tableRef.lightTable.size();
 }

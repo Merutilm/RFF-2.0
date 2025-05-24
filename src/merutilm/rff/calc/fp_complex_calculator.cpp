@@ -79,95 +79,93 @@ fp_complex_calculator fp_complex_calculator::init(const std::string &re, const s
     return fp_complex_calculator(re, im, precision);
 }
 
-void fp_complex_calculator::mpc_add(fp_complex_calculator &a, const fp_complex_calculator &b) {
-    fp_decimal_calculator::fst_add(a.real, a.real, b.real);
-    fp_decimal_calculator::fst_add(a.imag, a.imag, b.imag);
+void fp_complex_calculator::fpc_add(fp_complex_calculator &a, const fp_complex_calculator &b) {
+    fp_decimal_calculator::fp_add(a.real, a.real, b.real);
+    fp_decimal_calculator::fp_add(a.imag, a.imag, b.imag);
 }
 
 
-void fp_complex_calculator::mpc_sub(fp_complex_calculator &a, const fp_complex_calculator &b) {
-    fp_decimal_calculator::fst_sub(a.real, a.real, b.real);
-    fp_decimal_calculator::fst_sub(a.imag, a.imag, b.imag);
+void fp_complex_calculator::fpc_sub(fp_complex_calculator &a, const fp_complex_calculator &b) {
+    fp_decimal_calculator::fp_sub(a.real, a.real, b.real);
+    fp_decimal_calculator::fp_sub(a.imag, a.imag, b.imag);
 }
 
 
-void fp_complex_calculator::mpc_mul(fp_complex_calculator &a, const fp_complex_calculator &b) {
+void fp_complex_calculator::fpc_mul(fp_complex_calculator &a, const fp_complex_calculator &b) {
     //(a+bi)*(c+di)
     //REAL : ac-bd
     //IMAG : ad+bc
 
-    fp_decimal_calculator::fst_mul(a.temp[0], a.real, b.real);
-    fp_decimal_calculator::fst_mul(a.temp[1], a.imag, b.imag);
-    fp_decimal_calculator::fst_sub(a.temp[2], a.temp[0], a.temp[1]);
+    fp_decimal_calculator::fp_sub(a.temp[0], a.real, a.imag);
+    fp_decimal_calculator::fp_add(a.temp[1], b.real, b.imag);
+    fp_decimal_calculator::fp_mul(a.temp[0], a.temp[0], a.temp[1]);
+    fp_decimal_calculator::fp_mul(a.temp[1], a.real, b.imag);
+    fp_decimal_calculator::fp_mul(a.temp[2], a.imag, b.real);
+    fp_decimal_calculator::fp_sub(a.real, a.temp[0], a.temp[1]);
+    fp_decimal_calculator::fp_add(a.real, a.real, a.temp[2]);
+    fp_decimal_calculator::fp_add(a.imag, a.temp[1], a.temp[2]);
 
-
-    fp_decimal_calculator::fst_mul(a.temp[0], a.real, b.imag);
-    fp_decimal_calculator::fst_mul(a.temp[1], a.imag, b.real);
-    fp_decimal_calculator::fst_add(a.temp[3], a.temp[0], a.temp[1]);
-
-    fp_decimal_calculator::fst_swap(a.real, a.temp[2]);
-    fp_decimal_calculator::fst_swap(a.imag, a.temp[3]);
 }
 
-void fp_complex_calculator::mpc_div(fp_complex_calculator &a, const fp_complex_calculator &b) {
+void fp_complex_calculator::fpc_div(fp_complex_calculator &a, const fp_complex_calculator &b) {
     // (a + bi) / (c + di)
     //REAL : (ac+bd) / (c^2+d^2)
     //IMAG : (bc-ad) / (c^2+d^2)
 
-    fp_decimal_calculator::fst_mul(a.temp[0], b.real, b.real);
-    fp_decimal_calculator::fst_mul(a.temp[1], b.imag, b.imag);
-    fp_decimal_calculator::fst_add(a.temp[0], a.temp[0], a.temp[1]);
+    fp_decimal_calculator::fp_mul(a.temp[0], b.real, b.real);
+    fp_decimal_calculator::fp_mul(a.temp[1], b.imag, b.imag);
+    fp_decimal_calculator::fp_add(a.temp[0], a.temp[0], a.temp[1]);
 
-    fp_decimal_calculator::fst_mul(a.temp[1], a.real, b.real);
-    fp_decimal_calculator::fst_mul(a.temp[2], a.imag, b.imag);
-    fp_decimal_calculator::fst_add(a.temp[1], a.temp[1], a.temp[2]);
-    fp_decimal_calculator::fst_div(a.temp[1], a.temp[1], a.temp[0]);
+    fp_decimal_calculator::fp_mul(a.temp[1], a.real, b.real);
+    fp_decimal_calculator::fp_mul(a.temp[2], a.imag, b.imag);
+    fp_decimal_calculator::fp_add(a.temp[1], a.temp[1], a.temp[2]);
+    fp_decimal_calculator::fp_div(a.temp[1], a.temp[1], a.temp[0]);
 
-    fp_decimal_calculator::fst_mul(a.temp[2], a.imag, b.real);
-    fp_decimal_calculator::fst_mul(a.temp[3], a.real, b.imag);
-    fp_decimal_calculator::fst_sub(a.temp[2], a.temp[2], a.temp[3]);
-    fp_decimal_calculator::fst_div(a.temp[2], a.temp[2], a.temp[0]);
+    fp_decimal_calculator::fp_mul(a.temp[2], a.imag, b.real);
+    fp_decimal_calculator::fp_mul(a.temp[3], a.real, b.imag);
+    fp_decimal_calculator::fp_sub(a.temp[2], a.temp[2], a.temp[3]);
+    fp_decimal_calculator::fp_div(a.temp[2], a.temp[2], a.temp[0]);
 
-    fp_decimal_calculator::fst_swap(a.real, a.temp[1]);
-    fp_decimal_calculator::fst_swap(a.imag, a.temp[2]);
+    fp_decimal_calculator::fp_swap(a.real, a.temp[1]);
+    fp_decimal_calculator::fp_swap(a.imag, a.temp[2]);
 }
 
-void fp_complex_calculator::mpc_square(fp_complex_calculator &a) {
+void fp_complex_calculator::fpc_square(fp_complex_calculator &a) {
     //(a+bi)^2
     //REAL : a^2-b^2 = (a+b)(a-b)
     //IMAG : 2ab
-    fp_decimal_calculator::fst_add(a.temp[0], a.real, a.imag);
-    fp_decimal_calculator::fst_sub(a.temp[1], a.real, a.imag);
-    fp_decimal_calculator::fst_mul(a.temp[2], a.temp[0], a.temp[1]);
-    fp_decimal_calculator::fst_mul(a.temp[3], a.real, a.imag);
-    fp_decimal_calculator::fst_swap(a.real, a.temp[2]);
-    fp_decimal_calculator::fst_dbl(a.imag, a.temp[3]);
+    fp_decimal_calculator::fp_add(a.temp[0], a.real, a.imag);
+    fp_decimal_calculator::fp_sub(a.temp[1], a.real, a.imag);
+    fp_decimal_calculator::fp_mul(a.temp[2], a.temp[0], a.temp[1]);
+    fp_decimal_calculator::fp_mul(a.temp[3], a.real, a.imag);
+    fp_decimal_calculator::fp_swap(a.real, a.temp[2]);
+    fp_decimal_calculator::fp_dbl(a.imag, a.temp[3]);
 }
 
-void fp_complex_calculator::mpc_doubled(fp_complex_calculator &a) {
-    fp_decimal_calculator::fst_dbl(a.real, a.real);
-    fp_decimal_calculator::fst_dbl(a.imag, a.imag);
+void fp_complex_calculator::fpc_doubled(fp_complex_calculator &a) {
+    fp_decimal_calculator::fp_dbl(a.real, a.real);
+    fp_decimal_calculator::fp_dbl(a.imag, a.imag);
 }
 
-void fp_complex_calculator::mpc_halved(fp_complex_calculator &a) {
-    fp_decimal_calculator::fst_hvl(a.real, a.real);
-    fp_decimal_calculator::fst_hvl(a.imag, a.imag);
+void fp_complex_calculator::fpc_halved(fp_complex_calculator &a) {
+    fp_decimal_calculator::fp_hlv(a.real, a.real);
+    fp_decimal_calculator::fp_hlv(a.imag, a.imag);
 }
 
 
 
 fp_complex_calculator &fp_complex_calculator::square() {
-    mpc_square(*this);
+    fpc_square(*this);
     return *this;
 }
 
 fp_complex_calculator &fp_complex_calculator::doubled() {
-    mpc_doubled(*this);
+    fpc_doubled(*this);
     return *this;
 }
 
 fp_complex_calculator &fp_complex_calculator::halved() {
-    mpc_halved(*this);
+    fpc_halved(*this);
     return *this;
 }
 

@@ -31,41 +31,41 @@ public:
     fp_complex_calculator &operator=(fp_complex_calculator &&other) noexcept;
 
 private:
-    static void mpc_add(fp_complex_calculator &a, const fp_complex_calculator &b);
+    static void fpc_add(fp_complex_calculator &a, const fp_complex_calculator &b);
 
-    static void mpc_sub(fp_complex_calculator &a, const fp_complex_calculator &b);
+    static void fpc_sub(fp_complex_calculator &a, const fp_complex_calculator &b);
 
-    static void mpc_mul(fp_complex_calculator &a, const fp_complex_calculator &b);
+    static void fpc_mul(fp_complex_calculator &a, const fp_complex_calculator &b);
 
-    static void mpc_div(fp_complex_calculator &a, const fp_complex_calculator &b);
+    static void fpc_div(fp_complex_calculator &a, const fp_complex_calculator &b);
 
-    static void mpc_square(fp_complex_calculator &a);
+    static void fpc_square(fp_complex_calculator &a);
 
-    static void mpc_doubled(fp_complex_calculator &a);
+    static void fpc_doubled(fp_complex_calculator &a);
 
-    static void mpc_halved(fp_complex_calculator &a);
+    static void fpc_halved(fp_complex_calculator &a);
 
 public:
     static fp_complex_calculator init(const std::string &re, const std::string &im, int precision);
 
 
     friend fp_complex_calculator &operator+=(fp_complex_calculator &a, const fp_complex_calculator &b) {
-        mpc_add(a, b);
+        fpc_add(a, b);
         return a;
     }
 
     friend fp_complex_calculator &operator*=(fp_complex_calculator &a, const fp_complex_calculator &b) {
-        mpc_mul(a, b);
+        fpc_mul(a, b);
         return a;
     }
 
     friend fp_complex_calculator &operator-=(fp_complex_calculator &a, const fp_complex_calculator &b) {
-        mpc_sub(a, b);
+        fpc_sub(a, b);
         return a;
     }
 
     friend fp_complex_calculator &operator/=(fp_complex_calculator &a, const fp_complex_calculator &b) {
-        mpc_div(a, b);
+        fpc_div(a, b);
         return a;
     }
 

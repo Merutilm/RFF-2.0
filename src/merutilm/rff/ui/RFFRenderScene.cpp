@@ -28,13 +28,14 @@ RFFRenderScene::~RFFRenderScene() {
 Settings RFFRenderScene::initSettings() {
     return Settings{
         .calculationSettings = CalculationSettings{
-            .center = fp_complex( "-0.85", "0",
-                 //"-1.29255707077531686131098415679305324693162987219277534742408945445699102528813182208390942132824552642640105852802031375797639923173781472397893283277669022615909880587638643429120957543820179919830492623879949932",
-                  //"-1.7433380976879299408417853435676017785972000052524291128107561584529660103218876836645852866195456038569337053542405",
-               // "0.438169590583770312890168860021043433478705507119371935117854030759551072299659171256225012539071884716681573917133522314360175105572598172732723792994562397110248396170036793222839041625954944698185617470725880129",
-                //"-0.00000180836819716880795128873613161993554089471597685393367018109950768833467685704762711890797154859214327088989719746641",
-                Perturbator::logZoomToExp10(2)),
-            .logZoom = 2,//186.47, //85.190033f,
+            .center = fp_complex("-0.85",
+                                 "0",
+                                 //"-1.29255707077531686131098415679305324693162987219277534742408945445699102528813182208390942132824552642640105852802031375797639923173781472397893283277669022615909880587638643429120957543820179919830492623879949932",
+                                 //"-1.7433380976879299408417853435676017785972000052524291128107561584529660103218876836645852866195456038569337053542405",
+                                 // "0.438169590583770312890168860021043433478705507119371935117854030759551072299659171256225012539071884716681573917133522314360175105572598172732723792994562397110248396170036793222839041625954944698185617470725880129",
+                                 //"-0.00000180836819716880795128873613161993554089471597685393367018109950768833467685704762711890797154859214327088989719746641",
+                                 Perturbator::logZoomToExp10(64.099854)),
+            .logZoom = 2, //186.47, //85.190033f,
             .maxIteration = 3000,
             .bailout = 2,
             .decimalizeIterationMethod = DecimalizeIterationMethod::LOG_LOG,
@@ -151,8 +152,10 @@ void RFFRenderScene::runAction(const UINT message, const WPARAM wParam) {
                 }
 
 
-                auto it = static_cast<uint64_t>((*iterationMatrix)(x, y));
-                setStatusMessage(RFF::Status::ITERATION_STATUS, std::format("I : {} ({}, {})", it, x, y));
+
+                if (auto it = static_cast<uint64_t>((*iterationMatrix)(x, y)); it != 0) {
+                    setStatusMessage(RFF::Status::ITERATION_STATUS, std::format("I : {} ({}, {})", it, x, y));
+                }
             }
             break;
         }
@@ -415,10 +418,10 @@ void RFFRenderScene::compute(const Settings &settings) {
             using enum ReuseReferenceMethod;
         case CURRENT_REFERENCE: {
             if (auto p = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get())) {
-                currentPerturbator = p->reuse(calc, static_cast<double>(currentPerturbator->getDcMaxExp()), exp10);
+                currentPerturbator = p->reuse(calc, static_cast<double>(currentPerturbator->getDcMaxExp()), approxTableCache, exp10);
             }
             if (auto p = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
-                currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxExp(), exp10);
+                currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxExp(), approxTableCache, exp10);
             }
             break;
         }
@@ -460,12 +463,12 @@ void RFFRenderScene::compute(const Settings &settings) {
             if (logZoom > RFF::Render::ZOOM_DEADLINE) {
                 currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
                     referenceRenderState, calc, dcMax, exp10,
-                    0, approxTableCache.deepTable, std::move(actionPerRefCalcIteration),
+                    0, approxTableCache, std::move(actionPerRefCalcIteration),
                     std::move(actionPerCreatingTableIteration));
             } else {
                 currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(
                     referenceRenderState, calc, static_cast<double>(dcMax), exp10,
-                    0, approxTableCache.lightTable, std::move(actionPerRefCalcIteration),
+                    0, approxTableCache, std::move(actionPerRefCalcIteration),
                     std::move(actionPerCreatingTableIteration));
             }
             break;
@@ -482,8 +485,13 @@ void RFFRenderScene::compute(const Settings &settings) {
 
     lastPeriod = reference->longestPeriod();
     size_t length = reference->length();
-    size_t mpaLen = currentPerturbator->getTable().getLength();
-
+    size_t mpaLen;
+    if (auto t = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get())) {
+        mpaLen = t->getTable().getLength();
+    }
+    if (auto t = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
+        mpaLen = t->getTable().getLength();
+    }
     setStatusMessage(RFF::Status::PERIOD_STATUS, std::format("P : {:L} ({:L}, {:L})", lastPeriod, length, mpaLen));
 
     if (referenceRenderState.interruptRequested()) return;

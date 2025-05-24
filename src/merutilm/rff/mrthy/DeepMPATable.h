@@ -8,15 +8,13 @@
 #include "../calc/double_exp_math.h"
 #include "../formula/DeepMandelbrotReference.h"
 
-class DeepMPATable final : public MPATable{
-    const DeepMandelbrotReference *reference;
-    std::vector<std::vector<DeepPA>> &table;
+class DeepMPATable final : public MPATable<DeepMandelbrotReference, double_exp>{
 
 public:
 
 
-    explicit DeepMPATable(const ParallelRenderState &state, const DeepMandelbrotReference *reference,
-                  const MPASettings *mpaSettings, const double_exp &dcMax, std::vector<std::vector<DeepPA>> &deepTableRef,
+    explicit DeepMPATable(const ParallelRenderState &state, const DeepMandelbrotReference &reference,
+                  const MPASettings *mpaSettings, const double_exp &dcMax, ApproxTableCache &tableRef,
                   std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
 
@@ -30,21 +28,9 @@ public:
 
     DeepMPATable &operator=(DeepMPATable &&) noexcept = delete;
 
-    void generateTable(const ParallelRenderState &state, const double_exp &dcMax,
-                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) const;
-
-    void initTable(const DeepMandelbrotReference &reference);
-
-    std::vector<std::vector<DeepPA>> &getVector() const {
-        return table;
-    }
-
     DeepPA *lookup(uint64_t refIteration, const double_exp &dzr, const double_exp &dzi, std::array<double_exp, 4> &temps) const;
 
-    int getLength() override;
-
-private:
-    static void allocateTableSize(std::vector<std::vector<DeepPA>> &table, uint64_t index, uint64_t levels);
+    size_t getLength() override;
 };
 
 // DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE
@@ -63,11 +49,11 @@ inline DeepPA *DeepMPATable::lookup(const uint64_t refIteration, const double_ex
     const uint64_t index = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
                                                      refIteration);
 
-    if (index >= table.size()) {
+    if (index >= tableRef.deepTable.size()) {
         return nullptr;
     }
 
-    std::vector<DeepPA> &table = this->table[index];
+    std::vector<DeepPA> &table = this->tableRef.deepTable[index];
     if (table.empty()) {
         return nullptr;
     }
@@ -107,6 +93,6 @@ inline DeepPA *DeepMPATable::lookup(const uint64_t refIteration, const double_ex
     }
 }
 
-inline int DeepMPATable::getLength() {
-    return table.size();
+inline size_t DeepMPATable::getLength() {
+    return tableRef.deepTable.size();
 }

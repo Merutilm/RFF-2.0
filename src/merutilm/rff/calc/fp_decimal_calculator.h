@@ -33,19 +33,19 @@ struct fp_decimal_calculator final {
 
     fp_decimal_calculator &operator=(fp_decimal_calculator &&other) noexcept;
 
-    static void fst_mul(fp_decimal_calculator &out, const fp_decimal_calculator &a, const fp_decimal_calculator &b);
+    static void fp_mul(fp_decimal_calculator &out, const fp_decimal_calculator &a, const fp_decimal_calculator &b);
 
-    static void fst_add(fp_decimal_calculator &out, const fp_decimal_calculator &a, const fp_decimal_calculator &b);
+    static void fp_add(fp_decimal_calculator &out, const fp_decimal_calculator &a, const fp_decimal_calculator &b);
 
-    static void fst_sub(fp_decimal_calculator &out, const fp_decimal_calculator &a, const fp_decimal_calculator &b);
+    static void fp_sub(fp_decimal_calculator &out, const fp_decimal_calculator &a, const fp_decimal_calculator &b);
 
-    static void fst_div(fp_decimal_calculator &out, const fp_decimal_calculator &a, const fp_decimal_calculator &b);
+    static void fp_div(fp_decimal_calculator &out, const fp_decimal_calculator &a, const fp_decimal_calculator &b);
 
-    static void fst_dbl(fp_decimal_calculator &out, const fp_decimal_calculator &target);
+    static void fp_dbl(fp_decimal_calculator &out, const fp_decimal_calculator &target);
 
-    static void fst_hvl(fp_decimal_calculator &out, const fp_decimal_calculator &target);
+    static void fp_hlv(fp_decimal_calculator &out, const fp_decimal_calculator &target);
 
-    static void fst_swap(fp_decimal_calculator &a, fp_decimal_calculator &b);
+    static void fp_swap(fp_decimal_calculator &a, fp_decimal_calculator &b);
 
     static void negate(fp_decimal_calculator &target);
 

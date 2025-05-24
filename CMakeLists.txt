@@ -144,7 +144,6 @@ add_executable(
         src/merutilm/rff/mrthy/DeepPAGenerator.cpp
         src/merutilm/rff/mrthy/DeepPAGenerator.h
         src/merutilm/rff/mrthy/LightMPATable.cpp
-        src/merutilm/rff/mrthy/MPATable.cpp
         src/merutilm/rff/mrthy/DeepMPATable.cpp
         src/merutilm/rff/data/ApproxTableCache.h
 )

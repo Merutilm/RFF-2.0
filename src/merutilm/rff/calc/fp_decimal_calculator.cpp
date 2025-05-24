@@ -133,7 +133,7 @@ fp_decimal_calculator &fp_decimal_calculator::operator=(fp_decimal_calculator &&
  * @param a input A
  * @param b input B
  */
-void fp_decimal_calculator::fst_add(fp_decimal_calculator &out, const fp_decimal_calculator &a,
+void fp_decimal_calculator::fp_add(fp_decimal_calculator &out, const fp_decimal_calculator &a,
                                     const fp_decimal_calculator &b) {
     mpz_add(out.value, a.value, b.value);
 }
@@ -145,7 +145,7 @@ void fp_decimal_calculator::fst_add(fp_decimal_calculator &out, const fp_decimal
  * @param a input A
  * @param b input B
  */
-void fp_decimal_calculator::fst_sub(fp_decimal_calculator &out, const fp_decimal_calculator &a,
+void fp_decimal_calculator::fp_sub(fp_decimal_calculator &out, const fp_decimal_calculator &a,
                                     const fp_decimal_calculator &b) {
     mpz_sub(out.value, a.value, b.value);
 }
@@ -157,7 +157,7 @@ void fp_decimal_calculator::fst_sub(fp_decimal_calculator &out, const fp_decimal
  * @param a input A
  * @param b input B
  */
-void fp_decimal_calculator::fst_mul(fp_decimal_calculator &out, const fp_decimal_calculator &a,
+void fp_decimal_calculator::fp_mul(fp_decimal_calculator &out, const fp_decimal_calculator &a,
                                     const fp_decimal_calculator &b) {
     mpz_mul(out.temp, a.value, b.value);
     mpz_div_2exp(out.value, out.temp, -a.exp2);
@@ -170,7 +170,7 @@ void fp_decimal_calculator::fst_mul(fp_decimal_calculator &out, const fp_decimal
  * @param a input A
  * @param b input B
  */
-void fp_decimal_calculator::fst_div(fp_decimal_calculator &out, const fp_decimal_calculator &a,
+void fp_decimal_calculator::fp_div(fp_decimal_calculator &out, const fp_decimal_calculator &a,
                                     const fp_decimal_calculator &b) {
     const auto vbl = static_cast<int>(mpz_sizeinbase(b.value, 2));
 
@@ -189,7 +189,7 @@ void fp_decimal_calculator::fst_div(fp_decimal_calculator &out, const fp_decimal
  * @param out the result
  * @param target input B
  */
-void fp_decimal_calculator::fst_dbl(fp_decimal_calculator &out, const fp_decimal_calculator &target) {
+void fp_decimal_calculator::fp_dbl(fp_decimal_calculator &out, const fp_decimal_calculator &target) {
     mpz_mul_2exp(out.value, target.value, 1);
 }
 
@@ -198,7 +198,7 @@ void fp_decimal_calculator::fst_dbl(fp_decimal_calculator &out, const fp_decimal
  * @param out the result
  * @param target input B
  */
-void fp_decimal_calculator::fst_hvl(fp_decimal_calculator &out, const fp_decimal_calculator &target) {
+void fp_decimal_calculator::fp_hlv(fp_decimal_calculator &out, const fp_decimal_calculator &target) {
     mpz_div_2exp(out.value, target.value, 1);
 }
 
@@ -207,7 +207,7 @@ void fp_decimal_calculator::fst_hvl(fp_decimal_calculator &out, const fp_decimal
  * @param a input A
  * @param b input B
  */
-void fp_decimal_calculator::fst_swap(fp_decimal_calculator &a, fp_decimal_calculator &b) {
+void fp_decimal_calculator::fp_swap(fp_decimal_calculator &a, fp_decimal_calculator &b) {
     mpz_swap(a.value, b.value);
 }
 
