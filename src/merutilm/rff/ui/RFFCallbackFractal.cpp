@@ -62,7 +62,10 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackFracta
                                        "When compressing references, sets the negative exponents of ten of minimum error to be considered equal.\n"
                                        "Reference compression slows down the calculation but frees up memory space.\n"
                                        "Not activate option is ZERO.");
-
+    window->registerBoolInput("NO Compressor normalization", &calc.referenceCompressionSettings.noCompressorNormalization, Callback::NOTHING,
+        "NO Compressor normalization",
+        "Do not use normalization when compressing references. "
+        "this will accelerates table creation, But may cause table creation to fail in the specific locations!!");
     window->setWindowCloseFunction(
         [centerPtr, zoomPtr, locationChanged, &settingsMenu, &scene, &calc] {
             const int exp10 = Perturbator::logZoomToExp10(*zoomPtr);

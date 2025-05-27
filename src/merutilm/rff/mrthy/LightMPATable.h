@@ -7,7 +7,7 @@
 
 #include "LightPA.h"
 #include "MPATable.h"
-#include "../calc/approx_math.h"
+#include "../calc/rff_math.h"
 #include "../formula/LightMandelbrotReference.h"
 #include "../settings/MPASettings.h"
 
@@ -59,7 +59,7 @@ inline LightPA *LightMPATable::lookup(const uint64_t refIteration, const double 
         return nullptr;
     }
 
-    const double r = approx_math::hypot_approx(dzr, dzi);
+    const double r = rff_math::hypot_approx(dzr, dzi);
 
     switch (mpaSettings.mpaSelectionMethod) {
         using enum MPASelectionMethod;

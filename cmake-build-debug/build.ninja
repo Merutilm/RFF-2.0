@@ -161,13 +161,6 @@ build CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererIteration.cpp.obj: CX
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\opengl
 
-build CMakeFiles/RFF.dir/src/merutilm/rff/data/Color.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/data/Color.cpp || cmake_object_order_depends_target_RFF
-  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\data\Color.cpp.obj.d
-  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -Ofast -march=native -funroll-loops
-  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
-  OBJECT_DIR = CMakeFiles\RFF.dir
-  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\data
-
 build CMakeFiles/RFF.dir/src/merutilm/rff/formula/LightMandelbrotReference.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/formula/LightMandelbrotReference.cpp || cmake_object_order_depends_target_RFF
   DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\formula\LightMandelbrotReference.cpp.obj.d
   FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -Ofast -march=native -funroll-loops
@@ -371,6 +364,48 @@ build CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/DeepMPATable.cpp.obj: CXX_COMPIL
   OBJECT_DIR = CMakeFiles\RFF.dir
   OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\mrthy
 
+build CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/palette/PalettePresets.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/preset/shader/palette/PalettePresets.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\palette\PalettePresets.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -Ofast -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\palette
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/fog/FogPresets.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/preset/shader/fog/FogPresets.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\fog\FogPresets.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -Ofast -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\fog
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/color/ColorPresets.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/preset/shader/color/ColorPresets.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\color\ColorPresets.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -Ofast -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\color
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/slope/SlopePresets.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/preset/shader/slope/SlopePresets.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\slope\SlopePresets.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -Ofast -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\slope
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/stripe/StripePresets.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/preset/shader/stripe/StripePresets.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\stripe\StripePresets.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -Ofast -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\stripe
+
+build CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/bloom/BloomPresets.cpp.obj: CXX_COMPILER__RFF_unscanned_Debug C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/src/merutilm/rff/preset/shader/bloom/BloomPresets.cpp || cmake_object_order_depends_target_RFF
+  DEP_FILE = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\bloom\BloomPresets.cpp.obj.d
+  FLAGS = -g -std=gnu++20 -fdiagnostics-color=always -Ofast -march=native -funroll-loops
+  INCLUDES = -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/include -IC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/extern
+  OBJECT_DIR = CMakeFiles\RFF.dir
+  OBJECT_FILE_DIR = CMakeFiles\RFF.dir\src\merutilm\rff\preset\shader\bloom
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target RFF
@@ -379,7 +414,7 @@ build CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/DeepMPATable.cpp.obj: CXX_COMPIL
 #############################################
 # Link the executable C:\Users\nudet\Desktop\Main\Developments\cpp\Projects\RFF\bin\RFF.exe
 
-build C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/bin/RFF.exe: CXX_EXECUTABLE_LINKER__RFF_Debug CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFF.cpp.obj CMakeFiles/RFF.dir/extern/glad.c.obj CMakeFiles/RFF.dir/extern/glad_wgl.c.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLShaderLoader.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRenderer.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/calc/fp_complex_calculator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFMasterWindow.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/calc/fp_complex.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/calc/fp_decimal_calculator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/calc/fp_decimal.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFGL.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFRenderScene.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/Perturbator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFScene.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/io/RFFMap.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererIteration.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/data/Color.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/LightMandelbrotReference.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/parallel/ParallelRenderState.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/MPAPeriod.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFSettingsWindow.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFSettingsMenu.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFCallbackFile.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFCallbackFractal.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFCallbackRender.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLMultipassRenderer.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererStripe.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererSlope.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererColor.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererBoxBlur.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererGaussianBlur.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererBloom.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererFog.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererAntialiasing.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFCallbackShader.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/locator/MandelbrotLocator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFCallbackExplore.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/DeepMandelbrotReference.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/MandelbrotReference.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/DeepMandelbrotPerturbator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/MandelbrotPerturbator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/LightPAGenerator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/DeepPAGenerator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/LightMPATable.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/DeepMPATable.cpp.obj
+build C$:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/bin/RFF.exe: CXX_EXECUTABLE_LINKER__RFF_Debug CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFF.cpp.obj CMakeFiles/RFF.dir/extern/glad.c.obj CMakeFiles/RFF.dir/extern/glad_wgl.c.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLShaderLoader.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRenderer.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/calc/fp_complex_calculator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFMasterWindow.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/calc/fp_complex.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/calc/fp_decimal_calculator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/calc/fp_decimal.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFGL.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFRenderScene.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/Perturbator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFScene.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/io/RFFMap.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererIteration.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/LightMandelbrotReference.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/parallel/ParallelRenderState.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/MPAPeriod.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFSettingsWindow.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFSettingsMenu.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFCallbackFile.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFCallbackFractal.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFCallbackRender.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLMultipassRenderer.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererStripe.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererSlope.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererColor.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererBoxBlur.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererGaussianBlur.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererBloom.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererFog.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/opengl/GLRendererAntialiasing.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFCallbackShader.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/locator/MandelbrotLocator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/ui/RFFCallbackExplore.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/DeepMandelbrotReference.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/MandelbrotReference.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/DeepMandelbrotPerturbator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/formula/MandelbrotPerturbator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/LightPAGenerator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/DeepPAGenerator.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/LightMPATable.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/mrthy/DeepMPATable.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/palette/PalettePresets.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/fog/FogPresets.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/color/ColorPresets.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/slope/SlopePresets.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/stripe/StripePresets.cpp.obj CMakeFiles/RFF.dir/src/merutilm/rff/preset/shader/bloom/BloomPresets.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lopengl32  -lgmp  -lcomctl32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   LINK_PATH = -LC:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/lib

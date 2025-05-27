@@ -75,7 +75,7 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackExplor
                 [interval, &scene](const uint64_t p, const float i) {
                     if (p % interval == 0) {
                         scene.setStatusMessage(RFF::Status::RENDER_STATUS,
-                                               std::format("MPA : {:.3f}%", i * 100));
+                                               std::format("A : {:.3f}%", i * 100));
                     }
                 },
                 [ &scene](float zoom) {

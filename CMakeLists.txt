@@ -67,8 +67,7 @@ add_executable(
         src/merutilm/rff/opengl/GLRendererIteration.cpp
         src/merutilm/rff/opengl/GLRendererIteration.h
         src/merutilm/rff/settings/ColorSmoothingSettings.h
-        src/merutilm/rff/data/Color.cpp
-        src/merutilm/rff/data/Color.h
+        src/merutilm/rff/data/ColorFloat.h
         src/merutilm/rff/settings/StripeType.h
         src/merutilm/rff/settings/AnimationSettings.h
         src/merutilm/rff/opengl/GLTimeRenderer.h
@@ -77,7 +76,7 @@ add_executable(
         src/merutilm/rff/formula/LightMandelbrotReference.h
         src/merutilm/rff/parallel/ParallelRenderState.cpp
         src/merutilm/rff/parallel/ParallelRenderState.h
-        src/merutilm/rff/calc/approx_math.h
+        src/merutilm/rff/calc/rff_math.h
         src/merutilm/rff/mrthy/ArrayCompressionTool.h
         src/merutilm/rff/mrthy/ArrayCompressor.h
         src/merutilm/rff/parallel/ParallelArrayDispatcher.h
@@ -146,5 +145,18 @@ add_executable(
         src/merutilm/rff/mrthy/LightMPATable.cpp
         src/merutilm/rff/mrthy/DeepMPATable.cpp
         src/merutilm/rff/data/ApproxTableCache.h
+        src/merutilm/rff/preset/shader/palette/PalettePresets.h
+        src/merutilm/rff/preset/shader/color/ColorPresets.h
+        src/merutilm/rff/preset/shader/bloom/BloomPresets.h
+        src/merutilm/rff/preset/shader/fog/FogPresets.h
+        src/merutilm/rff/preset/shader/slope/SlopePresets.h
+        src/merutilm/rff/preset/shader/stripe/StripePresets.h
+        src/merutilm/rff/preset/shader/palette/PalettePresets.cpp
+        src/merutilm/rff/preset/shader/fog/FogPresets.cpp
+        src/merutilm/rff/preset/shader/color/ColorPresets.cpp
+        src/merutilm/rff/preset/shader/slope/SlopePresets.cpp
+        src/merutilm/rff/preset/shader/stripe/StripePresets.cpp
+        src/merutilm/rff/preset/shader/bloom/BloomPresets.cpp
+        src/merutilm/rff/preset/Presets.h
 )
 target_link_libraries(RFF PRIVATE opengl32 gmp comctl32)

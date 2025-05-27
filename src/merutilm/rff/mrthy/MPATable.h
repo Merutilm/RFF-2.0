@@ -243,45 +243,65 @@ void MPATable<Ref, Num>::generateTable(const ParallelRenderState &state, const R
             auto &pa = table[compTableIndex];
             const PAB &mainReferencePA = mainReferenceMPA[level];
             const uint64_t skip = mainReferencePA.skip;
+            bool valid = true;
 
             for (uint64_t i = level + 1; i < levels; ++i) {
+                if (i <= level && periodCount[i] != 0) {
+                    const std::string log = std::format(
+                        "WARNING : Failed to compress!! \n what : the table period count {} is not zero.",
+                        periodCount[i]);
+                    RFFUtilities::log(log);
+                    MessageBox(nullptr, log.data(), "FATAL", MB_OK | MB_ICONWARNING);
+                    valid = false;
+                    break;
+                }
                 if (periodCount[i] + skip > tablePeriod[i] - REQUIRED_PERTURBATION) {
-                    RFFUtilities::log("FATAL : Failed to compress!! \n what : the table period count exceeds its period.");
-                    return;
+                    const std::string log = std::format(
+                        "WARNING : Failed to compress!! \n what : the table period count {} + skip {} exceeds its period {}.",
+                        periodCount[i], skip, tablePeriod[i]);
+                    RFFUtilities::log(log);
+                    MessageBox(nullptr, log.data(), "FATAL", MB_OK | MB_ICONWARNING);
+                    valid = false;
+                    break;
                 }
             }
-            for (uint64_t i = 0; i < levels; ++i) {
-                if (i <= level) {
-                    pa.push_back(mainReferenceMPA[i]);
-                    uint64_t count = skip;
-                    for (uint64_t j = level; j > i; --j) {
-                        count %= tablePeriod[j - 1];
-                    }
-                    periodCount[i] = count;
-                } else {
-                    if (currentPA[i] == nullptr) {
-                        //its count is zero but has no element? -> Artificial PA
-                        std::unique_ptr<PAG> generator = nullptr;
-                        if constexpr (std::is_same_v<PAG, LightPAGenerator>) {
-                            generator = LightPAGenerator::create(reference, epsilon, dcMax, iteration);
-                        } else {
-                            generator = DeepPAGenerator::create(reference, epsilon, dcMax, iteration,
-                                                                dpTableTemps);
+
+            if (valid) {
+
+                for (uint64_t i = 0; i < levels; ++i) {
+                    if (i <= level) {
+                        pa.push_back(mainReferenceMPA[i]);
+                        uint64_t count = skip;
+                        for (uint64_t j = level; j > i; --j) {
+                            count %= tablePeriod[j - 1];
                         }
-
-                        generator->merge(mainReferencePA);
-                        currentPA[i] = std::move(generator);
+                        currentPA[i] = nullptr;
+                        periodCount[i] = count;
                     } else {
-                        currentPA[i]->merge(mainReferencePA);
-                    }
-                    periodCount[i] += skip;
-                }
-            }
+                        if (currentPA[i] == nullptr) {
+                            std::unique_ptr<PAG> generator = nullptr;
+                            if constexpr (std::is_same_v<PAG, LightPAGenerator>) {
+                                generator = LightPAGenerator::create(reference, epsilon, dcMax, iteration);
+                            } else {
+                                generator = DeepPAGenerator::create(reference, epsilon, dcMax, iteration,
+                                                                    dpTableTemps);
+                            }
 
-            iteration += skip;
-            notSkippedPureZero = false;
+                            generator->merge(mainReferencePA);
+                            currentPA[i] = std::move(generator);
+                        } else {
+                            currentPA[i]->merge(mainReferencePA);
+                        }
+                        periodCount[i] += skip;
+                    }
+                }
+
+                iteration += skip;
+                notSkippedPureZero = false;
+            }
         }
         bool resetLowerLevel = false;
+
 
         for (uint64_t level = levels; level > 0; --level) {
             const uint64_t i = level - 1;
@@ -311,10 +331,11 @@ void MPATable<Ref, Num>::generateTable(const ParallelRenderState &state, const R
 
 
                     if (compTableIndex == UINT64_MAX) {
-                        //THIS CASE MUST NOT BE ALLOWED.
-                        RFFUtilities::log(std::format(
+                        const std::string log = std::format(
                             "FATAL : FAILED TO CREATING TABLE!!\n what : iteration {} is not pullable. aborting the table creation...",
-                            currentLevel->getStart()));
+                            currentLevel->getStart());
+                        RFFUtilities::log(log);
+                        MessageBox(nullptr, log.data(), "FATAL", MB_OK | MB_ICONERROR);
                         return;
                     }
 

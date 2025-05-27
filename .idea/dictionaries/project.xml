@@ -11,11 +11,13 @@
       <w>hglrc</w>
       <w>isinf</w>
       <w>ldexp</w>
+      <w>lerp</w>
       <w>merutilm</w>
       <w>minibrot</w>
       <w>ofast</w>
       <w>rffc</w>
       <w>rffgl</w>
+      <w>rffmath</w>
       <w>segoe</w>
       <w>ubits</w>
       <w>unparsers</w>

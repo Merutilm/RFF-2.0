@@ -4,8 +4,15 @@
 
 #pragma once
 #include <cmath>
+#include <random>
 
-namespace approx_math {
+struct rff_math {
+
+    inline static auto rd = std::random_device();
+    inline static auto gen = std::mt19937(rd());
+    inline static auto urd_f = std::uniform_real_distribution(0.0f, 1.0f);
+    inline static auto urd_d = std::uniform_real_distribution(0.0, 1.0);
+
 
     static double hypot_approx(double x, double y) {
         x = fabs(x);
@@ -21,5 +28,12 @@ namespace approx_math {
         }
 
         return max + 0.428 * min / max * min;
-    };
+    }
+    static float random_f() {
+        return urd_f(gen);
+    }
+
+    static double random_d() {
+        return urd_f(gen);
+    }
 };

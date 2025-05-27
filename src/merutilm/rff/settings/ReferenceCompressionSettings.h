@@ -7,4 +7,5 @@
 struct ReferenceCompressionSettings final{
     uint32_t compressCriteria;
     uint8_t compressionThresholdPower;
+    bool noCompressorNormalization;
 };

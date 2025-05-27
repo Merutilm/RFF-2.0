@@ -5,7 +5,7 @@
 #include "DeepMandelbrotReference.h"
 
 #include "../calc/double_exp_math.h"
-#include "../calc/approx_math.h"
+#include "../calc/rff_math.h"
 #include "../mrthy/ArrayCompressor.h"
 #include "../ui/RFF.h"
 
@@ -67,11 +67,13 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
     auto tools = std::vector<ArrayCompressionTool>();
     uint64_t compressed = 0;
     uint64_t maxIteration = calc.maxIteration;
-    auto [compressCriteria, compressionThresholdPower] = calc.referenceCompressionSettings;
+    auto [compressCriteria, compressionThresholdPower, withoutNormalize] = calc.referenceCompressionSettings;
     auto func = std::move(actionPerRefCalcIteration);
 
     double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
+    bool canReuse = withoutNormalize;
     auto temps = std::array<double_exp, 8>();
+
     while ((iteration == 0 || dex_trigonometric::hypot2(zr, zi) < bailoutSqr) && iteration < maxIteration) {
         if (iteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
             return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
@@ -128,14 +130,36 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
         z.getReal().double_exp_value(&zr);
         z.getImag().double_exp_value(&zi);
 
+        uint64_t j = iteration;
+
+        if (!withoutNormalize) {
+            for (uint64_t i = periodArray.size(); i > 0; --i) {
+                if (compressCriteria >= periodArray[i - 1]) {
+                    break;
+                }
+                j %= periodArray[i - 1];
+
+                if (j == 0) {
+                    canReuse = true;
+                    break;
+                }
+
+                if (j == periodArray[i - 1] - 1) {
+                    canReuse = false;
+                    break;
+                }
+            }
+        }
+
+
         if (compressCriteria > 0 && iteration >= 1) {
 
             const int64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
             double_exp::dex_div(&temps[0], zr, rr[refIndex]);
             double_exp::dex_div(&temps[1], zi, ri[refIndex]);
             if (
-                std::abs(static_cast<double>(temps[0]) - 1) <= compressionThreshold &&
-                std::abs(static_cast<double>(temps[1]) - 1) <= compressionThreshold
+                std::fabs(static_cast<double>(temps[0]) - 1) <= compressionThreshold &&
+                std::fabs(static_cast<double>(temps[1]) - 1) <= compressionThreshold && canReuse
             ) {
                 ++reuseIndex;
             } else if (reuseIndex != 0) {
@@ -150,6 +174,7 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
                 //If it is enough to large, set all reference in the range to 0 and save the index
 
                 reuseIndex = 0;
+                canReuse = withoutNormalize;
             }
         }
 

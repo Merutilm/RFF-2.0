@@ -4,12 +4,12 @@
 
 #include "LightPAGenerator.h"
 
-#include "../calc/approx_math.h"
+#include "../calc/rff_math.h"
 
 LightPAGenerator::LightPAGenerator(const LightMandelbrotReference &reference, const double epsilon, const double dcMax,
-                            const uint64_t start) : PAGenerator(start, 0, reference.compressor, epsilon), anr(1), ani(0), bnr(0), bni(0), radius(DBL_MAX),
-                                                    refReal(reference.refReal), refImag(reference.refImag),
-                                                    dcMax(dcMax) {
+                                   const uint64_t start) : PAGenerator(start, 0, reference.compressor, epsilon), anr(1), ani(0), bnr(0), bni(0), radius(DBL_MAX),
+                                                           refReal(reference.refReal), refImag(reference.refImag),
+                                                           dcMax(dcMax) {
 }
 
 
@@ -39,9 +39,9 @@ void LightPAGenerator::step() {
     const double bnrStep = bnr * z2r - bni * z2i + 1;
     const double bniStep = bnr * z2i + bni * z2r;
 
-    const double z2l = approx_math::hypot_approx(z2r, z2i);
-    const double anlOriginal = approx_math::hypot_approx(anr, ani);
-    const double bnlOriginal = approx_math::hypot_approx(bnr, bni);
+    const double z2l = rff_math::hypot_approx(z2r, z2i);
+    const double anlOriginal = rff_math::hypot_approx(anr, ani);
+    const double bnlOriginal = rff_math::hypot_approx(bnr, bni);
 
 
     radius = std::min(radius, (epsilon * z2l - bnlOriginal * dcMax) / anlOriginal);

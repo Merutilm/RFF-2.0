@@ -124,7 +124,7 @@ void GLRendererIteration::setAllIterations(Matrix<double> &iterations) {
 
 std::vector<float> GLRendererIteration::createPaletteBuffer(const PaletteSettings &paletteSettings,
                                                             const int paletteWidth, const int paletteHeight) {
-    const std::vector<Color> &colors = paletteSettings.colors;
+    const std::vector<ColorFloat> &colors = paletteSettings.colors;
     auto result = std::vector<float>();
     result.reserve(paletteWidth * paletteHeight * 4);
     for (const auto &[r, g, b, a]: colors) {

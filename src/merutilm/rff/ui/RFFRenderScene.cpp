@@ -16,6 +16,12 @@
 #include "../formula/DeepMandelbrotPerturbator.h"
 #include "../formula/Perturbator.h"
 #include "../parallel/ParallelArrayDispatcher.h"
+#include "../preset/shader/bloom/BloomPresets.h"
+#include "../preset/shader/color/ColorPresets.h"
+#include "../preset/shader/fog/FogPresets.h"
+#include "../preset/shader/palette/PalettePresets.h"
+#include "../preset/shader/slope/SlopePresets.h"
+#include "../preset/shader/stripe/StripePresets.h"
 
 
 RFFRenderScene::RFFRenderScene() : referenceRenderState(ParallelRenderState()), settings(initSettings()) {
@@ -34,7 +40,7 @@ Settings RFFRenderScene::initSettings() {
                                  //"-1.7433380976879299408417853435676017785972000052524291128107561584529660103218876836645852866195456038569337053542405",
                                  // "0.438169590583770312890168860021043433478705507119371935117854030759551072299659171256225012539071884716681573917133522314360175105572598172732723792994562397110248396170036793222839041625954944698185617470725880129",
                                  //"-0.00000180836819716880795128873613161993554089471597685393367018109950768833467685704762711890797154859214327088989719746641",
-                                 Perturbator::logZoomToExp10(64.099854)),
+                                 Perturbator::logZoomToExp10(2)),
             .logZoom = 2, //186.47, //85.190033f,
             .maxIteration = 3000,
             .bailout = 2,
@@ -49,6 +55,7 @@ Settings RFFRenderScene::initSettings() {
             .referenceCompressionSettings = ReferenceCompressionSettings{
                 .compressCriteria = 0,
                 .compressionThresholdPower = 6,
+                .noCompressorNormalization = false
             },
             .reuseReferenceMethod = ReuseReferenceMethod::DISABLED,
             .autoMaxIteration = true,
@@ -59,46 +66,12 @@ Settings RFFRenderScene::initSettings() {
             .antialiasing = true
         },
         .shaderSettings = {
-            .paletteSettings = {
-                .colors = std::vector{Color{1, 0, 1, 1}, Color{0, 1, 1, 1}, Color{1, 1, 0, 1}},
-                .colorSmoothing = ColorSmoothingSettings::NORMAL,
-                .iterationInterval = 8000,
-                .offsetRatio = 0,
-                .animationSpeed = 1000
-            },
-            .stripeSettings = {
-                .stripeType = StripeType::SINGLE_DIRECTION,
-                .firstInterval = 10,
-                .secondInterval = 50,
-                .opacity = 1,
-                .offset = 0,
-                .animationSpeed = 0.5f
-            },
-            .slopeSettings = {
-                .depth = 300,
-                .reflectionRatio = 0.5f,
-                .opacity = 1,
-                .zenith = 60,
-                .azimuth = 135
-            },
-            .colorSettings = {
-                .gamma = 1,
-                .exposure = 0,
-                .hue = 0,
-                .saturation = 0,
-                .brightness = 0,
-                .contrast = 0
-            },
-            .fogSettings = {
-                .radius = 0.1f,
-                .opacity = 0.5f
-            },
-            .bloomSettings = {
-                .threshold = 0,
-                .radius = 0.1f,
-                .softness = 0,
-                .intensity = 1
-            }
+            .paletteSettings = PalettePresets::LongRandom64().paletteSettings(),
+            .stripeSettings = StripePresets::SlowAnimated().stripeSettings(),
+            .slopeSettings = SlopePresets::Normal().slopeSettings(),
+            .colorSettings = ColorPresets::WeakContrast().colorSettings(),
+            .fogSettings = FogPresets::Medium().fogSettings(),
+            .bloomSettings = BloomPresets::Normal().bloomSettings()
         },
         .videoSettings = {
             .dataSettings = {
@@ -406,7 +379,7 @@ void RFFRenderScene::compute(const Settings &settings) {
     };
     std::function actionPerCreatingTableIteration = [refreshInterval, this](const uint64_t p, const double i) {
         if (p % refreshInterval == 0) {
-            setStatusMessage(RFF::Status::RENDER_STATUS, std::format("MPA : {:.3f}%", i * 100));
+            setStatusMessage(RFF::Status::RENDER_STATUS, std::format("A : {:.3f}%", i * 100));
         }
     };
 

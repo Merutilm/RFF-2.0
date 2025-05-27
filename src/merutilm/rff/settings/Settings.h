@@ -10,5 +10,4 @@ struct Settings final{
     ShaderSettings shaderSettings;
     VideoSettings videoSettings;
 
-
 };

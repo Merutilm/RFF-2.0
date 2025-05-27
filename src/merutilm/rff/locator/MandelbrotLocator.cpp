@@ -64,6 +64,7 @@ std::unique_ptr<MandelbrotLocator> MandelbrotLocator::locateMinibrot(ParallelRen
     }
     double_exp resultDcMax = result->getDcMaxExp();
     CalculationSettings resultCalc = result->getCalculationSettings();
+    resultCalc.absoluteIterationMode = false;
     float resultZoom = resultCalc.logZoom;
     const uint64_t maxIteration = resultCalc.maxIteration;
     float zoomIncrement = resultZoom / 4;
@@ -124,6 +125,7 @@ std::unique_ptr<MandelbrotPerturbator> MandelbrotLocator::findAccurateCenterPert
     const float doubledLogZoom = logZoom * 2;
     const int doubledExp10 = Perturbator::logZoomToExp10(doubledLogZoom);
     auto e = doubledZoomCalc.center.edit(doubledExp10);
+    doubledZoomCalc.absoluteIterationMode = false;
     doubledZoomCalc.center = fp_complex(e += findCenterOffset(*perturbator)->edit(doubledExp10));
     doubledZoomCalc.logZoom = doubledLogZoom;
 

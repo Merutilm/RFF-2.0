@@ -8,7 +8,7 @@
 #include <iostream>
 #include <optional>
 
-#include "../calc/approx_math.h"
+#include "../calc/rff_math.h"
 #include "../mrthy/ArrayCompressor.h"
 #include "../ui/RFF.h"
 
@@ -71,9 +71,10 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
     auto tools = std::vector<ArrayCompressionTool>();
     uint64_t compressed = 0;
     uint64_t maxIteration = calc.maxIteration;
-    auto [compressCriteria, compressionThresholdPower] = calc.referenceCompressionSettings;
+    auto [compressCriteria, compressionThresholdPower, withoutNormalize] = calc.referenceCompressionSettings;
     auto func = std::move(actionPerRefCalcIteration);
     double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
+    bool canReuse = withoutNormalize;
 
     while (zr * zr + zi * zi < bailoutSqr && iteration < maxIteration) {
         if (iteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
@@ -86,7 +87,7 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
         double fpgLimit = radius2 / dcMax;
         double fpgBnrTemp = fpgBnr * zr * 2 - fpgBni * zi * 2 + 1;
         double fpgBniTemp = fpgBnr * zi * 2 + fpgBni * zr * 2;
-        double fpgRadius = approx_math::hypot_approx(fpgBnrTemp, fpgBniTemp);
+        double fpgRadius = rff_math::hypot_approx(fpgBnrTemp, fpgBniTemp);
 
 
         if (iteration > 0 && minZRadius > radius2) {
@@ -116,10 +117,33 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
         zr = z.getReal().double_value();
         zi = z.getImag().double_value();
 
+        uint64_t j = iteration;
+
+        if (!withoutNormalize) {
+            for (uint64_t i = periodArray.size(); i > 0; --i) {
+                if (compressCriteria >= periodArray[i - 1]) {
+                    break;
+                }
+                j %= periodArray[i - 1];
+
+                if (j == 0) {
+                    canReuse = true;
+                    break;
+                }
+
+                if (j == periodArray[i - 1] - 1) {
+                    canReuse = false;
+                    break;
+                }
+            }
+        }
+
+
+
         if (compressCriteria > 0 && iteration >= 1) {
             if (const int64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
                 fabs(zr / rr[refIndex] - 1) <= compressionThreshold &&
-                fabs(zi / ri[refIndex] - 1) <= compressionThreshold
+                fabs(zi / ri[refIndex] - 1) <= compressionThreshold && canReuse
             ) {
                 ++reuseIndex;
             } else if (reuseIndex != 0) {
@@ -134,6 +158,7 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
                 //If it is enough to large, set all reference in the range to 0 and save the index
 
                 reuseIndex = 0;
+                canReuse = withoutNormalize;
             }
         }
 
