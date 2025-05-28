@@ -5,10 +5,8 @@
 #pragma once
 
 #include "double_exp.h"
-#include "gmp.h"
 #include "fp_complex_calculator.h"
 #include "fp_decimal.h"
-#include "gmpxx.h"
 
 struct fp_complex {
     fp_decimal real;

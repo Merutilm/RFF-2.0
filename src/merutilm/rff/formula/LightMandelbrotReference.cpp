@@ -5,9 +5,8 @@
 #include "LightMandelbrotReference.h"
 
 #include <cmath>
-#include <iostream>
-#include <optional>
 
+#include <cfloat>
 #include "../calc/rff_math.h"
 #include "../mrthy/ArrayCompressor.h"
 #include "../ui/RFF.h"

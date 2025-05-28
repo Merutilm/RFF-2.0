@@ -13,6 +13,7 @@
 #include "../data/ApproxTableCache.h"
 #include "../settings/MPACompressionMethod.h"
 #include "../ui/RFF.h"
+#include <algorithm>
 #include "../ui/RFFUtilities.h"
 
 template<typename Ref, typename Num>

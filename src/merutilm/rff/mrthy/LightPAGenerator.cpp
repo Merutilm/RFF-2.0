@@ -3,7 +3,7 @@
 //
 
 #include "LightPAGenerator.h"
-
+#include <cfloat>
 #include "../calc/rff_math.h"
 
 LightPAGenerator::LightPAGenerator(const LightMandelbrotReference &reference, const double epsilon, const double dcMax,
