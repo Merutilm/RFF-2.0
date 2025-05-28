@@ -27,6 +27,7 @@ GLRenderer::~GLRenderer() {
     }
 }
 
+
 void GLRenderer::reloadSize(const int width, const int height) {
     this->w = width;
     this->h = height;
@@ -59,7 +60,7 @@ GLuint GLRenderer::getPrevFBOTextureID() const {
 }
 
 
-void GLRenderer::setAsLastFBO() {
+void GLRenderer::setToDisplay() {
     if (fbo == 0) {
         return;
     }
@@ -72,21 +73,20 @@ void GLRenderer::setAsLastFBO() {
 }
 
 
-void GLRenderer::resetFBOTexture(const int panelWidth, const int panelHeight) {
+void GLRenderer::resetFBOTexture(const int width, const int height) {
     if (fbo == 0) {
         return;
     }
-    fboTextureID = GLShaderLoader::recreateTexture2D(fboTextureID, panelWidth, panelHeight,
+    fboTextureID = GLShaderLoader::recreateTexture2D(fboTextureID, width, height,
                                                      RFF::TextureFormats::FLOAT4,
                                                      false);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTextureID, 0);
-    glViewport(0, 0, panelWidth, panelHeight);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 
-int GLRenderer::getFBOTextureID() const {
+GLuint GLRenderer::getFBOTextureID() const {
     return fboTextureID;
 }
 
@@ -96,6 +96,7 @@ void GLRenderer::bindFBO() const {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTextureID, 0);
     }
+    glViewport(0, 0, w, h);
 }
 
 

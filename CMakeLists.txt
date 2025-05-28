@@ -158,5 +158,7 @@ add_executable(
         src/merutilm/rff/preset/shader/stripe/StripePresets.cpp
         src/merutilm/rff/preset/shader/bloom/BloomPresets.cpp
         src/merutilm/rff/preset/Presets.h
+        src/merutilm/rff/opengl/GLRendererDisplayer.cpp
+        src/merutilm/rff/opengl/GLRendererDisplayer.h
 )
 target_link_libraries(RFF PRIVATE opengl32 gmp comctl32)

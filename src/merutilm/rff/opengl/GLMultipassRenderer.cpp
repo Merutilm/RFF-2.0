@@ -9,46 +9,57 @@
 #include "GLTimeRenderer.h"
 
 
-void GLMultipassRenderer::add(GLRenderer *renderer) {
-    renderers.emplace_back(renderer);
+GLMultipassRenderer::GLMultipassRenderer() : displayer(std::make_unique<GLRendererDisplayer>()){
+
 }
 
 
-void GLMultipassRenderer::reloadSize(const int w, const int h) const {
+void GLMultipassRenderer::add(GLRenderer &renderer) {
+    renderers.emplace_back(&renderer);
+}
+
+
+void GLMultipassRenderer::reloadSize(const int cw, const int ch, const int iw, const int ih) const {
     for (GLRenderer *renderer: renderers) {
-        renderer->reloadSize(w, h);
+        renderer->reloadSize(iw, ih);
     }
+    displayer->reloadSize(cw, ch);
 }
 
 void GLMultipassRenderer::setTime(const float timeSec) {
     this->timeSec = timeSec;
 }
 
+
+
 void GLMultipassRenderer::render() const {
     int iterationTextureID = 0;
-    float resolutionMultiplier = 1;
-
     for (int i = 0; i < renderers.size(); ++i) {
-        GLRenderer *renderer = renderers[i];
+        GLRenderer *rendererPtr = renderers[i];
 
-        if (const auto k = dynamic_cast<GLIterationTextureProvider *>(renderer);
+        if (rendererPtr == nullptr) {
+            continue;
+        }
+
+        GLRenderer &renderer = *rendererPtr;
+        if (const auto k = dynamic_cast<GLIterationTextureProvider *>(&renderer);
             k != nullptr) {
             iterationTextureID = k->getIterationTextureID();
-            resolutionMultiplier = k->getClarityMultiplier();
         }
-        if (const auto r = dynamic_cast<GLIterationTextureRenderer *>(renderer)) {
+        if (const auto r = dynamic_cast<GLIterationTextureRenderer *>(&renderer)) {
             r->setIterationTextureID(iterationTextureID);
-            r->setClarityMultiplier(resolutionMultiplier);
         }
-        if (const auto t = dynamic_cast<GLTimeRenderer *>(renderer)) {
+        if (const auto t = dynamic_cast<GLTimeRenderer *>(&renderer)) {
             t->setTime(timeSec);
         }
         if (i >= 1) {
-            renderer->setPreviousFBOTextureID(renderers[i - 1]->getFBOTextureID());
+            renderer.setPreviousFBOTextureID(renderers[i - 1]->getFBOTextureID());
         }
-        if (i == renderers.size() - 1) {
-            renderer->setAsLastFBO();
-        }
-        renderer->render();
+        renderer.render();
     }
+}
+
+void GLMultipassRenderer::display() const {
+    displayer->setPreviousFBOTextureID(renderers.back()->getFBOTextureID());
+    displayer->render();
 }

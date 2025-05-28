@@ -6,13 +6,15 @@
 #include <vector>
 
 #include "GLRenderer.h"
+#include "GLRendererDisplayer.h"
 
 class GLMultipassRenderer {
     std::vector<GLRenderer*> renderers = std::vector<GLRenderer*>();
+    std::unique_ptr<GLRendererDisplayer> displayer = nullptr;
     float timeSec = 0;
 
 public:
-    GLMultipassRenderer() = default;
+    GLMultipassRenderer();
 
     ~GLMultipassRenderer() = default;
 
@@ -24,13 +26,13 @@ public:
 
     GLMultipassRenderer &operator=(GLMultipassRenderer &&) = delete;
 
+    void add(GLRenderer &renderer);
 
-
-    void add(GLRenderer *renderer);
-
-    void reloadSize(int w, int h) const;
+    void reloadSize(int cw, int ch, int iw, int ih) const;
 
     void setTime(float timeSec);
 
     void render() const;
+
+    void display() const;
 };

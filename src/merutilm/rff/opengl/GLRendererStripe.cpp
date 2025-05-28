@@ -13,10 +13,6 @@ void GLRendererStripe::setIterationTextureID(const GLuint textureID) {
     iterationTextureID = textureID;
 }
 
-void GLRendererStripe::setClarityMultiplier(const float multiplier) {
-    clarityMultiplier = multiplier;
-}
-
 void GLRendererStripe::setStripeSettings(const StripeSettings &stripeSettings) {
     this->stripeSettings = &stripeSettings;
 }
@@ -30,7 +26,6 @@ void GLRendererStripe::update() {
     const GLShaderLoader &shader = getShaderLoader();
     shader.uploadTexture2D("inputTex", GL_TEXTURE0, getPrevFBOTextureID());
     shader.uploadTexture2D("iterations", GL_TEXTURE1, iterationTextureID);
-    shader.uploadFloat("resolutionMultiplier", clarityMultiplier);
 
     shader.uploadInt("type", static_cast<int>(stripeSettings->stripeType));
     shader.uploadFloat("firstInterval", stripeSettings->firstInterval);

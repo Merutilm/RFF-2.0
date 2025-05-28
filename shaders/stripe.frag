@@ -8,7 +8,6 @@
 
 uniform sampler2D inputTex;
 uniform sampler2D iterations;
-uniform float resolutionMultiplier;
 
 uniform int type;
 uniform float firstInterval;
@@ -27,13 +26,12 @@ double getIteration0(ivec2 iterCoord) {
 }
 
 double getIteration(vec2 coord) {
-    vec2 iterCoord = coord * resolutionMultiplier;
-    vec2 dec = mod(iterCoord, 1);
 
-    double i1 = getIteration0(ivec2(iterCoord));
-    double i2 = getIteration0(ivec2(iterCoord) + ivec2(1, 0));
-    double i3 = getIteration0(ivec2(iterCoord) + ivec2(0, 1));
-    double i4 = getIteration0(ivec2(iterCoord) + ivec2(1, 1));
+    vec2 dec = mod(coord, 1);
+    double i1 = getIteration0(ivec2(coord));
+    double i2 = getIteration0(ivec2(coord) + ivec2(1, 0));
+    double i3 = getIteration0(ivec2(coord) + ivec2(0, 1));
+    double i4 = getIteration0(ivec2(coord) + ivec2(1, 1));
 
     double i5 = i1 - (i1 - i2) * dec.x;
     double i6 = i3 - (i3 - i4) * dec.x;

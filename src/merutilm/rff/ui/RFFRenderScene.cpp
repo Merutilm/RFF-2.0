@@ -125,7 +125,6 @@ void RFFRenderScene::runAction(const UINT message, const WPARAM wParam) {
                 }
 
 
-
                 if (auto it = static_cast<uint64_t>((*iterationMatrix)(x, y)); it != 0) {
                     setStatusMessage(RFF::Status::ITERATION_STATUS, std::format("I : {} ({}, {})", it, x, y));
                 }
@@ -225,15 +224,14 @@ void RFFRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC contex
     rendererAntialiasing = std::make_unique<GLRendererAntialiasing>();
 
 
-    renderer->add(rendererIteration.get());
-    renderer->add(rendererStripe.get());
-    renderer->add(rendererSlope.get());
-    renderer->add(rendererColorFilter.get());
-    renderer->add(rendererFog.get());
-    renderer->add(rendererBloom.get());
-    renderer->add(rendererAntialiasing.get());
+    renderer->add(*rendererIteration);
+    renderer->add(*rendererStripe);
+    renderer->add(*rendererSlope);
+    renderer->add(*rendererColorFilter);
+    renderer->add(*rendererFog);
+    renderer->add(*rendererBloom);
+    renderer->add(*rendererAntialiasing);
 
-    requestClarity();
     requestResize();
     requestColor();
     requestRecompute();
@@ -246,6 +244,7 @@ void RFFRenderScene::renderGL() {
         makeContextCurrent();
         glClear(GL_COLOR_BUFFER_BIT);
         renderer->render();
+        renderer->display();
         swapBuffers();
     }
 
@@ -253,20 +252,16 @@ void RFFRenderScene::renderGL() {
         colorRequested = false;
         applyColor(settings);
     }
+
     if (resizeRequested) {
         resizeRequested = false;
         referenceRenderState.cancel();
         applyResize();
     }
-    if (clarityRequested) {
-        clarityRequested = false;
-        referenceRenderState.cancel();
-        applyClarity();
-    }
+
     if (recomputeRequested) {
         isComputing = true;
         recomputeRequested = false;
-        applyComputationalSettings();
         recompute();
     }
 }
@@ -277,10 +272,6 @@ void RFFRenderScene::requestColor() {
 
 void RFFRenderScene::requestResize() {
     resizeRequested = true;
-}
-
-void RFFRenderScene::requestClarity() {
-    clarityRequested = true;
 }
 
 void RFFRenderScene::requestRecompute() {
@@ -298,23 +289,14 @@ void RFFRenderScene::applyColor(const Settings &settings) const {
 }
 
 void RFFRenderScene::applyResize() const {
-    glViewport(0, 0, getClientWidth(), getClientHeight());
-    renderer->reloadSize(getClientWidth(), getClientHeight());
-    rendererIteration->reloadIterationBuffer(getIterationBufferWidth(settings), getIterationBufferHeight(settings),
-                                             settings.calculationSettings.maxIteration);
-}
-
-void RFFRenderScene::applyClarity() const {
-    rendererIteration->reloadIterationBuffer(getIterationBufferWidth(settings), getIterationBufferHeight(settings),
-                                             settings.calculationSettings.maxIteration);
-}
-
-void RFFRenderScene::applyComputationalSettings() {
-    if (settings.calculationSettings.autoMaxIteration) {
-        settings.calculationSettings.maxIteration = std::max(RFF::Render::MINIMUM_ITERATION,
-                                                             lastPeriod *
-                                                             RFF::Render::AUTOMATIC_ITERATION_MULTIPLIER);
-    }
+    const int cw = getClientWidth();
+    const int ch = getClientHeight();
+    const int iw = getIterationBufferWidth(settings);
+    const int ih = getIterationBufferHeight(settings);
+    glViewport(0, 0, cw, ch);
+    rendererSlope->setClarityMultiplier(settings.renderSettings.clarityMultiplier);
+    rendererIteration->reloadIterationBuffer(iw, ih, settings.calculationSettings.maxIteration);
+    renderer->reloadSize(cw, ch, iw, ih);
 }
 
 int RFFRenderScene::getMouseXOnIterationBuffer() const {
@@ -336,7 +318,10 @@ int RFFRenderScene::getMouseYOnIterationBuffer() const {
 
 void RFFRenderScene::recompute() {
     referenceRenderState.createThread([this](std::stop_token) {
-        const Settings settings = this->settings; //clone the settings
+        Settings settings = this->settings; //clone the settings
+        settings.calculationSettings.maxIteration = std::max(RFF::Render::MINIMUM_ITERATION,
+                                                             lastPeriod *
+                                                             RFF::Render::AUTOMATIC_ITERATION_MULTIPLIER);
         beforeCompute(settings);
         compute(settings);
         afterCompute();
@@ -391,7 +376,8 @@ void RFFRenderScene::compute(const Settings &settings) {
             using enum ReuseReferenceMethod;
         case CURRENT_REFERENCE: {
             if (auto p = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get())) {
-                currentPerturbator = p->reuse(calc, static_cast<double>(currentPerturbator->getDcMaxExp()), approxTableCache, exp10);
+                currentPerturbator = p->reuse(calc, static_cast<double>(currentPerturbator->getDcMaxExp()),
+                                              approxTableCache, exp10);
             }
             if (auto p = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
                 currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxExp(), approxTableCache, exp10);

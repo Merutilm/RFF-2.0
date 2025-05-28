@@ -52,7 +52,7 @@ namespace RFF {
         constexpr float ZOOM_MIN = 1.0f;
         constexpr float ZOOM_INTERVAL = 0.235f;
         constexpr float ZOOM_DEADLINE = 290;
-        constexpr uint64_t MINIMUM_ITERATION = 3000;
+        constexpr uint64_t MINIMUM_ITERATION = 100;
         constexpr int AUTOMATIC_ITERATION_MULTIPLIER = 50;
         constexpr int GAUSSIAN_MAX_WIDTH = 200;
         constexpr int GAUSSIAN_REQUIRES_BOX = 3;

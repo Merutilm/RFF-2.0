@@ -29,9 +29,9 @@ public:
 
     void setIterationTextureID(GLuint textureID) override;
 
-    void setClarityMultiplier(float multiplier) override;
-
     void setSlopeSettings(const SlopeSettings &slopeSettings);
+
+    void setClarityMultiplier(float clarityMultiplier);
 
     void update() override;
 

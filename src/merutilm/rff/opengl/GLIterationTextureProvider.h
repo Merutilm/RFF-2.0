@@ -8,5 +8,4 @@
 struct GLIterationTextureProvider {
     virtual ~GLIterationTextureProvider() = default;
     virtual GLuint getIterationTextureID() = 0;
-    virtual float getClarityMultiplier() = 0;
 };

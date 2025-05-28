@@ -29,8 +29,6 @@ public:
 
     void setIterationTextureID(GLuint textureID) override;
 
-    void setClarityMultiplier(float multiplier) override;
-
     void setTime(float time) override;
 
     void setStripeSettings(const StripeSettings &stripeSettings);

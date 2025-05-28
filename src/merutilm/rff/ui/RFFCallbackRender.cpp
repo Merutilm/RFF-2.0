@@ -10,11 +10,11 @@
 
 const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> RFFCallbackRender::SET_CLARITY = [](RFFSettingsMenu &settingsMenu, RFFRenderScene &scene) {
     auto window = std::make_unique<RFFSettingsWindow>("Set clarity");
-    auto &render = scene.getSettings().renderSettings;
-    window->registerTextInput<float>("Clarity", &render.clarityMultiplier, Unparser::FLOAT, Parser::FLOAT, [](const float &v) {
-        return v > 0.05 && v <= 1;
-    }, [&render, &scene] {
-                                         scene.requestClarity();
+    auto &[clarityMultiplier, antialiasing] = scene.getSettings().renderSettings;
+    window->registerTextInput<float>("Clarity", &clarityMultiplier, Unparser::FLOAT, Parser::FLOAT, [](const float &v) {
+        return v > 0.05 && v <= 4;
+    }, [&scene] {
+                                         scene.requestResize();
                                          scene.requestRecompute();
     }, "Clarity Multiplier", "Sets the clarity.");
 

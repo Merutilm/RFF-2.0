@@ -37,7 +37,6 @@ class RFFRenderScene final : private RFFScene {
     std::atomic<bool> recomputeRequested = false;
     std::atomic<bool> resizeRequested = false;
     std::atomic<bool> colorRequested = false;
-    std::atomic<bool> clarityRequested = false;
     std::atomic<bool> isComputing = false;
 
     std::atomic<bool> canDisplayed = false;
@@ -96,17 +95,11 @@ public:
 
     void requestResize();
 
-    void requestClarity();
-
     void requestRecompute();
 
     void applyColor(const Settings &settings) const;
 
     void applyResize() const;
-
-    void applyClarity() const;
-
-    void applyComputationalSettings();
 
     int getMouseXOnIterationBuffer() const;
 

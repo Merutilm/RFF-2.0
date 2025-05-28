@@ -5,7 +5,6 @@
 #pragma once
 #include "GLIterationTextureProvider.h"
 #include "GLRenderer.h"
-#include "GLTimeProvider.h"
 #include "GLTimeRenderer.h"
 #include "../data/Matrix.h"
 #include "../settings/PaletteSettings.h"
@@ -46,8 +45,6 @@ public:
     void setMaxIteration(int maxIteration);
 
     GLuint getIterationTextureID() override;
-
-    float getClarityMultiplier() override;
 
     void reloadIterationBuffer(int iterWidth, int iterHeight, uint64_t maxIteration);
 

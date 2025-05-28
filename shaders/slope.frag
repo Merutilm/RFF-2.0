@@ -3,8 +3,8 @@
 
 uniform sampler2D inputTex;
 uniform sampler2D iterations;
-uniform float resolutionMultiplier;
 
+uniform float clarityMultiplier;
 uniform float depth;
 uniform float reflectionRatio;
 uniform float opacity;
@@ -21,13 +21,12 @@ double getIteration0(ivec2 iterCoord){
 }
 
 double getIteration(vec2 coord){
-    vec2 iterCoord = coord * resolutionMultiplier;
-    vec2 dec = mod(iterCoord, 1);
+    vec2 dec = mod(coord, 1);
 
-    double i1 = getIteration0(ivec2(iterCoord));
-    double i2 = getIteration0(ivec2(iterCoord) + ivec2(1, 0));
-    double i3 = getIteration0(ivec2(iterCoord) + ivec2(0, 1));
-    double i4 = getIteration0(ivec2(iterCoord) + ivec2(1, 1));
+    double i1 = getIteration0(ivec2(coord));
+    double i2 = getIteration0(ivec2(coord) + ivec2(1, 0));
+    double i3 = getIteration0(ivec2(coord) + ivec2(0, 1));
+    double i4 = getIteration0(ivec2(coord) + ivec2(1, 1));
 
 
     double i5 = i1 - (i1 - i2) * dec.x;
@@ -67,8 +66,8 @@ void main() {
     double u = getIteration(coord + vec2(0, 1));
     double ru = getIteration(coord + vec2(1, 1));
 
-    float dzDx = float((rd + 2 * r + ru) - (ld + 2 * l + lu)) * depth;
-    float dzDy = float((lu + 2 * u + ru) - (ld + 2 * d + rd)) * depth;
+    float dzDx = float((rd + 2 * r + ru) - (ld + 2 * l + lu)) * depth / clarityMultiplier;
+    float dzDy = float((lu + 2 * u + ru) - (ld + 2 * d + rd)) * depth / clarityMultiplier;
     float slope = atan(radians(length(vec2(dzDx, dzDy))), 1);
     float aspect = atan(dzDy, -dzDx);
     float shade = max(reflectionRatio, cos(zRad) * cos(slope) + sin(zRad) * sin(slope) * cos(aRad + aspect));

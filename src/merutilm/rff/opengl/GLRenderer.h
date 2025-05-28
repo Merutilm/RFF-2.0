@@ -32,11 +32,11 @@ public:
 
     GLuint getPrevFBOTextureID() const;
 
-    void setAsLastFBO();
+    void setToDisplay();
 
-    void resetFBOTexture(int panelWidth, int panelHeight);
+    void resetFBOTexture(int width, int height);
 
-    int getFBOTextureID() const;
+    GLuint getFBOTextureID() const;
 
     void bindFBO() const;
 

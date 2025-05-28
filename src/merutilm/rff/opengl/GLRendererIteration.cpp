@@ -35,10 +35,6 @@ GLuint GLRendererIteration::getIterationTextureID() {
     return iterationTextureID;
 }
 
-float GLRendererIteration::getClarityMultiplier() {
-    return static_cast<float>(iterWidth) / static_cast<float>(getWidth());
-}
-
 void GLRendererIteration::reloadIterationBuffer(const int iterWidth, const int iterHeight,
                                                 const uint64_t maxIteration) {
     this->iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
@@ -76,10 +72,8 @@ void GLRendererIteration::update() {
         }
         shader.uploadTexture2D("iterations", GL_TEXTURE0, iterationTextureID, iterationBuffer.data(), iterWidth,
                                iterHeight, RFF::TextureFormats::FLOAT2);
-        shader.uploadFloat("resolutionMultiplier", getClarityMultiplier());
     } else {
         shader.uploadTexture2D("iterations", GL_TEXTURE0, previousFBOTextureID);
-        shader.uploadFloat("resolutionMultiplier", 1);
     }
 
     shader.uploadDouble("maxIteration", maxIteration);
@@ -110,7 +104,7 @@ std::vector<float> GLRendererIteration::emptyIterationBuffer(const int iterWidth
 
 void GLRendererIteration::resetToZero(const uint64_t maxIteration) {
     std::ranges::fill(iterationBuffer, 0);
-    this->maxIteration = maxIteration;
+    this->maxIteration = static_cast<double>(maxIteration);
 }
 
 void GLRendererIteration::setAllIterations(Matrix<double> &iterations) {

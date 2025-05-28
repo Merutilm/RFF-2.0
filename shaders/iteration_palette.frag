@@ -4,11 +4,8 @@
 #define NORMAL 1
 #define REVERSED 2
 
-
-
 uniform sampler2D iterations;
 uniform double maxIteration;
-uniform float resolutionMultiplier;
 
 uniform sampler2D palette;
 uniform int paletteWidth;
@@ -33,7 +30,7 @@ double getIteration0(ivec2 iterCoord){
 }
 
 double getIteration(vec2 coord){
-    vec2 iterCoord = coord * resolutionMultiplier;
+    vec2 iterCoord = coord;
     vec2 dec = mod(iterCoord, 1);
 
     double i1 = getIteration0(ivec2(iterCoord));
@@ -93,17 +90,7 @@ void main(){
     double iteration = getIteration(coord);
 
     if (iteration == 0){
-
-        double it2 = 0;
-        while (coord.y > 0){
-            coord.y -= 1.0;
-            it2 = getIteration(coord);
-            if (it2 > 0){
-                break;
-            }
-        }
-        color = getColor(it2);
-        return;
+        discard;
     }
 
     color = getColor(iteration);
