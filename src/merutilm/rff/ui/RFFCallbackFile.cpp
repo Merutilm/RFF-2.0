@@ -15,6 +15,6 @@ const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> RFFCallbackFile::OP
 const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> RFFCallbackFile::SAVE_MAP = [](RFFSettingsMenu&, RFFRenderScene&) {
 
 };
-const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> RFFCallbackFile::SAVE_IMAGE = [](RFFSettingsMenu&, RFFRenderScene&) {
-
+const std::function<void(RFFSettingsMenu&, RFFRenderScene&)> RFFCallbackFile::SAVE_IMAGE = [](RFFSettingsMenu&, RFFRenderScene& scene) {
+    scene.requestCreateImage();
 };

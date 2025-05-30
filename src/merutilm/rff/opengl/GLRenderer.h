@@ -36,11 +36,13 @@ public:
 
     void resetFBOTexture(int width, int height);
 
+    GLuint getFBO() const;
+
     GLuint getFBOTextureID() const;
 
-    void bindFBO() const;
+    static void bindFBO(GLuint fbo, GLuint fboTextureID);
 
-    void unbindFBO() const;
+    static void unbindFBO(GLuint fbo);
 
     virtual void setPreviousFBOTextureID(GLuint previousFBOTextureID);
 

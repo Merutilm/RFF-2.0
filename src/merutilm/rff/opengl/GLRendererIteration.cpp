@@ -39,7 +39,7 @@ void GLRendererIteration::reloadIterationBuffer(const int iterWidth, const int i
                                                 const uint64_t maxIteration) {
     this->iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
     this->iterationTextureID = GLShaderLoader::recreateTexture2D(iterationTextureID, iterWidth, iterHeight,
-                                                                 RFF::TextureFormats::FLOAT2, false);
+                                                                 RFF::TextureFormats::FLOAT2);
     this->maxIteration = static_cast<double>(maxIteration);
     this->iterWidth = iterWidth;
     this->iterHeight = iterHeight;
@@ -54,7 +54,7 @@ void GLRendererIteration::setPaletteSettings(const PaletteSettings &paletteSetti
     this->paletteHeight = (paletteLength - 1) / paletteWidth + 1;
     this->paletteBuffer = createPaletteBuffer(paletteSettings, paletteWidth, paletteHeight);
     this->paletteTextureID = GLShaderLoader::recreateTexture2D(paletteTextureID, paletteWidth, paletteHeight,
-                                                               RFF::TextureFormats::FLOAT4, true);
+                                                               RFF::TextureFormats::FLOAT4);
 }
 
 int GLRendererIteration::getIterationTextureID() const {

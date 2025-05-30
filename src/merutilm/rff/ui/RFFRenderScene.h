@@ -37,9 +37,7 @@ class RFFRenderScene final : private RFFScene {
     std::atomic<bool> recomputeRequested = false;
     std::atomic<bool> resizeRequested = false;
     std::atomic<bool> colorRequested = false;
-    std::atomic<bool> isComputing = false;
-
-    std::atomic<bool> canDisplayed = false;
+    std::atomic<bool> createImageRequested = false;
 
     std::array<std::string, RFF::Status::LENGTH> *statusMessageRef = nullptr;
     std::unique_ptr<RFFMap> currentMap = nullptr;
@@ -97,6 +95,10 @@ public:
 
     void requestRecompute();
 
+    void requestCreateImage();
+
+    void applyCreateImage() const;
+
     void applyColor(const Settings &settings) const;
 
     void applyResize() const;
@@ -107,7 +109,7 @@ public:
 
     void recompute();
 
-    void beforeCompute(const Settings &settings);
+    void beforeCompute(Settings &settings) const;
 
     void compute(const Settings &settings);
 

@@ -155,8 +155,7 @@ void GLShaderLoader::detach() {
 }
 
 int GLShaderLoader::recreateTexture2D(GLuint textureID, const int width, const int height,
-                                      const TextureFormat textureFormat,
-                                      const bool linearInterpolation) {
+                                      const TextureFormat textureFormat) {
     if (glIsTexture(textureID)) {
         glDeleteTextures(1, &textureID);
     }
@@ -167,13 +166,8 @@ int GLShaderLoader::recreateTexture2D(GLuint textureID, const int width, const i
                  textureFormat[RFF::TextureFormats::TYPE], nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    if (linearInterpolation) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    } else {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     return textureID;
 }
 

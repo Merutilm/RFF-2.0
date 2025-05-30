@@ -66,8 +66,8 @@ void main() {
     double u = getIteration(coord + vec2(0, 1));
     double ru = getIteration(coord + vec2(1, 1));
 
-    float dzDx = float((rd + 2 * r + ru) - (ld + 2 * l + lu)) * depth / clarityMultiplier;
-    float dzDy = float((lu + 2 * u + ru) - (ld + 2 * d + rd)) * depth / clarityMultiplier;
+    float dzDx = float((rd + 2 * r + ru) - (ld + 2 * l + lu)) * depth * clarityMultiplier;
+    float dzDy = float((lu + 2 * u + ru) - (ld + 2 * d + rd)) * depth * clarityMultiplier;
     float slope = atan(radians(length(vec2(dzDx, dzDy))), 1);
     float aspect = atan(dzDy, -dzDx);
     float shade = max(reflectionRatio, cos(zRad) * cos(slope) + sin(zRad) * sin(slope) * cos(aRad + aspect));

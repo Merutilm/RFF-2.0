@@ -35,11 +35,12 @@ void GLRenderer::reloadSize(const int width, const int height) {
 }
 
 void GLRenderer::beforeUpdate() {
-    bindFBO();
+    bindFBO(fbo, fboTextureID);
+    glViewport(0, 0, w, h);
 }
 
 void GLRenderer::afterUpdate() {
-    unbindFBO();
+    unbindFBO(fbo);
     int error = glGetError();
     while (error != GL_NO_ERROR) {
         std::cout << "OpenGL Error: " << error << " at " << typeid(this).name() << "\n" << std::flush;
@@ -78,29 +79,30 @@ void GLRenderer::resetFBOTexture(const int width, const int height) {
         return;
     }
     fboTextureID = GLShaderLoader::recreateTexture2D(fboTextureID, width, height,
-                                                     RFF::TextureFormats::FLOAT4,
-                                                     false);
+                                                     RFF::TextureFormats::FLOAT4);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTextureID, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+GLuint GLRenderer::getFBO() const {
+    return fbo;
+}
 
 GLuint GLRenderer::getFBOTextureID() const {
     return fboTextureID;
 }
 
 
-void GLRenderer::bindFBO() const {
+void GLRenderer::bindFBO(const GLuint fbo, const GLuint fboTextureID) {
     if (glIsFramebuffer(fbo)) {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTextureID, 0);
     }
-    glViewport(0, 0, w, h);
 }
 
 
-void GLRenderer::unbindFBO() const {
+void GLRenderer::unbindFBO(const GLuint fbo) {
     if (glIsFramebuffer(fbo)) {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

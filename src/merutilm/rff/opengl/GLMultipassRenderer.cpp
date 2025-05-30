@@ -19,11 +19,13 @@ void GLMultipassRenderer::add(GLRenderer &renderer) {
 }
 
 
-void GLMultipassRenderer::reloadSize(const int cw, const int ch, const int iw, const int ih) const {
+void GLMultipassRenderer::reloadSize(const int cw, const int ch, const int iw, const int ih) {
     for (GLRenderer *renderer: renderers) {
         renderer->reloadSize(iw, ih);
     }
     displayer->reloadSize(cw, ch);
+    width = iw;
+    height = ih;
 }
 
 void GLMultipassRenderer::setTime(const float timeSec) {
@@ -59,7 +61,26 @@ void GLMultipassRenderer::render() const {
     }
 }
 
-void GLMultipassRenderer::display() const {
-    displayer->setPreviousFBOTextureID(renderers.back()->getFBOTextureID());
+void GLMultipassRenderer::display() {
+    renderedFBO = renderers.back()->getFBO();
+    renderedFBOTexID = renderers.back()->getFBOTextureID();
+    displayer->setPreviousFBOTextureID(renderedFBOTexID);
     displayer->render();
+}
+
+
+int GLMultipassRenderer::getWidth() const {
+    return width;
+}
+
+int GLMultipassRenderer::getHeight() const {
+    return height;
+}
+
+GLuint GLMultipassRenderer::getRenderedFBO() const {
+    return renderedFBO;
+}
+
+GLuint GLMultipassRenderer::getRenderedFBOTexID() const {
+    return renderedFBOTexID;
 }

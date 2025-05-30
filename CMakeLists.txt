@@ -161,4 +161,17 @@ add_executable(
         src/merutilm/rff/opengl/GLRendererDisplayer.cpp
         src/merutilm/rff/opengl/GLRendererDisplayer.h
 )
-target_link_libraries(RFF PRIVATE opengl32 gmp comctl32)
+
+target_link_libraries(RFF PRIVATE
+        # OpenGL Linker
+        opengl32
+        # GMP Linker
+        gmp
+        # Win32 Linker
+        comctl32
+        # OpenCV Linkers
+        libopencv_core4110
+        libopencv_imgcodecs4110
+        libopencv_imgproc4110
+        libopencv_videoio4110
+)

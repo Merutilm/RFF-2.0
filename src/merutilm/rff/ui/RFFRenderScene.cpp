@@ -6,9 +6,7 @@
 
 #include <chrono>
 #include <cmath>
-#include <commctrl.h>
 #include <format>
-
 #include "glad.h"
 #include "RFF.h"
 #include "RFFUtilities.h"
@@ -22,7 +20,7 @@
 #include "../preset/shader/palette/PalettePresets.h"
 #include "../preset/shader/slope/SlopePresets.h"
 #include "../preset/shader/stripe/StripePresets.h"
-
+#include <opencv2/opencv.hpp>
 
 RFFRenderScene::RFFRenderScene() : referenceRenderState(ParallelRenderState()), settings(initSettings()) {
 }
@@ -240,14 +238,6 @@ void RFFRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC contex
 void RFFRenderScene::renderGL() {
     renderer->setTime(RFFUtilities::getTime());
 
-    if (canDisplayed) {
-        makeContextCurrent();
-        glClear(GL_COLOR_BUFFER_BIT);
-        renderer->render();
-        renderer->display();
-        swapBuffers();
-    }
-
     if (colorRequested) {
         colorRequested = false;
         applyColor(settings);
@@ -260,10 +250,21 @@ void RFFRenderScene::renderGL() {
     }
 
     if (recomputeRequested) {
-        isComputing = true;
         recomputeRequested = false;
         recompute();
     }
+
+    if (createImageRequested) {
+        createImageRequested = false;
+        applyCreateImage();
+    }
+
+
+    makeContextCurrent();
+    glClear(GL_COLOR_BUFFER_BIT);
+    renderer->render();
+    renderer->display();
+    swapBuffers();
 }
 
 void RFFRenderScene::requestColor() {
@@ -276,6 +277,27 @@ void RFFRenderScene::requestResize() {
 
 void RFFRenderScene::requestRecompute() {
     recomputeRequested = true;
+}
+
+void RFFRenderScene::requestCreateImage() {
+    createImageRequested = true;
+}
+
+
+void RFFRenderScene::applyCreateImage() const {
+    const GLuint fbo = renderer->getRenderedFBO();
+    const GLuint fboID = renderer->getRenderedFBOTexID();
+    const int width = renderer->getWidth();
+    const int height = renderer->getHeight();
+    GLRenderer::bindFBO(fbo, fboID);
+    std::vector<char> pixels(width * height * 4);
+    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+
+    auto img = cv::Mat(height, width, CV_8UC4, pixels.data());
+    cv::flip(img, img, 0);
+    cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
+    cv::imwrite("sample.png", img);
+    GLRenderer::unbindFBO(fbo);
 }
 
 void RFFRenderScene::applyColor(const Settings &settings) const {
@@ -319,17 +341,15 @@ int RFFRenderScene::getMouseYOnIterationBuffer() const {
 void RFFRenderScene::recompute() {
     referenceRenderState.createThread([this](std::stop_token) {
         Settings settings = this->settings; //clone the settings
-        settings.calculationSettings.maxIteration = std::max(RFF::Render::MINIMUM_ITERATION,
-                                                             lastPeriod *
-                                                             RFF::Render::AUTOMATIC_ITERATION_MULTIPLIER);
         beforeCompute(settings);
         compute(settings);
         afterCompute();
     });
 }
 
-void RFFRenderScene::beforeCompute(const Settings &settings) {
-    canDisplayed = false;
+void RFFRenderScene::beforeCompute(Settings &settings) const {
+    settings.calculationSettings.maxIteration = std::max(this->settings.calculationSettings.maxIteration,
+                                                         lastPeriod * RFF::Render::AUTOMATIC_ITERATION_MULTIPLIER);
     rendererIteration->resetToZero(settings.calculationSettings.maxIteration);
 }
 
@@ -459,15 +479,12 @@ void RFFRenderScene::compute(const Settings &settings) {
 
     auto generator = ParallelArrayDispatcher<double>(
         referenceRenderState, *iterationMatrix,
-        [settingsToUse, this, &renderPixelsCount](const int x, const int y, const int xRes, int, float, float, int,
+        [settingsToUse, this, &renderPixelsCount](const int x, const int y, const int, int, float, float, int,
                                                   double) {
             const auto dc = offsetConversion(settingsToUse, x, y);
             const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
             rendererIteration->setIteration(x, y, iteration);
 
-            if (x == xRes - 1 && !canDisplayed) {
-                canDisplayed = true;
-            }
             ++renderPixelsCount;
             return iteration;
         });

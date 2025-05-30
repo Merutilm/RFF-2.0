@@ -11,6 +11,10 @@
 class GLMultipassRenderer {
     std::vector<GLRenderer*> renderers = std::vector<GLRenderer*>();
     std::unique_ptr<GLRendererDisplayer> displayer = nullptr;
+    int width = 0;
+    int height = 0;
+    GLuint renderedFBO = 0;
+    GLuint renderedFBOTexID = 0;
     float timeSec = 0;
 
 public:
@@ -28,11 +32,19 @@ public:
 
     void add(GLRenderer &renderer);
 
-    void reloadSize(int cw, int ch, int iw, int ih) const;
+    void reloadSize(int cw, int ch, int iw, int ih);
 
     void setTime(float timeSec);
 
     void render() const;
 
-    void display() const;
+    void display();
+
+    int getWidth() const;
+
+    int getHeight() const;
+
+    GLuint getRenderedFBO() const;
+
+    GLuint getRenderedFBOTexID() const;
 };

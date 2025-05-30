@@ -34,8 +34,7 @@ public:
 
     static void detach();
 
-    static int recreateTexture2D(GLuint textureID, int width, int height, TextureFormat textureFormat,
-                                 bool linearInterpolation);
+    static int recreateTexture2D(GLuint textureID, int width, int height, TextureFormat textureFormat);
     void uploadTexture2D(const std::string &varName, int textureUnit, int textureID) const;
 
     void uploadTexture2D(const std::string &varName, int textureUnit, int textureID, const void *buffer, int w, int h,
