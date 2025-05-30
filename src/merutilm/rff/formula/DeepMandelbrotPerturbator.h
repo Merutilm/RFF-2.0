@@ -36,13 +36,13 @@ public:
 
     double iterate(const double_exp &dcr, const double_exp &dci) const override;
 
-    std::unique_ptr<DeepMandelbrotPerturbator> reuse(const CalculationSettings &calc, const double_exp &dcMax, ApproxTableCache &tableRef, int exp10);
+    std::unique_ptr<DeepMandelbrotPerturbator> reuse(const CalculationSettings &calc, const double_exp &dcMax, ApproxTableCache &tableRef);
 
     const DeepMandelbrotReference *getReference() const override;
 
     DeepMPATable &getTable() const;
 
-    double_exp getDcMaxExp() const override;
+    double_exp getDcMaxAsDoubleExp() const override;
 };
 
 // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
@@ -61,6 +61,6 @@ inline DeepMPATable &DeepMandelbrotPerturbator::getTable() const {
     return *table;
 }
 
-inline double_exp DeepMandelbrotPerturbator::getDcMaxExp() const {
+inline double_exp DeepMandelbrotPerturbator::getDcMaxAsDoubleExp() const {
     return dcMax;
 }

@@ -101,13 +101,13 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
             temps[4].try_normalize();
 
             double_exp::dex_sub(&temps[5], minZRadius, temps[0]);
-            if (minZRadius.isinf() || temps[5].sgn() == 1) {
+            if (minZRadius.isinf() || temps[5].sgn() > 0 || temps[0].sgn() == 1) {
                 double_exp::dex_cpy(&minZRadius, temps[0]);
                 periodArray.push_back(iteration);
             }
             double_exp::dex_sub(&temps[4], temps[4], temps[1]);
 
-            if (temps[4].sgn() == 1 || iteration == maxIteration - 1 || (
+            if (temps[4].sgn() == 1 || iteration == maxIteration - 1 || temps[0].sgn() == 0 || (
                     initialPeriod != 0 && initialPeriod == iteration)) {
                 periodArray.push_back(iteration);
                 break;
@@ -129,6 +129,13 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
         z += c;
         z.getReal().double_exp_value(&zr);
         z.getImag().double_exp_value(&zi);
+
+        if (zr.sgn() == 0) {
+            double_exp::dex_cpy(&zr, dex_exp::exp10(exp10 * RFF::Render::INTENTIONAL_ERROR_REFZERO_POWER));
+        }
+        if (zi.sgn() == 0) {
+            double_exp::dex_cpy(&zi, dex_exp::exp10(exp10 * RFF::Render::INTENTIONAL_ERROR_REFZERO_POWER));
+        }
 
         uint64_t j = iteration;
 
@@ -153,7 +160,6 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
 
 
         if (compressCriteria > 0 && iteration >= 1) {
-
             const int64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
             double_exp::dex_div(&temps[0], zr, rr[refIndex]);
             double_exp::dex_div(&temps[1], zi, ri[refIndex]);

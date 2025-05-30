@@ -35,7 +35,7 @@ public:
 
     double iterate(const double_exp &dcr, const double_exp &dci) const override;
 
-    std::unique_ptr<LightMandelbrotPerturbator> reuse(const CalculationSettings &calc, double dcMax, ApproxTableCache &tableRef, int exp10);
+    std::unique_ptr<LightMandelbrotPerturbator> reuse(const CalculationSettings &calc, double dcMax, ApproxTableCache &tableRef);
 
     const LightMandelbrotReference *getReference() const override;
 
@@ -43,7 +43,7 @@ public:
 
     double getDcMax() const;
 
-    double_exp getDcMaxExp() const override;
+    double_exp getDcMaxAsDoubleExp() const override;
 };
 
 
@@ -60,6 +60,6 @@ inline double LightMandelbrotPerturbator::getDcMax() const {
     return dcMax;
 }
 
-inline double_exp LightMandelbrotPerturbator::getDcMaxExp() const {
+inline double_exp LightMandelbrotPerturbator::getDcMaxAsDoubleExp() const {
     return double_exp::value(dcMax);
 }

@@ -42,6 +42,8 @@ public:
 
     void setTime(float time) override;
 
+    void fillZero();
+
     void setMaxIteration(int maxIteration);
 
     GLuint getIterationTextureID() override;
@@ -52,7 +54,7 @@ public:
 
     int getIterationTextureID() const;
 
-    void resetToZero(uint64_t maxIteration);
+    void setMaxIteration(uint64_t maxIteration);
 
     void update() override;
 

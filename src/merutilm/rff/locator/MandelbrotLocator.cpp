@@ -16,7 +16,7 @@ std::unique_ptr<fp_complex> MandelbrotLocator::findCenter(const MandelbrotPertur
     const fp_complex_calculator dc = findCenterOffset(*perturbator)->edit(exp10);
     const double dr = dc.getRealClone().double_value();
     const double di = dc.getImagClone().double_value();
-    if (const double_exp dcMax = perturbator->getDcMaxExp();
+    if (const double_exp dcMax = perturbator->getDcMaxAsDoubleExp();
         dr * dr + di * di > dcMax * dcMax) {
         return nullptr;
     }
@@ -62,7 +62,7 @@ std::unique_ptr<MandelbrotLocator> MandelbrotLocator::locateMinibrot(ParallelRen
     if (result == nullptr) {
         return nullptr;
     }
-    double_exp resultDcMax = result->getDcMaxExp();
+    double_exp resultDcMax = result->getDcMaxAsDoubleExp();
     CalculationSettings resultCalc = result->getCalculationSettings();
     resultCalc.absoluteIterationMode = false;
     float resultZoom = resultCalc.logZoom;
@@ -85,10 +85,10 @@ std::unique_ptr<MandelbrotLocator> MandelbrotLocator::locateMinibrot(ParallelRen
         actionWhileFindingMinibrotZoom(resultZoom);
         resultCalc.logZoom = resultZoom;
         if (const auto v = dynamic_cast<LightMandelbrotPerturbator *>(result.get())) {
-            result = v->reuse(resultCalc, static_cast<double>(resultDcMax), approxTableCache, Perturbator::logZoomToExp10(resultZoom));
+            result = v->reuse(resultCalc, static_cast<double>(resultDcMax), approxTableCache);
         }
         if (const auto v = dynamic_cast<DeepMandelbrotPerturbator *>(result.get())) {
-            result = v->reuse(resultCalc, resultDcMax, approxTableCache, Perturbator::logZoomToExp10(resultZoom));
+            result = v->reuse(resultCalc, resultDcMax, approxTableCache);
         }
         zoomIncrement /= 2;
     }
@@ -129,7 +129,7 @@ std::unique_ptr<MandelbrotPerturbator> MandelbrotLocator::findAccurateCenterPert
     doubledZoomCalc.center = fp_complex(e += findCenterOffset(*perturbator)->edit(doubledExp10));
     doubledZoomCalc.logZoom = doubledLogZoom;
 
-    double_exp doubledZoomDcMax = perturbator->getDcMaxExp() / dex_exp::exp10(logZoom);
+    double_exp doubledZoomDcMax = perturbator->getDcMaxAsDoubleExp() / dex_exp::exp10(logZoom);
 
 
     int centerFixCount = 0;
@@ -171,7 +171,7 @@ std::unique_ptr<MandelbrotPerturbator> MandelbrotLocator::findAccurateCenterPert
 
 bool MandelbrotLocator::checkMaxIterationOnly(const MandelbrotPerturbator &perturbator,
                                               const uint64_t maxIteration) {
-    return perturbator.iterate(perturbator.getDcMaxExp(),
-                               perturbator.getDcMaxExp() / RFF::Render::INTENTIONAL_ERROR_DCLMB) == static_cast<
+    return perturbator.iterate(perturbator.getDcMaxAsDoubleExp(),
+                               perturbator.getDcMaxAsDoubleExp() / RFF::Render::INTENTIONAL_ERROR_DCLMB) == static_cast<
                double>(maxIteration);
 }

@@ -71,8 +71,8 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
 double LightMandelbrotPerturbator::iterate(const double_exp &dcr, const double_exp &dci) const {
     if (state.interruptRequested()) return 0.0;
 
-    const double dcr1 = static_cast<double>(dcr) + offR + dcMax / RFF::Render::INTENTIONAL_ERROR_DCPTB;
-    const double dci1 = static_cast<double>(dci) + offI + dcMax / RFF::Render::INTENTIONAL_ERROR_DCPTB;
+    const double dcr1 = static_cast<double>(dcr) + offR;
+    const double dci1 = static_cast<double>(dci) + offI;
 
     uint64_t iteration = 0;
     uint64_t refIteration = 0;
@@ -169,8 +169,9 @@ double LightMandelbrotPerturbator::iterate(const double_exp &dcr, const double_e
 
 
 std::unique_ptr<LightMandelbrotPerturbator> LightMandelbrotPerturbator::reuse(
-    const CalculationSettings &calc, const double dcMax, ApproxTableCache &tableRef,
-    const int exp10) {
+    const CalculationSettings &calc, const double dcMax, ApproxTableCache &tableRef) {
+
+    const int exp10 = logZoomToExp10(calc.logZoom);
     double offR = 0;
     double offI = 0;
     uint64_t longestPeriod = 1;

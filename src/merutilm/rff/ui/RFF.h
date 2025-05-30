@@ -56,16 +56,17 @@ namespace RFF {
         constexpr int AUTOMATIC_ITERATION_MULTIPLIER = 50;
         constexpr int GAUSSIAN_MAX_WIDTH = 200;
         constexpr int GAUSSIAN_REQUIRES_BOX = 3;
-        constexpr double INTENTIONAL_ERROR_DCLMB = 1e15; //DCmax for Locate Mini Brot
-        constexpr double INTENTIONAL_ERROR_DCPTB = 1e20; //DCmax for Per Tur Bation
+        constexpr double INTENTIONAL_ERROR_DCLMB = 1e16; //DCmax for Locate Mini Brot
+        constexpr double INTENTIONAL_ERROR_DCPTB = 1e128; //DCmax for Per Tur Bation
+        constexpr double INTENTIONAL_ERROR_REFZERO_POWER = 1024; // multiplier of exp10 when zr, zi is zero
+        constexpr int EXP10_ADDITION = 15;
         inline static const unsigned long long INIT_TIME = std::chrono::system_clock::now().time_since_epoch().count();
     }
 
-    namespace Precision {
+    namespace Constant {
         constexpr double LOG_2 = 0.693147180559945309417232121458;
         constexpr double LOG_10 = 2.302585092994045684017991454684;
         constexpr double LOG10_2 = 0.301029995663981195213738894724;
-        constexpr int PRECISION_ADDITION = 15;
 
     }
 

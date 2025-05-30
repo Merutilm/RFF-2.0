@@ -49,51 +49,63 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackExplor
     }
 
     scene.getState().cancel();
-    const MandelbrotPerturbator* perturbator = scene.getCurrentPerturbator();
+    const MandelbrotPerturbator *perturbator = scene.getCurrentPerturbator();
     assert(perturbator != nullptr);
 
     scene.getState().createThread(
         [&scene, logZoom = settings.calculationSettings.logZoom, perturbator, &settings](
-    std::stop_token)  {
-
+    std::stop_token) {
             ApproxTableCache &approxTableCache = scene.getApproxTableCache();
-            int interval = RFFUtilities::getRefreshInterval(logZoom);
-            uint64_t longestPeriod = perturbator->getReference()->longestPeriod();
+            const uint64_t longestPeriod = perturbator->getReference()->longestPeriod();
 
             const std::unique_ptr<MandelbrotLocator> locator = MandelbrotLocator::locateMinibrot(
                 scene.getState(), perturbator, approxTableCache,
-
-                [interval, &scene, longestPeriod](const uint64_t p, int i) {
-                    if (p % interval == 0) {
-                        scene.setStatusMessage(RFF::Status::RENDER_STATUS,
-                                               std::format("C : {:.3f}%[{}]",
-                                                           static_cast<float>(100 * p) / static_cast<float>(
-                                                               longestPeriod),
-                                                           i));
-                    }
-                },
-                [interval, &scene](const uint64_t p, const float i) {
-                    if (p % interval == 0) {
-                        scene.setStatusMessage(RFF::Status::RENDER_STATUS,
-                                               std::format("A : {:.3f}%", i * 100));
-                    }
-                },
-                [ &scene](float zoom) {
-                    scene.setStatusMessage(RFF::Status::RENDER_STATUS,
-                                           std::format("Z : 10^{}", zoom));
-                }
+                getActionWhileFindingMinibrotCenter(scene, logZoom, longestPeriod),
+                getActionWhileCreatingTable(scene, logZoom),
+                getActionWhileFindingZoom(scene)
             );
 
             if (locator == nullptr) {
                 RFFUtilities::log("Locate Minibrot Cancelled.");
                 return;
             }
-            std::unique_ptr<MandelbrotPerturbator> locatorPerturbator = std::move(locator->perturbator);
-            const CalculationSettings &locatorCalc = locatorPerturbator->getCalculationSettings();
+            const CalculationSettings &locatorCalc = locator->perturbator->getCalculationSettings();
             settings.calculationSettings.center = locatorCalc.center;
             settings.calculationSettings.logZoom = locatorCalc.logZoom - MandelbrotLocator::MINIBROT_LOG_ZOOM_OFFSET;
-            scene.setCurrentPerturbator(std::move(locatorPerturbator));
             scene.requestRecompute();
         }
     );
 };
+
+
+std::function<void(uint64_t, int)> RFFCallbackExplore::getActionWhileFindingMinibrotCenter(
+    const RFFRenderScene &scene, const float logZoom,
+    const uint64_t longestPeriod) {
+    return [&scene, logZoom, longestPeriod](const uint64_t p, int i) {
+        if (p % RFFUtilities::getRefreshInterval(logZoom) == 0) {
+            scene.setStatusMessage(RFF::Status::RENDER_STATUS,
+                                   std::format("C : {:.3f}%[{}]",
+                                               static_cast<float>(100 * p) / static_cast<float>(
+                                                   longestPeriod),
+                                               i));
+        }
+    };
+}
+
+std::function<void(uint64_t, float)> RFFCallbackExplore::getActionWhileCreatingTable(
+    const RFFRenderScene &scene, const float logZoom) {
+    return [&scene, logZoom](const uint64_t p, const float i) {
+        if (p % RFFUtilities::getRefreshInterval(logZoom) == 0) {
+            scene.setStatusMessage(RFF::Status::RENDER_STATUS,
+                                   std::format("A : {:.3f}%", i * 100));
+        }
+    };
+}
+
+
+std::function<void(float)> RFFCallbackExplore::getActionWhileFindingZoom(const RFFRenderScene &scene) {
+    return [&scene](float zoom) {
+        scene.setStatusMessage(RFF::Status::RENDER_STATUS,
+                               std::format("Z : 10^{}", zoom));
+    };
+}

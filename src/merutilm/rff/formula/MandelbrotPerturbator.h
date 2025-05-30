@@ -22,7 +22,7 @@ struct MandelbrotPerturbator : public Perturbator{
 
     const CalculationSettings &getCalculationSettings() const;
 
-    virtual double_exp getDcMaxExp() const = 0;
+    virtual double_exp getDcMaxAsDoubleExp() const = 0;
 
     virtual double iterate(const double_exp &dcr, const double_exp &dci) const = 0;
 

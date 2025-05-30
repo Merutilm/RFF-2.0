@@ -30,7 +30,7 @@ inline void dex_exp::exp10(double_exp *result, const double v) {
     //2 ^ (v * log2(10))
     //exp2 = v / log10(2)
     //mantissa = decimal value of exp2
-    const double raw_exp2 = v / RFF::Precision::LOG10_2;
+    const double raw_exp2 = v / RFF::Constant::LOG10_2;
     const auto exp2 = static_cast<int>(raw_exp2);
     result->exp2 = exp2;
     result->mantissa = std::pow(2, raw_exp2 - exp2);
@@ -48,7 +48,7 @@ inline void dex_exp::exp(double_exp *result, const double v) {
     //e^v
     //exp2 = v / ln2
     //mantissa = decimal value of exp2
-    const double raw_exp2 = v / RFF::Precision::LOG_2;
+    const double raw_exp2 = v / RFF::Constant::LOG_2;
     const auto exp2 = static_cast<int>(raw_exp2);
     result->exp2 = exp2;
     result->mantissa = std::pow(2, raw_exp2 - exp2);
@@ -71,7 +71,7 @@ inline double dex_exp::log10(const double_exp &v) {
     if (v.is_zero()) {
         return -INFINITY;
     }
-    return log(v) / RFF::Precision::LOG_10;
+    return log(v) / RFF::Constant::LOG_10;
 }
 
 inline double dex_exp::log(const double_exp &v) {
@@ -85,5 +85,5 @@ inline double dex_exp::log(const double_exp &v) {
     if (v.is_zero()) {
         return -INFINITY;
     }
-    return std::log(v.mantissa) + v.exp2 * RFF::Precision::LOG_2;
+    return std::log(v.mantissa) + v.exp2 * RFF::Constant::LOG_2;
 }

@@ -102,8 +102,12 @@ std::vector<float> GLRendererIteration::emptyIterationBuffer(const int iterWidth
     return std::vector<float>(iterWidth * iterHeight * 2);
 }
 
-void GLRendererIteration::resetToZero(const uint64_t maxIteration) {
+void GLRendererIteration::fillZero() {
     std::ranges::fill(iterationBuffer, 0);
+}
+
+
+void GLRendererIteration::setMaxIteration(const uint64_t maxIteration) {
     this->maxIteration = static_cast<double>(maxIteration);
 }
 

@@ -82,26 +82,29 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
 
         // use Fast-Period-Guessing, and create MPA Table
 
-        double radius2 = zr * zr + zi * zi;
-        double fpgLimit = radius2 / dcMax;
-        double fpgBnrTemp = fpgBnr * zr * 2 - fpgBni * zi * 2 + 1;
-        double fpgBniTemp = fpgBnr * zi * 2 + fpgBni * zr * 2;
-        double fpgRadius = rff_math::hypot_approx(fpgBnrTemp, fpgBniTemp);
+        if (iteration > 0) {
+            double radius2 = zr * zr + zi * zi;
+            double fpgLimit = radius2 / dcMax;
+            double fpgBnrTemp = fpgBnr * zr * 2 - fpgBni * zi * 2 + 1;
+            double fpgBniTemp = fpgBnr * zi * 2 + fpgBni * zr * 2;
+            double fpgRadius = rff_math::hypot_approx(fpgBnrTemp, fpgBniTemp);
 
 
-        if (iteration > 0 && minZRadius > radius2) {
-            minZRadius = radius2;
-            periodArray.push_back(iteration);
+            if (minZRadius > radius2 && radius2 > 0) {
+                minZRadius = radius2;
+                periodArray.push_back(iteration);
+            }
+
+            if (fpgRadius > fpgLimit || radius2 == 0 || iteration == maxIteration - 1 || (
+                    initialPeriod != 0 && initialPeriod == iteration)) {
+                periodArray.push_back(iteration);
+                break;
+                    }
+
+            fpgBnr = fpgBnrTemp;
+            fpgBni = fpgBniTemp;
         }
 
-        if ((iteration > 0 && fpgRadius > fpgLimit) || iteration == maxIteration - 1 || (
-                initialPeriod != 0 && initialPeriod == iteration)) {
-            periodArray.push_back(iteration);
-            break;
-        }
-
-        fpgBnr = fpgBnrTemp;
-        fpgBni = fpgBniTemp;
 
         if (strictFPG) {
             fpgBn *= z.doubled();

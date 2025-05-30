@@ -22,11 +22,15 @@
 #include "../preset/shader/stripe/StripePresets.h"
 #include <opencv2/opencv.hpp>
 
-RFFRenderScene::RFFRenderScene() : referenceRenderState(ParallelRenderState()), settings(initSettings()) {
+#include "RFFCallbackExplore.h"
+#include "../locator/MandelbrotLocator.h"
+#include "../parallel/ParallelDispatcher.h"
+
+RFFRenderScene::RFFRenderScene() : state(ParallelRenderState()), settings(initSettings()) {
 }
 
 RFFRenderScene::~RFFRenderScene() {
-    referenceRenderState.cancel();
+    state.cancel();
 }
 
 Settings RFFRenderScene::initSettings() {
@@ -245,7 +249,7 @@ void RFFRenderScene::renderGL() {
 
     if (resizeRequested) {
         resizeRequested = false;
-        referenceRenderState.cancel();
+        state.cancel();
         applyResize();
     }
 
@@ -258,7 +262,6 @@ void RFFRenderScene::renderGL() {
         createImageRequested = false;
         applyCreateImage();
     }
-
 
     makeContextCurrent();
     glClear(GL_COLOR_BUFFER_BIT);
@@ -310,7 +313,7 @@ void RFFRenderScene::applyColor(const Settings &settings) const {
     rendererAntialiasing->setUse(settings.renderSettings.antialiasing);
 }
 
-void RFFRenderScene::applyResize() const {
+void RFFRenderScene::applyResize() {
     const int cw = getClientWidth();
     const int ch = getClientHeight();
     const int iw = getIterationBufferWidth(settings);
@@ -319,6 +322,7 @@ void RFFRenderScene::applyResize() const {
     rendererSlope->setClarityMultiplier(settings.renderSettings.clarityMultiplier);
     rendererIteration->reloadIterationBuffer(iw, ih, settings.calculationSettings.maxIteration);
     renderer->reloadSize(cw, ch, iw, ih);
+    iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
 }
 
 int RFFRenderScene::getMouseXOnIterationBuffer() const {
@@ -339,35 +343,33 @@ int RFFRenderScene::getMouseYOnIterationBuffer() const {
 
 
 void RFFRenderScene::recompute() {
-    referenceRenderState.createThread([this](std::stop_token) {
+    state.createThread([this](std::stop_token) {
         Settings settings = this->settings; //clone the settings
         beforeCompute(settings);
-        compute(settings);
-        afterCompute();
+        const bool success = compute(settings);
+        afterCompute(success);
     });
 }
 
 void RFFRenderScene::beforeCompute(Settings &settings) const {
     settings.calculationSettings.maxIteration = std::max(this->settings.calculationSettings.maxIteration,
                                                          lastPeriod * RFF::Render::AUTOMATIC_ITERATION_MULTIPLIER);
-    rendererIteration->resetToZero(settings.calculationSettings.maxIteration);
+    rendererIteration->setMaxIteration(settings.calculationSettings.maxIteration);
 }
 
 
-void RFFRenderScene::compute(const Settings &settings) {
+bool RFFRenderScene::compute(const Settings &settings) {
     const Settings settingsToUse = settings;
     int w = getIterationBufferWidth(settingsToUse);
     int h = getIterationBufferHeight(settingsToUse);
 
-    if (referenceRenderState.interruptRequested()) return;
+    if (state.interruptRequested()) return false;
 
     auto &calc = settingsToUse.calculationSettings;
-    iterationMatrix = std::make_unique<Matrix<double> >(w, h);
 
     float logZoom = calc.logZoom;
-    int exp10 = Perturbator::logZoomToExp10(logZoom);
 
-    if (referenceRenderState.interruptRequested()) return;
+    if (state.interruptRequested()) return false;
 
     setStatusMessage(RFF::Status::ZOOM_STATUS,
                      std::format("Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
@@ -389,64 +391,63 @@ void RFFRenderScene::compute(const Settings &settings) {
     };
 
 
-    if (referenceRenderState.interruptRequested()) return;
+    if (state.interruptRequested()) return false;
     auto start = std::chrono::high_resolution_clock::now();
 
     switch (calc.reuseReferenceMethod) {
             using enum ReuseReferenceMethod;
         case CURRENT_REFERENCE: {
-            if (auto p = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get())) {
-                currentPerturbator = p->reuse(calc, static_cast<double>(currentPerturbator->getDcMaxExp()),
-                                              approxTableCache, exp10);
-            }
             if (auto p = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
-                currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxExp(), approxTableCache, exp10);
+                currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxAsDoubleExp(), approxTableCache);
+            }
+            if (auto p = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get())) {
+                currentPerturbator = p->reuse(calc, static_cast<double>(currentPerturbator->getDcMaxAsDoubleExp()),
+                                              approxTableCache);
             }
             break;
         }
-        // case CENTERED_REFERENCE: {
-        //     uint64_t period = currentPerturbator->getReference().longestPeriod();
-        //     MandelbrotLocator center = MandelbrotLocator.locateMinibrot(state, currentID, currentPerturbator,
-        //                                                                 ActionsExplore.
-        //                                                                 getActionWhileFindingMinibrotCenter(
-        //                                                                     panel, logZoom, period),
-        //                                                                 ActionsExplore.getActionWhileCreatingTable(
-        //                                                                     panel, logZoom),
-        //                                                                 ActionsExplore.
-        //                                                                 getActionWhileFindingMinibrotZoom(
-        //                                                                     panel)
-        //     );
-        //     currentPerturbator = null;
-        //
-        //     CalculationSettings refCalc = calc.edit().setCenter(center.center()).setLogZoom(center.logZoom()).build();
-        //     int refPrecision = Perturbator.precision(center.logZoom());
-        //
-        //     if (refCalc.logZoom() > DoubleExponent.EXP_DEADLINE) {
-        //         currentPerturbator = new DeepMandelbrotPerturbator(state, currentID, refCalc, center.dcMax(),
-        //                                                            refPrecision,
-        //                                                            period, actionPerRefCalcIteration,
-        //                                                            actionPerCreatingTableIteration)
-        //         .
-        //         reuse(state, currentID, calc, dcMax, precision);
-        //     } else {
-        //         currentPerturbator = new LightMandelbrotPerturbator(state, currentID, refCalc,
-        //                                                             center.dcMax().doubleValue(),
-        //                                                             refPrecision, period, actionPerRefCalcIteration,
-        //                                                             actionPerCreatingTableIteration)
-        //         .
-        //         reuse(state, currentID, calc, dcMax, precision);
-        //     }
-        // break;
-        // }
+        case CENTERED_REFERENCE: {
+            uint64_t period = currentPerturbator->getReference()->longestPeriod();
+            auto center = MandelbrotLocator::locateMinibrot(state, currentPerturbator.get(), approxTableCache,
+                                                            RFFCallbackExplore::getActionWhileFindingMinibrotCenter(
+                                                                *this, logZoom, period),
+                                                            RFFCallbackExplore::getActionWhileCreatingTable(
+                                                                *this, logZoom),
+                                                            RFFCallbackExplore::getActionWhileFindingZoom(*this)
+            );
+            if (center == nullptr) return false;
+
+            CalculationSettings refCalc = calc;
+            refCalc.center = center->perturbator->calc.center;
+            refCalc.logZoom = center->perturbator->calc.logZoom;
+            int refExp10 = Perturbator::logZoomToExp10(refCalc.logZoom);
+
+            if (refCalc.logZoom > RFF::Render::ZOOM_DEADLINE) {
+                currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
+                            state, refCalc, center->perturbator->getDcMaxAsDoubleExp(),
+                            refExp10,
+                            period, approxTableCache, std::move(actionPerRefCalcIteration),
+                            std::move(actionPerCreatingTableIteration))
+                        ->reuse(calc, dcMax, approxTableCache);
+            } else {
+                currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(state, refCalc,
+                            static_cast<double>(center->perturbator->getDcMaxAsDoubleExp()),
+                            refExp10, period, approxTableCache, std::move(actionPerRefCalcIteration),
+                            std::move(actionPerCreatingTableIteration))
+                        ->reuse(calc, static_cast<double>(dcMax), approxTableCache);
+            }
+            break;
+        }
         case DISABLED: {
+            int exp10 = Perturbator::logZoomToExp10(logZoom);
             if (logZoom > RFF::Render::ZOOM_DEADLINE) {
                 currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
-                    referenceRenderState, calc, dcMax, exp10,
+                    state, calc, dcMax, exp10,
                     0, approxTableCache, std::move(actionPerRefCalcIteration),
                     std::move(actionPerCreatingTableIteration));
             } else {
                 currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(
-                    referenceRenderState, calc, static_cast<double>(dcMax), exp10,
+                    state, calc, static_cast<double>(dcMax), exp10,
                     0, approxTableCache, std::move(actionPerRefCalcIteration),
                     std::move(actionPerCreatingTableIteration));
             }
@@ -458,12 +459,12 @@ void RFFRenderScene::compute(const Settings &settings) {
     }
 
     const MandelbrotReference *reference = currentPerturbator->getReference();
-    if (reference == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE || referenceRenderState.interruptRequested())
-        return;
+    if (reference == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE || state.interruptRequested())
+        return false;
 
 
     lastPeriod = reference->longestPeriod();
-    size_t length = reference->length();
+    size_t refLength = reference->length();
     size_t mpaLen;
     if (auto t = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get())) {
         mpaLen = t->getTable().getLength();
@@ -471,23 +472,36 @@ void RFFRenderScene::compute(const Settings &settings) {
     if (auto t = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
         mpaLen = t->getTable().getLength();
     }
-    setStatusMessage(RFF::Status::PERIOD_STATUS, std::format("P : {:L} ({:L}, {:L})", lastPeriod, length, mpaLen));
 
-    if (referenceRenderState.interruptRequested()) return;
+    setStatusMessage(RFF::Status::PERIOD_STATUS, std::format("P : {:L} ({:L}, {:L})", lastPeriod, refLength, mpaLen));
+    if (state.interruptRequested()) return false;
+
 
     std::atomic renderPixelsCount = 0;
 
-    auto generator = ParallelArrayDispatcher<double>(
-        referenceRenderState, *iterationMatrix,
-        [settingsToUse, this, &renderPixelsCount](const int x, const int y, const int, int, float, float, int,
-                                                  double) {
+    auto rendered = std::vector<bool>(w * h);
+
+    auto previewer = ParallelArrayDispatcher<double>(
+        state, *iterationMatrix,
+        [settingsToUse, this, &renderPixelsCount, &rendered](const int x, const int y, const int xRes, int, float,
+                                                             float, const int i,
+                                                             double) {
+            rendered[i] = true;
             const auto dc = offsetConversion(settingsToUse, x, y);
             const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
             rendererIteration->setIteration(x, y, iteration);
 
+            int my = y - 1;
+            while (my >= 0 && !rendered[my * xRes + x]) {
+                rendererIteration->setIteration(x, my, iteration);
+                --my;
+            }
+
             ++renderPixelsCount;
             return iteration;
         });
+
+    rendererIteration->fillZero();
 
     auto statusThread = std::jthread([&renderPixelsCount, w, h, this, &start](const std::stop_token &stop) {
         while (!stop.stop_requested()) {
@@ -504,18 +518,35 @@ void RFFRenderScene::compute(const Settings &settings) {
         }
     });
 
-    generator.dispatch();
+    previewer.dispatch();
+
     statusThread.request_stop();
     statusThread.join();
 
-    currentMap = std::make_unique<RFFMap>(calc.logZoom, lastPeriod, calc.maxIteration, *iterationMatrix);
+    if (state.interruptRequested()) return false;
 
+    auto syncer = ParallelDispatcher(
+        state, w, h,
+        [this](const int x, const int y, int, int, float, float, int) {
+            rendererIteration->setIteration(x, y, (*iterationMatrix)(x, y));
+        });
+
+    syncer.dispatch();
+
+    if (state.interruptRequested()) return false;
+
+    currentMap = std::make_unique<RFFMap>(calc.logZoom, lastPeriod, calc.maxIteration, *iterationMatrix);
     setStatusMessage(RFF::Status::RENDER_STATUS, std::string("Done"));
+
+    return true;
 }
 
-void RFFRenderScene::afterCompute() const {
-    if (referenceRenderState.interruptRequested()) {
+void RFFRenderScene::afterCompute(const bool success) {
+    if (!success) {
         RFFUtilities::log("Recompute cancelled.");
+    }
+    if (success && settings.calculationSettings.reuseReferenceMethod == ReuseReferenceMethod::CENTERED_REFERENCE) {
+        settings.calculationSettings.reuseReferenceMethod = ReuseReferenceMethod::CURRENT_REFERENCE;
     }
 }
 
@@ -529,7 +560,7 @@ Settings &RFFRenderScene::getSettings() {
 }
 
 ParallelRenderState &RFFRenderScene::getState() {
-    return referenceRenderState;
+    return state;
 }
 
 MandelbrotPerturbator *RFFRenderScene::getCurrentPerturbator() const {

@@ -216,11 +216,11 @@ void fp_decimal_calculator::negate(fp_decimal_calculator &target) {
 }
 
 int fp_decimal_calculator::exp2ToExp10(const int exp2) {
-    return static_cast<int>(static_cast<double>(exp2) * RFF::Precision::LOG10_2);
+    return static_cast<int>(static_cast<double>(exp2) * RFF::Constant::LOG10_2);
 }
 
 int fp_decimal_calculator::exp10ToExp2(const int precision) {
-    return static_cast<int>(static_cast<double>(precision) / RFF::Precision::LOG10_2);
+    return static_cast<int>(static_cast<double>(precision) / RFF::Constant::LOG10_2);
 }
 
 

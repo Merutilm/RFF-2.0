@@ -4,10 +4,6 @@
 
 #include "DeepMandelbrotPerturbator.h"
 
-#include <iostream>
-
-#include "../calc/double_exp_math.h"
-
 DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                      const double_exp &dcMax, const int exp10,
                                                      const uint64_t initialPeriod,
@@ -70,8 +66,8 @@ DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state,
 double DeepMandelbrotPerturbator::iterate(const double_exp &dcr, const double_exp &dci) const {
     if (state.interruptRequested()) return 0.0;
 
-    const double_exp dcr1 = dcr + offR + dcMax / RFF::Render::INTENTIONAL_ERROR_DCPTB;
-    const double_exp dci1 = dci + offI + dcMax / RFF::Render::INTENTIONAL_ERROR_DCPTB;
+    const double_exp dcr1 = dcr + offR + (offR.sgn() == 0 ? dcMax / RFF::Render::INTENTIONAL_ERROR_DCPTB : double_exp::DEX_ZERO);
+    const double_exp dci1 = dci + offI + (offR.sgn() == 0 ? dcMax / RFF::Render::INTENTIONAL_ERROR_DCPTB : double_exp::DEX_ZERO);
 
     uint64_t iteration = 0;
     uint64_t refIteration = 0;
@@ -197,12 +193,13 @@ double DeepMandelbrotPerturbator::iterate(const double_exp &dcr, const double_ex
 
 
 std::unique_ptr<DeepMandelbrotPerturbator> DeepMandelbrotPerturbator::reuse(
-    const CalculationSettings &calc, const double_exp &dcMax, ApproxTableCache &tableRef,
-    const int exp10) {
+    const CalculationSettings &calc, const double_exp &dcMax, ApproxTableCache &tableRef) {
     double_exp offR = double_exp::DEX_ZERO;
     double_exp offI = double_exp::DEX_ZERO;
     uint64_t longestPeriod = 1;
     std::unique_ptr<DeepMandelbrotReference> reusedReference = nullptr;
+
+    const int exp10 = logZoomToExp10(calc.logZoom);
 
     if (reference == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE) {
         //try to use process-terminated reference

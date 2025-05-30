@@ -26,7 +26,7 @@
 
 
 class RFFRenderScene final : private RFFScene {
-    ParallelRenderState referenceRenderState;
+    ParallelRenderState state;
     Settings settings;
     int mouseX = 0;
     int mouseY = 0;
@@ -101,7 +101,7 @@ public:
 
     void applyColor(const Settings &settings) const;
 
-    void applyResize() const;
+    void applyResize();
 
     int getMouseXOnIterationBuffer() const;
 
@@ -111,9 +111,9 @@ public:
 
     void beforeCompute(Settings &settings) const;
 
-    void compute(const Settings &settings);
+    bool compute(const Settings &settings);
 
-    void afterCompute() const;
+    void afterCompute(bool success);
 
     void setStatusMessage(int index, const std::string_view &message) const;
 

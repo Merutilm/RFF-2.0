@@ -19,5 +19,5 @@ struct Perturbator {
 };
 
 inline int Perturbator::logZoomToExp10(const float logZoom) {
-    return -static_cast<int>(logZoom) - RFF::Precision::PRECISION_ADDITION;
+    return -static_cast<int>(logZoom) - RFF::Render::EXP10_ADDITION;
 }

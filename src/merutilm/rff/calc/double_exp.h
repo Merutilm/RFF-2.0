@@ -468,7 +468,7 @@ inline std::string double_exp::to_string() const {
     if (isinf()) {
         return sgn() > 0 ? "inf" : "-inf";
     }
-    const double raw_exp10 = RFF::Precision::LOG10_2 * exp2;
+    const double raw_exp10 = RFF::Constant::LOG10_2 * exp2;
     auto exp10 = static_cast<int>(raw_exp10);
     double mantissa10 = mantissa * std::pow(10, raw_exp10 - exp10);
 
