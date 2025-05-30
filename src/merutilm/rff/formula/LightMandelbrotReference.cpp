@@ -55,7 +55,7 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
     auto one = fp_complex_calculator(1.0, 0.0, exp10);
     double bailoutSqr = calc.bailout * calc.bailout;
 
-    double fpgBnr = 0;
+    double fpgBnr = 1;
     double fpgBni = 0;
 
     uint64_t iteration = 0;
