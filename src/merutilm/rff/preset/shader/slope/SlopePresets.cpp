@@ -5,10 +5,10 @@
 
 
 
-std::string SlopePresets::Normal::getName() {
+std::string SlopePresets::Normal::getName() const {
     return "Normal";
 }
 
-SlopeSettings SlopePresets::Normal::slopeSettings() {
+SlopeSettings SlopePresets::Normal::slopeSettings() const {
     return SlopeSettings{300, 0.5f, 1, 60, 135};
 }

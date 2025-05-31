@@ -7,17 +7,12 @@
 #include "../../../settings/FogSettings.h"
 
 
-struct FogPreset : public Presets::Preset {
-    ~FogPreset() override = default;
-
-    virtual FogSettings fogSettings() = 0;
-};
 
 namespace FogPresets {
-    struct Medium final : public FogPreset {
-        std::string getName() override;
+    struct Medium final : public Presets::ShaderPresets::FogPreset {
+        std::string getName() const override;
 
-        FogSettings fogSettings() override;
+        FogSettings fogSettings() const override;
     };
 };
 

@@ -41,7 +41,7 @@ public:
 
     void initWindow();
 
-    void initClientSize(int width, int height) const;
+    void setClientSize(int width, int height) const;
 
     void adjustClient(const RECT &rect) const;
 

@@ -45,17 +45,27 @@ struct RFFSettingsMenu {
                            const std::function<bool*(RFFRenderScene &)>
                            &checkboxAction);
 
+    template<typename P> requires std::is_base_of_v<Preset, P>
+    HMENU addPresetExecutor(HMENU target, P preset);
+
     HMENU add(HMENU target, std::string_view child,
               const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> &callback, bool
-              hasChild, bool hasCheckbox, const std::optional<std::function<bool*(RFFRenderScene &)>> &checkboxAction);
+              hasChild, bool hasCheckbox, const std::optional<std::function<bool*(RFFRenderScene &)> > &checkboxAction);
 
     void executeAction(RFFRenderScene &scene, int menuID);
 
     void setCurrentActiveSettingsWindow(std::unique_ptr<RFFSettingsWindow> &&scene);
 
-    bool* getBool(RFFRenderScene &scene, int menuID) const;
+    bool *getBool(RFFRenderScene &scene, int menuID) const;
 
     static int getIndex(int menuID);
 
     bool checkIndex(int index) const;
 };
+
+template<typename P> requires std::is_base_of_v<Preset, P>
+HMENU RFFSettingsMenu::addPresetExecutor(HMENU target, const P preset) {
+    return add(target, preset.getName(), [p1 = std::move(preset)](RFFSettingsMenu &, RFFRenderScene &scene) {
+        scene.changePreset(p1);
+    }, false, false, std::nullopt);
+}

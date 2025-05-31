@@ -11,11 +11,13 @@ class RFFScene {
     const std::string INIT_NOT_CALLED = "Failed to load context. is called initGL()?\n";
     bool init = false;
 
+
+public:
+
     HWND renderWindow = nullptr;
     HDC hdc = nullptr;
     HGLRC context = nullptr;
 
-public:
     virtual ~RFFScene() = default;
     virtual void configure(HWND wnd, HDC hdc, HGLRC context);
     virtual void renderGL() = 0;

@@ -6,16 +6,11 @@
 #include "../../Presets.h"
 #include "../../../settings/ColorSettings.h"
 
-struct ColorPreset : public Presets::Preset {
-    ~ColorPreset() override = default;
-
-    virtual ColorSettings colorSettings() = 0;
-};
 namespace ColorPresets {
-    struct WeakContrast final : public ColorPreset {
-        std::string getName() override;
+    struct WeakContrast final : public Presets::ShaderPresets::ColorPreset {
+        std::string getName() const override;
 
-        ColorSettings colorSettings() override;
+        ColorSettings colorSettings() const override;
     };
 }
 

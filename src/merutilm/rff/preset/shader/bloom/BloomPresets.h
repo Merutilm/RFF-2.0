@@ -7,16 +7,11 @@
 #include "../../../settings/BloomSettings.h"
 
 
-struct BloomPreset : public Presets::Preset {
-    ~BloomPreset() override = default;
-
-    virtual BloomSettings bloomSettings() = 0;
-};
 
 namespace BloomPresets {
-    struct Normal final : public BloomPreset {
-        std::string getName() override;
+    struct Normal final : public Presets::ShaderPresets::BloomPreset {
+        std::string getName() const override;
 
-        BloomSettings bloomSettings() override;
+        BloomSettings bloomSettings() const override;
     };
 }

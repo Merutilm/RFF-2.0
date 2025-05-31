@@ -4,13 +4,16 @@
 
 #include "PalettePresets.h"
 
-std::string PalettePresets::LongRandom64::getName() {
+#include <algorithm>
+
+std::string PalettePresets::LongRandom64::getName() const {
     return "Long Random 64";
 }
 
-PaletteSettings PalettePresets::LongRandom64::paletteSettings() {
+PaletteSettings PalettePresets::LongRandom64::paletteSettings() const {
     auto p = PaletteSettings();
     p.colors.reserve(64);
+
     for (int i = 0; i < 64; ++i) {
         p.colors.push_back(ColorFloat::random());
     }
@@ -57,12 +60,11 @@ PaletteSettings PalettePresets::LongRandom64::paletteSettings() {
 }
 
 
-
-std::string PalettePresets::Rainbow::getName() {
+std::string PalettePresets::Rainbow::getName() const {
     return "Rainbow";
 }
 
-PaletteSettings PalettePresets::Rainbow::paletteSettings() {
+PaletteSettings PalettePresets::Rainbow::paletteSettings() const {
     auto p = PaletteSettings();
     p.colors.reserve(64);
 
@@ -78,4 +80,3 @@ PaletteSettings PalettePresets::Rainbow::paletteSettings() {
     p.colorSmoothing = ColorSmoothingSettings::NORMAL;
     return p;
 }
-

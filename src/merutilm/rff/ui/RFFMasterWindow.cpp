@@ -122,13 +122,13 @@ void RFFMasterWindow::initWindow() {
 
     running = true;
 
-    initClientSize(RFF::Win32::INIT_RENDER_SCENE_WIDTH, RFF::Win32::INIT_RENDER_SCENE_HEIGHT);
+    setClientSize(RFF::Win32::INIT_RENDER_SCENE_WIDTH, RFF::Win32::INIT_RENDER_SCENE_HEIGHT);
     ShowWindow(masterWindow, SW_SHOW);
     UpdateWindow(masterWindow);
 }
 
 
-void RFFMasterWindow::initClientSize(const int width, const int height) const {
+void RFFMasterWindow::setClientSize(const int width, const int height) const {
     const RECT rect = {0, 0, width, height};
     RECT adjusted = rect;
     AdjustWindowRect(&adjusted, WS_OVERLAPPEDWINDOW | WS_SYSMENU, true);
@@ -267,6 +267,14 @@ void RFFMasterWindow::renderLoop() {
         }
 
         std::this_thread::sleep_until(lastRender + std::chrono::milliseconds(ms));
+
+        if (renderer.cwRequest != 0) {
+            setClientSize(renderer.cwRequest, renderer.chRequest);
+            renderer.cwRequest = 0;
+            renderer.chRequest = 0;
+            renderer.requestResize();
+            renderer.requestRecompute();
+        }
 
         if (auto currentTime = std::chrono::high_resolution_clock::now();
             currentTime - lastRender > std::chrono::milliseconds(ms)) {

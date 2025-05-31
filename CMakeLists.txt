@@ -160,6 +160,12 @@ add_executable(
         src/merutilm/rff/preset/Presets.h
         src/merutilm/rff/opengl/GLRendererDisplayer.cpp
         src/merutilm/rff/opengl/GLRendererDisplayer.h
+        src/merutilm/rff/preset/resolution/ResolutionPresets.cpp
+        src/merutilm/rff/preset/resolution/ResolutionPresets.h
+        src/merutilm/rff/preset/render/RenderPresets.cpp
+        src/merutilm/rff/preset/render/RenderPresets.h
+        src/merutilm/rff/preset/calc/CalculationPresets.cpp
+        src/merutilm/rff/preset/calc/CalculationPresets.h
 )
 
 target_link_libraries(RFF PRIVATE

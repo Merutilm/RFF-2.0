@@ -6,7 +6,6 @@
 
 #include <assert.h>
 #include <functional>
-#include <iostream>
 #include <vector>
 #include <string>
 #include <windows.h>
@@ -17,6 +16,15 @@
 #include "RFFCallbackRender.h"
 #include "RFFCallbackShader.h"
 #include "RFFRenderScene.h"
+#include "../preset/render/RenderPresets.h"
+#include "../preset/resolution/ResolutionPresets.h"
+#include "../preset/calc/CalculationPresets.h"
+#include "../preset/shader/bloom/BloomPresets.h"
+#include "../preset/shader/color/ColorPresets.h"
+#include "../preset/shader/fog/FogPresets.h"
+#include "../preset/shader/palette/PalettePresets.h"
+#include "../preset/shader/slope/SlopePresets.h"
+#include "../preset/shader/stripe/StripePresets.h"
 
 
 RFFSettingsMenu::RFFSettingsMenu(const HMENU hMenubar) : menubar(hMenubar) {
@@ -33,6 +41,8 @@ RFFSettingsMenu::~RFFSettingsMenu() {
 
 void RFFSettingsMenu::configure() {
     HMENU currentMenu = nullptr;
+    HMENU subMenu1 = nullptr;
+    HMENU subMenu2 = nullptr;
 
     currentMenu = addChildMenu(menubar, "File");
     addChildItem(currentMenu, "Open Map", RFFCallbackFile::OPEN_MAP);
@@ -57,12 +67,48 @@ void RFFSettingsMenu::configure() {
     addChildItem(currentMenu, "Fog", RFFCallbackShader::FOG);
     addChildItem(currentMenu, "Bloom", RFFCallbackShader::BLOOM);
     currentMenu = addChildMenu(menubar, "Preset");
+    subMenu1 = addChildMenu(currentMenu, "Calculation");
+    addPresetExecutor(subMenu1, CalculationPresets::UltraFast());
+    addPresetExecutor(subMenu1, CalculationPresets::Fast());
+    addPresetExecutor(subMenu1, CalculationPresets::Normal());
+    addPresetExecutor(subMenu1, CalculationPresets::Best());
+    addPresetExecutor(subMenu1, CalculationPresets::UltraBest());
+    addPresetExecutor(subMenu1, CalculationPresets::Stable());
+    addPresetExecutor(subMenu1, CalculationPresets::MoreStable());
+    addPresetExecutor(subMenu1, CalculationPresets::UltraStable());
+    subMenu1 = addChildMenu(currentMenu, "Render");
+    addPresetExecutor(subMenu1, RenderPresets::Potato());
+    addPresetExecutor(subMenu1, RenderPresets::Low());
+    addPresetExecutor(subMenu1, RenderPresets::Medium());
+    addPresetExecutor(subMenu1, RenderPresets::High());
+    addPresetExecutor(subMenu1, RenderPresets::Ultra());
+    addPresetExecutor(subMenu1, RenderPresets::Extreme());
+    subMenu1 = addChildMenu(currentMenu, "Resolution");
+    addPresetExecutor(subMenu1, ResolutionPresets::L1());
+    addPresetExecutor(subMenu1, ResolutionPresets::L2());
+    addPresetExecutor(subMenu1, ResolutionPresets::L3());
+    addPresetExecutor(subMenu1, ResolutionPresets::L4());
+    addPresetExecutor(subMenu1, ResolutionPresets::L5());
+    subMenu1 = addChildMenu(currentMenu, "Shader");
+    subMenu2 = addChildMenu(subMenu1, "Palette");
+    addPresetExecutor(subMenu2, PalettePresets::LongRandom64());
+    addPresetExecutor(subMenu2, PalettePresets::Rainbow());
+    subMenu2 = addChildMenu(subMenu1, "Stripe");
+    addPresetExecutor(subMenu2, StripePresets::SlowAnimated());
+    subMenu2 = addChildMenu(subMenu1, "Slope");
+    addPresetExecutor(subMenu2, SlopePresets::Normal());
+    subMenu2 = addChildMenu(subMenu1, "Color");
+    addPresetExecutor(subMenu2, ColorPresets::WeakContrast());
+    subMenu2 = addChildMenu(subMenu1, "Fog");
+    addPresetExecutor(subMenu2, FogPresets::Medium());
+    subMenu2 = addChildMenu(subMenu1, "Bloom");
+    addPresetExecutor(subMenu2, BloomPresets::Normal());
     currentMenu = addChildMenu(menubar, "Video");
     currentMenu = addChildMenu(menubar, "Explore");
     addChildItem(currentMenu, "Recompute", RFFCallbackExplore::RECOMPUTE);
     addChildItem(currentMenu, "Refresh Color", RFFCallbackExplore::REFRESH_COLOR);
     addChildItem(currentMenu, "Reset", RFFCallbackExplore::RESET);
-    addChildItem(currentMenu, "Cencel", RFFCallbackExplore::CANCEL_RENDER);
+    addChildItem(currentMenu, "Cancel", RFFCallbackExplore::CANCEL_RENDER);
     addChildItem(currentMenu, "Find Center", RFFCallbackExplore::FIND_CENTER);
     addChildItem(currentMenu, "Locate Minibrot", RFFCallbackExplore::LOCATE_MINIBROT);
 }
@@ -74,6 +120,7 @@ HMENU RFFSettingsMenu::addChildMenu(const HMENU target, const std::string_view c
     }, true, false, std::nullopt);
 }
 
+
 HMENU RFFSettingsMenu::addChildItem(const HMENU target, const std::string_view child,
                                     const std::function<void
                                         (RFFSettingsMenu &, RFFRenderScene &)> &callback) {
@@ -82,10 +129,10 @@ HMENU RFFSettingsMenu::addChildItem(const HMENU target, const std::string_view c
 
 HMENU RFFSettingsMenu::addChildCheckbox(const HMENU target, const std::string_view child,
                                         const std::function<bool*(RFFRenderScene &)> &checkboxAction) {
-    return add(target, child, [](RFFSettingsMenu &, RFFRenderScene &) {}, false,
+    return add(target, child, [](RFFSettingsMenu &, RFFRenderScene &) {
+               }, false,
                true, checkboxAction);
 }
-
 
 HMENU RFFSettingsMenu::add(const HMENU target, const std::string_view child,
                            const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> &
@@ -135,7 +182,7 @@ void RFFSettingsMenu::setCurrentActiveSettingsWindow(std::unique_ptr<RFFSettings
 }
 
 
-bool* RFFSettingsMenu::getBool(RFFRenderScene &scene, const int menuID) const {
+bool *RFFSettingsMenu::getBool(RFFRenderScene &scene, const int menuID) const {
     if (const auto id = getIndex(menuID);
         checkIndex(id)
     ) {

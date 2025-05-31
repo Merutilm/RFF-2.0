@@ -8,20 +8,14 @@
 #include "../../../settings/PaletteSettings.h"
 
 
-struct PalettePreset : public Presets::Preset {
-    ~PalettePreset() override = default;
-
-    virtual PaletteSettings paletteSettings() = 0;
-};
-
 namespace PalettePresets {
-    struct LongRandom64 final : public PalettePreset {
-        std::string getName() override;
-        PaletteSettings paletteSettings() override;
+    struct LongRandom64 final : public Presets::ShaderPresets::PalettePreset {
+        std::string getName() const override;
+        PaletteSettings paletteSettings() const override;
     };
-    struct Rainbow final : public PalettePreset {
-        std::string getName() override;
-        PaletteSettings paletteSettings() override;
+    struct Rainbow final : public Presets::ShaderPresets::PalettePreset {
+        std::string getName() const override;
+        PaletteSettings paletteSettings() const override;
     };
 }
 

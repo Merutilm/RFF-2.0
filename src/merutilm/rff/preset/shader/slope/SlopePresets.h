@@ -7,15 +7,10 @@
 #include "../../../settings/SlopeSettings.h"
 
 
-struct SlopePreset : public Presets::Preset {
-    ~SlopePreset() override = default;
-
-    virtual SlopeSettings slopeSettings() = 0;
-};
 namespace SlopePresets {
-    struct Normal final : public SlopePreset {
-        std::string getName() override;
+    struct Normal final : public Presets::ShaderPresets::SlopePreset {
+        std::string getName() const override;
 
-        SlopeSettings slopeSettings() override;
+        SlopeSettings slopeSettings() const override;
     };
 }

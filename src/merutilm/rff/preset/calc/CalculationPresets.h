@@ -1,0 +1,52 @@
+//
+// Created by Merutilm on 2025-05-31.
+//
+
+#pragma once
+#include "../Presets.h"
+#include "../../settings/MPASettings.h"
+#include "../../settings/ReferenceCompressionSettings.h"
+
+
+namespace CalculationPresets {
+    struct UltraFast final : public Presets::CalculationPresets {
+        std::string getName() const override;
+        MPASettings mpaSettings() const override;
+        ReferenceCompressionSettings referenceCompressionSettings() const override;
+    };
+    struct Fast final : public Presets::CalculationPresets {
+        std::string getName() const override;
+        MPASettings mpaSettings() const override;
+        ReferenceCompressionSettings referenceCompressionSettings() const override;
+    };
+    struct Normal final : public Presets::CalculationPresets {
+        std::string getName() const override;
+        MPASettings mpaSettings() const override;
+        ReferenceCompressionSettings referenceCompressionSettings() const override;
+    };
+    struct Best final : public Presets::CalculationPresets {
+        std::string getName() const override;
+        MPASettings mpaSettings() const override;
+        ReferenceCompressionSettings referenceCompressionSettings() const override;
+    };
+    struct UltraBest final : public Presets::CalculationPresets {
+        std::string getName() const override;
+        MPASettings mpaSettings() const override;
+        ReferenceCompressionSettings referenceCompressionSettings() const override;
+    };
+    struct Stable final : public Presets::CalculationPresets {
+        std::string getName() const override;
+        MPASettings mpaSettings() const override;
+        ReferenceCompressionSettings referenceCompressionSettings() const override;
+    };
+    struct MoreStable final : public Presets::CalculationPresets {
+        std::string getName() const override;
+        MPASettings mpaSettings() const override;
+        ReferenceCompressionSettings referenceCompressionSettings() const override;
+    };
+    struct UltraStable final : public Presets::CalculationPresets {
+        std::string getName() const override;
+        MPASettings mpaSettings() const override;
+        ReferenceCompressionSettings referenceCompressionSettings() const override;
+    };
+}

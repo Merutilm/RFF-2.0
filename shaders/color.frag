@@ -1,7 +1,6 @@
 #version 450
 
 uniform sampler2D inputTex;
-uniform ivec2 resolution;
 
 uniform float gamma;
 uniform float exposure;
@@ -24,6 +23,10 @@ vec3 fixColor(vec3 col) {
 float getHue(vec3 col) {
     float high = max(max(col.r, col.g), col.b);
     float low = min(min(col.r, col.g), col.b);
+    if(high == low){
+        return 0;
+    }
+
     float mid = col.r + col.g + col.b - high - low;
     float range = high - low;
     float rat = (mid - low) / range;
@@ -115,7 +118,7 @@ void main() {
 
     vec3 c = texelFetch(inputTex, ivec2(gl_FragCoord.xy), 0).rgb;
 
-    c = fixColor(pow(c.rgb, vec3(1 / gamma)));
+    c = fixColor(pow(c, vec3(1 / gamma)));
     c = fixColor(c * (1 + exposure) / (1 - exposure));
     c = fixColor(addHue(c, hue));
     float gray = grayScale(c);

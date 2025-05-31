@@ -1,0 +1,39 @@
+//
+// Created by Merutilm on 2025-05-31.
+//
+
+#pragma once
+#include "../Presets.h"
+
+
+namespace ResolutionPresets {
+    struct L1 final : public Presets::ResolutionPresets {
+        std::string getName() const override;
+
+        std::array<int, 2> getResolution() const override;
+    };
+
+    struct L2 final : public Presets::ResolutionPresets {
+        std::string getName() const override;
+
+        std::array<int, 2> getResolution() const override;
+    };
+
+    struct L3 final : public Presets::ResolutionPresets {
+        std::string getName() const override;
+
+        std::array<int, 2> getResolution() const override;
+    };
+
+    struct L4 final : public Presets::ResolutionPresets {
+        std::string getName() const override;
+
+        std::array<int, 2> getResolution() const override;
+    };
+
+    struct L5 final : public Presets::ResolutionPresets {
+        std::string getName() const override;
+
+        std::array<int, 2> getResolution() const override;
+    };
+}

@@ -3,10 +3,10 @@
 //
 #include "BloomPresets.h"
 
-std::string BloomPresets::Normal::getName() {
+std::string BloomPresets::Normal::getName() const {
     return "Normal";
 }
 
-BloomSettings BloomPresets::Normal::bloomSettings() {
+BloomSettings BloomPresets::Normal::bloomSettings() const {
     return BloomSettings{0, 0.1f, 0, 1};
 }

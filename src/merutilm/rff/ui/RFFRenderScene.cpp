@@ -25,6 +25,8 @@
 #include "RFFCallbackExplore.h"
 #include "../locator/MandelbrotLocator.h"
 #include "../parallel/ParallelDispatcher.h"
+#include "../preset/calc/CalculationPresets.h"
+#include "../preset/render/RenderPresets.h"
 
 RFFRenderScene::RFFRenderScene() : state(ParallelRenderState()), settings(initSettings()) {
 }
@@ -44,29 +46,16 @@ Settings RFFRenderScene::initSettings() {
                                  //"-0.00000180836819716880795128873613161993554089471597685393367018109950768833467685704762711890797154859214327088989719746641",
                                  Perturbator::logZoomToExp10(2)),
             .logZoom = 2, //186.47, //85.190033f,
-            .maxIteration = 3000,
+            .maxIteration = 300,
             .bailout = 2,
             .decimalizeIterationMethod = DecimalizeIterationMethod::LOG_LOG,
-            .mpaSettings = MPASettings{
-                .minSkipReference = 4,
-                .maxMultiplierBetweenLevel = 2,
-                .epsilonPower = -3,
-                .mpaSelectionMethod = MPASelectionMethod::HIGHEST,
-                .mpaCompressionMethod = MPACompressionMethod::NO_COMPRESSION,
-            },
-            .referenceCompressionSettings = ReferenceCompressionSettings{
-                .compressCriteria = 0,
-                .compressionThresholdPower = 6,
-                .noCompressorNormalization = false
-            },
+            .mpaSettings = CalculationPresets::UltraFast().mpaSettings(),
+            .referenceCompressionSettings = CalculationPresets::UltraFast().referenceCompressionSettings(),
             .reuseReferenceMethod = ReuseReferenceMethod::DISABLED,
             .autoMaxIteration = true,
             .absoluteIterationMode = false
         },
-        .renderSettings = {
-            .clarityMultiplier = 1,
-            .antialiasing = true
-        },
+        .renderSettings = RenderPresets::High().renderSettings(),
         .shaderSettings = {
             .paletteSettings = PalettePresets::LongRandom64().paletteSettings(),
             .stripeSettings = StripePresets::SlowAnimated().stripeSettings(),
@@ -575,3 +564,4 @@ void RFFRenderScene::setCurrentPerturbator(std::unique_ptr<MandelbrotPerturbator
 ApproxTableCache &RFFRenderScene::getApproxTableCache() {
     return approxTableCache;
 }
+

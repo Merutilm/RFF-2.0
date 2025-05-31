@@ -23,6 +23,7 @@
 #include "../opengl/GLRendererSlope.h"
 #include "../opengl/GLRendererStripe.h"
 #include "../parallel/ParallelRenderState.h"
+#include "../preset/Presets.h"
 
 
 class RFFRenderScene final : private RFFScene {
@@ -30,6 +31,7 @@ class RFFRenderScene final : private RFFScene {
     Settings settings;
     int mouseX = 0;
     int mouseY = 0;
+
     uint64_t lastPeriod = 1;
 
     ApproxTableCache approxTableCache = ApproxTableCache();
@@ -54,6 +56,10 @@ class RFFRenderScene final : private RFFScene {
     std::unique_ptr<GLRendererAntialiasing> rendererAntialiasing = nullptr;
 
 public:
+
+    int cwRequest = 0;
+    int chRequest = 0;
+
     RFFRenderScene();
 
     ~RFFRenderScene() override;
@@ -126,4 +132,48 @@ public:
     void setCurrentPerturbator(std::unique_ptr<MandelbrotPerturbator> perturbator);
 
     ApproxTableCache &getApproxTableCache();
+
+    template<typename P> requires std::is_base_of_v<Preset, P>
+    void changePreset(P &preset);
 };
+
+
+template<typename P> requires std::is_base_of_v<Preset, P>
+void RFFRenderScene::changePreset(P &preset) {
+    if constexpr (std::is_base_of_v<Presets::CalculationPresets, P>) {
+        settings.calculationSettings.mpaSettings = preset.mpaSettings();
+        settings.calculationSettings.referenceCompressionSettings = preset.referenceCompressionSettings();
+        requestRecompute();
+    }
+    if constexpr (std::is_base_of_v<Presets::RenderPresets, P>) {
+        settings.renderSettings = preset.renderSettings();
+        requestResize();
+        requestRecompute();
+    }
+    if constexpr (std::is_base_of_v<Presets::ResolutionPresets, P>) {
+        auto r = preset.getResolution();
+        cwRequest = r[0];
+        chRequest = r[1];
+    }
+    if constexpr (std::is_base_of_v<Presets::ShaderPreset, P>) {
+        if constexpr (std::is_base_of_v<Presets::ShaderPresets::PalettePreset, P>) {
+            settings.shaderSettings.paletteSettings = preset.paletteSettings();
+        }
+        if constexpr (std::is_base_of_v<Presets::ShaderPresets::StripePreset, P>) {
+            settings.shaderSettings.stripeSettings = preset.stripeSettings();
+        }
+        if constexpr (std::is_base_of_v<Presets::ShaderPresets::SlopePreset, P>) {
+            settings.shaderSettings.slopeSettings = preset.slopeSettings();
+        }
+        if constexpr (std::is_base_of_v<Presets::ShaderPresets::ColorPreset, P>) {
+            settings.shaderSettings.colorSettings = preset.colorSettings();
+        }
+        if constexpr (std::is_base_of_v<Presets::ShaderPresets::FogPreset, P>) {
+            settings.shaderSettings.fogSettings = preset.fogSettings();
+        }
+        if constexpr (std::is_base_of_v<Presets::ShaderPresets::BloomPreset, P>) {
+            settings.shaderSettings.bloomSettings = preset.bloomSettings();
+        }
+        requestColor();
+    }
+}

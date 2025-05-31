@@ -3,10 +3,10 @@
 //
 #include "FogPresets.h"
 
-std::string FogPresets::Medium::getName() {
+std::string FogPresets::Medium::getName() const {
     return "Medium";
 }
 
-FogSettings FogPresets::Medium::fogSettings() {
+FogSettings FogPresets::Medium::fogSettings() const {
     return FogSettings{0.1, 0.5};
 }
