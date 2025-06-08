@@ -166,6 +166,10 @@ add_executable(
         src/merutilm/rff/preset/render/RenderPresets.h
         src/merutilm/rff/preset/calc/CalculationPresets.cpp
         src/merutilm/rff/preset/calc/CalculationPresets.h
+        src/merutilm/rff/ui/RFFCallbackVideo.cpp
+        src/merutilm/rff/ui/RFFCallbackVideo.h
+        src/merutilm/rff/ui/IOUtilities.cpp
+        src/merutilm/rff/ui/IOUtilities.h
 )
 
 target_link_libraries(RFF PRIVATE

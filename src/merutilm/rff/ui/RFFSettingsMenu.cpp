@@ -15,6 +15,7 @@
 #include "RFFCallbackFractal.h"
 #include "RFFCallbackRender.h"
 #include "RFFCallbackShader.h"
+#include "RFFCallbackVideo.h"
 #include "RFFRenderScene.h"
 #include "../preset/render/RenderPresets.h"
 #include "../preset/resolution/ResolutionPresets.h"
@@ -104,6 +105,11 @@ void RFFSettingsMenu::configure() {
     subMenu2 = addChildMenu(subMenu1, "Bloom");
     addPresetExecutor(subMenu2, BloomPresets::Normal());
     currentMenu = addChildMenu(menubar, "Video");
+    addChildItem(currentMenu, "Data Settings", RFFCallbackVideo::DATA_SETTINGS);
+    addChildItem(currentMenu, "Animation Settings", RFFCallbackVideo::ANIMATION_SETTINGS);
+    addChildItem(currentMenu, "Export Settings", RFFCallbackVideo::EXPORT_SETTINGS);
+    addChildItem(currentMenu, "Generate Video Keyframe", RFFCallbackVideo::GENERATE_VID_KEYFRAME);
+    addChildItem(currentMenu, "Export Zooming Video", RFFCallbackVideo::EXPORT_ZOOM_VID);
     currentMenu = addChildMenu(menubar, "Explore");
     addChildItem(currentMenu, "Recompute", RFFCallbackExplore::RECOMPUTE);
     addChildItem(currentMenu, "Refresh Color", RFFCallbackExplore::REFRESH_COLOR);

@@ -6,7 +6,6 @@
 
 #include <string>
 #include <ctime>
-#include <iomanip>
 #include <iostream>
 
 #include "RFF.h"
@@ -23,7 +22,19 @@ struct RFFUtilities {
     }
 
     static float getTime() {
-        return static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count() - RFF::Render::INIT_TIME) / 1e9;
+        return static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count() - RFF::Render::INIT_TIME)
+               / 1e9;
+    }
+
+    static std::string joinString(const std::string &delimiter, const std::vector<std::string> &arr) {
+        std::ostringstream v;
+        for (int i = 0; i < arr.size(); ++i) {
+            if (i > 0) {
+                v << delimiter;
+            }
+            v << arr[i];
+        }
+        return v.str();
     }
 
     static int getRefreshInterval(const float logZoom) {

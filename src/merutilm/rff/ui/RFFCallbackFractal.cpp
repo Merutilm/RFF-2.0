@@ -107,20 +107,20 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackFracta
 };
 const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackFractal::MPA = [
         ](RFFSettingsMenu &settingsMenu, RFFRenderScene &scene) {
-    auto &mpa = scene.getSettings().calculationSettings.mpaSettings;
+    auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod, mpaCompressionMethod] = scene.getSettings().calculationSettings.mpaSettings;
     auto window = std::make_unique<RFFSettingsWindow>("MPA");
-    window->registerTextInput<uint16_t>("Min Skip Reference", &mpa.minSkipReference, Unparser::U_SHORT,
+    window->registerTextInput<uint16_t>("Min Skip Reference", &minSkipReference, Unparser::U_SHORT,
                                         Parser::U_SHORT, [](const unsigned short &v){return v >= 4;},
                                         Callback::NOTHING, "Min Skip Reference",
                                         "Set minimum skipping reference iteration when creating a table.");
-    window->registerTextInput<uint8_t>("Max Multiplier Between Level", &mpa.maxMultiplierBetweenLevel,
+    window->registerTextInput<uint8_t>("Max Multiplier Between Level", &maxMultiplierBetweenLevel,
                                        Unparser::U_CHAR, Parser::U_CHAR,
                                        ValidCondition::POSITIVE_U_CHAR, Callback::NOTHING,
                                        "Set maximum multiplier between adjacent skipping levels.",
                                        "This means the maximum multiplier of two adjacent periods for the new period that inserts between them,\n"
                                        "So the multiplier between the two periods may in the worst case be the square of this."
     );
-    window->registerTextInput<float>("Epsilon Power", &mpa.epsilonPower, Unparser::FLOAT,
+    window->registerTextInput<float>("Epsilon Power", &epsilonPower, Unparser::FLOAT,
                                      Parser::FLOAT, ValidCondition::NEGATIVE_FLOAT,
                                      Callback::NOTHING,
                                      "Set Epsilon power of ten.",
@@ -128,12 +128,12 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackFracta
                                      "The fractal will be rendered glitch-less but slow,\n"
                                      "and is large, It will be fast, but maybe shown visible glitches."
     );
-    window->registerRadioButtonInput<MPASelectionMethod>("Selection Method", &mpa.mpaSelectionMethod,
+    window->registerRadioButtonInput<MPASelectionMethod>("Selection Method", &mpaSelectionMethod,
                                                        Callback::NOTHING, "Set the selection method of MPA.",
                                                        "The first target PA is always the front element."
     );
 
-    window->registerRadioButtonInput<MPACompressionMethod>("Compression Method", &mpa.mpaCompressionMethod,
+    window->registerRadioButtonInput<MPACompressionMethod>("Compression Method", &mpaCompressionMethod,
                                                          Callback::NOTHING, "Set the compression method of MPA.",
                                                          "\"Little Compression\" maybe slowing down for table creation, but allocates the memory efficiently.\n"
                                                          "\"Strongest\" works based on the Reference Compressor, so if it is disabled, it will behave the same as \"Little Compression\".\n "
