@@ -3,26 +3,25 @@
 //
 
 #pragma once
+#include <condition_variable>
 #include <functional>
 #include <mutex>
 #include <thread>
+#include <set>
 
 
-class ParallelRenderState {
+class ParallelRenderState final {
     std::mutex mutex;
-    std::jthread thread = std::jthread([](std::stop_token){});
+    std::jthread thread = std::jthread([](std::stop_token) {
+        //default empty thread
+    });
+
 
 public:
     ParallelRenderState() = default;
 
-    template<typename T>
-    void createThread(T &&func) {
-        std::scoped_lock lock(mutex);
-        cancelUnsafe();
-        thread = std::jthread([f = std::move(func)](const std::stop_token &interrupted) mutable {
-            f(interrupted);
-        });
-    }
+    template<typename T> requires std::is_invocable_r_v<void, T, std::stop_token>
+    void createThread(T &&func);
 
     std::stop_token stopToken() const;
 
@@ -34,5 +33,13 @@ public:
 
 private:
     void cancelUnsafe();
-
 };
+
+template<typename T> requires std::is_invocable_r_v<void, T, std::stop_token>
+void ParallelRenderState::createThread(T &&func) {
+    std::scoped_lock lock(mutex);
+    cancelUnsafe();
+    thread = std::jthread([f = std::forward<T>(func)](const std::stop_token &interrupted) mutable {
+        f(interrupted);
+    });
+}

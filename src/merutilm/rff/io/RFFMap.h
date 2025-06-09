@@ -4,7 +4,7 @@
 
 #pragma once
 #include <cstdint>
-
+#include <string_view>
 #include "../data/Matrix.h"
 
 struct RFFMap {
@@ -17,4 +17,6 @@ struct RFFMap {
     RFFMap(double zoom, uint64_t period, uint64_t maxIteration, const Matrix<double> &iterations);
 
     static RFFMap nullRFFMap();
+
+    void exportAsKeyframe(std::string_view dir);
 };

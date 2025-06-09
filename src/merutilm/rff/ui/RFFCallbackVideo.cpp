@@ -16,7 +16,7 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo:
     window->registerTextInput<float>("Max Iteration", &defaultZoomIncrement,
                                      Unparser::FLOAT,
                                      Parser::FLOAT,
-                                     ValidCondition::POSITIVE_FLOAT,
+                                     [](const float &v) { return v > 1; },
                                      Callback::NOTHING, "Set Default Zoom increment",
                                      "Set the log-Zoom interval between two adjacent video data.");
 
@@ -62,11 +62,26 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo:
 };
 const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo::GENERATE_VID_KEYFRAME = [
         ](RFFSettingsMenu &settingsMenu, RFFRenderScene &scene) {
+    std::string dir = IOUtilities::ioDirectoryDialog("Folder to generate keyframes");
 
-    // IOUtilities::ioFileDialog("test", "RFF Map", IOUtilities::OPEN_FILE, {"rfm"});
-    // std::cout << IOUtilities::ioDirectoryDialog("test 2") << std::endl;
+    float &logZoom = scene.getSettings().calculationSettings.logZoom;
+    if (dir.empty()) {
+        return;
+    }
 
+    scene.getBackgroundThreads().createThread(
+        [&state = scene.getState(), &scene, &logZoom, dir](BackgroundThread &thread) {
+            while (!state.interruptRequested() && logZoom > RFF::Render::ZOOM_MIN) {
+                scene.requestRecompute();
+                thread.waitUntil([&scene] { return !scene.isRecomputeRequested() && scene.isIdle(); });
+                scene.getCurrentMap().exportAsKeyframe(dir);
+                logZoom -= std::log10(scene.getSettings().videoSettings.dataSettings.defaultZoomIncrement);
+            }
 
+            if (state.interruptRequested()) {
+                RFFUtilities::log("Keyframe generation cancelled.");
+            }
+        });
 };
 const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo::EXPORT_ZOOM_VID = [
         ](RFFSettingsMenu &settingsMenu, RFFRenderScene &scene) {

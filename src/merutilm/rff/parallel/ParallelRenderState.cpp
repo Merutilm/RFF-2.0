@@ -4,9 +4,8 @@
 
 #include "ParallelRenderState.h"
 
-#include <iostream>
+#include <future>
 #include <mutex>
-
 
 
 std::stop_token ParallelRenderState::stopToken() const {
@@ -25,7 +24,6 @@ void ParallelRenderState::cancel() {
     std::scoped_lock lock(mutex);
     cancelUnsafe();
 }
-
 
 void ParallelRenderState::cancelUnsafe() {
     if (thread.joinable()) {

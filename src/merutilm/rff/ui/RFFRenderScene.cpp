@@ -6,6 +6,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <condition_variable>
 #include <format>
 #include "glad.h"
 #include "RFF.h"
@@ -231,24 +232,20 @@ void RFFRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC contex
 void RFFRenderScene::renderGL() {
     renderer->setTime(RFFUtilities::getTime());
 
-    if (colorRequested) {
-        colorRequested = false;
+    if (colorRequested.exchange(false)) {
         applyColor(settings);
     }
 
-    if (resizeRequested) {
-        resizeRequested = false;
+    if (resizeRequested.exchange(false)) {
         state.cancel();
         applyResize();
     }
 
-    if (recomputeRequested) {
-        recomputeRequested = false;
+    if (recomputeRequested.exchange(false)) {
         recompute();
     }
 
-    if (createImageRequested) {
-        createImageRequested = false;
+    if (createImageRequested.exchange(false)) {
         applyCreateImage();
     }
 
@@ -340,7 +337,8 @@ void RFFRenderScene::recompute() {
     });
 }
 
-void RFFRenderScene::beforeCompute(Settings &settings) const {
+void RFFRenderScene::beforeCompute(Settings &settings) {
+    idle = false;
     settings.calculationSettings.maxIteration = std::max(this->settings.calculationSettings.maxIteration,
                                                          lastPeriod * RFF::Render::AUTOMATIC_ITERATION_MULTIPLIER);
     rendererIteration->setMaxIteration(settings.calculationSettings.maxIteration);
@@ -537,6 +535,8 @@ void RFFRenderScene::afterCompute(const bool success) {
     if (success && settings.calculationSettings.reuseReferenceMethod == ReuseReferenceMethod::CENTERED_REFERENCE) {
         settings.calculationSettings.reuseReferenceMethod = ReuseReferenceMethod::CURRENT_REFERENCE;
     }
+    idle = true;
+    backgroundThreads.notifyAll();
 }
 
 
@@ -564,4 +564,51 @@ void RFFRenderScene::setCurrentPerturbator(std::unique_ptr<MandelbrotPerturbator
 ApproxTableCache &RFFRenderScene::getApproxTableCache() {
     return approxTableCache;
 }
+
+BackgroundThreads &RFFRenderScene::getBackgroundThreads() {
+    return backgroundThreads;
+}
+
+RFFMap &RFFRenderScene::getCurrentMap() const {
+    return *currentMap;
+}
+
+bool RFFRenderScene::isRecomputeRequested() const {
+    return recomputeRequested;
+}
+
+bool RFFRenderScene::isCreateImageRequested() const {
+    return createImageRequested;
+}
+
+bool RFFRenderScene::isResizeRequested() const {
+    return resizeRequested;
+}
+
+bool RFFRenderScene::isColorRequested() const {
+    return colorRequested;
+}
+
+bool RFFRenderScene::isIdle() const {
+    return idle;
+}
+
+int RFFRenderScene::getCWRequest() const {
+    return cwRequest;
+}
+
+int RFFRenderScene::getCHRequest() const {
+    return chRequest;
+}
+
+void RFFRenderScene::clientResizeRequestSolved() {
+    cwRequest = 0;
+    chRequest = 0;
+}
+
+
+
+
+
+
 

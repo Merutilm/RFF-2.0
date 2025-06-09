@@ -22,6 +22,7 @@
 #include "../opengl/GLRendererIteration.h"
 #include "../opengl/GLRendererSlope.h"
 #include "../opengl/GLRendererStripe.h"
+#include "../parallel/BackgroundThreads.h"
 #include "../parallel/ParallelRenderState.h"
 #include "../preset/Presets.h"
 
@@ -35,11 +36,14 @@ class RFFRenderScene final : private RFFScene {
     uint64_t lastPeriod = 1;
 
     ApproxTableCache approxTableCache = ApproxTableCache();
+    BackgroundThreads backgroundThreads = BackgroundThreads();
 
     std::atomic<bool> recomputeRequested = false;
     std::atomic<bool> resizeRequested = false;
     std::atomic<bool> colorRequested = false;
     std::atomic<bool> createImageRequested = false;
+
+    std::atomic<bool> idle = true;
 
     std::array<std::string, RFF::Status::LENGTH> *statusMessageRef = nullptr;
     std::unique_ptr<RFFMap> currentMap = nullptr;
@@ -55,11 +59,10 @@ class RFFRenderScene final : private RFFScene {
     std::unique_ptr<GLRendererBloom> rendererBloom = nullptr;
     std::unique_ptr<GLRendererAntialiasing> rendererAntialiasing = nullptr;
 
-public:
-
     int cwRequest = 0;
     int chRequest = 0;
 
+public:
     RFFRenderScene();
 
     ~RFFRenderScene() override;
@@ -115,7 +118,7 @@ public:
 
     void recompute();
 
-    void beforeCompute(Settings &settings) const;
+    void beforeCompute(Settings &settings);
 
     bool compute(const Settings &settings);
 
@@ -132,6 +135,26 @@ public:
     void setCurrentPerturbator(std::unique_ptr<MandelbrotPerturbator> perturbator);
 
     ApproxTableCache &getApproxTableCache();
+
+    BackgroundThreads &getBackgroundThreads();
+
+    RFFMap &getCurrentMap() const;
+
+    bool isRecomputeRequested() const;
+
+    bool isResizeRequested() const;
+
+    bool isColorRequested() const;
+
+    bool isCreateImageRequested() const;
+
+    bool isIdle() const;
+
+    int getCWRequest() const;
+
+    int getCHRequest() const;
+
+    void clientResizeRequestSolved();
 
     template<typename P> requires std::is_base_of_v<Preset, P>
     void changePreset(P &preset);

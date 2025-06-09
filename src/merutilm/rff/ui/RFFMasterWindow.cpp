@@ -268,10 +268,9 @@ void RFFMasterWindow::renderLoop() {
 
         std::this_thread::sleep_until(lastRender + std::chrono::milliseconds(ms));
 
-        if (renderer.cwRequest != 0) {
-            setClientSize(renderer.cwRequest, renderer.chRequest);
-            renderer.cwRequest = 0;
-            renderer.chRequest = 0;
+        if (renderer.getCWRequest() != 0) {
+            setClientSize(renderer.getCWRequest(), renderer.getCHRequest());
+            renderer.clientResizeRequestSolved();
             renderer.requestResize();
             renderer.requestRecompute();
         }
@@ -279,6 +278,7 @@ void RFFMasterWindow::renderLoop() {
         if (auto currentTime = std::chrono::high_resolution_clock::now();
             currentTime - lastRender > std::chrono::milliseconds(ms)) {
             renderer.renderGL();
+            renderer.getBackgroundThreads().removeAllEndedThread();
             refreshStatusBar();
             lastRender = currentTime;
         }

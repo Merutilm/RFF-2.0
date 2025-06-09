@@ -170,6 +170,8 @@ add_executable(
         src/merutilm/rff/ui/RFFCallbackVideo.h
         src/merutilm/rff/ui/IOUtilities.cpp
         src/merutilm/rff/ui/IOUtilities.h
+        src/merutilm/rff/parallel/BackgroundThreads.h
+        src/merutilm/rff/parallel/Backgroundthread.h
 )
 
 target_link_libraries(RFF PRIVATE
