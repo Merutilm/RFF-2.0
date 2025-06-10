@@ -61,16 +61,17 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo:
     settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
 };
 const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo::GENERATE_VID_KEYFRAME = [
-        ](RFFSettingsMenu &settingsMenu, RFFRenderScene &scene) {
-    std::string dir = IOUtilities::ioDirectoryDialog("Folder to generate keyframes");
-
-    float &logZoom = scene.getSettings().calculationSettings.logZoom;
-    if (dir.empty()) {
-        return;
-    }
-
+        ](RFFSettingsMenu &, RFFRenderScene &scene) {
     scene.getBackgroundThreads().createThread(
-        [&state = scene.getState(), &scene, &logZoom, dir](BackgroundThread &thread) {
+        [&state = scene.getState(), &scene](BackgroundThread &thread) {
+            const auto dirPtr = IOUtilities::ioDirectoryDialog("Folder to generate keyframes");
+
+            float &logZoom = scene.getSettings().calculationSettings.logZoom;
+            if (dirPtr == nullptr) {
+                return;
+            }
+            const auto &dir = *dirPtr;
+
             while (!state.interruptRequested() && logZoom > RFF::Render::ZOOM_MIN) {
                 scene.requestRecompute();
                 thread.waitUntil([&scene] { return !scene.isRecomputeRequested() && scene.isIdle(); });
@@ -84,5 +85,5 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo:
         });
 };
 const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo::EXPORT_ZOOM_VID = [
-        ](RFFSettingsMenu &settingsMenu, RFFRenderScene &scene) {
+        ](RFFSettingsMenu &, RFFRenderScene &scene) {
 };

@@ -3,20 +3,25 @@
 //
 
 #pragma once
-#include <cstdint>
-#include <string_view>
+#include <filesystem>
 #include "../data/Matrix.h"
 
 struct RFFMap {
-    const double zoom;
+    const float logZoom;
     const uint64_t period;
     const uint64_t maxIteration;
     const Matrix<double> iterations;
 
 
-    RFFMap(double zoom, uint64_t period, uint64_t maxIteration, const Matrix<double> &iterations);
+    RFFMap(float logZoom, uint64_t period, uint64_t maxIteration, Matrix<double> iterations);
 
-    static RFFMap nullRFFMap();
+    static RFFMap defaultRFFMap();
 
-    void exportAsKeyframe(std::string_view dir);
+    bool hasData() const;
+
+    static RFFMap read(const std::filesystem::path &path);
+
+    void exportAsKeyframe(const std::filesystem::path &dir) const;
+
+    void exportRFM(const std::filesystem::path &path) const;
 };

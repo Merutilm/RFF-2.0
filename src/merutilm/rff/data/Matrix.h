@@ -9,54 +9,56 @@
 
 template<typename T>
 struct Matrix {
-    const int width;
-    const int height;
+    const uint16_t width;
+    const uint16_t height;
     std::vector<T> canvas;
 
-    Matrix(const int width, const int height) : width(width), height(height), canvas(std::vector<T>(width * height)) {
+    Matrix(const uint16_t width, const uint16_t height) : width(width), height(height),
+                                                          canvas(std::vector<T>(width * height)) {
     }
 
-    Matrix(const int width, const int height, const std::vector<T> &data) : width(width), height(height), canvas(data) {
+    Matrix(const uint16_t width, const uint16_t height, const std::vector<T> &data) : width(width), height(height),
+        canvas(data) {
     }
 
-    const T &operator[](int i) const {
+    const T &operator[](uint32_t i) const {
         return canvas[i];
     }
 
-    T &operator[](int i) {
+    T &operator[](uint32_t i) {
         return canvas[i];
     }
 
-    const T &operator()(const int x, const int y) const {
+    const T &operator()(const uint16_t x, const uint16_t y) const {
         return canvas[getIndex(x, y)];
     }
 
-    T &operator()(const int x, const int y) {
+    T &operator()(const uint16_t x, const uint16_t y) {
         return canvas[getIndex(x, y)];
     }
 
-    int getIndex(int x, int y) const {
-        x = std::clamp(x, 0, width - 1);
-        y = std::clamp(y, 0, height - 1);
-        return width * y + x;
+    uint32_t getIndex(uint16_t x, uint16_t y) const {
+        x = std::clamp(x, static_cast<uint16_t>(0), static_cast<uint16_t>(width - 1));
+        y = std::clamp(y, static_cast<uint16_t>(0), static_cast<uint16_t>(height - 1));
+        return static_cast<uint32_t>(width) * y + x;
     }
 
-    std::array<int, 2> getLocation(const int i) const {
-        const int px = i % width;
-        const int py = i / width;
+    std::array<uint16_t, 2> getLocation(const uint32_t i) const {
+        const uint16_t px = i % width;
+        const uint16_t py = i / width;
         return {px, py};
     }
 
-    int getWidth() const {
+    uint16_t getWidth() const {
         return width;
     }
 
-    int getHeight() const {
+    uint16_t getHeight() const {
         return height;
     }
 
-    int getLength() const {
-        return width * height;
+    uint32_t getLength() const {
+        return static_cast<uint32_t>(width) * height;
     }
 
     std::vector<T> &getCanvas() {

@@ -34,10 +34,11 @@ public:
 
     static void detach();
 
-    static int recreateTexture2D(GLuint textureID, int width, int height, TextureFormat textureFormat);
+    static int recreateTexture2D(GLuint textureID, uint16_t width, uint16_t height, TextureFormat textureFormat);
+
     void uploadTexture2D(const std::string &varName, int textureUnit, int textureID) const;
 
-    void uploadTexture2D(const std::string &varName, int textureUnit, int textureID, const void *buffer, int w, int h,
+    void uploadTexture2D(const std::string &varName, int textureUnit, int textureID, const void *buffer, uint16_t w, uint16_t h,
                          TextureFormat textureFormat) const;
 
     void uploadDouble(const std::string &varName, double value) const;

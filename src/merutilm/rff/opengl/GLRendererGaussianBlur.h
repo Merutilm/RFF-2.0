@@ -25,7 +25,7 @@ public:
     GLRendererGaussianBlur &operator=(GLRendererGaussianBlur &&) = delete;
 
 
-    void reloadSize(int w, int h) override;
+    void reloadSize(uint16_t w, uint16_t h) override;
 
     void setAdditionalBlurParams(std::function<void(GLShaderLoader&)> &&additionalParams) const;
 

@@ -7,13 +7,15 @@
 #include "../data/Matrix.h"
 
 template<typename T>
-using ParallelArrayRenderer = std::function<T(int x, int y, int xRes, int yRes, float xRat, float yRat, int index,
+using ParallelArrayRenderer = std::function<T(uint16_t x, uint16_t y, uint16_t xRes, uint16_t yRes, float xRat, float yRat, uint32_t index,
                                               T value)>;
+
 
 template<typename T>
 class ParallelArrayDispatcher {
     ParallelRenderState &state;
     Matrix<T> &matrix;
+
     ParallelArrayRenderer<T> renderer;
 
 public:
@@ -24,13 +26,13 @@ public:
     void dispatch();
 
 private:
-    static std::vector<int> getRenderPriority(int rpy);
+    static std::vector<uint16_t> getRenderPriority(uint16_t rpy);
 
 
-    void renderForward(int xRes, int yRes, int y, std::vector<std::atomic<bool> > &rendered);
+    void renderForward(uint16_t xRes, uint16_t yRes, uint16_t y, std::vector<std::atomic<bool> > &rendered);
 
 
-    void renderBackward(int xRes, int yRes, int len, std::vector<std::atomic<bool> > &rendered);
+    void renderBackward(uint16_t xRes, uint16_t yRes, uint32_t len, std::vector<std::atomic<bool> > &rendered);
 };
 
 // DEFINITION OF PARALLEL ARRAY DISPATCHER  DEFINITION OF PARALLEL ARRAY DISPATCHER  DEFINITION OF PARALLEL ARRAY DISPATCHER  DEFINITION OF PARALLEL ARRAY DISPATCHER
@@ -49,13 +51,13 @@ ParallelArrayDispatcher<T>::ParallelArrayDispatcher(ParallelRenderState &state, 
 template<typename T>
 void ParallelArrayDispatcher<T>::dispatch() {
     const auto cores = std::thread::hardware_concurrency();
-    const int rpy = matrix.getHeight() / cores + 1;
+    const uint16_t rpy = matrix.getHeight() / cores + 1;
     if (state.interruptRequested()) {
         return;
     }
 
 
-    const std::vector<int> rpyIndices = getRenderPriority(rpy);
+    const std::vector<uint16_t> rpyIndices = getRenderPriority(rpy);
     auto threadPool = std::vector<std::jthread>();
     threadPool.reserve(cores);
     auto xRes = matrix.getWidth();
@@ -63,7 +65,7 @@ void ParallelArrayDispatcher<T>::dispatch() {
     auto len = matrix.getLength();
     auto rendered = std::vector<std::atomic<bool> >(len);
 
-    for (int sy = 0; sy < matrix.getHeight(); sy += rpy) {
+    for (uint16_t sy = 0; sy < matrix.getHeight(); sy += rpy) {
         threadPool.emplace_back([sy, &rpyIndices, xRes, yRes, this, &rendered, len] {
             for (const auto vy: rpyIndices) {
                 renderForward(xRes, yRes, sy + vy, rendered);
@@ -82,14 +84,14 @@ void ParallelArrayDispatcher<T>::dispatch() {
 
 
 template<typename T>
-std::vector<int> ParallelArrayDispatcher<T>::getRenderPriority(const int rpy) {
-    auto result = std::vector(rpy, 0);
-    int count = rpy >> 1;
-    int repetition = 1;
-    int index = 1;
+std::vector<uint16_t> ParallelArrayDispatcher<T>::getRenderPriority(const uint16_t rpy) {
+    auto result = std::vector<uint16_t>(rpy, 0);
+    uint16_t count = rpy >> 1;
+    uint16_t repetition = 1;
+    uint16_t index = 1;
 
     while (count > 0) {
-        for (int j = 0; j < repetition; ++j) {
+        for (uint16_t j = 0; j < repetition; ++j) {
             result[index] = result[j] + count;
             ++index;
         }
@@ -102,10 +104,10 @@ std::vector<int> ParallelArrayDispatcher<T>::getRenderPriority(const int rpy) {
     cpy.resize(index);
     std::ranges::sort(cpy);
 
-    int cpyIndex = 0;
+    uint16_t cpyIndex = 0;
     while (index < result.size()) {
         if (
-            const int missing = cpyIndex + count;
+            const uint16_t missing = cpyIndex + count;
             cpy.size() <= cpyIndex || cpy[cpyIndex] != missing) {
             result[index] = missing;
             ++index;
@@ -117,18 +119,18 @@ std::vector<int> ParallelArrayDispatcher<T>::getRenderPriority(const int rpy) {
 
 
 template<typename T>
-void ParallelArrayDispatcher<T>::renderForward(const int xRes, const int yRes, const int y,
+void ParallelArrayDispatcher<T>::renderForward(const uint16_t xRes, const uint16_t yRes, const uint16_t y,
                                                std::vector<std::atomic<bool> > &rendered) {
     if (y >= yRes) {
         return;
     }
 
-    for (int x = 0; x < xRes; ++x) {
+    for (uint16_t x = 0; x < xRes; ++x) {
         if (x % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
             return;
         }
 
-        int i = xRes * y + x;
+        uint32_t i = static_cast<uint32_t>(xRes) * y + x;
 
         if (!rendered[i].exchange(true)) {
             matrix[i] = renderer(x, y, xRes, yRes, static_cast<float>(x) / xRes,
@@ -139,18 +141,18 @@ void ParallelArrayDispatcher<T>::renderForward(const int xRes, const int yRes, c
 
 
 template<typename T>
-void ParallelArrayDispatcher<T>::renderBackward(const int xRes, const int yRes, const int len,
+void ParallelArrayDispatcher<T>::renderBackward(const uint16_t xRes, const uint16_t yRes, const uint32_t len,
                                                 std::vector<std::atomic<bool> > &rendered) {
-    for (int i = len - 1; i >= 0; --i) {
+    for (uint32_t i = len - 1; i > 0; --i) {
         if (i % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
             return;
         }
         const auto [px, py] = matrix.getLocation(i);
 
         if (!rendered[i].exchange(true)) {
-            double c = renderer(px, py, xRes, yRes, static_cast<float>(px) / xRes, static_cast<float>(py) / yRes, i,
+            T c = renderer(px, py, xRes, yRes, static_cast<float>(px) / xRes, static_cast<float>(py) / yRes, i,
                                 matrix[i]);
-            matrix[i] = c;
+            matrix[i] = std::move(c);
         }
     }
 }

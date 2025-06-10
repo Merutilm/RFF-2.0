@@ -54,7 +54,7 @@ namespace RFF {
         constexpr float ZOOM_DEADLINE = 290;
         constexpr uint64_t MINIMUM_ITERATION = 100;
         constexpr int AUTOMATIC_ITERATION_MULTIPLIER = 50;
-        constexpr int GAUSSIAN_MAX_WIDTH = 200;
+        constexpr uint16_t GAUSSIAN_MAX_WIDTH = 200;
         constexpr int GAUSSIAN_REQUIRES_BOX = 3;
         constexpr double INTENTIONAL_ERROR_DCLMB = 1e16; //DCmax for Locate Mini Brot
         constexpr double INTENTIONAL_ERROR_DCPTB = 1e128; //DCmax for Per Tur Bation
@@ -98,7 +98,8 @@ namespace RFF {
         constexpr auto PROCESS_TERMINATED_REFERENCE = nullptr;
     }
 
-    namespace Locator {
+    namespace Extension {
+        constexpr auto MAP = "rfm";
     }
 
     namespace GLConfig {

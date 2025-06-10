@@ -154,7 +154,7 @@ void GLShaderLoader::detach() {
     glUseProgram(0);
 }
 
-int GLShaderLoader::recreateTexture2D(GLuint textureID, const int width, const int height,
+int GLShaderLoader::recreateTexture2D(GLuint textureID, const uint16_t width, const uint16_t height,
                                       const TextureFormat textureFormat) {
     if (glIsTexture(textureID)) {
         glDeleteTextures(1, &textureID);
@@ -179,7 +179,7 @@ void GLShaderLoader::uploadTexture2D(const std::string &varName, const int textu
 }
 
 void GLShaderLoader::uploadTexture2D(const std::string &varName, const int textureUnit, const int textureID,
-                                     const void *buffer, const int w, const int h,
+                                     const void *buffer, const uint16_t w, const uint16_t h,
                                      const TextureFormat textureFormat) const {
     glActiveTexture(textureUnit);
     glBindTexture(GL_TEXTURE_2D, textureID);

@@ -7,8 +7,8 @@
 
 class GLRenderer {
     GLShaderLoader shader;
-    int w = 0;
-    int h = 0;
+    uint16_t w = 0;
+    uint16_t h = 0;
     GLuint previousFBOTextureID = 0;
     GLuint fbo;
     GLuint fboTextureID;
@@ -26,15 +26,15 @@ protected:
     virtual void afterUpdate();
 
 public:
-    int getWidth() const;
+    uint16_t getWidth() const;
 
-    int getHeight() const;
+    uint16_t getHeight() const;
 
     GLuint getPrevFBOTextureID() const;
 
     void setToDisplay();
 
-    void resetFBOTexture(int width, int height);
+    void resetFBOTexture(uint16_t width, uint16_t height);
 
     GLuint getFBO() const;
 
@@ -48,7 +48,7 @@ public:
 
     GLShaderLoader &getShaderLoader();
 
-    virtual void reloadSize(int width, int height);
+    virtual void reloadSize(uint16_t width, uint16_t height);
 
     void render();
 };

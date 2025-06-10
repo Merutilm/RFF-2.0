@@ -11,9 +11,9 @@ GLRendererGaussianBlur::GLRendererGaussianBlur(const std::string_view name, cons
     }
 }
 
-void GLRendererGaussianBlur::reloadSize(const int w, const int h) {
+void GLRendererGaussianBlur::reloadSize(const uint16_t w, const uint16_t h) {
     for (const auto &boxBlur: boxBlurs) {
-        boxBlur->reloadSize(std::min(RFF::Render::GAUSSIAN_MAX_WIDTH * w / h, w),
+        boxBlur->reloadSize(std::min(static_cast<uint16_t>(static_cast<uint32_t>(RFF::Render::GAUSSIAN_MAX_WIDTH) * w / h), w),
                             std::min(RFF::Render::GAUSSIAN_MAX_WIDTH, h));
     }
     GLRenderer::reloadSize(w, h);
@@ -32,7 +32,7 @@ GLuint GLRendererGaussianBlur::getBlurredTextureID() const {
 }
 
 
-void GLRendererGaussianBlur::setPreviousFBOTextureID(GLuint previousFBOTextureID) {
+void GLRendererGaussianBlur::setPreviousFBOTextureID(const GLuint previousFBOTextureID) {
     GLRenderer::setPreviousFBOTextureID(previousFBOTextureID);
     for (int i = 0; i < RFF::Render::GAUSSIAN_REQUIRES_BOX; ++i) {
         if (i == 0) {
@@ -45,7 +45,7 @@ void GLRendererGaussianBlur::setPreviousFBOTextureID(GLuint previousFBOTextureID
 
 
 void GLRendererGaussianBlur::beforeUpdate() {
-    for (auto &boxBlur: boxBlurs) {
+    for (const auto &boxBlur: boxBlurs) {
         boxBlur->render();
     }
     GLRenderer::beforeUpdate();

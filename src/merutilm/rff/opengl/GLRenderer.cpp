@@ -28,7 +28,7 @@ GLRenderer::~GLRenderer() {
 }
 
 
-void GLRenderer::reloadSize(const int width, const int height) {
+void GLRenderer::reloadSize(const uint16_t width, const uint16_t height) {
     this->w = width;
     this->h = height;
     resetFBOTexture(w, h);
@@ -48,11 +48,11 @@ void GLRenderer::afterUpdate() {
     }
 }
 
-int GLRenderer::getWidth() const {
+uint16_t GLRenderer::getWidth() const {
     return w;
 }
 
-int GLRenderer::getHeight() const {
+uint16_t GLRenderer::getHeight() const {
     return h;
 }
 
@@ -74,7 +74,7 @@ void GLRenderer::setToDisplay() {
 }
 
 
-void GLRenderer::resetFBOTexture(const int width, const int height) {
+void GLRenderer::resetFBOTexture(const uint16_t width, const uint16_t height) {
     if (fbo == 0) {
         return;
     }

@@ -16,8 +16,8 @@ GLRendererIteration::~GLRendererIteration() {
     }
 }
 
-void GLRendererIteration::setIteration(const int x, const int y, const double iteration) {
-    const int index = (y * iterWidth + x) * 2;
+void GLRendererIteration::setIteration(const uint32_t x, const uint32_t y, const double iteration) {
+    const uint32_t index = (static_cast<uint32_t>(y) * iterWidth + x) * 2;
     auto [a, b] = doubleToTwoFloatBits(iteration);
     iterationBuffer[index] = a;
     iterationBuffer[index + 1] = b;
@@ -98,8 +98,8 @@ std::array<float, 2> GLRendererIteration::doubleToTwoFloatBits(const double v) {
     return std::array{std::bit_cast<float>(high), std::bit_cast<float>(low)};
 }
 
-std::vector<float> GLRendererIteration::emptyIterationBuffer(const int iterWidth, const int iterHeight) {
-    return std::vector<float>(iterWidth * iterHeight * 2);
+std::vector<float> GLRendererIteration::emptyIterationBuffer(const uint16_t iterWidth, const uint16_t iterHeight) {
+    return std::vector<float>(static_cast<uint32_t>(iterWidth) * iterHeight * 2);
 }
 
 void GLRendererIteration::fillZero() {
@@ -111,9 +111,9 @@ void GLRendererIteration::setMaxIteration(const uint64_t maxIteration) {
     this->maxIteration = static_cast<double>(maxIteration);
 }
 
-void GLRendererIteration::setAllIterations(Matrix<double> &iterations) {
+void GLRendererIteration::setAllIterations(const Matrix<double> &iterations) {
     iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
-    for (int i = 0; i < iterWidth * iterHeight; i++) {
+    for (uint32_t i = 0; i < static_cast<uint32_t>(iterWidth) * iterHeight; i++) {
         auto [high, low] = doubleToTwoFloatBits(iterations[i]);
         iterationBuffer[i * 2] = high;
         iterationBuffer[i * 2 + 1] = low;

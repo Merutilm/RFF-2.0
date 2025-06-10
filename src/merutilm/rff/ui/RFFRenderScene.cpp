@@ -6,7 +6,6 @@
 
 #include <chrono>
 #include <cmath>
-#include <condition_variable>
 #include <format>
 #include "glad.h"
 #include "RFF.h"
@@ -93,14 +92,16 @@ void RFFRenderScene::runAction(const UINT message, const WPARAM wParam) {
         }
         case WM_LBUTTONUP: {
             SetCursor(LoadCursor(nullptr, IDC_CROSS));
+            mouseX = 0;
+            mouseY = 0;
         }
         case WM_MOUSEMOVE: {
-            const int x = getMouseXOnIterationBuffer();
-            const int y = getMouseYOnIterationBuffer();
-            if (wParam == MK_LBUTTON) {
+            const uint16_t x = getMouseXOnIterationBuffer();
+            const uint16_t y = getMouseYOnIterationBuffer();
+            if (wParam == MK_LBUTTON && mouseX > 0 && mouseY > 0) {
                 SetCursor(LoadCursor(nullptr, IDC_SIZEALL));
-                const int dx = mouseX - x;
-                const int dy = mouseY - y;
+                const int16_t dx = static_cast<int16_t>(mouseX) - x;
+                const int16_t dy = static_cast<int16_t>(mouseY) - y;
                 const float m = settings.renderSettings.clarityMultiplier;
                 const float logZoom = settings.calculationSettings.logZoom;
                 fp_complex &center = settings.calculationSettings.center;
@@ -176,24 +177,24 @@ double_exp RFFRenderScene::getDivisor(const Settings &settings) {
     return v;
 }
 
-int RFFRenderScene::getClientWidth() const {
+uint16_t RFFRenderScene::getClientWidth() const {
     RECT rect;
     GetClientRect(getRenderWindow(), &rect);
-    return rect.right - rect.left;
+    return static_cast<uint16_t>(rect.right - rect.left);
 }
 
-int RFFRenderScene::getClientHeight() const {
+uint16_t RFFRenderScene::getClientHeight() const {
     RECT rect;
     GetClientRect(getRenderWindow(), &rect);
-    return rect.bottom - rect.top;
+    return static_cast<uint16_t>(rect.bottom - rect.top);
 }
 
-int RFFRenderScene::getIterationBufferWidth(const Settings &settings) const {
+uint16_t RFFRenderScene::getIterationBufferWidth(const Settings &settings) const {
     const float multiplier = settings.renderSettings.clarityMultiplier;
     return static_cast<int>(static_cast<float>(getClientWidth()) * multiplier);
 }
 
-int RFFRenderScene::getIterationBufferHeight(const Settings &settings) const {
+uint16_t RFFRenderScene::getIterationBufferHeight(const Settings &settings) const {
     const float multiplier = settings.renderSettings.clarityMultiplier;
     return static_cast<int>(static_cast<float>(getClientHeight()) * multiplier);
 }
@@ -311,20 +312,26 @@ void RFFRenderScene::applyResize() {
     iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
 }
 
-int RFFRenderScene::getMouseXOnIterationBuffer() const {
-    POINT cursor;
-    GetCursorPos(&cursor);
-    ScreenToClient(getRenderWindow(), &cursor);
-    const float multiplier = settings.renderSettings.clarityMultiplier;
-    return static_cast<int>(static_cast<float>(cursor.x) * multiplier);
+void RFFRenderScene::overwriteMatrixFromMap() const {
+    renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->iterations.width, currentMap->iterations.height);
+    rendererIteration->setAllIterations(currentMap->iterations);
 }
 
-int RFFRenderScene::getMouseYOnIterationBuffer() const {
+
+uint16_t RFFRenderScene::getMouseXOnIterationBuffer() const {
     POINT cursor;
     GetCursorPos(&cursor);
     ScreenToClient(getRenderWindow(), &cursor);
     const float multiplier = settings.renderSettings.clarityMultiplier;
-    return getIterationBufferHeight(settings) - static_cast<int>(static_cast<float>(cursor.y) * multiplier);
+    return static_cast<uint16_t>(static_cast<float>(cursor.x) * multiplier);
+}
+
+uint16_t RFFRenderScene::getMouseYOnIterationBuffer() const {
+    POINT cursor;
+    GetCursorPos(&cursor);
+    ScreenToClient(getRenderWindow(), &cursor);
+    const float multiplier = settings.renderSettings.clarityMultiplier;
+    return getIterationBufferHeight(settings) - static_cast<uint16_t>(static_cast<float>(cursor.y) * multiplier);
 }
 
 
@@ -514,7 +521,7 @@ bool RFFRenderScene::compute(const Settings &settings) {
 
     auto syncer = ParallelDispatcher(
         state, w, h,
-        [this](const int x, const int y, int, int, float, float, int) {
+        [this](const uint16_t x, const uint16_t y, int, int, float, float, int) {
             rendererIteration->setIteration(x, y, (*iterationMatrix)(x, y));
         });
 
@@ -571,6 +578,10 @@ BackgroundThreads &RFFRenderScene::getBackgroundThreads() {
 
 RFFMap &RFFRenderScene::getCurrentMap() const {
     return *currentMap;
+}
+
+void RFFRenderScene::setCurrentMap(const RFFMap &map) {
+    this->currentMap = std::make_unique<RFFMap>(map);
 }
 
 bool RFFRenderScene::isRecomputeRequested() const {

@@ -30,8 +30,8 @@
 class RFFRenderScene final : private RFFScene {
     ParallelRenderState state;
     Settings settings;
-    int mouseX = 0;
-    int mouseY = 0;
+    uint16_t mouseX = 0;
+    uint16_t mouseY = 0;
 
     uint64_t lastPeriod = 1;
 
@@ -59,13 +59,14 @@ class RFFRenderScene final : private RFFScene {
     std::unique_ptr<GLRendererBloom> rendererBloom = nullptr;
     std::unique_ptr<GLRendererAntialiasing> rendererAntialiasing = nullptr;
 
-    int cwRequest = 0;
-    int chRequest = 0;
+    uint16_t cwRequest = 0;
+    uint16_t chRequest = 0;
 
 public:
     RFFRenderScene();
 
     ~RFFRenderScene() override;
+
 
     RFFRenderScene(const RFFRenderScene &) = delete;
 
@@ -85,13 +86,13 @@ public:
 
     static double_exp getDivisor(const Settings &settings);
 
-    int getClientWidth() const;
+    uint16_t getClientWidth() const;
 
-    int getClientHeight() const;
+    uint16_t getClientHeight() const;
 
-    int getIterationBufferWidth(const Settings &settings) const;
+    uint16_t getIterationBufferWidth(const Settings &settings) const;
 
-    int getIterationBufferHeight(const Settings &settings) const;
+    uint16_t getIterationBufferHeight(const Settings &settings) const;
 
     void configure(HWND wnd, HDC hdc, HGLRC context,
                    std::array<std::string, RFF::Status::LENGTH> *statusMessageRef);
@@ -112,9 +113,11 @@ public:
 
     void applyResize();
 
-    int getMouseXOnIterationBuffer() const;
+    void overwriteMatrixFromMap() const;
 
-    int getMouseYOnIterationBuffer() const;
+    uint16_t getMouseXOnIterationBuffer() const;
+
+    uint16_t getMouseYOnIterationBuffer() const;
 
     void recompute();
 
@@ -139,6 +142,8 @@ public:
     BackgroundThreads &getBackgroundThreads();
 
     RFFMap &getCurrentMap() const;
+
+    void setCurrentMap(const RFFMap &map);
 
     bool isRecomputeRequested() const;
 

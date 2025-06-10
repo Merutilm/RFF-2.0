@@ -4,14 +4,17 @@
 
 #include "IOUtilities.h"
 
+#include <filesystem>
 #include <iostream>
 
 #include "RFFUtilities.h"
 #include "../data/ApproxTableCache.h"
 
 
-std::string IOUtilities::ioFileDialog(const std::string &title, const std::string &desc, const char type,
-                                      std::vector<std::string> &&extensions) {
+std::unique_ptr<std::filesystem::path> IOUtilities::ioFileDialog(const std::string_view title,
+                                                                 const std::string_view desc,
+                                                                 const char type,
+                                                                 std::vector<std::string> &&extensions) {
     OPENFILENAME fn;
     ZeroMemory(&fn, sizeof(fn));
 
@@ -20,7 +23,8 @@ std::string IOUtilities::ioFileDialog(const std::string &title, const std::strin
         extension = "*." + extension;
     }
 
-    auto display = desc + "(" + RFFUtilities::joinString(",", ext) + ")";
+
+    auto display = std::format("{}({})", desc, RFFUtilities::joinString(",", ext));
     auto filter = RFFUtilities::joinString(";", ext);
     auto pattern = std::vector<char>();
     pattern.insert(pattern.end(), display.begin(), display.end());
@@ -41,20 +45,20 @@ std::string IOUtilities::ioFileDialog(const std::string &title, const std::strin
     switch (type) {
         case OPEN_FILE: {
             fn.Flags |= OFN_FILEMUSTEXIST;
-            if (GetOpenFileName(&fn)) return fn.lpstrFile;
+            if (GetOpenFileName(&fn)) return std::make_unique<std::filesystem::path>(fn.lpstrFile);
             break;
         }
         case SAVE_FILE: {
             fn.Flags |= OFN_OVERWRITEPROMPT;
-            if (GetSaveFileName(&fn)) return fn.lpstrFile;
+            if (GetSaveFileName(&fn)) return std::make_unique<std::filesystem::path>(fn.lpstrFile);
             break;
         }
         default: break;
     }
-    return "";
+    return nullptr;
 }
 
-std::string IOUtilities::ioDirectoryDialog(const std::string &title) {
+std::unique_ptr<std::filesystem::path> IOUtilities::ioDirectoryDialog(const std::string_view title) {
     BROWSEINFO bi = {};
     bi.lpszTitle = title.data();
     bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
@@ -63,7 +67,31 @@ std::string IOUtilities::ioDirectoryDialog(const std::string &title) {
         char path[MAX_PATH];
         SHGetPathFromIDList(item, path);
         CoTaskMemFree(item);
-        return path;
+        return std::make_unique<std::filesystem::path>(path);
     }
-    return "";
+    return nullptr;
+}
+
+std::string IOUtilities::fileNameFormat(const unsigned int n, const std::string_view extension) {
+    return std::format("{:04d}.{}", n, extension);
+}
+
+std::filesystem::path IOUtilities::generateFileName(const std::filesystem::path &dir, const std::string_view extension) {
+    unsigned int n = 0;
+    std::filesystem::path p = dir;
+    do {
+        ++n;
+        p = dir / fileNameFormat(n, extension);
+    } while (std::filesystem::exists(p));
+    return p;
+}
+
+int IOUtilities::fileNameCount(const std::filesystem::path &dir, const std::string_view extension) {
+    unsigned int n = 0;
+    std::filesystem::path p = dir;
+    do {
+        ++n;
+        p = dir / fileNameFormat(n, extension);
+    } while (std::filesystem::exists(p));
+    return n - 1;
 }

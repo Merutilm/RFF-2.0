@@ -11,8 +11,8 @@
 
 class GLRendererIteration final : public GLRenderer, public GLTimeRenderer, public GLIterationTextureProvider {
     const PaletteSettings *paletteSettings = nullptr;
-    int iterWidth = 0;
-    int iterHeight = 0;
+    uint16_t iterWidth = 0;
+    uint16_t iterHeight = 0;
     double maxIteration = 0.0;
 
     GLuint paletteTextureID = 0;
@@ -38,7 +38,7 @@ public:
 
     GLRendererIteration &operator=(GLRendererIteration &&) = delete;
 
-    void setIteration(int x, int y, double iteration);
+    void setIteration(uint32_t x, uint32_t y, double iteration);
 
     void setTime(float time) override;
 
@@ -58,12 +58,12 @@ public:
 
     void update() override;
 
-    void setAllIterations(Matrix<double> &iterations);
+    void setAllIterations(const Matrix<double> &iterations);
 
 private:
     static std::array<float, 2> doubleToTwoFloatBits(double v);
 
-    static std::vector<float> emptyIterationBuffer(int iterWidth, int iterHeight);
+    static std::vector<float> emptyIterationBuffer(uint16_t iterWidth, uint16_t iterHeight);
 
 
     static std::vector<float> createPaletteBuffer(const PaletteSettings &paletteSettings, int paletteWidth,
