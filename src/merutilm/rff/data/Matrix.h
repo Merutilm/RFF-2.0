@@ -8,11 +8,12 @@
 #include <array>
 
 template<typename T>
-struct Matrix {
-    const uint16_t width;
-    const uint16_t height;
+class Matrix {
+    uint16_t width;
+    uint16_t height;
     std::vector<T> canvas;
 
+public:
     Matrix(const uint16_t width, const uint16_t height) : width(width), height(height),
                                                           canvas(std::vector<T>(width * height)) {
     }
@@ -61,7 +62,7 @@ struct Matrix {
         return static_cast<uint32_t>(width) * height;
     }
 
-    std::vector<T> &getCanvas() {
+    const std::vector<T> &getCanvas() const {
         return canvas;
     }
 

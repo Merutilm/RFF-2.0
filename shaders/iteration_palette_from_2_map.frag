@@ -3,7 +3,6 @@
 
 
 uniform ivec2 resolution;
-uniform float resolutionMultiplier;
 uniform double maxIteration;
 
 uniform sampler2D normalAndZoomed;
@@ -20,7 +19,7 @@ vec2 toFloatIteration(double iteration){
 }
 
 double getIterationNormal(ivec2 coord){
-    vec4 iteration = texelFetch(normalAndZoomed, ivec2(coord * resolutionMultiplier), 0);
+    vec4 iteration = texelFetch(normalAndZoomed, ivec2(coord), 0);
     uvec2 ith = floatBitsToUint(iteration.yx);
     double result = packDouble2x32(ith);
     if(result >= maxIteration){
@@ -30,7 +29,7 @@ double getIterationNormal(ivec2 coord){
 }
 
 double getIterationZoomed(ivec2 coord){
-    vec4 iteration = texelFetch(normalAndZoomed, ivec2(coord * resolutionMultiplier), 0);
+    vec4 iteration = texelFetch(normalAndZoomed, ivec2(coord), 0);
     uvec2 ith = floatBitsToUint(iteration.wz);
     double result = packDouble2x32(ith);
     if(result >= maxIteration){

@@ -17,23 +17,23 @@ RFFMap::RFFMap(const float logZoom, const uint64_t period, const uint64_t maxIte
                                             iterations(std::move(iterations)) {
 }
 
-RFFMap RFFMap::defaultRFFMap() {
-    return RFFMap(0, 0, 0, Matrix<double>(0, 0));
-};
-
 
 bool RFFMap::hasData() const {
-    return iterations.width > 0;
+    return iterations.getWidth() > 0;
+}
+
+RFFMap RFFMap::readByID(const std::filesystem::path& open, const uint32_t id) {
+    return read(open / IOUtilities::fileNameFormat(id, RFF::Extension::MAP));
 }
 
 RFFMap RFFMap::read(const std::filesystem::path &path) {
     if (!std::filesystem::exists(path)) {
-        return defaultRFFMap();
+        return DEFAULT_MAP;
     }
     std::ifstream in(path, std::ios::in | std::ios::binary);
 
     if (!in.is_open()) {
-        return defaultRFFMap();
+        return DEFAULT_MAP;
     }
 
     uint16_t w;
@@ -62,9 +62,26 @@ void RFFMap::exportRFM(const std::filesystem::path &path) const {
         IOUtilities::encodeAndWrite(out, logZoom);
         IOUtilities::encodeAndWrite(out, period);
         IOUtilities::encodeAndWrite(out, maxIteration);
-        IOUtilities::encodeAndWrite(out, iterations.canvas);
+        IOUtilities::encodeAndWrite(out, iterations.getCanvas());
         out.close();
     } else {
         RFFUtilities::log("ERROR : Cannot save file");
     }
+}
+
+
+float RFFMap::getLogZoom() const {
+    return logZoom;
+}
+
+uint64_t RFFMap::getPeriod() const {
+    return period;
+}
+
+uint64_t RFFMap::getMaxIteration() const {
+    return maxIteration;
+}
+
+const Matrix<double> &RFFMap::getIterations() const {
+    return iterations;
 }

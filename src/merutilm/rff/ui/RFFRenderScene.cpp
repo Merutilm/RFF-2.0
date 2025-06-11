@@ -86,30 +86,30 @@ void RFFRenderScene::runAction(const UINT message, const WPARAM wParam) {
     switch (message) {
         case WM_LBUTTONDOWN: {
             SetCursor(LoadCursor(nullptr, IDC_SIZEALL));
-            mouseX = getMouseXOnIterationBuffer();
-            mouseY = getMouseYOnIterationBuffer();
+            interactedMX = getMouseXOnIterationBuffer();
+            interactedMY = getMouseYOnIterationBuffer();
             break;
         }
         case WM_LBUTTONUP: {
             SetCursor(LoadCursor(nullptr, IDC_CROSS));
-            mouseX = 0;
-            mouseY = 0;
+            interactedMX = 0;
+            interactedMY = 0;
         }
         case WM_MOUSEMOVE: {
             const uint16_t x = getMouseXOnIterationBuffer();
             const uint16_t y = getMouseYOnIterationBuffer();
-            if (wParam == MK_LBUTTON && mouseX > 0 && mouseY > 0) {
+            if (wParam == MK_LBUTTON && interactedMX > 0 && interactedMY > 0) {
                 SetCursor(LoadCursor(nullptr, IDC_SIZEALL));
-                const int16_t dx = static_cast<int16_t>(mouseX) - x;
-                const int16_t dy = static_cast<int16_t>(mouseY) - y;
+                const auto dx = static_cast<int16_t>(interactedMX - x);
+                const auto dy = static_cast<int16_t>(interactedMY - y);
                 const float m = settings.renderSettings.clarityMultiplier;
                 const float logZoom = settings.calculationSettings.logZoom;
                 fp_complex &center = settings.calculationSettings.center;
                 center = center.addCenterDouble(double_exp::value(static_cast<float>(dx) / m) / getDivisor(settings),
                                                 double_exp::value(static_cast<float>(dy) / m) / getDivisor(settings),
                                                 Perturbator::logZoomToExp10(logZoom));
-                mouseX = x;
-                mouseY = y;
+                interactedMX = x;
+                interactedMY = y;
                 requestRecompute();
             } else {
                 SetCursor(LoadCursor(nullptr, IDC_CROSS));
@@ -191,12 +191,12 @@ uint16_t RFFRenderScene::getClientHeight() const {
 
 uint16_t RFFRenderScene::getIterationBufferWidth(const Settings &settings) const {
     const float multiplier = settings.renderSettings.clarityMultiplier;
-    return static_cast<int>(static_cast<float>(getClientWidth()) * multiplier);
+    return static_cast<uint16_t>(static_cast<float>(getClientWidth()) * multiplier);
 }
 
 uint16_t RFFRenderScene::getIterationBufferHeight(const Settings &settings) const {
     const float multiplier = settings.renderSettings.clarityMultiplier;
-    return static_cast<int>(static_cast<float>(getClientHeight()) * multiplier);
+    return static_cast<uint16_t>(static_cast<float>(getClientHeight()) * multiplier);
 }
 
 
@@ -313,8 +313,8 @@ void RFFRenderScene::applyResize() {
 }
 
 void RFFRenderScene::overwriteMatrixFromMap() const {
-    renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->iterations.width, currentMap->iterations.height);
-    rendererIteration->setAllIterations(currentMap->iterations);
+    renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->getIterations().getWidth(), currentMap->getIterations().getHeight());
+    rendererIteration->setAllIterations(currentMap->getIterations());
 }
 
 
@@ -354,8 +354,9 @@ void RFFRenderScene::beforeCompute(Settings &settings) {
 
 bool RFFRenderScene::compute(const Settings &settings) {
     const Settings settingsToUse = settings;
-    int w = getIterationBufferWidth(settingsToUse);
-    int h = getIterationBufferHeight(settingsToUse);
+    uint16_t w = getIterationBufferWidth(settingsToUse);
+    uint16_t h = getIterationBufferHeight(settingsToUse);
+    uint32_t len = uint32_t(w) * h;
 
     if (state.interruptRequested()) return false;
 
@@ -473,19 +474,19 @@ bool RFFRenderScene::compute(const Settings &settings) {
 
     std::atomic renderPixelsCount = 0;
 
-    auto rendered = std::vector<bool>(w * h);
+    auto rendered = std::vector<bool>(len);
 
     auto previewer = ParallelArrayDispatcher<double>(
         state, *iterationMatrix,
-        [settingsToUse, this, &renderPixelsCount, &rendered](const int x, const int y, const int xRes, int, float,
-                                                             float, const int i,
+        [settingsToUse, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y, const uint16_t xRes, uint16_t, float,
+                                                             float, const uint32_t i,
                                                              double) {
             rendered[i] = true;
             const auto dc = offsetConversion(settingsToUse, x, y);
             const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
             rendererIteration->setIteration(x, y, iteration);
 
-            int my = y - 1;
+            int16_t my = y - 1;
             while (my >= 0 && !rendered[my * xRes + x]) {
                 rendererIteration->setIteration(x, my, iteration);
                 --my;
@@ -497,12 +498,12 @@ bool RFFRenderScene::compute(const Settings &settings) {
 
     rendererIteration->fillZero();
 
-    auto statusThread = std::jthread([&renderPixelsCount, w, h, this, &start](const std::stop_token &stop) {
+    auto statusThread = std::jthread([&renderPixelsCount, len, this, &start](const std::stop_token &stop) {
         while (!stop.stop_requested()) {
             const auto current = std::chrono::system_clock::now();
             const auto elapsed = std::chrono::milliseconds((current - start).count() / 1000000);
             auto hms = std::chrono::hh_mm_ss(elapsed);
-            float ratio = static_cast<float>(renderPixelsCount.load()) / static_cast<float>(w * h) * 100;
+            float ratio = static_cast<float>(renderPixelsCount.load()) / static_cast<float>(len) * 100;
             setStatusMessage(RFF::Status::TIME_STATUS,
                              std::format("T : {:02d}:{:02d}:{:02d}:{:03d}", hms.hours().count(),
                                          hms.minutes().count(), hms.seconds().count(), hms.subseconds().count()));
@@ -521,7 +522,7 @@ bool RFFRenderScene::compute(const Settings &settings) {
 
     auto syncer = ParallelDispatcher(
         state, w, h,
-        [this](const uint16_t x, const uint16_t y, int, int, float, float, int) {
+        [this](const uint16_t x, const uint16_t y, uint16_t, uint16_t, float, float, uint32_t) {
             rendererIteration->setIteration(x, y, (*iterationMatrix)(x, y));
         });
 

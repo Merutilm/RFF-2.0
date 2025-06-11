@@ -30,8 +30,8 @@
 class RFFRenderScene final : private RFFScene {
     ParallelRenderState state;
     Settings settings;
-    uint16_t mouseX = 0;
-    uint16_t mouseY = 0;
+    uint16_t interactedMX = 0;
+    uint16_t interactedMY = 0;
 
     uint64_t lastPeriod = 1;
 

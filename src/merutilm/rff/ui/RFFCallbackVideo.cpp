@@ -6,6 +6,7 @@
 
 #include "IOUtilities.h"
 #include "RFFCallback.h"
+#include "RFFVideoWindow.h"
 
 
 const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo::DATA_SETTINGS = [
@@ -63,7 +64,8 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo:
 const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo::GENERATE_VID_KEYFRAME = [
         ](RFFSettingsMenu &, RFFRenderScene &scene) {
     scene.getBackgroundThreads().createThread(
-        [&state = scene.getState(), &scene](BackgroundThread &thread) {
+        [&scene](BackgroundThread &thread) {
+            const auto &state = scene.getState();
             const auto dirPtr = IOUtilities::ioDirectoryDialog("Folder to generate keyframes");
 
             float &logZoom = scene.getSettings().calculationSettings.logZoom;
@@ -86,4 +88,20 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo:
 };
 const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo::EXPORT_ZOOM_VID = [
         ](RFFSettingsMenu &, RFFRenderScene &scene) {
+    scene.getBackgroundThreads().createThread([&scene](BackgroundThread &) {
+
+        auto dirPtr = IOUtilities::ioDirectoryDialog("Select Sample Keyframe folder");
+
+        if (dirPtr == nullptr) {
+            return;
+        }
+        const auto &open = *dirPtr;
+        dirPtr = IOUtilities::ioFileDialog("Save Video Location", "Video file", IOUtilities::SAVE_FILE,
+                                           {RFF::Extension::VIDEO});
+        if (dirPtr == nullptr) {
+            return;
+        }
+        const auto &save = *dirPtr;
+        RFFVideoWindow::createVideo(scene.getSettings(), open, save);
+    });
 };

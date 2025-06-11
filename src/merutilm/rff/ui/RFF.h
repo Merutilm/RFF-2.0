@@ -100,6 +100,7 @@ namespace RFF {
 
     namespace Extension {
         constexpr auto MAP = "rfm";
+        constexpr auto VIDEO = "mp4";
     }
 
     namespace GLConfig {
