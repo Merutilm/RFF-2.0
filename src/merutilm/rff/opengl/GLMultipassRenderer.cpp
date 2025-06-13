@@ -45,7 +45,7 @@ void GLMultipassRenderer::render() const {
 
         GLRenderer &renderer = *rendererPtr;
         if (const auto k = dynamic_cast<GLIterationTextureProvider *>(&renderer);
-            k != nullptr) {
+            k != nullptr && iterationTextureID == 0) {
             iterationTextureID = k->getIterationTextureID();
         }
         if (const auto r = dynamic_cast<GLIterationTextureRenderer *>(&renderer)) {

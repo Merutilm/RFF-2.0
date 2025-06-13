@@ -82,6 +82,6 @@ uint64_t RFFMap::getMaxIteration() const {
     return maxIteration;
 }
 
-const Matrix<double> &RFFMap::getIterations() const {
+const Matrix<double> &RFFMap::getMatrix() const {
     return iterations;
 }

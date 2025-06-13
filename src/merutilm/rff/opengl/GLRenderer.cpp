@@ -37,13 +37,20 @@ void GLRenderer::reloadSize(const uint16_t width, const uint16_t height) {
 void GLRenderer::beforeUpdate() {
     bindFBO(fbo, fboTextureID);
     glViewport(0, 0, w, h);
+    int error = glGetError();
+
+    while (error != GL_NO_ERROR) {
+        std::cerr << "OpenGL Error at Before Update: " << error << " at " << typeid(*this).name() << "\n" << std::flush;
+        error = glGetError();
+    }
+
 }
 
 void GLRenderer::afterUpdate() {
     unbindFBO(fbo);
     int error = glGetError();
     while (error != GL_NO_ERROR) {
-        std::cout << "OpenGL Error: " << error << " at " << typeid(this).name() << "\n" << std::flush;
+        std::cerr << "OpenGL Error at After Update: " << error << " at " << typeid(*this).name() << "\n" << std::flush;
         error = glGetError();
     }
 }

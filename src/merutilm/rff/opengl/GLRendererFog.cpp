@@ -5,7 +5,7 @@
 #include "GLRendererFog.h"
 
 
-GLRendererFog::GLRendererFog() : GLRendererGaussianBlur("fog", "gaussian_blur_single_pass") {
+GLRendererFog::GLRendererFog() : GLRendererGaussianBlur("fog.frag", "gaussian_blur_single_pass.frag") {
 }
 
 

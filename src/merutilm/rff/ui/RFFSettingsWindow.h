@@ -62,9 +62,15 @@ public:
                                         std::string_view descriptionDetail);
 
 
-    static void initClass();
-
     HWND getWindow() const;
+
+
+    static LRESULT CALLBACK settingsWindowProc(HWND window, UINT message, WPARAM wParam,
+                                         LPARAM lParam);
+
+    static LRESULT CALLBACK textFieldProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam,
+                                          UINT_PTR uIdSubclass,
+                                          DWORD_PTR dwRefData);
 
 private:
     static int getIndex(HWND wnd);
@@ -86,12 +92,6 @@ private:
                          const std::function<void()> &callback,
                          std::optional<std::vector<T> > values);
 
-    static LRESULT CALLBACK settingsProc(HWND window, UINT message, WPARAM wParam,
-                                         LPARAM lParam);
-
-    static LRESULT CALLBACK textFieldProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam,
-                                          UINT_PTR uIdSubclass,
-                                          DWORD_PTR dwRefData);
 
     std::string currValueToString(int index) const;
 
@@ -129,7 +129,7 @@ HWND RFFSettingsWindow::registerTextInput(const std::string_view &settingsName, 
     const HWND text = CreateWindowEx(0, WC_EDIT, unparser(*ptr).data(),
                                      RFF::Win32::STYLE_TEXT_FIELD, nw,
                                      getYOffset(), vw,
-                                     RFF::Win32::HEIGHT_SETTINGS_INPUT, window,
+                                     RFF::Win32::SETTINGS_INPUT_HEIGHT, window,
                                      reinterpret_cast<HMENU>(RFF::Win32::ID_OPTIONS + count),
                                      nullptr,
                                      nullptr);
@@ -159,7 +159,7 @@ HWND RFFSettingsWindow::registerSelectionInput(const std::string_view &settingsN
                                          "",
                                          RFF::Win32::STYLE_COMBOBOX, nw,
                                          getYOffset(), vw,
-                                         RFF::Win32::HEIGHT_SETTINGS_INPUT * RFF::Win32::MAX_AMOUNT_COMBOBOX,
+                                         RFF::Win32::SETTINGS_INPUT_HEIGHT * RFF::Win32::MAX_AMOUNT_COMBOBOX,
                                          window,
                                          reinterpret_cast<HMENU>(RFF::Win32::ID_OPTIONS + count),
                                          nullptr,
@@ -202,7 +202,7 @@ std::vector<HWND> RFFSettingsWindow::registerRadioButtonInput(const std::string_
                                          Selectable::toString(values[i]).data(),
                                          RFF::Win32::STYLE_RADIOBUTTON | (i == 0 ? WS_GROUP : 0), nw,
                                          getYOffset(), vw,
-                                         RFF::Win32::HEIGHT_SETTINGS_INPUT, window,
+                                         RFF::Win32::SETTINGS_INPUT_HEIGHT, window,
                                          reinterpret_cast<HMENU>(
                                              RFF::Win32::ID_OPTIONS + i *
                                              RFF::Win32::ID_OPTIONS_RADIO + count),

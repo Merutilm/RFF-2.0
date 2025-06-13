@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <commctrl.h>
 
+#include "RFFGL.h"
 #include "RFFSettingsMenu.h"
 
 
@@ -20,8 +21,8 @@ LRESULT CALLBACK RFFMasterWindow::masterWindowProc(const HWND masterWindow, cons
             GetClientRect(masterWindow, &rect);
             rect.bottom -= wnd.statusHeight;
             wnd.adjustClient(rect);
-            wnd.renderer.requestResize();
-            wnd.renderer.requestRecompute();
+            wnd.scene.requestResize();
+            wnd.scene.requestRecompute();
             return 0;
         }
         case WM_INITMENUPOPUP: {
@@ -35,7 +36,7 @@ LRESULT CALLBACK RFFMasterWindow::masterWindowProc(const HWND masterWindow, cons
                     if (const UINT id = info.wID;
                         wnd.settingsMenu->hasCheckbox(id)
                         ) {
-                        const bool* ref = wnd.settingsMenu->getBool(wnd.renderer, id);
+                        const bool* ref = wnd.settingsMenu->getBool(wnd.scene, id);
                         assert(ref != nullptr);
                         CheckMenuItem(popup, id, MF_BYCOMMAND | (*ref ? MF_CHECKED : MF_UNCHECKED));
                     }
@@ -48,13 +49,13 @@ LRESULT CALLBACK RFFMasterWindow::masterWindowProc(const HWND masterWindow, cons
             if (const int menuID = LOWORD(wParam);
                 wnd.settingsMenu->hasCheckbox(menuID)
             ) {
-                bool *ref = wnd.settingsMenu->getBool(wnd.renderer, menuID);
+                bool *ref = wnd.settingsMenu->getBool(wnd.scene, menuID);
                 assert(ref != nullptr);
                 *ref = !*ref;
-                wnd.settingsMenu->executeAction(wnd.renderer, menuID);
+                wnd.settingsMenu->executeAction(wnd.scene, menuID);
                 CheckMenuItem(menu, menuID, *ref ? MF_CHECKED : MF_UNCHECKED);
             } else {
-                wnd.settingsMenu->executeAction(wnd.renderer, menuID);
+                wnd.settingsMenu->executeAction(wnd.scene, menuID);
             }
             return 0;
         }
@@ -79,7 +80,7 @@ LRESULT CALLBACK RFFMasterWindow::masterWindowProc(const HWND masterWindow, cons
 LRESULT CALLBACK RFFMasterWindow::renderSceneProc(const HWND renderWindow, const UINT message, const WPARAM wParam,
                                                   const LPARAM lParam) {
     auto &wnd = *reinterpret_cast<RFFMasterWindow *>(GetWindowLongPtr(renderWindow, GWLP_USERDATA));
-    wnd.renderer.runAction(message, wParam);
+    wnd.scene.runAction(message, wParam);
     switch (message) {
         case WM_CLOSE: {
             DestroyWindow(renderWindow);
@@ -93,7 +94,7 @@ LRESULT CALLBACK RFFMasterWindow::renderSceneProc(const HWND renderWindow, const
     }
 }
 
-RFFMasterWindow::RFFMasterWindow() : renderer(RFFRenderScene()) {
+RFFMasterWindow::RFFMasterWindow() : scene(RFFRenderScene()) {
     initWindow();
 }
 
@@ -174,18 +175,11 @@ void RFFMasterWindow::createStatusBar() {
 }
 
 void RFFMasterWindow::createMasterWindow(const HMENU hMenubar) {
-    WNDCLASSEX wc = {};
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.lpszClassName = RFF::Win32::CLASS_MASTER_WINDOW;
-    wc.lpfnWndProc = masterWindowProc;
-    wc.hIcon = (HICON) LoadImage(nullptr, RFF::Win32::ICON_DEFAULT_PATH, IMAGE_ICON, 0, 0,
-                                 LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_DEFAULTSIZE);
 
-    assert(RegisterClassEx(&wc));
     masterWindow = CreateWindowEx(
         0,
-        wc.lpszClassName,
-        wc.lpszClassName,
+        RFF::Win32::CLASS_MASTER_WINDOW,
+        "RFF 2.0",
         WS_OVERLAPPEDWINDOW | WS_SYSMENU,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
@@ -197,17 +191,11 @@ void RFFMasterWindow::createMasterWindow(const HMENU hMenubar) {
 }
 
 void RFFMasterWindow::createRenderScene() {
-    WNDCLASSEX wc = {};
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.lpszClassName = RFF::Win32::CLASS_RENDER_SCENE;
-    wc.lpfnWndProc = renderSceneProc;
-
-    assert(RegisterClassEx(&wc));
     renderWindow = CreateWindowEx(
         0,
-        wc.lpszClassName,
-        wc.lpszClassName,
-        WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPSIBLINGS,
+        RFF::Win32::CLASS_RENDER_SCENE,
+        "",
+        WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
@@ -219,43 +207,12 @@ void RFFMasterWindow::createRenderScene() {
     }
 
     SetWindowLongPtr(renderWindow, GWLP_USERDATA, (LONG_PTR) this);
-
-
     hdc = GetDC(renderWindow);
-
-    const int pixelFormatAttrib[] = {
-        WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
-        WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
-        WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
-        WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
-        WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
-        WGL_COLOR_BITS_ARB, 32,
-        WGL_DEPTH_BITS_ARB, 24,
-        WGL_STENCIL_BITS_ARB, 8,
-        0
-    };
-    int pixelFormat = 0;
-    UINT numFormats = 0;
-    wglChoosePixelFormatARB(hdc, pixelFormatAttrib, nullptr, 1, &pixelFormat, &numFormats);
-    assert(numFormats);
-
-    PIXELFORMATDESCRIPTOR pfd = {
-    };
-    DescribePixelFormat(hdc, pixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
-    SetPixelFormat(hdc, pixelFormat, &pfd);
-    constexpr int openglAttrib[]{
-        WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-        WGL_CONTEXT_MINOR_VERSION_ARB, 5,
-        WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-        0
-    };
-
-    context = wglCreateContextAttribsARB(hdc, nullptr, openglAttrib);
-    assert(context);
+    RFFGL::createContext(hdc, &context);
 }
 
 void RFFMasterWindow::renderLoop() {
-    renderer.configure(renderWindow, hdc, context, &statusMessages);
+    scene.configure(renderWindow, hdc, context, &statusMessages);
     MSG msg;
     auto lastRender = std::chrono::high_resolution_clock::now();
     constexpr int ms = 1000 / RFF::Win32::INIT_RENDER_SCENE_FPS;
@@ -268,17 +225,17 @@ void RFFMasterWindow::renderLoop() {
 
         std::this_thread::sleep_until(lastRender + std::chrono::milliseconds(ms));
 
-        if (renderer.getCWRequest() != 0) {
-            setClientSize(renderer.getCWRequest(), renderer.getCHRequest());
-            renderer.clientResizeRequestSolved();
-            renderer.requestResize();
-            renderer.requestRecompute();
+        if (scene.getCWRequest() != 0) {
+            setClientSize(scene.getCWRequest(), scene.getCHRequest());
+            scene.clientResizeRequestSolved();
+            scene.requestResize();
+            scene.requestRecompute();
         }
 
         if (auto currentTime = std::chrono::high_resolution_clock::now();
             currentTime - lastRender > std::chrono::milliseconds(ms)) {
-            renderer.renderGL();
-            renderer.getBackgroundThreads().removeAllEndedThread();
+            scene.renderGL();
+            scene.getBackgroundThreads().removeAllEndedThread();
             refreshStatusBar();
             lastRender = currentTime;
         }
@@ -288,5 +245,5 @@ void RFFMasterWindow::renderLoop() {
 
 
 RFFRenderScene &RFFMasterWindow::getRenderScene() {
-    return renderer;
+    return scene;
 }

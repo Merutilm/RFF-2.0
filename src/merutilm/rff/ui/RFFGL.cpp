@@ -13,20 +13,20 @@
 #include "RFF.h"
 
 void RFFGL::initGL() {
-    WNDCLASSEX wc = {};
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.lpszClassName = "Dummy";
-    wc.lpfnWndProc = DefWindowProc;
-    wc.style = CS_OWNDC;
-
-    assert(RegisterClassEx(&wc));
 
     SetProcessDPIAware();
 
+    WNDCLASSEX glDummyClass = {};
+    glDummyClass.cbSize = sizeof(WNDCLASSEX);
+    glDummyClass.lpszClassName = RFF::Win32::CLASS_GL_DUMMY;
+    glDummyClass.lpfnWndProc = DefWindowProc;
+    glDummyClass.style = CS_OWNDC;
+    RegisterClassEx(&glDummyClass);
+
     const auto dummyWnd = CreateWindowEx(
         0,
-        wc.lpszClassName,
-        "RFF 2.0",
+        RFF::Win32::CLASS_GL_DUMMY,
+        RFF::Win32::CLASS_GL_DUMMY,
         WS_OVERLAPPEDWINDOW | WS_SYSMENU,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
@@ -62,4 +62,38 @@ void RFFGL::initGL() {
     wglDeleteContext(context);
     ReleaseDC(dummyWnd, dummyDC);
     DestroyWindow(dummyWnd);
+}
+
+
+void RFFGL::createContext(const HDC hdc, HGLRC *target) {
+
+    const int pixelFormatAttrib[] = {
+        WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+        WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+        WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+        WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+        WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+        WGL_COLOR_BITS_ARB, 32,
+        WGL_DEPTH_BITS_ARB, 24,
+        WGL_STENCIL_BITS_ARB, 8,
+        0
+    };
+    int pixelFormat = 0;
+    UINT numFormats = 0;
+    wglChoosePixelFormatARB(hdc, pixelFormatAttrib, nullptr, 1, &pixelFormat, &numFormats);
+    assert(numFormats);
+
+    PIXELFORMATDESCRIPTOR pfd = {
+    };
+    DescribePixelFormat(hdc, pixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
+    SetPixelFormat(hdc, pixelFormat, &pfd);
+    constexpr int openglAttrib[]{
+        WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+        WGL_CONTEXT_MINOR_VERSION_ARB, 5,
+        WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+        0
+    };
+
+    *target = wglCreateContextAttribsARB(hdc, nullptr, openglAttrib);
+    assert(*target);
 }

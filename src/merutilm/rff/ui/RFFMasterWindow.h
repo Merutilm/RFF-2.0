@@ -18,11 +18,8 @@ class RFFMasterWindow {
     HWND masterWindow = nullptr;
     HWND renderWindow = nullptr;
     HWND statusBar;
-    RFFRenderScene renderer;
+    RFFRenderScene scene;
 
-    static LRESULT masterWindowProc(HWND masterWindow, UINT message, WPARAM wParam, LPARAM lParam);
-
-    static LRESULT renderSceneProc(HWND renderWindow, UINT message, WPARAM wParam, LPARAM lParam);
 
 public:
     RFFMasterWindow();
@@ -56,6 +53,10 @@ public:
     void renderLoop();
 
     RFFRenderScene &getRenderScene();
+
+    static LRESULT masterWindowProc(HWND masterWindow, UINT message, WPARAM wParam, LPARAM lParam);
+
+    static LRESULT renderSceneProc(HWND renderWindow, UINT message, WPARAM wParam, LPARAM lParam);
 
 };
 

@@ -33,7 +33,7 @@ public:
 
     uint64_t getMaxIteration() const;
 
-    const Matrix<double> &getIterations() const;
+    const Matrix<double> &getMatrix() const;
 };
 
 inline const RFFMap RFFMap::DEFAULT_MAP = RFFMap(0, 0, 0, Matrix<double>(0, 0));

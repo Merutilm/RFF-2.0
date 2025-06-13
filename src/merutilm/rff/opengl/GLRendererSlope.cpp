@@ -5,7 +5,7 @@
 #include "GLRendererSlope.h"
 
 
-GLRendererSlope::GLRendererSlope() : GLRenderer("slope"){
+GLRendererSlope::GLRendererSlope() : GLRenderer("slope.frag"){
 
 }
 

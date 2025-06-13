@@ -31,7 +31,7 @@ struct IOUtilities {
 
     static std::filesystem::path generateFileName(const std::filesystem::path &dir, std::string_view extension);
 
-    static int fileNameCount(const std::filesystem::path &dir, std::string_view extension);
+    static uint32_t fileNameCount(const std::filesystem::path &dir, std::string_view extension);
 
     template<typename T> requires std::is_arithmetic_v<T>
     static void encodeAndWrite(std::ofstream &out, const T &t);

@@ -7,6 +7,7 @@
 
 #include "glad_wgl.h"
 #include "RFF.h"
+#include <assert.h>
 
 
 void RFFScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {
@@ -22,7 +23,7 @@ void RFFScene::makeContextCurrent() const {
         std::cout << INIT_NOT_CALLED << std::flush;
         return;
     }
-    wglMakeCurrent(hdc, context);
+    assert(wglMakeCurrent(hdc, context));
 }
 
 

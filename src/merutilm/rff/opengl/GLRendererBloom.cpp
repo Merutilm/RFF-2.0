@@ -4,7 +4,7 @@
 
 #include "GLRendererBloom.h"
 
-GLRendererBloom::GLRendererBloom() : GLRendererGaussianBlur("bloom", "gaussian_blur_for_bloom_single_pass") {
+GLRendererBloom::GLRendererBloom() : GLRendererGaussianBlur("bloom.frag", "gaussian_blur_for_bloom_single_pass.frag") {
 }
 
 void GLRendererBloom::setBloomSettings(const BloomSettings &bloomSettings) {

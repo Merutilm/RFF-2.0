@@ -5,7 +5,7 @@
 #include "GLRendererColor.h"
 
 
-GLRendererColor::GLRendererColor() : GLRenderer("color") {
+GLRendererColor::GLRendererColor() : GLRenderer("color.frag") {
 
 }
 

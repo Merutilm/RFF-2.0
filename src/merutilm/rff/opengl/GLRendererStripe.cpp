@@ -5,7 +5,7 @@
 #include "GLRendererStripe.h"
 
 
-GLRendererStripe::GLRendererStripe() : GLRenderer("stripe"){
+GLRendererStripe::GLRendererStripe() : GLRenderer("stripe.frag"){
 
 }
 

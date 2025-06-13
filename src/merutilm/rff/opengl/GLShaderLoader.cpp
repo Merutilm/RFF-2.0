@@ -1,27 +1,28 @@
 #include "GLShaderLoader.h"
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
 #include "../ui/RFF.h"
+#include "../ui/RFFUtilities.h"
 
 
 GLShaderLoader::GLShaderLoader(std::string_view vertexName, std::string_view fragmentName) {
     try {
-        std::string fullVertexName;
-        fullVertexName.append(RFF::GLConfig::SHADER_PATH_PREFIX).append(vertexName).append(RFF::GLConfig::VERTEX_PATH_SUFFIX);
-        std::string fullFragmentName;
-        fullFragmentName.append(RFF::GLConfig::SHADER_PATH_PREFIX).append(fragmentName).append(RFF::GLConfig::FRAGMENT_PATH_SUFFIX);
+
+        std::filesystem::path fullVertexName = RFFUtilities::getDefaultPath() / RFF::GLConfig::SHADER_PATH_PREFIX / vertexName;
+        std::filesystem::path fullFragmentName = RFFUtilities::getDefaultPath() /  RFF::GLConfig::SHADER_PATH_PREFIX / fragmentName;
         std::ifstream vertexFile(fullVertexName);
         std::ifstream fragmentFile(fullFragmentName);
 
         if (vertexFile.fail()) {
-            std::cout << RFF::GLConfig::MESSAGE_CANNOT_OPEN_FILE << fullVertexName << std::endl;
+            std::cerr << RFF::GLConfig::MESSAGE_CANNOT_OPEN_FILE << fullVertexName << std::endl;
             return;
         }
 
         if (fragmentFile.fail()) {
-            std::cout << RFF::GLConfig::MESSAGE_CANNOT_OPEN_FILE << fullFragmentName << std::endl;
+            std::cerr << RFF::GLConfig::MESSAGE_CANNOT_OPEN_FILE << fullFragmentName << std::endl;
             return;
         }
 
@@ -53,6 +54,10 @@ GLShaderLoader::GLShaderLoader(std::string_view vertexName, std::string_view fra
 
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
+
+        vertexFile.close();
+        fragmentFile.close();
+
     } catch (const std::ifstream::failure &e) {
         std::cout << "OpenGL Error : " << e.what() << std::endl;
     }

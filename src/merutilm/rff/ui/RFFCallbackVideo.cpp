@@ -90,18 +90,18 @@ const std::function<void(RFFSettingsMenu &, RFFRenderScene &)> RFFCallbackVideo:
         ](RFFSettingsMenu &, RFFRenderScene &scene) {
     scene.getBackgroundThreads().createThread([&scene](BackgroundThread &) {
 
-        auto dirPtr = IOUtilities::ioDirectoryDialog("Select Sample Keyframe folder");
+        const auto openPtr = IOUtilities::ioDirectoryDialog("Select Sample Keyframe folder");
 
-        if (dirPtr == nullptr) {
+        if (openPtr == nullptr) {
             return;
         }
-        const auto &open = *dirPtr;
-        dirPtr = IOUtilities::ioFileDialog("Save Video Location", "Video file", IOUtilities::SAVE_FILE,
+        const auto &open = *openPtr;
+        const auto savePtr = IOUtilities::ioFileDialog("Save Video Location", "Video file", IOUtilities::SAVE_FILE,
                                            {RFF::Extension::VIDEO});
-        if (dirPtr == nullptr) {
+        if (savePtr == nullptr) {
             return;
         }
-        const auto &save = *dirPtr;
+        const auto &save = *savePtr;
         RFFVideoWindow::createVideo(scene.getSettings(), open, save);
     });
 };

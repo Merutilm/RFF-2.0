@@ -86,7 +86,7 @@ std::filesystem::path IOUtilities::generateFileName(const std::filesystem::path 
     return p;
 }
 
-int IOUtilities::fileNameCount(const std::filesystem::path &dir, const std::string_view extension) {
+uint32_t IOUtilities::fileNameCount(const std::filesystem::path &dir, const std::string_view extension) {
     unsigned int n = 0;
     std::filesystem::path p = dir;
     do {

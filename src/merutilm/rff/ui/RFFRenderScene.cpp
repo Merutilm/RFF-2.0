@@ -231,6 +231,8 @@ void RFFRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC contex
 }
 
 void RFFRenderScene::renderGL() {
+
+    makeContextCurrent();
     renderer->setTime(RFFUtilities::getTime());
 
     if (colorRequested.exchange(false)) {
@@ -250,7 +252,6 @@ void RFFRenderScene::renderGL() {
         applyCreateImage();
     }
 
-    makeContextCurrent();
     glClear(GL_COLOR_BUFFER_BIT);
     renderer->render();
     renderer->display();
@@ -313,8 +314,8 @@ void RFFRenderScene::applyResize() {
 }
 
 void RFFRenderScene::overwriteMatrixFromMap() const {
-    renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->getIterations().getWidth(), currentMap->getIterations().getHeight());
-    rendererIteration->setAllIterations(currentMap->getIterations());
+    renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->getMatrix().getWidth(), currentMap->getMatrix().getHeight());
+    rendererIteration->setAllIterations(currentMap->getMatrix());
 }
 
 

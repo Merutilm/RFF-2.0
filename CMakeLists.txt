@@ -174,6 +174,10 @@ add_executable(
         src/merutilm/rff/parallel/Backgroundthread.h
         src/merutilm/rff/ui/RFFVideoWindow.cpp
         src/merutilm/rff/ui/RFFVideoWindow.h
+        src/merutilm/rff/ui/RFFVideoRenderScene.cpp
+        src/merutilm/rff/ui/RFFVideoRenderScene.h
+        src/merutilm/rff/opengl/GLRendererIteration2Map.cpp
+        src/merutilm/rff/opengl/GLRendererIteration2Map.h
 )
 
 target_link_libraries(RFF PRIVATE
@@ -188,4 +192,5 @@ target_link_libraries(RFF PRIVATE
         libopencv_imgcodecs4110
         libopencv_imgproc4110
         libopencv_videoio4110
+        libopencv_highgui4110
 )

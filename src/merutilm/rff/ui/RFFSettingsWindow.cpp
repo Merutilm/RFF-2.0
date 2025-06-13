@@ -40,20 +40,11 @@ int RFFSettingsWindow::getFixedValueWidth() const {
 void RFFSettingsWindow::adjustWindowHeight() const {
     RECT rect = {
         0, 0, RFF::Win32::INIT_SETTINGS_WINDOW_WIDTH,
-        getYOffset() + RFF::Win32::HEIGHT_SETTINGS_INPUT + RFF::Win32::GAP_SETTINGS_INPUT,
+        getYOffset() + RFF::Win32::SETTINGS_INPUT_HEIGHT + RFF::Win32::GAP_SETTINGS_INPUT,
     };
     AdjustWindowRectEx(&rect, RFF::Win32::STYLE_SETTINGS_WINDOW, FALSE, RFF::Win32::STYLE_EX_SETTINGS_WINDOW);
 
     SetWindowPos(window, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOMOVE);
-}
-
-void RFFSettingsWindow::initClass() {
-    WNDCLASSEX wc = {};
-    wc.cbSize = sizeof(WNDCLASSEX);
-    wc.lpszClassName = RFF::Win32::CLASS_SETTINGS_WINDOW;
-    wc.lpfnWndProc = settingsProc;
-    wc.hbrBackground = CreateSolidBrush(RFF::Win32::COLOR_LABEL_BACKGROUND);
-    RegisterClassEx(&wc);
 }
 
 int RFFSettingsWindow::getIndex(const HWND wnd) {
@@ -70,7 +61,7 @@ bool RFFSettingsWindow::checkIndex(const int index) const {
 }
 
 int RFFSettingsWindow::getYOffset() const {
-    return elements * (RFF::Win32::HEIGHT_SETTINGS_INPUT + RFF::Win32::GAP_SETTINGS_INPUT) +
+    return elements * (RFF::Win32::SETTINGS_INPUT_HEIGHT + RFF::Win32::GAP_SETTINGS_INPUT) +
            RFF::Win32::GAP_SETTINGS_INPUT;
 }
 
@@ -79,7 +70,7 @@ void RFFSettingsWindow::createLabel(const std::string_view &settingsName, const 
     const HWND text = CreateWindowEx(0, WC_STATIC, settingsName.data(),
                                      RFF::Win32::STYLE_LABEL, 0,
                                      getYOffset(), nw,
-                                     RFF::Win32::HEIGHT_SETTINGS_INPUT, window, nullptr, nullptr, nullptr);
+                                     RFF::Win32::SETTINGS_INPUT_HEIGHT, window, nullptr, nullptr, nullptr);
     const HWND tooltip = CreateWindowEx(RFF::Win32::STYLE_EX_TOOLTIP, TOOLTIPS_CLASS, "",
                                         RFF::Win32::STYLE_TOOLTIP,
                                         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, window, nullptr,
@@ -103,7 +94,7 @@ void RFFSettingsWindow::createLabel(const std::string_view &settingsName, const 
 }
 
 
-LRESULT RFFSettingsWindow::settingsProc(const HWND window, const UINT message, const WPARAM wParam,
+LRESULT RFFSettingsWindow::settingsWindowProc(const HWND window, const UINT message, const WPARAM wParam,
                                         const LPARAM lParam) {
     RFFSettingsWindow &wnd = *reinterpret_cast<RFFSettingsWindow *>(GetWindowLongPtr(window, GWLP_USERDATA));
 

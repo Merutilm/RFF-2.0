@@ -4,7 +4,7 @@
 
 #include "GLRendererDisplayer.h"
 
-GLRendererDisplayer::GLRendererDisplayer() : GLRenderer("displayer") {
+GLRendererDisplayer::GLRendererDisplayer() : GLRenderer("displayer.frag") {
     setToDisplay();
 }
 

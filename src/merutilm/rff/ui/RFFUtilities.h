@@ -6,6 +6,7 @@
 
 #include <string>
 #include <ctime>
+#include <filesystem>
 #include <iostream>
 
 #include "RFF.h"
@@ -24,6 +25,13 @@ struct RFFUtilities {
     static float getTime() {
         return static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count() - RFF::Render::INIT_TIME)
                / 1e9;
+    }
+
+
+    static std::filesystem::path getDefaultPath() {
+        std::array<char, MAX_PATH> buffer;
+        GetModuleFileName(nullptr, buffer.data(), buffer.size());
+        return std::filesystem::path(buffer.data()).parent_path().parent_path();
     }
 
     static std::string joinString(const std::string &delimiter, const std::vector<std::string> &arr) {

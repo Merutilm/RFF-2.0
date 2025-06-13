@@ -4,7 +4,7 @@
 
 #include "GLRendererAntialiasing.h"
 
-GLRendererAntialiasing::GLRendererAntialiasing() : GLRenderer("antialiasing"){
+GLRendererAntialiasing::GLRendererAntialiasing() : GLRenderer("antialiasing.frag"){
 
 }
 

@@ -6,6 +6,7 @@
 #include <cmath>
 #include <array>
 #include <chrono>
+#include <mutex>
 
 
 using TextureFormat = std::array<GLuint, 3>;
@@ -16,19 +17,24 @@ namespace RFF {
         constexpr short INIT_RENDER_SCENE_HEIGHT = 720;
         constexpr short INIT_RENDER_SCENE_FPS = 60;
         constexpr short INIT_SETTINGS_WINDOW_WIDTH = 700;
-        constexpr short HEIGHT_SETTINGS_INPUT = 30;
+        constexpr short PROGRESS_BAR_HEIGHT = 25;
+        constexpr short SETTINGS_INPUT_HEIGHT = 30;
         constexpr short GAP_SETTINGS_INPUT = 15;
         constexpr short SETTINGS_LABEL_WIDTH_DIVISOR = 2;
         constexpr short MAX_AMOUNT_COMBOBOX = 7;
-        constexpr auto CLASS_MASTER_WINDOW = "RFF 2.0";
-        constexpr auto CLASS_RENDER_SCENE = "RFF 2.0 Renderer";
-        constexpr auto CLASS_SETTINGS_WINDOW = "RFF Settings";
+        constexpr auto CLASS_MASTER_WINDOW = "RFF2MW";
+        constexpr auto CLASS_SETTINGS_WINDOW = "RFF2SW";
+        constexpr auto CLASS_VIDEO_WINDOW = "RFF2VW";
+        constexpr auto CLASS_VIDEO_RENDER_WINDOW = "RFF2VS";
+        constexpr auto CLASS_RENDER_SCENE = "RFF2RC";
+        constexpr auto CLASS_PROGRESS = "RFF2P";
+        constexpr auto CLASS_GL_DUMMY = "RFF2GD";
         constexpr auto FONT_DEFAULT = "Segoe UI";
         constexpr short FONT_SIZE = 25;
         constexpr DWORD STYLE_EX_TOOLTIP = WS_EX_TOPMOST;
         constexpr DWORD STYLE_EX_SETTINGS_WINDOW = WS_EX_TOOLWINDOW | WS_EX_TOPMOST;
-        constexpr DWORD STYLE_TOOLTIP = WS_POPUP | TTS_NOPREFIX | TTS_BALLOON | TTS_ALWAYSTIP;
         constexpr DWORD STYLE_SETTINGS_WINDOW = WS_SYSMENU | WS_BORDER;
+        constexpr DWORD STYLE_TOOLTIP = WS_POPUP | TTS_NOPREFIX | TTS_BALLOON | TTS_ALWAYSTIP;
         constexpr DWORD STYLE_LABEL = WS_CHILD | WS_VISIBLE | ES_CENTER | SS_NOTIFY;
         constexpr DWORD STYLE_RADIOBUTTON = WS_CHILD | WS_TABSTOP | WS_VISIBLE | BS_AUTORADIOBUTTON;
         constexpr DWORD STYLE_CHECKBOX = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | BS_CHECKBOX;
@@ -38,6 +44,10 @@ namespace RFF {
         constexpr int ID_MENUS = 0x2000;
         constexpr int ID_OPTIONS = 0x1000;
         constexpr int ID_OPTIONS_RADIO = 0x0100;
+        constexpr COLORREF COLOR_PROGRESS_BACKGROUND_E = RGB(40, 140, 40);
+        constexpr COLORREF COLOR_PROGRESS_BACKGROUND_D = RGB(40, 40, 40);
+        constexpr COLORREF COLOR_PROGRESS_TEXT_E = RGB(0, 0, 0);
+        constexpr COLORREF COLOR_PROGRESS_TEXT_D = RGB(255, 255, 255);
         constexpr COLORREF COLOR_TEXT_ERROR = RGB(255, 0, 0);
         constexpr COLORREF COLOR_TEXT_EDITED = RGB(100, 0, 0);
         constexpr COLORREF COLOR_TEXT_MODIFIED = RGB(0, 110, 160);
@@ -67,7 +77,6 @@ namespace RFF {
         constexpr double LOG_2 = 0.693147180559945309417232121458;
         constexpr double LOG_10 = 2.302585092994045684017991454684;
         constexpr double LOG10_2 = 0.301029995663981195213738894724;
-
     }
 
     namespace TextureFormats {
@@ -104,11 +113,8 @@ namespace RFF {
     }
 
     namespace GLConfig {
-        constexpr auto SHADER_PATH_PREFIX = "../shaders/";
-        constexpr auto VERTEX_PATH_DEFAULT = "default_vertex";
-        constexpr auto VERTEX_PATH_SUFFIX = ".vert";
-        constexpr auto FRAGMENT_PATH_SUFFIX = ".frag";
+        constexpr auto SHADER_PATH_PREFIX = "shaders";
+        constexpr auto VERTEX_PATH_DEFAULT = "default_vertex.vert";
         constexpr auto MESSAGE_CANNOT_OPEN_FILE = "Error: Could not open file: ";
     }
-
 }

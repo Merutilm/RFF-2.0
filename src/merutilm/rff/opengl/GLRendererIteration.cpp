@@ -4,7 +4,7 @@
 
 #include "GLRendererIteration.h"
 
-GLRendererIteration::GLRendererIteration() : GLRenderer("iteration_palette") {
+GLRendererIteration::GLRendererIteration() : GLRenderer("iteration_palette.frag") {
 }
 
 GLRendererIteration::~GLRendererIteration() {

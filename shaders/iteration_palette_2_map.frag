@@ -11,8 +11,6 @@ uniform float currentFrame;
 
 out vec4 color;
 
-
-
 vec2 toFloatIteration(double iteration){
     uvec2 unpack = unpackDouble2x32(iteration);
     return uintBitsToFloat(unpack.yx);
