@@ -49,31 +49,31 @@ namespace Presets {
     };
 
     namespace ShaderPresets {
-        struct PalettePreset : public Preset {
+        struct PalettePreset : public ShaderPreset {
             ~PalettePreset() override = default;
 
             virtual PaletteSettings paletteSettings() const = 0;
         };
 
-        struct StripePreset : public Preset {
+        struct StripePreset : public ShaderPreset {
             ~StripePreset() override = default;
 
             virtual StripeSettings stripeSettings() const = 0;
         };
 
-        struct SlopePreset : public Preset {
+        struct SlopePreset : public ShaderPreset {
             ~SlopePreset() override = default;
 
             virtual SlopeSettings slopeSettings() const = 0;
         };
 
-        struct ColorPreset : public Preset {
+        struct ColorPreset : public ShaderPreset {
             ~ColorPreset() override = default;
 
             virtual ColorSettings colorSettings() const = 0;
         };
 
-        struct FogPreset : public Preset {
+        struct FogPreset : public ShaderPreset {
             ~FogPreset() override = default;
 
             virtual FogSettings fogSettings() const = 0;

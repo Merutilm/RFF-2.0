@@ -17,7 +17,7 @@ namespace RFF {
         constexpr short INIT_RENDER_SCENE_HEIGHT = 720;
         constexpr short INIT_RENDER_SCENE_FPS = 60;
         constexpr short INIT_SETTINGS_WINDOW_WIDTH = 700;
-        constexpr short PROGRESS_BAR_HEIGHT = 25;
+        constexpr short PROGRESS_BAR_HEIGHT = 40;
         constexpr short SETTINGS_INPUT_HEIGHT = 30;
         constexpr short GAP_SETTINGS_INPUT = 15;
         constexpr short SETTINGS_LABEL_WIDTH_DIVISOR = 2;
@@ -27,7 +27,6 @@ namespace RFF {
         constexpr auto CLASS_VIDEO_WINDOW = "RFF2VW";
         constexpr auto CLASS_VIDEO_RENDER_WINDOW = "RFF2VS";
         constexpr auto CLASS_RENDER_SCENE = "RFF2RC";
-        constexpr auto CLASS_PROGRESS = "RFF2P";
         constexpr auto CLASS_GL_DUMMY = "RFF2GD";
         constexpr auto FONT_DEFAULT = "Segoe UI";
         constexpr short FONT_SIZE = 25;

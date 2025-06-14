@@ -70,7 +70,7 @@ Settings RFFRenderScene::initSettings() {
             },
             .animationSettings = {
                 .overZoom = 2,
-                .showText = false,
+                .showText = true,
                 .mps = 1
             },
             .exportSettings = {

@@ -32,11 +32,6 @@ void registerClasses() {
     settingsWindowClass.hbrBackground = CreateSolidBrush(RFF::Win32::COLOR_LABEL_BACKGROUND);
     assert(RegisterClassEx(&settingsWindowClass));
 
-    WNDCLASSEX progressClass = wc;
-    progressClass.lpszClassName = RFF::Win32::CLASS_PROGRESS;
-    progressClass.lpfnWndProc = DefWindowProc;
-    assert(RegisterClassEx(&progressClass));
-
     WNDCLASSEX videoRenderWindowClass = wc;
     videoRenderWindowClass.lpszClassName = RFF::Win32::CLASS_VIDEO_RENDER_WINDOW;
     videoRenderWindowClass.lpfnWndProc = DefWindowProc;
@@ -49,11 +44,20 @@ void registerClasses() {
 
 }
 
+void unregisterAll() {
+    UnregisterClass(RFF::Win32::CLASS_MASTER_WINDOW, nullptr);
+    UnregisterClass(RFF::Win32::CLASS_VIDEO_WINDOW, nullptr);
+    UnregisterClass(RFF::Win32::CLASS_SETTINGS_WINDOW, nullptr);
+    UnregisterClass(RFF::Win32::CLASS_VIDEO_RENDER_WINDOW, nullptr);
+    UnregisterClass(RFF::Win32::CLASS_RENDER_SCENE, nullptr);
+}
+
 
 int main() {
     registerClasses();
     RFFGL::initGL();
     const auto wnd = std::make_unique<RFFMasterWindow>();
     wnd->renderLoop();
+    unregisterAll();
     return 0;
 }

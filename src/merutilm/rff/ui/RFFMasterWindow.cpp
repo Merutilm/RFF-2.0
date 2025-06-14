@@ -16,6 +16,13 @@ LRESULT CALLBACK RFFMasterWindow::masterWindowProc(const HWND masterWindow, cons
     auto &wnd = *reinterpret_cast<RFFMasterWindow *>(GetWindowLongPtr(masterWindow, GWLP_USERDATA));
 
     switch (message) {
+        case WM_GETMINMAXINFO:
+        {
+            const auto min = reinterpret_cast<LPMINMAXINFO>(lParam);
+            min->ptMinTrackSize.x = 300;
+            min->ptMinTrackSize.y = 300;
+            return 0;
+        }
         case WM_SIZE: {
             RECT rect;
             GetClientRect(masterWindow, &rect);
