@@ -19,8 +19,8 @@ LRESULT CALLBACK RFFMasterWindow::masterWindowProc(const HWND masterWindow, cons
         case WM_GETMINMAXINFO:
         {
             const auto min = reinterpret_cast<LPMINMAXINFO>(lParam);
-            min->ptMinTrackSize.x = 300;
-            min->ptMinTrackSize.y = 300;
+            min->ptMinTrackSize.x = RFF::Win32::MIN_WINDOW_WIDTH;
+            min->ptMinTrackSize.y = RFF::Win32::MIN_WINDOW_HEIGHT;
             return 0;
         }
         case WM_SIZE: {

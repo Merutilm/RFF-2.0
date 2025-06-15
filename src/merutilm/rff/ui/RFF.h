@@ -15,6 +15,8 @@ namespace RFF {
     namespace Win32 {
         constexpr short INIT_RENDER_SCENE_WIDTH = 1280;
         constexpr short INIT_RENDER_SCENE_HEIGHT = 720;
+        constexpr short MIN_WINDOW_WIDTH = 300;
+        constexpr short MIN_WINDOW_HEIGHT = 300;
         constexpr short INIT_RENDER_SCENE_FPS = 60;
         constexpr short INIT_SETTINGS_WINDOW_WIDTH = 700;
         constexpr short PROGRESS_BAR_HEIGHT = 40;
@@ -43,10 +45,10 @@ namespace RFF {
         constexpr int ID_MENUS = 0x2000;
         constexpr int ID_OPTIONS = 0x1000;
         constexpr int ID_OPTIONS_RADIO = 0x0100;
-        constexpr COLORREF COLOR_PROGRESS_BACKGROUND_E = RGB(40, 140, 40);
-        constexpr COLORREF COLOR_PROGRESS_BACKGROUND_D = RGB(40, 40, 40);
-        constexpr COLORREF COLOR_PROGRESS_TEXT_E = RGB(0, 0, 0);
-        constexpr COLORREF COLOR_PROGRESS_TEXT_D = RGB(255, 255, 255);
+        constexpr COLORREF COLOR_PROGRESS_BACKGROUND_PROG = RGB(40, 140, 40);
+        constexpr COLORREF COLOR_PROGRESS_BACKGROUND_BACK = RGB(40, 40, 40);
+        constexpr COLORREF COLOR_PROGRESS_TEXT_PROG = RGB(0, 0, 0);
+        constexpr COLORREF COLOR_PROGRESS_TEXT_BACK = RGB(255, 255, 255);
         constexpr COLORREF COLOR_TEXT_ERROR = RGB(255, 0, 0);
         constexpr COLORREF COLOR_TEXT_EDITED = RGB(100, 0, 0);
         constexpr COLORREF COLOR_TEXT_MODIFIED = RGB(0, 110, 160);

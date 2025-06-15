@@ -17,9 +17,12 @@ RFFVideoRenderScene::RFFVideoRenderScene() : RFFScene() {
 
 
 
+void RFFVideoRenderScene::applyCurrentFrame() const {
+    rendererIteration2Map->setCurrentFrame(currentFrame);
+}
+
 void RFFVideoRenderScene::applyCurrentMap() const {
     auto &normalI = normal.getMatrix();
-    rendererIteration2Map->setCurrentFrame(currentFrame);
     if (currentFrame < 1) {
         const uint64_t maxIteration = normal.getMaxIteration();
         const std::vector<double> zoomedDefault(normalI.getLength());
@@ -100,10 +103,18 @@ GLMultipassRenderer &RFFVideoRenderScene::getRenderer() const{
     return *renderer;
 }
 
-void RFFVideoRenderScene::setMap(const float currentFrame, RFFMap &&normal, RFFMap &&zoomed) {
+void RFFVideoRenderScene::setCurrentFrame(const float currentFrame) {
+    this->currentFrame = currentFrame;
+}
+
+void RFFVideoRenderScene::setMap(RFFMap &&normal, RFFMap &&zoomed) {
     this->normal = std::move(normal);
     this->zoomed = std::move(zoomed);
-    this->currentFrame = currentFrame;
+}
+
+void RFFVideoRenderScene::reloadImageBuffer(const uint16_t w, const uint16_t h) {
+    pixels = std::vector<char>(static_cast<uint32_t>(w) * h * 3);
+    currentImage = cv::Mat(h, w, CV_8UC3, pixels.data());
 }
 
 
@@ -119,11 +130,8 @@ void RFFVideoRenderScene::renderGL() {
     const int w = normal.getMatrix().getWidth();
     const int h = normal.getMatrix().getHeight();
     GLRenderer::bindFBO(fbo, fboID);
-    std::vector<char> pixels(w * h * 4);
-    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
-    currentImage = cv::Mat(h, w, CV_8UC4, pixels.data());
+    glReadPixels(0, 0, w, h, GL_BGR, GL_UNSIGNED_BYTE, pixels.data());
     cv::flip(currentImage, currentImage, 0);
-    cv::cvtColor(currentImage, currentImage, cv::COLOR_RGBA2BGR);
     GLRenderer::unbindFBO(fbo);
 }
 

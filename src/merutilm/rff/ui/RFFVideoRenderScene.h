@@ -21,6 +21,7 @@ class RFFVideoRenderScene final : public RFFScene {
 
     RFFMap normal = RFFMap::DEFAULT_MAP;
     RFFMap zoomed = RFFMap::DEFAULT_MAP;
+    std::vector<char> pixels = std::vector<char>();
     cv::Mat currentImage;
     float currentFrame = 0;
     std::unique_ptr<GLMultipassRenderer> renderer;
@@ -36,6 +37,8 @@ class RFFVideoRenderScene final : public RFFScene {
 public:
     RFFVideoRenderScene();
 
+    void applyCurrentFrame() const;
+
     void applyCurrentMap() const;
 
     void applyColor(const Settings &settings) const;
@@ -46,7 +49,11 @@ public:
 
     GLMultipassRenderer &getRenderer() const;
 
-    void setMap(float currentFrame, RFFMap &&normal, RFFMap &&zoomed);
+    void setCurrentFrame(float currentFrame);
+
+    void setMap(RFFMap &&normal, RFFMap &&zoomed);
+
+    void reloadImageBuffer(uint16_t w, uint16_t h);
 
     void renderGL() override;
 

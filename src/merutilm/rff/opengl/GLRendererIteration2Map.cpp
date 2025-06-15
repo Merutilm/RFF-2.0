@@ -57,14 +57,14 @@ std::array<float, 4> GLRendererIteration2Map::doubleToTwoFloatBits(const double 
     };
 }
 
-std::vector<float> GLRendererIteration2Map::emptyIterationBuffer(uint16_t w, uint16_t h) {
-    return std::vector<float>(w * h * 4);
+std::vector<float> GLRendererIteration2Map::emptyIterationBuffer(const uint16_t w, const uint16_t h) {
+    return std::vector<float>(static_cast<uint32_t>(w) * h * 4);
 }
 
 
 void GLRendererIteration2Map::setAllIterations(const std::vector<double> &normal, const std::vector<double> &zoomed) {
     for (int i = 0; i < iterWidth * iterHeight * 4; i += 4) {
         auto v = doubleToTwoFloatBits(normal[i / 4], zoomed[i / 4]);
-        std::memcpy(iterationBuffer.data() + i, v.data(), 4);
+        std::memcpy(iterationBuffer.data() + i, v.data(), 4 * sizeof(float));
     }
 }

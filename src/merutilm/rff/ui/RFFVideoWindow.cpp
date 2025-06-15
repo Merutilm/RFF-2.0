@@ -81,20 +81,33 @@ LRESULT RFFVideoWindow::videoWindowProc(const HWND hwnd, const UINT message, con
             RECT prc = rc;
             prc.right = std::lerp(prc.left, prc.right, pos);
 
-            const HBRUSH pBar = CreateSolidBrush(RGB(0, 155, 0));
+            const HBRUSH pBar = CreateSolidBrush(RFF::Win32::COLOR_PROGRESS_BACKGROUND_PROG);
             FillRect(hdcBar, &prc, pBar);
             DeleteObject(pBar);
 
             RECT brc = rc;
             brc.left = prc.right;
-            const HBRUSH bBar = CreateSolidBrush(RGB(185, 185, 185));
+            const HBRUSH bBar = CreateSolidBrush(RFF::Win32::COLOR_PROGRESS_BACKGROUND_BACK);
             FillRect(hdcBar, &brc, bBar);
             DeleteObject(bBar);
 
             SetBkMode(hdcBar, TRANSPARENT);
-            SetTextColor(hdcBar, RGB(0, 0, 0));
+
+            const HRGN tempRgn = CreateRectRgn(rc.left, rc.top, rc.right, rc.bottom);
+            IntersectClipRect(hdcBar, prc.left, prc.top, prc.right, prc.bottom);
+
+            SetTextColor(hdcBar, RFF::Win32::COLOR_PROGRESS_TEXT_PROG);
             DrawText(hdcBar, window.barText.data(), -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+            SelectClipRgn(hdcBar, tempRgn);
+            IntersectClipRect(hdcBar, brc.left, brc.top, brc.right, brc.bottom);
+
+            SetTextColor(hdcBar, RFF::Win32::COLOR_PROGRESS_TEXT_BACK);
+            DrawText(hdcBar, window.barText.data(), -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
             EndPaint(window.bar, &ps);
+            SelectClipRgn(hdcBar, nullptr);
+            DeleteObject(tempRgn);
             return 0;
         }
         default: break;
@@ -129,6 +142,8 @@ void RFFVideoWindow::createVideo(const Settings &settings,
             RFFGL::createContext(window.hdc, &window.context);
             window.scene.configure(window.renderWindow, window.hdc, window.context);
             window.scene.getRenderer().reloadSize(cw, ch, imgWidth, imgHeight);
+            window.scene.reloadImageBuffer(imgWidth, imgHeight);
+            window.scene.applyColor(settings);
 
             const auto &[defaultZoomIncrement] = settings.videoSettings.dataSettings;
             const auto &[overZoom, showText, mps] = settings.videoSettings.animationSettings;
@@ -139,6 +154,7 @@ void RFFVideoWindow::createVideo(const Settings &settings,
             const double minNumber = -overZoom;
             auto currentFrameNumber = static_cast<float>(maxNumber);
             double currentSec = 0;
+            uint32_t pf1 = UINT32_MAX;
 
             writer.open(save.string(), CV_FOURCC('a', 'v', 'c', '1'), fps, cv::Size(imgWidth, imgHeight));
             if (!writer.isOpened()) {
@@ -147,31 +163,43 @@ void RFFVideoWindow::createVideo(const Settings &settings,
             }
             const float startSec = RFFUtilities::getTime();
 
+            RFFMap zoomed = RFFMap::DEFAULT_MAP;
+            RFFMap normal = RFFMap::DEFAULT_MAP;
+
             while (currentFrameNumber > minNumber) {
                 currentFrameNumber -= frameInterval;
                 currentSec += 1 / fps;
-                RFFMap zoomed = RFFMap::DEFAULT_MAP;
-                RFFMap normal = RFFMap::DEFAULT_MAP;
+                bool requiredRefresh = false;
                 if (currentFrameNumber < 1) {
-                    normal = RFFMap::readByID(open, 1);
-                    zoomed = RFFMap::DEFAULT_MAP;
+                    if (0 != pf1) {
+                        zoomed = RFFMap::DEFAULT_MAP;
+                        normal = RFFMap::readByID(open, 1);
+                        pf1 = 0;
+                        requiredRefresh = true;
+                    }
                 } else {
-                    const auto f1 = static_cast<uint32_t>(currentFrameNumber);
-                    const uint32_t f2 = f1 + 1;
-                    zoomed = RFFMap::readByID(open, f1);
-                    normal = RFFMap::readByID(open, f2);
+                    if (const auto f1 = static_cast<uint32_t>(currentFrameNumber); f1 != pf1) {
+                        const uint32_t f2 = f1 + 1;
+                        zoomed = RFFMap::readByID(open, f1);
+                        normal = RFFMap::readByID(open, f2);
+                        pf1 = f1;
+                        requiredRefresh = true;
+                    }
                 }
 
                 if (!IsWindowVisible(window.videoWindow)) {
                     break;
-                } {
-                    window.scene.makeContextCurrent();
-                    window.scene.setMap(currentFrameNumber, std::move(normal), std::move(zoomed));
-                    window.scene.applyCurrentMap();
-                    window.scene.applyColor(settings);
-                    window.scene.getRenderer().setTime((float) currentSec);
-                    window.scene.renderGL();
                 }
+
+                window.scene.makeContextCurrent();
+                window.scene.setCurrentFrame(currentFrameNumber);
+                window.scene.applyCurrentFrame();
+                if (requiredRefresh) {
+                    window.scene.setMap(std::move(normal), std::move(zoomed));
+                    window.scene.applyCurrentMap();
+                }
+                window.scene.getRenderer().setTime((float) currentSec);
+                window.scene.renderGL();
 
                 const float zoom = window.scene.calculateZoom(defaultZoomIncrement);
                 const cv::Mat &img = window.scene.getCurrentImage();
@@ -194,7 +222,8 @@ void RFFVideoWindow::createVideo(const Settings &settings,
 
                 writer << img;
 
-                const float progressRatio = (static_cast<float>(maxNumber) - currentFrameNumber) / (static_cast<float>(maxNumber) + overZoom);
+                const float progressRatio = (static_cast<float>(maxNumber) - currentFrameNumber) / (
+                                                static_cast<float>(maxNumber) + overZoom);
                 const float spentSec = RFFUtilities::getTime() - startSec;
                 float remainedSec = (1 - progressRatio) / progressRatio * spentSec;
                 const auto remainedTime = std::chrono::duration_cast<std::chrono::seconds>(

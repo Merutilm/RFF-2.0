@@ -315,7 +315,9 @@ void RFFRenderScene::applyResize() {
 
 void RFFRenderScene::overwriteMatrixFromMap() const {
     renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->getMatrix().getWidth(), currentMap->getMatrix().getHeight());
+    rendererIteration->setMaxIteration(currentMap->getMaxIteration());
     rendererIteration->setAllIterations(currentMap->getMatrix());
+
 }
 
 
