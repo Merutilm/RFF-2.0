@@ -12,30 +12,32 @@
 
 struct ArrayCompressionTool;
 
-struct DeepMandelbrotReference final : public MandelbrotReference{
-    const std::vector<double_exp> refReal;
-    const std::vector<double_exp> refImag;
+namespace merutilm::rff {
+    struct DeepMandelbrotReference final : public MandelbrotReference{
+        const std::vector<dex> refReal;
+        const std::vector<dex> refImag;
 
 
-    DeepMandelbrotReference(fp_complex &&center, std::vector<double_exp> &&refReal,
-                             std::vector<double_exp> &&refImag, std::vector<ArrayCompressionTool> &&compressor,
-                             std::vector<uint64_t> &&period, fp_complex &&lastReference, fp_complex &&fpgBn);
+        DeepMandelbrotReference(fp_complex &&center, std::vector<dex> &&refReal,
+                                 std::vector<dex> &&refImag, std::vector<ArrayCompressionTool> &&compressor,
+                                 std::vector<uint64_t> &&period, fp_complex &&lastReference, fp_complex &&fpgBn);
 
-    static std::unique_ptr<DeepMandelbrotReference> createReference(const ParallelRenderState &state,
-                                                                     const CalculationSettings &calc, int exp10,
-                                                                     uint64_t initialPeriod, double_exp dcMax, bool
-                                                                     strictFPG,
-                                                                     std::function<void(uint64_t)> &&
-                                                                     actionPerRefCalcIteration);
+        static std::unique_ptr<DeepMandelbrotReference> createReference(const ParallelRenderState &state,
+                                                                         const CalculationSettings &calc, int exp10,
+                                                                         uint64_t initialPeriod, dex dcMax, bool
+                                                                         strictFPG,
+                                                                         std::function<void(uint64_t)> &&
+                                                                         actionPerRefCalcIteration);
 
 
-    
-    double_exp real(uint64_t refIteration) const;
 
-    double_exp imag(uint64_t refIteration) const;
+        dex real(uint64_t refIteration) const;
 
-    size_t length() const override;
-    
-    uint64_t longestPeriod() const override;
+        dex imag(uint64_t refIteration) const;
 
-};
+        size_t length() const override;
+
+        uint64_t longestPeriod() const override;
+
+    };
+}

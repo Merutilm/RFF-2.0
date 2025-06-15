@@ -4,7 +4,9 @@
 
 #pragma once
 
-struct GLTimeRenderer {
-    virtual ~GLTimeRenderer() = default;
-    virtual void setTime(float time) = 0;
-};
+namespace merutilm::rff {
+    struct GLTimeRenderer {
+        virtual ~GLTimeRenderer() = default;
+        virtual void setTime(float time) = 0;
+    };
+}

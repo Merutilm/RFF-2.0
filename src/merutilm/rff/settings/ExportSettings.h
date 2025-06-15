@@ -4,7 +4,10 @@
 
 #pragma once
 
-struct ExportSettings {
-    float fps;
-    uint32_t bitrate;
-};
+
+namespace merutilm::rff {
+    struct ExportSettings {
+        float fps;
+        uint32_t bitrate;
+    };
+}

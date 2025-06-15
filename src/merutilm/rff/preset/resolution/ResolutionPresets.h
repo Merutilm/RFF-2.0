@@ -5,8 +5,7 @@
 #pragma once
 #include "../Presets.h"
 
-
-namespace ResolutionPresets {
+namespace merutilm::rff::ResolutionPresets {
     struct L1 final : public Presets::ResolutionPresets {
         std::string getName() const override;
 

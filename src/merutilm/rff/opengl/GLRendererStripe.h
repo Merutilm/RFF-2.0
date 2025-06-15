@@ -8,30 +8,32 @@
 #include "GLTimeRenderer.h"
 #include "../settings/StripeSettings.h"
 
-class GLRendererStripe final : public GLRenderer, public GLIterationTextureRenderer, public GLTimeRenderer {
-    GLuint iterationTextureID = 0;
-    float clarityMultiplier = 1;
-    const StripeSettings *stripeSettings = nullptr;
-    float time = 0;
+namespace merutilm::rff {
+    class GLRendererStripe final : public GLRenderer, public GLIterationTextureRenderer, public GLTimeRenderer {
+        GLuint iterationTextureID = 0;
+        float clarityMultiplier = 1;
+        const StripeSettings *stripeSettings = nullptr;
+        float time = 0;
 
-public:
-    explicit GLRendererStripe();
+    public:
+        explicit GLRendererStripe();
 
-    ~GLRendererStripe() override = default;
+        ~GLRendererStripe() override = default;
 
-    GLRendererStripe(GLRendererStripe const &) = delete;
+        GLRendererStripe(GLRendererStripe const &) = delete;
 
-    GLRendererStripe &operator=(GLRendererStripe const &) = delete;
+        GLRendererStripe &operator=(GLRendererStripe const &) = delete;
 
-    GLRendererStripe(GLRendererStripe &&) = delete;
+        GLRendererStripe(GLRendererStripe &&) = delete;
 
-    GLRendererStripe &operator=(GLRendererStripe &&) = delete;
+        GLRendererStripe &operator=(GLRendererStripe &&) = delete;
 
-    void setIterationTextureID(GLuint textureID) override;
+        void setIterationTextureID(GLuint textureID) override;
 
-    void setTime(float time) override;
+        void setTime(float time) override;
 
-    void setStripeSettings(const StripeSettings &stripeSettings);
+        void setStripeSettings(const StripeSettings &stripeSettings);
 
-    void update() override;
-};
+        void update() override;
+    };
+}

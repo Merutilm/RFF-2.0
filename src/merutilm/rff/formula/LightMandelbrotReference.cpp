@@ -9,10 +9,10 @@
 #include <cfloat>
 #include "../calc/rff_math.h"
 #include "../mrthy/ArrayCompressor.h"
-#include "../ui/RFF.h"
+#include "../ui/Constants.h"
 
 
-LightMandelbrotReference::LightMandelbrotReference(fp_complex &&center, std::vector<double> &&refReal,
+merutilm::rff::LightMandelbrotReference::LightMandelbrotReference(fp_complex &&center, std::vector<double> &&refReal,
                                                    std::vector<double> &&refImag,
                                                    std::vector<ArrayCompressionTool> &&compressor,
                                                    std::vector<uint64_t> &&period,
@@ -36,11 +36,11 @@ LightMandelbrotReference::LightMandelbrotReference(fp_complex &&center, std::vec
  * @param actionPerRefCalcIteration the action of every iteration
  * @return the result of generation. but returns @code PROCESS_TERMINATED_REFERENCE@endcode if the process is terminated
  */
-std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createReference(
+std::unique_ptr<merutilm::rff::LightMandelbrotReference> merutilm::rff::LightMandelbrotReference::createReference(
     const ParallelRenderState &state, const CalculationSettings &calc, int exp10, uint64_t initialPeriod, double dcMax,
     const bool strictFPG, std::function<void(uint64_t)> &&actionPerRefCalcIteration) {
     if (state.interruptRequested()) {
-        return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
+        return Constants::NullPointer::PROCESS_TERMINATED_REFERENCE;
     }
 
     auto rr = std::vector<double>();
@@ -76,8 +76,8 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
     bool canReuse = withoutNormalize;
 
     while (zr * zr + zi * zi < bailoutSqr && iteration < maxIteration) {
-        if (iteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
-            return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
+        if (iteration % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            return Constants::NullPointer::PROCESS_TERMINATED_REFERENCE;
         }
 
         // use Fast-Period-Guessing, and create MPA Table
@@ -193,20 +193,20 @@ std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createRefere
 }
 
 
-double LightMandelbrotReference::real(const uint64_t refIteration) const {
+double merutilm::rff::LightMandelbrotReference::real(const uint64_t refIteration) const {
     return refReal[ArrayCompressor::compress(compressor, refIteration)];
 }
 
-double LightMandelbrotReference::imag(const uint64_t refIteration) const {
+double merutilm::rff::LightMandelbrotReference::imag(const uint64_t refIteration) const {
     return refImag[ArrayCompressor::compress(compressor, refIteration)];
 }
 
 
-size_t LightMandelbrotReference::length() const {
+size_t merutilm::rff::LightMandelbrotReference::length() const {
     return refReal.size();
 }
 
 
-uint64_t LightMandelbrotReference::longestPeriod() const {
+uint64_t merutilm::rff::LightMandelbrotReference::longestPeriod() const {
     return period.back();
 }

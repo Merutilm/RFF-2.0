@@ -6,14 +6,14 @@
 #include <cfloat>
 #include "../calc/rff_math.h"
 
-LightPAGenerator::LightPAGenerator(const LightMandelbrotReference &reference, const double epsilon, const double dcMax,
+merutilm::rff::LightPAGenerator::LightPAGenerator(const LightMandelbrotReference &reference, const double epsilon, const double dcMax,
                                    const uint64_t start) : PAGenerator(start, 0, reference.compressor, epsilon), anr(1), ani(0), bnr(0), bni(0), radius(DBL_MAX),
                                                            refReal(reference.refReal), refImag(reference.refImag),
                                                            dcMax(dcMax) {
 }
 
 
-void LightPAGenerator::merge(const PA &pa) {
+void merutilm::rff::LightPAGenerator::merge(const PA &pa) {
     const auto &target = static_cast<const LightPA &>(pa);
     const double anrMerge = target.anr * anr - target.ani * ani;
     const double aniMerge = target.anr * ani + target.ani * anr;
@@ -28,7 +28,7 @@ void LightPAGenerator::merge(const PA &pa) {
     skip += target.skip;
 }
 
-void LightPAGenerator::step() {
+void merutilm::rff::LightPAGenerator::step() {
     const uint64_t iter = start + skip++; //n+k
     const uint64_t index = ArrayCompressor::compress(compressors, iter);
 

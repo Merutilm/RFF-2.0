@@ -8,10 +8,13 @@
 #include "MPACompressionMethod.h"
 #include "MPASelectionMethod.h"
 
-struct MPASettings final {
-    uint16_t minSkipReference;
-    uint8_t maxMultiplierBetweenLevel;
-    float epsilonPower;
-    MPASelectionMethod mpaSelectionMethod;
-    MPACompressionMethod mpaCompressionMethod;
-};
+
+namespace merutilm::rff {
+    struct MPASettings final {
+        uint16_t minSkipReference;
+        uint8_t maxMultiplierBetweenLevel;
+        float epsilonPower;
+        MPASelectionMethod mpaSelectionMethod;
+        MPACompressionMethod mpaCompressionMethod;
+    };
+}

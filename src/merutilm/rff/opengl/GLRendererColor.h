@@ -5,26 +5,27 @@
 #pragma once
 #include "GLRenderer.h"
 #include "../settings/ColorSettings.h"
+namespace merutilm::rff {
+    class GLRendererColor final : public GLRenderer {
 
-class GLRendererColor final : public GLRenderer {
+        const ColorSettings *colorSettings = nullptr;
 
-    const ColorSettings *colorSettings = nullptr;
+    public:
+        explicit GLRendererColor();
 
-public:
-    explicit GLRendererColor();
+        ~GLRendererColor() override = default;
 
-    ~GLRendererColor() override = default;
+        GLRendererColor(const GLRendererColor &) = delete;
 
-    GLRendererColor(const GLRendererColor &) = delete;
+        GLRendererColor &operator=(const GLRendererColor &) = delete;
 
-    GLRendererColor &operator=(const GLRendererColor &) = delete;
+        GLRendererColor(GLRendererColor &&) = delete;
 
-    GLRendererColor(GLRendererColor &&) = delete;
+        GLRendererColor &operator=(GLRendererColor &&) = delete;
 
-    GLRendererColor &operator=(GLRendererColor &&) = delete;
+        void setColorSettings(const ColorSettings &colorSettings);
 
-    void setColorSettings(const ColorSettings &colorSettings);
+        void update() override;
 
-    void update() override;
-
-};
+    };
+}

@@ -6,11 +6,11 @@
 
 #include <execution>
 
-#include "../calc/double_exp.h"
+#include "../calc/dex.h"
 
 
-DeepMPATable::DeepMPATable(const ParallelRenderState &state, const DeepMandelbrotReference &reference,
-                           const MPASettings *mpaSettings, const double_exp &dcMax,
+merutilm::rff::DeepMPATable::DeepMPATable(const ParallelRenderState &state, const DeepMandelbrotReference &reference,
+                           const MPASettings *mpaSettings, const dex &dcMax,
                            ApproxTableCache &tableRef,
                            std::function<void(uint64_t, double)> &&
                            actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, tableRef, std::move(actionPerCreatingTableIteration)) {

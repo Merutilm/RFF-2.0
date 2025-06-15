@@ -8,43 +8,45 @@
 #include "GLRenderer.h"
 #include "GLRendererDisplayer.h"
 
-class GLMultipassRenderer {
-    std::vector<GLRenderer*> renderers = std::vector<GLRenderer*>();
-    std::unique_ptr<GLRendererDisplayer> displayer = nullptr;
-    int width = 0;
-    int height = 0;
-    GLuint renderedFBO = 0;
-    GLuint renderedFBOTexID = 0;
-    float timeSec = 0;
+namespace merutilm::rff {
+    class GLMultipassRenderer {
+        std::vector<GLRenderer*> renderers = std::vector<GLRenderer*>();
+        std::unique_ptr<GLRendererDisplayer> displayer = nullptr;
+        int width = 0;
+        int height = 0;
+        GLuint renderedFBO = 0;
+        GLuint renderedFBOTexID = 0;
+        float timeSec = 0;
 
-public:
-    GLMultipassRenderer();
+    public:
+        GLMultipassRenderer();
 
-    ~GLMultipassRenderer() = default;
+        ~GLMultipassRenderer() = default;
 
-    GLMultipassRenderer(const GLMultipassRenderer &) = delete;
+        GLMultipassRenderer(const GLMultipassRenderer &) = delete;
 
-    GLMultipassRenderer &operator=(const GLMultipassRenderer &) = delete;
+        GLMultipassRenderer &operator=(const GLMultipassRenderer &) = delete;
 
-    GLMultipassRenderer(GLMultipassRenderer &&) = delete;
+        GLMultipassRenderer(GLMultipassRenderer &&) = delete;
 
-    GLMultipassRenderer &operator=(GLMultipassRenderer &&) = delete;
+        GLMultipassRenderer &operator=(GLMultipassRenderer &&) = delete;
 
-    void add(GLRenderer &renderer);
+        void add(GLRenderer &renderer);
 
-    void reloadSize(int cw, int ch, int iw, int ih);
+        void reloadSize(int cw, int ch, int iw, int ih);
 
-    void setTime(float timeSec);
+        void setTime(float timeSec);
 
-    void render() const;
+        void render() const;
 
-    void display();
+        void display();
 
-    int getWidth() const;
+        int getWidth() const;
 
-    int getHeight() const;
+        int getHeight() const;
 
-    GLuint getRenderedFBO() const;
+        GLuint getRenderedFBO() const;
 
-    GLuint getRenderedFBOTexID() const;
-};
+        GLuint getRenderedFBOTexID() const;
+    };
+}

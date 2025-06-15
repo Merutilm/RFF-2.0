@@ -10,7 +10,8 @@
 #include "Perturbator.h"
 
 
-LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
+
+merutilm::rff::LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                        const double dcMax, const int exp10,
                                                        const uint64_t initialPeriod,
                                                        ApproxTableCache &tableRef,
@@ -21,7 +22,7 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
     std::move(actionPerCreatingTableIteration), false) {
 }
 
-LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
+merutilm::rff::LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                        const double dcMax, const int exp10,
                                                        const uint64_t initialPeriod,
                                                        ApproxTableCache &tableRef,
@@ -33,7 +34,7 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
     std::move(actionPerCreatingTableIteration), arbitraryPrecisionFPGBn, nullptr, nullptr, 0, 0) {
 }
 
-LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
+merutilm::rff::LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                                        const double dcMax, const int exp10,
                                                        const uint64_t initialPeriod,
                                                        ApproxTableCache &tableRef,
@@ -54,7 +55,7 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
         reference = std::move(reusedReference);
     }
 
-    if (reference == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE) {
+    if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
         return;
     }
 
@@ -68,7 +69,7 @@ LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &stat
 }
 
 
-double LightMandelbrotPerturbator::iterate(const double_exp &dcr, const double_exp &dci) const {
+double merutilm::rff::LightMandelbrotPerturbator::iterate(const dex &dcr, const dex &dci) const {
     if (state.interruptRequested()) return 0.0;
 
     const double dcr1 = static_cast<double>(dcr) + offR;
@@ -150,7 +151,7 @@ double LightMandelbrotPerturbator::iterate(const double_exp &dcr, const double_e
             break;
         }
 
-        if (absIteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
+        if (absIteration % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
     }
 
     if (isAbs) {
@@ -168,7 +169,7 @@ double LightMandelbrotPerturbator::iterate(const double_exp &dcr, const double_e
 }
 
 
-std::unique_ptr<LightMandelbrotPerturbator> LightMandelbrotPerturbator::reuse(
+std::unique_ptr<merutilm::rff::LightMandelbrotPerturbator> merutilm::rff::LightMandelbrotPerturbator::reuse(
     const CalculationSettings &calc, const double dcMax, ApproxTableCache &tableRef) {
 
     const int exp10 = logZoomToExp10(calc.logZoom);
@@ -177,7 +178,7 @@ std::unique_ptr<LightMandelbrotPerturbator> LightMandelbrotPerturbator::reuse(
     uint64_t longestPeriod = 1;
     std::unique_ptr<LightMandelbrotReference> reusedReference = nullptr;
 
-    if (reference == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE) {
+    if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
         //try to use process-terminated reference
         MessageBox(nullptr, "Please do not try to use PROCESS-TERMINATED Reference.", "Warning",
                    MB_OK | MB_ICONWARNING);

@@ -3,10 +3,10 @@
 //
 #include "FogPresets.h"
 
-std::string FogPresets::Medium::getName() const {
+std::string merutilm::rff::FogPresets::Medium::getName() const {
     return "Medium";
 }
 
-FogSettings FogPresets::Medium::fogSettings() const {
+merutilm::rff::FogSettings merutilm::rff::FogPresets::Medium::fogSettings() const {
     return FogSettings{0.1, 0.5};
 }

@@ -8,8 +8,8 @@
 #include <mutex>
 
 
-GLRenderer::GLRenderer(const std::string_view name) : shader(
-    GLShaderLoader(RFF::GLConfig::VERTEX_PATH_DEFAULT, name)) {
+merutilm::rff::GLRenderer::GLRenderer(const std::string_view name) : shader(
+    GLShaderLoader(Constants::GLConfig::VERTEX_PATH_DEFAULT, name)) {
     //-----------------------------------------------
     //Generate FBO
     //-----------------------------------------------
@@ -18,7 +18,7 @@ GLRenderer::GLRenderer(const std::string_view name) : shader(
 }
 
 
-GLRenderer::~GLRenderer() {
+merutilm::rff::GLRenderer::~GLRenderer() {
     if (glIsFramebuffer(fbo)) {
         glDeleteFramebuffers(1, &fbo);
     }
@@ -28,13 +28,13 @@ GLRenderer::~GLRenderer() {
 }
 
 
-void GLRenderer::reloadSize(const uint16_t width, const uint16_t height) {
+void merutilm::rff::GLRenderer::reloadSize(const uint16_t width, const uint16_t height) {
     this->w = width;
     this->h = height;
     resetFBOTexture(w, h);
 }
 
-void GLRenderer::beforeUpdate() {
+void merutilm::rff::GLRenderer::beforeUpdate() {
     bindFBO(fbo, fboTextureID);
     glViewport(0, 0, w, h);
     int error = glGetError();
@@ -46,7 +46,7 @@ void GLRenderer::beforeUpdate() {
 
 }
 
-void GLRenderer::afterUpdate() {
+void merutilm::rff::GLRenderer::afterUpdate() {
     unbindFBO(fbo);
     int error = glGetError();
     while (error != GL_NO_ERROR) {
@@ -55,20 +55,20 @@ void GLRenderer::afterUpdate() {
     }
 }
 
-uint16_t GLRenderer::getWidth() const {
+uint16_t merutilm::rff::GLRenderer::getWidth() const {
     return w;
 }
 
-uint16_t GLRenderer::getHeight() const {
+uint16_t merutilm::rff::GLRenderer::getHeight() const {
     return h;
 }
 
-GLuint GLRenderer::getPrevFBOTextureID() const {
+GLuint merutilm::rff::GLRenderer::getPrevFBOTextureID() const {
     return previousFBOTextureID;
 }
 
 
-void GLRenderer::setToDisplay() {
+void merutilm::rff::GLRenderer::setToDisplay() {
     if (fbo == 0) {
         return;
     }
@@ -81,27 +81,27 @@ void GLRenderer::setToDisplay() {
 }
 
 
-void GLRenderer::resetFBOTexture(const uint16_t width, const uint16_t height) {
+void merutilm::rff::GLRenderer::resetFBOTexture(const uint16_t width, const uint16_t height) {
     if (fbo == 0) {
         return;
     }
     fboTextureID = GLShaderLoader::recreateTexture2D(fboTextureID, width, height,
-                                                     RFF::TextureFormats::FLOAT4);
+                                                     Constants::TextureFormats::FLOAT4);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTextureID, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-GLuint GLRenderer::getFBO() const {
+GLuint merutilm::rff::GLRenderer::getFBO() const {
     return fbo;
 }
 
-GLuint GLRenderer::getFBOTextureID() const {
+GLuint merutilm::rff::GLRenderer::getFBOTextureID() const {
     return fboTextureID;
 }
 
 
-void GLRenderer::bindFBO(const GLuint fbo, const GLuint fboTextureID) {
+void merutilm::rff::GLRenderer::bindFBO(const GLuint fbo, const GLuint fboTextureID) {
     if (glIsFramebuffer(fbo)) {
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTextureID, 0);
@@ -109,23 +109,23 @@ void GLRenderer::bindFBO(const GLuint fbo, const GLuint fboTextureID) {
 }
 
 
-void GLRenderer::unbindFBO(const GLuint fbo) {
+void merutilm::rff::GLRenderer::unbindFBO(const GLuint fbo) {
     if (glIsFramebuffer(fbo)) {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 }
 
-void GLRenderer::setPreviousFBOTextureID(const GLuint previousFBOTextureID) {
+void merutilm::rff::GLRenderer::setPreviousFBOTextureID(const GLuint previousFBOTextureID) {
     this->previousFBOTextureID = previousFBOTextureID;
 }
 
 
-GLShaderLoader &GLRenderer::getShaderLoader() {
+merutilm::rff::GLShaderLoader &merutilm::rff::GLRenderer::getShaderLoader() {
     return shader;
 }
 
-void GLRenderer::render() {
+void merutilm::rff::GLRenderer::render() {
     std::scoped_lock lock(mutex);
     beforeUpdate();
     shader.use();

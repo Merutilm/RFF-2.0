@@ -4,17 +4,17 @@
 
 #include "GLRendererAntialiasing.h"
 
-GLRendererAntialiasing::GLRendererAntialiasing() : GLRenderer("antialiasing.frag"){
+merutilm::rff::GLRendererAntialiasing::GLRendererAntialiasing() : GLRenderer("antialiasing.frag"){
 
 }
 
 
-void GLRendererAntialiasing::setUse(const bool use) {
+void merutilm::rff::GLRendererAntialiasing::setUse(const bool use) {
     this->use = use;
 }
 
 
-void GLRendererAntialiasing::update() {
+void merutilm::rff::GLRendererAntialiasing::update() {
     const GLShaderLoader &shader = getShaderLoader();
     shader.uploadTexture2D("inputTex", GL_TEXTURE0, getPrevFBOTextureID());
     shader.uploadBool("use", use);

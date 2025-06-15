@@ -4,8 +4,10 @@
 
 #pragma once
 
-struct AnimationSettings {
-    float overZoom;
-    bool showText;
-    float mps;
-};
+namespace merutilm::rff {
+    struct AnimationSettings {
+        float overZoom;
+        bool showText;
+        float mps;
+    };
+}

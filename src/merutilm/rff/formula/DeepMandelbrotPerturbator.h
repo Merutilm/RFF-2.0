@@ -9,58 +9,68 @@
 #include "../mrthy/DeepPA.h"
 #include "../mrthy/LightPA.h"
 
-class DeepMandelbrotPerturbator final : public MandelbrotPerturbator{
-    std::unique_ptr<DeepMandelbrotReference> reference = nullptr;
-    std::unique_ptr<DeepMPATable> table = nullptr;
+namespace merutilm::rff {
+    class DeepMandelbrotPerturbator final : public MandelbrotPerturbator {
+        std::unique_ptr<DeepMandelbrotReference> reference = nullptr;
+        std::unique_ptr<DeepMPATable> table = nullptr;
 
-    const double_exp dcMax;
-    const double_exp offR;
-    const double_exp offI;
+        const dex dcMax;
+        const dex offR;
+        const dex offI;
 
-public:
-    explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, const double_exp &dcMax, int exp10,
-                               uint64_t initialPeriod, ApproxTableCache &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                               std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
+    public:
+        explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
+                                           const dex &dcMax, int exp10,
+                                           uint64_t initialPeriod, ApproxTableCache &tableRef,
+                                           std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                                           std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
-    explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, const double_exp &dcMax, int exp10,
-                               uint64_t initialPeriod, ApproxTableCache &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                               std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
-                               bool arbitraryPrecisionFPGBn);
+        explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
+                                           const dex &dcMax, int exp10,
+                                           uint64_t initialPeriod, ApproxTableCache &tableRef,
+                                           std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                                           std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
+                                           bool arbitraryPrecisionFPGBn);
 
-    explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, const double_exp &dcMax, int exp10,
-                               uint64_t initialPeriod, ApproxTableCache &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                               std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
-                               bool arbitraryPrecisionFPGBn, std::unique_ptr<DeepMandelbrotReference> reusedReference, std::unique_ptr<DeepMPATable> reusedTable,
-                               const double_exp &offR, const double_exp &offI);
-
-
-    double iterate(const double_exp &dcr, const double_exp &dci) const override;
-
-    std::unique_ptr<DeepMandelbrotPerturbator> reuse(const CalculationSettings &calc, const double_exp &dcMax, ApproxTableCache &tableRef);
-
-    const DeepMandelbrotReference *getReference() const override;
-
-    DeepMPATable &getTable() const;
-
-    double_exp getDcMaxAsDoubleExp() const override;
-};
-
-// DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
-// DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
-// DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
-// DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
-// DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
+        explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
+                                           const dex &dcMax, int exp10,
+                                           uint64_t initialPeriod, ApproxTableCache &tableRef,
+                                           std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                                           std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
+                                           bool arbitraryPrecisionFPGBn,
+                                           std::unique_ptr<DeepMandelbrotReference> reusedReference,
+                                           std::unique_ptr<DeepMPATable> reusedTable,
+                                           const dex &offR, const dex &offI);
 
 
+        double iterate(const dex &dcr, const dex &dci) const override;
 
-inline const DeepMandelbrotReference *DeepMandelbrotPerturbator::getReference() const {
-    return reference.get();
-}
+        std::unique_ptr<DeepMandelbrotPerturbator> reuse(const CalculationSettings &calc, const dex &dcMax,
+                                                         ApproxTableCache &tableRef);
 
-inline DeepMPATable &DeepMandelbrotPerturbator::getTable() const {
-    return *table;
-}
+        const DeepMandelbrotReference *getReference() const override;
 
-inline double_exp DeepMandelbrotPerturbator::getDcMaxAsDoubleExp() const {
-    return dcMax;
+        DeepMPATable &getTable() const;
+
+        dex getDcMaxAsDoubleExp() const override;
+    };
+
+    // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
+    // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
+    // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
+    // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
+    // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
+
+
+    inline const DeepMandelbrotReference *DeepMandelbrotPerturbator::getReference() const {
+        return reference.get();
+    }
+
+    inline DeepMPATable &DeepMandelbrotPerturbator::getTable() const {
+        return *table;
+    }
+
+    inline dex DeepMandelbrotPerturbator::getDcMaxAsDoubleExp() const {
+        return dcMax;
+    }
 }

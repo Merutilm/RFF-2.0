@@ -7,16 +7,17 @@
 #include "../calc/fp_complex.h"
 
 
-struct CalculationSettings final{
-    fp_complex center;
-    float logZoom;
-    uint64_t maxIteration;
-    float bailout;
-    DecimalizeIterationMethod decimalizeIterationMethod;
-    MPASettings mpaSettings;
-    ReferenceCompressionSettings referenceCompressionSettings;
-    ReuseReferenceMethod reuseReferenceMethod;
-    bool autoMaxIteration;
-    bool absoluteIterationMode;
-};
-
+namespace merutilm::rff {
+    struct CalculationSettings final{
+        fp_complex center;
+        float logZoom;
+        uint64_t maxIteration;
+        float bailout;
+        DecimalizeIterationMethod decimalizeIterationMethod;
+        MPASettings mpaSettings;
+        ReferenceCompressionSettings referenceCompressionSettings;
+        ReuseReferenceMethod reuseReferenceMethod;
+        bool autoMaxIteration;
+        bool absoluteIterationMode;
+    };
+}

@@ -8,7 +8,7 @@
 
 
 
-namespace FogPresets {
+namespace merutilm::rff::FogPresets {
     struct Medium final : public Presets::ShaderPresets::FogPreset {
         std::string getName() const override;
 

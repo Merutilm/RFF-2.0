@@ -7,7 +7,7 @@
 #include "../../../settings/SlopeSettings.h"
 
 
-namespace SlopePresets {
+namespace merutilm::rff::SlopePresets {
     struct Normal final : public Presets::ShaderPresets::SlopePreset {
         std::string getName() const override;
 

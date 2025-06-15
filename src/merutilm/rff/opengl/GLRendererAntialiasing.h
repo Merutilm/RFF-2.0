@@ -5,23 +5,25 @@
 #pragma once
 #include "GLRenderer.h"
 
-class GLRendererAntialiasing final : public GLRenderer {
+namespace merutilm::rff {
+    class GLRendererAntialiasing final : public GLRenderer {
+        bool use = false;
 
-    bool use = false;
     public:
-    explicit GLRendererAntialiasing();
+        explicit GLRendererAntialiasing();
 
-    ~GLRendererAntialiasing() override = default;
+        ~GLRendererAntialiasing() override = default;
 
-    GLRendererAntialiasing(const GLRendererAntialiasing &) = delete;
+        GLRendererAntialiasing(const GLRendererAntialiasing &) = delete;
 
-    GLRendererAntialiasing &operator=(const GLRendererAntialiasing &) = delete;
+        GLRendererAntialiasing &operator=(const GLRendererAntialiasing &) = delete;
 
-    GLRendererAntialiasing(GLRendererAntialiasing &&) = delete;
+        GLRendererAntialiasing(GLRendererAntialiasing &&) = delete;
 
-    GLRendererAntialiasing &operator=(GLRendererAntialiasing &&) = delete;
+        GLRendererAntialiasing &operator=(GLRendererAntialiasing &&) = delete;
 
-    void setUse(bool use);
+        void setUse(bool use);
 
-    void update() override;
-};
+        void update() override;
+    };
+}

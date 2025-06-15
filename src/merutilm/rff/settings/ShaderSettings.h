@@ -7,12 +7,13 @@
 #include "StripeSettings.h"
 
 
-struct ShaderSettings {
-    PaletteSettings paletteSettings;
-    StripeSettings stripeSettings;
-    SlopeSettings slopeSettings;
-    ColorSettings colorSettings;
-    FogSettings fogSettings;
-    BloomSettings bloomSettings;
-};
-
+namespace merutilm::rff {
+    struct ShaderSettings {
+        PaletteSettings paletteSettings;
+        StripeSettings stripeSettings;
+        SlopeSettings slopeSettings;
+        ColorSettings colorSettings;
+        FogSettings fogSettings;
+        BloomSettings bloomSettings;
+    };
+}

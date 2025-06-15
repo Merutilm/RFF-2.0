@@ -8,24 +8,24 @@
 #include <mutex>
 
 
-std::stop_token ParallelRenderState::stopToken() const {
+std::stop_token merutilm::rff::ParallelRenderState::stopToken() const {
     return thread.get_stop_token();
 }
 
-bool ParallelRenderState::interruptRequested() const {
+bool merutilm::rff::ParallelRenderState::interruptRequested() const {
     return stopToken().stop_requested();
 }
 
-void ParallelRenderState::interrupt() {
+void merutilm::rff::ParallelRenderState::interrupt() {
     thread.request_stop();
 }
 
-void ParallelRenderState::cancel() {
+void merutilm::rff::ParallelRenderState::cancel() {
     std::scoped_lock lock(mutex);
     cancelUnsafe();
 }
 
-void ParallelRenderState::cancelUnsafe() {
+void merutilm::rff::ParallelRenderState::cancelUnsafe() {
     if (thread.joinable()) {
         interrupt();
         thread.join();

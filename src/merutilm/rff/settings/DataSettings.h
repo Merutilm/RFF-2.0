@@ -4,6 +4,8 @@
 
 #pragma once
 
-struct DataSettings {
-    float defaultZoomIncrement;
-};
+namespace merutilm::rff {
+    struct DataSettings {
+        float defaultZoomIncrement;
+    };
+}

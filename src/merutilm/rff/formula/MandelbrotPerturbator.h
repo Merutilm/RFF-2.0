@@ -9,25 +9,26 @@
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/CalculationSettings.h"
 
-struct MandelbrotPerturbator : public Perturbator{
+namespace merutilm::rff {
+    struct MandelbrotPerturbator : public Perturbator{
 
-    ParallelRenderState &state;
-    const CalculationSettings calc;
+        ParallelRenderState &state;
+        const CalculationSettings calc;
 
-    explicit MandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings& calculationSettings);
+        explicit MandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings& calculationSettings);
 
-    ~MandelbrotPerturbator() override = default;
+        ~MandelbrotPerturbator() override = default;
 
-    virtual const MandelbrotReference *getReference() const = 0;
+        virtual const MandelbrotReference *getReference() const = 0;
 
-    const CalculationSettings &getCalculationSettings() const;
+        const CalculationSettings &getCalculationSettings() const;
 
-    virtual double_exp getDcMaxAsDoubleExp() const = 0;
+        virtual dex getDcMaxAsDoubleExp() const = 0;
 
-    virtual double iterate(const double_exp &dcr, const double_exp &dci) const = 0;
+        virtual double iterate(const dex &dcr, const dex &dci) const = 0;
 
 
-};
-
+    };
+}
 
 

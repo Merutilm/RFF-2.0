@@ -13,28 +13,30 @@
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/CalculationSettings.h"
 
-struct LightMandelbrotReference final : public MandelbrotReference{
+namespace merutilm::rff {
+    struct LightMandelbrotReference final : public MandelbrotReference{
 
-    const std::vector<double> refReal;
-    const std::vector<double> refImag;
+        const std::vector<double> refReal;
+        const std::vector<double> refImag;
 
 
-    explicit LightMandelbrotReference(fp_complex &&center, std::vector<double> &&refReal,
-                             std::vector<double> &&refImag, std::vector<ArrayCompressionTool> &&compressor,
-                             std::vector<uint64_t> &&period, fp_complex &&lastReference, fp_complex &&fpgBn);
+        explicit LightMandelbrotReference(fp_complex &&center, std::vector<double> &&refReal,
+                                 std::vector<double> &&refImag, std::vector<ArrayCompressionTool> &&compressor,
+                                 std::vector<uint64_t> &&period, fp_complex &&lastReference, fp_complex &&fpgBn);
 
-    static std::unique_ptr<LightMandelbrotReference> createReference(const ParallelRenderState &state,
-                                                                     const CalculationSettings &calc, int exp10,
-                                                                     uint64_t initialPeriod, double dcMax, bool
-                                                                     strictFPG,
-                                                                     std::function<void(uint64_t)> &&
-                                                                     actionPerRefCalcIteration);
+        static std::unique_ptr<LightMandelbrotReference> createReference(const ParallelRenderState &state,
+                                                                         const CalculationSettings &calc, int exp10,
+                                                                         uint64_t initialPeriod, double dcMax, bool
+                                                                         strictFPG,
+                                                                         std::function<void(uint64_t)> &&
+                                                                         actionPerRefCalcIteration);
 
-    double real(uint64_t refIteration) const;
+        double real(uint64_t refIteration) const;
 
-    double imag(uint64_t refIteration) const;
+        double imag(uint64_t refIteration) const;
 
-    size_t length() const override;
+        size_t length() const override;
 
-    uint64_t longestPeriod() const override;
-};
+        uint64_t longestPeriod() const override;
+    };
+}

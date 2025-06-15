@@ -4,10 +4,10 @@
 
 #include "GLRendererIteration.h"
 
-GLRendererIteration::GLRendererIteration() : GLRenderer("iteration_palette.frag") {
+merutilm::rff::GLRendererIteration::GLRendererIteration() : GLRenderer("iteration_palette.frag") {
 }
 
-GLRendererIteration::~GLRendererIteration() {
+merutilm::rff::GLRendererIteration::~GLRendererIteration() {
     if (glIsTexture(iterationTextureID)) {
         glDeleteTextures(1, &iterationTextureID);
     }
@@ -16,36 +16,36 @@ GLRendererIteration::~GLRendererIteration() {
     }
 }
 
-void GLRendererIteration::setIteration(const uint32_t x, const uint32_t y, const double iteration) {
+void merutilm::rff::GLRendererIteration::setIteration(const uint32_t x, const uint32_t y, const double iteration) {
     const uint32_t index = (static_cast<uint32_t>(y) * iterWidth + x) * 2;
     auto [a, b] = doubleToTwoFloatBits(iteration);
     iterationBuffer[index] = a;
     iterationBuffer[index + 1] = b;
 }
 
-void GLRendererIteration::setTime(const float time) {
+void merutilm::rff::GLRendererIteration::setTime(const float time) {
     this->time = time;
 }
 
-void GLRendererIteration::setMaxIteration(const int maxIteration) {
+void merutilm::rff::GLRendererIteration::setMaxIteration(const int maxIteration) {
     this->maxIteration = maxIteration;
 }
 
-GLuint GLRendererIteration::getIterationTextureID() {
+GLuint merutilm::rff::GLRendererIteration::getIterationTextureID() {
     return iterationTextureID;
 }
 
-void GLRendererIteration::reloadIterationBuffer(const int iterWidth, const int iterHeight,
+void merutilm::rff::GLRendererIteration::reloadIterationBuffer(const int iterWidth, const int iterHeight,
                                                 const uint64_t maxIteration) {
     this->iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
     this->iterationTextureID = GLShaderLoader::recreateTexture2D(iterationTextureID, iterWidth, iterHeight,
-                                                                 RFF::TextureFormats::FLOAT2);
+                                                                 Constants::TextureFormats::FLOAT2);
     this->maxIteration = static_cast<double>(maxIteration);
     this->iterWidth = iterWidth;
     this->iterHeight = iterHeight;
 }
 
-void GLRendererIteration::setPaletteSettings(const PaletteSettings &paletteSettings) {
+void merutilm::rff::GLRendererIteration::setPaletteSettings(const PaletteSettings &paletteSettings) {
     this->paletteSettings = &paletteSettings;
     this->paletteLength = static_cast<int>(paletteSettings.colors.size());
     GLint max;
@@ -54,14 +54,14 @@ void GLRendererIteration::setPaletteSettings(const PaletteSettings &paletteSetti
     this->paletteHeight = (paletteLength - 1) / paletteWidth + 1;
     this->paletteBuffer = createPaletteBuffer(paletteSettings, paletteWidth, paletteHeight);
     this->paletteTextureID = GLShaderLoader::recreateTexture2D(paletteTextureID, paletteWidth, paletteHeight,
-                                                               RFF::TextureFormats::FLOAT4);
+                                                               Constants::TextureFormats::FLOAT4);
 }
 
-int GLRendererIteration::getIterationTextureID() const {
+int merutilm::rff::GLRendererIteration::getIterationTextureID() const {
     return iterationTextureID;
 }
 
-void GLRendererIteration::update() {
+void merutilm::rff::GLRendererIteration::update() {
     if (paletteBuffer.empty()) {
         return;
     }
@@ -71,7 +71,7 @@ void GLRendererIteration::update() {
             return;
         }
         shader.uploadTexture2D("iterations", GL_TEXTURE0, iterationTextureID, iterationBuffer.data(), iterWidth,
-                               iterHeight, RFF::TextureFormats::FLOAT2);
+                               iterHeight, Constants::TextureFormats::FLOAT2);
     } else {
         shader.uploadTexture2D("iterations", GL_TEXTURE0, previousFBOTextureID);
     }
@@ -79,7 +79,7 @@ void GLRendererIteration::update() {
     shader.uploadDouble("maxIteration", maxIteration);
 
     shader.uploadTexture2D("palette", GL_TEXTURE1, paletteTextureID, paletteBuffer.data(), paletteWidth, paletteHeight,
-                           RFF::TextureFormats::FLOAT4);
+                           Constants::TextureFormats::FLOAT4);
     shader.uploadInt("paletteWidth", paletteWidth);
     shader.uploadInt("paletteHeight", paletteHeight);
     shader.uploadInt("paletteLength", paletteLength);
@@ -91,27 +91,27 @@ void GLRendererIteration::update() {
 }
 
 
-std::array<float, 2> GLRendererIteration::doubleToTwoFloatBits(const double v) {
+std::array<float, 2> merutilm::rff::GLRendererIteration::doubleToTwoFloatBits(const double v) {
     const uint64_t a = std::bit_cast<uint64_t>(v);
     const auto high = static_cast<uint32_t>(a >> 32);
     const auto low = static_cast<uint32_t>(a & 0xFFFFFFFF);
     return std::array{std::bit_cast<float>(high), std::bit_cast<float>(low)};
 }
 
-std::vector<float> GLRendererIteration::emptyIterationBuffer(const uint16_t iterWidth, const uint16_t iterHeight) {
+std::vector<float> merutilm::rff::GLRendererIteration::emptyIterationBuffer(const uint16_t iterWidth, const uint16_t iterHeight) {
     return std::vector<float>(static_cast<uint32_t>(iterWidth) * iterHeight * 2);
 }
 
-void GLRendererIteration::fillZero() {
+void merutilm::rff::GLRendererIteration::fillZero() {
     std::ranges::fill(iterationBuffer, 0);
 }
 
 
-void GLRendererIteration::setMaxIteration(const uint64_t maxIteration) {
+void merutilm::rff::GLRendererIteration::setMaxIteration(const uint64_t maxIteration) {
     this->maxIteration = static_cast<double>(maxIteration);
 }
 
-void GLRendererIteration::setAllIterations(const Matrix<double> &iterations) {
+void merutilm::rff::GLRendererIteration::setAllIterations(const Matrix<double> &iterations) {
     iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
     for (uint32_t i = 0; i < static_cast<uint32_t>(iterWidth) * iterHeight; i++) {
         auto [high, low] = doubleToTwoFloatBits(iterations[i]);
@@ -120,7 +120,7 @@ void GLRendererIteration::setAllIterations(const Matrix<double> &iterations) {
     }
 }
 
-std::vector<float> GLRendererIteration::createPaletteBuffer(const PaletteSettings &paletteSettings,
+std::vector<float> merutilm::rff::GLRendererIteration::createPaletteBuffer(const PaletteSettings &paletteSettings,
                                                             const int paletteWidth, const int paletteHeight) {
     const std::vector<ColorFloat> &colors = paletteSettings.colors;
     auto result = std::vector<float>();

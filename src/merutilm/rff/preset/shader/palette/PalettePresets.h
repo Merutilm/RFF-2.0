@@ -8,7 +8,7 @@
 #include "../../../settings/PaletteSettings.h"
 
 
-namespace PalettePresets {
+namespace merutilm::rff::PalettePresets {
     struct LongRandom64 final : public Presets::ShaderPresets::PalettePreset {
         std::string getName() const override;
         PaletteSettings paletteSettings() const override;

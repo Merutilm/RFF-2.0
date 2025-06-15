@@ -7,10 +7,10 @@
 #include "../calc/double_exp_math.h"
 #include "../calc/rff_math.h"
 #include "../mrthy/ArrayCompressor.h"
-#include "../ui/RFF.h"
+#include "../ui/Constants.h"
 
-DeepMandelbrotReference::DeepMandelbrotReference(fp_complex &&center, std::vector<double_exp> &&refReal,
-                                                 std::vector<double_exp> &&refImag,
+merutilm::rff::DeepMandelbrotReference::DeepMandelbrotReference(fp_complex &&center, std::vector<dex> &&refReal,
+                                                 std::vector<dex> &&refImag,
                                                  std::vector<ArrayCompressionTool> &&compressor,
                                                  std::vector<uint64_t> &&period, fp_complex &&lastReference,
                                                  fp_complex &&fpgBn) : MandelbrotReference(std::move(center),
@@ -32,18 +32,18 @@ DeepMandelbrotReference::DeepMandelbrotReference(fp_complex &&center, std::vecto
  * @param actionPerRefCalcIteration the action of every iteration
  * @return the result of generation. but returns @code PROCESS_TERMINATED_REFERENCE@endcode if the process is terminated
  */
-std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReference(
+std::unique_ptr<merutilm::rff::DeepMandelbrotReference> merutilm::rff::DeepMandelbrotReference::createReference(
     const ParallelRenderState &state, const CalculationSettings &calc, int exp10, uint64_t initialPeriod,
-    double_exp dcMax,
+    dex dcMax,
     const bool strictFPG, std::function<void(uint64_t)> &&actionPerRefCalcIteration) {
     if (state.interruptRequested()) {
-        return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
+        return Constants::NullPointer::PROCESS_TERMINATED_REFERENCE;
     }
 
-    auto rr = std::vector<double_exp>();
-    auto ri = std::vector<double_exp>();
-    rr.push_back(double_exp::DEX_ZERO);
-    ri.push_back(double_exp::DEX_ZERO);
+    auto rr = std::vector<dex>();
+    auto ri = std::vector<dex>();
+    rr.push_back(dex::DEX_ZERO);
+    ri.push_back(dex::DEX_ZERO);
 
     fp_complex center = calc.center;
     auto c = center.edit(exp10);
@@ -52,16 +52,16 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
     auto one = fp_complex_calculator(1.0, 0.0, exp10);
     double bailoutSqr = calc.bailout * calc.bailout;
 
-    double_exp fpgBnr = double_exp::DEX_ONE;
-    double_exp fpgBni = double_exp::DEX_ZERO;
+    dex fpgBnr = dex::DEX_ONE;
+    dex fpgBni = dex::DEX_ZERO;
 
     uint64_t iteration = 0;
-    double_exp zr = double_exp::DEX_ZERO;
-    double_exp zi = double_exp::DEX_ZERO;
+    dex zr = dex::DEX_ZERO;
+    dex zi = dex::DEX_ZERO;
     uint64_t period = 1;
     auto periodArray = std::vector<uint64_t>();
 
-    double_exp minZRadius = double_exp::DEX_ONE;
+    dex minZRadius = dex::DEX_ONE;
     uint64_t reuseIndex = 0;
 
     auto tools = std::vector<ArrayCompressionTool>();
@@ -72,40 +72,40 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
 
     double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
     bool canReuse = withoutNormalize;
-    auto temps = std::array<double_exp, 8>();
+    auto temps = std::array<dex, 8>();
 
     while ((iteration == 0 || dex_trigonometric::hypot2(zr, zi) < bailoutSqr) && iteration < maxIteration) {
-        if (iteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
-            return RFF::NullPointer::PROCESS_TERMINATED_REFERENCE;
+        if (iteration % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            return Constants::NullPointer::PROCESS_TERMINATED_REFERENCE;
         }
 
         // use Fast-Period-Guessing, and create MPA Table
         if (iteration > 0) {
             dex_trigonometric::hypot2(&temps[0], zr, zi);
-            double_exp::dex_div(&temps[1], temps[0], dcMax);
-            double_exp::dex_mul(&temps[2], fpgBnr, zr);
-            double_exp::dex_mul_2exp(&temps[2], temps[2], 1);
-            double_exp::dex_mul(&temps[3], fpgBni, zi);
-            double_exp::dex_mul_2exp(&temps[3], temps[3], 1);
-            double_exp::dex_sub(&temps[2], temps[2], temps[3]);
-            double_exp::dex_add(&temps[2], temps[2], double_exp::DEX_ONE);
-            double_exp::dex_mul(&temps[3], fpgBnr, zi);
-            double_exp::dex_mul_2exp(&temps[3], temps[3], 1);
-            double_exp::dex_mul(&temps[4], fpgBni, zr);
-            double_exp::dex_mul_2exp(&temps[4], temps[4], 1);
-            double_exp::dex_add(&temps[3], temps[3], temps[4]);
+            dex::div(&temps[1], temps[0], dcMax);
+            dex::mul(&temps[2], fpgBnr, zr);
+            dex::mul_2exp(&temps[2], temps[2], 1);
+            dex::mul(&temps[3], fpgBni, zi);
+            dex::mul_2exp(&temps[3], temps[3], 1);
+            dex::sub(&temps[2], temps[2], temps[3]);
+            dex::add(&temps[2], temps[2], dex::DEX_ONE);
+            dex::mul(&temps[3], fpgBnr, zi);
+            dex::mul_2exp(&temps[3], temps[3], 1);
+            dex::mul(&temps[4], fpgBni, zr);
+            dex::mul_2exp(&temps[4], temps[4], 1);
+            dex::add(&temps[3], temps[3], temps[4]);
             dex_trigonometric::hypot_approx(&temps[4], temps[2], temps[3]);
 
             temps[2].try_normalize();
             temps[3].try_normalize();
             temps[4].try_normalize();
 
-            double_exp::dex_sub(&temps[5], minZRadius, temps[0]);
+            dex::sub(&temps[5], minZRadius, temps[0]);
             if (minZRadius.isinf() || temps[5].sgn() > 0 || temps[0].sgn() == 1) {
-                double_exp::dex_cpy(&minZRadius, temps[0]);
+                dex::cpy(&minZRadius, temps[0]);
                 periodArray.push_back(iteration);
             }
-            double_exp::dex_sub(&temps[4], temps[4], temps[1]);
+            dex::sub(&temps[4], temps[4], temps[1]);
 
             if (temps[4].sgn() == 1 || iteration == maxIteration - 1 || temps[0].sgn() == 0 || (
                     initialPeriod != 0 && initialPeriod == iteration)) {
@@ -113,8 +113,8 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
                 break;
             }
 
-            double_exp::dex_cpy(&fpgBnr, temps[2]);
-            double_exp::dex_cpy(&fpgBni, temps[3]);
+            dex::cpy(&fpgBnr, temps[2]);
+            dex::cpy(&fpgBni, temps[3]);
         }
 
         if (strictFPG) {
@@ -131,10 +131,10 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
         z.getImag().double_exp_value(&zi);
 
         if (zr.sgn() == 0) {
-            double_exp::dex_cpy(&zr, dex_exp::exp10(exp10 * RFF::Render::INTENTIONAL_ERROR_REFZERO_POWER));
+            dex::cpy(&zr, dex_exp::exp10(exp10 * Constants::Render::INTENTIONAL_ERROR_REFZERO_POWER));
         }
         if (zi.sgn() == 0) {
-            double_exp::dex_cpy(&zi, dex_exp::exp10(exp10 * RFF::Render::INTENTIONAL_ERROR_REFZERO_POWER));
+            dex::cpy(&zi, dex_exp::exp10(exp10 * Constants::Render::INTENTIONAL_ERROR_REFZERO_POWER));
         }
 
         uint64_t j = iteration;
@@ -161,8 +161,8 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
 
         if (compressCriteria > 0 && iteration >= 1) {
             const int64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
-            double_exp::dex_div(&temps[0], zr, rr[refIndex]);
-            double_exp::dex_div(&temps[1], zi, ri[refIndex]);
+            dex::div(&temps[0], zr, rr[refIndex]);
+            dex::div(&temps[1], zi, ri[refIndex]);
             if (
                 std::fabs(static_cast<double>(temps[0]) - 1) <= compressionThreshold &&
                 std::fabs(static_cast<double>(temps[1]) - 1) <= compressionThreshold && canReuse
@@ -213,20 +213,20 @@ std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReferenc
 }
 
 
-double_exp DeepMandelbrotReference::real(const uint64_t refIteration) const {
+merutilm::rff::dex merutilm::rff::DeepMandelbrotReference::real(const uint64_t refIteration) const {
     return refReal[ArrayCompressor::compress(compressor, refIteration)];
 }
 
-double_exp DeepMandelbrotReference::imag(const uint64_t refIteration) const {
+merutilm::rff::dex merutilm::rff::DeepMandelbrotReference::imag(const uint64_t refIteration) const {
     return refImag[ArrayCompressor::compress(compressor, refIteration)];
 }
 
 
-size_t DeepMandelbrotReference::length() const {
+size_t merutilm::rff::DeepMandelbrotReference::length() const {
     return refReal.size();
 }
 
 
-uint64_t DeepMandelbrotReference::longestPeriod() const {
+uint64_t merutilm::rff::DeepMandelbrotReference::longestPeriod() const {
     return period.back();
 }

@@ -4,7 +4,10 @@
 
 #pragma once
 
-struct GLTimeProvider {
-    virtual ~GLTimeProvider() = default;
-    virtual float getTime() = 0;
-};
+namespace merutilm::rff {
+    struct GLTimeProvider {
+        virtual ~GLTimeProvider() = default;
+
+        virtual float getTime() = 0;
+    };
+}

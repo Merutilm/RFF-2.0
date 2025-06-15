@@ -7,11 +7,11 @@
 #include <filesystem>
 #include <iostream>
 
-#include "RFFUtilities.h"
+#include "Utilities.h"
 #include "../data/ApproxTableCache.h"
 
 
-std::unique_ptr<std::filesystem::path> IOUtilities::ioFileDialog(const std::string_view title,
+std::unique_ptr<std::filesystem::path> merutilm::rff::IOUtilities::ioFileDialog(const std::string_view title,
                                                                  const std::string_view desc,
                                                                  const char type,
                                                                  std::vector<std::string> &&extensions) {
@@ -24,8 +24,8 @@ std::unique_ptr<std::filesystem::path> IOUtilities::ioFileDialog(const std::stri
     }
 
 
-    auto display = std::format("{}({})", desc, RFFUtilities::joinString(",", ext));
-    auto filter = RFFUtilities::joinString(";", ext);
+    auto display = std::format("{}({})", desc, Utilities::joinString(",", ext));
+    auto filter = Utilities::joinString(";", ext);
     auto pattern = std::vector<char>();
     pattern.insert(pattern.end(), display.begin(), display.end());
     pattern.push_back('\0');
@@ -58,7 +58,7 @@ std::unique_ptr<std::filesystem::path> IOUtilities::ioFileDialog(const std::stri
     return nullptr;
 }
 
-std::unique_ptr<std::filesystem::path> IOUtilities::ioDirectoryDialog(const std::string_view title) {
+std::unique_ptr<std::filesystem::path> merutilm::rff::IOUtilities::ioDirectoryDialog(const std::string_view title) {
     BROWSEINFO bi = {};
     bi.lpszTitle = title.data();
     bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
@@ -72,11 +72,11 @@ std::unique_ptr<std::filesystem::path> IOUtilities::ioDirectoryDialog(const std:
     return nullptr;
 }
 
-std::string IOUtilities::fileNameFormat(const unsigned int n, const std::string_view extension) {
+std::string merutilm::rff::IOUtilities::fileNameFormat(const unsigned int n, const std::string_view extension) {
     return std::format("{:04d}.{}", n, extension);
 }
 
-std::filesystem::path IOUtilities::generateFileName(const std::filesystem::path &dir, const std::string_view extension) {
+std::filesystem::path merutilm::rff::IOUtilities::generateFileName(const std::filesystem::path &dir, const std::string_view extension) {
     unsigned int n = 0;
     std::filesystem::path p = dir;
     do {
@@ -86,7 +86,7 @@ std::filesystem::path IOUtilities::generateFileName(const std::filesystem::path 
     return p;
 }
 
-uint32_t IOUtilities::fileNameCount(const std::filesystem::path &dir, const std::string_view extension) {
+uint32_t merutilm::rff::IOUtilities::fileNameCount(const std::filesystem::path &dir, const std::string_view extension) {
     unsigned int n = 0;
     std::filesystem::path p = dir;
     do {

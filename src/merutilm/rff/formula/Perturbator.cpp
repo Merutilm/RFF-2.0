@@ -11,7 +11,7 @@
 
 
 
-double Perturbator::getDoubleValueIteration(const uint64_t iteration, const double prevIterDistance, const double currIterDistance, const DecimalizeIterationMethod &decimalizeIterationMethod, const float bailout) {
+double merutilm::rff::Perturbator::getDoubleValueIteration(const uint64_t iteration, const double prevIterDistance, const double currIterDistance, const DecimalizeIterationMethod &decimalizeIterationMethod, const float bailout) {
     // prevIterDistance = p
     // currIterDistance = c
     // bailout = b
@@ -42,11 +42,11 @@ double Perturbator::getDoubleValueIteration(const uint64_t iteration, const doub
             break;
         }
         case LOG : {
-            ratio = log10(ratio + 1) / RFF::Constant::LOG10_2;
+            ratio = log10(ratio + 1) / Constants::Num::LOG10_2;
             break;
         }
         case LOG_LOG : {
-            constexpr double logBailout = RFF::Constant::LOG10_2;
+            constexpr double logBailout = Constants::Num::LOG10_2;
             ratio = log10(log10(ratio + 1) / logBailout + 1) / logBailout;
             break;
         }

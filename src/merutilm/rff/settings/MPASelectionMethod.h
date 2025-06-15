@@ -4,13 +4,16 @@
 
 #pragma once
 
-enum class MPASelectionMethod {
-    /**
-    * Checks the lowest-level MPA first, increases the level until not valid.
-    */
-    LOWEST,
-    /**
-     * Checks the highest-level MPA first. Decreases the level if not valid.
-     */
-    HIGHEST
-};
+
+namespace merutilm::rff {
+    enum class MPASelectionMethod {
+        /**
+        * Checks the lowest-level MPA first, increases the level until not valid.
+        */
+        LOWEST,
+        /**
+         * Checks the highest-level MPA first. Decreases the level if not valid.
+         */
+        HIGHEST
+    };
+}

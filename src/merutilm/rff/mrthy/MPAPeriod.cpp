@@ -8,11 +8,11 @@
 #include <memory>
 
 
-MPAPeriod::MPAPeriod(std::vector<uint64_t> &&tablePeriod, std::vector<bool> &&isArtificial, std::vector<uint64_t> &&tableElements) : tablePeriod(std::move(tablePeriod)), isArtificial(std::move(isArtificial)), tableElements(std::move(tableElements)){
+merutilm::rff::MPAPeriod::MPAPeriod(std::vector<uint64_t> &&tablePeriod, std::vector<bool> &&isArtificial, std::vector<uint64_t> &&tableElements) : tablePeriod(std::move(tablePeriod)), isArtificial(std::move(isArtificial)), tableElements(std::move(tableElements)){
 }
 
 
-std::vector<uint64_t> MPAPeriod::generatePeriodElements(const std::vector<uint64_t> &tablePeriod) {
+std::vector<uint64_t> merutilm::rff::MPAPeriod::generatePeriodElements(const std::vector<uint64_t> &tablePeriod) {
     // index compression : [3, 11, 26, 77] // index compression : [3, 11, 26, 77]
     // startIteration : 1  4  7 12 15 18 23 27
     // index :          0  1  2  3  4  5  6  7
@@ -49,7 +49,7 @@ std::vector<uint64_t> MPAPeriod::generatePeriodElements(const std::vector<uint64
     return tablePeriodElements;
 }
 
-MPAPeriod::Temp MPAPeriod::generateTablePeriod(const std::vector<uint64_t> &referencePeriod, const MPASettings &mpaSettings) {
+merutilm::rff::MPAPeriod::Temp merutilm::rff::MPAPeriod::generateTablePeriod(const std::vector<uint64_t> &referencePeriod, const MPASettings &mpaSettings) {
     // example
     // period : [3, 11, 26]
     //
@@ -118,7 +118,7 @@ MPAPeriod::Temp MPAPeriod::generateTablePeriod(const std::vector<uint64_t> &refe
     return Temp{std::move(tablePeriod), std::move(isArtificial)};
 }
 
-std::unique_ptr<MPAPeriod> MPAPeriod::create(const std::vector<uint64_t> &referencePeriod,
+std::unique_ptr<merutilm::rff::MPAPeriod> merutilm::rff::MPAPeriod::create(const std::vector<uint64_t> &referencePeriod,
                                              const MPASettings &mpaSettings) {
     auto [tablePeriod, isArtificial] = generateTablePeriod(referencePeriod, mpaSettings);
     auto tablePeriodElements = generatePeriodElements(tablePeriod);

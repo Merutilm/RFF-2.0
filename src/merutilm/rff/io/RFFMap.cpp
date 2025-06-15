@@ -8,25 +8,25 @@
 #include <fstream>
 
 #include "../ui/IOUtilities.h"
-#include "../ui/RFF.h"
-#include "../ui/RFFUtilities.h"
+#include "../ui/Constants.h"
+#include "../ui/Utilities.h"
 
 
-RFFMap::RFFMap(const float logZoom, const uint64_t period, const uint64_t maxIteration,
-               Matrix<double> iterations) : logZoom(logZoom), period(period), maxIteration(maxIteration),
-                                            iterations(std::move(iterations)) {
+merutilm::rff::RFFMap::RFFMap(const float logZoom, const uint64_t period, const uint64_t maxIteration,
+                              Matrix<double> iterations) : logZoom(logZoom), period(period), maxIteration(maxIteration),
+                                                           iterations(std::move(iterations)) {
 }
 
 
-bool RFFMap::hasData() const {
+bool merutilm::rff::RFFMap::hasData() const {
     return iterations.getWidth() > 0;
 }
 
-RFFMap RFFMap::readByID(const std::filesystem::path& open, const uint32_t id) {
-    return read(open / IOUtilities::fileNameFormat(id, RFF::Extension::MAP));
+merutilm::rff::RFFMap merutilm::rff::RFFMap::readByID(const std::filesystem::path& open, const uint32_t id) {
+    return read(open / IOUtilities::fileNameFormat(id, Constants::Extension::MAP));
 }
 
-RFFMap RFFMap::read(const std::filesystem::path &path) {
+merutilm::rff::RFFMap merutilm::rff::RFFMap::read(const std::filesystem::path &path) {
     if (!std::filesystem::exists(path)) {
         return DEFAULT_MAP;
     }
@@ -51,11 +51,11 @@ RFFMap RFFMap::read(const std::filesystem::path &path) {
     return RFFMap(z, p, m, Matrix(w, h, i));
 }
 
-void RFFMap::exportAsKeyframe(const std::filesystem::path &dir) const {
-    exportRFM(IOUtilities::generateFileName(dir, RFF::Extension::MAP));
+void merutilm::rff::RFFMap::exportAsKeyframe(const std::filesystem::path &dir) const {
+    exportRFM(IOUtilities::generateFileName(dir, Constants::Extension::MAP));
 }
 
-void RFFMap::exportRFM(const std::filesystem::path &path) const {
+void merutilm::rff::RFFMap::exportRFM(const std::filesystem::path &path) const {
     if (std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc); out.is_open()) {
         IOUtilities::encodeAndWrite(out, iterations.getWidth());
         IOUtilities::encodeAndWrite(out, iterations.getHeight());
@@ -65,23 +65,23 @@ void RFFMap::exportRFM(const std::filesystem::path &path) const {
         IOUtilities::encodeAndWrite(out, iterations.getCanvas());
         out.close();
     } else {
-        RFFUtilities::log("ERROR : Cannot save file");
+        Utilities::log("ERROR : Cannot save file");
     }
 }
 
 
-float RFFMap::getLogZoom() const {
+float merutilm::rff::RFFMap::getLogZoom() const {
     return logZoom;
 }
 
-uint64_t RFFMap::getPeriod() const {
+uint64_t merutilm::rff::RFFMap::getPeriod() const {
     return period;
 }
 
-uint64_t RFFMap::getMaxIteration() const {
+uint64_t merutilm::rff::RFFMap::getMaxIteration() const {
     return maxIteration;
 }
 
-const Matrix<double> &RFFMap::getMatrix() const {
+const merutilm::rff::Matrix<double> &merutilm::rff::RFFMap::getMatrix() const {
     return iterations;
 }

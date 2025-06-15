@@ -4,51 +4,52 @@
 
 #include "GLShaderLoader.h"
 
+namespace merutilm::rff {
+    class GLRenderer {
+        GLShaderLoader shader;
+        uint16_t w = 0;
+        uint16_t h = 0;
+        GLuint previousFBOTextureID = 0;
+        GLuint fbo;
+        GLuint fboTextureID;
+        std::mutex mutex;
 
-class GLRenderer {
-    GLShaderLoader shader;
-    uint16_t w = 0;
-    uint16_t h = 0;
-    GLuint previousFBOTextureID = 0;
-    GLuint fbo;
-    GLuint fboTextureID;
-    std::mutex mutex;
+    protected:
+        explicit GLRenderer(std::string_view name);
 
-protected:
-    explicit GLRenderer(std::string_view name);
+        virtual ~GLRenderer();
 
-    virtual ~GLRenderer();
+        virtual void update() = 0;
 
-    virtual void update() = 0;
+        virtual void beforeUpdate();
 
-    virtual void beforeUpdate();
+        virtual void afterUpdate();
 
-    virtual void afterUpdate();
+    public:
+        uint16_t getWidth() const;
 
-public:
-    uint16_t getWidth() const;
+        uint16_t getHeight() const;
 
-    uint16_t getHeight() const;
+        GLuint getPrevFBOTextureID() const;
 
-    GLuint getPrevFBOTextureID() const;
+        void setToDisplay();
 
-    void setToDisplay();
+        void resetFBOTexture(uint16_t width, uint16_t height);
 
-    void resetFBOTexture(uint16_t width, uint16_t height);
+        GLuint getFBO() const;
 
-    GLuint getFBO() const;
+        GLuint getFBOTextureID() const;
 
-    GLuint getFBOTextureID() const;
+        static void bindFBO(GLuint fbo, GLuint fboTextureID);
 
-    static void bindFBO(GLuint fbo, GLuint fboTextureID);
+        static void unbindFBO(GLuint fbo);
 
-    static void unbindFBO(GLuint fbo);
+        virtual void setPreviousFBOTextureID(GLuint previousFBOTextureID);
 
-    virtual void setPreviousFBOTextureID(GLuint previousFBOTextureID);
+        GLShaderLoader &getShaderLoader();
 
-    GLShaderLoader &getShaderLoader();
+        virtual void reloadSize(uint16_t width, uint16_t height);
 
-    virtual void reloadSize(uint16_t width, uint16_t height);
-
-    void render();
-};
+        void render();
+    };
+}

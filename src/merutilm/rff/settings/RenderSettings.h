@@ -1,9 +1,10 @@
 #pragma once
 
 
-struct RenderSettings {
-    float clarityMultiplier;
-    bool antialiasing;
-};
-
+namespace merutilm::rff {
+    struct RenderSettings {
+        float clarityMultiplier;
+        bool antialiasing;
+    };
+}
 

@@ -8,58 +8,60 @@
 #include "MandelbrotPerturbator.h"
 #include "../mrthy/LightMPATable.h"
 
-class LightMandelbrotPerturbator final : public MandelbrotPerturbator{
-    std::unique_ptr<LightMandelbrotReference> reference = nullptr;
-    std::unique_ptr<LightMPATable> table = nullptr;
+namespace merutilm::rff {
+    class LightMandelbrotPerturbator final : public MandelbrotPerturbator{
+        std::unique_ptr<LightMandelbrotReference> reference = nullptr;
+        std::unique_ptr<LightMPATable> table = nullptr;
 
-    const double dcMax;
-    const double offR;
-    const double offI;
+        const double dcMax;
+        const double offR;
+        const double offI;
 
-public:
-    explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
-                               uint64_t initialPeriod, ApproxTableCache &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                               std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
+    public:
+        explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
+                                   uint64_t initialPeriod, ApproxTableCache &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                                   std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
-    explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
-                               uint64_t initialPeriod, ApproxTableCache &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                               std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
-                               bool arbitraryPrecisionFPGBn);
+        explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
+                                   uint64_t initialPeriod, ApproxTableCache &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                                   std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
+                                   bool arbitraryPrecisionFPGBn);
 
-    explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
-                               uint64_t initialPeriod, ApproxTableCache &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                               std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
-                               bool arbitraryPrecisionFPGBn, std::unique_ptr<LightMandelbrotReference> reusedReference, std::unique_ptr<LightMPATable> reusedTable,
-                               double offR, double offI);
-
-
-    double iterate(const double_exp &dcr, const double_exp &dci) const override;
-
-    std::unique_ptr<LightMandelbrotPerturbator> reuse(const CalculationSettings &calc, double dcMax, ApproxTableCache &tableRef);
-
-    const LightMandelbrotReference *getReference() const override;
-
-    LightMPATable &getTable() const;
-
-    double getDcMax() const;
-
-    double_exp getDcMaxAsDoubleExp() const override;
-};
+        explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
+                                   uint64_t initialPeriod, ApproxTableCache &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                                   std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
+                                   bool arbitraryPrecisionFPGBn, std::unique_ptr<LightMandelbrotReference> reusedReference, std::unique_ptr<LightMPATable> reusedTable,
+                                   double offR, double offI);
 
 
+        double iterate(const dex &dcr, const dex &dci) const override;
 
-inline const LightMandelbrotReference *LightMandelbrotPerturbator::getReference() const {
-    return reference.get();
-}
+        std::unique_ptr<LightMandelbrotPerturbator> reuse(const CalculationSettings &calc, double dcMax, ApproxTableCache &tableRef);
 
-inline LightMPATable &LightMandelbrotPerturbator::getTable() const {
-    return *table;
-}
+        const LightMandelbrotReference *getReference() const override;
 
-inline double LightMandelbrotPerturbator::getDcMax() const {
-    return dcMax;
-}
+        LightMPATable &getTable() const;
 
-inline double_exp LightMandelbrotPerturbator::getDcMaxAsDoubleExp() const {
-    return double_exp::value(dcMax);
+        double getDcMax() const;
+
+        dex getDcMaxAsDoubleExp() const override;
+    };
+
+
+
+    inline const LightMandelbrotReference *LightMandelbrotPerturbator::getReference() const {
+        return reference.get();
+    }
+
+    inline LightMPATable &LightMandelbrotPerturbator::getTable() const {
+        return *table;
+    }
+
+    inline double LightMandelbrotPerturbator::getDcMax() const {
+        return dcMax;
+    }
+
+    inline dex LightMandelbrotPerturbator::getDcMaxAsDoubleExp() const {
+        return dex::value(dcMax);
+    }
 }

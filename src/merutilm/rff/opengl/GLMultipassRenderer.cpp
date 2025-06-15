@@ -9,17 +9,17 @@
 #include "GLTimeRenderer.h"
 
 
-GLMultipassRenderer::GLMultipassRenderer() : displayer(std::make_unique<GLRendererDisplayer>()){
+merutilm::rff::GLMultipassRenderer::GLMultipassRenderer() : displayer(std::make_unique<GLRendererDisplayer>()){
 
 }
 
 
-void GLMultipassRenderer::add(GLRenderer &renderer) {
+void merutilm::rff::GLMultipassRenderer::add(GLRenderer &renderer) {
     renderers.emplace_back(&renderer);
 }
 
 
-void GLMultipassRenderer::reloadSize(const int cw, const int ch, const int iw, const int ih) {
+void merutilm::rff::GLMultipassRenderer::reloadSize(const int cw, const int ch, const int iw, const int ih) {
     for (GLRenderer *renderer: renderers) {
         renderer->reloadSize(iw, ih);
     }
@@ -28,13 +28,13 @@ void GLMultipassRenderer::reloadSize(const int cw, const int ch, const int iw, c
     height = ih;
 }
 
-void GLMultipassRenderer::setTime(const float timeSec) {
+void merutilm::rff::GLMultipassRenderer::setTime(const float timeSec) {
     this->timeSec = timeSec;
 }
 
 
 
-void GLMultipassRenderer::render() const {
+void merutilm::rff::GLMultipassRenderer::render() const {
     int iterationTextureID = 0;
     for (int i = 0; i < renderers.size(); ++i) {
         GLRenderer *rendererPtr = renderers[i];
@@ -61,7 +61,7 @@ void GLMultipassRenderer::render() const {
     }
 }
 
-void GLMultipassRenderer::display() {
+void merutilm::rff::GLMultipassRenderer::display() {
     renderedFBO = renderers.back()->getFBO();
     renderedFBOTexID = renderers.back()->getFBOTextureID();
     displayer->setPreviousFBOTextureID(renderedFBOTexID);
@@ -69,18 +69,18 @@ void GLMultipassRenderer::display() {
 }
 
 
-int GLMultipassRenderer::getWidth() const {
+int merutilm::rff::GLMultipassRenderer::getWidth() const {
     return width;
 }
 
-int GLMultipassRenderer::getHeight() const {
+int merutilm::rff::GLMultipassRenderer::getHeight() const {
     return height;
 }
 
-GLuint GLMultipassRenderer::getRenderedFBO() const {
+GLuint merutilm::rff::GLMultipassRenderer::getRenderedFBO() const {
     return renderedFBO;
 }
 
-GLuint GLMultipassRenderer::getRenderedFBOTexID() const {
+GLuint merutilm::rff::GLMultipassRenderer::getRenderedFBOTexID() const {
     return renderedFBOTexID;
 }

@@ -7,23 +7,26 @@
 
 #include "GLRenderer.h"
 
-class GLRendererBoxBlur final : public GLRenderer{
-    std::function<void(GLShaderLoader&)> additionalParams = [](GLShaderLoader&){};
+namespace merutilm::rff {
+    class GLRendererBoxBlur final : public GLRenderer {
+        std::function<void(GLShaderLoader &)> additionalParams = [](GLShaderLoader &) {
+        };
 
-public:
-    explicit GLRendererBoxBlur(std::string_view name);
+    public:
+        explicit GLRendererBoxBlur(std::string_view name);
 
-    ~GLRendererBoxBlur() override = default;
+        ~GLRendererBoxBlur() override = default;
 
-    GLRendererBoxBlur(const GLRendererBoxBlur&) = delete;
+        GLRendererBoxBlur(const GLRendererBoxBlur &) = delete;
 
-    GLRendererBoxBlur& operator=(const GLRendererBoxBlur&) = delete;
+        GLRendererBoxBlur &operator=(const GLRendererBoxBlur &) = delete;
 
-    GLRendererBoxBlur(GLRendererBoxBlur&&) = delete;
+        GLRendererBoxBlur(GLRendererBoxBlur &&) = delete;
 
-    GLRendererBoxBlur& operator=(GLRendererBoxBlur&&) = delete;
+        GLRendererBoxBlur &operator=(GLRendererBoxBlur &&) = delete;
 
-    void setAdditionalParams(const std::function<void(GLShaderLoader&)> &additionalParams);
+        void setAdditionalParams(const std::function<void(GLShaderLoader &)> &additionalParams);
 
-    void update() override;
-};
+        void update() override;
+    };
+}

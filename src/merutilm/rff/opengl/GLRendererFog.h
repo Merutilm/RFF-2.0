@@ -6,24 +6,26 @@
 #include "GLRendererGaussianBlur.h"
 #include "../settings/FogSettings.h"
 
-class GLRendererFog final : public GLRendererGaussianBlur {
-    const FogSettings *fogSettings = nullptr;
+namespace merutilm::rff {
+    class GLRendererFog final : public GLRendererGaussianBlur {
+        const FogSettings *fogSettings = nullptr;
 
-public:
-    GLRendererFog();
+    public:
+        GLRendererFog();
 
-    ~GLRendererFog() override = default;
+        ~GLRendererFog() override = default;
 
-    GLRendererFog(const GLRendererFog &) = delete;
+        GLRendererFog(const GLRendererFog &) = delete;
 
-    GLRendererFog &operator=(const GLRendererFog &) = delete;
+        GLRendererFog &operator=(const GLRendererFog &) = delete;
 
-    GLRendererFog(GLRendererFog &&) = delete;
+        GLRendererFog(GLRendererFog &&) = delete;
 
-    GLRendererFog &operator=(GLRendererFog &&) = delete;
+        GLRendererFog &operator=(GLRendererFog &&) = delete;
 
 
-    void setFogSettings(const FogSettings &fogSettings);
+        void setFogSettings(const FogSettings &fogSettings);
 
-    void update() override;
-};
+        void update() override;
+    };
+}

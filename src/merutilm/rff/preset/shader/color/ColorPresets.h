@@ -6,7 +6,7 @@
 #include "../../Presets.h"
 #include "../../../settings/ColorSettings.h"
 
-namespace ColorPresets {
+namespace merutilm::rff::ColorPresets {
     struct WeakContrast final : public Presets::ShaderPresets::ColorPreset {
         std::string getName() const override;
 

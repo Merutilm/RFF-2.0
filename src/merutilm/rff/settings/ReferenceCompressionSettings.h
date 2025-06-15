@@ -4,8 +4,11 @@
 
 #pragma once
 
-struct ReferenceCompressionSettings final{
-    uint32_t compressCriteria;
-    uint8_t compressionThresholdPower;
-    bool noCompressorNormalization;
-};
+
+namespace merutilm::rff {
+    struct ReferenceCompressionSettings final{
+        uint32_t compressCriteria;
+        uint8_t compressionThresholdPower;
+        bool noCompressorNormalization;
+    };
+}

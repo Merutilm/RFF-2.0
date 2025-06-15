@@ -18,7 +18,7 @@ add_compile_options(
 
 add_executable(
         RFF
-        src/merutilm/rff/ui/RFF.cpp
+        src/merutilm/rff/ui/Main.cpp
         extern/glad.c
         extern/glad_wgl.c
         src/merutilm/rff/opengl/GLShaderLoader.cpp
@@ -26,9 +26,9 @@ add_executable(
         src/merutilm/rff/opengl/GLRenderer.h
         src/merutilm/rff/calc/fp_complex_calculator.cpp
         src/merutilm/rff/calc/fp_complex_calculator.h
-        src/merutilm/rff/ui/RFFMasterWindow.cpp
-        src/merutilm/rff/ui/RFFMasterWindow.h
-        src/merutilm/rff/ui/RFF.h
+        src/merutilm/rff/ui/MainWindow.cpp
+        src/merutilm/rff/ui/MainWindow.h
+        src/merutilm/rff/ui/Constants.h
         src/merutilm/rff/settings/Settings.h
         src/merutilm/rff/settings/CalculationSettings.h
         src/merutilm/rff/settings/RenderSettings.h
@@ -53,14 +53,14 @@ add_executable(
         src/merutilm/rff/calc/fp_decimal_calculator.h
         src/merutilm/rff/calc/fp_decimal.cpp
         src/merutilm/rff/calc/fp_decimal.h
-        src/merutilm/rff/ui/RFFGL.cpp
-        src/merutilm/rff/ui/RFFGL.h
-        src/merutilm/rff/ui/RFFRenderScene.cpp
-        src/merutilm/rff/ui/RFFRenderScene.h
+        src/merutilm/rff/ui/GLLoader.cpp
+        src/merutilm/rff/ui/GLLoader.h
+        src/merutilm/rff/ui/RenderScene.cpp
+        src/merutilm/rff/ui/RenderScene.h
         src/merutilm/rff/formula/Perturbator.cpp
         src/merutilm/rff/formula/Perturbator.h
-        src/merutilm/rff/ui/RFFScene.h
-        src/merutilm/rff/ui/RFFScene.cpp
+        src/merutilm/rff/ui/GLScene.h
+        src/merutilm/rff/ui/GLScene.cpp
         src/merutilm/rff/io/RFFMap.cpp
         src/merutilm/rff/io/RFFMap.h
         src/merutilm/rff/data/Matrix.h
@@ -80,23 +80,23 @@ add_executable(
         src/merutilm/rff/mrthy/ArrayCompressionTool.h
         src/merutilm/rff/mrthy/ArrayCompressor.h
         src/merutilm/rff/parallel/ParallelArrayDispatcher.h
-        src/merutilm/rff/ui/RFFUtilities.h
+        src/merutilm/rff/ui/Utilities.h
         src/merutilm/rff/formula/LightMandelbrotPerturbator.cpp
         src/merutilm/rff/formula/LightMandelbrotPerturbator.h
         src/merutilm/rff/mrthy/LightPA.h
         src/merutilm/rff/mrthy/LightMPATable.h
         src/merutilm/rff/mrthy/MPAPeriod.cpp
         src/merutilm/rff/mrthy/MPAPeriod.h
-        src/merutilm/rff/ui/RFFSettingsWindow.cpp
-        src/merutilm/rff/ui/RFFSettingsWindow.h
-        src/merutilm/rff/ui/RFFSettingsMenu.cpp
-        src/merutilm/rff/ui/RFFSettingsMenu.h
-        src/merutilm/rff/ui/RFFCallbackFile.cpp
-        src/merutilm/rff/ui/RFFCallbackFile.h
-        src/merutilm/rff/ui/RFFCallbackFractal.cpp
-        src/merutilm/rff/ui/RFFCallbackFractal.h
-        src/merutilm/rff/ui/RFFCallbackRender.cpp
-        src/merutilm/rff/ui/RFFCallbackRender.h
+        src/merutilm/rff/ui/SettingsWindow.cpp
+        src/merutilm/rff/ui/SettingsWindow.h
+        src/merutilm/rff/ui/SettingsMenu.cpp
+        src/merutilm/rff/ui/SettingsMenu.h
+        src/merutilm/rff/ui/CallbackFile.cpp
+        src/merutilm/rff/ui/CallbackFile.h
+        src/merutilm/rff/ui/CallbackFractal.cpp
+        src/merutilm/rff/ui/CallbackFractal.h
+        src/merutilm/rff/ui/CallbackRender.cpp
+        src/merutilm/rff/ui/CallbackRender.h
         src/merutilm/rff/opengl/GLMultipassRenderer.cpp
         src/merutilm/rff/opengl/GLMultipassRenderer.h
         src/merutilm/rff/opengl/GLRendererStripe.cpp
@@ -115,13 +115,13 @@ add_executable(
         src/merutilm/rff/opengl/GLRendererFog.h
         src/merutilm/rff/opengl/GLRendererAntialiasing.cpp
         src/merutilm/rff/opengl/GLRendererAntialiasing.h
-        src/merutilm/rff/ui/RFFCallbackShader.cpp
-        src/merutilm/rff/ui/RFFCallbackShader.h
+        src/merutilm/rff/ui/CallbackShader.cpp
+        src/merutilm/rff/ui/CallbackShader.h
         src/merutilm/rff/locator/MandelbrotLocator.cpp
         src/merutilm/rff/locator/MandelbrotLocator.h
-        src/merutilm/rff/ui/RFFCallbackExplore.cpp
-        src/merutilm/rff/ui/RFFCallbackExplore.h
-        src/merutilm/rff/calc/double_exp.h
+        src/merutilm/rff/ui/CallbackExplore.cpp
+        src/merutilm/rff/ui/CallbackExplore.h
+        src/merutilm/rff/calc/dex.h
         src/merutilm/rff/formula/DeepMandelbrotReference.cpp
         src/merutilm/rff/formula/DeepMandelbrotReference.h
         src/merutilm/rff/formula/MandelbrotReference.cpp
@@ -136,7 +136,7 @@ add_executable(
         src/merutilm/rff/mrthy/DeepMPATable.h
         src/merutilm/rff/mrthy/MPATable.h
         src/merutilm/rff/mrthy/PA.h
-        src/merutilm/rff/ui/RFFCallback.h
+        src/merutilm/rff/ui/Callback.h
         src/merutilm/rff/mrthy/PAGenerator.h
         src/merutilm/rff/mrthy/LightPAGenerator.cpp
         src/merutilm/rff/mrthy/LightPAGenerator.h
@@ -166,16 +166,16 @@ add_executable(
         src/merutilm/rff/preset/render/RenderPresets.h
         src/merutilm/rff/preset/calc/CalculationPresets.cpp
         src/merutilm/rff/preset/calc/CalculationPresets.h
-        src/merutilm/rff/ui/RFFCallbackVideo.cpp
-        src/merutilm/rff/ui/RFFCallbackVideo.h
+        src/merutilm/rff/ui/CallbackVideo.cpp
+        src/merutilm/rff/ui/CallbackVideo.h
         src/merutilm/rff/ui/IOUtilities.cpp
         src/merutilm/rff/ui/IOUtilities.h
         src/merutilm/rff/parallel/BackgroundThreads.h
         src/merutilm/rff/parallel/Backgroundthread.h
-        src/merutilm/rff/ui/RFFVideoWindow.cpp
-        src/merutilm/rff/ui/RFFVideoWindow.h
-        src/merutilm/rff/ui/RFFVideoRenderScene.cpp
-        src/merutilm/rff/ui/RFFVideoRenderScene.h
+        src/merutilm/rff/ui/VideoWindow.cpp
+        src/merutilm/rff/ui/VideoWindow.h
+        src/merutilm/rff/ui/VideoRenderScene.cpp
+        src/merutilm/rff/ui/VideoRenderScene.h
         src/merutilm/rff/opengl/GLRendererIteration2Map.cpp
         src/merutilm/rff/opengl/GLRendererIteration2Map.h
 )

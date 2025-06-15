@@ -6,7 +6,9 @@
 #include "../mrthy/DeepPA.h"
 #include "../mrthy/LightPA.h"
 
-struct ApproxTableCache {
-    std::vector<std::vector<LightPA>> lightTable = std::vector<std::vector<LightPA> >();
-    std::vector<std::vector<DeepPA>> deepTable = std::vector<std::vector<DeepPA>>();
-};
+namespace merutilm::rff {
+    struct ApproxTableCache {
+        std::vector<std::vector<LightPA>> lightTable = std::vector<std::vector<LightPA> >();
+        std::vector<std::vector<DeepPA>> deepTable = std::vector<std::vector<DeepPA>>();
+    };
+}

@@ -4,10 +4,12 @@
 #include "ShaderSettings.h"
 #include "VideoSettings.h"
 
-struct Settings final{
-    CalculationSettings calculationSettings;
-    RenderSettings renderSettings;
-    ShaderSettings shaderSettings;
-    VideoSettings videoSettings;
+namespace merutilm::rff {
+    struct Settings final{
+        CalculationSettings calculationSettings;
+        RenderSettings renderSettings;
+        ShaderSettings shaderSettings;
+        VideoSettings videoSettings;
 
-};
+    };
+}

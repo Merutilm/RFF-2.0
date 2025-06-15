@@ -6,27 +6,27 @@
 
 #include <iostream>
 
-#include "double_exp.h"
+#include "dex.h"
 
 
-fp_complex::fp_complex(const std::string &re, const std::string &im, const int exp10) : real(fp_decimal(re, exp10)),
+merutilm::rff::fp_complex::fp_complex(const std::string &re, const std::string &im, const int exp10) : real(fp_decimal(re, exp10)),
                                                                                         imag(fp_decimal(im, exp10)) {
 }
 
-fp_complex::fp_complex(const fp_complex_calculator &calc) : real(calc.getRealClone()), imag(calc.getImagClone()) {
+merutilm::rff::fp_complex::fp_complex(const fp_complex_calculator &calc) : real(calc.getRealClone()), imag(calc.getImagClone()) {
 }
 
 
-fp_decimal &fp_complex::get_real() {
+merutilm::rff::fp_decimal &merutilm::rff::fp_complex::get_real() {
     return real;
 }
 
-fp_decimal &fp_complex::get_imag() {
+merutilm::rff::fp_decimal &merutilm::rff::fp_complex::get_imag() {
     return imag;
 }
 
 
-std::string fp_complex::to_string() const {
+std::string merutilm::rff::fp_complex::to_string() const {
     const std::string re = real.to_string();
     const std::string im = imag.to_string() + "i";
 
@@ -47,7 +47,7 @@ std::string fp_complex::to_string() const {
     return re + im;
 }
 
-fp_complex fp_complex::addCenterDouble(const double_exp re, const double_exp im, const int exp10) const {
+merutilm::rff::fp_complex merutilm::rff::fp_complex::addCenterDouble(const dex re, const dex im, const int exp10) const {
     auto calc = edit(exp10);
     const auto add = fp_complex_calculator(re, im, exp10);
     calc += add;
@@ -55,6 +55,6 @@ fp_complex fp_complex::addCenterDouble(const double_exp re, const double_exp im,
 }
 
 
-fp_complex_calculator fp_complex::edit(const int exp10) const {
+merutilm::rff::fp_complex_calculator merutilm::rff::fp_complex::edit(const int exp10) const {
     return fp_complex_calculator(real.edit(), imag.edit(), exp10);
 }

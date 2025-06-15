@@ -4,9 +4,12 @@
 
 #pragma once
 
-enum class StripeType {
-    NONE,
-    SINGLE_DIRECTION,
-    SMOOTH,
-    SQUARED
-};
+
+namespace merutilm::rff {
+    enum class StripeType {
+        NONE,
+        SINGLE_DIRECTION,
+        SMOOTH,
+        SQUARED
+    };
+}

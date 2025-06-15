@@ -5,18 +5,18 @@
 #include "GLRendererColor.h"
 
 
-GLRendererColor::GLRendererColor() : GLRenderer("color.frag") {
+merutilm::rff::GLRendererColor::GLRendererColor() : GLRenderer("color.frag") {
 
 }
 
 
-void GLRendererColor::setColorSettings(const ColorSettings &colorSettings) {
+void merutilm::rff::GLRendererColor::setColorSettings(const ColorSettings &colorSettings) {
     this->colorSettings = &colorSettings;
 }
 
 
 
-void GLRendererColor::update() {
+void merutilm::rff::GLRendererColor::update() {
     const GLShaderLoader &shader = getShaderLoader();
     shader.uploadTexture2D("inputTex", GL_TEXTURE0, getPrevFBOTextureID());
     shader.uploadFloat("gamma", colorSettings->gamma);

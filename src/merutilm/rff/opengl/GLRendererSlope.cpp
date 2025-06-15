@@ -5,24 +5,24 @@
 #include "GLRendererSlope.h"
 
 
-GLRendererSlope::GLRendererSlope() : GLRenderer("slope.frag"){
+merutilm::rff::GLRendererSlope::GLRendererSlope() : GLRenderer("slope.frag"){
 
 }
 
-void GLRendererSlope::setIterationTextureID(const GLuint textureID) {
+void merutilm::rff::GLRendererSlope::setIterationTextureID(const GLuint textureID) {
     iterationTextureID = textureID;
 }
 
 
-void GLRendererSlope::setSlopeSettings(const SlopeSettings &slopeSettings) {
+void merutilm::rff::GLRendererSlope::setSlopeSettings(const SlopeSettings &slopeSettings) {
     this->slopeSettings = &slopeSettings;
 }
 
-void GLRendererSlope::setClarityMultiplier(const float clarityMultiplier) {
+void merutilm::rff::GLRendererSlope::setClarityMultiplier(const float clarityMultiplier) {
     this->clarityMultiplier = clarityMultiplier;
 }
 
-void GLRendererSlope::update() {
+void merutilm::rff::GLRendererSlope::update() {
     const GLShaderLoader &shader = getShaderLoader();
     shader.uploadTexture2D("inputTex", GL_TEXTURE0, getPrevFBOTextureID());
     shader.uploadTexture2D("iterations", GL_TEXTURE1, iterationTextureID);

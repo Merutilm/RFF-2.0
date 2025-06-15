@@ -6,11 +6,11 @@
 
 #include <algorithm>
 
-std::string PalettePresets::LongRandom64::getName() const {
+std::string merutilm::rff::PalettePresets::LongRandom64::getName() const {
     return "Long Random 64";
 }
 
-PaletteSettings PalettePresets::LongRandom64::paletteSettings() const {
+merutilm::rff::PaletteSettings merutilm::rff::PalettePresets::LongRandom64::paletteSettings() const {
     auto p = PaletteSettings();
     p.colors.reserve(64);
 
@@ -60,11 +60,11 @@ PaletteSettings PalettePresets::LongRandom64::paletteSettings() const {
 }
 
 
-std::string PalettePresets::Rainbow::getName() const {
+std::string merutilm::rff::PalettePresets::Rainbow::getName() const {
     return "Rainbow";
 }
 
-PaletteSettings PalettePresets::Rainbow::paletteSettings() const {
+merutilm::rff::PaletteSettings merutilm::rff::PalettePresets::Rainbow::paletteSettings() const {
     auto p = PaletteSettings();
     p.colors.reserve(64);
 

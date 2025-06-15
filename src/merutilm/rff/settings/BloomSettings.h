@@ -4,9 +4,11 @@
 
 #pragma once
 
-struct BloomSettings {
-    float threshold;
-    float radius;
-    float softness;
-    float intensity;
-};
+namespace merutilm::rff {
+    struct BloomSettings {
+        float threshold;
+        float radius;
+        float softness;
+        float intensity;
+    };
+}

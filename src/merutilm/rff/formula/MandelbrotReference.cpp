@@ -5,7 +5,7 @@
 #include "MandelbrotReference.h"
 
 
-MandelbrotReference::MandelbrotReference(fp_complex &&center, std::vector<ArrayCompressionTool> &&compressor,
+merutilm::rff::MandelbrotReference::MandelbrotReference(fp_complex &&center, std::vector<ArrayCompressionTool> &&compressor,
                                          std::vector<uint64_t> &&period, fp_complex &&lastReference,
                                          fp_complex &&fpgBn) : center(std::move(center)),
                                                                     compressor(std::move(compressor)),

@@ -4,8 +4,8 @@
 
 #include "DeepMandelbrotPerturbator.h"
 
-DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
-                                                     const double_exp &dcMax, const int exp10,
+merutilm::rff::DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
+                                                     const dex &dcMax, const int exp10,
                                                      const uint64_t initialPeriod,
                                                      ApproxTableCache &tableRef,
                                                      std::function<void(uint64_t)> &&actionPerRefCalcIteration,
@@ -15,8 +15,8 @@ DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state,
     std::move(actionPerCreatingTableIteration), false) {
 }
 
-DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
-                                                     const double_exp &dcMax, const int exp10,
+merutilm::rff::DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
+                                                     const dex &dcMax, const int exp10,
                                                      const uint64_t initialPeriod,
                                                      ApproxTableCache &tableRef,
                                                      std::function<void(uint64_t)> &&actionPerRefCalcIteration,
@@ -24,12 +24,12 @@ DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state,
                                                      actionPerCreatingTableIteration,
                                                      const bool arbitraryPrecisionFPGBn) : DeepMandelbrotPerturbator(
     state, calc, dcMax, exp10, initialPeriod, tableRef, std::move(actionPerRefCalcIteration),
-    std::move(actionPerCreatingTableIteration), arbitraryPrecisionFPGBn, nullptr, nullptr, double_exp::DEX_ZERO,
-    double_exp::DEX_ZERO) {
+    std::move(actionPerCreatingTableIteration), arbitraryPrecisionFPGBn, nullptr, nullptr, dex::DEX_ZERO,
+    dex::DEX_ZERO) {
 }
 
-DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
-                                                     const double_exp &dcMax, const int exp10,
+merutilm::rff::DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
+                                                     const dex &dcMax, const int exp10,
                                                      const uint64_t initialPeriod,
                                                      ApproxTableCache &tableRef,
                                                      std::function<void(uint64_t)> &&actionPerRefCalcIteration,
@@ -38,8 +38,8 @@ DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state,
                                                      const bool arbitraryPrecisionFPGBn,
                                                      std::unique_ptr<DeepMandelbrotReference> reusedReference,
                                                      std::unique_ptr<DeepMPATable> reusedTable,
-                                                     const double_exp &offR,
-                                                     const double_exp &offI) : MandelbrotPerturbator(state, calc),
+                                                     const dex &offR,
+                                                     const dex &offI) : MandelbrotPerturbator(state, calc),
                                                                                dcMax(dcMax), offR(offR), offI(offI) {
     if (reusedReference == nullptr) {
         reference = DeepMandelbrotReference::createReference(state, calc, exp10, initialPeriod, dcMax,
@@ -49,7 +49,7 @@ DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state,
         reference = std::move(reusedReference);
     }
 
-    if (reference == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE) {
+    if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
         return;
     }
 
@@ -63,27 +63,27 @@ DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state,
 }
 
 
-double DeepMandelbrotPerturbator::iterate(const double_exp &dcr, const double_exp &dci) const {
+double merutilm::rff::DeepMandelbrotPerturbator::iterate(const dex &dcr, const dex &dci) const {
     if (state.interruptRequested()) return 0.0;
 
-    const double_exp dcr1 = dcr + offR + (offR.sgn() == 0 ? dcMax / RFF::Render::INTENTIONAL_ERROR_DCPTB : double_exp::DEX_ZERO);
-    const double_exp dci1 = dci + offI + (offR.sgn() == 0 ? dcMax / RFF::Render::INTENTIONAL_ERROR_DCPTB : double_exp::DEX_ZERO);
+    const dex dcr1 = dcr + offR + (offR.sgn() == 0 ? dcMax / Constants::Render::INTENTIONAL_ERROR_DCPTB : dex::DEX_ZERO);
+    const dex dci1 = dci + offI + (offR.sgn() == 0 ? dcMax / Constants::Render::INTENTIONAL_ERROR_DCPTB : dex::DEX_ZERO);
 
     uint64_t iteration = 0;
     uint64_t refIteration = 0;
     int absIteration = 0;
     const uint64_t maxRefIteration = reference->longestPeriod();
-    double_exp dzr = double_exp::DEX_ZERO;
-    double_exp dzi = double_exp::DEX_ZERO;
-    double_exp zr = double_exp::DEX_ZERO;
-    double_exp zi = double_exp::DEX_ZERO;
+    dex dzr = dex::DEX_ZERO;
+    dex dzi = dex::DEX_ZERO;
+    dex zr = dex::DEX_ZERO;
+    dex zi = dex::DEX_ZERO;
     double cd = 0;
     double pd = cd;
     const bool isAbs = calc.absoluteIterationMode;
     const uint64_t maxIteration = calc.maxIteration;
     const float bailout = calc.bailout;
     const float bailout2 = bailout * bailout;
-    auto temps = std::array<double_exp, 4>();
+    auto temps = std::array<dex, 4>();
 
 
     while (iteration < maxIteration) {
@@ -91,21 +91,21 @@ double DeepMandelbrotPerturbator::iterate(const double_exp &dcr, const double_ex
             if (const DeepPA *mpaPtr = table->lookup(refIteration, dzr, dzi, temps); mpaPtr != nullptr) {
                 const DeepPA &mpa = *mpaPtr;
 
-                double_exp::dex_mul(&temps[0], mpa.anr, dzr);
-                double_exp::dex_mul(&temps[1], mpa.ani, dzi);
-                double_exp::dex_sub(&temps[0], temps[0], temps[1]);
-                double_exp::dex_mul(&temps[1], mpa.bnr, dcr1);
-                double_exp::dex_add(&temps[0], temps[0], temps[1]);
-                double_exp::dex_mul(&temps[1], mpa.bni, dci1);
-                double_exp::dex_sub(&temps[0], temps[0], temps[1]);
-                double_exp::dex_mul(&temps[1], mpa.anr, dzi);
-                double_exp::dex_mul(&temps[2], mpa.ani, dzr);
-                double_exp::dex_add(&temps[1], temps[1], temps[2]);
-                double_exp::dex_mul(&temps[2], mpa.bnr, dci1);
-                double_exp::dex_add(&temps[1], temps[1], temps[2]);
-                double_exp::dex_mul(&temps[2], mpa.bni, dcr1);
-                double_exp::dex_cpy(&dzr, temps[0]);
-                double_exp::dex_add(&dzi, temps[1], temps[2]);
+                dex::mul(&temps[0], mpa.anr, dzr);
+                dex::mul(&temps[1], mpa.ani, dzi);
+                dex::sub(&temps[0], temps[0], temps[1]);
+                dex::mul(&temps[1], mpa.bnr, dcr1);
+                dex::add(&temps[0], temps[0], temps[1]);
+                dex::mul(&temps[1], mpa.bni, dci1);
+                dex::sub(&temps[0], temps[0], temps[1]);
+                dex::mul(&temps[1], mpa.anr, dzi);
+                dex::mul(&temps[2], mpa.ani, dzr);
+                dex::add(&temps[1], temps[1], temps[2]);
+                dex::mul(&temps[2], mpa.bnr, dci1);
+                dex::add(&temps[1], temps[1], temps[2]);
+                dex::mul(&temps[2], mpa.bni, dcr1);
+                dex::cpy(&dzr, temps[0]);
+                dex::add(&dzi, temps[1], temps[2]);
 
                 iteration += mpa.skip;
                 refIteration += mpa.skip;
@@ -122,30 +122,30 @@ double DeepMandelbrotPerturbator::iterate(const double_exp &dcr, const double_ex
         if (refIteration != maxRefIteration) {
             if (const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration);
                 index == 0) {
-                double_exp::dex_cpy(&temps[0], dzr);
-                double_exp::dex_cpy(&temps[1], dzi);
+                dex::cpy(&temps[0], dzr);
+                dex::cpy(&temps[1], dzi);
             } else {
-                double_exp::dex_cpy(&temps[0], reference->refReal[index]);
-                double_exp::dex_cpy(&temps[1], reference->refImag[index]);
-                double_exp::dex_mul_2exp(&temps[0], temps[0], 1);
-                double_exp::dex_mul_2exp(&temps[1], temps[1], 1);
-                double_exp::dex_add(&temps[0], temps[0], dzr);
-                double_exp::dex_add(&temps[1], temps[1], dzi);
+                dex::cpy(&temps[0], reference->refReal[index]);
+                dex::cpy(&temps[1], reference->refImag[index]);
+                dex::mul_2exp(&temps[0], temps[0], 1);
+                dex::mul_2exp(&temps[1], temps[1], 1);
+                dex::add(&temps[0], temps[0], dzr);
+                dex::add(&temps[1], temps[1], dzi);
             }
 
 
             if (temps[0].sgn() == 0 && temps[1].sgn() == 0) {
-                double_exp::dex_cpy(&dzr, dcr1);
-                double_exp::dex_cpy(&dzi, dci1);
+                dex::cpy(&dzr, dcr1);
+                dex::cpy(&dzi, dci1);
             } else {
-                double_exp::dex_mul(&temps[2], temps[0], dzr);
-                double_exp::dex_mul(&temps[3], temps[1], dzi);
-                double_exp::dex_sub(&temps[3], temps[2], temps[3]);
-                double_exp::dex_mul(&temps[2], temps[0], dzi);
-                double_exp::dex_mul(&temps[0], temps[1], dzr);
-                double_exp::dex_add(&temps[2], temps[2], temps[0]);
-                double_exp::dex_add(&dzr, temps[3], dcr1);
-                double_exp::dex_add(&dzi, temps[2], dci1);
+                dex::mul(&temps[2], temps[0], dzr);
+                dex::mul(&temps[3], temps[1], dzi);
+                dex::sub(&temps[3], temps[2], temps[3]);
+                dex::mul(&temps[2], temps[0], dzi);
+                dex::mul(&temps[0], temps[1], dzr);
+                dex::add(&temps[2], temps[2], temps[0]);
+                dex::add(&dzr, temps[3], dcr1);
+                dex::add(&dzi, temps[2], dci1);
             }
 
 
@@ -155,8 +155,8 @@ double DeepMandelbrotPerturbator::iterate(const double_exp &dcr, const double_ex
         }
 
         const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration);
-        double_exp::dex_add(&zr, reference->refReal[index], dzr);
-        double_exp::dex_add(&zi, reference->refImag[index], dzi);
+        dex::add(&zr, reference->refReal[index], dzr);
+        dex::add(&zi, reference->refImag[index], dzi);
         pd = cd;
 
         const auto zr0 = static_cast<double>(zr);
@@ -167,14 +167,14 @@ double DeepMandelbrotPerturbator::iterate(const double_exp &dcr, const double_ex
 
         if (refIteration == maxRefIteration || cd < dzr0 * dzr0 + dzi0 * dzi0) {
             refIteration = 0;
-            double_exp::dex_cpy(&dzr, zr);
-            double_exp::dex_cpy(&dzi, zi);
+            dex::cpy(&dzr, zr);
+            dex::cpy(&dzi, zi);
         }
 
         dzr.try_normalize();
         dzi.try_normalize();
         if (cd > bailout2) break;
-        if (absIteration % RFF::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
+        if (absIteration % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
     }
 
     if (isAbs) {
@@ -192,16 +192,16 @@ double DeepMandelbrotPerturbator::iterate(const double_exp &dcr, const double_ex
 }
 
 
-std::unique_ptr<DeepMandelbrotPerturbator> DeepMandelbrotPerturbator::reuse(
-    const CalculationSettings &calc, const double_exp &dcMax, ApproxTableCache &tableRef) {
-    double_exp offR = double_exp::DEX_ZERO;
-    double_exp offI = double_exp::DEX_ZERO;
+std::unique_ptr<merutilm::rff::DeepMandelbrotPerturbator> merutilm::rff::DeepMandelbrotPerturbator::reuse(
+    const CalculationSettings &calc, const dex &dcMax, ApproxTableCache &tableRef) {
+    dex offR = dex::DEX_ZERO;
+    dex offI = dex::DEX_ZERO;
     uint64_t longestPeriod = 1;
     std::unique_ptr<DeepMandelbrotReference> reusedReference = nullptr;
 
     const int exp10 = logZoomToExp10(calc.logZoom);
 
-    if (reference == RFF::NullPointer::PROCESS_TERMINATED_REFERENCE) {
+    if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
         //try to use process-terminated reference
         MessageBox(nullptr, "Please do not try to use PROCESS-TERMINATED Reference.", "Warning",
                    MB_OK | MB_ICONWARNING);

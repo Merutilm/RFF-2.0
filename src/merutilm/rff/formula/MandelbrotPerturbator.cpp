@@ -5,11 +5,11 @@
 #include "MandelbrotPerturbator.h"
 
 
-MandelbrotPerturbator::MandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calculationSettings) : state(state), calc(calculationSettings) {
+merutilm::rff::MandelbrotPerturbator::MandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calculationSettings) : state(state), calc(calculationSettings) {
 
 }
 
 
-const CalculationSettings &MandelbrotPerturbator::getCalculationSettings() const {
+const merutilm::rff::CalculationSettings &merutilm::rff::MandelbrotPerturbator::getCalculationSettings() const {
     return calc;
 }

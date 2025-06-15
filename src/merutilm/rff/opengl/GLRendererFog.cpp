@@ -5,11 +5,11 @@
 #include "GLRendererFog.h"
 
 
-GLRendererFog::GLRendererFog() : GLRendererGaussianBlur("fog.frag", "gaussian_blur_single_pass.frag") {
+merutilm::rff::GLRendererFog::GLRendererFog() : GLRendererGaussianBlur("fog.frag", "gaussian_blur_single_pass.frag") {
 }
 
 
-void GLRendererFog::setFogSettings(const FogSettings &fogSettings) {
+void merutilm::rff::GLRendererFog::setFogSettings(const FogSettings &fogSettings) {
     this->fogSettings = &fogSettings;
     setAdditionalBlurParams([this](const GLShaderLoader &blurShader) {
         blurShader.uploadFloat("radius", this->fogSettings->radius);
@@ -17,7 +17,7 @@ void GLRendererFog::setFogSettings(const FogSettings &fogSettings) {
 }
 
 
-void GLRendererFog::update() {
+void merutilm::rff::GLRendererFog::update() {
     const GLShaderLoader &shader = getShaderLoader();
     shader.uploadTexture2D("inputTex", GL_TEXTURE0, getPrevFBOTextureID());
     shader.uploadTexture2D("blurred", GL_TEXTURE1, getBlurredTextureID());

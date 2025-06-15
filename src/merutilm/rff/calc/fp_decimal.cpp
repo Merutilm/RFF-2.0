@@ -10,42 +10,42 @@
 
 
 
-fp_decimal::fp_decimal(const std::string& value, const int exp10) : fp_decimal(fp_decimal_calculator(value, exp10)){};
+merutilm::rff::fp_decimal::fp_decimal(const std::string& value, const int exp10) : fp_decimal(fp_decimal_calculator(value, exp10)){};
 
 
-fp_decimal::fp_decimal(const fp_decimal_calculator &calc) {
+merutilm::rff::fp_decimal::fp_decimal(const fp_decimal_calculator &calc) {
     this->exp2 = calc.exp2;
     mpz_init(this->value);
     mpz_set(this->value, calc.value);
 }
 
 
-fp_decimal::~fp_decimal() {
+merutilm::rff::fp_decimal::~fp_decimal() {
 
     mpz_clear(this->value);
 }
 
 
-fp_decimal::fp_decimal(const fp_decimal &other) {
+merutilm::rff::fp_decimal::fp_decimal(const fp_decimal &other) {
     this->exp2 = other.exp2;
     mpz_init(this->value);
     mpz_set(this->value, other.value);
 }
 
-fp_decimal &fp_decimal::operator=(const fp_decimal &other) {
+merutilm::rff::fp_decimal &merutilm::rff::fp_decimal::operator=(const fp_decimal &other) {
     this->exp2 = other.exp2;
     mpz_set(this->value, other.value);
     return *this;
 }
 
-fp_decimal::fp_decimal(fp_decimal &&other) noexcept {
+merutilm::rff::fp_decimal::fp_decimal(fp_decimal &&other) noexcept {
     this->exp2 = other.exp2;
     mpz_init(this->value);
     mpz_swap(this->value, other.value);
     mpz_set_ui(other.value, 0);
 }
 
-fp_decimal &fp_decimal::operator=(fp_decimal &&other) noexcept {
+merutilm::rff::fp_decimal &merutilm::rff::fp_decimal::operator=(fp_decimal &&other) noexcept {
     if (this != &other) {
         this->exp2 = other.exp2;
         mpz_swap(this->value, other.value);
@@ -54,7 +54,7 @@ fp_decimal &fp_decimal::operator=(fp_decimal &&other) noexcept {
     return *this;
 }
 
-std::string fp_decimal::to_string() const{
+std::string merutilm::rff::fp_decimal::to_string() const{
     mpf_t d;
 
     if(exp2 < 0){
@@ -78,23 +78,23 @@ std::string fp_decimal::to_string() const{
     return result;
 }
 
-int fp_decimal::get_exp2() const {
+int merutilm::rff::fp_decimal::get_exp2() const {
     return exp2;
 }
 
-bool fp_decimal::is_positive() const {
+bool merutilm::rff::fp_decimal::is_positive() const {
     return mpz_sgn(value) == 1;
 }
 
-bool fp_decimal::is_zero() const {
+bool merutilm::rff::fp_decimal::is_zero() const {
     return mpz_sgn(value) == 0;
 }
 
-bool fp_decimal::is_negative() const {
+bool merutilm::rff::fp_decimal::is_negative() const {
     return mpz_sgn(value) == -1;
 }
 
-fp_decimal_calculator fp_decimal::edit() const{
+merutilm::rff::fp_decimal_calculator merutilm::rff::fp_decimal::edit() const{
     return fp_decimal_calculator(value, exp2);
 }
 

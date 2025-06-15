@@ -8,7 +8,7 @@
 
 
 
-LightMPATable::LightMPATable(const ParallelRenderState &state, const LightMandelbrotReference &reference,
+merutilm::rff::LightMPATable::LightMPATable(const ParallelRenderState &state, const LightMandelbrotReference &reference,
                              const MPASettings *mpaSettings, const double dcMax,
                              ApproxTableCache &tableRef,
                              std::function<void(uint64_t, double)> &&

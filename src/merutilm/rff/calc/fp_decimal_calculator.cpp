@@ -9,23 +9,23 @@
 #include <math.h>
 
 #include "fp_complex_calculator.h"
-#include "../ui/RFF.h"
+#include "../ui/Constants.h"
 
 
-fp_decimal_calculator::fp_decimal_calculator() {
+merutilm::rff::fp_decimal_calculator::fp_decimal_calculator() {
     exp2 = 0;
     mpz_init(value);
     mpz_init(temp);
 }
 
-fp_decimal_calculator::fp_decimal_calculator(const mpz_srcptr value, const int exp2) {
+merutilm::rff::fp_decimal_calculator::fp_decimal_calculator(const mpz_srcptr value, const int exp2) {
     mpz_init(this->value);
     mpz_init(temp);
     mpz_set(this->value, value);
     this->exp2 = exp2;
 }
 
-fp_decimal_calculator::fp_decimal_calculator(const double_exp &d, const int exp10) {
+merutilm::rff::fp_decimal_calculator::fp_decimal_calculator(const dex &d, const int exp10) {
     mpz_init(value);
     mpz_init(temp);
 
@@ -47,7 +47,7 @@ fp_decimal_calculator::fp_decimal_calculator(const double_exp &d, const int exp1
     mpf_clear(d1);
 }
 
-fp_decimal_calculator::fp_decimal_calculator(const double d, const int exp10) {
+merutilm::rff::fp_decimal_calculator::fp_decimal_calculator(const double d, const int exp10) {
     mpz_init(value);
     mpz_init(temp);
 
@@ -67,7 +67,7 @@ fp_decimal_calculator::fp_decimal_calculator(const double d, const int exp10) {
     mpf_clear(d1);
 }
 
-fp_decimal_calculator::fp_decimal_calculator(const std::string &str, const int exp10) {
+merutilm::rff::fp_decimal_calculator::fp_decimal_calculator(const std::string &str, const int exp10) {
     mpz_init(value);
     mpz_init(temp);
 
@@ -89,19 +89,19 @@ fp_decimal_calculator::fp_decimal_calculator(const std::string &str, const int e
 }
 
 
-fp_decimal_calculator::~fp_decimal_calculator() {
+merutilm::rff::fp_decimal_calculator::~fp_decimal_calculator() {
     mpz_clear(value);
     mpz_clear(temp);
 }
 
 
-fp_decimal_calculator::fp_decimal_calculator(const fp_decimal_calculator &other) {
+merutilm::rff::fp_decimal_calculator::fp_decimal_calculator(const fp_decimal_calculator &other) {
     mpz_init_set(temp, other.temp);
     mpz_init_set(value, other.value);
     exp2 = other.exp2;
 }
 
-fp_decimal_calculator &fp_decimal_calculator::operator=(const fp_decimal_calculator &other) {
+merutilm::rff::fp_decimal_calculator &merutilm::rff::fp_decimal_calculator::operator=(const fp_decimal_calculator &other) {
     if (this != &other) {
         mpz_set(value, other.value);
         exp2 = other.exp2;
@@ -110,7 +110,7 @@ fp_decimal_calculator &fp_decimal_calculator::operator=(const fp_decimal_calcula
 }
 
 
-fp_decimal_calculator::fp_decimal_calculator(fp_decimal_calculator &&other) noexcept {
+merutilm::rff::fp_decimal_calculator::fp_decimal_calculator(fp_decimal_calculator &&other) noexcept {
     mpz_init(value);
     mpz_init(temp);
 
@@ -120,7 +120,7 @@ fp_decimal_calculator::fp_decimal_calculator(fp_decimal_calculator &&other) noex
     exp2 = other.exp2;
 }
 
-fp_decimal_calculator &fp_decimal_calculator::operator=(fp_decimal_calculator &&other) noexcept {
+merutilm::rff::fp_decimal_calculator &merutilm::rff::fp_decimal_calculator::operator=(fp_decimal_calculator &&other) noexcept {
     exp2 = other.exp2;
     mpz_swap(value, other.value);
     return *this;
@@ -133,7 +133,7 @@ fp_decimal_calculator &fp_decimal_calculator::operator=(fp_decimal_calculator &&
  * @param a input A
  * @param b input B
  */
-void fp_decimal_calculator::fp_add(fp_decimal_calculator &out, const fp_decimal_calculator &a,
+void merutilm::rff::fp_decimal_calculator::fp_add(fp_decimal_calculator &out, const fp_decimal_calculator &a,
                                     const fp_decimal_calculator &b) {
     mpz_add(out.value, a.value, b.value);
 }
@@ -145,7 +145,7 @@ void fp_decimal_calculator::fp_add(fp_decimal_calculator &out, const fp_decimal_
  * @param a input A
  * @param b input B
  */
-void fp_decimal_calculator::fp_sub(fp_decimal_calculator &out, const fp_decimal_calculator &a,
+void merutilm::rff::fp_decimal_calculator::fp_sub(fp_decimal_calculator &out, const fp_decimal_calculator &a,
                                     const fp_decimal_calculator &b) {
     mpz_sub(out.value, a.value, b.value);
 }
@@ -157,7 +157,7 @@ void fp_decimal_calculator::fp_sub(fp_decimal_calculator &out, const fp_decimal_
  * @param a input A
  * @param b input B
  */
-void fp_decimal_calculator::fp_mul(fp_decimal_calculator &out, const fp_decimal_calculator &a,
+void merutilm::rff::fp_decimal_calculator::fp_mul(fp_decimal_calculator &out, const fp_decimal_calculator &a,
                                     const fp_decimal_calculator &b) {
     mpz_mul(out.temp, a.value, b.value);
     mpz_div_2exp(out.value, out.temp, -a.exp2);
@@ -170,7 +170,7 @@ void fp_decimal_calculator::fp_mul(fp_decimal_calculator &out, const fp_decimal_
  * @param a input A
  * @param b input B
  */
-void fp_decimal_calculator::fp_div(fp_decimal_calculator &out, const fp_decimal_calculator &a,
+void merutilm::rff::fp_decimal_calculator::fp_div(fp_decimal_calculator &out, const fp_decimal_calculator &a,
                                     const fp_decimal_calculator &b) {
     const auto vbl = static_cast<int>(mpz_sizeinbase(b.value, 2));
 
@@ -189,7 +189,7 @@ void fp_decimal_calculator::fp_div(fp_decimal_calculator &out, const fp_decimal_
  * @param out the result
  * @param target input B
  */
-void fp_decimal_calculator::fp_dbl(fp_decimal_calculator &out, const fp_decimal_calculator &target) {
+void merutilm::rff::fp_decimal_calculator::fp_dbl(fp_decimal_calculator &out, const fp_decimal_calculator &target) {
     mpz_mul_2exp(out.value, target.value, 1);
 }
 
@@ -198,7 +198,7 @@ void fp_decimal_calculator::fp_dbl(fp_decimal_calculator &out, const fp_decimal_
  * @param out the result
  * @param target input B
  */
-void fp_decimal_calculator::fp_hlv(fp_decimal_calculator &out, const fp_decimal_calculator &target) {
+void merutilm::rff::fp_decimal_calculator::fp_hlv(fp_decimal_calculator &out, const fp_decimal_calculator &target) {
     mpz_div_2exp(out.value, target.value, 1);
 }
 
@@ -207,24 +207,24 @@ void fp_decimal_calculator::fp_hlv(fp_decimal_calculator &out, const fp_decimal_
  * @param a input A
  * @param b input B
  */
-void fp_decimal_calculator::fp_swap(fp_decimal_calculator &a, fp_decimal_calculator &b) {
+void merutilm::rff::fp_decimal_calculator::fp_swap(fp_decimal_calculator &a, fp_decimal_calculator &b) {
     mpz_swap(a.value, b.value);
 }
 
-void fp_decimal_calculator::negate(fp_decimal_calculator &target) {
+void merutilm::rff::fp_decimal_calculator::negate(fp_decimal_calculator &target) {
     mpz_neg(target.value, target.value);
 }
 
-int fp_decimal_calculator::exp2ToExp10(const int exp2) {
-    return static_cast<int>(static_cast<double>(exp2) * RFF::Constant::LOG10_2);
+int merutilm::rff::fp_decimal_calculator::exp2ToExp10(const int exp2) {
+    return static_cast<int>(static_cast<double>(exp2) * Constants::Num::LOG10_2);
 }
 
-int fp_decimal_calculator::exp10ToExp2(const int precision) {
-    return static_cast<int>(static_cast<double>(precision) / RFF::Constant::LOG10_2);
+int merutilm::rff::fp_decimal_calculator::exp10ToExp2(const int precision) {
+    return static_cast<int>(static_cast<double>(precision) / Constants::Num::LOG10_2);
 }
 
 
-double fp_decimal_calculator::double_value() {
+double merutilm::rff::fp_decimal_calculator::double_value() {
     const int sgn = mpz_sgn(value);
     if (sgn == 0) {
         return 0;
@@ -261,10 +261,10 @@ double fp_decimal_calculator::double_value() {
     return std::bit_cast<double>(sig | exponent | mantissa);
 }
 
-void fp_decimal_calculator::double_exp_value(double_exp *result) {
+void merutilm::rff::fp_decimal_calculator::double_exp_value(dex *result) {
     const int sgn = mpz_sgn(value);
     if (sgn == 0) {
-        double_exp::dex_cpy(result, double_exp::DEX_ZERO);
+        dex::cpy(result, dex::DEX_ZERO);
         return;
     }
 
@@ -282,13 +282,13 @@ void fp_decimal_calculator::double_exp_value(double_exp *result) {
     const int fExp2 = exp2 + shift + 52;
     const double mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
 
-    double_exp::dex_cpy(result, mantissa);
-    double_exp::dex_mul_2exp(result, *result, fExp2);
-    if (sgn == -1) double_exp::dex_neg(result);
+    dex::cpy(result, mantissa);
+    dex::mul_2exp(result, *result, fExp2);
+    if (sgn == -1) dex::neg(result);
 }
 
 
-void fp_decimal_calculator::setExp10(const int exp10) {
+void merutilm::rff::fp_decimal_calculator::setExp10(const int exp10) {
     const int exp2 = exp10ToExp2(exp10);
     const int d_exp2 = this->exp2 - exp2;
     if (d_exp2 < 0) {

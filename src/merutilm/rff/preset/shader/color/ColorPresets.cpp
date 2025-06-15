@@ -4,10 +4,10 @@
 
 #include "ColorPresets.h"
 
-std::string ColorPresets::WeakContrast::getName() const {
+std::string merutilm::rff::ColorPresets::WeakContrast::getName() const {
     return "Weak Contrast";
 }
 
-ColorSettings ColorPresets::WeakContrast::colorSettings() const {
+merutilm::rff::ColorSettings merutilm::rff::ColorPresets::WeakContrast::colorSettings() const {
     return ColorSettings{1, 0.1f, 0, 0, 0, 0.1f};
 }

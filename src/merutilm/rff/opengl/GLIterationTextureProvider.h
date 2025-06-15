@@ -5,7 +5,9 @@
 #pragma once
 #include "glad.h"
 
-struct GLIterationTextureProvider {
-    virtual ~GLIterationTextureProvider() = default;
-    virtual GLuint getIterationTextureID() = 0;
-};
+namespace merutilm::rff {
+    struct GLIterationTextureProvider {
+        virtual ~GLIterationTextureProvider() = default;
+        virtual GLuint getIterationTextureID() = 0;
+    };
+}

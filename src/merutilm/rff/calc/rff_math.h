@@ -6,34 +6,36 @@
 #include <cmath>
 #include <random>
 
-struct rff_math {
+namespace merutilm::rff {
+    struct rff_math {
 
-    inline static auto rd = std::random_device();
-    inline static auto gen = std::mt19937(rd());
-    inline static auto urd_f = std::uniform_real_distribution(0.0f, 1.0f);
-    inline static auto urd_d = std::uniform_real_distribution(0.0, 1.0);
+        inline static auto rd = std::random_device();
+        inline static auto gen = std::mt19937(rd());
+        inline static auto urd_f = std::uniform_real_distribution(0.0f, 1.0f);
+        inline static auto urd_d = std::uniform_real_distribution(0.0, 1.0);
 
 
-    static double hypot_approx(double x, double y) {
-        x = fabs(x);
-        y = fabs(y);
-        const double min = std::min(x, y);
-        const double max = std::max(x, y);
+        static double hypot_approx(double x, double y) {
+            x = fabs(x);
+            y = fabs(y);
+            const double min = std::min(x, y);
+            const double max = std::max(x, y);
 
-        if (min == 0) {
-            return max;
+            if (min == 0) {
+                return max;
+            }
+            if (max == 0) {
+                return 0;
+            }
+
+            return max + 0.428 * min / max * min;
         }
-        if (max == 0) {
-            return 0;
+        static float random_f() {
+            return urd_f(gen);
         }
 
-        return max + 0.428 * min / max * min;
-    }
-    static float random_f() {
-        return urd_f(gen);
-    }
-
-    static double random_d() {
-        return urd_f(gen);
-    }
-};
+        static double random_d() {
+            return urd_f(gen);
+        }
+    };
+}

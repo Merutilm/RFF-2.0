@@ -7,8 +7,7 @@
 #include "../../../settings/BloomSettings.h"
 
 
-
-namespace BloomPresets {
+namespace merutilm::rff::BloomPresets {
     struct Normal final : public Presets::ShaderPresets::BloomPreset {
         std::string getName() const override;
 
