@@ -16,7 +16,12 @@ void registerClasses() {
     WNDCLASSEX masterWindowClass = wc;
     masterWindowClass.lpszClassName = CLASS_MASTER_WINDOW;
     masterWindowClass.lpfnWndProc = merutilm::rff::MainWindow::masterWindowProc;
-    masterWindowClass.hIcon = (HICON) LoadImage(nullptr, ICON_DEFAULT_PATH, IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_DEFAULTSIZE);
+    masterWindowClass.hIcon = static_cast<HICON>(LoadImage(
+    GetModuleHandle(nullptr),
+    MAKEINTRESOURCE(1),
+    IMAGE_ICON,
+    32, 32,
+    LR_DEFAULTCOLOR));
     assert(RegisterClassEx(&masterWindowClass));
 
     WNDCLASSEX videoWindowClass = wc;

@@ -18,9 +18,10 @@ add_compile_options(
 
 add_executable(
         RFF
-        src/ui/Main.cpp
+        res/resources.rc
         extern/glad.c
         extern/glad_wgl.c
+        src/ui/Main.cpp
         src/opengl/GLShaderLoader.cpp
         src/opengl/GLRenderer.cpp
         src/opengl/GLRenderer.h
@@ -179,6 +180,7 @@ add_executable(
         src/opengl/GLRendererIteration2Map.cpp
         src/opengl/GLRendererIteration2Map.h
 )
+
 
 target_link_libraries(RFF PRIVATE
         # OpenGL Linker

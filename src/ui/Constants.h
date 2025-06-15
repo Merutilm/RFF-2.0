@@ -54,7 +54,6 @@ namespace merutilm::rff::Constants {
         constexpr COLORREF COLOR_TEXT_MODIFIED = RGB(0, 110, 160);
         constexpr COLORREF COLOR_TEXT_DEFAULT = RGB(0, 0, 0);
         constexpr COLORREF COLOR_LABEL_BACKGROUND = RGB(255, 255, 255);
-        constexpr auto ICON_DEFAULT_PATH = "../res/icon.ico";
     }
 
 
