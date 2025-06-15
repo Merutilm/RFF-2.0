@@ -7,9 +7,9 @@
 #include "../calc/rff_math.h"
 
 merutilm::rff::LightPAGenerator::LightPAGenerator(const LightMandelbrotReference &reference, const double epsilon, const double dcMax,
-                                   const uint64_t start) : PAGenerator(start, 0, reference.compressor, epsilon), anr(1), ani(0), bnr(0), bni(0), radius(DBL_MAX),
-                                                           refReal(reference.refReal), refImag(reference.refImag),
-                                                           dcMax(dcMax) {
+                                                  const uint64_t start) : PAGenerator(start, 0, reference.compressor, epsilon), anr(1), ani(0), bnr(0), bni(0), radius(DBL_MAX),
+                                                                          refReal(reference.refReal), refImag(reference.refImag),
+                                                                          dcMax(dcMax) {
 }
 
 
