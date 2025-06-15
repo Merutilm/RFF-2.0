@@ -46,6 +46,7 @@ void registerClasses() {
 }
 
 void unregisterAll() {
+
     using namespace merutilm::rff::Constants::Win32;
     UnregisterClass(CLASS_MASTER_WINDOW, nullptr);
     UnregisterClass(CLASS_VIDEO_WINDOW, nullptr);
