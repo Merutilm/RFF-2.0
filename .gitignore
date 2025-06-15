@@ -34,3 +34,7 @@ bin
 *.exe
 *.out
 *.app
+
+# Others
+*.ps1
+*.zip
