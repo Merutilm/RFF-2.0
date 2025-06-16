@@ -23,7 +23,7 @@ namespace detail {
 CV_EXPORTS const char* depthToString_(int depth);
 
 /** Returns string of cv::Mat depth value: CV_8UC3 -> "CV_8UC3" or cv::String() */
-CV_EXPORTS cv::String typeToString_(int type);
+CV_EXPORTS String typeToString_(int type);
 
 enum TestOp {
   TEST_CUSTOM = 0,

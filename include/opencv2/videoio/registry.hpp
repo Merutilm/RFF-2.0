@@ -24,7 +24,7 @@ Runtime configuration options:
 /** @brief Returns backend API name or "UnknownVideoAPI(xxx)"
 @param api backend ID (#VideoCaptureAPIs)
 */
-CV_EXPORTS_W cv::String getBackendName(VideoCaptureAPIs api);
+CV_EXPORTS_W String getBackendName(VideoCaptureAPIs api);
 
 /** @brief Returns list of all available backends */
 CV_EXPORTS_W std::vector<VideoCaptureAPIs> getBackends();

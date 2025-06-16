@@ -50,9 +50,9 @@ namespace  video
 {
 using GBuildPyrOutput  = std::tuple<GArray<GMat>, GScalar>;
 
-using GOptFlowLKOutput = std::tuple<cv::GArray<cv::Point2f>,
-                                    cv::GArray<uchar>,
-                                    cv::GArray<float>>;
+using GOptFlowLKOutput = std::tuple<GArray<Point2f>,
+                                    GArray<uchar>,
+                                    GArray<float>>;
 
 G_TYPED_KERNEL(GBuildOptFlowPyramid, <GBuildPyrOutput(GMat,Size,GScalar,bool,int,int,bool)>,
                "org.opencv.video.buildOpticalFlowPyramid")
@@ -159,8 +159,8 @@ G_TYPED_KERNEL(GBackgroundSubtractor, <GMat(GMat, BackgroundSubtractorParams)>,
     }
 };
 
-void checkParams(const cv::gapi::KalmanParams& kfParams,
-                 const cv::GMatDesc& measurement, const cv::GMatDesc& control = {});
+void checkParams(const KalmanParams& kfParams,
+                 const GMatDesc& measurement, const GMatDesc& control = {});
 
 G_TYPED_KERNEL(GKalmanFilter, <GMat(GMat, GOpaque<bool>, GMat, KalmanParams)>,
                "org.opencv.video.KalmanFilter")
@@ -300,7 +300,7 @@ The operation generates a foreground mask.
 @param src input image: Floating point frame is used without scaling and should be in range [0,255].
 @param bsParams Set of initialization parameters for Background Subtractor kernel.
 */
-GAPI_EXPORTS GMat BackgroundSubtractor(const GMat& src, const cv::gapi::video::BackgroundSubtractorParams& bsParams);
+GAPI_EXPORTS GMat BackgroundSubtractor(const GMat& src, const video::BackgroundSubtractorParams& bsParams);
 
 /** @brief Standard Kalman filter algorithm <http://en.wikipedia.org/wiki/Kalman_filter>.
 
@@ -324,7 +324,7 @@ cv::KalmanFilter::predict(control).
 @sa cv::KalmanFilter
 */
 GAPI_EXPORTS GMat KalmanFilter(const GMat& measurement, const GOpaque<bool>& haveMeasurement,
-                               const GMat& control, const cv::gapi::KalmanParams& kfParams);
+                               const GMat& control, const KalmanParams& kfParams);
 
 /** @overload
 The case of Standard Kalman filter algorithm when there is no control in a dynamic system.
@@ -343,7 +343,7 @@ at a particular iteration.
 @sa cv::KalmanFilter
  */
 GAPI_EXPORTS GMat KalmanFilter(const GMat& measurement, const GOpaque<bool>& haveMeasurement,
-                               const cv::gapi::KalmanParams& kfParams);
+                               const KalmanParams& kfParams);
 
 //! @} gapi_video
 } //namespace gapi
@@ -351,7 +351,7 @@ GAPI_EXPORTS GMat KalmanFilter(const GMat& measurement, const GOpaque<bool>& hav
 
 
 namespace cv { namespace detail {
-template<> struct CompileArgTag<cv::gapi::video::BackgroundSubtractorParams>
+template<> struct CompileArgTag<gapi::video::BackgroundSubtractorParams>
 {
     static const char* tag()
     {

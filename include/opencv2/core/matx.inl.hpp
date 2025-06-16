@@ -341,7 +341,7 @@ double Matx<_Tp, m, n>::ddot(const Matx<_Tp, m, n>& M) const
 }
 
 template<typename _Tp, int m, int n> inline
-Matx<_Tp,m,n> Matx<_Tp,m,n>::diag(const typename Matx<_Tp,m,n>::diag_type& d)
+Matx<_Tp,m,n> Matx<_Tp,m,n>::diag(const diag_type& d)
 {
     Matx<_Tp,m,n> M;
     for(int i = 0; i < shortdim; i++)
@@ -516,7 +516,7 @@ Vec<_Tp, n> Matx<_Tp, m, n>::solve(const Vec<_Tp, m>& rhs, int method) const
 template<typename _Tp, int m> static inline
 double determinant(const Matx<_Tp, m, m>& a)
 {
-    return cv::internal::Matx_DetOp<_Tp, m>()(a);
+    return internal::Matx_DetOp<_Tp, m>()(a);
 }
 
 template<typename _Tp, int m, int n> static inline
@@ -868,25 +868,25 @@ Vec<_Tp, cn> Vec<_Tp, cn>::mul(const Vec<_Tp, cn>& v) const
 template<> inline
 Vec<float, 2> Vec<float, 2>::conj() const
 {
-    return cv::internal::conjugate(*this);
+    return internal::conjugate(*this);
 }
 
 template<> inline
 Vec<double, 2> Vec<double, 2>::conj() const
 {
-    return cv::internal::conjugate(*this);
+    return internal::conjugate(*this);
 }
 
 template<> inline
 Vec<float, 4> Vec<float, 4>::conj() const
 {
-    return cv::internal::conjugate(*this);
+    return internal::conjugate(*this);
 }
 
 template<> inline
 Vec<double, 4> Vec<double, 4>::conj() const
 {
-    return cv::internal::conjugate(*this);
+    return internal::conjugate(*this);
 }
 
 template<typename _Tp, int cn> inline

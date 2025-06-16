@@ -69,21 +69,21 @@ namespace detail
     template<> struct GOpaqueTraits<uint64_t>    { static constexpr const OpaqueKind kind = OpaqueKind::CV_UINT64; };
     template<> struct GOpaqueTraits<bool>        { static constexpr const OpaqueKind kind = OpaqueKind::CV_BOOL; };
     template<> struct GOpaqueTraits<std::string> { static constexpr const OpaqueKind kind = OpaqueKind::CV_STRING; };
-    template<> struct GOpaqueTraits<cv::Size>    { static constexpr const OpaqueKind kind = OpaqueKind::CV_SIZE; };
-    template<> struct GOpaqueTraits<cv::Scalar>  { static constexpr const OpaqueKind kind = OpaqueKind::CV_SCALAR; };
-    template<> struct GOpaqueTraits<cv::Point>   { static constexpr const OpaqueKind kind = OpaqueKind::CV_POINT; };
-    template<> struct GOpaqueTraits<cv::Point2f> { static constexpr const OpaqueKind kind = OpaqueKind::CV_POINT2F; };
-    template<> struct GOpaqueTraits<cv::Point3f> { static constexpr const OpaqueKind kind = OpaqueKind::CV_POINT3F; };
-    template<> struct GOpaqueTraits<cv::Mat>     { static constexpr const OpaqueKind kind = OpaqueKind::CV_MAT; };
-    template<> struct GOpaqueTraits<cv::Rect>    { static constexpr const OpaqueKind kind = OpaqueKind::CV_RECT; };
-    template<> struct GOpaqueTraits<cv::GMat>    { static constexpr const OpaqueKind kind = OpaqueKind::CV_MAT; };
-    template<> struct GOpaqueTraits<cv::gapi::wip::draw::Prim>
+    template<> struct GOpaqueTraits<Size>    { static constexpr const OpaqueKind kind = OpaqueKind::CV_SIZE; };
+    template<> struct GOpaqueTraits<Scalar>  { static constexpr const OpaqueKind kind = OpaqueKind::CV_SCALAR; };
+    template<> struct GOpaqueTraits<Point>   { static constexpr const OpaqueKind kind = OpaqueKind::CV_POINT; };
+    template<> struct GOpaqueTraits<Point2f> { static constexpr const OpaqueKind kind = OpaqueKind::CV_POINT2F; };
+    template<> struct GOpaqueTraits<Point3f> { static constexpr const OpaqueKind kind = OpaqueKind::CV_POINT3F; };
+    template<> struct GOpaqueTraits<Mat>     { static constexpr const OpaqueKind kind = OpaqueKind::CV_MAT; };
+    template<> struct GOpaqueTraits<Rect>    { static constexpr const OpaqueKind kind = OpaqueKind::CV_RECT; };
+    template<> struct GOpaqueTraits<GMat>    { static constexpr const OpaqueKind kind = OpaqueKind::CV_MAT; };
+    template<> struct GOpaqueTraits<gapi::wip::draw::Prim>
                                                  { static constexpr const OpaqueKind kind = OpaqueKind::CV_DRAW_PRIM; };
-    using GOpaqueTraitsArrayTypes = std::tuple<int, double, float, uint64_t, bool, std::string, cv::Size, cv::Scalar, cv::Point, cv::Point2f,
-                                               cv::Point3f, cv::Mat, cv::Rect, cv::gapi::wip::draw::Prim>;
+    using GOpaqueTraitsArrayTypes = std::tuple<int, double, float, uint64_t, bool, std::string, Size, Scalar, Point, Point2f,
+                                               Point3f, Mat, Rect, gapi::wip::draw::Prim>;
     // GOpaque is not supporting cv::Mat and cv::Scalar since there are GScalar and GMat types
-    using GOpaqueTraitsOpaqueTypes = std::tuple<int, double, float, uint64_t, bool, std::string, cv::Size, cv::Point, cv::Point2f, cv::Point3f,
-                                                cv::Rect, cv::gapi::wip::draw::Prim>;
+    using GOpaqueTraitsOpaqueTypes = std::tuple<int, double, float, uint64_t, bool, std::string, Size, Point, Point2f, Point3f,
+                                                Rect, gapi::wip::draw::Prim>;
 } // namespace detail
 
 // This definition is here because it is reused by both public(?) and internal
@@ -167,8 +167,8 @@ public:
     template<typename T, typename std::enable_if<!detail::is_compile_arg<T>::value, int>::type = 0>
     explicit GCompileArg(T &&t)
         : tag(detail::CompileArgTag<typename std::decay<T>::type>::tag())
-        , serializeF(cv::gapi::s11n::detail::has_S11N_spec<T>::value ?
-                     &cv::gapi::s11n::detail::wrap_serialize<T>::serialize :
+        , serializeF(gapi::s11n::detail::has_S11N_spec<T>::value ?
+                     &gapi::s11n::detail::wrap_serialize<T>::serialize :
                      nullptr)
         , arg(t)
     {
@@ -184,7 +184,7 @@ public:
         return util::any_cast<T>(arg);
     }
 
-    void serialize(cv::gapi::s11n::IOStream& os) const
+    void serialize(gapi::s11n::IOStream& os) const
     {
         if (serializeF)
         {
@@ -193,14 +193,14 @@ public:
     }
 
 private:
-    std::function<void(cv::gapi::s11n::IOStream&, const GCompileArg&)> serializeF;
+    std::function<void(gapi::s11n::IOStream&, const GCompileArg&)> serializeF;
     util::any arg;
 };
 
 using GCompileArgs = std::vector<GCompileArg>;
 
-inline cv::GCompileArgs& operator += (      cv::GCompileArgs &lhs,
-                                      const cv::GCompileArgs &rhs)
+inline GCompileArgs& operator += (      GCompileArgs &lhs,
+                                      const GCompileArgs &rhs)
 {
     lhs.reserve(lhs.size() + rhs.size());
     lhs.insert(lhs.end(), rhs.begin(), rhs.end());
@@ -223,16 +223,16 @@ namespace gapi
  *        cv::GCompileArgs
  */
 template<typename T>
-inline cv::util::optional<T> getCompileArg(const cv::GCompileArgs &args)
+inline util::optional<T> getCompileArg(const GCompileArgs &args)
 {
     for (auto &compile_arg : args)
     {
-        if (compile_arg.tag == cv::detail::CompileArgTag<T>::tag())
+        if (compile_arg.tag == detail::CompileArgTag<T>::tag())
         {
-            return cv::util::optional<T>(compile_arg.get<T>());
+            return util::optional<T>(compile_arg.get<T>());
         }
     }
-    return cv::util::optional<T>();
+    return util::optional<T>();
 }
 
 namespace s11n {
@@ -280,12 +280,12 @@ struct GAPI_EXPORTS use_threaded_executor
 
 namespace detail
 {
-    template<> struct CompileArgTag<cv::graph_dump_path>
+    template<> struct CompileArgTag<graph_dump_path>
     {
         static const char* tag() { return "gapi.graph_dump_path"; }
     };
 
-    template<> struct CompileArgTag<cv::use_threaded_executor>
+    template<> struct CompileArgTag<use_threaded_executor>
     {
         static const char* tag() { return "gapi.threaded_executor"; }
     };

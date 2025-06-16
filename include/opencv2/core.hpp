@@ -3154,7 +3154,7 @@ public:
     virtual void set64fPrecision(int p = 16) = 0;
     virtual void setMultiline(bool ml = true) = 0;
 
-    static Ptr<Formatter> get(Formatter::FormatType fmt = FMT_DEFAULT);
+    static Ptr<Formatter> get(FormatType fmt = FMT_DEFAULT);
 
 };
 
@@ -3163,7 +3163,7 @@ String& operator << (String& out, Ptr<Formatted> fmtd)
 {
     fmtd->reset();
     for(const char* str = fmtd->next(); str; str = fmtd->next())
-        out += cv::String(str);
+        out += String(str);
     return out;
 }
 

@@ -7,7 +7,7 @@
 #include "../settings/Settings.h"
 #include <windows.h>
 
-#include "GLScene.h"
+#include "Win32GLScene.h"
 #include "../data/ApproxTableCache.h"
 
 #include "../data/Matrix.h"
@@ -28,7 +28,7 @@
 
 
 namespace merutilm::rff {
-    class RenderScene final : private GLScene {
+    class RenderScene final : private Win32GLScene {
         ParallelRenderState state;
         Settings settings;
         uint16_t interactedMX = 0;

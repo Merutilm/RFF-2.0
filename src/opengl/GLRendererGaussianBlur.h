@@ -28,7 +28,7 @@ namespace merutilm::rff {
 
         void reloadSize(uint16_t w, uint16_t h) override;
 
-        void setAdditionalBlurParams(std::function<void(GLShaderLoader&)> &&additionalParams) const;
+        void setAdditionalBlurParams(std::function<void(GLShader&)> &&additionalParams) const;
 
         GLuint getBlurredTextureID() const;
 

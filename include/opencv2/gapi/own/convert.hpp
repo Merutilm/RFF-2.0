@@ -16,7 +16,7 @@
 namespace cv
 {
     template<typename T>
-    std::vector<T> to_own(const cv::MatSize &sz) {
+    std::vector<T> to_own(const MatSize &sz) {
         std::vector<T> result(sz.dims());
         for (int i = 0; i < sz.dims(); i++) {
             // Note: cv::MatSize is not iterable
@@ -25,12 +25,12 @@ namespace cv
         return result;
     }
 
-    cv::gapi::own::Mat to_own(Mat&&) = delete;
+    gapi::own::Mat to_own(Mat&&) = delete;
 
-    inline cv::gapi::own::Mat to_own(Mat const& m) {
+    inline gapi::own::Mat to_own(Mat const& m) {
         return (m.dims == 2)
-            ?  cv::gapi::own::Mat{m.rows, m.cols, m.type(), m.data, m.step}
-            :  cv::gapi::own::Mat{to_own<int>(m.size), m.type(), m.data};
+            ?  gapi::own::Mat{m.rows, m.cols, m.type(), m.data, m.step}
+            :  gapi::own::Mat{to_own<int>(m.size), m.type(), m.data};
     }
 
 namespace gapi

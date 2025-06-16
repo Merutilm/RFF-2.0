@@ -1,12 +1,12 @@
 #include <memory>
 
-#include "GLLoader.h"
+#include "Win32GLContextLoader.h"
 #include "MainWindow.h"
 #include "SettingsWindow.h"
 #include "assert.h"
 #include "VideoWindow.h"
 #include "../calc/dex_exp.h"
-
+#include "../opengl/GLShaderLoader.h"
 
 void registerClasses() {
     using namespace merutilm::rff::Constants::Win32;
@@ -62,9 +62,10 @@ void unregisterAll() {
 
 
 int main() {
+    using namespace merutilm::rff;
     registerClasses();
-    merutilm::rff::GLLoader::initGL();
-    const auto wnd = std::make_unique<merutilm::rff::MainWindow>();
+    Win32GLContextLoader::initGL();
+    const auto wnd = std::make_unique<MainWindow>();
     wnd->renderLoop();
     unregisterAll();
     return 0;

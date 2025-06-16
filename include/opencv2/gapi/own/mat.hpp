@@ -48,7 +48,7 @@ namespace cv { namespace gapi { namespace own {
             MatHeader() = default;
 
             MatHeader(int _rows, int _cols, int type, void* _data, size_t _step)
-            : flags((type & TYPE_MASK)), rows(_rows), cols(_cols), data((uchar*)_data), step(_step == AUTO_STEP ? detail::default_step(type, _cols) : _step)
+            : flags((type & TYPE_MASK)), rows(_rows), cols(_cols), data((uchar*)_data), step(_step == AUTO_STEP ? default_step(type, _cols) : _step)
             {}
 
             MatHeader(const std::vector<int> &_dims, int type, void* _data)

@@ -250,7 +250,7 @@ template<typename _Tp, int m, int n> inline
 Matx<_Tp, n, m> Matx<_Tp, m, n>::inv(int method, bool *p_is_ok /*= NULL*/) const
 {
     Matx<_Tp, n, m> b;
-    bool ok = cv::internal::Matx_FastInvOp<_Tp, m, n>()(*this, b, method);
+    bool ok = internal::Matx_FastInvOp<_Tp, m, n>()(*this, b, method);
     if (p_is_ok) *p_is_ok = ok;
     return ok ? b : Matx<_Tp, n, m>::zeros();
 }
@@ -259,7 +259,7 @@ template<typename _Tp, int m, int n> template<int l> inline
 Matx<_Tp, n, l> Matx<_Tp, m, n>::solve(const Matx<_Tp, m, l>& rhs, int method) const
 {
     Matx<_Tp, n, l> x;
-    bool ok = cv::internal::Matx_FastSolveOp<_Tp, m, n, l>()(*this, rhs, x, method);
+    bool ok = internal::Matx_FastSolveOp<_Tp, m, n, l>()(*this, rhs, x, method);
     return ok ? x : Matx<_Tp, n, l>::zeros();
 }
 
@@ -352,7 +352,7 @@ inline SVD::SVD( InputArray m, int flags ) { operator ()(m, flags); }
 inline void SVD::solveZ( InputArray m, OutputArray _dst )
 {
     Mat mtx = m.getMat();
-    SVD svd(mtx, (mtx.rows >= mtx.cols ? 0 : SVD::FULL_UV));
+    SVD svd(mtx, (mtx.rows >= mtx.cols ? 0 : FULL_UV));
     _dst.create(svd.vt.cols, 1, svd.vt.type());
     Mat dst = _dst.getMat();
     svd.vt.row(svd.vt.rows-1).reshape(1,svd.vt.cols).copyTo(dst);
@@ -363,7 +363,7 @@ template<typename _Tp, int m, int n, int nm> inline void
 {
     CV_StaticAssert( nm == MIN(m, n), "Invalid size of output vector.");
     Mat _a(a, false), _u(u, false), _w(w, false), _vt(vt, false);
-    SVD::compute(_a, _w, _u, _vt);
+    compute(_a, _w, _u, _vt);
     CV_Assert(_w.data == (uchar*)&w.val[0] && _u.data == (uchar*)&u.val[0] && _vt.data == (uchar*)&vt.val[0]);
 }
 
@@ -372,7 +372,7 @@ SVD::compute( const Matx<_Tp, m, n>& a, Matx<_Tp, nm, 1>& w )
 {
     CV_StaticAssert( nm == MIN(m, n), "Invalid size of output vector.");
     Mat _a(a, false), _w(w, false);
-    SVD::compute(_a, _w);
+    compute(_a, _w);
     CV_Assert(_w.data == (uchar*)&w.val[0]);
 }
 
@@ -383,7 +383,7 @@ SVD::backSubst( const Matx<_Tp, nm, 1>& w, const Matx<_Tp, m, nm>& u,
 {
     CV_StaticAssert( nm == MIN(m, n), "Invalid size of output vector.");
     Mat _u(u, false), _w(w, false), _vt(vt, false), _rhs(rhs, false), _dst(dst, false);
-    SVD::backSubst(_w, _u, _vt, _rhs, _dst);
+    backSubst(_w, _u, _vt, _rhs, _dst);
     CV_Assert(_dst.data == (uchar*)&dst.val[0]);
 }
 
@@ -471,7 +471,7 @@ int print(const std::vector<Point3_<_Tp> >& vec, FILE* stream = stdout)
 template<typename _Tp, int m, int n> static inline
 int print(const Matx<_Tp, m, n>& matx, FILE* stream = stdout)
 {
-    return print(Formatter::get()->format(cv::Mat(matx)), stream);
+    return print(Formatter::get()->format(Mat(matx)), stream);
 }
 
 //! @endcond

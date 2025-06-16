@@ -28,7 +28,7 @@ CV__DNN_INLINE_NS_BEGIN
  *
  * @deprecated
  */
-CV_EXPORTS_W cv::String getInferenceEngineBackendType();
+CV_EXPORTS_W String getInferenceEngineBackendType();
 
 /** @brief Specify Inference Engine internal backend API.
  *
@@ -38,7 +38,7 @@ CV_EXPORTS_W cv::String getInferenceEngineBackendType();
  *
  * @deprecated
  */
-CV_EXPORTS_W cv::String setInferenceEngineBackendType(const cv::String& newBackendType);
+CV_EXPORTS_W String setInferenceEngineBackendType(const String& newBackendType);
 
 
 /** @brief Release a Myriad device (binded by OpenCV).
@@ -63,13 +63,13 @@ CV_EXPORTS_W void resetMyriadDevice();
  *
  * See values of `CV_DNN_INFERENCE_ENGINE_VPU_TYPE_*` macros.
  */
-CV_EXPORTS_W cv::String getInferenceEngineVPUType();
+CV_EXPORTS_W String getInferenceEngineVPUType();
 
 /** @brief Returns Inference Engine CPU type.
  *
  * Specify OpenVINO plugin: CPU or ARM.
  */
-CV_EXPORTS_W cv::String getInferenceEngineCPUType();
+CV_EXPORTS_W String getInferenceEngineCPUType();
 
 /** @brief Release a HDDL plugin.
  */

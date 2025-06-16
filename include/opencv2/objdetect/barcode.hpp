@@ -15,7 +15,7 @@ namespace barcode {
 //! @addtogroup objdetect_barcode
 //! @{
 
-class CV_EXPORTS_W_SIMPLE BarcodeDetector : public cv::GraphicalCodeDetector
+class CV_EXPORTS_W_SIMPLE BarcodeDetector : public GraphicalCodeDetector
 {
 public:
     /** @brief Initialize the BarcodeDetector.

@@ -45,7 +45,7 @@ template<typename U> GArrayDesc descr_of(const std::vector<U> &) { return {};}
 GAPI_EXPORTS_W inline GArrayDesc empty_array_desc() {return {}; }
 /** @} */
 
-std::ostream& operator<<(std::ostream& os, const cv::GArrayDesc &desc);
+std::ostream& operator<<(std::ostream& os, const GArrayDesc &desc);
 
 namespace detail
 {
@@ -80,8 +80,8 @@ namespace detail
 
     protected:
         GArrayU();                                // Default constructor
-        GArrayU(const detail::VectorRef& vref);   // Constant value constructor
-        template<class> friend class cv::GArray;  //  (available to GArray<T> only)
+        GArrayU(const VectorRef& vref);   // Constant value constructor
+        template<class> friend class GArray;  //  (available to GArray<T> only)
 
         void setConstructFcn(ConstructVec &&cv);  // Store T-aware constructor
 
@@ -91,7 +91,7 @@ namespace detail
         template <typename T>
         void storeKind();
 
-        void setKind(cv::detail::OpaqueKind);
+        void setKind(OpaqueKind);
 
         std::shared_ptr<GOrigin> m_priv;
         std::shared_ptr<TypeHintBase> m_hint;
@@ -111,7 +111,7 @@ namespace detail
 
     template <typename T>
     void GArrayU::storeKind(){
-        setKind(cv::detail::GOpaqueTraits<T>::kind);
+        setKind(GOpaqueTraits<T>::kind);
     }
 
     // This class represents a typed STL vector reference.
@@ -123,7 +123,7 @@ namespace detail
     public:
         // These fields are set by the derived class(es)
         std::size_t    m_elemSize = 0ul;
-        cv::GArrayDesc m_desc;
+        GArrayDesc m_desc;
         virtual ~BasicVectorRef() {}
 
         virtual void mov(BasicVectorRef &ref) = 0;
@@ -236,7 +236,7 @@ namespace detail
     class VectorRef
     {
         std::shared_ptr<BasicVectorRef> m_ref;
-        cv::detail::OpaqueKind m_kind = cv::detail::OpaqueKind::CV_UNKNOWN;
+        OpaqueKind m_kind = OpaqueKind::CV_UNKNOWN;
 
         template<typename T> inline void check() const
         {
@@ -259,7 +259,7 @@ namespace detail
             , m_kind(GOpaqueTraits<T>::kind)
         {}
 
-        cv::detail::OpaqueKind getKind() const
+        OpaqueKind getKind() const
         {
             return m_kind;
         }
@@ -275,7 +275,7 @@ namespace detail
         template <typename T>
         void storeKind()
         {
-            m_kind = cv::detail::GOpaqueTraits<T>::kind;
+            m_kind = GOpaqueTraits<T>::kind;
         }
 
         template<typename T> std::vector<T>& wref()
@@ -303,7 +303,7 @@ namespace detail
             m_ref->mov(*v.m_ref);
         }
 
-        cv::GArrayDesc descr_of() const
+        GArrayDesc descr_of() const
         {
             return m_ref->m_desc;
         }
@@ -327,8 +327,8 @@ namespace detail
 #  define FLATTEN_NS cv
 #endif
     template<class T> struct flatten_g;
-    template<> struct flatten_g<cv::GMat>         { using type = FLATTEN_NS::Mat; };
-    template<> struct flatten_g<cv::GScalar>      { using type = FLATTEN_NS::Scalar; };
+    template<> struct flatten_g<GMat>         { using type = FLATTEN_NS::Mat; };
+    template<> struct flatten_g<GScalar>      { using type = FLATTEN_NS::Scalar; };
     template<class T> struct flatten_g<GArray<T>> { using type = std::vector<T>; };
     template<class T> struct flatten_g            { using type = T; };
 #undef FLATTEN_NS

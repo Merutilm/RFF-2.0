@@ -22,7 +22,7 @@ add_executable(
         extern/glad.c
         extern/glad_wgl.c
         src/ui/Main.cpp
-        src/opengl/GLShaderLoader.cpp
+        src/opengl/GLShader.cpp
         src/opengl/GLRenderer.cpp
         src/opengl/GLRenderer.h
         src/calc/fp_complex_calculator.cpp
@@ -54,14 +54,13 @@ add_executable(
         src/calc/fp_decimal_calculator.h
         src/calc/fp_decimal.cpp
         src/calc/fp_decimal.h
-        src/ui/GLLoader.cpp
-        src/ui/GLLoader.h
+        src/ui/Win32GLContextLoader.cpp
+        src/ui/Win32GLContextLoader.h
         src/ui/RenderScene.cpp
         src/ui/RenderScene.h
-        src/formula/Perturbator.cpp
         src/formula/Perturbator.h
-        src/ui/GLScene.h
-        src/ui/GLScene.cpp
+        src/ui/Win32GLScene.h
+        src/ui/Win32GLScene.cpp
         src/io/RFFMap.cpp
         src/io/RFFMap.h
         src/data/Matrix.h
@@ -125,13 +124,11 @@ add_executable(
         src/calc/dex.h
         src/formula/DeepMandelbrotReference.cpp
         src/formula/DeepMandelbrotReference.h
-        src/formula/MandelbrotReference.cpp
         src/formula/MandelbrotReference.h
         src/calc/dex_std.h
         src/calc/double_exp_math.h
         src/formula/DeepMandelbrotPerturbator.cpp
         src/formula/DeepMandelbrotPerturbator.h
-        src/formula/MandelbrotPerturbator.cpp
         src/formula/MandelbrotPerturbator.h
         src/mrthy/DeepPA.h
         src/mrthy/DeepMPATable.h
@@ -143,8 +140,6 @@ add_executable(
         src/mrthy/LightPAGenerator.h
         src/mrthy/DeepPAGenerator.cpp
         src/mrthy/DeepPAGenerator.h
-        src/mrthy/LightMPATable.cpp
-        src/mrthy/DeepMPATable.cpp
         src/data/ApproxTableCache.h
         src/preset/shader/palette/PalettePresets.h
         src/preset/shader/color/ColorPresets.h
@@ -179,6 +174,10 @@ add_executable(
         src/ui/VideoRenderScene.h
         src/opengl/GLRendererIteration2Map.cpp
         src/opengl/GLRendererIteration2Map.h
+        src/opengl/GLShaderLoader.h
+        src/opengl/GLShaderLoader.cpp
+        src/opengl/GLShaderConfig.h
+        src/opengl/GLShaderConfig.cpp
 )
 
 

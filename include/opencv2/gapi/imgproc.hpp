@@ -434,19 +434,19 @@ namespace imgproc {
     };
 
     G_TYPED_KERNEL(GBayerGR2RGB, <cv::GMat(cv::GMat)>, "org.opencv.imgproc.colorconvert.bayergr2rgb") {
-        static cv::GMatDesc outMeta(cv::GMatDesc in) {
+        static GMatDesc outMeta(GMatDesc in) {
             return in.withType(CV_8U, 3);
         }
     };
 
     G_TYPED_KERNEL(GRGB2HSV, <cv::GMat(cv::GMat)>, "org.opencv.imgproc.colorconvert.rgb2hsv") {
-        static cv::GMatDesc outMeta(cv::GMatDesc in) {
+        static GMatDesc outMeta(GMatDesc in) {
             return in;
         }
     };
 
     G_TYPED_KERNEL(GRGB2YUV422, <cv::GMat(cv::GMat)>, "org.opencv.imgproc.colorconvert.rgb2yuv422") {
-        static cv::GMatDesc outMeta(cv::GMatDesc in) {
+        static GMatDesc outMeta(GMatDesc in) {
             GAPI_Assert(in.depth == CV_8U);
             GAPI_Assert(in.chan == 3);
             return in.withType(in.depth, 2);
@@ -1760,7 +1760,7 @@ Output image size will have the size dsize, the depth of output is the same as o
 
 @sa  warpAffine, warpPerspective, remap, resize
  */
-GAPI_EXPORTS GMatP resizeP(const GMatP& src, const Size& dsize, int interpolation = cv::INTER_LINEAR);
+GAPI_EXPORTS GMatP resizeP(const GMatP& src, const Size& dsize, int interpolation = INTER_LINEAR);
 
 //! @} gapi_transform
 } //namespace gapi

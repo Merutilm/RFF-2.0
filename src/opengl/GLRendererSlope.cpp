@@ -5,35 +5,36 @@
 #include "GLRendererSlope.h"
 
 
-merutilm::rff::GLRendererSlope::GLRendererSlope() : GLRenderer("slope.frag"){
+namespace merutilm::rff {
+    GLRendererSlope::GLRendererSlope() : GLRenderer("slope.frag"){
 
+    }
+
+    void GLRendererSlope::setIterationTextureID(const GLuint textureID) {
+        iterationTextureID = textureID;
+    }
+
+
+    void GLRendererSlope::setSlopeSettings(const SlopeSettings &slopeSettings) {
+        this->slopeSettings = &slopeSettings;
+    }
+
+    void GLRendererSlope::setClarityMultiplier(const float clarityMultiplier) {
+        this->clarityMultiplier = clarityMultiplier;
+    }
+
+    void GLRendererSlope::update() {
+        const GLShader &shader = getShader();
+        shader.uploadTexture2D("inputTex", GL_TEXTURE0, getPrevFBOTextureID());
+        shader.uploadTexture2D("iterations", GL_TEXTURE1, iterationTextureID);
+        shader.uploadFloat("depth", slopeSettings->depth);
+        shader.uploadFloat("clarityMultiplier", clarityMultiplier);
+        shader.uploadFloat("reflectionRatio", slopeSettings->reflectionRatio);
+        shader.uploadFloat("opacity", slopeSettings->opacity);
+        shader.uploadFloat("zenith", slopeSettings->zenith);
+        shader.uploadFloat("azimuth", slopeSettings->azimuth);
+    }
 }
-
-void merutilm::rff::GLRendererSlope::setIterationTextureID(const GLuint textureID) {
-    iterationTextureID = textureID;
-}
-
-
-void merutilm::rff::GLRendererSlope::setSlopeSettings(const SlopeSettings &slopeSettings) {
-    this->slopeSettings = &slopeSettings;
-}
-
-void merutilm::rff::GLRendererSlope::setClarityMultiplier(const float clarityMultiplier) {
-    this->clarityMultiplier = clarityMultiplier;
-}
-
-void merutilm::rff::GLRendererSlope::update() {
-    const GLShaderLoader &shader = getShaderLoader();
-    shader.uploadTexture2D("inputTex", GL_TEXTURE0, getPrevFBOTextureID());
-    shader.uploadTexture2D("iterations", GL_TEXTURE1, iterationTextureID);
-    shader.uploadFloat("depth", slopeSettings->depth);
-    shader.uploadFloat("clarityMultiplier", clarityMultiplier);
-    shader.uploadFloat("reflectionRatio", slopeSettings->reflectionRatio);
-    shader.uploadFloat("opacity", slopeSettings->opacity);
-    shader.uploadFloat("zenith", slopeSettings->zenith);
-    shader.uploadFloat("azimuth", slopeSettings->azimuth);
-}
-
 
 
 

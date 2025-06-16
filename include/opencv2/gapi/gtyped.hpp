@@ -23,18 +23,18 @@ namespace detail
     // FIXME: How to prevent coolhackers from extending it by their own types?
     // FIXME: ...Should we care?
     template<typename T> struct ProtoToParam;
-    template<> struct ProtoToParam<cv::GMat>    { using type = cv::Mat; };
-    template<> struct ProtoToParam<cv::GScalar> { using type = cv::Scalar; };
-    template<typename U> struct ProtoToParam<cv::GArray<U> >  { using type = std::vector<U>; };
-    template<> struct ProtoToParam<cv::GArray<cv::GMat>>      { using type = std::vector<cv::Mat>; };
-    template<typename U> struct ProtoToParam<cv::GOpaque<U> > { using type = U; };
+    template<> struct ProtoToParam<GMat>    { using type = Mat; };
+    template<> struct ProtoToParam<GScalar> { using type = Scalar; };
+    template<typename U> struct ProtoToParam<GArray<U> >  { using type = std::vector<U>; };
+    template<> struct ProtoToParam<GArray<GMat>>      { using type = std::vector<Mat>; };
+    template<typename U> struct ProtoToParam<GOpaque<U> > { using type = U; };
     template<typename T> using ProtoToParamT = typename ProtoToParam<T>::type;
 
     template<typename T> struct ProtoToMeta;
-    template<> struct ProtoToMeta<cv::GMat>     { using type = cv::GMatDesc; };
-    template<> struct ProtoToMeta<cv::GScalar>  { using type = cv::GScalarDesc; };
-    template<typename U> struct ProtoToMeta<cv::GArray<U> >  { using type = cv::GArrayDesc; };
-    template<typename U> struct ProtoToMeta<cv::GOpaque<U> > { using type = cv::GOpaqueDesc; };
+    template<> struct ProtoToMeta<GMat>     { using type = GMatDesc; };
+    template<> struct ProtoToMeta<GScalar>  { using type = GScalarDesc; };
+    template<typename U> struct ProtoToMeta<GArray<U> >  { using type = GArrayDesc; };
+    template<typename U> struct ProtoToMeta<GOpaque<U> > { using type = GOpaqueDesc; };
     template<typename T> using ProtoToMetaT = typename ProtoToMeta<T>::type;
 
     //workaround for MSVC 19.0 bug
@@ -95,9 +95,9 @@ public:
     private:
         friend class GComputationT<R(Args...)>;
 
-        cv::GCompiled m_comp;
+        GCompiled m_comp;
 
-        explicit GCompiledT(const cv::GCompiled &comp) : m_comp(comp) {}
+        explicit GCompiledT(const GCompiled &comp) : m_comp(comp) {}
 
     public:
         GCompiledT() {}
@@ -123,12 +123,12 @@ private:
     }
 
     Captured m_capture;
-    cv::GComputation m_comp;
+    GComputation m_comp;
 
 public:
     GComputationT(const Gen &generator)
         : m_capture(capture(generator, detail::make_default<Args>()...))
-        , m_comp(cv::GProtoInputArgs(std::move(m_capture.second)),
+        , m_comp(GProtoInputArgs(std::move(m_capture.second)),
                  cv::GOut(m_capture.first))
     {
     }
@@ -171,8 +171,8 @@ public:
     private:
         friend class GComputationT<std::tuple<R...>(Args...)>;
 
-        cv::GCompiled m_comp;
-        explicit GCompiledT(const cv::GCompiled &comp) : m_comp(comp) {}
+        GCompiled m_comp;
+        explicit GCompiledT(const GCompiled &comp) : m_comp(comp) {}
 
     public:
         GCompiledT() {}
@@ -204,13 +204,13 @@ private:
     }
 
     Captured m_capture;
-    cv::GComputation m_comp;
+    GComputation m_comp;
 
 public:
     GComputationT(const Gen &generator)
         : m_capture(capture(generator, detail::make_default<Args>()...))
-        , m_comp(cv::GProtoInputArgs(std::move(m_capture.second)),
-                 cv::GProtoOutputArgs(std::move(m_capture.first)))
+        , m_comp(GProtoInputArgs(std::move(m_capture.second)),
+                 GProtoOutputArgs(std::move(m_capture.first)))
     {
     }
 

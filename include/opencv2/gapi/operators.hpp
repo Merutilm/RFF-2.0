@@ -13,58 +13,58 @@
 
 namespace cv
 {
-GAPI_EXPORTS cv::GMat operator+(const cv::GMat&    lhs, const cv::GMat&    rhs);
+GAPI_EXPORTS GMat operator+(const GMat&    lhs, const GMat&    rhs);
 
-GAPI_EXPORTS cv::GMat operator+(const cv::GMat&    lhs, const cv::GScalar& rhs);
-GAPI_EXPORTS cv::GMat operator+(const cv::GScalar& lhs, const cv::GMat&    rhs);
+GAPI_EXPORTS GMat operator+(const GMat&    lhs, const GScalar& rhs);
+GAPI_EXPORTS GMat operator+(const GScalar& lhs, const GMat&    rhs);
 
-GAPI_EXPORTS cv::GMat operator-(const cv::GMat&    lhs, const cv::GMat&    rhs);
+GAPI_EXPORTS GMat operator-(const GMat&    lhs, const GMat&    rhs);
 
-GAPI_EXPORTS cv::GMat operator-(const cv::GMat&    lhs, const cv::GScalar& rhs);
-GAPI_EXPORTS cv::GMat operator-(const cv::GScalar& lhs, const cv::GMat&    rhs);
+GAPI_EXPORTS GMat operator-(const GMat&    lhs, const GScalar& rhs);
+GAPI_EXPORTS GMat operator-(const GScalar& lhs, const GMat&    rhs);
 
-GAPI_EXPORTS cv::GMat operator*(const cv::GMat&    lhs, float              rhs);
-GAPI_EXPORTS cv::GMat operator*(float              lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator*(const cv::GMat&    lhs, const cv::GScalar& rhs);
-GAPI_EXPORTS cv::GMat operator*(const cv::GScalar& lhs, const cv::GMat&    rhs);
+GAPI_EXPORTS GMat operator*(const GMat&    lhs, float              rhs);
+GAPI_EXPORTS GMat operator*(float              lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator*(const GMat&    lhs, const GScalar& rhs);
+GAPI_EXPORTS GMat operator*(const GScalar& lhs, const GMat&    rhs);
 
-GAPI_EXPORTS cv::GMat operator/(const cv::GMat&    lhs, const cv::GScalar& rhs);
-GAPI_EXPORTS cv::GMat operator/(const cv::GScalar& lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator/(const cv::GMat&    lhs, const cv::GMat&    rhs);
+GAPI_EXPORTS GMat operator/(const GMat&    lhs, const GScalar& rhs);
+GAPI_EXPORTS GMat operator/(const GScalar& lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator/(const GMat&    lhs, const GMat&    rhs);
 
-GAPI_EXPORTS cv::GMat operator&(const cv::GMat&    lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator|(const cv::GMat&    lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator^(const cv::GMat&    lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator~(const cv::GMat&    lhs);
+GAPI_EXPORTS GMat operator&(const GMat&    lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator|(const GMat&    lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator^(const GMat&    lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator~(const GMat&    lhs);
 
-GAPI_EXPORTS cv::GMat operator&(const cv::GScalar& lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator|(const cv::GScalar& lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator^(const cv::GScalar& lhs, const cv::GMat&    rhs);
+GAPI_EXPORTS GMat operator&(const GScalar& lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator|(const GScalar& lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator^(const GScalar& lhs, const GMat&    rhs);
 
-GAPI_EXPORTS cv::GMat operator&(const cv::GMat& lhs, const cv::GScalar&    rhs);
-GAPI_EXPORTS cv::GMat operator|(const cv::GMat& lhs, const cv::GScalar&    rhs);
-GAPI_EXPORTS cv::GMat operator^(const cv::GMat& lhs, const cv::GScalar&    rhs);
+GAPI_EXPORTS GMat operator&(const GMat& lhs, const GScalar&    rhs);
+GAPI_EXPORTS GMat operator|(const GMat& lhs, const GScalar&    rhs);
+GAPI_EXPORTS GMat operator^(const GMat& lhs, const GScalar&    rhs);
 
-GAPI_EXPORTS cv::GMat operator>(const cv::GMat&    lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator>=(const cv::GMat&   lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator<(const cv::GMat&    lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator<=(const cv::GMat&   lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator==(const cv::GMat&   lhs, const cv::GMat&    rhs);
-GAPI_EXPORTS cv::GMat operator!=(const cv::GMat&   lhs, const cv::GMat&    rhs);
+GAPI_EXPORTS GMat operator>(const GMat&    lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator>=(const GMat&   lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator<(const GMat&    lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator<=(const GMat&   lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator==(const GMat&   lhs, const GMat&    rhs);
+GAPI_EXPORTS GMat operator!=(const GMat&   lhs, const GMat&    rhs);
 
-GAPI_EXPORTS cv::GMat operator>(const cv::GMat&    lhs, const cv::GScalar& rhs);
-GAPI_EXPORTS cv::GMat operator>=(const cv::GMat&   lhs, const cv::GScalar& rhs);
-GAPI_EXPORTS cv::GMat operator<(const cv::GMat&    lhs, const cv::GScalar& rhs);
-GAPI_EXPORTS cv::GMat operator<=(const cv::GMat&   lhs, const cv::GScalar& rhs);
-GAPI_EXPORTS cv::GMat operator==(const cv::GMat&   lhs, const cv::GScalar& rhs);
-GAPI_EXPORTS cv::GMat operator!=(const cv::GMat&   lhs, const cv::GScalar& rhs);
+GAPI_EXPORTS GMat operator>(const GMat&    lhs, const GScalar& rhs);
+GAPI_EXPORTS GMat operator>=(const GMat&   lhs, const GScalar& rhs);
+GAPI_EXPORTS GMat operator<(const GMat&    lhs, const GScalar& rhs);
+GAPI_EXPORTS GMat operator<=(const GMat&   lhs, const GScalar& rhs);
+GAPI_EXPORTS GMat operator==(const GMat&   lhs, const GScalar& rhs);
+GAPI_EXPORTS GMat operator!=(const GMat&   lhs, const GScalar& rhs);
 
-GAPI_EXPORTS cv::GMat operator>(const cv::GScalar&    lhs, const cv::GMat& rhs);
-GAPI_EXPORTS cv::GMat operator>=(const cv::GScalar&   lhs, const cv::GMat& rhs);
-GAPI_EXPORTS cv::GMat operator<(const cv::GScalar&    lhs, const cv::GMat& rhs);
-GAPI_EXPORTS cv::GMat operator<=(const cv::GScalar&   lhs, const cv::GMat& rhs);
-GAPI_EXPORTS cv::GMat operator==(const cv::GScalar&   lhs, const cv::GMat& rhs);
-GAPI_EXPORTS cv::GMat operator!=(const cv::GScalar&   lhs, const cv::GMat& rhs);
+GAPI_EXPORTS GMat operator>(const GScalar&    lhs, const GMat& rhs);
+GAPI_EXPORTS GMat operator>=(const GScalar&   lhs, const GMat& rhs);
+GAPI_EXPORTS GMat operator<(const GScalar&    lhs, const GMat& rhs);
+GAPI_EXPORTS GMat operator<=(const GScalar&   lhs, const GMat& rhs);
+GAPI_EXPORTS GMat operator==(const GScalar&   lhs, const GMat& rhs);
+GAPI_EXPORTS GMat operator!=(const GScalar&   lhs, const GMat& rhs);
 } // cv
 
 #endif // OPENCV_GAPI_OPERATORS_HPP

@@ -69,8 +69,8 @@ template <typename, typename>
 class GTransformImpl;
 
 template <typename K, typename R, typename... Args>
-class GTransformImpl<K, std::function<R(Args...)>> : public cv::detail::TransHelper<K, std::tuple<Args...>, R>,
-                                                     public cv::detail::TransformTag
+class GTransformImpl<K, std::function<R(Args...)>> : public detail::TransHelper<K, std::tuple<Args...>, R>,
+                                                     public detail::TransformTag
 {
 public:
     // FIXME: currently there is no check that transformations' signatures are unique

@@ -139,7 +139,7 @@ template<typename _Tp, int n> static inline
 std::ostream& operator << (std::ostream& out, const Vec<_Tp, n>& vec)
 {
     out << "[";
-    if (cv::traits::Depth<_Tp>::value <= CV_32S)
+    if (traits::Depth<_Tp>::value <= CV_32S)
     {
         for (int i = 0; i < n - 1; ++i) {
             out << (int)vec[i] << ", ";
@@ -181,7 +181,7 @@ static inline std::ostream& operator << (std::ostream& out, const MatSize& msize
     return out;
 }
 
-static inline std::ostream &operator<< (std::ostream &s, cv::Range &r)
+static inline std::ostream &operator<< (std::ostream &s, Range &r)
 {
     return s << "[" << r.start << " : " << r.end << ")";
 }

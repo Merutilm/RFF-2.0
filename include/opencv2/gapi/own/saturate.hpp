@@ -23,7 +23,7 @@ namespace cv { namespace gapi { namespace own {
 //-----------------------------
 
 template<typename DST, typename SRC,
-         typename = cv::util::enable_if_t<!std::is_same<DST, SRC>::value &&
+         typename = util::enable_if_t<!std::is_same<DST, SRC>::value &&
                                            std::is_integral<DST>::value  &&
                                            std::is_integral<SRC>::value>   >
 static CV_ALWAYS_INLINE DST saturate(SRC x)
@@ -47,13 +47,13 @@ static CV_ALWAYS_INLINE T saturate(T x)
 }
 
 template<typename DST, typename SRC, typename R,
-         cv::util::enable_if_t<std::is_floating_point<DST>::value, bool> = true >
+         util::enable_if_t<std::is_floating_point<DST>::value, bool> = true >
 static CV_ALWAYS_INLINE DST saturate(SRC x, R)
 {
     return static_cast<DST>(x);
 }
 template<typename DST, typename SRC, typename R,
-         cv::util::enable_if_t<std::is_integral<DST>::value &&
+         util::enable_if_t<std::is_integral<DST>::value &&
                                std::is_integral<SRC>::value   , bool> = true >
 static CV_ALWAYS_INLINE DST saturate(SRC x, R)
 {
@@ -63,7 +63,7 @@ static CV_ALWAYS_INLINE DST saturate(SRC x, R)
 // - like std::round() for add, subtract
 // - like std::rint() for multiply, divide
 template<typename DST, typename SRC, typename R,
-         cv::util::enable_if_t<std::is_integral<DST>::value &&
+         util::enable_if_t<std::is_integral<DST>::value &&
                                std::is_floating_point<SRC>::value, bool> = true >
 static CV_ALWAYS_INLINE DST saturate(SRC x, R round)
 {

@@ -320,8 +320,8 @@ template <typename _Tp>
 Matx<_Tp, 4, 4> jacob_exp(const Quat<_Tp> &q)
 {
     _Tp nv = std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z);
-    _Tp sinc_nv = abs(nv) < cv::DualQuat<_Tp>::CV_DUAL_QUAT_EPS ? _Tp(1.0) - nv * nv * _Tp(1.0/6.0) : std::sin(nv) / nv;
-    _Tp csiii_nv = abs(nv) < cv::DualQuat<_Tp>::CV_DUAL_QUAT_EPS ? -_Tp(1.0/3.0) : (std::cos(nv) - sinc_nv) / nv / nv;
+    _Tp sinc_nv = abs(nv) < DualQuat<_Tp>::CV_DUAL_QUAT_EPS ? _Tp(1.0) - nv * nv * _Tp(1.0/6.0) : std::sin(nv) / nv;
+    _Tp csiii_nv = abs(nv) < DualQuat<_Tp>::CV_DUAL_QUAT_EPS ? -_Tp(1.0/3.0) : (std::cos(nv) - sinc_nv) / nv / nv;
     Matx<_Tp, 4, 4> J_exp_quat {
         std::cos(nv), -sinc_nv * q.x,  -sinc_nv * q.y,  -sinc_nv * q.z,
         sinc_nv * q.x, csiii_nv * q.x * q.x + sinc_nv, csiii_nv * q.x * q.y, csiii_nv * q.x * q.z,

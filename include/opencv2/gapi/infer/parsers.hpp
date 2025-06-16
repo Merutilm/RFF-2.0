@@ -128,8 +128,8 @@ namespace cv {
 namespace gapi {
 namespace streaming {
 
-using cv::gapi::parseSSD;
-using cv::gapi::parseYolo;
+using gapi::parseSSD;
+using gapi::parseYolo;
 
 } // namespace streaming
 } // namespace gapi

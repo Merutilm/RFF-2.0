@@ -63,8 +63,8 @@ public:
     // fully compatible with VideoCapture's interface.
 
 protected:
-    cv::VideoCapture cap;
-    cv::Mat first;
+    VideoCapture cap;
+    Mat first;
     bool first_pulled = false;
     int64_t counter = 0;
 
@@ -77,7 +77,7 @@ protected:
         // Prepare first frame to report its meta to engine
         // when needed
         GAPI_Assert(first.empty());
-        cv::Mat tmp;
+        Mat tmp;
         if (!cap.read(tmp))
         {
             GAPI_Error("Couldn't grab the very first frame");
@@ -89,7 +89,7 @@ protected:
         first = tmp.clone();
     }
 
-    virtual bool pull(cv::gapi::wip::Data &data) override
+    virtual bool pull(Data &data) override
     {
         if (!first_pulled)
         {
@@ -101,7 +101,7 @@ protected:
         {
             if (!cap.isOpened()) return false;
 
-            cv::Mat frame;
+            Mat frame;
             if (!cap.read(frame))
             {
                 // end-of-stream happened
@@ -114,20 +114,20 @@ protected:
         const auto now = std::chrono::system_clock::now();
         const auto dur = std::chrono::duration_cast<std::chrono::microseconds>
             (now.time_since_epoch());
-        data.meta[cv::gapi::streaming::meta_tag::timestamp] = int64_t{dur.count()};
-        data.meta[cv::gapi::streaming::meta_tag::seq_id]    = int64_t{counter++};
+        data.meta[streaming::meta_tag::timestamp] = int64_t{dur.count()};
+        data.meta[streaming::meta_tag::seq_id]    = int64_t{counter++};
         return true;
     }
 
     virtual GMetaArg descr_of() const override
     {
         GAPI_Assert(!first.empty());
-        return cv::GMetaArg{cv::descr_of(first)};
+        return GMetaArg{cv::descr_of(first)};
     }
 };
 
 // NB: Overload for using from python
-GAPI_EXPORTS_W cv::Ptr<IStreamSource>
+GAPI_EXPORTS_W Ptr<IStreamSource>
 inline make_capture_src(const std::string& path,
                         const std::map<int, double>& properties = {})
 {
@@ -135,7 +135,7 @@ inline make_capture_src(const std::string& path,
 }
 
 // NB: Overload for using from python
-GAPI_EXPORTS_W cv::Ptr<IStreamSource>
+GAPI_EXPORTS_W Ptr<IStreamSource>
 inline make_capture_src(const int id,
                         const std::map<int, double>& properties = {})
 {

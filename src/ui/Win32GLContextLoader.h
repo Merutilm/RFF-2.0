@@ -6,7 +6,7 @@
 #include <windows.h>
 
 namespace merutilm::rff {
-    struct GLLoader {
+    struct Win32GLContextLoader {
         static void initGL();
 
         static void createContext(HDC hdc, HGLRC *target);

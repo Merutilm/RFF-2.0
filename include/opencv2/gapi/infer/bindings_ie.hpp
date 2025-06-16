@@ -38,7 +38,7 @@ public:
 
     GAPI_WRAP
     PyParams& constInput(const std::string &layer_name,
-                         const cv::Mat &data,
+                         const Mat &data,
                          TraitAs hint = TraitAs::TENSOR);
 
     GAPI_WRAP
@@ -49,10 +49,10 @@ public:
 
     GBackend      backend() const;
     std::string   tag()     const;
-    cv::util::any params()  const;
+    util::any params()  const;
 
 private:
-    std::shared_ptr<Params<cv::gapi::Generic>> m_priv;
+    std::shared_ptr<Params<Generic>> m_priv;
 };
 
 GAPI_EXPORTS_W PyParams params(const std::string &tag,

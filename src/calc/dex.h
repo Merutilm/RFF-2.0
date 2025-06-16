@@ -30,11 +30,11 @@ namespace merutilm::rff {
         friend dex_trigonometric;
 
     public:
-        static const dex DEX_ZERO;
-        static const dex DEX_ONE;
-        static const dex DEX_NAN;
-        static const dex DEX_POS_INF;
-        static const dex DEX_NEG_INF;
+        static const dex ZERO;
+        static const dex ONE;
+        static const dex NN;
+        static const dex PINF;
+        static const dex NINF;
         static constexpr double NORMALIZE_CONSTANT_MAX = 1e75;
         static constexpr double NORMALIZE_CONSTANT_MIN = 1e-75;
 
@@ -72,13 +72,13 @@ namespace merutilm::rff {
 
         friend dex operator+(const dex &a, const dex &b) {
             if (a.isnan() || b.isnan()) {
-                return DEX_NAN;
+                return NN;
             }
             if (a.isinf() && b.isinf()) {
                 if (a.sgn() == b.sgn()) {
                     return a;
                 }
-                return DEX_NAN;
+                return NN;
             }
             if (a.isinf() || b.is_zero()) {
                 return a;
@@ -102,11 +102,11 @@ namespace merutilm::rff {
 
         friend dex operator-(const dex &a, const dex &b) {
             if (a.isnan() || b.isnan()) {
-                return DEX_NAN;
+                return NN;
             }
             if (a.isinf() && b.isinf()) {
                 if (a.sgn() == b.sgn()) {
-                    return DEX_NAN;
+                    return NN;
                 }
                 return a;
             }
@@ -136,13 +136,13 @@ namespace merutilm::rff {
 
         friend dex operator*(const dex &a, const dex &b) {
             if (a.is_zero() || b.is_zero()) {
-                return DEX_ZERO;
+                return ZERO;
             }
             if (a.isnan() || b.isnan()) {
-                return DEX_NAN;
+                return NN;
             }
             if (a.isinf() || b.isinf()) {
-                return a.sgn() == b.sgn() ? DEX_POS_INF : DEX_NEG_INF;
+                return a.sgn() == b.sgn() ? PINF : NINF;
             }
             auto result = dex(0, 0);
             mul(&result, a, b);
@@ -160,13 +160,13 @@ namespace merutilm::rff {
 
         friend dex operator/(const dex &a, const dex &b) {
             if (a.is_zero() && b.is_zero()) {
-                return DEX_NAN;
+                return NN;
             }
             if (a.is_zero() || b.isinf()) {
-                return DEX_ZERO;
+                return ZERO;
             }
             if (b.is_zero() || a.isinf()) {
-                return a.sgn() == b.sgn() ? DEX_POS_INF : DEX_NEG_INF;
+                return a.sgn() == b.sgn() ? PINF : NINF;
             }
 
             auto result = dex(0, 0);
@@ -185,14 +185,14 @@ namespace merutilm::rff {
 
         friend dex &operator+=(dex &a, const dex &b) {
             if (a.isnan() || b.isnan()) {
-                cpy(&a, DEX_NAN);
+                cpy(&a, NN);
                 return a;
             }
             if (a.isinf() && b.isinf()) {
                 if (a.sgn() == b.sgn()) {
                     return a;
                 }
-                cpy(&a, DEX_NAN);
+                cpy(&a, NN);
                 return a;
             }
             if (a.isinf() || b.is_zero()) {
@@ -213,14 +213,14 @@ namespace merutilm::rff {
 
         friend dex &operator-=(dex &a, const dex &b) {
             if (a.isnan() || b.isnan()) {
-                cpy(&a, DEX_NAN);
+                cpy(&a, NN);
                 return a;
             }
             if (a.isinf() && b.isinf()) {
                 if (a.sgn() != b.sgn()) {
                     return a;
                 }
-                cpy(&a, DEX_NAN);
+                cpy(&a, NN);
                 return a;
             }
             if (a.isinf() || b.is_zero()) {
@@ -242,16 +242,16 @@ namespace merutilm::rff {
 
         friend dex &operator*=(dex &a, const dex &b) {
             if (a.is_zero() || b.is_zero()) {
-                cpy(&a, DEX_ZERO);
+                cpy(&a, ZERO);
                 return a;
             }
             if (a.isnan() || b.isnan()) {
-                cpy(&a, DEX_NAN);
+                cpy(&a, NN);
                 return a;
             }
             if (a.isinf() || b.isinf()) {
-                if (a.sgn() == b.sgn()) cpy(&a, DEX_POS_INF);
-                else cpy(&a, DEX_NEG_INF);
+                if (a.sgn() == b.sgn()) cpy(&a, PINF);
+                else cpy(&a, NINF);
                 return a;
             }
             mul(&a, a, b);
@@ -265,16 +265,16 @@ namespace merutilm::rff {
 
         friend dex &operator/=(dex &a, const dex &b) {
             if (a.is_zero() && b.is_zero()) {
-                cpy(&a, DEX_NAN);
+                cpy(&a, NN);
                 return a;
             }
             if (a.is_zero() || b.isinf()) {
-                cpy(&a, DEX_ZERO);
+                cpy(&a, ZERO);
                 return a;
             }
             if (b.is_zero() || a.isinf()) {
-                if (a.sgn() == b.sgn()) cpy(&a, DEX_POS_INF);
-                else cpy(&a, DEX_NEG_INF);
+                if (a.sgn() == b.sgn()) cpy(&a, PINF);
+                else cpy(&a, NINF);
                 return a;
             }
 
@@ -334,15 +334,15 @@ namespace merutilm::rff {
     // Move to header for 20-30% performance improvement
 
 
-    inline const dex dex::DEX_ZERO = dex(0, 0);
+    inline const dex dex::ZERO = dex(0, 0);
 
-    inline const dex dex::DEX_ONE = dex(0, 1);
+    inline const dex dex::ONE = dex(0, 1);
 
-    inline const dex dex::DEX_NAN = dex(0, NAN);
+    inline const dex dex::NN = dex(0, NAN);
 
-    inline const dex dex::DEX_POS_INF = dex(0, INFINITY);
+    inline const dex dex::PINF = dex(0, INFINITY);
 
-    inline const dex dex::DEX_NEG_INF = dex(0, -INFINITY);
+    inline const dex dex::NINF = dex(0, -INFINITY);
 
     inline dex::dex() : dex(0, 0) {
     }
@@ -423,15 +423,15 @@ namespace merutilm::rff {
 
     inline void dex::normalize(dex *target) {
         if (target->mantissa == 0) {
-            cpy(target, DEX_ZERO);
+            cpy(target, ZERO);
             return;
         }
         if (target->isinf()) {
-            cpy(target, target->sgn() ? DEX_POS_INF : DEX_NEG_INF);
+            cpy(target, target->sgn() ? PINF : NINF);
             return;
         }
         if (target->isnan()) {
-            cpy(target, DEX_NAN);
+            cpy(target, NN);
             return;
         }
 
@@ -497,13 +497,13 @@ namespace merutilm::rff {
 
     inline dex dex::value(const double value) {
         if (value == 0) {
-            return DEX_ZERO;
+            return ZERO;
         }
         if (std::isinf(value)) {
-            return value > 0 ? DEX_POS_INF : DEX_NEG_INF;
+            return value > 0 ? PINF : NINF;
         }
         if (std::isnan(value)) {
-            return DEX_NAN;
+            return NN;
         }
 
         auto result = dex(0, 0);

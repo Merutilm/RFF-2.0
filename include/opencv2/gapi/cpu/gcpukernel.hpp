@@ -71,7 +71,7 @@ namespace cpu
      *
      * @sa gapi_std_backends
      */
-    GAPI_EXPORTS cv::gapi::GBackend backend();
+    GAPI_EXPORTS GBackend backend();
     /** @} */
 
     class GOCVFunctor;
@@ -97,12 +97,12 @@ public:
     const T& inArg(int input) { return m_args.at(input).get<T>(); }
 
     // Syntax sugar
-    const cv::Mat&   inMat(int input);
-    cv::Mat&         outMatR(int output); // FIXME: Avoid cv::Mat m = ctx.outMatR()
+    const Mat&   inMat(int input);
+    Mat&         outMatR(int output); // FIXME: Avoid cv::Mat m = ctx.outMatR()
 
-    const cv::Scalar& inVal(int input);
-    cv::Scalar& outValR(int output); // FIXME: Avoid cv::Scalar s = ctx.outValR()
-    cv::MediaFrame& outFrame(int output);
+    const Scalar& inVal(int input);
+    Scalar& outValR(int output); // FIXME: Avoid cv::Scalar s = ctx.outValR()
+    MediaFrame& outFrame(int output);
     template<typename T> std::vector<T>& outVecR(int output) // FIXME: the same issue
     {
         return outVecRef(output).wref<T>();
@@ -155,53 +155,53 @@ public:
 namespace detail
 {
 template<class T> struct get_in;
-template<> struct get_in<cv::GMat>
+template<> struct get_in<GMat>
 {
-    static cv::Mat    get(GCPUContext &ctx, int idx) { return ctx.inMat(idx); }
+    static Mat    get(GCPUContext &ctx, int idx) { return ctx.inMat(idx); }
 };
-template<> struct get_in<cv::GMatP>
+template<> struct get_in<GMatP>
 {
-    static cv::Mat    get(GCPUContext &ctx, int idx) { return get_in<cv::GMat>::get(ctx, idx); }
+    static Mat    get(GCPUContext &ctx, int idx) { return get_in<GMat>::get(ctx, idx); }
 };
-template<> struct get_in<cv::GFrame>
+template<> struct get_in<GFrame>
 {
-    static cv::MediaFrame get(GCPUContext &ctx, int idx) { return ctx.inArg<cv::MediaFrame>(idx); }
+    static MediaFrame get(GCPUContext &ctx, int idx) { return ctx.inArg<MediaFrame>(idx); }
 };
-template<> struct get_in<cv::GScalar>
+template<> struct get_in<GScalar>
 {
-    static cv::Scalar get(GCPUContext &ctx, int idx) { return ctx.inVal(idx); }
+    static Scalar get(GCPUContext &ctx, int idx) { return ctx.inVal(idx); }
 };
-template<typename U> struct get_in<cv::GArray<U> >
+template<typename U> struct get_in<GArray<U> >
 {
     static const std::vector<U>& get(GCPUContext &ctx, int idx) { return ctx.inArg<VectorRef>(idx).rref<U>(); }
 };
-template<typename U> struct get_in<cv::GOpaque<U> >
+template<typename U> struct get_in<GOpaque<U> >
 {
     static const U& get(GCPUContext &ctx, int idx) { return ctx.inArg<OpaqueRef>(idx).rref<U>(); }
 };
 
 //FIXME(dm): GArray<Mat>/GArray<GMat> conversion should be done more gracefully in the system
-template<> struct get_in<cv::GArray<cv::GMat> >: public get_in<cv::GArray<cv::Mat> >
+template<> struct get_in<GArray<GMat> >: public get_in<GArray<Mat> >
 {
 };
 
 //FIXME(dm): GArray<Scalar>/GArray<GScalar> conversion should be done more gracefully in the system
-template<> struct get_in<cv::GArray<cv::GScalar> >: public get_in<cv::GArray<cv::Scalar> >
+template<> struct get_in<GArray<GScalar> >: public get_in<GArray<Scalar> >
 {
 };
 
 // FIXME(dm): GArray<vector<U>>/GArray<GArray<U>> conversion should be done more gracefully in the system
-template<typename U> struct get_in<cv::GArray<cv::GArray<U>> >: public get_in<cv::GArray<std::vector<U>> >
+template<typename U> struct get_in<GArray<GArray<U>> >: public get_in<GArray<std::vector<U>> >
 {
 };
 
 //FIXME(dm): GOpaque<Mat>/GOpaque<GMat> conversion should be done more gracefully in the system
-template<> struct get_in<cv::GOpaque<cv::GMat> >: public get_in<cv::GOpaque<cv::Mat> >
+template<> struct get_in<GOpaque<GMat> >: public get_in<GOpaque<Mat> >
 {
 };
 
 //FIXME(dm): GOpaque<Scalar>/GOpaque<GScalar> conversion should be done more gracefully in the system
-template<> struct get_in<cv::GOpaque<cv::GScalar> >: public get_in<cv::GOpaque<cv::Mat> >
+template<> struct get_in<GOpaque<GScalar> >: public get_in<GOpaque<Mat> >
 {
 };
 
@@ -211,8 +211,8 @@ template<class T> struct get_in
 };
 
 struct tracked_cv_mat{
-    tracked_cv_mat(cv::Mat& m) : r{m}, original_data{m.data} {}
-    cv::Mat r;
+    tracked_cv_mat(Mat& m) : r{m}, original_data{m.data} {}
+    Mat r;
     uchar* original_data;
 
     operator cv::Mat& (){ return r;}
@@ -238,11 +238,11 @@ void postprocess(Outputs&... outs)
     } validate;
     //dummy array to unfold parameter pack
     int dummy[] = { 0, (validate(&outs), 0)... };
-    cv::util::suppress_unused_warning(dummy);
+    util::suppress_unused_warning(dummy);
 }
 
 template<class T> struct get_out;
-template<> struct get_out<cv::GMat>
+template<> struct get_out<GMat>
 {
     static tracked_cv_mat get(GCPUContext &ctx, int idx)
     {
@@ -250,28 +250,28 @@ template<> struct get_out<cv::GMat>
         return {r};
     }
 };
-template<> struct get_out<cv::GMatP>
+template<> struct get_out<GMatP>
 {
     static tracked_cv_mat get(GCPUContext &ctx, int idx)
     {
-        return get_out<cv::GMat>::get(ctx, idx);
+        return get_out<GMat>::get(ctx, idx);
     }
 };
-template<> struct get_out<cv::GScalar>
+template<> struct get_out<GScalar>
 {
-    static cv::Scalar& get(GCPUContext &ctx, int idx)
+    static Scalar& get(GCPUContext &ctx, int idx)
     {
         return ctx.outValR(idx);
     }
 };
-template<> struct get_out<cv::GFrame>
+template<> struct get_out<GFrame>
 {
-    static cv::MediaFrame& get(GCPUContext &ctx, int idx)
+    static MediaFrame& get(GCPUContext &ctx, int idx)
     {
         return ctx.outFrame(idx);
     }
 };
-template<typename U> struct get_out<cv::GArray<U>>
+template<typename U> struct get_out<GArray<U>>
 {
     static std::vector<U>& get(GCPUContext &ctx, int idx)
     {
@@ -280,16 +280,16 @@ template<typename U> struct get_out<cv::GArray<U>>
 };
 
 //FIXME(dm): GArray<Mat>/GArray<GMat> conversion should be done more gracefully in the system
-template<> struct get_out<cv::GArray<cv::GMat> >: public get_out<cv::GArray<cv::Mat> >
+template<> struct get_out<GArray<GMat> >: public get_out<GArray<Mat> >
 {
 };
 
 // FIXME(dm): GArray<vector<U>>/GArray<GArray<U>> conversion should be done more gracefully in the system
-template<typename U> struct get_out<cv::GArray<cv::GArray<U>> >: public get_out<cv::GArray<std::vector<U>> >
+template<typename U> struct get_out<GArray<GArray<U>> >: public get_out<GArray<std::vector<U>> >
 {
 };
 
-template<typename U> struct get_out<cv::GOpaque<U>>
+template<typename U> struct get_out<GOpaque<U>>
 {
     static U& get(GCPUContext &ctx, int idx)
     {
@@ -313,7 +313,7 @@ struct OCVSetupHelper<Impl, std::tuple<Ins...>>
     template<int... IIs>
     static auto setup_impl(const GMetaArgs &metaArgs, const GArgs &args,
                            GArg &state, const GCompileArgs &compileArgs,
-                           detail::Seq<IIs...>) ->
+                           Seq<IIs...>) ->
         decltype(Impl::setup(detail::get_in_meta<Ins>(metaArgs, args, IIs)...,
                              std::declval<typename std::add_lvalue_reference<
                                               std::shared_ptr<typename Impl::State>
@@ -334,7 +334,7 @@ struct OCVSetupHelper<Impl, std::tuple<Ins...>>
     template<int... IIs>
     static auto setup_impl(const GMetaArgs &metaArgs, const GArgs &args,
                            GArg &state, const GCompileArgs &/* compileArgs */,
-                           detail::Seq<IIs...>) ->
+                           Seq<IIs...>) ->
         decltype(Impl::setup(detail::get_in_meta<Ins>(metaArgs, args, IIs)...,
                              std::declval<typename std::add_lvalue_reference<
                                               std::shared_ptr<typename Impl::State>
@@ -353,7 +353,7 @@ struct OCVSetupHelper<Impl, std::tuple<Ins...>>
                       GArg& state, const GCompileArgs &compileArgs)
     {
         setup_impl(metaArgs, args, state, compileArgs,
-                   typename detail::MkSeq<sizeof...(Ins)>::type());
+                   typename MkSeq<sizeof...(Ins)>::type());
     }
 };
 
@@ -385,7 +385,7 @@ struct OCVCallHelper<Impl, std::tuple<Ins...>, std::tuple<Outs...>>
     };
 
     template<int... IIs, int... OIs>
-    static void call_impl(GCPUContext &ctx, detail::Seq<IIs...>, detail::Seq<OIs...>)
+    static void call_impl(GCPUContext &ctx, Seq<IIs...>, Seq<OIs...>)
     {
         //Make sure that OpenCV kernels do not reallocate memory for output parameters
         //by comparing it's state (data ptr) before and after the call.
@@ -396,8 +396,8 @@ struct OCVCallHelper<Impl, std::tuple<Ins...>, std::tuple<Outs...>>
     }
 
     template<int... IIs, int... OIs>
-    static void call_impl(cv::GCPUContext &ctx, Impl& impl,
-                          detail::Seq<IIs...>, detail::Seq<OIs...>)
+    static void call_impl(GCPUContext &ctx, Impl& impl,
+                          Seq<IIs...>, Seq<OIs...>)
     {
         call_and_postprocess<decltype(get_in<Ins>::get(ctx, IIs))...>
             ::call(impl, get_in<Ins>::get(ctx, IIs)..., get_out<Outs>::get(ctx, OIs)...);
@@ -406,18 +406,18 @@ struct OCVCallHelper<Impl, std::tuple<Ins...>, std::tuple<Outs...>>
     static void call(GCPUContext &ctx)
     {
         call_impl(ctx,
-                  typename detail::MkSeq<sizeof...(Ins)>::type(),
-                  typename detail::MkSeq<sizeof...(Outs)>::type());
+                  typename MkSeq<sizeof...(Ins)>::type(),
+                  typename MkSeq<sizeof...(Outs)>::type());
     }
 
     // NB: Same as call but calling the object
     // This necessary for kernel implementations that have a state
     // and are represented as an object
-    static void callFunctor(cv::GCPUContext &ctx, Impl& impl)
+    static void callFunctor(GCPUContext &ctx, Impl& impl)
     {
         call_impl(ctx, impl,
-                  typename detail::MkSeq<sizeof...(Ins)>::type(),
-                  typename detail::MkSeq<sizeof...(Outs)>::type());
+                  typename MkSeq<sizeof...(Ins)>::type(),
+                  typename MkSeq<sizeof...(Outs)>::type());
     }
 };
 
@@ -441,7 +441,7 @@ struct OCVStCallHelper<Impl, std::tuple<Ins...>, std::tuple<Outs...>> :
     };
 
     template<int... IIs, int... OIs>
-    static void call_impl(GCPUContext &ctx, detail::Seq<IIs...>, detail::Seq<OIs...>)
+    static void call_impl(GCPUContext &ctx, Seq<IIs...>, Seq<OIs...>)
     {
         auto& st = *ctx.state().get<std::shared_ptr<typename Impl::State>>();
         call_and_postprocess<decltype(get_in<Ins>::get(ctx, IIs))...>
@@ -451,27 +451,27 @@ struct OCVStCallHelper<Impl, std::tuple<Ins...>, std::tuple<Outs...>> :
     static void call(GCPUContext &ctx)
     {
         call_impl(ctx,
-                  typename detail::MkSeq<sizeof...(Ins)>::type(),
-                  typename detail::MkSeq<sizeof...(Outs)>::type());
+                  typename MkSeq<sizeof...(Ins)>::type(),
+                  typename MkSeq<sizeof...(Outs)>::type());
     }
 };
 
 } // namespace detail
 
 template<class Impl, class K>
-class GCPUKernelImpl: public cv::detail::KernelTag
+class GCPUKernelImpl: public detail::KernelTag
 {
-    using CallHelper = cv::detail::OCVCallHelper<Impl, typename K::InArgs, typename K::OutArgs>;
+    using CallHelper = detail::OCVCallHelper<Impl, typename K::InArgs, typename K::OutArgs>;
 
 public:
     using API = K;
 
-    static cv::gapi::GBackend backend() { return cv::gapi::cpu::backend(); }
-    static cv::GCPUKernel      kernel() { return GCPUKernel(&CallHelper::call); }
+    static gapi::GBackend backend() { return gapi::cpu::backend(); }
+    static GCPUKernel      kernel() { return GCPUKernel(&CallHelper::call); }
 };
 
 template<class Impl, class K, class S>
-class GCPUStKernelImpl: public cv::detail::KernelTag
+class GCPUStKernelImpl: public detail::KernelTag
 {
     using StSetupHelper = detail::OCVSetupHelper<Impl, typename K::InArgs>;
     using StCallHelper  = detail::OCVStCallHelper<Impl, typename K::InArgs, typename K::OutArgs>;
@@ -480,8 +480,8 @@ public:
     using API = K;
     using State = S;
 
-    static cv::gapi::GBackend backend() { return cv::gapi::cpu::backend(); }
-    static cv::GCPUKernel     kernel()  { return GCPUKernel(&StCallHelper::call,
+    static gapi::GBackend backend() { return gapi::cpu::backend(); }
+    static GCPUKernel     kernel()  { return GCPUKernel(&StCallHelper::call,
                                                             &StSetupHelper::setup); }
 };
 
@@ -493,19 +493,19 @@ public:
     struct Name: public cv::GCPUStKernelImpl<Name, API, State> \
 
 /// @private
-class gapi::cpu::GOCVFunctor : public gapi::GFunctor
+class gapi::cpu::GOCVFunctor : public GFunctor
 {
 public:
     using Impl = std::function<void(GCPUContext &)>;
-    using Meta = cv::GKernel::M;
+    using Meta = GKernel::M;
 
     GOCVFunctor(const char* id, const Meta &meta, const Impl& impl)
-        : gapi::GFunctor(id), impl_{GCPUKernel(impl), meta}
+        : GFunctor(id), impl_{GCPUKernel(impl), meta}
     {
     }
 
     GKernelImpl    impl()    const override { return impl_;                }
-    gapi::GBackend backend() const override { return gapi::cpu::backend(); }
+    GBackend backend() const override { return cpu::backend(); }
 
 private:
     GKernelImpl impl_;

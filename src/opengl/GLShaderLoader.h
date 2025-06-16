@@ -1,55 +1,34 @@
+//
+// Created by Merutilm on 2025-06-17.
+//
+
 #pragma once
+#include <filesystem>
+#include <vector>
 
-
-#include <array>
-#include <string>
-#include <glad.h>
-
-#include "../ui/Constants.h"
+#include "GLShader.h"
+#include "GLShaderConfig.h"
 
 namespace merutilm::rff {
-    class GLShaderLoader {
-        GLuint shaderProgram;
-        GLuint vaoID;
 
-        std::array<int, 6> elementArray = {
-            2, 1, 0,
-            0, 1, 3
-        };
+    struct GLShaderLoader {
 
+        static std::vector<std::unique_ptr<GLShaderConfig>> shaders;
 
-        static void compile(int shader, const char* src);
+        GLShaderLoader() = delete;
 
-        void link() const;
+        static void loadShaders();
 
-        static int textureUnitToIndex(int textureUnit);
+        static void addShader(const std::filesystem::path &path);
 
-        int getLocation(const std::string &varName) const;
+        static void getSource(const std::filesystem::path &path, std::string *src);
 
-    public:
-        explicit GLShaderLoader(std::string_view vertexName, std::string_view fragmentName);
+        static void compile(GLuint shader, const char *src);
 
-        void use() const;
+        static GLuint configureProgram(std::string_view vertName, std::string_view fragName);
 
-        void draw() const;
-
-        static void detach();
-
-        static int recreateTexture2D(GLuint textureID, uint16_t width, uint16_t height, TextureFormat textureFormat);
-
-        void uploadTexture2D(const std::string &varName, int textureUnit, int textureID) const;
-
-        void uploadTexture2D(const std::string &varName, int textureUnit, int textureID, const void *buffer, uint16_t w, uint16_t h,
-                             TextureFormat textureFormat) const;
-
-        void uploadDouble(const std::string &varName, double value) const;
-
-        void uploadBool(const std::string &varName, bool value) const;
-
-        void uploadFloat(const std::string &varName, float value) const;
-
-        void upload2i(const std::string &varName, int x, int y) const;
-
-        void uploadInt(const std::string &varName, int value) const;
+        static void linkProgram(GLuint shaderProgram);
     };
+
+    inline std::vector<std::unique_ptr<GLShaderConfig>> GLShaderLoader::shaders = {};
 }

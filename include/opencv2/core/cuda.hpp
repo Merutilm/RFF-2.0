@@ -116,20 +116,20 @@ public:
     };
 
     //! default allocator
-    CV_WRAP static GpuMat::Allocator* defaultAllocator();
-    CV_WRAP static void setDefaultAllocator(GpuMat::Allocator* allocator);
-    CV_WRAP static GpuMat::Allocator* getStdAllocator();
+    CV_WRAP static Allocator* defaultAllocator();
+    CV_WRAP static void setDefaultAllocator(Allocator* allocator);
+    CV_WRAP static Allocator* getStdAllocator();
 
     //! default constructor
-    CV_WRAP explicit GpuMat(GpuMat::Allocator* allocator = GpuMat::defaultAllocator());
+    CV_WRAP explicit GpuMat(Allocator* allocator = defaultAllocator());
 
     //! constructs GpuMat of the specified size and type
-    CV_WRAP GpuMat(int rows, int cols, int type, GpuMat::Allocator* allocator = GpuMat::defaultAllocator());
-    CV_WRAP GpuMat(Size size, int type, GpuMat::Allocator* allocator = GpuMat::defaultAllocator());
+    CV_WRAP GpuMat(int rows, int cols, int type, Allocator* allocator = defaultAllocator());
+    CV_WRAP GpuMat(Size size, int type, Allocator* allocator = defaultAllocator());
 
     //! constructs GpuMat and fills it with the specified value _s
-    CV_WRAP GpuMat(int rows, int cols, int type, Scalar s, GpuMat::Allocator* allocator = GpuMat::defaultAllocator());
-    CV_WRAP GpuMat(Size size, int type, Scalar s, GpuMat::Allocator* allocator = GpuMat::defaultAllocator());
+    CV_WRAP GpuMat(int rows, int cols, int type, Scalar s, Allocator* allocator = defaultAllocator());
+    CV_WRAP GpuMat(Size size, int type, Scalar s, Allocator* allocator = defaultAllocator());
 
     //! copy constructor
     CV_WRAP GpuMat(const GpuMat& m);
@@ -143,7 +143,7 @@ public:
     CV_WRAP GpuMat(const GpuMat& m, Rect roi);
 
     //! builds GpuMat from host memory (Blocking call)
-    CV_WRAP explicit GpuMat(InputArray arr, GpuMat::Allocator* allocator = GpuMat::defaultAllocator());
+    CV_WRAP explicit GpuMat(InputArray arr, Allocator* allocator = defaultAllocator());
 
     //! destructor - calls release()
     ~GpuMat();
@@ -793,17 +793,17 @@ class CV_EXPORTS_W HostMem
 public:
     enum AllocType { PAGE_LOCKED = 1, SHARED = 2, WRITE_COMBINED = 4 };
 
-    static MatAllocator* getAllocator(HostMem::AllocType alloc_type = HostMem::AllocType::PAGE_LOCKED);
+    static MatAllocator* getAllocator(AllocType alloc_type = PAGE_LOCKED);
 
-    CV_WRAP explicit HostMem(HostMem::AllocType alloc_type = HostMem::AllocType::PAGE_LOCKED);
+    CV_WRAP explicit HostMem(AllocType alloc_type = PAGE_LOCKED);
 
     HostMem(const HostMem& m);
 
-    CV_WRAP HostMem(int rows, int cols, int type, HostMem::AllocType alloc_type = HostMem::AllocType::PAGE_LOCKED);
-    CV_WRAP HostMem(Size size, int type, HostMem::AllocType alloc_type = HostMem::AllocType::PAGE_LOCKED);
+    CV_WRAP HostMem(int rows, int cols, int type, AllocType alloc_type = PAGE_LOCKED);
+    CV_WRAP HostMem(Size size, int type, AllocType alloc_type = PAGE_LOCKED);
 
     //! creates from host memory with coping data
-    CV_WRAP explicit HostMem(InputArray arr, HostMem::AllocType alloc_type = HostMem::AllocType::PAGE_LOCKED);
+    CV_WRAP explicit HostMem(InputArray arr, AllocType alloc_type = PAGE_LOCKED);
 
     ~HostMem();
 
@@ -992,7 +992,7 @@ public:
         INTERPROCESS   = 0x04   /**< Event is suitable for interprocess use. DisableTiming must be set */
     };
 
-    CV_WRAP explicit Event(const Event::CreateFlags flags = Event::CreateFlags::DEFAULT);
+    CV_WRAP explicit Event(const CreateFlags flags = DEFAULT);
 
     //! records an event
     CV_WRAP void record(Stream& stream = Stream::Null());
@@ -1195,7 +1195,7 @@ public:
     };
 
     //! compute mode
-    CV_WRAP DeviceInfo::ComputeMode computeMode() const;
+    CV_WRAP ComputeMode computeMode() const;
 
     //! maximum 1D texture size
     CV_WRAP int maxTexture1D() const;

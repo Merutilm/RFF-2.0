@@ -104,7 +104,7 @@ public:
      * @param out output cv::Mat for unary computation
      * process.
      */
-    void operator() (cv::Mat in, cv::Mat &out);                  // Unary overload
+    void operator() (Mat in, Mat &out);                  // Unary overload
 
     /**
      * @brief Execute an unary computation
@@ -114,7 +114,7 @@ public:
      * @param out output cv::Scalar for unary computation
      * process.
      */
-    void operator() (cv::Mat in, cv::Scalar &out);               // Unary overload (scalar)
+    void operator() (Mat in, Scalar &out);               // Unary overload (scalar)
 
     /**
      * @brief Execute a binary computation
@@ -125,7 +125,7 @@ public:
      * @param out output cv::Mat for binary computation
      * process.
      */
-    void operator() (cv::Mat in1, cv::Mat in2, cv::Mat &out);    // Binary overload
+    void operator() (Mat in1, Mat in2, Mat &out);    // Binary overload
 
     /**
      * @brief Execute an binary computation
@@ -136,7 +136,7 @@ public:
      * @param out output cv::Scalar for binary computation
      * process.
      */
-    void operator() (cv::Mat in1, cv::Mat in2, cv::Scalar &out); // Binary overload (scalar)
+    void operator() (Mat in1, Mat in2, Scalar &out); // Binary overload (scalar)
 
     /**
      * @brief Execute a computation with arbitrary number of
@@ -151,8 +151,8 @@ public:
      * Numbers of elements in ins/outs vectors must match numbers of
      * inputs/outputs which were used to define the source GComputation.
      */
-    void operator() (const std::vector<cv::Mat> &ins,            // Compatibility overload
-                     const std::vector<cv::Mat> &outs);
+    void operator() (const std::vector<Mat> &ins,            // Compatibility overload
+                     const std::vector<Mat> &outs);
 #endif  // !defined(GAPI_STANDALONE)
     /// @private
     Priv& priv();

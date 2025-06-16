@@ -231,7 +231,7 @@ AsyncArray testAsyncException()
 }
 
 CV_WRAP static inline
-String dumpVec2i(const cv::Vec2i value = cv::Vec2i(42, 24)) {
+String dumpVec2i(const Vec2i value = Vec2i(42, 24)) {
     return format("Vec2i(%d, %d)", value[0], value[1]);
 }
 
@@ -293,7 +293,7 @@ public:
         }
     };
 
-    explicit OriginalClassName(const OriginalClassName::Params& params = OriginalClassName::Params())
+    explicit OriginalClassName(const Params& params = Params())
     {
         params_ = params;
     }
@@ -314,13 +314,13 @@ public:
     }
 
     CV_WRAP static Ptr<OriginalClassName>
-    create(const OriginalClassName::Params& params = OriginalClassName::Params())
+    create(const Params& params = Params())
     {
         return makePtr<OriginalClassName>(params);
     }
 
 private:
-    OriginalClassName::Params params_;
+    Params params_;
 };
 
 typedef OriginalClassName::Params OriginalClassName_Params;
@@ -329,7 +329,7 @@ typedef OriginalClassName::Params OriginalClassName_Params;
 //! @endcond IGNORED
 
 namespace fs {
-    CV_EXPORTS_W cv::String getCacheDirectoryForDownloads();
+    CV_EXPORTS_W String getCacheDirectoryForDownloads();
 } // namespace fs
 
 //! @}  // core_utils
@@ -341,13 +341,13 @@ CV_WRAP static inline
 int setLogLevel(int level)
 {
     // NB: Binding generators doesn't work with enums properly yet, so we define separate overload here
-    return cv::utils::logging::setLogLevel((cv::utils::logging::LogLevel)level);
+    return utils::logging::setLogLevel((utils::logging::LogLevel)level);
 }
 
 CV_WRAP static inline
 int getLogLevel()
 {
-    return cv::utils::logging::getLogLevel();
+    return utils::logging::getLogLevel();
 }
 
 //! @endcond IGNORED

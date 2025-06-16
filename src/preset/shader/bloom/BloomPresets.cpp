@@ -3,10 +3,12 @@
 //
 #include "BloomPresets.h"
 
-std::string merutilm::rff::BloomPresets::Normal::getName() const {
-    return "Normal";
-}
+namespace merutilm::rff {
+    std::string BloomPresets::Normal::getName() const {
+        return "Normal";
+    }
 
-merutilm::rff::BloomSettings merutilm::rff::BloomPresets::Normal::bloomSettings() const {
-    return BloomSettings{0, 0.1f, 0, 1};
+    BloomSettings BloomPresets::Normal::bloomSettings() const {
+        return BloomSettings{0, 0.1f, 0, 1};
+    }
 }

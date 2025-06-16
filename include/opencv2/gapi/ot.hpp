@@ -70,25 +70,25 @@ struct GAPI_EXPORTS_W_SIMPLE ObjectTrackerParams
     }
 };
 
-using GTrackedInfo = std::tuple<cv::GArray<cv::Rect>, cv::GArray<int32_t>, cv::GArray<uint64_t>, cv::GArray<int>>;
+using GTrackedInfo = std::tuple<GArray<Rect>, GArray<int32_t>, GArray<uint64_t>, GArray<int>>;
 
 G_API_OP(GTrackFromMat, <GTrackedInfo(cv::GMat, cv::GArray<cv::Rect>, cv::GArray<int32_t>, float)>, "com.intel.track_from_mat")
 {
-    static std::tuple<cv::GArrayDesc, cv::GArrayDesc,
-                      cv::GArrayDesc, cv::GArrayDesc> outMeta(cv::GMatDesc, cv::GArrayDesc, cv::GArrayDesc, float)
+    static std::tuple<GArrayDesc, GArrayDesc,
+                      GArrayDesc, GArrayDesc> outMeta(GMatDesc, GArrayDesc, GArrayDesc, float)
     {
-        return std::make_tuple(cv::empty_array_desc(), cv::empty_array_desc(),
-                               cv::empty_array_desc(), cv::empty_array_desc());
+        return std::make_tuple(empty_array_desc(), empty_array_desc(),
+                               empty_array_desc(), empty_array_desc());
     }
 };
 
 G_API_OP(GTrackFromFrame, <GTrackedInfo(cv::GFrame, cv::GArray<cv::Rect>, cv::GArray<int32_t>, float)>, "com.intel.track_from_frame")
 {
-    static std::tuple<cv::GArrayDesc, cv::GArrayDesc,
-                      cv::GArrayDesc, cv::GArrayDesc> outMeta(cv::GFrameDesc, cv::GArrayDesc, cv::GArrayDesc, float)
+    static std::tuple<GArrayDesc, GArrayDesc,
+                      GArrayDesc, GArrayDesc> outMeta(GFrameDesc, GArrayDesc, GArrayDesc, float)
     {
-       return std::make_tuple(cv::empty_array_desc(), cv::empty_array_desc(),
-                              cv::empty_array_desc(), cv::empty_array_desc());
+       return std::make_tuple(empty_array_desc(), empty_array_desc(),
+                              empty_array_desc(), empty_array_desc());
     }
 };
 
@@ -115,13 +115,13 @@ G_API_OP(GTrackFromFrame, <GTrackedInfo(cv::GFrame, cv::GArray<cv::Rect>, cv::GA
  *                                                        not been assigned.
  *                                  cv::GArray<int>       Array of tracking statuses for objects.
  */
-GAPI_EXPORTS_W std::tuple<cv::GArray<cv::Rect>,
-                          cv::GArray<int>,
-                          cv::GArray<uint64_t>,
-                          cv::GArray<int>>
-    track(const cv::GMat& mat,
-          const cv::GArray<cv::Rect>& detected_rects,
-          const cv::GArray<int>& detected_class_labels,
+GAPI_EXPORTS_W std::tuple<GArray<Rect>,
+                          GArray<int>,
+                          GArray<uint64_t>,
+                          GArray<int>>
+    track(const GMat& mat,
+          const GArray<Rect>& detected_rects,
+          const GArray<int>& detected_class_labels,
           float delta);
 
 
@@ -144,13 +144,13 @@ GAPI_EXPORTS_W std::tuple<cv::GArray<cv::Rect>,
  *                                                                not been assigned.
  *                                  cv::GArray<int>    Array of tracking statuses for objects.
  */
-GAPI_EXPORTS_W std::tuple<cv::GArray<cv::Rect>,
-                         cv::GArray<int>,
-                         cv::GArray<uint64_t>,
-                         cv::GArray<int>>
-    track(const cv::GFrame& frame,
-          const cv::GArray<cv::Rect>& detected_rects,
-          const cv::GArray<int>& detected_class_labels,
+GAPI_EXPORTS_W std::tuple<GArray<Rect>,
+                         GArray<int>,
+                         GArray<uint64_t>,
+                         GArray<int>>
+    track(const GFrame& frame,
+          const GArray<Rect>& detected_rects,
+          const GArray<int>& detected_class_labels,
           float delta);
 } // namespace ot
 } // namespace gapi
@@ -161,7 +161,7 @@ namespace cv
 {
 namespace detail
 {
-template<> struct CompileArgTag<cv::gapi::ot::ObjectTrackerParams>
+template<> struct CompileArgTag<gapi::ot::ObjectTrackerParams>
 {
     static const char* tag()
     {
@@ -176,12 +176,12 @@ namespace s11n
 {
 namespace detail
 {
-template<> struct S11N<cv::gapi::ot::ObjectTrackerParams> {
-    static void serialize(IOStream &os, const cv::gapi::ot::ObjectTrackerParams &p) {
+template<> struct S11N<ot::ObjectTrackerParams> {
+    static void serialize(IOStream &os, const ot::ObjectTrackerParams &p) {
         os << p. max_num_objects << p.input_image_format << p.tracking_per_class;
     }
-    static cv::gapi::ot::ObjectTrackerParams deserialize(IIStream &is) {
-        cv::gapi::ot::ObjectTrackerParams p;
+    static ot::ObjectTrackerParams deserialize(IIStream &is) {
+        ot::ObjectTrackerParams p;
         is >> p. max_num_objects >> p.input_image_format >> p.tracking_per_class;
         return p;
     }

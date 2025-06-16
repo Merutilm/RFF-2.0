@@ -70,8 +70,8 @@ namespace wip
 namespace draw
 {
 
-using GMat2     = std::tuple<cv::GMat,cv::GMat>;
-using GMatDesc2 = std::tuple<cv::GMatDesc,cv::GMatDesc>;
+using GMat2     = std::tuple<GMat,GMat>;
+using GMatDesc2 = std::tuple<GMatDesc,GMatDesc>;
 
 //! @addtogroup gapi_draw_api
 //! @{
@@ -81,9 +81,9 @@ using GMatDesc2 = std::tuple<cv::GMatDesc,cv::GMatDesc>;
 @param prims vector of drawing primitivies
 @param args graph compile time parameters
 */
-void GAPI_EXPORTS_W render(cv::Mat& bgr,
+void GAPI_EXPORTS_W render(Mat& bgr,
                            const Prims& prims,
-                           cv::GCompileArgs&& args = {});
+                           GCompileArgs&& args = {});
 
 /** @brief The function renders on two NV12 planes passed drawing primitivies
 
@@ -92,10 +92,10 @@ void GAPI_EXPORTS_W render(cv::Mat& bgr,
 @param prims vector of drawing primitivies
 @param args graph compile time parameters
 */
-void GAPI_EXPORTS_W render(cv::Mat& y_plane,
-                           cv::Mat& uv_plane,
+void GAPI_EXPORTS_W render(Mat& y_plane,
+                           Mat& uv_plane,
                            const Prims& prims,
-                           cv::GCompileArgs&& args = {});
+                           GCompileArgs&& args = {});
 
 /** @brief The function renders on the input media frame passed drawing primitivies
 
@@ -103,9 +103,9 @@ void GAPI_EXPORTS_W render(cv::Mat& y_plane,
 @param prims vector of drawing primitivies
 @param args graph compile time parameters
 */
-void GAPI_EXPORTS render(cv::MediaFrame& frame,
+void GAPI_EXPORTS render(MediaFrame& frame,
                          const Prims& prims,
-                         cv::GCompileArgs&& args = {});
+                         GCompileArgs&& args = {});
 
 
 G_TYPED_KERNEL_M(GRenderNV12, <GMat2(cv::GMat,cv::GMat,cv::GArray<wip::draw::Prim>)>, "org.opencv.render.nv12")
@@ -185,7 +185,7 @@ namespace ocv
 
 namespace detail
 {
-    template<> struct CompileArgTag<cv::gapi::wip::draw::freetype_font>
+    template<> struct CompileArgTag<gapi::wip::draw::freetype_font>
     {
         static const char* tag() { return "gapi.freetype_font"; }
     };

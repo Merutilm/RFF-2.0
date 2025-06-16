@@ -86,7 +86,7 @@ public:
      * @param args list of arguments to construct an adapter of type
      * `T`.
      */
-    template<class T, class... Args> static cv::MediaFrame Create(Args&&... args);
+    template<class T, class... Args> static MediaFrame Create(Args&&... args);
 
     /**
      * @brief Obtain access to the underlying data with the given
@@ -108,12 +108,12 @@ public:
      * about the media format, dimensions, etc.
      * @return a cv::GFrameDesc
      */
-    cv::GFrameDesc desc() const;
+    GFrameDesc desc() const;
 
     // FIXME: design a better solution
     // Should be used only if the actual adapter provides implementation
     /// @private -- exclude from the OpenCV documentation for now.
-    cv::util::any blobParams() const;
+    util::any blobParams() const;
 
     /**
      * @brief Casts and returns the associated MediaFrame adapter to
@@ -144,7 +144,7 @@ public:
      *
      * @param os Bytestream to store serialized MediaFrame data in.
      */
-    void serialize(cv::gapi::s11n::IOStream& os) const;
+    void serialize(gapi::s11n::IOStream& os) const;
 
 private:
     struct Priv;
@@ -153,9 +153,9 @@ private:
 };
 
 template<class T, class... Args>
-inline cv::MediaFrame cv::MediaFrame::Create(Args&&... args) {
+inline MediaFrame MediaFrame::Create(Args&&... args) {
     std::unique_ptr<T> ptr(new T(std::forward<Args>(args)...));
-    return cv::MediaFrame(std::move(ptr));
+    return MediaFrame(std::move(ptr));
 }
 
 /**
@@ -237,16 +237,16 @@ private:
 class GAPI_EXPORTS MediaFrame::IAdapter {
 public:
     virtual ~IAdapter() = 0;
-    virtual cv::GFrameDesc meta() const = 0;
-    virtual MediaFrame::View access(MediaFrame::Access) = 0;
+    virtual GFrameDesc meta() const = 0;
+    virtual View access(Access) = 0;
     // FIXME: design a better solution
     // The default implementation does nothing
-    virtual cv::util::any blobParams() const;
-    virtual void serialize(cv::gapi::s11n::IOStream&) {
+    virtual util::any blobParams() const;
+    virtual void serialize(gapi::s11n::IOStream&) {
         GAPI_Error("Generic serialize method of MediaFrame::IAdapter does nothing by default. "
                              "Please, implement it in derived class to properly serialize the object.");
     }
-    virtual void deserialize(cv::gapi::s11n::IIStream&) {
+    virtual void deserialize(gapi::s11n::IIStream&) {
         GAPI_Error("Generic deserialize method of MediaFrame::IAdapter does nothing by default. "
                              "Please, implement it in derived class to properly deserialize the object.");
     }

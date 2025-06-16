@@ -19,28 +19,16 @@ namespace merutilm::rff {
         const dex offI;
 
     public:
-        explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
-                                           const dex &dcMax, int exp10,
-                                           uint64_t initialPeriod, ApproxTableCache &tableRef,
-                                           std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                                           std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
         explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
                                            const dex &dcMax, int exp10,
                                            uint64_t initialPeriod, ApproxTableCache &tableRef,
                                            std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                            std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
-                                           bool arbitraryPrecisionFPGBn);
-
-        explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
-                                           const dex &dcMax, int exp10,
-                                           uint64_t initialPeriod, ApproxTableCache &tableRef,
-                                           std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                                           std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
-                                           bool arbitraryPrecisionFPGBn,
-                                           std::unique_ptr<DeepMandelbrotReference> reusedReference,
-                                           std::unique_ptr<DeepMPATable> reusedTable,
-                                           const dex &offR, const dex &offI);
+                                           bool arbitraryPrecisionFPGBn = false,
+                                           std::unique_ptr<DeepMandelbrotReference> reusedReference = nullptr,
+                                           std::unique_ptr<DeepMPATable> reusedTable = nullptr,
+                                           const dex &offR = dex::ZERO, const dex &offI = dex::ZERO);
 
 
         double iterate(const dex &dcr, const dex &dci) const override;

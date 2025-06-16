@@ -6,77 +6,79 @@
 
 #include <algorithm>
 
-std::string merutilm::rff::PalettePresets::LongRandom64::getName() const {
-    return "Long Random 64";
-}
-
-merutilm::rff::PaletteSettings merutilm::rff::PalettePresets::LongRandom64::paletteSettings() const {
-    auto p = PaletteSettings();
-    p.colors.reserve(64);
-
-    for (int i = 0; i < 64; ++i) {
-        p.colors.push_back(ColorFloat::random());
+namespace merutilm::rff {
+    std::string PalettePresets::LongRandom64::getName() const {
+        return "Long Random 64";
     }
 
-    p.iterationInterval = 1;
+    PaletteSettings PalettePresets::LongRandom64::paletteSettings() const {
+        auto p = PaletteSettings();
+        p.colors.reserve(64);
+
+        for (int i = 0; i < 64; ++i) {
+            p.colors.push_back(ColorFloat::random());
+        }
+
+        p.iterationInterval = 1;
 
 
-    const PaletteSettings p1 = p;
-    constexpr uint64_t r1 = 100;
+        const PaletteSettings p1 = p;
+        constexpr uint64_t r1 = 100;
 
-    p.colors.clear();
-    p.colors.reserve(p1.colors.size() * r1);
+        p.colors.clear();
+        p.colors.reserve(p1.colors.size() * r1);
 
-    for (uint64_t i = 0; i < p1.colors.size() * r1; i++) {
-        const float irv = static_cast<float>(i) / static_cast<float>(r1);
-        const ColorFloat c2 = p1.getMidColor(irv / static_cast<float>(p1.colors.size()));
-        const ColorFloat cr = ColorFloat::random();
+        for (uint64_t i = 0; i < p1.colors.size() * r1; i++) {
+            const float irv = static_cast<float>(i) / static_cast<float>(r1);
+            const ColorFloat c2 = p1.getMidColor(irv / static_cast<float>(p1.colors.size()));
+            const ColorFloat cr = ColorFloat::random();
 
-        p.colors.push_back(c2.forEachExceptAlpha(cr, [](const float c, const float t) { return c + t / 6; }));
+            p.colors.push_back(c2.forEachExceptAlpha(cr, [](const float c, const float t) { return c + t / 6; }));
+        }
+
+        const PaletteSettings p2 = p;
+        constexpr uint64_t r2 = 100;
+        p.colors.clear();
+        p.colors.reserve(p2.colors.size() * r2);
+
+        for (uint64_t i = 0; i < p2.colors.size() * r2; i++) {
+            const float irv = static_cast<float>(i) / static_cast<float>(r2);
+
+            ColorFloat c2 = p2.getMidColor(irv / static_cast<float>(p2.colors.size()));
+            const float v = (c2.r + c2.g + c2.b) / 3;
+            const float o = 0.5f + 0.5f * std::sin(std::fmod(irv, 1.0f) * 150.0f);
+
+            p.colors.push_back(c2.forEachExceptAlpha([v, o](const float c) {
+                return std::lerp(c, v / (1 + rff_math::random_f() * 2.0f), o);
+            }));
+        }
+
+
+        p.iterationInterval = 18000000;
+        p.offsetRatio = 0;
+        p.colorSmoothing = ColorSmoothingSettings::NORMAL;
+        return p;
     }
 
-    const PaletteSettings p2 = p;
-    constexpr uint64_t r2 = 100;
-    p.colors.clear();
-    p.colors.reserve(p2.colors.size() * r2);
 
-    for (uint64_t i = 0; i < p2.colors.size() * r2; i++) {
-        const float irv = static_cast<float>(i) / static_cast<float>(r2);
-
-        ColorFloat c2 = p2.getMidColor(irv / static_cast<float>(p2.colors.size()));
-        const float v = (c2.r + c2.g + c2.b) / 3;
-        const float o = 0.5f + 0.5f * std::sin(std::fmod(irv, 1.0f) * 150.0f);
-
-        p.colors.push_back(c2.forEachExceptAlpha([v, o](const float c) {
-            return std::lerp(c, v / (1 + rff_math::random_f() * 2.0f), o);
-        }));
+    std::string PalettePresets::Rainbow::getName() const {
+        return "Rainbow";
     }
 
+    PaletteSettings PalettePresets::Rainbow::paletteSettings() const {
+        auto p = PaletteSettings();
+        p.colors.reserve(64);
 
-    p.iterationInterval = 18000000;
-    p.offsetRatio = 0;
-    p.colorSmoothing = ColorSmoothingSettings::NORMAL;
-    return p;
-}
-
-
-std::string merutilm::rff::PalettePresets::Rainbow::getName() const {
-    return "Rainbow";
-}
-
-merutilm::rff::PaletteSettings merutilm::rff::PalettePresets::Rainbow::paletteSettings() const {
-    auto p = PaletteSettings();
-    p.colors.reserve(64);
-
-    p.colors.push_back(ColorFloat{0.909803f, 0.078431f, 0.086274f, 1.000000f});
-    p.colors.push_back(ColorFloat{1.000000f, 0.647058f, 0.000000f, 1.000000f});
-    p.colors.push_back(ColorFloat{0.980392f, 0.921568f, 0.211764f, 1.000000f});
-    p.colors.push_back(ColorFloat{0.474509f, 0.764705f, 0.078431f, 1.000000f});
-    p.colors.push_back(ColorFloat{0.282352f, 0.490196f, 0.905882f, 1.000000f});
-    p.colors.push_back(ColorFloat{0.294117f, 0.211764f, 0.615686f, 1.000000f});
-    p.colors.push_back(ColorFloat{0.439215f, 0.211764f, 0.615686f, 1.000000f});
-    p.iterationInterval = 300;
-    p.offsetRatio = 0;
-    p.colorSmoothing = ColorSmoothingSettings::NORMAL;
-    return p;
+        p.colors.push_back(ColorFloat{0.909803f, 0.078431f, 0.086274f, 1.000000f});
+        p.colors.push_back(ColorFloat{1.000000f, 0.647058f, 0.000000f, 1.000000f});
+        p.colors.push_back(ColorFloat{0.980392f, 0.921568f, 0.211764f, 1.000000f});
+        p.colors.push_back(ColorFloat{0.474509f, 0.764705f, 0.078431f, 1.000000f});
+        p.colors.push_back(ColorFloat{0.282352f, 0.490196f, 0.905882f, 1.000000f});
+        p.colors.push_back(ColorFloat{0.294117f, 0.211764f, 0.615686f, 1.000000f});
+        p.colors.push_back(ColorFloat{0.439215f, 0.211764f, 0.615686f, 1.000000f});
+        p.iterationInterval = 300;
+        p.offsetRatio = 0;
+        p.colorSmoothing = ColorSmoothingSettings::NORMAL;
+        return p;
+    }
 }

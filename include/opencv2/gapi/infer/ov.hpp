@@ -25,7 +25,7 @@ namespace gapi {
  */
 namespace ov {
 
-GAPI_EXPORTS cv::gapi::GBackend backend();
+GAPI_EXPORTS GBackend backend();
 
 namespace detail {
 
@@ -39,7 +39,7 @@ using AttrMap = std::map<std::string, T>;
 // 2. Attr - value specified explicitly that should be broadcasted to all layers.
 // 3. AttrMap[str->T] - map specifies value for particular layer.
 template <typename Attr>
-using LayerVariantAttr = cv::util::variant< cv::util::monostate
+using LayerVariantAttr = util::variant< util::monostate
                                           , AttrMap<Attr>
                                           , Attr>;
 
@@ -72,7 +72,7 @@ struct ParamDesc {
         std::string blob_path;
     };
 
-    using Kind = cv::util::variant<Model, CompiledModel>;
+    using Kind = util::variant<Model, CompiledModel>;
 
     ParamDesc(Kind              &&kind_,
               const std::string &device_,
@@ -102,16 +102,16 @@ struct ParamDesc {
 };
 
 // NB: Just helper to avoid code duplication.
-static detail::ParamDesc::Model&
-getModelToSetAttrOrThrow(detail::ParamDesc::Kind  &kind,
+static ParamDesc::Model&
+getModelToSetAttrOrThrow(ParamDesc::Kind  &kind,
                          const std::string        &attr_name) {
-    if (cv::util::holds_alternative<detail::ParamDesc::CompiledModel>(kind)) {
-        cv::util::throw_error(
+    if (cv::util::holds_alternative<ParamDesc::CompiledModel>(kind)) {
+        util::throw_error(
                 std::logic_error("Specifying " + attr_name + " isn't"
                                  " possible for compiled model."));
     }
     GAPI_Assert(cv::util::holds_alternative<detail::ParamDesc::Model>(kind));
-    return cv::util::get<detail::ParamDesc::Model>(kind);
+    return cv::util::get<ParamDesc::Model>(kind);
 }
 
 } // namespace detail
@@ -370,7 +370,7 @@ public:
     */
     Params<Net>& cfgNumRequests(const size_t nireq) {
         if (nireq == 0) {
-            cv::util::throw_error(
+            util::throw_error(
                     std::logic_error("Number of inference requests"
                                      " must be greater than zero."));
         }
@@ -455,9 +455,9 @@ public:
     }
 
     // BEGIN(G-API's network parametrization API)
-    GBackend      backend() const { return cv::gapi::ov::backend(); }
+    GBackend      backend() const { return ov::backend(); }
     std::string   tag()     const { return Net::tag(); }
-    cv::util::any params()  const { return { m_desc }; }
+    util::any params()  const { return { m_desc }; }
     // END(G-API's network parametrization API)
 
 protected:
@@ -470,7 +470,7 @@ protected:
 * @see struct Generic
 */
 template<>
-class Params<cv::gapi::Generic> {
+class Params<Generic> {
 public:
     /** @brief Class constructor.
 
@@ -617,7 +617,7 @@ public:
     /** @see ov::Params::cfgNumRequests. */
     Params& cfgNumRequests(const size_t nireq) {
         if (nireq == 0) {
-            cv::util::throw_error(
+            util::throw_error(
                     std::logic_error("Number of inference requests"
                                      " must be greater than zero."));
         }
@@ -668,9 +668,9 @@ public:
     }
 
     // BEGIN(G-API's network parametrization API)
-    GBackend      backend() const { return cv::gapi::ov::backend(); }
+    GBackend      backend() const { return ov::backend(); }
     std::string   tag()     const { return m_tag; }
-    cv::util::any params()  const { return { m_desc }; }
+    util::any params()  const { return { m_desc }; }
     // END(G-API's network parametrization API)
 
 protected:
@@ -698,7 +698,7 @@ struct benchmark_mode { };
 
 namespace detail
 {
-    template<> struct CompileArgTag<cv::gapi::wip::ov::benchmark_mode>
+    template<> struct CompileArgTag<gapi::wip::ov::benchmark_mode>
     {
         static const char* tag() { return "gapi.wip.ov.benchmark_mode"; }
     };

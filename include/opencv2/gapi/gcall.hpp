@@ -34,7 +34,7 @@ public:
     template<typename... Ts>
     GCall& pass(Ts&&... args)
     {
-        setArgs({cv::GArg(std::move(args))...});
+        setArgs({GArg(std::move(args))...});
         return *this;
     }
 
@@ -61,7 +61,7 @@ public:
     // GKernel and params can be modified, it's needed for infer<Generic>,
     // because information about output shapes doesn't exist in compile time
     GKernel& kernel();
-    cv::util::any& params();
+    util::any& params();
 
     void setArgs(std::vector<GArg> &&args);
 

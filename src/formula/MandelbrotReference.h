@@ -17,7 +17,11 @@ namespace merutilm::rff {
         const fp_complex fpgBn;
 
         MandelbrotReference(fp_complex &&center, std::vector<ArrayCompressionTool> &&compressor,
-                            std::vector<uint64_t> &&period, fp_complex &&lastReference, fp_complex &&fpgBn);
+        std::vector<uint64_t> &&period, fp_complex &&lastReference, fp_complex &&fpgBn) : center(std::move(center)),
+                                                    compressor(std::move(compressor)),
+                                                    period(std::move(period)),
+                                                    lastReference(std::move(lastReference)),
+                                                    fpgBn(std::move(fpgBn)){}
 
         virtual ~MandelbrotReference() = default;
 

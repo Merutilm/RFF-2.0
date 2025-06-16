@@ -160,7 +160,7 @@ template<typename _Tp> inline
 _InputArray _InputArray::rawIn(const std::vector<_Tp>& vec)
 {
     _InputArray v;
-    v.flags = _InputArray::FIXED_TYPE + _InputArray::STD_VECTOR + rawType<_Tp>() + ACCESS_READ;
+    v.flags = FIXED_TYPE + STD_VECTOR + rawType<_Tp>() + ACCESS_READ;
     v.obj = (void*)&vec;
     return v;
 }
@@ -184,16 +184,16 @@ inline Mat _InputArray::getMat(int i) const
     return getMat_(i);
 }
 
-inline bool _InputArray::isMat() const { return kind() == _InputArray::MAT; }
-inline bool _InputArray::isUMat() const  { return kind() == _InputArray::UMAT; }
-inline bool _InputArray::isMatVector() const { return kind() == _InputArray::STD_VECTOR_MAT; }
-inline bool _InputArray::isUMatVector() const  { return kind() == _InputArray::STD_VECTOR_UMAT; }
-inline bool _InputArray::isMatx() const { return kind() == _InputArray::MATX; }
-inline bool _InputArray::isVector() const { return kind() == _InputArray::STD_VECTOR ||
-                                                   kind() == _InputArray::STD_BOOL_VECTOR ||
-                                                   (kind() == _InputArray::MATX && (sz.width <= 1 || sz.height <= 1)); }
-inline bool _InputArray::isGpuMat() const { return kind() == _InputArray::CUDA_GPU_MAT; }
-inline bool _InputArray::isGpuMatVector() const { return kind() == _InputArray::STD_VECTOR_CUDA_GPU_MAT; }
+inline bool _InputArray::isMat() const { return kind() == MAT; }
+inline bool _InputArray::isUMat() const  { return kind() == UMAT; }
+inline bool _InputArray::isMatVector() const { return kind() == STD_VECTOR_MAT; }
+inline bool _InputArray::isUMatVector() const  { return kind() == STD_VECTOR_UMAT; }
+inline bool _InputArray::isMatx() const { return kind() == MATX; }
+inline bool _InputArray::isVector() const { return kind() == STD_VECTOR ||
+                                                   kind() == STD_BOOL_VECTOR ||
+                                                   (kind() == MATX && (sz.width <= 1 || sz.height <= 1)); }
+inline bool _InputArray::isGpuMat() const { return kind() == CUDA_GPU_MAT; }
+inline bool _InputArray::isGpuMatVector() const { return kind() == STD_VECTOR_CUDA_GPU_MAT; }
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -306,7 +306,7 @@ template<typename _Tp> inline
 _OutputArray _OutputArray::rawOut(std::vector<_Tp>& vec)
 {
     _OutputArray v;
-    v.flags = _InputArray::FIXED_TYPE + _InputArray::STD_VECTOR + rawType<_Tp>() + ACCESS_WRITE;
+    v.flags = FIXED_TYPE + STD_VECTOR + rawType<_Tp>() + ACCESS_WRITE;
     v.obj = (void*)&vec;
     return v;
 }
@@ -434,7 +434,7 @@ template<typename _Tp> inline
 _InputOutputArray _InputOutputArray::rawInOut(std::vector<_Tp>& vec)
 {
     _InputOutputArray v;
-    v.flags = _InputArray::FIXED_TYPE + _InputArray::STD_VECTOR + rawType<_Tp>() + ACCESS_RW;
+    v.flags = FIXED_TYPE + STD_VECTOR + rawType<_Tp>() + ACCESS_RW;
     v.obj = (void*)&vec;
     return v;
 }
@@ -3091,43 +3091,43 @@ MatExpr::operator Mat_<_Tp>() const
 template<typename _Tp> static inline
 MatExpr min(const Mat_<_Tp>& a, const Mat_<_Tp>& b)
 {
-    return cv::min((const Mat&)a, (const Mat&)b);
+    return min((const Mat&)a, (const Mat&)b);
 }
 
 template<typename _Tp> static inline
 MatExpr min(const Mat_<_Tp>& a, double s)
 {
-    return cv::min((const Mat&)a, s);
+    return min((const Mat&)a, s);
 }
 
 template<typename _Tp> static inline
 MatExpr min(double s, const Mat_<_Tp>& a)
 {
-    return cv::min((const Mat&)a, s);
+    return min((const Mat&)a, s);
 }
 
 template<typename _Tp> static inline
 MatExpr max(const Mat_<_Tp>& a, const Mat_<_Tp>& b)
 {
-    return cv::max((const Mat&)a, (const Mat&)b);
+    return max((const Mat&)a, (const Mat&)b);
 }
 
 template<typename _Tp> static inline
 MatExpr max(const Mat_<_Tp>& a, double s)
 {
-    return cv::max((const Mat&)a, s);
+    return max((const Mat&)a, s);
 }
 
 template<typename _Tp> static inline
 MatExpr max(double s, const Mat_<_Tp>& a)
 {
-    return cv::max((const Mat&)a, s);
+    return max((const Mat&)a, s);
 }
 
 template<typename _Tp> static inline
 MatExpr abs(const Mat_<_Tp>& m)
 {
-    return cv::abs((const Mat&)m);
+    return abs((const Mat&)m);
 }
 
 

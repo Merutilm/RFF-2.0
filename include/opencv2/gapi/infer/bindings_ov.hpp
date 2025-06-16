@@ -107,10 +107,10 @@ public:
 
     GBackend      backend() const;
     std::string   tag()     const;
-    cv::util::any params()  const;
+    util::any params()  const;
 
 private:
-    std::shared_ptr<Params<cv::gapi::Generic>> m_priv;
+    std::shared_ptr<Params<Generic>> m_priv;
 };
 
 GAPI_EXPORTS_W PyParams params(const std::string &tag,

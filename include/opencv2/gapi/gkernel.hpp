@@ -29,12 +29,12 @@ namespace cv {
 struct GTypeInfo
 {
     GShape                 shape;
-    cv::detail::OpaqueKind kind;
+    detail::OpaqueKind kind;
     detail::HostCtor       ctor;
 };
 
 using GShapes    = std::vector<GShape>;
-using GKinds     = std::vector<cv::detail::OpaqueKind>;
+using GKinds     = std::vector<detail::OpaqueKind>;
 using GCtors     = std::vector<detail::HostCtor>;
 using GTypesInfo = std::vector<GTypeInfo>;
 
@@ -72,29 +72,29 @@ namespace detail
     // lazy "return value" of G-API operations
     //
     template<typename T> struct Yield;
-    template<> struct Yield<cv::GMat>
+    template<> struct Yield<GMat>
     {
-        static inline cv::GMat yield(cv::GCall &call, int i) { return call.yield(i); }
+        static inline GMat yield(GCall &call, int i) { return call.yield(i); }
     };
-    template<> struct Yield<cv::GMatP>
+    template<> struct Yield<GMatP>
     {
-        static inline cv::GMatP yield(cv::GCall &call, int i) { return call.yieldP(i); }
+        static inline GMatP yield(GCall &call, int i) { return call.yieldP(i); }
     };
-    template<> struct Yield<cv::GScalar>
+    template<> struct Yield<GScalar>
     {
-        static inline cv::GScalar yield(cv::GCall &call, int i) { return call.yieldScalar(i); }
+        static inline GScalar yield(GCall &call, int i) { return call.yieldScalar(i); }
     };
-    template<typename U> struct Yield<cv::GArray<U> >
+    template<typename U> struct Yield<GArray<U> >
     {
-        static inline cv::GArray<U> yield(cv::GCall &call, int i) { return call.yieldArray<U>(i); }
+        static inline GArray<U> yield(GCall &call, int i) { return call.yieldArray<U>(i); }
     };
-    template<typename U> struct Yield<cv::GOpaque<U> >
+    template<typename U> struct Yield<GOpaque<U> >
     {
-        static inline cv::GOpaque<U> yield(cv::GCall &call, int i) { return call.yieldOpaque<U>(i); }
+        static inline GOpaque<U> yield(GCall &call, int i) { return call.yieldOpaque<U>(i); }
     };
     template<> struct Yield<GFrame>
     {
-        static inline cv::GFrame yield(cv::GCall &call, int i) { return call.yieldFrame(i); }
+        static inline GFrame yield(GCall &call, int i) { return call.yieldFrame(i); }
     };
 
     ////////////////////////////////////////////////////////////////////////////
@@ -105,12 +105,12 @@ namespace detail
     //    types and its metadata descriptor types.
     //    This mapping is used to transform types to call outMeta() callback.
     template<typename T> struct MetaType;
-    template<> struct MetaType<cv::GMat>    { using type = GMatDesc; };
-    template<> struct MetaType<cv::GMatP>   { using type = GMatDesc; };
-    template<> struct MetaType<cv::GFrame>  { using type = GFrameDesc; };
-    template<> struct MetaType<cv::GScalar> { using type = GScalarDesc; };
-    template<typename U> struct MetaType<cv::GArray<U> >  { using type = GArrayDesc; };
-    template<typename U> struct MetaType<cv::GOpaque<U> > { using type = GOpaqueDesc; };
+    template<> struct MetaType<GMat>    { using type = GMatDesc; };
+    template<> struct MetaType<GMatP>   { using type = GMatDesc; };
+    template<> struct MetaType<GFrame>  { using type = GFrameDesc; };
+    template<> struct MetaType<GScalar> { using type = GScalarDesc; };
+    template<typename U> struct MetaType<GArray<U> >  { using type = GArrayDesc; };
+    template<typename U> struct MetaType<GOpaque<U> > { using type = GOpaqueDesc; };
     template<typename T> struct MetaType    { using type = T; }; // opaque args passed as-is
     // FIXME: Move it to type traits?
 
@@ -145,8 +145,8 @@ namespace detail
         template<int... IIs, int... OIs>
         static GMetaArgs getOutMeta_impl(const GMetaArgs &in_meta,
                                          const GArgs &in_args,
-                                         detail::Seq<IIs...>,
-                                         detail::Seq<OIs...>)
+                                         Seq<IIs...>,
+                                         Seq<OIs...>)
         {
             // FIXME: decay?
             using R   = std::tuple<typename MetaType<Outs>::type...>;
@@ -160,8 +160,8 @@ namespace detail
         {
             return getOutMeta_impl(in_meta,
                                    in_args,
-                                   typename detail::MkSeq<sizeof...(Ins)>::type(),
-                                   typename detail::MkSeq<sizeof...(Outs)>::type());
+                                   typename MkSeq<sizeof...(Ins)>::type(),
+                                   typename MkSeq<sizeof...(Outs)>::type());
         }
     };
 
@@ -173,7 +173,7 @@ namespace detail
         template<int... IIs>
         static GMetaArgs getOutMeta_impl(const GMetaArgs &in_meta,
                                          const GArgs &in_args,
-                                         detail::Seq<IIs...>)
+                                         Seq<IIs...>)
         {
             // FIXME: decay?
             using R = typename MetaType<Out>::type;
@@ -187,7 +187,7 @@ namespace detail
         {
             return getOutMeta_impl(in_meta,
                                    in_args,
-                                   typename detail::MkSeq<sizeof...(Ins)>::type());
+                                   typename MkSeq<sizeof...(Ins)>::type());
         }
     };
 
@@ -211,7 +211,7 @@ class GKernelTypeM<K, std::function<std::tuple<R...>(Args...)> >
     , public detail::NoTag
 {
     template<int... IIs>
-    static std::tuple<R...> yield(cv::GCall &call, detail::Seq<IIs...>)
+    static std::tuple<R...> yield(GCall &call, detail::Seq<IIs...>)
     {
         return std::make_tuple(detail::Yield<R>::yield(call, IIs)...);
     }
@@ -223,7 +223,7 @@ public:
     // TODO: Args&&... here?
     static std::tuple<R...> on(Args... args)
     {
-        cv::GCall call(GKernel{ K::id()
+        GCall call(GKernel{ K::id()
                               , K::tag()
                               , &K::getOutMeta
                               , {detail::GTypeTraits<R>::shape...}
@@ -248,7 +248,7 @@ public:
 
     static R on(Args... args)
     {
-        cv::GCall call(GKernel{ K::id()
+        GCall call(GKernel{ K::id()
                               , K::tag()
                               , &K::getOutMeta
                               , {detail::GTypeTraits<R>::shape}
@@ -267,11 +267,11 @@ template<typename, typename> class KernelTypeMedium;
 
 template<typename K, typename... R, typename... Args>
 class KernelTypeMedium<K, std::function<std::tuple<R...>(Args...)>> :
-    public cv::GKernelTypeM<K, std::function<std::tuple<R...>(Args...)>> {};
+    public GKernelTypeM<K, std::function<std::tuple<R...>(Args...)>> {};
 
 template<typename K, typename R, typename... Args>
 class KernelTypeMedium<K, std::function<R(Args...)>> :
-    public cv::GKernelType<K, std::function<R(Args...)>> {};
+    public GKernelType<K, std::function<R(Args...)>> {};
 } // namespace detail
 
 } // namespace cv
@@ -417,15 +417,15 @@ namespace cv {
     class GAPI_EXPORTS_W_SIMPLE GKernelPackage;
 
 namespace gapi {
-    GAPI_EXPORTS_W cv::GKernelPackage combine(const cv::GKernelPackage  &lhs,
-                                              const cv::GKernelPackage  &rhs);
+    GAPI_EXPORTS_W GKernelPackage combine(const GKernelPackage  &lhs,
+                                              const GKernelPackage  &rhs);
 
     /// @private
     class GFunctor
     {
     public:
-        virtual cv::GKernelImpl impl()       const = 0;
-        virtual cv::gapi::GBackend backend() const = 0;
+        virtual GKernelImpl impl()       const = 0;
+        virtual GBackend backend() const = 0;
         const char* id()                     const { return m_id; }
 
         virtual ~GFunctor() = default;
@@ -471,7 +471,7 @@ namespace gapi {
     {
 
         /// @private
-        using M = std::unordered_map<std::string, std::pair<cv::gapi::GBackend, cv::GKernelImpl>>;
+        using M = std::unordered_map<std::string, std::pair<gapi::GBackend, GKernelImpl>>;
 
         /// @private
         M m_id_kernels;
@@ -487,7 +487,7 @@ namespace gapi {
         /// @private
         // Partial include() specialization for kernels
         template <typename KImpl>
-        typename std::enable_if<(std::is_base_of<cv::detail::KernelTag, KImpl>::value), void>::type
+        typename std::enable_if<(std::is_base_of<detail::KernelTag, KImpl>::value), void>::type
         includeHelper()
         {
             auto backend     = KImpl::backend();
@@ -501,14 +501,14 @@ namespace gapi {
         /// @private
         // Partial include() specialization for transformations
         template <typename TImpl>
-        typename std::enable_if<(std::is_base_of<cv::detail::TransformTag, TImpl>::value), void>::type
+        typename std::enable_if<(std::is_base_of<detail::TransformTag, TImpl>::value), void>::type
         includeHelper()
         {
             m_transformations.emplace_back(TImpl::transformation());
         }
 
     public:
-        void include(const cv::gapi::GFunctor& functor);
+        void include(const gapi::GFunctor& functor);
 
         /**
          * @brief Returns total number of kernels
@@ -545,7 +545,7 @@ namespace gapi {
         template<typename KImpl>
         bool includes() const
         {
-            static_assert(std::is_base_of<cv::detail::KernelTag, KImpl>::value,
+            static_assert(std::is_base_of<detail::KernelTag, KImpl>::value,
                           "includes() can be applied to kernels only");
 
             auto kernel_it = m_id_kernels.find(KImpl::API::id());
@@ -561,7 +561,7 @@ namespace gapi {
          *
          * @param backend backend which kernels to remove
          */
-        void remove(const cv::gapi::GBackend& backend);
+        void remove(const gapi::GBackend& backend);
 
         /**
          * @brief Remove all kernels implementing the given API from
@@ -601,13 +601,13 @@ namespace gapi {
          *
          */
         template<typename KAPI>
-        cv::gapi::GBackend lookup() const
+        gapi::GBackend lookup() const
         {
             return lookup(KAPI::id()).first;
         }
 
         /// @private
-        std::pair<cv::gapi::GBackend, cv::GKernelImpl>
+        std::pair<gapi::GBackend, GKernelImpl>
         lookup(const std::string &id) const;
 
         // FIXME: No overwrites allowed?
@@ -627,14 +627,14 @@ namespace gapi {
          * @param backend backend associated with the kernel
          * @param kernel_id a name/id of the kernel
          */
-        void include(const cv::gapi::GBackend& backend, const std::string& kernel_id);
+        void include(const gapi::GBackend& backend, const std::string& kernel_id);
 
         /**
          * @brief Lists all backends which are included into package
          *
          * @return vector of backends
          */
-        std::vector<cv::gapi::GBackend> backends() const;
+        std::vector<gapi::GBackend> backends() const;
 
         // TODO: Doxygen bug -- it wants me to place this comment
         // here, not below.
@@ -645,13 +645,13 @@ namespace gapi {
          * @param rhs "Right-hand-side" package in the process
          * @return a new kernel package.
          */
-        friend GAPI_EXPORTS GKernelPackage cv::gapi::combine(const GKernelPackage  &lhs,
+        friend GAPI_EXPORTS GKernelPackage gapi::combine(const GKernelPackage  &lhs,
                                                              const GKernelPackage  &rhs);
     };
     /** @} */
 
 namespace gapi {
-    using GKernelPackage = cv::GKernelPackage; // Keep backward compatibility
+    using GKernelPackage = GKernelPackage; // Keep backward compatibility
 
     /** \addtogroup gapi_compile_args
      * @{
@@ -690,7 +690,7 @@ namespace gapi {
         // and parentheses are used to hide function call in the expanded sequence.
         // Leading 0 helps to handle case when KK is an empty list (kernels<>()).
         int unused[] = { 0, (pkg.include<KK>(), 0)... };
-        cv::util::suppress_unused_warning(unused);
+        util::suppress_unused_warning(unused);
         return pkg;
     }
 
@@ -699,7 +699,7 @@ namespace gapi {
     {
         GKernelPackage pkg;
         int unused[] = { 0, (pkg.include(functors), 0)... };
-        cv::util::suppress_unused_warning(unused);
+        util::suppress_unused_warning(unused);
         return pkg;
     }
 
@@ -741,12 +741,12 @@ namespace gapi {
 
 namespace detail
 {
-    template<> struct CompileArgTag<cv::GKernelPackage>
+    template<> struct CompileArgTag<GKernelPackage>
     {
         static const char* tag() { return "gapi.kernel_package"; }
     };
 
-    template<> struct CompileArgTag<cv::gapi::use_only>
+    template<> struct CompileArgTag<gapi::use_only>
     {
         static const char* tag() { return "gapi.use_only"; }
     };

@@ -54,10 +54,10 @@ CV__DNN_INLINE_NS_BEGIN
 
 //Slicing
 
-struct _Range : public cv::Range
+struct _Range : public Range
 {
-    _Range(const Range &r) : cv::Range(r) {}
-    _Range(int start_, int size_ = 1) : cv::Range(start_, start_ + size_) {}
+    _Range(const Range &r) : Range(r) {}
+    _Range(int start_, int size_ = 1) : Range(start_, start_ + size_) {}
 };
 
 static inline Mat slice(const Mat &m, const _Range &r0)

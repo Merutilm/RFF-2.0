@@ -74,7 +74,7 @@ namespace util
 
     private:
         struct nothing {};
-        util::variant<nothing, T> m_holder;
+        variant<nothing, T> m_holder;
     };
 
     template<class T>

@@ -663,8 +663,8 @@ public:
        @param maxIters maximum number of iterations that can be further
          modified using setMaxIters() method.
     */
-    static Ptr<LMSolver> create(const Ptr<LMSolver::Callback>& cb, int maxIters);
-    static Ptr<LMSolver> create(const Ptr<LMSolver::Callback>& cb, int maxIters, double eps);
+    static Ptr<LMSolver> create(const Ptr<Callback>& cb, int maxIters);
+    static Ptr<LMSolver> create(const Ptr<Callback>& cb, int maxIters, double eps);
 };
 
 
@@ -1416,7 +1416,7 @@ CV_EXPORTS_W void drawFrameAxes(InputOutputArray image, InputArray cameraMatrix,
 struct CV_EXPORTS_W_SIMPLE CirclesGridFinderParameters
 {
     CV_WRAP CirclesGridFinderParameters();
-    CV_PROP_RW cv::Size2f densityNeighborhoodSize;
+    CV_PROP_RW Size2f densityNeighborhoodSize;
     CV_PROP_RW float minDensity;
     CV_PROP_RW int kmeansAttempts;
     CV_PROP_RW int minDistanceToAddKeypoint;
@@ -2721,7 +2721,7 @@ CV_EXPORTS_W int recoverPose( InputArray points1, InputArray points2,
                             InputArray cameraMatrix1, InputArray distCoeffs1,
                             InputArray cameraMatrix2, InputArray distCoeffs2,
                             OutputArray E, OutputArray R, OutputArray t,
-                            int method = cv::RANSAC, double prob = 0.999, double threshold = 1.0,
+                            int method = RANSAC, double prob = 0.999, double threshold = 1.0,
                             InputOutputArray mask = noArray());
 
 /** @brief Recovers the relative camera rotation and the translation from an estimated essential
@@ -3078,7 +3078,7 @@ R & t\\
 \f]
 
  */
-CV_EXPORTS_W   cv::Mat estimateAffine3D(InputArray src, InputArray dst,
+CV_EXPORTS_W   Mat estimateAffine3D(InputArray src, InputArray dst,
                                         CV_OUT double* scale = nullptr, bool force_rotation = true);
 
 /** @brief Computes an optimal translation between two 3D point sets.
@@ -3190,13 +3190,13 @@ correctly only when there are more than 50% of inliers.
 
 @sa estimateAffinePartial2D, getAffineTransform
 */
-CV_EXPORTS_W cv::Mat estimateAffine2D(InputArray from, InputArray to, OutputArray inliers = noArray(),
+CV_EXPORTS_W Mat estimateAffine2D(InputArray from, InputArray to, OutputArray inliers = noArray(),
                                   int method = RANSAC, double ransacReprojThreshold = 3,
                                   size_t maxIters = 2000, double confidence = 0.99,
                                   size_t refineIters = 10);
 
 
-CV_EXPORTS_W cv::Mat estimateAffine2D(InputArray pts1, InputArray pts2, OutputArray inliers,
+CV_EXPORTS_W Mat estimateAffine2D(InputArray pts1, InputArray pts2, OutputArray inliers,
                      const UsacParams &params);
 
 /** @brief Computes an optimal limited affine transformation with 4 degrees of freedom between
@@ -3242,7 +3242,7 @@ correctly only when there are more than 50% of inliers.
 
 @sa estimateAffine2D, getAffineTransform
 */
-CV_EXPORTS_W cv::Mat estimateAffinePartial2D(InputArray from, InputArray to, OutputArray inliers = noArray(),
+CV_EXPORTS_W Mat estimateAffinePartial2D(InputArray from, InputArray to, OutputArray inliers = noArray(),
                                   int method = RANSAC, double ransacReprojThreshold = 3,
                                   size_t maxIters = 2000, double confidence = 0.99,
                                   size_t refineIters = 10);
@@ -3481,7 +3481,7 @@ public:
                                           int P1 = 0, int P2 = 0, int disp12MaxDiff = 0,
                                           int preFilterCap = 0, int uniquenessRatio = 0,
                                           int speckleWindowSize = 0, int speckleRange = 0,
-                                          int mode = StereoSGBM::MODE_SGBM);
+                                          int mode = MODE_SGBM);
 };
 
 
@@ -3885,7 +3885,7 @@ namespace fisheye
     @param map2 The second output map.
      */
     CV_EXPORTS_W void initUndistortRectifyMap(InputArray K, InputArray D, InputArray R, InputArray P,
-        const cv::Size& size, int m1type, OutputArray map1, OutputArray map2);
+        const Size& size, int m1type, OutputArray map1, OutputArray map2);
 
     /** @brief Transforms an image to compensate for fisheye lens distortion.
 
@@ -3916,7 +3916,7 @@ namespace fisheye
     ![image](pics/fisheye_undistorted.jpg)
      */
     CV_EXPORTS_W void undistortImage(InputArray distorted, OutputArray undistorted,
-        InputArray K, InputArray D, InputArray Knew = cv::noArray(), const Size& new_size = Size());
+        InputArray K, InputArray D, InputArray Knew = noArray(), const Size& new_size = Size());
 
     /** @brief Estimates new camera intrinsic matrix for undistortion or rectification.
 
@@ -4050,13 +4050,13 @@ optimization. It is the \f$max(width,height)/\pi\f$ or the provided \f$f_x\f$, \
      */
     CV_EXPORTS_W double stereoCalibrate(InputArrayOfArrays objectPoints, InputArrayOfArrays imagePoints1, InputArrayOfArrays imagePoints2,
                                   InputOutputArray K1, InputOutputArray D1, InputOutputArray K2, InputOutputArray D2, Size imageSize,
-                                  OutputArray R, OutputArray T, OutputArrayOfArrays rvecs, OutputArrayOfArrays tvecs, int flags = fisheye::CALIB_FIX_INTRINSIC,
+                                  OutputArray R, OutputArray T, OutputArrayOfArrays rvecs, OutputArrayOfArrays tvecs, int flags = CALIB_FIX_INTRINSIC,
                                   TermCriteria criteria = TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 100, DBL_EPSILON));
 
     /// @overload
     CV_EXPORTS_W double stereoCalibrate(InputArrayOfArrays objectPoints, InputArrayOfArrays imagePoints1, InputArrayOfArrays imagePoints2,
                                   InputOutputArray K1, InputOutputArray D1, InputOutputArray K2, InputOutputArray D2, Size imageSize,
-                                  OutputArray R, OutputArray T, int flags = fisheye::CALIB_FIX_INTRINSIC,
+                                  OutputArray R, OutputArray T, int flags = CALIB_FIX_INTRINSIC,
                                   TermCriteria criteria = TermCriteria(TermCriteria::COUNT + TermCriteria::EPS, 100, DBL_EPSILON));
 
     /**

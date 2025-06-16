@@ -589,18 +589,18 @@ public:
     the larger penalty on misclassification of data from the corresponding class. Default value is
     empty Mat. */
     /** @see setClassWeights */
-    CV_WRAP virtual cv::Mat getClassWeights() const = 0;
+    CV_WRAP virtual Mat getClassWeights() const = 0;
     /** @copybrief getClassWeights @see getClassWeights */
-    CV_WRAP virtual void setClassWeights(const cv::Mat &val) = 0;
+    CV_WRAP virtual void setClassWeights(const Mat &val) = 0;
 
     /** Termination criteria of the iterative %SVM training procedure which solves a partial
     case of constrained quadratic optimization problem.
     You can specify tolerance and/or the maximum number of iterations. Default value is
     `TermCriteria( TermCriteria::MAX_ITER + TermCriteria::EPS, 1000, FLT_EPSILON )`; */
     /** @see setTermCriteria */
-    CV_WRAP virtual cv::TermCriteria getTermCriteria() const = 0;
+    CV_WRAP virtual TermCriteria getTermCriteria() const = 0;
     /** @copybrief getTermCriteria @see getTermCriteria */
-    CV_WRAP virtual void setTermCriteria(const cv::TermCriteria &val) = 0;
+    CV_WRAP virtual void setTermCriteria(const TermCriteria &val) = 0;
 
     /** Type of a %SVM kernel.
     See SVM::KernelTypes. Default value is SVM::RBF. */
@@ -750,12 +750,12 @@ public:
             int layout,
             InputArray responses,
             int kFold = 10,
-            Ptr<ParamGrid> Cgrid = SVM::getDefaultGridPtr(SVM::C),
-            Ptr<ParamGrid> gammaGrid  = SVM::getDefaultGridPtr(SVM::GAMMA),
-            Ptr<ParamGrid> pGrid      = SVM::getDefaultGridPtr(SVM::P),
-            Ptr<ParamGrid> nuGrid     = SVM::getDefaultGridPtr(SVM::NU),
-            Ptr<ParamGrid> coeffGrid  = SVM::getDefaultGridPtr(SVM::COEF),
-            Ptr<ParamGrid> degreeGrid = SVM::getDefaultGridPtr(SVM::DEGREE),
+            Ptr<ParamGrid> Cgrid = getDefaultGridPtr(C),
+            Ptr<ParamGrid> gammaGrid  = getDefaultGridPtr(GAMMA),
+            Ptr<ParamGrid> pGrid      = getDefaultGridPtr(P),
+            Ptr<ParamGrid> nuGrid     = getDefaultGridPtr(NU),
+            Ptr<ParamGrid> coeffGrid  = getDefaultGridPtr(COEF),
+            Ptr<ParamGrid> degreeGrid = getDefaultGridPtr(DEGREE),
             bool balanced=false) = 0;
 
     /** @brief Retrieves all the support vectors
@@ -1148,9 +1148,9 @@ public:
     the second category is equivalent to making 10 mistakes in predicting the first category.
     Default value is empty Mat.*/
     /** @see setPriors */
-    CV_WRAP virtual cv::Mat getPriors() const = 0;
+    CV_WRAP virtual Mat getPriors() const = 0;
     /** @copybrief getPriors @see getPriors */
-    CV_WRAP virtual void setPriors(const cv::Mat &val) = 0;
+    CV_WRAP virtual void setPriors(const Mat &val) = 0;
 
     /** @brief The class represents a decision tree node.
      */
@@ -1466,7 +1466,7 @@ public:
     The very first element specifies the number of elements in the input layer.
     The last element - number of elements in the output layer.
     @sa setLayerSizes */
-    CV_WRAP virtual cv::Mat getLayerSizes() const = 0;
+    CV_WRAP virtual Mat getLayerSizes() const = 0;
 
     /** Termination criteria of the training algorithm.
     You can specify the maximum number of iterations (maxCount) and/or how much the error could
@@ -1793,7 +1793,7 @@ svmsgd->predict(samples, responses);
 
 */
 
-class CV_EXPORTS_W SVMSGD : public cv::ml::StatModel
+class CV_EXPORTS_W SVMSGD : public StatModel
 {
 public:
 
@@ -1843,7 +1843,7 @@ public:
      * @param svmsgdType is the type of SVMSGD classifier.
      * @param marginType is the type of margin constraint.
     */
-    CV_WRAP virtual void setOptimalParameters(int svmsgdType = SVMSGD::ASGD, int marginType = SVMSGD::SOFT_MARGIN) = 0;
+    CV_WRAP virtual void setOptimalParameters(int svmsgdType = ASGD, int marginType = SOFT_MARGIN) = 0;
 
     /** @brief %Algorithm type, one of SVMSGD::SvmsgdType. */
     /** @see setSvmsgdType */
@@ -1881,7 +1881,7 @@ public:
     /** @see setTermCriteria */
     CV_WRAP virtual TermCriteria getTermCriteria() const = 0;
     /** @copybrief getTermCriteria @see getTermCriteria */
-    CV_WRAP virtual void setTermCriteria(const cv::TermCriteria &val) = 0;
+    CV_WRAP virtual void setTermCriteria(const TermCriteria &val) = 0;
 };
 
 
@@ -1940,7 +1940,7 @@ int simulatedAnnealingSolver(SimulatedAnnealingSolverSystem& solverSystem,
      double initialTemperature, double finalTemperature, double coolingRatio,
      size_t iterationsPerStep,
      CV_OUT double* lastTemperature = NULL,
-     cv::RNG& rngEnergy = cv::theRNG()
+     RNG& rngEnergy = theRNG()
 );
 
 //! @} ml

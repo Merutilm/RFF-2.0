@@ -352,7 +352,7 @@ public:
 protected:
     void detectResultRoi(Size src_size, Point &dst_tl, Point &dst_br) CV_OVERRIDE
     {
-        RotationWarperBase<CylindricalProjector>::detectResultRoiByBorder(src_size, dst_tl, dst_br);
+        detectResultRoiByBorder(src_size, dst_tl, dst_br);
     }
 };
 
@@ -673,7 +673,7 @@ public:
 protected:
     void detectResultRoi(Size src_size, Point &dst_tl, Point &dst_br) CV_OVERRIDE
     {
-        RotationWarperBase<CylindricalPortraitProjector>::detectResultRoiByBorder(src_size, dst_tl, dst_br);
+        detectResultRoiByBorder(src_size, dst_tl, dst_br);
     }
 };
 
@@ -692,7 +692,7 @@ public:
 protected:
     void detectResultRoi(Size src_size, Point &dst_tl, Point &dst_br) CV_OVERRIDE
     {
-        RotationWarperBase<PlanePortraitProjector>::detectResultRoiByBorder(src_size, dst_tl, dst_br);
+        detectResultRoiByBorder(src_size, dst_tl, dst_br);
     }
 };
 

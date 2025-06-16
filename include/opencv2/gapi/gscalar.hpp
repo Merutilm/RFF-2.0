@@ -67,7 +67,7 @@ public:
      * @param s a cv::Scalar value to associate with this GScalar object.
      */
     GAPI_WRAP
-    explicit GScalar(const cv::Scalar& s);
+    explicit GScalar(const Scalar& s);
 
     /**
      * @overload
@@ -75,7 +75,7 @@ public:
      *
      * @param s a cv::Scalar value to associate with this GScalar object.
      */
-    explicit GScalar(cv::Scalar&& s);       // Constant value move-constructor from cv::Scalar
+    explicit GScalar(Scalar&& s);       // Constant value move-constructor from cv::Scalar
 
     /**
      * @overload
@@ -131,9 +131,9 @@ struct GAPI_EXPORTS_W_SIMPLE GScalarDesc
 
 GAPI_EXPORTS_W inline GScalarDesc empty_scalar_desc() { return GScalarDesc(); }
 
-GAPI_EXPORTS GScalarDesc descr_of(const cv::Scalar &scalar);
+GAPI_EXPORTS GScalarDesc descr_of(const Scalar &scalar);
 
-std::ostream& operator<<(std::ostream& os, const cv::GScalarDesc &desc);
+std::ostream& operator<<(std::ostream& os, const GScalarDesc &desc);
 
 } // namespace cv
 

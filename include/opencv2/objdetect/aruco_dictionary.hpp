@@ -53,7 +53,7 @@ class CV_EXPORTS_W_SIMPLE Dictionary {
      * ...\n
      * marker_34: "011111010000111011111110110101100101"
      */
-    CV_WRAP bool readDictionary(const cv::FileNode& fn);
+    CV_WRAP bool readDictionary(const FileNode& fn);
 
     /** @brief Write a dictionary to FileStorage, format is the same as in readDictionary().
      */

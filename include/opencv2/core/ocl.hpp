@@ -302,7 +302,7 @@ public:
      * @param context OpenCL handle (cl_context). clRetainContext() is called on success
      */
     static Context fromHandle(void* context);
-    static Context fromDevice(const ocl::Device& device);
+    static Context fromDevice(const Device& device);
     static Context create(const std::string& configuration);
 
     void release();
@@ -631,7 +631,7 @@ public:
      */
     static ProgramSource fromBinary(const String& module, const String& name,
             const unsigned char* binary, const size_t size,
-            const cv::String& buildOptions = cv::String());
+            const String& buildOptions = String());
 
     /** @brief Describe OpenCL program in SPIR format.
      * Do not call clCreateProgramWithBinary() and/or clBuildProgram().
@@ -656,7 +656,7 @@ public:
      */
     static ProgramSource fromSPIR(const String& module, const String& name,
             const unsigned char* binary, const size_t size,
-            const cv::String& buildOptions = cv::String());
+            const String& buildOptions = String());
 
     //OpenCL 2.1+ only
     //static Program fromSPIRV(const String& module, const String& name,
@@ -845,7 +845,7 @@ public:
      *
      * @param q OpenCL queue
      */
-    OpenCLExecutionContext cloneWithNewQueue(const ocl::Queue& q) const;
+    OpenCLExecutionContext cloneWithNewQueue(const Queue& q) const;
     /** @overload */
     OpenCLExecutionContext cloneWithNewQueue() const;
 
@@ -871,7 +871,7 @@ public:
      * @param device non-empty OpenCL device (must be a part of context)
      * @param queue non-empty OpenCL queue for provided context and device
      */
-    static OpenCLExecutionContext create(const Context& context, const Device& device, const ocl::Queue& queue);
+    static OpenCLExecutionContext create(const Context& context, const Device& device, const Queue& queue);
     /** @overload */
     static OpenCLExecutionContext create(const Context& context, const Device& device);
 

@@ -32,7 +32,7 @@ namespace gapi {
  */
 namespace ie {
 
-GAPI_EXPORTS cv::gapi::GBackend backend();
+GAPI_EXPORTS GBackend backend();
 
 /**
  * Specifies how G-API and IE should trait input data
@@ -66,7 +66,7 @@ using AttrMap = std::map<std::string, T>;
 // 2. Attr - value specified explicitly that should be broadcasted to all layers.
 // 3. AttrMap[str->T] - map specifies value for particular layer.
 template <typename Attr>
-using LayerVariantAttr = cv::util::variant< cv::util::monostate
+using LayerVariantAttr = util::variant< util::monostate
                                           , AttrMap<Attr>
                                           , Attr>;
 
@@ -78,7 +78,7 @@ struct ParamDesc {
     std::vector<std::string> input_names;
     std::vector<std::string> output_names;
 
-    using ConstInput = std::pair<cv::Mat, TraitAs>;
+    using ConstInput = std::pair<Mat, TraitAs>;
     std::unordered_map<std::string, ConstInput> const_inputs;
 
     std::size_t num_in;
@@ -96,15 +96,15 @@ struct ParamDesc {
     size_t nireq;
 
     // NB: An optional config to setup RemoteContext for IE
-    cv::util::any context_config;
+    util::any context_config;
 
     // NB: batch_size can't be equal to 1 by default, because some of models
     // have 2D (Layout::NC) input and if the first dimension not equal to 1
     // net.setBatchSize(1) will overwrite it.
-    cv::optional<size_t> batch_size;
+    optional<size_t> batch_size;
 
-    cv::optional<cv::gapi::wip::onevpl::Device> vpl_preproc_device;
-    cv::optional<cv::gapi::wip::onevpl::Context> vpl_preproc_ctx;
+    optional<wip::onevpl::Device> vpl_preproc_device;
+    optional<wip::onevpl::Context> vpl_preproc_ctx;
 
     InferMode mode;
 
@@ -115,7 +115,7 @@ struct ParamDesc {
     // 2. PrecisionT (CV_8U, CV_32F, ...) - Specifies precision for all output layers.
     // 3. PrecisionMapT ({{"layer0", CV_32F}, {"layer1", CV_16F}} - Specifies precision for certain output layer.
     // cv::util::monostate is default value that means precision wasn't specified.
-    using PrecisionVariantT = cv::util::variant<cv::util::monostate,
+    using PrecisionVariantT = util::variant<util::monostate,
                                                 PrecisionT,
                                                 PrecisionMapT>;
 
@@ -168,7 +168,7 @@ public:
               , {}
               , {}
               , {}
-              , InferMode::Async
+              , Async
               , {}
               , {}
               , {}
@@ -197,7 +197,7 @@ public:
               , {}
               , {}
               , {}
-              , InferMode::Async
+              , Async
               , {}
               , {}
               , {}
@@ -252,7 +252,7 @@ public:
     @return reference to this parameter structure.
     */
     Params<Net>& constInput(const std::string &layer_name,
-                            const cv::Mat &data,
+                            const Mat &data,
                             TraitAs hint = TraitAs::TENSOR) {
         desc.const_inputs[layer_name] = {data, hint};
         return *this;
@@ -291,7 +291,7 @@ public:
     @param ctx_cfg cv::util::any value which holds InferenceEngine::ParamMap.
     @return reference to this parameter structure.
     */
-    Params& cfgContextParams(const cv::util::any& ctx_cfg) {
+    Params& cfgContextParams(const util::any& ctx_cfg) {
         desc.context_config = ctx_cfg;
         return *this;
     }
@@ -302,7 +302,7 @@ public:
     @param ctx_cfg cv::util::any value which holds InferenceEngine::ParamMap.
     @return reference to this parameter structure.
     */
-    Params& cfgContextParams(cv::util::any&& ctx_cfg) {
+    Params& cfgContextParams(util::any&& ctx_cfg) {
         desc.context_config = std::move(ctx_cfg);
         return *this;
     }
@@ -385,14 +385,14 @@ public:
     @return reference to this parameter structure.
     */
     Params<Net>& cfgBatchSize(const size_t size) {
-        desc.batch_size = cv::util::make_optional(size);
+        desc.batch_size = util::make_optional(size);
         return *this;
     }
 
-    Params<Net>& cfgPreprocessingParams(const cv::gapi::wip::onevpl::Device &device,
-                                        const cv::gapi::wip::onevpl::Context &ctx) {
-        desc.vpl_preproc_device = cv::util::make_optional(device);
-        desc.vpl_preproc_ctx = cv::util::make_optional(ctx);
+    Params<Net>& cfgPreprocessingParams(const wip::onevpl::Device &device,
+                                        const wip::onevpl::Context &ctx) {
+        desc.vpl_preproc_device = util::make_optional(device);
+        desc.vpl_preproc_ctx = util::make_optional(ctx);
         return *this;
     }
 
@@ -512,9 +512,9 @@ public:
     }
 
     // BEGIN(G-API's network parametrization API)
-    GBackend      backend()    const { return cv::gapi::ie::backend();  }
+    GBackend      backend()    const { return ie::backend();  }
     std::string   tag()        const { return Net::tag(); }
-    cv::util::any params()     const { return { desc }; }
+    util::any params()     const { return { desc }; }
     // END(G-API's network parametrization API)
 
 protected:
@@ -527,7 +527,7 @@ protected:
 * @see struct Generic
 */
 template<>
-class Params<cv::gapi::Generic> {
+class Params<Generic> {
 public:
     /** @brief Class constructor.
 
@@ -545,7 +545,7 @@ public:
            const std::string &device)
         : desc{ model, weights, device, {}, {}, {}, 0u, 0u,
                 detail::ParamDesc::Kind::Load, true, {}, {}, {}, 1u,
-                {}, {}, {}, {}, InferMode::Async, {}, {}, {}, {} },
+                {}, {}, {}, {}, Async, {}, {}, {}, {} },
           m_tag(tag) {
     }
 
@@ -563,7 +563,7 @@ public:
            const std::string &device)
         : desc{ model, {}, device, {}, {}, {}, 0u, 0u,
                 detail::ParamDesc::Kind::Import, true, {}, {}, {}, 1u,
-                {}, {}, {}, {}, InferMode::Async, {}, {}, {}, {} },
+                {}, {}, {}, {}, Async, {}, {}, {}, {} },
           m_tag(tag) {
     }
 
@@ -581,7 +581,7 @@ public:
 
     /** @see ie::Params::constInput. */
     Params& constInput(const std::string &layer_name,
-                       const cv::Mat &data,
+                       const Mat &data,
                        TraitAs hint = TraitAs::TENSOR) {
         desc.const_inputs[layer_name] = {data, hint};
         return *this;
@@ -632,7 +632,7 @@ public:
 
     /** @see ie::Params::cfgBatchSize */
     Params& cfgBatchSize(const size_t size) {
-        desc.batch_size = cv::util::make_optional(size);
+        desc.batch_size = util::make_optional(size);
         return *this;
     }
 
@@ -694,9 +694,9 @@ public:
     }
 
     // BEGIN(G-API's network parametrization API)
-    GBackend      backend()    const { return cv::gapi::ie::backend();  }
+    GBackend      backend()    const { return ie::backend();  }
     std::string   tag()        const { return m_tag; }
-    cv::util::any params()     const { return { desc }; }
+    util::any params()     const { return { desc }; }
     // END(G-API's network parametrization API)
 
 protected:

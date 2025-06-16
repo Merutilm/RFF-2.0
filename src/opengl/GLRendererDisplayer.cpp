@@ -4,13 +4,15 @@
 
 #include "GLRendererDisplayer.h"
 
-merutilm::rff::GLRendererDisplayer::GLRendererDisplayer() : GLRenderer("displayer.frag") {
-    setToDisplay();
-}
 
-void merutilm::rff::GLRendererDisplayer::update() {
-    const GLShaderLoader &shader = getShaderLoader();
-    shader.uploadTexture2D("inputTex", GL_TEXTURE0, getPrevFBOTextureID());
-    shader.upload2i("resolution", getWidth(), getHeight());
-}
+namespace merutilm::rff {
+    GLRendererDisplayer::GLRendererDisplayer() : GLRenderer("displayer.frag") {
+        setToDisplay();
+    }
 
+    void GLRendererDisplayer::update() {
+        const GLShader &shader = getShader();
+        shader.uploadTexture2D("inputTex", GL_TEXTURE0, getPrevFBOTextureID());
+        shader.upload2i("resolution", getWidth(), getHeight());
+    }
+}

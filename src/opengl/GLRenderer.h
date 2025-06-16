@@ -2,11 +2,11 @@
 
 #include <mutex>
 
-#include "GLShaderLoader.h"
+#include "GLShader.h"
 
 namespace merutilm::rff {
     class GLRenderer {
-        GLShaderLoader shader;
+        GLShader shader;
         uint16_t w = 0;
         uint16_t h = 0;
         GLuint previousFBOTextureID = 0;
@@ -46,7 +46,7 @@ namespace merutilm::rff {
 
         virtual void setPreviousFBOTextureID(GLuint previousFBOTextureID);
 
-        GLShaderLoader &getShaderLoader();
+        GLShader &getShader();
 
         virtual void reloadSize(uint16_t width, uint16_t height);
 

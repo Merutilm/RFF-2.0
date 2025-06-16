@@ -187,7 +187,7 @@ public:
     inline softfloat getFrac() const
     {
         uint_fast32_t vv = (v & 0x007fffff) | (127 << 23);
-        return softfloat::fromRaw(vv);
+        return fromRaw(vv);
     }
     /** @brief Construct a copy with provided significand
 
@@ -201,21 +201,21 @@ public:
     }
 
     /** @brief Zero constant */
-    static softfloat zero() { return softfloat::fromRaw( 0 ); }
+    static softfloat zero() { return fromRaw( 0 ); }
     /** @brief Positive infinity constant */
-    static softfloat  inf() { return softfloat::fromRaw( 0xFF << 23 ); }
+    static softfloat  inf() { return fromRaw( 0xFF << 23 ); }
     /** @brief Default NaN constant */
-    static softfloat  nan() { return softfloat::fromRaw( 0x7fffffff ); }
+    static softfloat  nan() { return fromRaw( 0x7fffffff ); }
     /** @brief One constant */
-    static softfloat  one() { return softfloat::fromRaw(  127 << 23 ); }
+    static softfloat  one() { return fromRaw(  127 << 23 ); }
     /** @brief Smallest normalized value */
-    static softfloat  min() { return softfloat::fromRaw( 0x01 << 23 ); }
+    static softfloat  min() { return fromRaw( 0x01 << 23 ); }
     /** @brief Difference between 1 and next representable value */
-    static softfloat  eps() { return softfloat::fromRaw( (127 - 23) << 23 ); }
+    static softfloat  eps() { return fromRaw( (127 - 23) << 23 ); }
     /** @brief Biggest finite value */
-    static softfloat  max() { return softfloat::fromRaw( (0xFF << 23) - 1 ); }
+    static softfloat  max() { return fromRaw( (0xFF << 23) - 1 ); }
     /** @brief Correct pi approximation */
-    static softfloat   pi() { return softfloat::fromRaw( 0x40490fdb ); }
+    static softfloat   pi() { return fromRaw( 0x40490fdb ); }
 
     uint32_t v;
 };
@@ -329,7 +329,7 @@ public:
     inline softdouble getFrac() const
     {
         uint_fast64_t vv = (v & 0x000FFFFFFFFFFFFF) | ((uint_fast64_t)(1023) << 52);
-        return softdouble::fromRaw(vv);
+        return fromRaw(vv);
     }
     /** @brief Construct a copy with provided significand
 
@@ -343,21 +343,21 @@ public:
     }
 
     /** @brief Zero constant */
-    static softdouble zero() { return softdouble::fromRaw( 0 ); }
+    static softdouble zero() { return fromRaw( 0 ); }
     /** @brief Positive infinity constant */
-    static softdouble  inf() { return softdouble::fromRaw( (uint_fast64_t)(0x7FF) << 52 ); }
+    static softdouble  inf() { return fromRaw( (uint_fast64_t)(0x7FF) << 52 ); }
     /** @brief Default NaN constant */
-    static softdouble  nan() { return softdouble::fromRaw( CV_BIG_INT(0x7FFFFFFFFFFFFFFF) ); }
+    static softdouble  nan() { return fromRaw( CV_BIG_INT(0x7FFFFFFFFFFFFFFF) ); }
     /** @brief One constant */
-    static softdouble  one() { return softdouble::fromRaw( (uint_fast64_t)( 1023) << 52 ); }
+    static softdouble  one() { return fromRaw( (uint_fast64_t)( 1023) << 52 ); }
     /** @brief Smallest normalized value */
-    static softdouble  min() { return softdouble::fromRaw( (uint_fast64_t)( 0x01) << 52 ); }
+    static softdouble  min() { return fromRaw( (uint_fast64_t)( 0x01) << 52 ); }
     /** @brief Difference between 1 and next representable value */
-    static softdouble  eps() { return softdouble::fromRaw( (uint_fast64_t)( 1023 - 52 ) << 52 ); }
+    static softdouble  eps() { return fromRaw( (uint_fast64_t)( 1023 - 52 ) << 52 ); }
     /** @brief Biggest finite value */
-    static softdouble  max() { return softdouble::fromRaw( ((uint_fast64_t)(0x7FF) << 52) - 1 ); }
+    static softdouble  max() { return fromRaw( ((uint_fast64_t)(0x7FF) << 52) - 1 ); }
     /** @brief Correct pi approximation */
-    static softdouble   pi() { return softdouble::fromRaw( CV_BIG_INT(0x400921FB54442D18) ); }
+    static softdouble   pi() { return fromRaw( CV_BIG_INT(0x400921FB54442D18) ); }
 
     uint64_t v;
 };

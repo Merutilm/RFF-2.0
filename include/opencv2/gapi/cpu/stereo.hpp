@@ -35,7 +35,7 @@ struct GAPI_EXPORTS StereoInitParam {
 
 namespace detail {
 
-    template<> struct CompileArgTag<cv::gapi::calib3d::cpu::StereoInitParam> {
+    template<> struct CompileArgTag<gapi::calib3d::cpu::StereoInitParam> {
     static const char* tag() {
         return "org.opencv.stereoInit";
     }

@@ -26,16 +26,16 @@ CV_EXPORTS LogLevel setLogLevel(LogLevel logLevel);
 /** Get global logging level */
 CV_EXPORTS LogLevel getLogLevel();
 
-CV_EXPORTS void registerLogTag(cv::utils::logging::LogTag* plogtag);
+CV_EXPORTS void registerLogTag(LogTag* plogtag);
 
-CV_EXPORTS void setLogTagLevel(const char* tag, cv::utils::logging::LogLevel level);
+CV_EXPORTS void setLogTagLevel(const char* tag, LogLevel level);
 
-CV_EXPORTS cv::utils::logging::LogLevel getLogTagLevel(const char* tag);
+CV_EXPORTS LogLevel getLogTagLevel(const char* tag);
 
 namespace internal {
 
 /** Get global log tag */
-CV_EXPORTS cv::utils::logging::LogTag* getGlobalLogTag();
+CV_EXPORTS LogTag* getGlobalLogTag();
 
 /** Write log message */
 CV_EXPORTS void writeLogMessage(LogLevel logLevel, const char* message);

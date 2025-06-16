@@ -16,7 +16,7 @@ namespace cv { namespace hal {
 
 struct CV_EXPORTS Filter2D
 {
-    CV_DEPRECATED static Ptr<hal::Filter2D> create(uchar * , size_t , int ,
+    CV_DEPRECATED static Ptr<Filter2D> create(uchar * , size_t , int ,
                                      int , int ,
                                      int , int ,
                                      int , int ,
@@ -33,7 +33,7 @@ struct CV_EXPORTS Filter2D
 
 struct CV_EXPORTS SepFilter2D
 {
-    CV_DEPRECATED static Ptr<hal::SepFilter2D> create(int , int , int ,
+    CV_DEPRECATED static Ptr<SepFilter2D> create(int , int , int ,
                                         uchar * , int ,
                                         uchar * , int ,
                                         int , int ,
@@ -49,7 +49,7 @@ struct CV_EXPORTS SepFilter2D
 
 struct CV_EXPORTS Morph
 {
-    CV_DEPRECATED static Ptr<hal::Morph> create(int , int , int , int , int ,
+    CV_DEPRECATED static Ptr<Morph> create(int , int , int , int , int ,
                                     int , uchar * , size_t ,
                                     int , int ,
                                     int , int ,

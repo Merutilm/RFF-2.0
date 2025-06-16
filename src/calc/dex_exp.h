@@ -39,7 +39,7 @@ namespace merutilm::rff {
     }
 
     inline dex dex_exp::exp10(const double v) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         exp10(&result, v);
         return result;
     }
@@ -57,7 +57,7 @@ namespace merutilm::rff {
     }
 
     inline dex dex_exp::exp(const double v) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         exp(&result, v);
         return result;
     }

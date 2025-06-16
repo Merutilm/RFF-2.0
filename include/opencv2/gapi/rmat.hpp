@@ -69,7 +69,7 @@ public:
         View& operator=(View&& v);
         ~View() { if (m_cb) m_cb(); }
 
-        cv::Size size() const { return m_desc.size; }
+        Size size() const { return m_desc.size; }
         const std::vector<int>& dims() const { return m_desc.dims; }
         int cols() const { return m_desc.size.width; }
         int rows() const { return m_desc.size.height; }
@@ -111,11 +111,11 @@ public:
         // the view when accessed for writing, to ensure that the data from the view
         // is transferred to the device when the view is destroyed
         virtual View access(Access) = 0;
-        virtual void serialize(cv::gapi::s11n::IOStream&) {
+        virtual void serialize(gapi::s11n::IOStream&) {
             GAPI_Error("Generic serialize method of RMat::IAdapter does nothing by default. "
                                  "Please, implement it in derived class to properly serialize the object.");
         }
-        virtual void deserialize(cv::gapi::s11n::IIStream&) {
+        virtual void deserialize(gapi::s11n::IIStream&) {
             GAPI_Error("Generic deserialize method of RMat::IAdapter does nothing by default. "
                                  "Please, implement it in derived class to properly deserialize the object.");
         }
@@ -143,7 +143,7 @@ public:
         return dynamic_cast<T*>(m_adapter.get());
     }
 
-    void serialize(cv::gapi::s11n::IOStream& os) const {
+    void serialize(gapi::s11n::IOStream& os) const {
         m_adapter->serialize(os);
     }
 

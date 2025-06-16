@@ -46,7 +46,7 @@ template<typename U> GOpaqueDesc descr_of(const U &) { return {};}
 GAPI_EXPORTS_W inline GOpaqueDesc empty_gopaque_desc() {return {}; }
 /** @} */
 
-std::ostream& operator<<(std::ostream& os, const cv::GOpaqueDesc &desc);
+std::ostream& operator<<(std::ostream& os, const GOpaqueDesc &desc);
 
 namespace detail
 {
@@ -77,7 +77,7 @@ namespace detail
 
     protected:
         GOpaqueU();                                // Default constructor
-        template<class> friend class cv::GOpaque;  // (available for GOpaque<T> only)
+        template<class> friend class GOpaque;  // (available for GOpaque<T> only)
 
         void setConstructFcn(ConstructOpaque &&cv);  // Store T-aware constructor
 
@@ -87,7 +87,7 @@ namespace detail
         template <typename T>
         void storeKind();
 
-        void setKind(cv::detail::OpaqueKind);
+        void setKind(OpaqueKind);
 
         std::shared_ptr<GOrigin> m_priv;
         std::shared_ptr<TypeHintBase> m_hint;
@@ -108,7 +108,7 @@ namespace detail
     template <typename T>
     void GOpaqueU::storeKind(){
         // FIXME: Add assert here on cv::Mat and cv::Scalar?
-        setKind(cv::detail::GOpaqueTraits<T>::kind);
+        setKind(GOpaqueTraits<T>::kind);
     }
 
     // This class represents a typed object reference.
@@ -118,12 +118,12 @@ namespace detail
     class BasicOpaqueRef
     {
     public:
-        cv::GOpaqueDesc m_desc;
+        GOpaqueDesc m_desc;
         virtual ~BasicOpaqueRef() {}
 
         virtual void mov(BasicOpaqueRef &ref) = 0;
         virtual const void* ptr() const = 0;
-        virtual void set(const cv::util::any &a) = 0;
+        virtual void set(const util::any &a) = 0;
     };
 
     template<typename T> class OpaqueRefT final: public BasicOpaqueRef
@@ -218,7 +218,7 @@ namespace detail
 
         virtual const void* ptr() const override { return &rref(); }
 
-        virtual void set(const cv::util::any &a) override {
+        virtual void set(const util::any &a) override {
             wref() = util::any_cast<T>(a);
         }
     };
@@ -232,7 +232,7 @@ namespace detail
     class OpaqueRef
     {
         std::shared_ptr<BasicOpaqueRef> m_ref;
-        cv::detail::OpaqueKind m_kind = cv::detail::OpaqueKind::CV_UNKNOWN;
+        OpaqueKind m_kind = OpaqueKind::CV_UNKNOWN;
 
         template<typename T> inline void check() const
         {
@@ -251,7 +251,7 @@ namespace detail
             m_ref(new OpaqueRefT<util::decay_t<T>>(std::forward<T>(obj))),
             m_kind(GOpaqueTraits<util::decay_t<T>>::kind) {}
 
-        cv::detail::OpaqueKind getKind() const
+        OpaqueKind getKind() const
         {
             return m_kind;
         }
@@ -267,7 +267,7 @@ namespace detail
         template <typename T>
         void storeKind()
         {
-            m_kind = cv::detail::GOpaqueTraits<T>::kind;
+            m_kind = GOpaqueTraits<T>::kind;
         }
 
         template<typename T> T& wref()
@@ -287,7 +287,7 @@ namespace detail
             m_ref->mov(*v.m_ref);
         }
 
-        cv::GOpaqueDesc descr_of() const
+        GOpaqueDesc descr_of() const
         {
             return m_ref->m_desc;
         }
@@ -296,7 +296,7 @@ namespace detail
         const void *ptr() const { return m_ref->ptr(); }
 
         // Introduced for in-graph meta handling
-        OpaqueRef& operator= (const cv::util::any &a)
+        OpaqueRef& operator= (const util::any &a)
         {
             m_ref->set(a);
             return *this;

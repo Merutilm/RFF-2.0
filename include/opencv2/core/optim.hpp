@@ -195,7 +195,7 @@ public:
     @param termcrit Terminal criteria to the algorithm, similarly to the one you submit via
     MinProblemSolver::setTermCriteria.
      */
-    static Ptr<DownhillSolver> create(const Ptr<MinProblemSolver::Function>& f=Ptr<MinProblemSolver::Function>(),
+    static Ptr<DownhillSolver> create(const Ptr<Function>& f=Ptr<Function>(),
                                       InputArray initStep=Mat_<double>(1,1,0.0),
                                       TermCriteria termcrit=TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS,5000,0.000001));
 };
@@ -249,7 +249,7 @@ public:
     @param termcrit Terminal criteria to the algorithm, similarly to the one you submit via
     MinProblemSolver::setTermCriteria.
     */
-    static Ptr<ConjGradSolver> create(const Ptr<MinProblemSolver::Function>& f=Ptr<ConjGradSolver::Function>(),
+    static Ptr<ConjGradSolver> create(const Ptr<Function>& f=Ptr<Function>(),
                                       TermCriteria termcrit=TermCriteria(TermCriteria::MAX_ITER+TermCriteria::EPS,5000,0.000001));
 };
 

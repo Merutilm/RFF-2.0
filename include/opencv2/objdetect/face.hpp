@@ -146,7 +146,7 @@ public:
      *  @param face_feature2 the second input feature of the same size and the same type as face_feature1
      *  @param dis_type defines how to calculate the distance between two face features with optional values "FR_COSINE" or "FR_NORM_L2"
      */
-    CV_WRAP virtual double match(InputArray face_feature1, InputArray face_feature2, int dis_type = FaceRecognizerSF::FR_COSINE) const = 0;
+    CV_WRAP virtual double match(InputArray face_feature1, InputArray face_feature2, int dis_type = FR_COSINE) const = 0;
 
     /** @brief Creates an instance of this class with given parameters
      *  @param model the path of the onnx model used for face recognition

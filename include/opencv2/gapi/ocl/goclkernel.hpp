@@ -46,7 +46,7 @@ namespace ocl
      *
      * @sa gapi_std_backends
      */
-    GAPI_EXPORTS cv::gapi::GBackend backend();
+    GAPI_EXPORTS GBackend backend();
     /** @} */
 } // namespace ocl
 } // namespace gapi
@@ -62,11 +62,11 @@ public:
     const T& inArg(int input) { return m_args.at(input).get<T>(); }
 
     // Syntax sugar
-    const cv::UMat&  inMat(int input);
-    cv::UMat&  outMatR(int output); // FIXME: Avoid cv::Mat m = ctx.outMatR()
+    const UMat&  inMat(int input);
+    UMat&  outMatR(int output); // FIXME: Avoid cv::Mat m = ctx.outMatR()
 
-    const cv::Scalar& inVal(int input);
-    cv::Scalar& outValR(int output); // FIXME: Avoid cv::Scalar s = ctx.outValR()
+    const Scalar& inVal(int input);
+    Scalar& outValR(int output); // FIXME: Avoid cv::Scalar s = ctx.outValR()
     template<typename T> std::vector<T>& outVecR(int output) // FIXME: the same issue
     {
         return outVecRef(output).wref<T>();
@@ -107,23 +107,23 @@ protected:
 namespace detail
 {
 template<class T> struct ocl_get_in;
-template<> struct ocl_get_in<cv::GMat>
+template<> struct ocl_get_in<GMat>
 {
-    static cv::UMat    get(GOCLContext &ctx, int idx) { return ctx.inMat(idx); }
+    static UMat    get(GOCLContext &ctx, int idx) { return ctx.inMat(idx); }
 };
-template<> struct ocl_get_in<cv::GScalar>
+template<> struct ocl_get_in<GScalar>
 {
-    static cv::Scalar get(GOCLContext &ctx, int idx) { return ctx.inVal(idx); }
+    static Scalar get(GOCLContext &ctx, int idx) { return ctx.inVal(idx); }
 };
-template<typename U> struct ocl_get_in<cv::GArray<U> >
+template<typename U> struct ocl_get_in<GArray<U> >
 {
     static const std::vector<U>& get(GOCLContext &ctx, int idx) { return ctx.inArg<VectorRef>(idx).rref<U>(); }
 };
-template<> struct ocl_get_in<cv::GFrame>
+template<> struct ocl_get_in<GFrame>
 {
-    static cv::MediaFrame get(GOCLContext &ctx, int idx) { return ctx.inArg<cv::MediaFrame>(idx); }
+    static MediaFrame get(GOCLContext &ctx, int idx) { return ctx.inArg<MediaFrame>(idx); }
 };
-template<typename U> struct ocl_get_in<cv::GOpaque<U> >
+template<typename U> struct ocl_get_in<GOpaque<U> >
 {
     static const U& get(GOCLContext &ctx, int idx) { return ctx.inArg<OpaqueRef>(idx).rref<U>(); }
 };
@@ -135,8 +135,8 @@ template<class T> struct ocl_get_in
 struct tracked_cv_umat{
     //TODO Think if T - API could reallocate UMat to a proper size - how do we handle this ?
     //tracked_cv_umat(cv::UMat& m) : r{(m)}, original_data{m.getMat(ACCESS_RW).data} {}
-    tracked_cv_umat(cv::UMat& m) : r(m), original_data{ nullptr } {}
-    cv::UMat &r; // FIXME: It was a value (not a reference) before.
+    tracked_cv_umat(UMat& m) : r(m), original_data{ nullptr } {}
+    UMat &r; // FIXME: It was a value (not a reference) before.
                  // Actually OCL backend should allocate its internal data!
     uchar* original_data;
 
@@ -168,14 +168,14 @@ void postprocess_ocl(Outputs&... outs)
     } validate;
     //dummy array to unfold parameter pack
     int dummy[] = { 0, (validate(&outs), 0)... };
-    cv::util::suppress_unused_warning(dummy);
+    util::suppress_unused_warning(dummy);
 }
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
 template<class T> struct ocl_get_out;
-template<> struct ocl_get_out<cv::GMat>
+template<> struct ocl_get_out<GMat>
 {
     static tracked_cv_umat get(GOCLContext &ctx, int idx)
     {
@@ -183,18 +183,18 @@ template<> struct ocl_get_out<cv::GMat>
         return{ r };
     }
 };
-template<> struct ocl_get_out<cv::GScalar>
+template<> struct ocl_get_out<GScalar>
 {
-    static cv::Scalar& get(GOCLContext &ctx, int idx)
+    static Scalar& get(GOCLContext &ctx, int idx)
     {
         return ctx.outValR(idx);
     }
 };
-template<typename U> struct ocl_get_out<cv::GArray<U> >
+template<typename U> struct ocl_get_out<GArray<U> >
 {
     static std::vector<U>& get(GOCLContext &ctx, int idx) { return ctx.outVecR<U>(idx);  }
 };
-template<typename U> struct ocl_get_out<cv::GOpaque<U> >
+template<typename U> struct ocl_get_out<GOpaque<U> >
 {
     static U& get(GOCLContext &ctx, int idx) { return ctx.outOpaqueR<U>(idx);  }
 };
@@ -221,7 +221,7 @@ struct OCLCallHelper<Impl, std::tuple<Ins...>, std::tuple<Outs...> >
     };
 
     template<int... IIs, int... OIs>
-    static void call_impl(GOCLContext &ctx, detail::Seq<IIs...>, detail::Seq<OIs...>)
+    static void call_impl(GOCLContext &ctx, Seq<IIs...>, Seq<OIs...>)
     {
         //TODO: Make sure that OpenCV kernels do not reallocate memory for output parameters
         //by comparing it's state (data ptr) before and after the call.
@@ -233,24 +233,24 @@ struct OCLCallHelper<Impl, std::tuple<Ins...>, std::tuple<Outs...> >
     static void call(GOCLContext &ctx)
     {
         call_impl(ctx,
-            typename detail::MkSeq<sizeof...(Ins)>::type(),
-            typename detail::MkSeq<sizeof...(Outs)>::type());
+            typename MkSeq<sizeof...(Ins)>::type(),
+            typename MkSeq<sizeof...(Outs)>::type());
     }
 };
 
 } // namespace detail
 
 template<class Impl, class K>
-class GOCLKernelImpl: public cv::detail::OCLCallHelper<Impl, typename K::InArgs, typename K::OutArgs>,
-                      public cv::detail::KernelTag
+class GOCLKernelImpl: public detail::OCLCallHelper<Impl, typename K::InArgs, typename K::OutArgs>,
+                      public detail::KernelTag
 {
     using P = detail::OCLCallHelper<Impl, typename K::InArgs, typename K::OutArgs>;
 
 public:
     using API = K;
 
-    static cv::gapi::GBackend backend()  { return cv::gapi::ocl::backend(); }
-    static cv::GOCLKernel     kernel()   { return GOCLKernel(&P::call);     }
+    static gapi::GBackend backend()  { return gapi::ocl::backend(); }
+    static GOCLKernel     kernel()   { return GOCLKernel(&P::call);     }
 };
 
 #define GAPI_OCL_KERNEL(Name, API) struct Name: public cv::GOCLKernelImpl<Name, API>

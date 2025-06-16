@@ -70,7 +70,7 @@ public:
 
     ~GSource() override;
 
-    bool pull(cv::gapi::wip::Data& data) override;
+    bool pull(Data& data) override;
     GMetaArg descr_of() const override;
 
 private:
@@ -82,7 +82,7 @@ private:
 using GVPLSource = onevpl::GSource;
 
 template<class... Args>
-GAPI_EXPORTS_W cv::Ptr<IStreamSource> inline make_onevpl_src(Args&&... args)
+GAPI_EXPORTS_W Ptr<IStreamSource> inline make_onevpl_src(Args&&... args)
 {
     return make_src<onevpl::GSource>(std::forward<Args>(args)...);
 }

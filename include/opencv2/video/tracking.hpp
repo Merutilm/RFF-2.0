@@ -466,7 +466,7 @@ public:
     CV_WRAP virtual void calc(InputArray prevImg, InputArray nextImg,
                       InputArray prevPts, InputOutputArray nextPts,
                       OutputArray status,
-                      OutputArray err = cv::noArray()) = 0;
+                      OutputArray err = noArray()) = 0;
 };
 
 
@@ -680,7 +680,7 @@ public:
 
     @param preset one of PRESET_ULTRAFAST, PRESET_FAST and PRESET_MEDIUM
     */
-    CV_WRAP static Ptr<DISOpticalFlow> create(int preset = DISOpticalFlow::PRESET_FAST);
+    CV_WRAP static Ptr<DISOpticalFlow> create(int preset = PRESET_FAST);
 };
 
 /** @brief Class used for calculating a sparse optical flow.
@@ -783,7 +783,7 @@ public:
      *  @param parameters MIL parameters TrackerMIL::Params
      */
     static CV_WRAP
-    Ptr<TrackerMIL> create(const TrackerMIL::Params &parameters = TrackerMIL::Params());
+    Ptr<TrackerMIL> create(const Params &parameters = Params());
 
     //void init(InputArray image, const Rect& boundingBox) CV_OVERRIDE;
     //bool update(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
@@ -824,7 +824,7 @@ public:
     @param parameters GOTURN parameters TrackerGOTURN::Params
     */
     static CV_WRAP
-    Ptr<TrackerGOTURN> create(const TrackerGOTURN::Params& parameters = TrackerGOTURN::Params());
+    Ptr<TrackerGOTURN> create(const Params& parameters = Params());
 
     //void init(InputArray image, const Rect& boundingBox) CV_OVERRIDE;
     //bool update(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
@@ -851,7 +851,7 @@ public:
     @param parameters DaSiamRPN parameters TrackerDaSiamRPN::Params
     */
     static CV_WRAP
-    Ptr<TrackerDaSiamRPN> create(const TrackerDaSiamRPN::Params& parameters = TrackerDaSiamRPN::Params());
+    Ptr<TrackerDaSiamRPN> create(const Params& parameters = Params());
 
     /** @brief Return tracking score
     */
@@ -889,7 +889,7 @@ public:
     @param parameters NanoTrack parameters TrackerNano::Params
     */
     static CV_WRAP
-    Ptr<TrackerNano> create(const TrackerNano::Params& parameters = TrackerNano::Params());
+    Ptr<TrackerNano> create(const Params& parameters = Params());
 
     /** @brief Return tracking score
     */
@@ -927,7 +927,7 @@ public:
     @param parameters vit tracker parameters TrackerVit::Params
     */
     static CV_WRAP
-    Ptr<TrackerVit> create(const TrackerVit::Params& parameters = TrackerVit::Params());
+    Ptr<TrackerVit> create(const Params& parameters = Params());
 
     /** @brief Return tracking score
     */

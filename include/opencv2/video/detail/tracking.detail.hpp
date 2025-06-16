@@ -374,7 +374,7 @@ public:
     /** @brief Constructor
     @param parameters TrackerSamplerCSC parameters TrackerSamplerCSC::Params
     */
-    TrackerSamplerCSC(const TrackerSamplerCSC::Params& parameters = TrackerSamplerCSC::Params());
+    TrackerSamplerCSC(const Params& parameters = Params());
 
     /** @brief Set the sampling mode of TrackerSamplerCSC
     @param samplingMode The sampling mode

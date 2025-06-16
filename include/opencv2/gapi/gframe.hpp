@@ -96,7 +96,7 @@ enum class MediaFormat: int
 struct GAPI_EXPORTS GFrameDesc
 {
     MediaFormat fmt;
-    cv::Size size;
+    Size size;
 
     bool operator== (const GFrameDesc &) const;
 };
@@ -106,7 +106,7 @@ static inline GFrameDesc empty_gframe_desc() { return GFrameDesc{}; }
 class MediaFrame;
 GAPI_EXPORTS GFrameDesc descr_of(const MediaFrame &frame);
 
-GAPI_EXPORTS std::ostream& operator<<(std::ostream& os, const cv::GFrameDesc &desc);
+GAPI_EXPORTS std::ostream& operator<<(std::ostream& os, const GFrameDesc &desc);
 
 } // namespace cv
 

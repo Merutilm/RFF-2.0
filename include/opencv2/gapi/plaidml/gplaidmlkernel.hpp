@@ -27,7 +27,7 @@ namespace gapi
 namespace plaidml
 {
 
-GAPI_EXPORTS cv::gapi::GBackend backend();
+GAPI_EXPORTS GBackend backend();
 
 } // namespace plaidml
 } // namespace gapi
@@ -76,7 +76,7 @@ namespace detail
 {
 
 template<class T> struct plaidml_get_in;
-template<> struct plaidml_get_in<cv::GMat>
+template<> struct plaidml_get_in<GMat>
 {
     static const plaidml::edsl::Tensor& get(GPlaidMLContext& ctx, int idx)
     {
@@ -90,7 +90,7 @@ template<class T> struct plaidml_get_in
 };
 
 template<class T> struct plaidml_get_out;
-template<> struct plaidml_get_out<cv::GMat>
+template<> struct plaidml_get_out<GMat>
 {
     static plaidml::edsl::Tensor& get(GPlaidMLContext& ctx, int idx)
     {
@@ -105,7 +105,7 @@ template<typename Impl, typename... Ins, typename... Outs>
 struct PlaidMLCallHelper<Impl, std::tuple<Ins...>, std::tuple<Outs...> >
 {
     template<int... IIs, int... OIs>
-    static void call_impl(GPlaidMLContext &ctx, detail::Seq<IIs...>, detail::Seq<OIs...>)
+    static void call_impl(GPlaidMLContext &ctx, Seq<IIs...>, Seq<OIs...>)
     {
         Impl::run(plaidml_get_in<Ins>::get(ctx, IIs)..., plaidml_get_out<Outs>::get(ctx, OIs)...);
     }
@@ -113,24 +113,24 @@ struct PlaidMLCallHelper<Impl, std::tuple<Ins...>, std::tuple<Outs...> >
     static void call(GPlaidMLContext& ctx)
     {
         call_impl(ctx,
-                  typename detail::MkSeq<sizeof...(Ins)>::type(),
-                  typename detail::MkSeq<sizeof...(Outs)>::type());
+                  typename MkSeq<sizeof...(Ins)>::type(),
+                  typename MkSeq<sizeof...(Outs)>::type());
     }
 };
 
 } // namespace detail
 
 template<class Impl, class K>
-class GPlaidMLKernelImpl: public cv::detail::PlaidMLCallHelper<Impl, typename K::InArgs, typename K::OutArgs>,
-                          public cv::detail::KernelTag
+class GPlaidMLKernelImpl: public detail::PlaidMLCallHelper<Impl, typename K::InArgs, typename K::OutArgs>,
+                          public detail::KernelTag
 {
     using P = detail::PlaidMLCallHelper<Impl, typename K::InArgs, typename K::OutArgs>;
 
 public:
     using API = K;
 
-    static cv::gapi::GBackend backend()  { return cv::gapi::plaidml::backend(); }
-    static cv::GPlaidMLKernel kernel()   { return GPlaidMLKernel(&P::call);     }
+    static gapi::GBackend backend()  { return gapi::plaidml::backend(); }
+    static GPlaidMLKernel kernel()   { return GPlaidMLKernel(&P::call);     }
 };
 
 #define GAPI_PLAIDML_KERNEL(Name, API) struct Name: public cv::GPlaidMLKernelImpl<Name, API>

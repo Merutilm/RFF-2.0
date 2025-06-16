@@ -259,12 +259,12 @@ public:
     void apply(GRunArgs &&ins, GRunArgsP &&outs, GCompileArgs &&args = {});       // Arg-to-arg overload
 
     /// @private -- Exclude this function from OpenCV documentation
-    GAPI_WRAP GRunArgs apply(const cv::detail::ExtractArgsCallback  &callback,
+    GAPI_WRAP GRunArgs apply(const detail::ExtractArgsCallback  &callback,
                                    GCompileArgs                    &&args = {});
 
     /// @private -- Exclude this function from OpenCV documentation
-    void apply(const std::vector<cv::Mat>& ins,                                   // Compatibility overload
-               const std::vector<cv::Mat>& outs,
+    void apply(const std::vector<Mat>& ins,                                   // Compatibility overload
+               const std::vector<Mat>& outs,
                GCompileArgs &&args = {});
 
     // 2. Syntax sugar and compatibility overloads
@@ -278,7 +278,7 @@ public:
      * @param args compilation arguments for underlying compilation
      * process.
      */
-    void apply(cv::Mat in, cv::Mat &out, GCompileArgs &&args = {}); // Unary overload
+    void apply(Mat in, Mat &out, GCompileArgs &&args = {}); // Unary overload
 
     /**
      * @brief Execute an unary computation (with compilation on the fly)
@@ -289,7 +289,7 @@ public:
      * @param args compilation arguments for underlying compilation
      * process.
      */
-    void apply(cv::Mat in, cv::Scalar &out, GCompileArgs &&args = {}); // Unary overload (scalar)
+    void apply(Mat in, Scalar &out, GCompileArgs &&args = {}); // Unary overload (scalar)
 
     /**
      * @brief Execute a binary computation (with compilation on the fly)
@@ -301,7 +301,7 @@ public:
      * @param args compilation arguments for underlying compilation
      * process.
      */
-    void apply(cv::Mat in1, cv::Mat in2, cv::Mat &out, GCompileArgs &&args = {}); // Binary overload
+    void apply(Mat in1, Mat in2, Mat &out, GCompileArgs &&args = {}); // Binary overload
 
     /**
      * @brief Execute an binary computation (with compilation on the fly)
@@ -313,7 +313,7 @@ public:
      * @param args compilation arguments for underlying compilation
      * process.
      */
-    void apply(cv::Mat in1, cv::Mat in2, cv::Scalar &out, GCompileArgs &&args = {}); // Binary overload (scalar)
+    void apply(Mat in1, Mat in2, Scalar &out, GCompileArgs &&args = {}); // Binary overload (scalar)
 
     /**
      * @brief Execute a computation with arbitrary number of
@@ -330,8 +330,8 @@ public:
      * Numbers of elements in ins/outs vectors must match numbers of
      * inputs/outputs which were used to define this GComputation.
      */
-    void apply(const std::vector<cv::Mat>& ins,         // Compatibility overload
-                     std::vector<cv::Mat>& outs,
+    void apply(const std::vector<Mat>& ins,         // Compatibility overload
+                     std::vector<Mat>& outs,
                GCompileArgs &&args = {});
 #endif // !defined(GAPI_STANDALONE)
     // Various versions of compile(): //////////////////////////////////////////
@@ -462,7 +462,7 @@ public:
     GAPI_WRAP GStreamingCompiled compileStreaming(GCompileArgs &&args = {});
 
     /// @private -- Exclude this function from OpenCV documentation
-    GAPI_WRAP GStreamingCompiled compileStreaming(const cv::detail::ExtractMetaCallback &callback,
+    GAPI_WRAP GStreamingCompiled compileStreaming(const detail::ExtractMetaCallback &callback,
                                                         GCompileArgs                   &&args = {});
 
     // 2. Direct metadata version
@@ -513,9 +513,9 @@ public:
     /// @private
     const Priv& priv() const;
     /// @private
-    explicit GComputation(cv::gapi::s11n::IIStream &);
+    explicit GComputation(gapi::s11n::IIStream &);
     /// @private
-    void serialize(cv::gapi::s11n::IOStream &) const;
+    void serialize(gapi::s11n::IOStream &) const;
 
 protected:
 

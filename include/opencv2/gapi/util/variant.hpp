@@ -62,7 +62,7 @@ namespace util
 
     // Interface ///////////////////////////////////////////////////////////////
     struct monostate {};
-    inline bool operator==(const util::monostate&, const util::monostate&)
+    inline bool operator==(const monostate&, const monostate&)
     {
         return true;
     }
@@ -195,7 +195,7 @@ namespace util
         // variant is used in STL containers (examples: vector assignment).
         template<
             typename T,
-            typename = util::are_different_t<variant, T>
+            typename = are_different_t<variant, T>
         >
         explicit variant(T&& t);
         // template<class T, class... Args> explicit variant(Args&&... args);
@@ -211,7 +211,7 @@ namespace util
         // SFINAE trick to avoid operator=(T&&) with T=variant<>, see comment above
         template<
             typename T,
-            typename = util::are_different_t<variant, T>
+            typename = are_different_t<variant, T>
         >
         variant& operator=(T&& t) noexcept;
 
@@ -229,25 +229,25 @@ namespace util
 
     // FIMXE: visit
     template<typename T, typename... Types>
-    T* get_if(util::variant<Types...>* v) noexcept;
+    T* get_if(variant<Types...>* v) noexcept;
 
     template<typename T, typename... Types>
-    const T* get_if(const util::variant<Types...>* v) noexcept;
+    const T* get_if(const variant<Types...>* v) noexcept;
 
     template<typename T, typename... Types>
-    T& get(util::variant<Types...> &v);
+    T& get(variant<Types...> &v);
 
     template<typename T, typename... Types>
-    const T& get(const util::variant<Types...> &v);
+    const T& get(const variant<Types...> &v);
 
     template<std::size_t Index, typename... Types>
-    typename util::type_list_element<Index, Types...>::type& get(util::variant<Types...> &v);
+    typename type_list_element<Index, Types...>::type& get(variant<Types...> &v);
 
     template<std::size_t Index, typename... Types>
-    const typename util::type_list_element<Index, Types...>::type& get(const util::variant<Types...> &v);
+    const typename type_list_element<Index, Types...>::type& get(const variant<Types...> &v);
 
     template<typename T, typename... Types>
-    bool holds_alternative(const util::variant<Types...> &v) noexcept;
+    bool holds_alternative(const variant<Types...> &v) noexcept;
 
 
     // Visitor
@@ -319,7 +319,7 @@ namespace util
     struct variant_size;
 
     template <class... Types>
-    struct variant_size<util::variant<Types...>>
+    struct variant_size<variant<Types...>>
         : std::integral_constant<std::size_t, sizeof...(Types)> { };
     // FIXME: T&&, const TT&& versions.
 
@@ -348,10 +348,10 @@ namespace util
     template<typename... Ts>
     template<class T, typename>
     variant<Ts...>::variant(T&& t)
-        : m_index(util::type_list_index<util::decay_t<T>, Ts...>::value)
+        : m_index(type_list_index<decay_t<T>, Ts...>::value)
     {
         const constexpr bool is_lvalue_arg =  std::is_lvalue_reference<T>::value;
-        (cnvrt_ctors<is_lvalue_arg>()[m_index])(memory, const_cast<util::decay_t<T> *>(&t));
+        (cnvrt_ctors<is_lvalue_arg>()[m_index])(memory, const_cast<decay_t<T> *>(&t));
     }
 
     template<typename... Ts>
@@ -396,10 +396,10 @@ namespace util
     template<typename T, typename>
     variant<Ts...>& variant<Ts...>::operator=(T&& t) noexcept
     {
-        using decayed_t = util::decay_t<T>;
+        using decayed_t = decay_t<T>;
         // FIXME: No version with implicit type conversion available!
         const constexpr std::size_t t_index =
-            util::type_list_index<decayed_t, Ts...>::value;
+            type_list_index<decayed_t, Ts...>::value;
 
         const constexpr bool is_lvalue_arg =  std::is_lvalue_reference<T>::value;
 
@@ -418,7 +418,7 @@ namespace util
     }
 
     template<typename... Ts>
-    std::size_t util::variant<Ts...>::index() const noexcept
+    std::size_t variant<Ts...>::index() const noexcept
     {
         return m_index;
     }
@@ -442,14 +442,14 @@ namespace util
     template<typename T>
     constexpr std::size_t variant<Ts...>::index_of()
     {
-        return util::type_list_index<T, Ts...>::value; // FIXME: tests!
+        return type_list_index<T, Ts...>::value; // FIXME: tests!
     }
 
     template<typename T, typename... Types>
-    T* get_if(util::variant<Types...>* v) noexcept
+    T* get_if(variant<Types...>* v) noexcept
     {
         const constexpr std::size_t t_index =
-            util::type_list_index<T, Types...>::value;
+            type_list_index<T, Types...>::value;
 
         if (v && v->index() == t_index)
             return (T*)(&v->memory);  // workaround for ICC 2019
@@ -458,10 +458,10 @@ namespace util
     }
 
     template<typename T, typename... Types>
-    const T* get_if(const util::variant<Types...>* v) noexcept
+    const T* get_if(const variant<Types...>* v) noexcept
     {
         const constexpr std::size_t t_index =
-            util::type_list_index<T, Types...>::value;
+            type_list_index<T, Types...>::value;
 
         if (v && v->index() == t_index)
             return (const T*)(&v->memory);  // workaround for ICC 2019
@@ -470,7 +470,7 @@ namespace util
     }
 
     template<typename T, typename... Types>
-    T& get(util::variant<Types...> &v)
+    T& get(variant<Types...> &v)
     {
         if (auto* p = get_if<T>(&v))
             return *p;
@@ -479,7 +479,7 @@ namespace util
     }
 
     template<typename T, typename... Types>
-    const T& get(const util::variant<Types...> &v)
+    const T& get(const variant<Types...> &v)
     {
         if (auto* p = get_if<T>(&v))
             return *p;
@@ -488,25 +488,25 @@ namespace util
     }
 
     template<std::size_t Index, typename... Types>
-    typename util::type_list_element<Index, Types...>::type& get(util::variant<Types...> &v)
+    typename type_list_element<Index, Types...>::type& get(variant<Types...> &v)
     {
-        using ReturnType = typename util::type_list_element<Index, Types...>::type;
-        return const_cast<ReturnType&>(get<Index, Types...>(static_cast<const util::variant<Types...> &>(v)));
+        using ReturnType = typename type_list_element<Index, Types...>::type;
+        return const_cast<ReturnType&>(get<Index, Types...>(static_cast<const variant<Types...> &>(v)));
     }
 
     template<std::size_t Index, typename... Types>
-    const typename util::type_list_element<Index, Types...>::type& get(const util::variant<Types...> &v)
+    const typename type_list_element<Index, Types...>::type& get(const variant<Types...> &v)
     {
         static_assert(Index < sizeof...(Types),
                       "`Index` it out of bound of `util::variant` type list");
-        using ReturnType = typename util::type_list_element<Index, Types...>::type;
+        using ReturnType = typename type_list_element<Index, Types...>::type;
         return get<ReturnType>(v);
     }
 
     template<typename T, typename... Types>
-    bool holds_alternative(const util::variant<Types...> &v) noexcept
+    bool holds_alternative(const variant<Types...> &v) noexcept
     {
-        return v.index() == util::variant<Types...>::template index_of<T>();
+        return v.index() == variant<Types...>::template index_of<T>();
     }
 
 #if defined(__GNUC__) && (__GNUC__ == 11 || __GNUC__ == 12)
@@ -634,7 +634,7 @@ namespace detail
     template<typename Visitor, typename Variant, typename... VisitorArg>
     auto visit(Visitor &visitor, const Variant& var, VisitorArg &&...args) -> decltype(visitor(get<0>(var)))
     {
-        constexpr std::size_t varsize = util::variant_size<Variant>::value;
+        constexpr std::size_t varsize = variant_size<Variant>::value;
         static_assert(varsize != 0, "utils::variant must contains one type at least ");
         using is_variant_processed_t = std::false_type;
 
@@ -650,7 +650,7 @@ namespace detail
     template<typename Visitor, typename Variant>
     auto visit(Visitor&& visitor, const Variant& var) -> decltype(visitor(get<0>(var)))
     {
-        constexpr std::size_t varsize = util::variant_size<Variant>::value;
+        constexpr std::size_t varsize = variant_size<Variant>::value;
         static_assert(varsize != 0, "utils::variant must contains one type at least ");
         using is_variant_processed_t = std::false_type;
 

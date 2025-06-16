@@ -19,14 +19,14 @@ namespace gapi {
 namespace wip {
 struct Data; // fwd-declare to avoid circular? header dependencies
 
-class GAPI_EXPORTS QueueSourceBase: public cv::gapi::wip::IStreamSource {
+class GAPI_EXPORTS QueueSourceBase: public IStreamSource {
     class Priv;
     std::shared_ptr<Priv> m_priv;
     // FIXME: Need to understand how it works with IStreamSource's shared_from_this
     // Can we avoid having too many shared_ptrs here?
 
 public:
-    explicit QueueSourceBase(const cv::GMetaArg &m);
+    explicit QueueSourceBase(const GMetaArg &m);
     void push(Data &&data);
     virtual bool pull(Data &data) override;
     virtual void halt() override;
@@ -54,9 +54,9 @@ class GAPI_EXPORTS QueueInput {
     std::vector<std::shared_ptr<QueueSourceBase> > m_sources;
 
 public:
-    explicit QueueInput(const cv::GMetaArgs &args);
+    explicit QueueInput(const GMetaArgs &args);
 
-    void push(cv::GRunArgs &&ins);
+    void push(GRunArgs &&ins);
     operator cv::GRunArgs();
 };
 

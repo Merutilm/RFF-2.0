@@ -20,7 +20,7 @@ namespace compound
 {
     // FIXME User does not need to know about this function
     // Needs that user may define compound kernels(as cpu kernels)
-    GAPI_EXPORTS cv::gapi::GBackend backend();
+    GAPI_EXPORTS GBackend backend();
 } // namespace compound
 } // namespace gapi
 
@@ -55,9 +55,9 @@ template<typename T> struct get_compound_in
     static T get(GCompoundContext &ctx, int idx) { return ctx.inArg<T>(idx); }
 };
 
-template<typename U> struct get_compound_in<cv::GArray<U>>
+template<typename U> struct get_compound_in<GArray<U>>
 {
-    static cv::GArray<U> get(GCompoundContext &ctx, int idx)
+    static GArray<U> get(GCompoundContext &ctx, int idx)
     {
         auto array = cv::GArray<U>();
         ctx.m_args[idx] = GArg(array);
@@ -65,9 +65,9 @@ template<typename U> struct get_compound_in<cv::GArray<U>>
     }
 };
 
-template<typename U> struct get_compound_in<cv::GOpaque<U>>
+template<typename U> struct get_compound_in<GOpaque<U>>
 {
-    static cv::GOpaque<U> get(GCompoundContext &ctx, int idx)
+    static GOpaque<U> get(GCompoundContext &ctx, int idx)
     {
         auto opaq = cv::GOpaque<U>();
         ctx.m_args[idx] = GArg(opaq);
@@ -75,11 +75,11 @@ template<typename U> struct get_compound_in<cv::GOpaque<U>>
     }
 };
 
-template<> struct get_compound_in<cv::GMatP>
+template<> struct get_compound_in<GMatP>
 {
-    static cv::GMatP get(GCompoundContext &ctx, int idx)
+    static GMatP get(GCompoundContext &ctx, int idx)
     {
-        auto mat = cv::GMatP();
+        auto mat = GMatP();
         ctx.m_args[idx] = GArg(mat);
         return mat;
     }
@@ -92,31 +92,31 @@ template<typename Impl, typename... Ins, typename... Outs>
 struct GCompoundCallHelper<Impl, std::tuple<Ins...>, std::tuple<Outs...> >
 {
     template<int... IIs, int... OIs>
-    static void expand_impl(GCompoundContext &ctx, detail::Seq<IIs...>, detail::Seq<OIs...>)
+    static void expand_impl(GCompoundContext &ctx, Seq<IIs...>, Seq<OIs...>)
     {
         auto result = Impl::expand(get_compound_in<Ins>::get(ctx, IIs)...);
         auto tuple_return = tuple_wrap_helper<decltype(result)>::get(std::move(result));
-        ctx.m_results = { cv::GArg(std::get<OIs>(tuple_return))... };
+        ctx.m_results = { GArg(std::get<OIs>(tuple_return))... };
     }
 
     static void expand(GCompoundContext &ctx)
     {
         expand_impl(ctx,
-                    typename detail::MkSeq<sizeof...(Ins)>::type(),
-                    typename detail::MkSeq<sizeof...(Outs)>::type());
+                    typename MkSeq<sizeof...(Ins)>::type(),
+                    typename MkSeq<sizeof...(Outs)>::type());
     }
 };
 
 template<class Impl, class K>
-class GCompoundKernelImpl: public cv::detail::GCompoundCallHelper<Impl, typename K::InArgs, typename K::OutArgs>,
-                           public cv::detail::KernelTag
+class GCompoundKernelImpl: public GCompoundCallHelper<Impl, typename K::InArgs, typename K::OutArgs>,
+                           public KernelTag
 {
-    using P = cv::detail::GCompoundCallHelper<Impl, typename K::InArgs, typename K::OutArgs>;
+    using P = GCompoundCallHelper<Impl, typename K::InArgs, typename K::OutArgs>;
 
 public:
     using API = K;
 
-    static cv::gapi::GBackend backend() { return cv::gapi::compound::backend(); }
+    static gapi::GBackend backend() { return gapi::compound::backend(); }
     static GCompoundKernel    kernel()  { return GCompoundKernel(&P::expand);   }
 };
 

@@ -61,14 +61,14 @@ public:
     };
 
     GStreamerSource(const std::string& pipeline,
-                    const GStreamerSource::OutputType outputType =
-                        GStreamerSource::OutputType::MAT);
+                    const OutputType outputType =
+                        OutputType::MAT);
     GStreamerSource(std::shared_ptr<GStreamerPipelineFacade> pipeline,
                     const std::string& appsinkName,
-                    const GStreamerSource::OutputType outputType =
-                        GStreamerSource::OutputType::MAT);
+                    const OutputType outputType =
+                        OutputType::MAT);
 
-    bool pull(cv::gapi::wip::Data& data) override;
+    bool pull(Data& data) override;
     GMetaArg descr_of() const override;
     ~GStreamerSource() override;
 
@@ -83,7 +83,7 @@ protected:
 using GStreamerSource = gst::GStreamerSource;
 
 // NB: Overload for using from python
-GAPI_EXPORTS_W cv::Ptr<IStreamSource>
+GAPI_EXPORTS_W Ptr<IStreamSource>
 inline make_gst_src(const std::string& pipeline,
                     const GStreamerSource::OutputType outputType =
                     GStreamerSource::OutputType::MAT)

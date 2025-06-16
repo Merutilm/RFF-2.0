@@ -9,7 +9,7 @@
 
 namespace merutilm::rff {
     class GLRendererBoxBlur final : public GLRenderer {
-        std::function<void(GLShaderLoader &)> additionalParams = [](GLShaderLoader &) {
+        std::function<void(GLShader &)> additionalParams = [](GLShader &) {
         };
 
     public:
@@ -25,7 +25,7 @@ namespace merutilm::rff {
 
         GLRendererBoxBlur &operator=(GLRendererBoxBlur &&) = delete;
 
-        void setAdditionalParams(const std::function<void(GLShaderLoader &)> &additionalParams);
+        void setAdditionalParams(const std::function<void(GLShader &)> &additionalParams);
 
         void update() override;
     };

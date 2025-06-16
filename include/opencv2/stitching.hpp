@@ -181,7 +181,7 @@ public:
     scenario.
     @return Stitcher class instance.
      */
-    CV_WRAP static Ptr<Stitcher> create(Mode mode = Stitcher::PANORAMA);
+    CV_WRAP static Ptr<Stitcher> create(Mode mode = PANORAMA);
 
     CV_WRAP double registrationResol() const { return registr_resol_; }
     CV_WRAP void setRegistrationResol(double resol_mpx) { registr_resol_ = resol_mpx; }
@@ -214,8 +214,8 @@ public:
     void setFeaturesMatcher(Ptr<detail::FeaturesMatcher> features_matcher)
         { features_matcher_ = features_matcher; }
 
-    const cv::UMat& matchingMask() const { return matching_mask_; }
-    void setMatchingMask(const cv::UMat &mask)
+    const UMat& matchingMask() const { return matching_mask_; }
+    void setMatchingMask(const UMat &mask)
     {
         CV_Assert(mask.type() == CV_8U && mask.cols == mask.rows);
         matching_mask_ = mask.clone();
@@ -305,7 +305,7 @@ public:
 
     /** Returns estimated camera parameters for all stitched images
      */
-    CV_WRAP std::vector<cv::detail::CameraParams> cameras() const { return cameras_; }
+    CV_WRAP std::vector<detail::CameraParams> cameras() const { return cameras_; }
     CV_WRAP double workScale() const { return work_scale_; }
 
     /** @brief Return the mask of the panorama.
@@ -328,7 +328,7 @@ private:
     InterpolationFlags interp_flags_;
     Ptr<Feature2D> features_finder_;
     Ptr<detail::FeaturesMatcher> features_matcher_;
-    cv::UMat matching_mask_;
+    UMat matching_mask_;
     Ptr<detail::BundleAdjusterBase> bundle_adjuster_;
     Ptr<detail::Estimator> estimator_;
     bool do_wave_correct_;
@@ -338,12 +338,12 @@ private:
     Ptr<detail::SeamFinder> seam_finder_;
     Ptr<detail::Blender> blender_;
 
-    std::vector<cv::UMat> imgs_;
-    std::vector<cv::UMat> masks_;
-    std::vector<cv::Size> full_img_sizes_;
+    std::vector<UMat> imgs_;
+    std::vector<UMat> masks_;
+    std::vector<Size> full_img_sizes_;
     std::vector<detail::ImageFeatures> features_;
     std::vector<detail::MatchesInfo> pairwise_matches_;
-    std::vector<cv::UMat> seam_est_imgs_;
+    std::vector<UMat> seam_est_imgs_;
     std::vector<int> indices_;
     std::vector<detail::CameraParams> cameras_;
     UMat result_mask_;

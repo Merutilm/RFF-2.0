@@ -46,7 +46,7 @@ namespace merutilm::rff {
     }
 
     inline dex dex_std::max(const dex &a, const dex &b) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         max(&result, a, b);
         return result;
     }
@@ -65,7 +65,7 @@ namespace merutilm::rff {
     }
 
     inline dex dex_std::min(const dex &a, const dex &b) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         min(&result, a, b);
         return result;
     }
@@ -78,7 +78,7 @@ namespace merutilm::rff {
     }
 
     inline dex dex_std::clamp(const dex &target, const dex &mn, const dex &mx) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         clamp(&result, target, mn, mx);
         return result;
     }
@@ -89,7 +89,7 @@ namespace merutilm::rff {
     }
 
     inline dex dex_std::abs(const dex &v) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         abs(&result, v);
         return result;
     }

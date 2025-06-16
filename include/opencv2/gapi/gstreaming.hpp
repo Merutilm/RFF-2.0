@@ -19,7 +19,7 @@
 
 namespace cv {
 
-template<class T> using optional = cv::util::optional<T>;
+template<class T> using optional = util::optional<T>;
 
 namespace detail {
 template<typename T> struct wref_spec {
@@ -38,47 +38,47 @@ struct OptRef {
         using Ptr = std::shared_ptr<OptHolder>;
     };
     template<class T> struct Holder final: OptHolder {
-        std::reference_wrapper<cv::optional<T> > m_opt_ref;
+        std::reference_wrapper<optional<T> > m_opt_ref;
 
-        explicit Holder(cv::optional<T>& opt) : m_opt_ref(std::ref(opt)) {
+        explicit Holder(optional<T>& opt) : m_opt_ref(std::ref(opt)) {
         }
         virtual void mov(RefHolder &h) override {
             using U = typename wref_spec<T>::type;
-            m_opt_ref.get() = cv::util::make_optional(std::move(h.template wref<U>()));
+            m_opt_ref.get() = util::make_optional(std::move(h.template wref<U>()));
         }
         virtual void reset() override {
             m_opt_ref.get().reset();
         }
     };
     template<class T>
-    explicit OptRef(cv::optional<T>& t) : m_opt{new Holder<T>(t)} {}
+    explicit OptRef(optional<T>& t) : m_opt{new Holder<T>(t)} {}
     void mov(RefHolder &h) { m_opt->mov(h); }
     void reset()           { m_opt->reset();}
 private:
     typename OptHolder::Ptr m_opt;
 };
-using OptionalVectorRef = OptRef<cv::detail::VectorRef>;
-using OptionalOpaqueRef = OptRef<cv::detail::OpaqueRef>;
+using OptionalVectorRef = OptRef<VectorRef>;
+using OptionalOpaqueRef = OptRef<OpaqueRef>;
 } // namespace detail
 
 // TODO: Keep it in sync with GRunArgP (derive the type automatically?)
 using GOptRunArgP = util::variant<
-    optional<cv::Mat>*,
-    optional<cv::RMat>*,
-    optional<cv::MediaFrame>*,
-    optional<cv::Scalar>*,
-    cv::detail::OptionalVectorRef,
-    cv::detail::OptionalOpaqueRef
+    optional<Mat>*,
+    optional<RMat>*,
+    optional<MediaFrame>*,
+    optional<Scalar>*,
+    detail::OptionalVectorRef,
+    detail::OptionalOpaqueRef
 >;
 using GOptRunArgsP = std::vector<GOptRunArgP>;
 
 using GOptRunArg = util::variant<
-    optional<cv::Mat>,
-    optional<cv::RMat>,
-    optional<cv::MediaFrame>,
-    optional<cv::Scalar>,
-    optional<cv::detail::VectorRef>,
-    optional<cv::detail::OpaqueRef>
+    optional<Mat>,
+    optional<RMat>,
+    optional<MediaFrame>,
+    optional<Scalar>,
+    optional<detail::VectorRef>,
+    optional<detail::OpaqueRef>
 >;
 using GOptRunArgs = std::vector<GOptRunArg>;
 
@@ -93,19 +93,19 @@ template<typename T> inline GOptRunArgP wrap_opt_arg(optional<std::vector<T> >& 
     return GOptRunArgP{OptionalVectorRef(arg)};
 }
 
-template<> inline GOptRunArgP wrap_opt_arg(optional<cv::Mat> &m) {
+template<> inline GOptRunArgP wrap_opt_arg(optional<Mat> &m) {
     return GOptRunArgP{&m};
 }
 
-template<> inline GOptRunArgP wrap_opt_arg(optional<cv::RMat> &m) {
+template<> inline GOptRunArgP wrap_opt_arg(optional<RMat> &m) {
     return GOptRunArgP{&m};
 }
 
-template<> inline GOptRunArgP wrap_opt_arg(optional<cv::MediaFrame> &f) {
+template<> inline GOptRunArgP wrap_opt_arg(optional<MediaFrame> &f) {
     return GOptRunArgP{&f};
 }
 
-template<> inline GOptRunArgP wrap_opt_arg(optional<cv::Scalar> &s) {
+template<> inline GOptRunArgP wrap_opt_arg(optional<Scalar> &s) {
     return GOptRunArgP{&s};
 }
 
@@ -202,7 +202,7 @@ public:
     void setSource(GRunArgs &&ins);
 
     /// @private -- Exclude this function from OpenCV documentation
-    GAPI_WRAP void setSource(const cv::detail::ExtractArgsCallback& callback);
+    GAPI_WRAP void setSource(const detail::ExtractArgsCallback& callback);
 
     /**
      * @brief Specify an input video stream for a single-input
@@ -230,7 +230,7 @@ public:
      */
     template<typename T, typename... Args>
     void setSource(Args&&... args) {
-        setSource(cv::gapi::wip::make_src<T>(std::forward<Args>(args)...));
+        setSource(gapi::wip::make_src<T>(std::forward<Args>(args)...));
     }
 
     /**
@@ -270,11 +270,11 @@ public:
      * @return true if next result has been obtained,
      *    false marks end of the stream.
      */
-    bool pull(cv::GRunArgsP &&outs);
+    bool pull(GRunArgsP &&outs);
 
     // NB: Used from python
     /// @private -- Exclude this function from OpenCV documentation
-    GAPI_WRAP std::tuple<bool, cv::util::variant<cv::GRunArgs, cv::GOptRunArgs>> pull();
+    GAPI_WRAP std::tuple<bool, util::variant<GRunArgs, GOptRunArgs>> pull();
 
     /**
      * @brief Get some next available data from the pipeline.
@@ -312,7 +312,7 @@ public:
      *
      * @sa cv::gapi::desync
      */
-    bool pull(cv::GOptRunArgsP &&outs);
+    bool pull(GOptRunArgsP &&outs);
 
     /**
      * @brief Try to get the next processed frame from the pipeline.
@@ -326,7 +326,7 @@ public:
      * @return true if data has been obtained, and false if it was
      *    not. Note: false here doesn't mark the end of the stream.
      */
-    bool try_pull(cv::GRunArgsP &&outs);
+    bool try_pull(GRunArgsP &&outs);
 
     /**
      * @brief Stop (abort) processing the pipeline.
@@ -417,7 +417,7 @@ struct GAPI_EXPORTS_W_SIMPLE queue_capacity
 
 namespace detail
 {
-template<> struct CompileArgTag<cv::gapi::streaming::queue_capacity>
+template<> struct CompileArgTag<gapi::streaming::queue_capacity>
 {
     static const char* tag() { return "gapi.queue_capacity"; }
 };

@@ -448,7 +448,7 @@ namespace cv { namespace cuda { namespace device
     {
         __device__ __forceinline__ float operator ()(float x) const
         {
-            return ::fabsf(x);
+            return fabsf(x);
         }
 
         __host__ __device__ __forceinline__ abs_func() {}
@@ -458,7 +458,7 @@ namespace cv { namespace cuda { namespace device
     {
         __device__ __forceinline__ double operator ()(double x) const
         {
-            return ::fabs(x);
+            return fabs(x);
         }
 
         __host__ __device__ __forceinline__ abs_func() {}

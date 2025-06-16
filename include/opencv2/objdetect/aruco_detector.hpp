@@ -281,7 +281,7 @@ public:
      * @param detectorParams marker detection parameters
      * @param refineParams marker refine detection parameters
      */
-    CV_WRAP ArucoDetector(const Dictionary &dictionary = getPredefinedDictionary(cv::aruco::DICT_4X4_50),
+    CV_WRAP ArucoDetector(const Dictionary &dictionary = getPredefinedDictionary(DICT_4X4_50),
                           const DetectorParameters &detectorParams = DetectorParameters(),
                           const RefineParameters& refineParams = RefineParameters());
 

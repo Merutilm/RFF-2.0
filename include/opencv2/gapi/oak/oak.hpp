@@ -79,12 +79,12 @@ struct EncoderConfig {
 
 G_API_OP(GEncFrame, <GArray<uint8_t>(GFrame, EncoderConfig)>, "org.opencv.oak.enc_frame") {
     static GArrayDesc outMeta(const GFrameDesc&, const EncoderConfig&) {
-        return cv::empty_array_desc();
+        return empty_array_desc();
     }
 };
 
 G_API_OP(GSobelXY, <GFrame(GFrame, const cv::Mat&, const cv::Mat&)>, "org.opencv.oak.sobelxy") {
-    static GFrameDesc outMeta(const GFrameDesc& in, const cv::Mat&, const cv::Mat&) {
+    static GFrameDesc outMeta(const GFrameDesc& in, const Mat&, const Mat&) {
         return in;
     }
 };
@@ -100,14 +100,14 @@ G_API_OP(GCopy, <GFrame(GFrame)>, "org.opencv.oak.copy") {
 GAPI_EXPORTS GArray<uint8_t> encode(const GFrame& in, const EncoderConfig&);
 
 GAPI_EXPORTS GFrame sobelXY(const GFrame& in,
-                            const cv::Mat& hk,
-                            const cv::Mat& vk);
+                            const Mat& hk,
+                            const Mat& vk);
 
 GAPI_EXPORTS GFrame copy(const GFrame& in);
 
 // OAK backend & kernels ////////////////////////////////////////////////////////
-GAPI_EXPORTS cv::gapi::GBackend backend();
-GAPI_EXPORTS cv::gapi::GKernelPackage kernels();
+GAPI_EXPORTS GBackend backend();
+GAPI_EXPORTS GKernelPackage kernels();
 
 // Camera object ///////////////////////////////////////////////////////////////
 
@@ -128,11 +128,11 @@ struct GAPI_EXPORTS ColorCameraParams {
     Resolution resolution = Resolution::THE_1080_P;
 };
 
-class GAPI_EXPORTS ColorCamera: public cv::gapi::wip::IStreamSource {
-    cv::MediaFrame m_dummy;
+class GAPI_EXPORTS ColorCamera: public wip::IStreamSource {
+    MediaFrame m_dummy;
     ColorCameraParams m_params;
 
-    virtual bool pull(cv::gapi::wip::Data &data) override;
+    virtual bool pull(wip::Data &data) override;
     virtual GMetaArg descr_of() const override;
 
 public:

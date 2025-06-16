@@ -79,7 +79,7 @@ public:
 };
 
 template<typename Tg>
-cv::GIOProtoArgs<Tg>& operator += (cv::GIOProtoArgs<Tg> &lhs, const cv::GIOProtoArgs<Tg> &rhs)
+GIOProtoArgs<Tg>& operator += (GIOProtoArgs<Tg> &lhs, const GIOProtoArgs<Tg> &rhs)
 {
     lhs.m_args.reserve(lhs.m_args.size() + rhs.m_args.size());
     lhs.m_args.insert(lhs.m_args.end(), rhs.m_args.begin(), rhs.m_args.end());
@@ -108,7 +108,7 @@ namespace detail
     // Extract elements form tuple
     // FIXME: Someday utilize a generic tuple_to_vec<> routine
     template<typename... Ts, int... Indexes>
-    static GProtoOutputArgs getGOut_impl(const std::tuple<Ts...>& ts, detail::Seq<Indexes...>)
+    static GProtoOutputArgs getGOut_impl(const std::tuple<Ts...>& ts, Seq<Indexes...>)
     {
         return GProtoOutputArgs{ detail::packArgs(std::get<Indexes>(ts)...)};
     }

@@ -42,7 +42,7 @@ struct config
 
 namespace detail
 {
-    template<> struct CompileArgTag<cv::gapi::plaidml::config>
+    template<> struct CompileArgTag<gapi::plaidml::config>
     {
         static const char* tag() { return "gapi.plaidml.config"; }
     };

@@ -1065,7 +1065,7 @@ namespace cv { namespace cuda { namespace device
             vmin = fmin(vmin, b);
 
             diff = v - vmin;
-            s = diff / (float)(::fabs(v) + numeric_limits<float>::epsilon());
+            s = diff / (float)(fabs(v) + numeric_limits<float>::epsilon());
             diff = (float)(60. / (diff + numeric_limits<float>::epsilon()));
 
             h  = (v == r) * (g - b) * diff;
@@ -1570,7 +1570,7 @@ namespace cv { namespace cuda { namespace device
         __device__ __forceinline__ int LabCbrt_b(int i)
         {
             float x = i * (1.f / (255.f * (1 << gamma_shift)));
-            return (1 << lab_shift2) * (x < 0.008856f ? x * 7.787f + 0.13793103448275862f : ::cbrtf(x));
+            return (1 << lab_shift2) * (x < 0.008856f ? x * 7.787f + 0.13793103448275862f : cbrtf(x));
         }
 
         template <bool srgb, int blueIdx, typename T, typename D>

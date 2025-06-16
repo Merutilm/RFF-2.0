@@ -458,7 +458,7 @@ public:
     @param fastThreshold the fast threshold
      */
     CV_WRAP static Ptr<ORB> create(int nfeatures=500, float scaleFactor=1.2f, int nlevels=8, int edgeThreshold=31,
-        int firstLevel=0, int WTA_K=2, ORB::ScoreType scoreType=ORB::HARRIS_SCORE, int patchSize=31, int fastThreshold=20);
+        int firstLevel=0, int WTA_K=2, ScoreType scoreType=HARRIS_SCORE, int patchSize=31, int fastThreshold=20);
 
     CV_WRAP virtual void setMaxFeatures(int maxFeatures) = 0;
     CV_WRAP virtual int getMaxFeatures() const = 0;
@@ -478,8 +478,8 @@ public:
     CV_WRAP virtual void setWTA_K(int wta_k) = 0;
     CV_WRAP virtual int getWTA_K() const = 0;
 
-    CV_WRAP virtual void setScoreType(ORB::ScoreType scoreType) = 0;
-    CV_WRAP virtual ORB::ScoreType getScoreType() const = 0;
+    CV_WRAP virtual void setScoreType(ScoreType scoreType) = 0;
+    CV_WRAP virtual ScoreType getScoreType() const = 0;
 
     CV_WRAP virtual void setPatchSize(int patchSize) = 0;
     CV_WRAP virtual int getPatchSize() const = 0;
@@ -585,7 +585,7 @@ public:
 
     CV_WRAP static Ptr<FastFeatureDetector> create( int threshold=10,
                                                     bool nonmaxSuppression=true,
-                                                    FastFeatureDetector::DetectorType type=FastFeatureDetector::TYPE_9_16 );
+                                                    DetectorType type=TYPE_9_16 );
 
     CV_WRAP virtual void setThreshold(int threshold) = 0;
     CV_WRAP virtual int getThreshold() const = 0;
@@ -593,8 +593,8 @@ public:
     CV_WRAP virtual void setNonmaxSuppression(bool f) = 0;
     CV_WRAP virtual bool getNonmaxSuppression() const = 0;
 
-    CV_WRAP virtual void setType(FastFeatureDetector::DetectorType type) = 0;
-    CV_WRAP virtual FastFeatureDetector::DetectorType getType() const = 0;
+    CV_WRAP virtual void setType(DetectorType type) = 0;
+    CV_WRAP virtual DetectorType getType() const = 0;
     CV_WRAP virtual String getDefaultName() const CV_OVERRIDE;
 };
 
@@ -641,7 +641,7 @@ public:
 
     CV_WRAP static Ptr<AgastFeatureDetector> create( int threshold=10,
                                                      bool nonmaxSuppression=true,
-                                                     AgastFeatureDetector::DetectorType type = AgastFeatureDetector::OAST_9_16);
+                                                     DetectorType type = OAST_9_16);
 
     CV_WRAP virtual void setThreshold(int threshold) = 0;
     CV_WRAP virtual int getThreshold() const = 0;
@@ -649,8 +649,8 @@ public:
     CV_WRAP virtual void setNonmaxSuppression(bool f) = 0;
     CV_WRAP virtual bool getNonmaxSuppression() const = 0;
 
-    CV_WRAP virtual void setType(AgastFeatureDetector::DetectorType type) = 0;
-    CV_WRAP virtual AgastFeatureDetector::DetectorType getType() const = 0;
+    CV_WRAP virtual void setType(DetectorType type) = 0;
+    CV_WRAP virtual DetectorType getType() const = 0;
     CV_WRAP virtual String getDefaultName() const CV_OVERRIDE;
 };
 
@@ -776,13 +776,13 @@ public:
   };
 
   CV_WRAP static Ptr<SimpleBlobDetector>
-    create(const SimpleBlobDetector::Params &parameters = SimpleBlobDetector::Params());
+    create(const Params &parameters = Params());
 
-  CV_WRAP virtual void setParams(const SimpleBlobDetector::Params& params ) = 0;
-  CV_WRAP virtual SimpleBlobDetector::Params getParams() const = 0;
+  CV_WRAP virtual void setParams(const Params& params ) = 0;
+  CV_WRAP virtual Params getParams() const = 0;
 
   CV_WRAP virtual String getDefaultName() const CV_OVERRIDE;
-  CV_WRAP virtual const std::vector<std::vector<cv::Point> >& getBlobContours() const;
+  CV_WRAP virtual const std::vector<std::vector<Point> >& getBlobContours() const;
 };
 
 
@@ -816,7 +816,7 @@ public:
     CV_WRAP static Ptr<KAZE> create(bool extended=false, bool upright=false,
                                     float threshold = 0.001f,
                                     int nOctaves = 4, int nOctaveLayers = 4,
-                                    KAZE::DiffusivityType diffusivity = KAZE::DIFF_PM_G2);
+                                    DiffusivityType diffusivity = DIFF_PM_G2);
 
     CV_WRAP virtual void setExtended(bool extended) = 0;
     CV_WRAP virtual bool getExtended() const = 0;
@@ -833,8 +833,8 @@ public:
     CV_WRAP virtual void setNOctaveLayers(int octaveLayers) = 0;
     CV_WRAP virtual int getNOctaveLayers() const = 0;
 
-    CV_WRAP virtual void setDiffusivity(KAZE::DiffusivityType diff) = 0;
-    CV_WRAP virtual KAZE::DiffusivityType getDiffusivity() const = 0;
+    CV_WRAP virtual void setDiffusivity(DiffusivityType diff) = 0;
+    CV_WRAP virtual DiffusivityType getDiffusivity() const = 0;
     CV_WRAP virtual String getDefaultName() const CV_OVERRIDE;
 };
 
@@ -881,14 +881,14 @@ public:
     more features, then the features with highest response are returned.
     Negative value means no limitation.
      */
-    CV_WRAP static Ptr<AKAZE> create(AKAZE::DescriptorType descriptor_type = AKAZE::DESCRIPTOR_MLDB,
+    CV_WRAP static Ptr<AKAZE> create(DescriptorType descriptor_type = DESCRIPTOR_MLDB,
                                      int descriptor_size = 0, int descriptor_channels = 3,
                                      float threshold = 0.001f, int nOctaves = 4,
                                      int nOctaveLayers = 4, KAZE::DiffusivityType diffusivity = KAZE::DIFF_PM_G2,
                                      int max_points = -1);
 
-    CV_WRAP virtual void setDescriptorType(AKAZE::DescriptorType dtype) = 0;
-    CV_WRAP virtual AKAZE::DescriptorType getDescriptorType() const = 0;
+    CV_WRAP virtual void setDescriptorType(DescriptorType dtype) = 0;
+    CV_WRAP virtual DescriptorType getDescriptorType() const = 0;
 
     CV_WRAP virtual void setDescriptorSize(int dsize) = 0;
     CV_WRAP virtual int getDescriptorSize() const = 0;
@@ -1181,7 +1181,7 @@ public:
      */
     CV_WRAP static Ptr<DescriptorMatcher> create( const String& descriptorMatcherType );
 
-    CV_WRAP static Ptr<DescriptorMatcher> create( const DescriptorMatcher::MatcherType& matcherType );
+    CV_WRAP static Ptr<DescriptorMatcher> create( const MatcherType& matcherType );
 
 
     // see corresponding cv::Algorithm method

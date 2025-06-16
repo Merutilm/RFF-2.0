@@ -123,7 +123,7 @@ CV__DNN_INLINE_NS_BEGIN
     };
 
     CV_EXPORTS std::vector< std::pair<Backend, Target> > getAvailableBackends();
-    CV_EXPORTS_W std::vector<Target> getAvailableTargets(dnn::Backend be);
+    CV_EXPORTS_W std::vector<Target> getAvailableTargets(Backend be);
 
     /**
      * @brief Enables detailed logging of the DNN model loading with CV DNN API.
@@ -180,7 +180,7 @@ CV__DNN_INLINE_NS_BEGIN
          *
          * Make CPU->GPU data transfer if it's require for the target.
          */
-        BackendWrapper(int targetId, const cv::Mat& m);
+        BackendWrapper(int targetId, const Mat& m);
 
         /**
          * @brief Make wrapper for reused cv::Mat.
@@ -1282,7 +1282,7 @@ CV__DNN_INLINE_NS_BEGIN
      *  (CV_32F). They are non normalized neither mean added. The number of returned images equals the first dimension
      *  of the blob (batch size). Every image has a number of channels equals to the second dimension of the blob (depth).
      */
-    CV_EXPORTS_W void imagesFromBlob(const cv::Mat& blob_, OutputArrayOfArrays images_);
+    CV_EXPORTS_W void imagesFromBlob(const Mat& blob_, OutputArrayOfArrays images_);
 
     /** @brief Convert all weights of Caffe network to half precision floating point.
      * @param src Path to origin model from Caffe framework contains single
@@ -1482,9 +1482,9 @@ CV__DNN_INLINE_NS_BEGIN
          // - forward* methods, setInput
 
          /// @sa Net::setPreferableBackend
-         CV_WRAP Model& setPreferableBackend(dnn::Backend backendId);
+         CV_WRAP Model& setPreferableBackend(Backend backendId);
          /// @sa Net::setPreferableTarget
-         CV_WRAP Model& setPreferableTarget(dnn::Target targetId);
+         CV_WRAP Model& setPreferableTarget(Target targetId);
 
          /// @sa Net::enableWinograd
          CV_WRAP Model& enableWinograd(bool useWinograd);
@@ -1818,7 +1818,7 @@ public:
     CV_WRAP
     void detectTextRectangles(
             InputArray frame,
-            CV_OUT std::vector<cv::RotatedRect>& detections,
+            CV_OUT std::vector<RotatedRect>& detections,
             CV_OUT std::vector<float>& confidences
     ) const;
 
@@ -1826,7 +1826,7 @@ public:
     CV_WRAP
     void detectTextRectangles(
             InputArray frame,
-            CV_OUT std::vector<cv::RotatedRect>& detections
+            CV_OUT std::vector<RotatedRect>& detections
     ) const;
 };
 

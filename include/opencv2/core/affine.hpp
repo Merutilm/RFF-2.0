@@ -252,7 +252,7 @@ namespace cv
         Vec3 rvec() const;
 
         //! @return the inverse of the current matrix.
-        Affine3 inv(int method = cv::DECOMP_SVD) const;
+        Affine3 inv(int method = DECOMP_SVD) const;
 
         //! a.rotate(R) is equivalent to Affine(R, 0) * a;
         Affine3 rotate(const Mat3& R) const;
@@ -357,7 +357,7 @@ cv::Affine3<T>::Affine3(const Vec3& _rvec, const Vec3& t)
 }
 
 template<typename T> inline
-cv::Affine3<T>::Affine3(const cv::Mat& data, const Vec3& t)
+cv::Affine3<T>::Affine3(const Mat& data, const Vec3& t)
 {
     CV_Assert(data.type() == cv::traits::Type<T>::value);
     CV_Assert(data.channels() == 1);
@@ -389,7 +389,7 @@ cv::Affine3<T>::Affine3(const float_type* vals) : matrix(vals)
 template<typename T> inline
 cv::Affine3<T> cv::Affine3<T>::Identity()
 {
-    return Affine3<T>(cv::Affine3<T>::Mat4::eye());
+    return Affine3<T>(Mat4::eye());
 }
 
 template<typename T> inline
@@ -427,7 +427,7 @@ void cv::Affine3<T>::rotation(const Vec3& _rvec)
 
 //Combines rotation methods above. Supports 3x3, 1x3, 3x1 sizes of data matrix;
 template<typename T> inline
-void cv::Affine3<T>::rotation(const cv::Mat& data)
+void cv::Affine3<T>::rotation(const Mat& data)
 {
     CV_Assert(data.type() == cv::traits::Type<T>::value);
     CV_Assert(data.channels() == 1);
@@ -471,7 +471,7 @@ typename cv::Affine3<T>::Mat3 cv::Affine3<T>::rotation() const
 template<typename T> inline
 typename cv::Affine3<T>::Mat3 cv::Affine3<T>::linear() const
 {
-    typename cv::Affine3<T>::Mat3 R;
+    Mat3 R;
     R.val[0] = matrix.val[0];  R.val[1] = matrix.val[1];  R.val[2] = matrix.val[ 2];
     R.val[3] = matrix.val[4];  R.val[4] = matrix.val[5];  R.val[5] = matrix.val[ 6];
     R.val[6] = matrix.val[8];  R.val[7] = matrix.val[9];  R.val[8] = matrix.val[10];
@@ -487,9 +487,9 @@ typename cv::Affine3<T>::Vec3 cv::Affine3<T>::translation() const
 template<typename T> inline
 typename cv::Affine3<T>::Vec3 cv::Affine3<T>::rvec() const
 {
-    cv::Vec3d w;
-    cv::Matx33d u, vt, R = rotation();
-    cv::SVD::compute(R, w, u, vt, cv::SVD::FULL_UV + cv::SVD::MODIFY_A);
+    Vec3d w;
+    Matx33d u, vt, R = rotation();
+    SVD::compute(R, w, u, vt, SVD::FULL_UV + SVD::MODIFY_A);
     R = u * vt;
 
     double rx = R.val[7] - R.val[5];
@@ -530,7 +530,7 @@ typename cv::Affine3<T>::Vec3 cv::Affine3<T>::rvec() const
         rx *= vth; ry *= vth; rz *= vth;
     }
 
-    return cv::Vec3d(rx, ry, rz);
+    return Vec3d(rx, ry, rz);
 }
 
 template<typename T> inline
@@ -598,13 +598,13 @@ cv::Affine3<Y> cv::Affine3<T>::cast() const
 }
 
 template<typename T> inline
-cv::Affine3<T> cv::operator*(const cv::Affine3<T>& affine1, const cv::Affine3<T>& affine2)
+cv::Affine3<T> cv::operator*(const Affine3<T>& affine1, const Affine3<T>& affine2)
 {
     return affine2.concatenate(affine1);
 }
 
 template<typename T, typename V> inline
-V cv::operator*(const cv::Affine3<T>& affine, const V& v)
+V cv::operator*(const Affine3<T>& affine, const V& v)
 {
     const typename Affine3<T>::Mat4& m = affine.matrix;
 
@@ -616,10 +616,10 @@ V cv::operator*(const cv::Affine3<T>& affine, const V& v)
 }
 
 static inline
-cv::Vec3f cv::operator*(const cv::Affine3f& affine, const cv::Vec3f& v)
+cv::Vec3f cv::operator*(const Affine3f& affine, const Vec3f& v)
 {
-    const cv::Matx44f& m = affine.matrix;
-    cv::Vec3f r;
+    const Matx44f& m = affine.matrix;
+    Vec3f r;
     r.val[0] = m.val[0] * v[0] + m.val[1] * v[1] + m.val[ 2] * v[2] + m.val[ 3];
     r.val[1] = m.val[4] * v[0] + m.val[5] * v[1] + m.val[ 6] * v[2] + m.val[ 7];
     r.val[2] = m.val[8] * v[0] + m.val[9] * v[1] + m.val[10] * v[2] + m.val[11];
@@ -627,10 +627,10 @@ cv::Vec3f cv::operator*(const cv::Affine3f& affine, const cv::Vec3f& v)
 }
 
 static inline
-cv::Vec3d cv::operator*(const cv::Affine3d& affine, const cv::Vec3d& v)
+cv::Vec3d cv::operator*(const Affine3d& affine, const Vec3d& v)
 {
-    const cv::Matx44d& m = affine.matrix;
-    cv::Vec3d r;
+    const Matx44d& m = affine.matrix;
+    Vec3d r;
     r.val[0] = m.val[0] * v[0] + m.val[1] * v[1] + m.val[ 2] * v[2] + m.val[ 3];
     r.val[1] = m.val[4] * v[0] + m.val[5] * v[1] + m.val[ 6] * v[2] + m.val[ 7];
     r.val[2] = m.val[8] * v[0] + m.val[9] * v[1] + m.val[10] * v[2] + m.val[11];

@@ -229,7 +229,7 @@ public:
     void* getObj() const;
     Size getSz() const;
 
-    _InputArray::KindFlag kind() const;
+    KindFlag kind() const;
     int dims(int i=-1) const;
     int cols(int i=-1) const;
     int rows(int i=-1) const;
@@ -365,9 +365,9 @@ public:
     std::vector<cuda::GpuMat>& getGpuMatVecRef() const;
     ogl::Buffer& getOGlBufferRef() const;
     cuda::HostMem& getHostMemRef() const;
-    void create(Size sz, int type, int i=-1, bool allowTransposed=false, _OutputArray::DepthMask fixedDepthMask=static_cast<_OutputArray::DepthMask>(0)) const;
-    void create(int rows, int cols, int type, int i=-1, bool allowTransposed=false, _OutputArray::DepthMask fixedDepthMask=static_cast<_OutputArray::DepthMask>(0)) const;
-    void create(int dims, const int* size, int type, int i=-1, bool allowTransposed=false, _OutputArray::DepthMask fixedDepthMask=static_cast<_OutputArray::DepthMask>(0)) const;
+    void create(Size sz, int type, int i=-1, bool allowTransposed=false, DepthMask fixedDepthMask=static_cast<DepthMask>(0)) const;
+    void create(int rows, int cols, int type, int i=-1, bool allowTransposed=false, DepthMask fixedDepthMask=static_cast<DepthMask>(0)) const;
+    void create(int dims, const int* size, int type, int i=-1, bool allowTransposed=false, DepthMask fixedDepthMask=static_cast<DepthMask>(0)) const;
     void createSameSize(const _InputArray& arr, int mtype) const;
     void release() const;
     void clear() const;
@@ -590,7 +590,7 @@ struct CV_EXPORTS UMatData
     uchar* origdata;
     size_t size;
 
-    UMatData::MemoryFlag flags;
+    MemoryFlag flags;
     void* handle;
     void* userdata;
     int allocatorFlags_;

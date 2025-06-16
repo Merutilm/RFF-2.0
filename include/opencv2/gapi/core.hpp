@@ -34,8 +34,8 @@ namespace cv { namespace gapi {
  * Core module functionality.
  */
 namespace core {
-    using GResize = cv::gapi::imgproc::GResize;
-    using GResizeP = cv::gapi::imgproc::GResizeP;
+    using GResize = imgproc::GResize;
+    using GResizeP = imgproc::GResizeP;
 
     using GMat2 = std::tuple<GMat,GMat>;
     using GMat3 = std::tuple<GMat,GMat,GMat>; // FIXME: how to avoid this?
@@ -472,7 +472,7 @@ namespace core {
     };
 
     G_TYPED_KERNEL(GWarpPerspective, <GMat(GMat, const Mat&, Size, int, int, const cv::Scalar&)>, "org.opencv.core.warpPerspective") {
-        static GMatDesc outMeta(GMatDesc in, const Mat&, Size dsize, int, int borderMode, const cv::Scalar&) {
+        static GMatDesc outMeta(GMatDesc in, const Mat&, Size dsize, int, int borderMode, const Scalar&) {
             GAPI_Assert((borderMode == cv::BORDER_CONSTANT || borderMode == cv::BORDER_REPLICATE) &&
                         "cv::gapi::warpPerspective supports only cv::BORDER_CONSTANT and cv::BORDER_REPLICATE border modes");
             return in.withType(in.depth, in.chan).withSize(dsize);
@@ -480,7 +480,7 @@ namespace core {
     };
 
     G_TYPED_KERNEL(GWarpAffine, <GMat(GMat, const Mat&, Size, int, int, const cv::Scalar&)>, "org.opencv.core.warpAffine") {
-        static GMatDesc outMeta(GMatDesc in, const Mat&, Size dsize, int, int border_mode, const cv::Scalar&) {
+        static GMatDesc outMeta(GMatDesc in, const Mat&, Size dsize, int, int border_mode, const Scalar&) {
             GAPI_Assert(border_mode != cv::BORDER_TRANSPARENT &&
                         "cv::BORDER_TRANSPARENT mode is not supported in cv::gapi::warpAffine");
             return in.withType(in.depth, in.chan).withSize(dsize);
@@ -1759,8 +1759,8 @@ optional flag #WARP_INVERSE_MAP, that sets M as the inverse transformation (
 
 @sa  warpAffine, resize, remap, getRectSubPix, perspectiveTransform
  */
-GAPI_EXPORTS_W GMat warpPerspective(const GMat& src, const Mat& M, const Size& dsize, int flags = cv::INTER_LINEAR,
-                                    int borderMode = cv::BORDER_CONSTANT, const Scalar& borderValue = Scalar());
+GAPI_EXPORTS_W GMat warpPerspective(const GMat& src, const Mat& M, const Size& dsize, int flags = INTER_LINEAR,
+                                    int borderMode = BORDER_CONSTANT, const Scalar& borderValue = Scalar());
 
 /** @brief Applies an affine transformation to an image.
 
@@ -1784,8 +1784,8 @@ borderMode=#BORDER_TRANSPARENT isn't supported
 
 @sa  warpPerspective, resize, remap, getRectSubPix, transform
  */
-GAPI_EXPORTS_W GMat warpAffine(const GMat& src, const Mat& M, const Size& dsize, int flags = cv::INTER_LINEAR,
-                               int borderMode = cv::BORDER_CONSTANT, const Scalar& borderValue = Scalar());
+GAPI_EXPORTS_W GMat warpAffine(const GMat& src, const Mat& M, const Size& dsize, int flags = INTER_LINEAR,
+                               int borderMode = BORDER_CONSTANT, const Scalar& borderValue = Scalar());
 //! @} gapi_transform
 
 /** @brief Finds centers of clusters and groups input samples around the clusters.

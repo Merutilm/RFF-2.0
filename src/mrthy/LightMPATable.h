@@ -19,7 +19,9 @@ namespace merutilm::rff {
 
         explicit LightMPATable(const ParallelRenderState &state, const LightMandelbrotReference &reference,
                       const MPASettings *mpaSettings, double dcMax, ApproxTableCache &tableRef,
-                      std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
+                      std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, tableRef, std::move(actionPerCreatingTableIteration)) {
+
+        };
 
 
         ~LightMPATable() override = default;

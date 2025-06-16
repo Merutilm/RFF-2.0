@@ -25,7 +25,7 @@ namespace util
     };
 
     template<typename T>
-    copy_through_move_t<util::decay_t<T>> copy_through_move(T&& t){
+    copy_through_move_t<decay_t<T>> copy_through_move(T&& t){
         return std::forward<T>(t);
     }
 } // namespace util

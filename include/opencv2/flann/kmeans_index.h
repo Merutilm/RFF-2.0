@@ -893,7 +893,7 @@ private:
 
     void computeNodeStatistics(KMeansNodePtr node, int* indices,
                                unsigned int indices_length,
-                               const cvflann::HammingLUT* identifier)
+                               const HammingLUT* identifier)
     {
         (void)identifier;
         computeBitfieldNodeStatistics(node, indices, indices_length);
@@ -901,7 +901,7 @@ private:
 
     void computeNodeStatistics(KMeansNodePtr node, int* indices,
                                unsigned int indices_length,
-                               const cvflann::Hamming<unsigned char>* identifier)
+                               const Hamming<unsigned char>* identifier)
     {
         (void)identifier;
         computeBitfieldNodeStatistics(node, indices, indices_length);
@@ -909,7 +909,7 @@ private:
 
     void computeNodeStatistics(KMeansNodePtr node, int* indices,
                                unsigned int indices_length,
-                               const cvflann::Hamming2<unsigned char>* identifier)
+                               const Hamming2<unsigned char>* identifier)
     {
         (void)identifier;
         computeBitfieldNodeStatistics(node, indices, indices_length);
@@ -917,7 +917,7 @@ private:
 
     void computeNodeStatistics(KMeansNodePtr node, int* indices,
                                unsigned int indices_length,
-                               const cvflann::DNAmmingLUT* identifier)
+                               const DNAmmingLUT* identifier)
     {
         (void)identifier;
         computeDnaNodeStatistics(node, indices, indices_length);
@@ -925,7 +925,7 @@ private:
 
     void computeNodeStatistics(KMeansNodePtr node, int* indices,
                                unsigned int indices_length,
-                               const cvflann::DNAmming2<unsigned char>* identifier)
+                               const DNAmming2<unsigned char>* identifier)
     {
         (void)identifier;
         computeDnaNodeStatistics(node, indices, indices_length);
@@ -1373,7 +1373,7 @@ private:
     void refineAndSplitClustering(
             KMeansNodePtr node, int* indices, int indices_length, int branching,
             int level, CentersType** centers, std::vector<DistanceType>& radiuses,
-            int* belongs_to, int* count, const cvflann::HammingLUT* identifier)
+            int* belongs_to, int* count, const HammingLUT* identifier)
     {
         (void)identifier;
         refineBitfieldClustering(
@@ -1387,7 +1387,7 @@ private:
     void refineAndSplitClustering(
             KMeansNodePtr node, int* indices, int indices_length, int branching,
             int level, CentersType** centers, std::vector<DistanceType>& radiuses,
-            int* belongs_to, int* count, const cvflann::Hamming<unsigned char>* identifier)
+            int* belongs_to, int* count, const Hamming<unsigned char>* identifier)
     {
         (void)identifier;
         refineBitfieldClustering(
@@ -1401,7 +1401,7 @@ private:
     void refineAndSplitClustering(
             KMeansNodePtr node, int* indices, int indices_length, int branching,
             int level, CentersType** centers, std::vector<DistanceType>& radiuses,
-            int* belongs_to, int* count, const cvflann::Hamming2<unsigned char>* identifier)
+            int* belongs_to, int* count, const Hamming2<unsigned char>* identifier)
     {
         (void)identifier;
         refineBitfieldClustering(
@@ -1415,7 +1415,7 @@ private:
     void refineAndSplitClustering(
             KMeansNodePtr node, int* indices, int indices_length, int branching,
             int level, CentersType** centers, std::vector<DistanceType>& radiuses,
-            int* belongs_to, int* count, const cvflann::DNAmmingLUT* identifier)
+            int* belongs_to, int* count, const DNAmmingLUT* identifier)
     {
         (void)identifier;
         refineDnaClustering(
@@ -1429,7 +1429,7 @@ private:
     void refineAndSplitClustering(
             KMeansNodePtr node, int* indices, int indices_length, int branching,
             int level, CentersType** centers, std::vector<DistanceType>& radiuses,
-            int* belongs_to, int* count, const cvflann::DNAmming2<unsigned char>* identifier)
+            int* belongs_to, int* count, const DNAmming2<unsigned char>* identifier)
     {
         (void)identifier;
         refineDnaClustering(

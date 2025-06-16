@@ -187,7 +187,7 @@ struct GAPI_EXPORTS_W_SIMPLE OpenVINO {
     GAPI_WRAP
     OpenVINO& cfgCacheDir(const std::string &dir) {
         if (!params_map.empty()) {
-            cv::util::throw_error(std::logic_error("ep::OpenVINO cannot be changed if"
+            util::throw_error(std::logic_error("ep::OpenVINO cannot be changed if"
                                                    "created from the parameters map."));
         }
         cache_dir = dir;
@@ -205,7 +205,7 @@ struct GAPI_EXPORTS_W_SIMPLE OpenVINO {
     GAPI_WRAP
     OpenVINO& cfgNumThreads(size_t nthreads) {
         if (!params_map.empty()) {
-            cv::util::throw_error(std::logic_error("ep::OpenVINO cannot be changed if"
+            util::throw_error(std::logic_error("ep::OpenVINO cannot be changed if"
                                                    "created from the parameters map."));
         }
         num_of_threads = nthreads;
@@ -222,7 +222,7 @@ struct GAPI_EXPORTS_W_SIMPLE OpenVINO {
     GAPI_WRAP
     OpenVINO& cfgEnableOpenCLThrottling() {
         if (!params_map.empty()) {
-            cv::util::throw_error(std::logic_error("ep::OpenVINO cannot be changed if"
+            util::throw_error(std::logic_error("ep::OpenVINO cannot be changed if"
                                                    "created from the parameters map."));
         }
         enable_opencl_throttling = true;
@@ -242,7 +242,7 @@ struct GAPI_EXPORTS_W_SIMPLE OpenVINO {
     GAPI_WRAP
     OpenVINO& cfgEnableDynamicShapes() {
         if (!params_map.empty()) {
-            cv::util::throw_error(std::logic_error("ep::OpenVINO cannot be changed if"
+            util::throw_error(std::logic_error("ep::OpenVINO cannot be changed if"
                                                    "created from the parameters map."));
         }
         enable_dynamic_shapes = true;
@@ -287,11 +287,11 @@ public:
     GAPI_WRAP
     explicit DirectML(const std::string &adapter_name) : ddesc(adapter_name) { };
 
-    using DeviceDesc = cv::util::variant<int, std::string>;
+    using DeviceDesc = util::variant<int, std::string>;
     DeviceDesc ddesc;
 };
 
-using EP = cv::util::variant< cv::util::monostate
+using EP = util::variant< util::monostate
                             , OpenVINO
                             , DirectML
                             , CoreML
@@ -300,7 +300,7 @@ using EP = cv::util::variant< cv::util::monostate
 
 } // namespace ep
 
-GAPI_EXPORTS cv::gapi::GBackend backend();
+GAPI_EXPORTS GBackend backend();
 
 enum class TraitAs: int {
     TENSOR, //!< G-API traits an associated cv::Mat as a raw tensor
@@ -309,8 +309,8 @@ enum class TraitAs: int {
             // creates an "image" blob (NCHW/NHWC, etc)
 };
 
-using PostProc = std::function<void(const std::unordered_map<std::string, cv::Mat> &,
-                                          std::unordered_map<std::string, cv::Mat> &)>;
+using PostProc = std::function<void(const std::unordered_map<std::string, Mat> &,
+                                          std::unordered_map<std::string, Mat> &)>;
 
 namespace detail {
 /**
@@ -329,13 +329,13 @@ struct ParamDesc {
     std::vector<std::string> input_names; //!< Names of input network layers.
     std::vector<std::string> output_names; //!< Names of output network layers.
 
-    using ConstInput = std::pair<cv::Mat, TraitAs>;
+    using ConstInput = std::pair<Mat, TraitAs>;
     std::unordered_map<std::string, ConstInput> const_inputs; //!< Map with pair of name of network layer and ConstInput which will be associated with this.
 
-    std::vector<cv::Scalar> mean; //!< Mean values for preprocessing.
-    std::vector<cv::Scalar> stdev; //!< Standard deviation values for preprocessing.
+    std::vector<Scalar> mean; //!< Mean values for preprocessing.
+    std::vector<Scalar> stdev; //!< Standard deviation values for preprocessing.
 
-    std::vector<cv::GMatDesc> out_metas; //!< Out meta information about your output (type, dimension).
+    std::vector<GMatDesc> out_metas; //!< Out meta information about your output (type, dimension).
     PostProc custom_post_proc; //!< Post processing function.
 
     std::vector<bool> normalize; //!< Vector of bool values that enabled or disabled normalize of input data.
@@ -349,13 +349,13 @@ struct ParamDesc {
     // (as it was done for the OV IE backend)
     // These values are pushed into the respective vector<> fields above
     // when the generic infer parameters are unpacked (see GONNXBackendImpl::unpackKernel)
-    std::unordered_map<std::string, std::pair<cv::Scalar, cv::Scalar> > generic_mstd;
+    std::unordered_map<std::string, std::pair<Scalar, Scalar> > generic_mstd;
     std::unordered_map<std::string, bool> generic_norm;
 
     std::map<std::string, std::string> session_options;
-    std::vector<cv::gapi::onnx::ep::EP> execution_providers;
+    std::vector<ep::EP> execution_providers;
     bool disable_mem_pattern;
-    cv::util::optional<int> opt_level;
+    util::optional<int> opt_level;
 };
 } // namespace detail
 
@@ -368,7 +368,7 @@ struct PortCfg {
         < std::string
         , std::tuple_size<typename Net::OutArgs>::value >;
     using NormCoefs = std::array
-        < cv::Scalar
+        < Scalar
         , std::tuple_size<typename Net::InArgs>::value >;
     using Normalize = std::array
         < bool
@@ -443,7 +443,7 @@ public:
     @return the reference on modified object.
     */
     Params<Net>& constInput(const std::string &layer_name,
-                            const cv::Mat &data,
+                            const Mat &data,
                             TraitAs hint = TraitAs::TENSOR) {
         desc.const_inputs[layer_name] = {data, hint};
         return *this;
@@ -481,7 +481,7 @@ public:
     layer's name and cv::Mat.
     @return the reference on modified object.
     */
-    Params<Net>& cfgPostProc(const std::vector<cv::GMatDesc> &out_metas,
+    Params<Net>& cfgPostProc(const std::vector<GMatDesc> &out_metas,
                              const PostProc &remap_function) {
         desc.out_metas        = out_metas;
         desc.custom_post_proc = remap_function;
@@ -497,7 +497,7 @@ public:
     layer's name and cv::Mat.
     @return the reference on modified object.
     */
-    Params<Net>& cfgPostProc(std::vector<cv::GMatDesc> &&out_metas,
+    Params<Net>& cfgPostProc(std::vector<GMatDesc> &&out_metas,
                              PostProc &&remap_function) {
         desc.out_metas        = std::move(out_metas);
         desc.custom_post_proc = std::move(remap_function);
@@ -516,7 +516,7 @@ public:
     function using these names.
     @return the reference on modified object.
     */
-    Params<Net>& cfgPostProc(const std::vector<cv::GMatDesc> &out_metas,
+    Params<Net>& cfgPostProc(const std::vector<GMatDesc> &out_metas,
                              const PostProc &remap_function,
                              const std::vector<std::string> &names_to_remap) {
         desc.out_metas        = out_metas;
@@ -535,7 +535,7 @@ public:
     function using these names.
     @return the reference on modified object.
     */
-    Params<Net>& cfgPostProc(std::vector<cv::GMatDesc> &&out_metas,
+    Params<Net>& cfgPostProc(std::vector<GMatDesc> &&out_metas,
                              PostProc &&remap_function,
                              std::vector<std::string> &&names_to_remap) {
         desc.out_metas        = std::move(out_metas);
@@ -657,14 +657,14 @@ public:
     @return the reference on modified object.
     */
     Params<Net>& cfgOptLevel(const int opt_level) {
-        desc.opt_level = cv::util::make_optional(opt_level);
+        desc.opt_level = util::make_optional(opt_level);
         return *this;
     }
 
     // BEGIN(G-API's network parametrization API)
-    GBackend      backend() const { return cv::gapi::onnx::backend(); }
+    GBackend      backend() const { return onnx::backend(); }
     std::string   tag()     const { return Net::tag(); }
-    cv::util::any params()  const { return { desc }; }
+    util::any params()  const { return { desc }; }
     // END(G-API's network parametrization API)
 
 protected:
@@ -677,7 +677,7 @@ protected:
 * @see struct Generic
 */
 template<>
-class Params<cv::gapi::Generic> {
+class Params<Generic> {
 public:
     /** @brief Class constructor.
 
@@ -692,8 +692,8 @@ public:
 
     /** @see onnx::Params::cfgMeanStdDev. */
     void cfgMeanStdDev(const std::string &layer,
-                       const cv::Scalar &m,
-                       const cv::Scalar &s) {
+                       const Scalar &m,
+                       const Scalar &s) {
         desc.generic_mstd[layer] = std::make_pair(m, s);
     }
 
@@ -739,13 +739,13 @@ public:
 
 /** @see onnx::Params::cfgOptLevel. */
     void cfgOptLevel(const int opt_level) {
-        desc.opt_level = cv::util::make_optional(opt_level);
+        desc.opt_level = util::make_optional(opt_level);
     }
 
     // BEGIN(G-API's network parametrization API)
-    GBackend      backend() const { return cv::gapi::onnx::backend(); }
+    GBackend      backend() const { return onnx::backend(); }
     std::string   tag()     const { return m_tag; }
-    cv::util::any params()  const { return { desc }; }
+    util::any params()  const { return { desc }; }
     // END(G-API's network parametrization API)
 protected:
     detail::ParamDesc desc;

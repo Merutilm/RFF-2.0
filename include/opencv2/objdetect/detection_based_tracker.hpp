@@ -75,21 +75,21 @@ class CV_EXPORTS DetectionBasedTracker
                     scaleFactor(1.1f)
                 {}
 
-                virtual void detect(const cv::Mat& image, std::vector<cv::Rect>& objects) = 0;
+                virtual void detect(const Mat& image, std::vector<Rect>& objects) = 0;
 
-                void setMinObjectSize(const cv::Size& min)
+                void setMinObjectSize(const Size& min)
                 {
                     minObjSize = min;
                 }
-                void setMaxObjectSize(const cv::Size& max)
+                void setMaxObjectSize(const Size& max)
                 {
                     maxObjSize = max;
                 }
-                cv::Size getMinObjectSize() const
+                Size getMinObjectSize() const
                 {
                     return minObjSize;
                 }
-                cv::Size getMaxObjectSize() const
+                Size getMaxObjectSize() const
                 {
                     return maxObjSize;
                 }
@@ -112,27 +112,27 @@ class CV_EXPORTS DetectionBasedTracker
                 virtual ~IDetector() {}
 
             protected:
-                cv::Size minObjSize;
-                cv::Size maxObjSize;
+                Size minObjSize;
+                Size maxObjSize;
                 int minNeighbours;
                 float scaleFactor;
         };
 
-        DetectionBasedTracker(cv::Ptr<IDetector> mainDetector, cv::Ptr<IDetector> trackingDetector, const Parameters& params);
+        DetectionBasedTracker(Ptr<IDetector> mainDetector, Ptr<IDetector> trackingDetector, const Parameters& params);
         virtual ~DetectionBasedTracker();
 
         virtual bool run();
         virtual void stop();
         virtual void resetTracking();
 
-        virtual void process(const cv::Mat& imageGray);
+        virtual void process(const Mat& imageGray);
 
         bool setParameters(const Parameters& params);
         const Parameters& getParameters() const;
 
 
-        typedef std::pair<cv::Rect, int> Object;
-        virtual void getObjects(std::vector<cv::Rect>& result) const;
+        typedef std::pair<Rect, int> Object;
+        virtual void getObjects(std::vector<Rect>& result) const;
         virtual void getObjects(std::vector<Object>& result) const;
 
         enum ObjectStatus
@@ -145,9 +145,9 @@ class CV_EXPORTS DetectionBasedTracker
         struct ExtObject
         {
             int id;
-            cv::Rect location;
+            Rect location;
             ObjectStatus status;
-            ExtObject(int _id, cv::Rect _location, ObjectStatus _status)
+            ExtObject(int _id, Rect _location, ObjectStatus _status)
                 :id(_id), location(_location), status(_status)
             {
             }
@@ -155,11 +155,11 @@ class CV_EXPORTS DetectionBasedTracker
         virtual void getObjects(std::vector<ExtObject>& result) const;
 
 
-        virtual int addObject(const cv::Rect& location); //returns id of the new object
+        virtual int addObject(const Rect& location); //returns id of the new object
 
     protected:
         class SeparateDetectionWork;
-        cv::Ptr<SeparateDetectionWork> separateDetectionWork;
+        Ptr<SeparateDetectionWork> separateDetectionWork;
         friend void* workcycleObjectDetectorFunction(void* p);
 
         struct InnerParameters
@@ -180,7 +180,7 @@ class CV_EXPORTS DetectionBasedTracker
 
         struct TrackedObject
         {
-            typedef std::vector<cv::Rect> PositionsVector;
+            typedef std::vector<Rect> PositionsVector;
 
             PositionsVector lastPositions;
 
@@ -188,7 +188,7 @@ class CV_EXPORTS DetectionBasedTracker
             int numFramesNotDetected;
             int id;
 
-            TrackedObject(const cv::Rect& rect):numDetectedFrames(1), numFramesNotDetected(0)
+            TrackedObject(const Rect& rect):numDetectedFrames(1), numFramesNotDetected(0)
             {
                 lastPositions.push_back(rect);
                 id=getNextId();
@@ -207,12 +207,12 @@ class CV_EXPORTS DetectionBasedTracker
         std::vector<float> weightsPositionsSmoothing;
         std::vector<float> weightsSizesSmoothing;
 
-        cv::Ptr<IDetector> cascadeForTracking;
+        Ptr<IDetector> cascadeForTracking;
 
-        void updateTrackedObjects(const std::vector<cv::Rect>& detectedObjects);
-        cv::Rect calcTrackedObjectPositionToShow(int i) const;
-        cv::Rect calcTrackedObjectPositionToShow(int i, ObjectStatus& status) const;
-        void detectInRegion(const cv::Mat& img, const cv::Rect& r, std::vector<cv::Rect>& detectedObjectsInRegions);
+        void updateTrackedObjects(const std::vector<Rect>& detectedObjects);
+        Rect calcTrackedObjectPositionToShow(int i) const;
+        Rect calcTrackedObjectPositionToShow(int i, ObjectStatus& status) const;
+        void detectInRegion(const Mat& img, const Rect& r, std::vector<Rect>& detectedObjectsInRegions);
 };
 
 //! @}

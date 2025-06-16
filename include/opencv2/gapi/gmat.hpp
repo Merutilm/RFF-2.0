@@ -87,7 +87,7 @@ public:
      *
      * @param m a cv::Mat buffer to associate with this GMat object.
      */
-    GAPI_WRAP explicit GMat(cv::Mat m);     // Value-initialization constructor
+    GAPI_WRAP explicit GMat(Mat m);     // Value-initialization constructor
 
     /// @private
     GMat(const GNode &n, std::size_t out);  // Operation result constructor
@@ -119,11 +119,11 @@ struct GAPI_EXPORTS_W_SIMPLE GMatDesc
     // FIXME: Default initializers in C++14
     GAPI_PROP int depth;
     GAPI_PROP int chan;
-    GAPI_PROP cv::Size size; // NB.: no multi-dimensional cases covered yet
+    GAPI_PROP Size size; // NB.: no multi-dimensional cases covered yet
     GAPI_PROP bool planar;
     GAPI_PROP std::vector<int> dims; // FIXME: Maybe it's real questionable to have it here
 
-    GAPI_WRAP GMatDesc(int d, int c, cv::Size s, bool p = false)
+    GAPI_WRAP GMatDesc(int d, int c, Size s, bool p = false)
         : depth(d), chan(c), size(s), planar(p) {}
 
     GAPI_WRAP GMatDesc(int d, const std::vector<int> &dd)
@@ -154,14 +154,14 @@ struct GAPI_EXPORTS_W_SIMPLE GMatDesc
     // (it handles the case when
     // 1-channel mat can be reinterpreted as is (1-channel mat)
     // and as a 3-channel planar mat with height divided by 3)
-    bool canDescribe(const cv::Mat& mat) const;
+    bool canDescribe(const Mat& mat) const;
 
-    bool canDescribe(const cv::RMat& mat) const;
+    bool canDescribe(const RMat& mat) const;
 
     // Meta combinator: return a new GMatDesc which differs in size by delta
     // (all other fields are taken unchanged from this GMatDesc)
     // FIXME: a better name?
-    GAPI_WRAP GMatDesc withSizeDelta(cv::Size delta) const
+    GAPI_WRAP GMatDesc withSizeDelta(Size delta) const
     {
         GMatDesc desc(*this);
         desc.size += delta;
@@ -173,10 +173,10 @@ struct GAPI_EXPORTS_W_SIMPLE GMatDesc
     // This is an overload.
     GAPI_WRAP GMatDesc withSizeDelta(int dx, int dy) const
     {
-        return withSizeDelta(cv::Size{dx,dy});
+        return withSizeDelta(Size{dx,dy});
     }
 
-    GAPI_WRAP GMatDesc withSize(cv::Size sz) const
+    GAPI_WRAP GMatDesc withSize(Size sz) const
     {
         GMatDesc desc(*this);
         desc.size = sz;
@@ -266,7 +266,7 @@ std::vector<int> checkVector(const GMatDesc& in);
 }} // namespace gapi::detail
 
 #if !defined(GAPI_STANDALONE)
-GAPI_EXPORTS GMatDesc descr_of(const cv::UMat &mat);
+GAPI_EXPORTS GMatDesc descr_of(const UMat &mat);
 #endif // !defined(GAPI_STANDALONE)
 
 //Fwd declarations
@@ -278,14 +278,14 @@ namespace gapi { namespace own {
 GAPI_EXPORTS GMatDesc descr_of(const RMat &mat);
 
 #if !defined(GAPI_STANDALONE)
-GAPI_EXPORTS GMatDesc descr_of(const cv::Mat &mat);
+GAPI_EXPORTS GMatDesc descr_of(const Mat &mat);
 #else
 using gapi::own::descr_of;
 #endif
 
 /** @} */
 
-GAPI_EXPORTS std::ostream& operator<<(std::ostream& os, const cv::GMatDesc &desc);
+GAPI_EXPORTS std::ostream& operator<<(std::ostream& os, const GMatDesc &desc);
 
 } // namespace cv
 

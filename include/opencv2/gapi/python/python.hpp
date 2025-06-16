@@ -24,19 +24,19 @@ namespace gapi {
  */
 namespace python {
 
-GAPI_EXPORTS cv::gapi::GBackend backend();
+GAPI_EXPORTS GBackend backend();
 
 struct GPythonContext
 {
-    const cv::GArgs      &ins;
-    const cv::GMetaArgs  &in_metas;
-    const cv::GTypesInfo &out_info;
+    const GArgs      &ins;
+    const GMetaArgs  &in_metas;
+    const GTypesInfo &out_info;
 
-    cv::optional<cv::GArg> m_state;
+    optional<GArg> m_state;
 };
 
-using Impl = std::function<cv::GRunArgs(const GPythonContext&)>;
-using Setup = std::function<cv::GArg(const GMetaArgs&, const GArgs&)>;
+using Impl = std::function<GRunArgs(const GPythonContext&)>;
+using Setup = std::function<GArg(const GMetaArgs&, const GArgs&)>;
 
 class GAPI_EXPORTS GPythonKernel
 {
@@ -49,16 +49,16 @@ public:
     bool  is_stateful = false;
 };
 
-class GAPI_EXPORTS GPythonFunctor : public cv::gapi::GFunctor
+class GAPI_EXPORTS GPythonFunctor : public GFunctor
 {
 public:
-    using Meta = cv::GKernel::M;
+    using Meta = GKernel::M;
 
     GPythonFunctor(const char* id, const Meta& meta, const Impl& impl,
                    const Setup& setup = nullptr);
 
     GKernelImpl    impl()    const override;
-    gapi::GBackend backend() const override;
+    GBackend backend() const override;
 
 private:
     GKernelImpl impl_;

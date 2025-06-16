@@ -88,7 +88,7 @@ namespace cv { namespace cuda { namespace device
 
         __device__ __forceinline__ void reduceIter(float val1, float val2)
         {
-            mySum += ::fabs(val1 - val2);
+            mySum += fabs(val1 - val2);
         }
 
         template <int THREAD_DIM> __device__ __forceinline__ void reduceAll(float* smem, int tid)

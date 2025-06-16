@@ -13,7 +13,7 @@ int simulatedAnnealingSolver(SimulatedAnnealingSolverSystem& solverSystem,
      double initialTemperature, double finalTemperature, double coolingRatio,
      size_t iterationsPerStep,
      CV_OUT double* lastTemperature,
-     cv::RNG& rngEnergy
+     RNG& rngEnergy
 )
 {
     CV_Assert(finalTemperature > 0);

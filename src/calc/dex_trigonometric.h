@@ -51,7 +51,7 @@ namespace merutilm::rff {
     }
 
     inline dex dex_trigonometric::atan2(const dex &y, const dex &x) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         atan2(&result, y, x);
         return result;
     }
@@ -67,7 +67,7 @@ namespace merutilm::rff {
 
 
     inline dex dex_trigonometric::sin(const dex &v) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         sin(&result, v);
         return result;
     }
@@ -78,7 +78,7 @@ namespace merutilm::rff {
     }
 
     inline dex dex_trigonometric::cos(const dex &v) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         cos(&result, v);
         return result;
     }
@@ -92,7 +92,7 @@ namespace merutilm::rff {
     }
 
     inline dex dex_trigonometric::tan(const dex &v) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         tan(&result, v);
         return result;
     }
@@ -110,7 +110,7 @@ namespace merutilm::rff {
         }
 
         if (mx.is_zero()) {
-            dex::cpy(result, dex::DEX_ZERO);
+            dex::cpy(result, dex::ZERO);
             return;
         }
         dex::sqr(result, mn);
@@ -120,7 +120,7 @@ namespace merutilm::rff {
     }
 
     inline dex dex_trigonometric::hypot_approx(const dex &a, const dex &b) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         hypot_approx(&result, a, b);
         return result;
     }
@@ -131,20 +131,20 @@ namespace merutilm::rff {
     }
 
     inline dex dex_trigonometric::hypot(const dex &a, const dex &b) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         hypot(&result, a, b);
         return result;
     }
 
     inline void dex_trigonometric::hypot2(dex *result, const dex &a, const dex &b) {
-        dex sqr_temp = dex::DEX_ZERO;
+        dex sqr_temp = dex::ZERO;
         dex::sqr(&sqr_temp, a);
         dex::sqr(result, b);
         dex::add(result, *result, sqr_temp);
     }
 
     inline dex dex_trigonometric::hypot2(const dex &a, const dex &b) {
-        dex result = dex::DEX_ZERO;
+        dex result = dex::ZERO;
         hypot2(&result, a, b);
         return result;
     }

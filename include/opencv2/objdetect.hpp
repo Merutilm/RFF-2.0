@@ -377,7 +377,7 @@ struct DetectionROI
    //! scale(size) of the bounding box
    double scale;
    //! set of requested locations to be evaluated
-   std::vector<cv::Point> locations;
+   std::vector<Point> locations;
    //! vector that will contain confidence values for each location
    std::vector<double> confidences;
 };
@@ -414,8 +414,8 @@ public:
     */
     CV_WRAP HOGDescriptor() : winSize(64,128), blockSize(16,16), blockStride(8,8),
         cellSize(8,8), nbins(9), derivAperture(1), winSigma(-1),
-        histogramNormType(HOGDescriptor::L2Hys), L2HysThreshold(0.2), gammaCorrection(true),
-        free_coef(-1.f), nlevels(HOGDescriptor::DEFAULT_NLEVELS), signedGradient(false)
+        histogramNormType(L2Hys), L2HysThreshold(0.2), gammaCorrection(true),
+        free_coef(-1.f), nlevels(DEFAULT_NLEVELS), signedGradient(false)
     {}
 
     /** @overload
@@ -434,9 +434,9 @@ public:
     */
     CV_WRAP HOGDescriptor(Size _winSize, Size _blockSize, Size _blockStride,
                   Size _cellSize, int _nbins, int _derivAperture=1, double _winSigma=-1,
-                  HOGDescriptor::HistogramNormType _histogramNormType=HOGDescriptor::L2Hys,
+                  HistogramNormType _histogramNormType=L2Hys,
                   double _L2HysThreshold=0.2, bool _gammaCorrection=false,
-                  int _nlevels=HOGDescriptor::DEFAULT_NLEVELS, bool _signedGradient=false)
+                  int _nlevels=DEFAULT_NLEVELS, bool _signedGradient=false)
     : winSize(_winSize), blockSize(_blockSize), blockStride(_blockStride), cellSize(_cellSize),
     nbins(_nbins), derivAperture(_derivAperture), winSigma(_winSigma),
     histogramNormType(_histogramNormType), L2HysThreshold(_L2HysThreshold),
@@ -639,7 +639,7 @@ public:
     CV_PROP double winSigma;
 
     //! histogramNormType
-    CV_PROP HOGDescriptor::HistogramNormType histogramNormType;
+    CV_PROP HistogramNormType histogramNormType;
 
     //! L2-Hys normalization method shrinkage.
     CV_PROP double L2HysThreshold;
@@ -673,10 +673,10 @@ public:
     @param winStride winStride
     @param padding padding
     */
-    virtual void detectROI(InputArray img, const std::vector<cv::Point> &locations,
-                                   CV_OUT std::vector<cv::Point>& foundLocations, CV_OUT std::vector<double>& confidences,
-                                   double hitThreshold = 0, cv::Size winStride = Size(),
-                                   cv::Size padding = Size()) const;
+    virtual void detectROI(InputArray img, const std::vector<Point> &locations,
+                                   CV_OUT std::vector<Point>& foundLocations, CV_OUT std::vector<double>& confidences,
+                                   double hitThreshold = 0, Size winStride = Size(),
+                                   Size padding = Size()) const;
 
     /** @brief evaluate specified ROI and return confidence value for each location in multiple scales
     @param img Matrix of the type CV_8U or CV_8UC3 containing an image where objects are detected.
@@ -687,7 +687,7 @@ public:
     @param groupThreshold Minimum possible number of rectangles minus 1. The threshold is used in a group of rectangles to retain it.
     */
     virtual void detectMultiScaleROI(InputArray img,
-                                     CV_OUT std::vector<cv::Rect>& foundLocations,
+                                     CV_OUT std::vector<Rect>& foundLocations,
                                      std::vector<DetectionROI>& locations,
                                      double hitThreshold = 0,
                                      int groupThreshold = 0) const;
@@ -698,7 +698,7 @@ public:
     @param groupThreshold Minimum possible number of rectangles minus 1. The threshold is used in a group of rectangles to retain it.
     @param eps Relative difference between sides of the rectangles to merge them into a group.
     */
-    void groupRectangles(std::vector<cv::Rect>& rectList, std::vector<double>& weights, int groupThreshold, double eps) const;
+    void groupRectangles(std::vector<Rect>& rectList, std::vector<double>& weights, int groupThreshold, double eps) const;
 };
 //! @}
 
@@ -754,7 +754,7 @@ public:
     @param parameters QR code encoder parameters QRCodeEncoder::Params
     */
     static CV_WRAP
-    Ptr<QRCodeEncoder> create(const QRCodeEncoder::Params& parameters = QRCodeEncoder::Params());
+    Ptr<QRCodeEncoder> create(const Params& parameters = Params());
 
     /** @brief Generates QR code from input string.
      @param encoded_info Input string to encode.
@@ -798,7 +798,7 @@ public:
      @param points Quadrangle vertices found by detect() method (or some other algorithm).
      @param straight_qrcode The optional output image containing rectified and binarized QR code
      */
-    CV_WRAP cv::String decodeCurved(InputArray img, InputArray points, OutputArray straight_qrcode = noArray());
+    CV_WRAP String decodeCurved(InputArray img, InputArray points, OutputArray straight_qrcode = noArray());
 
     /** @brief Both detects and decodes QR code on a curved surface
 
@@ -847,13 +847,13 @@ public:
     };
 
     /** @brief QR code detector constructor for Aruco-based algorithm. See cv::QRCodeDetectorAruco::Params */
-    CV_WRAP explicit QRCodeDetectorAruco(const QRCodeDetectorAruco::Params& params);
+    CV_WRAP explicit QRCodeDetectorAruco(const Params& params);
 
     /** @brief Detector parameters getter. See cv::QRCodeDetectorAruco::Params */
-    CV_WRAP const QRCodeDetectorAruco::Params& getDetectorParameters() const;
+    CV_WRAP const Params& getDetectorParameters() const;
 
     /** @brief Detector parameters setter. See cv::QRCodeDetectorAruco::Params */
-    CV_WRAP QRCodeDetectorAruco& setDetectorParameters(const QRCodeDetectorAruco::Params& params);
+    CV_WRAP QRCodeDetectorAruco& setDetectorParameters(const Params& params);
 
     /** @brief Aruco detector parameters are used to search for the finder patterns. */
     CV_WRAP const aruco::DetectorParameters& getArucoParameters() const;

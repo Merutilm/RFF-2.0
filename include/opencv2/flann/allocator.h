@@ -50,7 +50,7 @@ namespace cvflann
 template <typename T>
 T* allocate(size_t count = 1)
 {
-    T* mem = (T*) ::malloc(sizeof(T)*count);
+    T* mem = (T*) malloc(sizeof(T)*count);
     return mem;
 }
 
@@ -114,7 +114,7 @@ public:
 
         while (base != NULL) {
             prev = *((void**) base); /* Get pointer to prev block. */
-            ::free(base);
+            free(base);
             base = prev;
         }
     }
@@ -145,7 +145,7 @@ public:
                         size + sizeof(void*) + (WORDSIZE-1) : BLOCKSIZE;
 
             // use the standard C malloc to allocate memory
-            void* m = ::malloc(blockSize);
+            void* m = malloc(blockSize);
             if (!m) {
                 fprintf(stderr,"Failed to allocate memory.\n");
                 return NULL;

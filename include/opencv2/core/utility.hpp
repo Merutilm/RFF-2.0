@@ -334,13 +334,13 @@ public:
     //! starts counting ticks.
     CV_WRAP void start()
     {
-        startTime = cv::getTickCount();
+        startTime = getTickCount();
     }
 
     //! stops counting ticks.
     CV_WRAP void stop()
     {
-        const int64 time = cv::getTickCount();
+        const int64 time = getTickCount();
         if (startTime == 0)
             return;
         ++counter;
@@ -669,7 +669,7 @@ public:
         // nothing
     }
 
-    virtual void operator() (const cv::Range& range) const CV_OVERRIDE
+    virtual void operator() (const Range& range) const CV_OVERRIDE
     {
         m_functor(range);
     }
@@ -778,7 +778,7 @@ void Mat::forEach_impl(const Functor& operation) {
         }
     };
 
-    parallel_for_(cv::Range(0, LINES), PixelOperationWrapper(reinterpret_cast<Mat_<_Tp>*>(this), operation));
+    parallel_for_(Range(0, LINES), PixelOperationWrapper(reinterpret_cast<Mat_<_Tp>*>(this), operation));
 }
 
 /////////////////////////// Synchronization Primitives ///////////////////////////////
@@ -786,7 +786,7 @@ void Mat::forEach_impl(const Functor& operation) {
 #if !defined(_M_CEE)
 #ifndef OPENCV_DISABLE_THREAD_SUPPORT
 typedef std::recursive_mutex Mutex;
-typedef std::lock_guard<cv::Mutex> AutoLock;
+typedef std::lock_guard<Mutex> AutoLock;
 #else // OPENCV_DISABLE_THREAD_SUPPORT
 // Custom (failing) implementation of `std::recursive_mutex`.
 struct Mutex {
@@ -1250,13 +1250,13 @@ Search directories:
 @param silentMode Disables messages
 @return Returns path (absolute or relative to the current directory) or empty string if file is not found
 */
-CV_EXPORTS_W cv::String findFile(const cv::String& relative_path, bool required = true, bool silentMode = false);
+CV_EXPORTS_W String findFile(const String& relative_path, bool required = true, bool silentMode = false);
 
-CV_EXPORTS_W cv::String findFileOrKeep(const cv::String& relative_path, bool silentMode = false);
+CV_EXPORTS_W String findFileOrKeep(const String& relative_path, bool silentMode = false);
 
-inline cv::String findFileOrKeep(const cv::String& relative_path, bool silentMode)
+inline String findFileOrKeep(const String& relative_path, bool silentMode)
 {
-    cv::String res = findFile(relative_path, false, silentMode);
+    String res = findFile(relative_path, false, silentMode);
     if (res.empty())
         return relative_path;
     return res;
@@ -1269,7 +1269,7 @@ Passed paths are used in LIFO order.
 
 @param path Path to used samples data
 */
-CV_EXPORTS_W void addSamplesDataSearchPath(const cv::String& path);
+CV_EXPORTS_W void addSamplesDataSearchPath(const String& path);
 
 /** @brief Append samples search data sub directory
 
@@ -1278,7 +1278,7 @@ Passed subdirectories are used in LIFO order.
 
 @param subdir samples data sub directory
 */
-CV_EXPORTS_W void addSamplesDataSearchSubDirectory(const cv::String& subdir);
+CV_EXPORTS_W void addSamplesDataSearchSubDirectory(const String& subdir);
 
 //! @}
 } // namespace samples

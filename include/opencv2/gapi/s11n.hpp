@@ -31,19 +31,19 @@ namespace gapi {
 */
 
 namespace detail {
-    GAPI_EXPORTS cv::GComputation getGraph(const std::vector<char> &bytes);
+    GAPI_EXPORTS GComputation getGraph(const std::vector<char> &bytes);
 
-    GAPI_EXPORTS cv::GMetaArgs getMetaArgs(const std::vector<char> &bytes);
+    GAPI_EXPORTS GMetaArgs getMetaArgs(const std::vector<char> &bytes);
 
-    GAPI_EXPORTS cv::GRunArgs getRunArgs(const std::vector<char> &bytes);
+    GAPI_EXPORTS GRunArgs getRunArgs(const std::vector<char> &bytes);
 
     GAPI_EXPORTS std::vector<std::string> getVectorOfStrings(const std::vector<char> &bytes);
 
     template<typename... Types>
-    cv::GCompileArgs getCompileArgs(const std::vector<char> &bytes);
+    GCompileArgs getCompileArgs(const std::vector<char> &bytes);
 
     template<typename... AdapterType>
-    cv::GRunArgs getRunArgsWithAdapters(const std::vector<char> &bytes);
+    GRunArgs getRunArgsWithAdapters(const std::vector<char> &bytes);
 } // namespace detail
 
 /** @brief Serialize a graph represented by GComputation into an array of bytes.
@@ -52,22 +52,22 @@ namespace detail {
  * @param c GComputation to serialize.
  * @return serialized vector of bytes.
  */
-GAPI_EXPORTS std::vector<char> serialize(const cv::GComputation &c);
+GAPI_EXPORTS std::vector<char> serialize(const GComputation &c);
 
 /** @overload
  * @param ca GCompileArgs to serialize.
  */
-GAPI_EXPORTS std::vector<char> serialize(const cv::GCompileArgs& ca);
+GAPI_EXPORTS std::vector<char> serialize(const GCompileArgs& ca);
 
 /** @overload
  * @param ma GMetaArgs to serialize.
  */
-GAPI_EXPORTS std::vector<char> serialize(const cv::GMetaArgs& ma);
+GAPI_EXPORTS std::vector<char> serialize(const GMetaArgs& ma);
 
 /** @overload
  * @param ra GRunArgs to serialize.
  */
-GAPI_EXPORTS std::vector<char> serialize(const cv::GRunArgs& ra);
+GAPI_EXPORTS std::vector<char> serialize(const GRunArgs& ra);
 
 /** @overload
  * @param vs std::vector<std::string> to serialize.
@@ -87,7 +87,7 @@ T deserialize(const std::vector<char> &bytes);
  * @return deserialized GComputation object.
  */
 template<> inline
-cv::GComputation deserialize(const std::vector<char> &bytes) {
+GComputation deserialize(const std::vector<char> &bytes) {
     return detail::getGraph(bytes);
 }
 
@@ -98,7 +98,7 @@ cv::GComputation deserialize(const std::vector<char> &bytes) {
  * @return deserialized GMetaArgs object.
  */
 template<> inline
-cv::GMetaArgs deserialize(const std::vector<char> &bytes) {
+GMetaArgs deserialize(const std::vector<char> &bytes) {
     return detail::getMetaArgs(bytes);
 }
 
@@ -109,7 +109,7 @@ cv::GMetaArgs deserialize(const std::vector<char> &bytes) {
  * @return deserialized GRunArgs object.
  */
 template<> inline
-cv::GRunArgs deserialize(const std::vector<char> &bytes) {
+GRunArgs deserialize(const std::vector<char> &bytes) {
     return detail::getRunArgs(bytes);
 }
 
@@ -224,38 +224,38 @@ GAPI_EXPORTS std::unique_ptr<IIStream> getInStream(const std::vector<char> &byte
 
 // OpenCV types ////////////////////////////////////////////////////////////////
 
-GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::Point &pt);
-GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::Point &pt);
+GAPI_EXPORTS IOStream& operator<< (IOStream& os, const Point &pt);
+GAPI_EXPORTS IIStream& operator>> (IIStream& is,       Point &pt);
 
-GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::Point2f &pt);
-GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::Point2f &pt);
+GAPI_EXPORTS IOStream& operator<< (IOStream& os, const Point2f &pt);
+GAPI_EXPORTS IIStream& operator>> (IIStream& is,       Point2f &pt);
 
-GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::Point3f &pt);
-GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::Point3f &pt);
+GAPI_EXPORTS IOStream& operator<< (IOStream& os, const Point3f &pt);
+GAPI_EXPORTS IIStream& operator>> (IIStream& is,       Point3f &pt);
 
-GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::Size &sz);
-GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::Size &sz);
+GAPI_EXPORTS IOStream& operator<< (IOStream& os, const Size &sz);
+GAPI_EXPORTS IIStream& operator>> (IIStream& is,       Size &sz);
 
-GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::Rect &rc);
-GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::Rect &rc);
+GAPI_EXPORTS IOStream& operator<< (IOStream& os, const Rect &rc);
+GAPI_EXPORTS IIStream& operator>> (IIStream& is,       Rect &rc);
 
-GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::Scalar &s);
-GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::Scalar &s);
+GAPI_EXPORTS IOStream& operator<< (IOStream& os, const Scalar &s);
+GAPI_EXPORTS IIStream& operator>> (IIStream& is,       Scalar &s);
 
-GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::Mat &m);
-GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::Mat &m);
+GAPI_EXPORTS IOStream& operator<< (IOStream& os, const Mat &m);
+GAPI_EXPORTS IIStream& operator>> (IIStream& is,       Mat &m);
 
 // FIXME: for GRunArgs serialization
 #if !defined(GAPI_STANDALONE)
-GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::UMat & um);
-GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::UMat & um);
+GAPI_EXPORTS IOStream& operator<< (IOStream& os, const UMat & um);
+GAPI_EXPORTS IIStream& operator>> (IIStream& is,       UMat & um);
 #endif // !defined(GAPI_STANDALONE)
 
-GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::RMat &r);
-GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::RMat &r);
+GAPI_EXPORTS IOStream& operator<< (IOStream& os, const RMat &r);
+GAPI_EXPORTS IIStream& operator>> (IIStream& is,       RMat &r);
 
-GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::gapi::wip::IStreamSource::Ptr &issptr);
-GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::gapi::wip::IStreamSource::Ptr &issptr);
+GAPI_EXPORTS IOStream& operator<< (IOStream& os, const wip::IStreamSource::Ptr &issptr);
+GAPI_EXPORTS IIStream& operator>> (IIStream& is,       wip::IStreamSource::Ptr &issptr);
 
 GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::detail::VectorRef &vr);
 GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::detail::VectorRef &vr);
@@ -264,9 +264,9 @@ GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::detail::OpaqueRef &op
 GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::detail::OpaqueRef &opr);
 
 /// @private -- Exclude this function from OpenCV documentation
-GAPI_EXPORTS IOStream& operator<< (IOStream& os, const cv::MediaFrame &mf);
+GAPI_EXPORTS IOStream& operator<< (IOStream& os, const MediaFrame &mf);
 /// @private -- Exclude this function from OpenCV documentation
-GAPI_EXPORTS IIStream& operator>> (IIStream& is,       cv::MediaFrame &mf);
+GAPI_EXPORTS IIStream& operator>> (IIStream& is,       MediaFrame &mf);
 
 // Generic STL types ////////////////////////////////////////////////////////////////
 template<typename K, typename V>
@@ -342,7 +342,7 @@ IOStream& put_v(IOStream&, const V&, std::size_t) {
 template<typename V, typename X, typename... Xs>
 IOStream& put_v(IOStream& os, const V& v, std::size_t x) {
     return (x == 0u)
-        ? os << cv::util::get<X>(v)
+        ? os << util::get<X>(v)
         : put_v<V, Xs...>(os, v, x-1);
 }
 
@@ -364,24 +364,24 @@ IIStream& get_v(IIStream& is, V& v, std::size_t i, std::size_t gi) {
 
 //! @overload
 template<typename... Ts>
-IOStream& operator<< (IOStream& os, const cv::util::variant<Ts...> &v) {
+IOStream& operator<< (IOStream& os, const util::variant<Ts...> &v) {
     os << static_cast<uint32_t>(v.index());
-    return detail::put_v<cv::util::variant<Ts...>, Ts...>(os, v, v.index());
+    return detail::put_v<util::variant<Ts...>, Ts...>(os, v, v.index());
 }
 //! @overload
 template<typename... Ts>
-IIStream& operator>> (IIStream& is, cv::util::variant<Ts...> &v) {
+IIStream& operator>> (IIStream& is, util::variant<Ts...> &v) {
     int idx = -1;
     is >> idx;
     GAPI_Assert(idx >= 0 && idx < (int)sizeof...(Ts));
-    return detail::get_v<cv::util::variant<Ts...>, Ts...>(is, v, 0u, idx);
+    return detail::get_v<util::variant<Ts...>, Ts...>(is, v, 0u, idx);
 }
 
 // FIXME: consider a better solution
 /// @private -- Exclude this function from OpenCV documentation
 template<typename... Ts>
-void getRunArgByIdx (IIStream& is, cv::util::variant<Ts...> &v, uint32_t idx) {
-    is = detail::get_v<cv::util::variant<Ts...>, Ts...>(is, v, 0u, idx);
+void getRunArgByIdx (IIStream& is, util::variant<Ts...> &v, uint32_t idx) {
+    is = detail::get_v<util::variant<Ts...>, Ts...>(is, v, 0u, idx);
 }
 } // namespace s11n
 
@@ -390,20 +390,20 @@ namespace detail
 template<typename T> struct try_deserialize_comparg;
 
 template<> struct try_deserialize_comparg<std::tuple<>> {
-static cv::util::optional<GCompileArg> exec(const std::string&, cv::gapi::s11n::IIStream&) {
+static util::optional<GCompileArg> exec(const std::string&, s11n::IIStream&) {
         return { };
     }
 };
 
 template<typename T, typename... Types>
 struct try_deserialize_comparg<std::tuple<T, Types...>> {
-static cv::util::optional<GCompileArg> exec(const std::string& tag, cv::gapi::s11n::IIStream& is) {
+static util::optional<GCompileArg> exec(const std::string& tag, s11n::IIStream& is) {
     if (tag == cv::detail::CompileArgTag<T>::tag()) {
-        static_assert(cv::gapi::s11n::detail::has_S11N_spec<T>::value,
+        static_assert(s11n::detail::has_S11N_spec<T>::value,
             "cv::gapi::deserialize<GCompileArgs, Types...> expects Types to have S11N "
             "specializations with deserialization callbacks!");
         return cv::util::optional<GCompileArg>(
-            GCompileArg { cv::gapi::s11n::detail::S11N<T>::deserialize(is) });
+            GCompileArg { s11n::detail::S11N<T>::deserialize(is) });
     }
     return try_deserialize_comparg<std::tuple<Types...>>::exec(tag, is);
 }
@@ -414,7 +414,7 @@ struct deserialize_arg_with_adapter;
 
 template<typename RA, typename TA>
 struct deserialize_arg_with_adapter<RA, TA> {
-static GRunArg exec(cv::gapi::s11n::IIStream& is) {
+static GRunArg exec(s11n::IIStream& is) {
     std::unique_ptr<TA> ptr(new TA);
     ptr->deserialize(is);
     return GRunArg { RA(std::move(ptr)) };
@@ -423,7 +423,7 @@ static GRunArg exec(cv::gapi::s11n::IIStream& is) {
 
 template<typename RA>
 struct deserialize_arg_with_adapter<RA, void> {
-static GRunArg exec(cv::gapi::s11n::IIStream&) {
+static GRunArg exec(s11n::IIStream&) {
     GAPI_Error("No suitable adapter class found during RMat/MediaFrame deserialization. "
                          "Please, make sure you've passed them in cv::gapi::deserialize() template");
     return GRunArg{};
@@ -432,14 +432,14 @@ static GRunArg exec(cv::gapi::s11n::IIStream&) {
 
 template<typename... Types>
 struct deserialize_runarg {
-static GRunArg exec(cv::gapi::s11n::IIStream& is, uint32_t idx) {
+static GRunArg exec(s11n::IIStream& is, uint32_t idx) {
     if (idx == GRunArg::index_of<RMat>()) {
         // Type or void (if not found)
-        using TA = typename cv::util::find_adapter_impl<RMat::IAdapter, Types...>::type;
+        using TA = typename util::find_adapter_impl<RMat::IAdapter, Types...>::type;
         return deserialize_arg_with_adapter<RMat, TA>::exec(is);
     } else if (idx == GRunArg::index_of<MediaFrame>()) {
         // Type or void (if not found)
-        using TA = typename cv::util::find_adapter_impl<MediaFrame::IAdapter, Types...>::type;
+        using TA = typename util::find_adapter_impl<MediaFrame::IAdapter, Types...>::type;
         return deserialize_arg_with_adapter<MediaFrame, TA>::exec(is);
     } else { // not an adapter holding type runarg - use default deserialization
         GRunArg arg;
@@ -450,18 +450,18 @@ static GRunArg exec(cv::gapi::s11n::IIStream& is, uint32_t idx) {
 };
 
 template<typename... Types>
-inline cv::util::optional<GCompileArg> tryDeserializeCompArg(const std::string& tag,
+inline util::optional<GCompileArg> tryDeserializeCompArg(const std::string& tag,
                                                              const std::vector<char>& sArg) {
-    std::unique_ptr<cv::gapi::s11n::IIStream> pArgIs = cv::gapi::s11n::detail::getInStream(sArg);
+    std::unique_ptr<s11n::IIStream> pArgIs = s11n::detail::getInStream(sArg);
     return try_deserialize_comparg<std::tuple<Types...>>::exec(tag, *pArgIs);
 }
 
 template<typename... Types>
-cv::GCompileArgs getCompileArgs(const std::vector<char> &sArgs) {
-    cv::GCompileArgs args;
+GCompileArgs getCompileArgs(const std::vector<char> &sArgs) {
+    GCompileArgs args;
 
-    std::unique_ptr<cv::gapi::s11n::IIStream> pIs = cv::gapi::s11n::detail::getInStream(sArgs);
-    cv::gapi::s11n::IIStream& is = *pIs;
+    std::unique_ptr<s11n::IIStream> pIs = s11n::detail::getInStream(sArgs);
+    s11n::IIStream& is = *pIs;
 
     uint32_t sz = 0;
     is >> sz;
@@ -472,8 +472,8 @@ cv::GCompileArgs getCompileArgs(const std::vector<char> &sArgs) {
         std::vector<char> sArg;
         is >> sArg;
 
-        cv::util::optional<GCompileArg> dArg =
-            cv::gapi::detail::tryDeserializeCompArg<Types...>(tag, sArg);
+        util::optional<GCompileArg> dArg =
+            detail::tryDeserializeCompArg<Types...>(tag, sArg);
 
         if (dArg.has_value())
         {
@@ -485,17 +485,17 @@ cv::GCompileArgs getCompileArgs(const std::vector<char> &sArgs) {
 }
 
 template<typename... AdapterTypes>
-cv::GRunArgs getRunArgsWithAdapters(const std::vector<char> &bytes) {
-    std::unique_ptr<cv::gapi::s11n::IIStream> pIs = cv::gapi::s11n::detail::getInStream(bytes);
-    cv::gapi::s11n::IIStream& is = *pIs;
-    cv::GRunArgs args;
+GRunArgs getRunArgsWithAdapters(const std::vector<char> &bytes) {
+    std::unique_ptr<s11n::IIStream> pIs = s11n::detail::getInStream(bytes);
+    s11n::IIStream& is = *pIs;
+    GRunArgs args;
 
     uint32_t sz = 0;
     is >> sz;
     for (uint32_t i = 0; i < sz; ++i) {
         uint32_t idx = 0;
         is >> idx;
-        args.push_back(cv::gapi::detail::deserialize_runarg<AdapterTypes...>::exec(is, idx));
+        args.push_back(deserialize_runarg<AdapterTypes...>::exec(is, idx));
     }
 
     return args;

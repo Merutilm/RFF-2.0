@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "GLScene.h"
+#include "Win32GLScene.h"
 #include "../io/RFFMap.h"
 #include "../opengl/GLMultipassRenderer.h"
 #include "../opengl/GLRendererAntialiasing.h"
@@ -18,7 +18,7 @@
 #include "opencv2/core/mat.hpp"
 
 namespace merutilm::rff {
-    class VideoRenderScene final : public GLScene {
+    class VideoRenderScene final : public Win32GLScene {
 
         RFFMap normal = RFFMap::DEFAULT_MAP;
         RFFMap zoomed = RFFMap::DEFAULT_MAP;

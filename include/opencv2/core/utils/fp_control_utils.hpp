@@ -29,12 +29,12 @@ public:
     inline explicit FPDenormalsIgnoreHintScope(const FPDenormalsModeState& state)
     {
         details::saveFPDenormalsState(saved_state);
-        details::restoreFPDenormalsState(state);
+        restoreFPDenormalsState(state);
     }
 
     inline ~FPDenormalsIgnoreHintScope()
     {
-        details::restoreFPDenormalsState(saved_state);
+        restoreFPDenormalsState(saved_state);
     }
 
 protected:

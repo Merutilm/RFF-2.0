@@ -32,14 +32,14 @@ struct GDesync {
     // FIXME: This function can be generic and declared in gkernel.hpp
     //        (it is there already, but a part of GKernelType[M]
     template<typename... R, int... IIs>
-    static std::tuple<R...> yield(cv::GCall &call, cv::detail::Seq<IIs...>) {
+    static std::tuple<R...> yield(GCall &call, cv::detail::Seq<IIs...>) {
         return std::make_tuple(cv::detail::Yield<R>::yield(call, IIs)...);
     }
 };
 
 template<typename G>
 G desync(const G &g) {
-    cv::GKernel k{
+    GKernel k{
           GDesync::id()                                     // kernel id
         , ""                                                // kernel tag
         , [](const GMetaArgs &a, const GArgs &) {return a;} // outMeta callback
@@ -48,7 +48,7 @@ G desync(const G &g) {
         , {cv::detail::GObtainCtor<G>::get()}               // output template ctors
         , {cv::detail::GTypeTraits<G>::op_kind}             // output data kinds
     };
-    cv::GCall call(std::move(k));
+    GCall call(std::move(k));
     call.pass(g);
     return std::get<0>(GDesync::yield<G>(call, cv::detail::MkSeq<1>::type()));
 }

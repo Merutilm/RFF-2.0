@@ -138,7 +138,7 @@ public:
     @sa detail::MatchesInfo
     */
     CV_WRAP_AS(apply2) void operator ()(const std::vector<ImageFeatures> &features, CV_OUT std::vector<MatchesInfo> &pairwise_matches,
-                                        const cv::UMat &mask = cv::UMat()) { match(features, pairwise_matches, mask); }
+                                        const UMat &mask = UMat()) { match(features, pairwise_matches, mask); }
 
     /** @return True, if it's possible to use the same matcher instance in parallel, false otherwise
     */
@@ -169,7 +169,7 @@ protected:
     @param mask (optional) mask indicating which image pairs should be matched
      */
     virtual void match(const std::vector<ImageFeatures> &features, std::vector<MatchesInfo> &pairwise_matches,
-                       const cv::UMat &mask = cv::UMat());
+                       const UMat &mask = UMat());
 
     bool is_thread_safe_;
 };
@@ -219,7 +219,7 @@ protected:
     // indicate that we do not want to hide the base class match method with a different signature
     using BestOf2NearestMatcher::match;
     void match(const std::vector<ImageFeatures> &features, std::vector<MatchesInfo> &pairwise_matches,
-               const cv::UMat &mask = cv::UMat()) CV_OVERRIDE;
+               const UMat &mask = UMat()) CV_OVERRIDE;
 
     int range_width_;
 };

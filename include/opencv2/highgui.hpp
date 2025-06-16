@@ -392,7 +392,7 @@ CV_EXPORTS_W void resizeWindow(const String& winname, int width, int height);
 @param winname Window name.
 @param size The new window size.
 */
-CV_EXPORTS_W void resizeWindow(const String& winname, const cv::Size& size);
+CV_EXPORTS_W void resizeWindow(const String& winname, const Size& size);
 
 /** @brief Moves the window to the specified position
 

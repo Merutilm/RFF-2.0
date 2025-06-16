@@ -49,13 +49,13 @@ static std::string bytesToStringRepr(size_t value)
     return s;
 }
 
-static String getDeviceTypeString(const cv::ocl::Device& device)
+static String getDeviceTypeString(const ocl::Device& device)
 {
-    if (device.type() == cv::ocl::Device::TYPE_CPU) {
+    if (device.type() == ocl::Device::TYPE_CPU) {
         return "CPU";
     }
 
-    if (device.type() == cv::ocl::Device::TYPE_GPU) {
+    if (device.type() == ocl::Device::TYPE_GPU) {
         if (device.hostUnifiedMemory()) {
             return "iGPU";
         } else {
@@ -81,7 +81,7 @@ static void dumpOpenCLInformation()
         }
 
         std::vector<PlatformInfo> platforms;
-        cv::ocl::getPlatfomsInfo(platforms);
+        getPlatfomsInfo(platforms);
         if (platforms.empty())
         {
             DUMP_MESSAGE_STDOUT("OpenCL is not available");
