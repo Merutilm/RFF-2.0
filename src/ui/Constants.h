@@ -63,7 +63,7 @@ namespace merutilm::rff::Constants {
         constexpr float ZOOM_INTERVAL = 0.235f;
         constexpr float ZOOM_DEADLINE = 290;
         constexpr uint64_t MINIMUM_ITERATION = 100;
-        constexpr int AUTOMATIC_ITERATION_MULTIPLIER = 50;
+        constexpr int AUTOMATIC_ITERATION_MULTIPLIER = 100;
         constexpr uint16_t GAUSSIAN_MAX_WIDTH = 200;
         constexpr int GAUSSIAN_REQUIRES_BOX = 3;
         constexpr double INTENTIONAL_ERROR_DCLMB = 1e16; //DCmax for Locate Mini Brot

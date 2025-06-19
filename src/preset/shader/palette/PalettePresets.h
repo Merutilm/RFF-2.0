@@ -10,13 +10,20 @@
 
 namespace merutilm::rff::PalettePresets {
     struct LongRandom64 final : public Presets::ShaderPresets::PalettePreset {
-        std::string getName() const override;
-        PaletteSettings paletteSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] PaletteSettings paletteSettings() const override;
     };
+
+    struct LongRainbow7 final : public Presets::ShaderPresets::PalettePreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] PaletteSettings paletteSettings() const override;
+    };
+
     struct Rainbow final : public Presets::ShaderPresets::PalettePreset {
-        std::string getName() const override;
-        PaletteSettings paletteSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] PaletteSettings paletteSettings() const override;
     };
 }
-
-

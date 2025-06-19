@@ -9,43 +9,43 @@
 
 namespace merutilm::rff::CalculationPresets {
     struct UltraFast final : public Presets::CalculationPresets {
-        std::string getName() const override;
-        MPASettings mpaSettings() const override;
-        ReferenceCompressionSettings referenceCompressionSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] MPASettings mpaSettings() const override;
+        [[nodiscard]] ReferenceCompressionSettings referenceCompressionSettings() const override;
     };
     struct Fast final : public Presets::CalculationPresets {
-        std::string getName() const override;
-        MPASettings mpaSettings() const override;
-        ReferenceCompressionSettings referenceCompressionSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] MPASettings mpaSettings() const override;
+        [[nodiscard]] ReferenceCompressionSettings referenceCompressionSettings() const override;
     };
     struct Normal final : public Presets::CalculationPresets {
-        std::string getName() const override;
-        MPASettings mpaSettings() const override;
-        ReferenceCompressionSettings referenceCompressionSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] MPASettings mpaSettings() const override;
+        [[nodiscard]] ReferenceCompressionSettings referenceCompressionSettings() const override;
     };
     struct Best final : public Presets::CalculationPresets {
-        std::string getName() const override;
-        MPASettings mpaSettings() const override;
-        ReferenceCompressionSettings referenceCompressionSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] MPASettings mpaSettings() const override;
+        [[nodiscard]] ReferenceCompressionSettings referenceCompressionSettings() const override;
     };
     struct UltraBest final : public Presets::CalculationPresets {
-        std::string getName() const override;
-        MPASettings mpaSettings() const override;
-        ReferenceCompressionSettings referenceCompressionSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] MPASettings mpaSettings() const override;
+        [[nodiscard]] ReferenceCompressionSettings referenceCompressionSettings() const override;
     };
     struct Stable final : public Presets::CalculationPresets {
-        std::string getName() const override;
-        MPASettings mpaSettings() const override;
-        ReferenceCompressionSettings referenceCompressionSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] MPASettings mpaSettings() const override;
+        [[nodiscard]] ReferenceCompressionSettings referenceCompressionSettings() const override;
     };
     struct MoreStable final : public Presets::CalculationPresets {
-        std::string getName() const override;
-        MPASettings mpaSettings() const override;
-        ReferenceCompressionSettings referenceCompressionSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] MPASettings mpaSettings() const override;
+        [[nodiscard]] ReferenceCompressionSettings referenceCompressionSettings() const override;
     };
     struct UltraStable final : public Presets::CalculationPresets {
-        std::string getName() const override;
-        MPASettings mpaSettings() const override;
-        ReferenceCompressionSettings referenceCompressionSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] MPASettings mpaSettings() const override;
+        [[nodiscard]] ReferenceCompressionSettings referenceCompressionSettings() const override;
     };
 }

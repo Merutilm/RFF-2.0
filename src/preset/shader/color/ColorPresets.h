@@ -8,9 +8,9 @@
 
 namespace merutilm::rff::ColorPresets {
     struct WeakContrast final : public Presets::ShaderPresets::ColorPreset {
-        std::string getName() const override;
+        [[nodiscard]] std::string getName() const override;
 
-        ColorSettings colorSettings() const override;
+        [[nodiscard]] ColorSettings colorSettings() const override;
     };
 }
 

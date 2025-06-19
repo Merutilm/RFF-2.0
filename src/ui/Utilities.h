@@ -23,6 +23,14 @@ namespace merutilm::rff {
             std::cout << std::put_time(&tm, "%Y/%m/%d, %H:%M:%S") << " | " << message << "\n" << std::flush;
         }
 
+        static std::string elapsed_time(const std::chrono::time_point<std::chrono::system_clock> start) {
+            const auto current = std::chrono::system_clock::now();
+            const auto elapsed = std::chrono::milliseconds((current - start).count() / 1000000);
+            const auto hms = std::chrono::hh_mm_ss(elapsed);
+            return std::format("T : {:02d}:{:02d}:{:02d}:{:03d}", hms.hours().count(),
+                                         hms.minutes().count(), hms.seconds().count(), hms.subseconds().count());
+        }
+
         static float getTime() {
             return static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count() - Constants::Render::INIT_TIME)
                    / 1e9;

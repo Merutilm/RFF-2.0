@@ -13,8 +13,8 @@
 #include "Constants.h"
 
 namespace merutilm::rff {
-    void Win32GLContextLoader::initGL() {
 
+    void Win32GLContextLoader::initGL() {
         SetProcessDPIAware();
 
         WNDCLASSEX glDummyClass = {};
@@ -67,7 +67,6 @@ namespace merutilm::rff {
 
 
     void Win32GLContextLoader::createContext(const HDC hdc, HGLRC *target) {
-
         const int pixelFormatAttrib[] = {
             WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
             WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
@@ -97,5 +96,6 @@ namespace merutilm::rff {
 
         *target = wglCreateContextAttribsARB(hdc, nullptr, openglAttrib);
         assert(*target);
+
     }
 }

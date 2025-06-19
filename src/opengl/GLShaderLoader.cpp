@@ -31,31 +31,19 @@ namespace merutilm::rff {
     }
 
 
-    void GLShaderLoader::loadShaders() {
-        const auto shaderDirectory = Utilities::getDefaultPath() / Constants::GLConfig::SHADER_DIRECTORY_DEFAULT;
-        if (!std::filesystem::is_directory(shaderDirectory)) {
-            return;
-        }
-
-        for (const auto &path: std::filesystem::directory_iterator(shaderDirectory)) {
-            std::filesystem::path shaderPath = path;
-            addShader(shaderPath);
-        }
-    }
-
-    void GLShaderLoader::addShader(const std::filesystem::path &path) {
-        const auto name = path.filename();
-        auto config = std::make_unique<GLShaderConfig>(name);
-        const GLuint shaderID = config->getShaderID();
+    GLShaderConfig GLShaderLoader::configureShader(const std::string_view name) {
+        const auto filename = Utilities::getDefaultPath() / Constants::GLConfig::SHADER_DIRECTORY_DEFAULT / name;
+        const auto config = GLShaderConfig(filename);
+        const GLuint shaderID = config.getShaderID();
         std::string src;
-        getSource(path, &src);
+        getSource(filename, &src);
         compile(shaderID, src.data());
-        shaders.push_back(std::move(config));
 
         if (const GLuint error = glGetError(); error != GL_NO_ERROR) {
-            std::cout << "OpenGL Error at Load Shaders : " << path << std::flush;
+            std::cout << "OpenGL Error at Load Shaders : " << name << std::flush;
             exit(error);
         }
+        return config;
     }
 
     void GLShaderLoader::compile(const GLuint shader, const char *src) {
@@ -74,28 +62,18 @@ namespace merutilm::rff {
         }
     }
 
-    GLuint GLShaderLoader::configureProgram(const std::string_view vertName, const std::string_view fragName) {
+    GLuint GLShaderLoader::configureProgram(const GLShaderConfig &vert, const GLShaderConfig &frag) {
         const GLuint program = glCreateProgram();
-        GLuint vert = 0;
-        GLuint frag = 0;
 
-        for (const auto &shader: shaders) {
-            if (shader->getFilename() == vertName) {
-                vert = shader->getShaderID();
-            }
-            if (shader->getFilename() == fragName) {
-                frag = shader->getShaderID();
-            }
+        if (!glIsShader(vert.getShaderID())) {
+            std::cerr << "Invalid vertex shader ID : " << vert.getFilename() << "\n" << std::flush;
         }
-        if (vert == 0) {
-            std::cerr << "Cannot find vertex shader : " << vertName << std::endl;
-        }
-        if (frag == 0) {
-            std::cerr << "Cannot find fragment shader : " << fragName << std::endl;
+        if (!glIsShader(frag.getShaderID())) {
+            std::cerr << "Invalid fragment shader ID : " << frag.getFilename() << "\n" << std::flush;
         }
 
-        glAttachShader(program, vert);
-        glAttachShader(program, frag);
+        glAttachShader(program, vert.getShaderID());
+        glAttachShader(program, frag.getShaderID());
 
         linkProgram(program);
 

@@ -8,32 +8,32 @@
 
 namespace merutilm::rff::RenderPresets {
     struct Potato final : public Presets::RenderPresets {
-        std::string getName() const override;
-        RenderSettings renderSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] RenderSettings renderSettings() const override;
     };
 
     struct Low final : public Presets::RenderPresets {
-        std::string getName() const override;
-        RenderSettings renderSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] RenderSettings renderSettings() const override;
     };
 
     struct Medium final : public Presets::RenderPresets {
-        std::string getName() const override;
-        RenderSettings renderSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] RenderSettings renderSettings() const override;
     };
 
     struct High final : public Presets::RenderPresets {
-        std::string getName() const override;
-        RenderSettings renderSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] RenderSettings renderSettings() const override;
     };
 
     struct Ultra final : public Presets::RenderPresets {
-        std::string getName() const override;
-        RenderSettings renderSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] RenderSettings renderSettings() const override;
     };
 
     struct Extreme final : public Presets::RenderPresets {
-        std::string getName() const override;
-        RenderSettings renderSettings() const override;
+        [[nodiscard]] std::string getName() const override;
+        [[nodiscard]] RenderSettings renderSettings() const override;
     };
 }

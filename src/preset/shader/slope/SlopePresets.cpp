@@ -11,6 +11,6 @@ namespace merutilm::rff {
     }
 
     SlopeSettings SlopePresets::Normal::slopeSettings() const {
-        return SlopeSettings{300, 0.5f, 1, 60, 135};
+        return SlopeSettings{300, 0, 0.5f, 60, 135};
     }
 }

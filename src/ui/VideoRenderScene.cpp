@@ -55,7 +55,6 @@ namespace merutilm::rff {
         makeContextCurrent();
 
         renderer = std::make_unique<GLMultipassRenderer>();
-
         rendererIteration2Map = std::make_unique<GLRendererIteration2Map>();
         rendererIteration = std::make_unique<GLRendererIteration>();
         rendererStripe = std::make_unique<GLRendererStripe>();

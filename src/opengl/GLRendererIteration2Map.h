@@ -10,18 +10,18 @@
 
 namespace merutilm::rff {
     class GLRendererIteration2Map final : public GLRenderer, public GLIterationTextureProvider{
-        int iterWidth = 0;
-        int iterHeight = 0;
+        uint16_t iterWidth = 0;
+        uint16_t iterHeight = 0;
         double maxIteration = 0.0;
         const DataSettings *dataSettings = nullptr;
         float currentFrame = 0;
-        int iterationTextureID = 0;
+        GLuint iterationTextureID = 0;
         std::vector<float> iterationBuffer;
 
     public:
         GLRendererIteration2Map();
 
-        void reloadIterationBuffer(int iterWidth, int iterHeight, long maxIteration);
+        void reloadIterationBuffer(uint16_t iterWidth, uint16_t iterHeight, uint64_t maxIteration);
 
         ~GLRendererIteration2Map() override = default;
 

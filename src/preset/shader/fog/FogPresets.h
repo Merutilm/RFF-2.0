@@ -10,9 +10,9 @@
 
 namespace merutilm::rff::FogPresets {
     struct Medium final : public Presets::ShaderPresets::FogPreset {
-        std::string getName() const override;
+        [[nodiscard]] std::string getName() const override;
 
-        FogSettings fogSettings() const override;
+        [[nodiscard]] FogSettings fogSettings() const override;
     };
 };
 

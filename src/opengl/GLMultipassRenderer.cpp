@@ -10,8 +10,8 @@
 
 
 namespace merutilm::rff {
-    GLMultipassRenderer::GLMultipassRenderer() : displayer(std::make_unique<GLRendererDisplayer>()){
-
+    GLMultipassRenderer::GLMultipassRenderer() {
+        displayer = std::make_unique<GLRendererDisplayer>();
     }
 
 

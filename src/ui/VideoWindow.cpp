@@ -36,7 +36,7 @@ namespace merutilm::rff {
 
         SetWindowLongPtr(videoWindow, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
-        SetWindowPos(videoWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        SetWindowPos(videoWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
         setClientSize(width, height);
         UpdateWindow(videoWindow);
         ShowWindow(videoWindow, SW_SHOW);
@@ -81,7 +81,7 @@ namespace merutilm::rff {
                 const auto pos = window.barRatio;
 
                 RECT prc = rc;
-                prc.right = std::lerp(prc.left, prc.right, pos);
+                prc.right = static_cast<int>(std::lerp(static_cast<float>(prc.left), static_cast<float>(prc.right), pos));
 
                 const HBRUSH pBar = CreateSolidBrush(Constants::Win32::COLOR_PROGRESS_BACKGROUND_PROG);
                 FillRect(hdcBar, &prc, pBar);
@@ -143,6 +143,7 @@ namespace merutilm::rff {
             [&window, &cw, &ch, &imgWidth, &imgHeight, &writer, &settings, &open, &save] {
                 Win32GLContextLoader::createContext(window.hdc, &window.context);
                 window.scene.configure(window.renderWindow, window.hdc, window.context);
+                window.scene.makeContextCurrent();
                 window.scene.getRenderer().reloadSize(cw, ch, imgWidth, imgHeight);
                 window.scene.reloadImageBuffer(imgWidth, imgHeight);
                 window.scene.applyColor(settings);
@@ -153,9 +154,9 @@ namespace merutilm::rff {
 
                 const auto frameInterval = mps / fps;
                 const uint32_t maxNumber = IOUtilities::fileNameCount(open, Constants::Extension::MAP);
-                const double minNumber = -overZoom;
+                const float minNumber = -overZoom;
                 auto currentFrameNumber = static_cast<float>(maxNumber);
-                double currentSec = 0;
+                float currentSec = 0;
                 uint32_t pf1 = UINT32_MAX;
 
                 writer.open(save.string(), CV_FOURCC('a', 'v', 'c', '1'), fps, cv::Size(imgWidth, imgHeight));
@@ -193,14 +194,13 @@ namespace merutilm::rff {
                         break;
                     }
 
-                    window.scene.makeContextCurrent();
                     window.scene.setCurrentFrame(currentFrameNumber);
                     window.scene.applyCurrentFrame();
                     if (requiredRefresh) {
                         window.scene.setMap(std::move(normal), std::move(zoomed));
                         window.scene.applyCurrentMap();
                     }
-                    window.scene.getRenderer().setTime((float) currentSec);
+                    window.scene.getRenderer().setTime(currentSec);
                     window.scene.renderGL();
 
                     const float zoom = window.scene.calculateZoom(defaultZoomIncrement);

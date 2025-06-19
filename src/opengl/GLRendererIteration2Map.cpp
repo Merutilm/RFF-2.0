@@ -11,13 +11,13 @@ namespace merutilm::rff {
     GLRendererIteration2Map::GLRendererIteration2Map() : GLRenderer("iteration_palette_2_map.frag") {
     }
 
-    void GLRendererIteration2Map::reloadIterationBuffer(const int iterWidth, const int iterHeight, const long maxIteration) {
+    void GLRendererIteration2Map::reloadIterationBuffer(const uint16_t iterWidth, const uint16_t iterHeight, const uint64_t maxIteration) {
         this->iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
         this->iterationTextureID = getShader().recreateTexture2D(iterationTextureID, iterWidth, iterHeight,
                                                                        Constants::TextureFormats::FLOAT4);
         this->iterWidth = iterWidth;
         this->iterHeight = iterHeight;
-        this->maxIteration = maxIteration;
+        this->maxIteration = static_cast<double>(maxIteration);
     }
 
     void GLRendererIteration2Map::setCurrentFrame(const float currentFrame) {

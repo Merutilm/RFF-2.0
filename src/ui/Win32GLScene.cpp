@@ -11,6 +11,8 @@
 
 
 namespace merutilm::rff {
+
+
     void Win32GLScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {
         this->renderWindow = wnd;
         this->hdc = hdc;

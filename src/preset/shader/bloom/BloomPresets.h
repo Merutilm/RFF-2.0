@@ -9,8 +9,8 @@
 
 namespace merutilm::rff::BloomPresets {
     struct Normal final : public Presets::ShaderPresets::BloomPreset {
-        std::string getName() const override;
+        [[nodiscard]] std::string getName() const override;
 
-        BloomSettings bloomSettings() const override;
+        [[nodiscard]] BloomSettings bloomSettings() const override;
     };
 }

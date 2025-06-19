@@ -6,17 +6,14 @@
 
 #include "GLShaderLoader.h"
 #include "../ui/Constants.h"
-#include "../ui/Utilities.h"
 
 
 namespace merutilm::rff {
     GLShader::GLShader(const std::string_view vertexName, const std::string_view fragmentName) {
-        static bool init = false;
-        if (!init) {
-            GLShaderLoader::loadShaders();
-            init = true;
-        }
-        shaderProgram = GLShaderLoader::configureProgram(vertexName, fragmentName);
+
+        const GLShaderConfig vert = GLShaderLoader::configureShader(vertexName);
+        const GLShaderConfig frag = GLShaderLoader::configureShader(fragmentName);
+        shaderProgram = GLShaderLoader::configureProgram(vert, frag);
 
         constexpr std::array<float, 28> vertexArray = {
             //location     //color
@@ -42,10 +39,10 @@ namespace merutilm::rff {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elementArray), elementArray.data(), GL_STATIC_DRAW);
 
 
-        int positionSize = 3;
-        int colorSize = 4;
-        int floatSizeBytes = sizeof(float);
-        int vertexSizeBytes = (positionSize + colorSize) * floatSizeBytes;
+        constexpr uint16_t positionSize = 3;
+        constexpr uint16_t colorSize = 4;
+        constexpr uint16_t floatSizeBytes = sizeof(float);
+        constexpr uint16_t vertexSizeBytes = (positionSize + colorSize) * floatSizeBytes;
 
         glVertexAttribPointer(0, positionSize, GL_FLOAT, false, vertexSizeBytes, nullptr);
         glEnableVertexAttribArray(0);
@@ -55,7 +52,7 @@ namespace merutilm::rff {
         glEnableVertexAttribArray(1);
     }
 
-    void GLShader::compile(const int shader, const char *src) {
+    void GLShader::compile(const GLuint shader, const char *src) {
         glShaderSource(shader, 1, &src, nullptr);
         glCompileShader(shader);
         GLint success;
@@ -85,12 +82,12 @@ namespace merutilm::rff {
         }
     }
 
-    int GLShader::textureUnitToIndex(const int textureUnit) {
-        return textureUnit - GL_TEXTURE0;
+    uint16_t GLShader::textureUnitToIndex(const GLuint textureUnit) {
+        return static_cast<uint16_t>(textureUnit - GL_TEXTURE0);
     }
 
-    int GLShader::getLocation(const std::string &varName) const {
-        const int loc = glGetUniformLocation(shaderProgram, varName.data());
+    GLuint GLShader::getLocation(const std::string &varName) const {
+        const GLuint loc = glGetUniformLocation(shaderProgram, varName.data());
         if (loc == -1) {
             std::cerr << "Error: Cannot found uniform : " + varName << "\n" << std::flush;
         }
@@ -115,7 +112,7 @@ namespace merutilm::rff {
         glUseProgram(0);
     }
 
-    int GLShader::recreateTexture2D(GLuint textureID, const uint16_t width, const uint16_t height,
+    GLuint GLShader::recreateTexture2D(GLuint textureID, const uint16_t width, const uint16_t height,
                                     const TextureFormat textureFormat) {
         if (glIsTexture(textureID)) {
             glDeleteTextures(1, &textureID);
@@ -133,13 +130,13 @@ namespace merutilm::rff {
     }
 
 
-    void GLShader::uploadTexture2D(const std::string &varName, const int textureUnit, const int textureID) const {
+    void GLShader::uploadTexture2D(const std::string &varName, const GLuint textureUnit, const uint16_t textureID) const {
         glActiveTexture(textureUnit);
         glBindTexture(GL_TEXTURE_2D, textureID);
         uploadInt(varName, textureUnitToIndex(textureUnit));
     }
 
-    void GLShader::uploadTexture2D(const std::string &varName, const int textureUnit, const int textureID,
+    void GLShader::uploadTexture2D(const std::string &varName, const GLuint textureUnit, const uint16_t textureID,
                                    const void *buffer, const uint16_t w, const uint16_t h,
                                    const TextureFormat textureFormat) const {
         glActiveTexture(textureUnit);
@@ -153,29 +150,29 @@ namespace merutilm::rff {
 
 
     void GLShader::uploadDouble(const std::string &varName, const double value) const {
-        const int varLocation = getLocation(varName);
+        const GLuint varLocation = getLocation(varName);
         glUniform1d(varLocation, value);
     }
 
     void GLShader::uploadBool(const std::string &varName, const bool value) const {
-        const int varLocation = getLocation(varName);
+        const GLuint varLocation = getLocation(varName);
         glUniform1i(varLocation, value ? 1 : 0);
     }
 
 
     void GLShader::uploadFloat(const std::string &varName, const float value) const {
-        const int varLocation = getLocation(varName);
+        const GLuint varLocation = getLocation(varName);
         glUniform1f(varLocation, value);
     }
 
     void GLShader::upload2i(const std::string &varName, const int x, const int y) const {
-        const int varLocation = getLocation(varName);
+        const GLuint varLocation = getLocation(varName);
         glUniform2i(varLocation, x, y);
     }
 
 
     void GLShader::uploadInt(const std::string &varName, const int value) const {
-        const int varLocation = getLocation(varName);
+        const GLuint varLocation = getLocation(varName);
         glUniform1i(varLocation, value);
     }
 }

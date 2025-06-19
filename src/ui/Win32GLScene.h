@@ -5,6 +5,7 @@
 #pragma once
 #include <windows.h>
 #include <string>
+#include <vector>
 
 namespace merutilm::rff {
     class Win32GLScene {

@@ -17,7 +17,7 @@ namespace merutilm::rff {
         }
     }
 
-    void GLRendererIteration::setIteration(const uint32_t x, const uint32_t y, const double iteration) {
+    void GLRendererIteration::setIteration(const uint16_t x, const uint16_t y, const double iteration) {
         const uint32_t index = (static_cast<uint32_t>(y) * iterWidth + x) * 2;
         auto [a, b] = doubleToTwoFloatBits(iteration);
         iterationBuffer[index] = a;
@@ -28,15 +28,11 @@ namespace merutilm::rff {
         this->time = time;
     }
 
-    void GLRendererIteration::setMaxIteration(const int maxIteration) {
-        this->maxIteration = maxIteration;
-    }
-
     GLuint GLRendererIteration::getIterationTextureID() {
         return iterationTextureID;
     }
 
-    void GLRendererIteration::reloadIterationBuffer(const int iterWidth, const int iterHeight,
+    void GLRendererIteration::reloadIterationBuffer(const uint16_t iterWidth, const uint16_t iterHeight,
                                                     const uint64_t maxIteration) {
         this->iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
         this->iterationTextureID = GLShader::recreateTexture2D(iterationTextureID, iterWidth, iterHeight,
@@ -48,11 +44,11 @@ namespace merutilm::rff {
 
     void GLRendererIteration::setPaletteSettings(const PaletteSettings &paletteSettings) {
         this->paletteSettings = &paletteSettings;
-        this->paletteLength = static_cast<int>(paletteSettings.colors.size());
+        this->paletteLength = static_cast<uint32_t>(paletteSettings.colors.size());
         GLint max;
         glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max);
-        this->paletteWidth = std::min(max, paletteLength);
-        this->paletteHeight = (paletteLength - 1) / paletteWidth + 1;
+        this->paletteWidth = static_cast<uint16_t>(std::min(static_cast<uint32_t>(max), paletteLength));
+        this->paletteHeight = static_cast<uint16_t>((paletteLength - 1) / paletteWidth + 1);
         this->paletteBuffer = createPaletteBuffer(paletteSettings, paletteWidth, paletteHeight);
         this->paletteTextureID = GLShader::recreateTexture2D(paletteTextureID, paletteWidth, paletteHeight,
                                                                    Constants::TextureFormats::FLOAT4);
@@ -84,8 +80,8 @@ namespace merutilm::rff {
         shader.uploadInt("paletteWidth", paletteWidth);
         shader.uploadInt("paletteHeight", paletteHeight);
         shader.uploadInt("paletteLength", paletteLength);
-        shader.uploadFloat("paletteOffset",
-                           paletteSettings->offsetRatio - time * paletteSettings->animationSpeed / paletteSettings->
+        shader.uploadDouble("paletteOffset",
+                           static_cast<double>(paletteSettings->offsetRatio) - static_cast<double>(time) * paletteSettings->animationSpeed / paletteSettings->
                            iterationInterval);
         shader.uploadFloat("paletteInterval", paletteSettings->iterationInterval);
         shader.uploadInt("smoothing", static_cast<int>(paletteSettings->colorSmoothing));
@@ -122,10 +118,10 @@ namespace merutilm::rff {
     }
 
     std::vector<float> GLRendererIteration::createPaletteBuffer(const PaletteSettings &paletteSettings,
-                                                                const int paletteWidth, const int paletteHeight) {
+                                                                const uint16_t paletteWidth, const uint16_t paletteHeight) {
         const std::vector<ColorFloat> &colors = paletteSettings.colors;
         auto result = std::vector<float>();
-        result.reserve(paletteWidth * paletteHeight * 4);
+        result.reserve(static_cast<uint32_t>(paletteWidth) * paletteHeight * 4);
         for (const auto &[r, g, b, a]: colors) {
             result.push_back(r);
             result.push_back(g);

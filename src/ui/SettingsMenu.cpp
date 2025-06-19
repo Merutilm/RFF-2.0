@@ -95,6 +95,7 @@ namespace merutilm::rff {
         subMenu1 = addChildMenu(currentMenu, "Shader");
         subMenu2 = addChildMenu(subMenu1, "Palette");
         addPresetExecutor(subMenu2, PalettePresets::LongRandom64());
+        addPresetExecutor(subMenu2, PalettePresets::LongRainbow7());
         addPresetExecutor(subMenu2, PalettePresets::Rainbow());
         subMenu2 = addChildMenu(subMenu1, "Stripe");
         addPresetExecutor(subMenu2, StripePresets::SlowAnimated());

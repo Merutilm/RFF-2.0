@@ -10,8 +10,8 @@
 
 namespace merutilm::rff::StripePresets {
     struct SlowAnimated final : Presets::ShaderPresets::StripePreset {
-        std::string getName() const override;
+        [[nodiscard]] std::string getName() const override;
 
-        StripeSettings stripeSettings() const override;
+        [[nodiscard]] StripeSettings stripeSettings() const override;
     };
 }

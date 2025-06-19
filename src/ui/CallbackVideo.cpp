@@ -75,12 +75,18 @@ namespace merutilm::rff {
                     return;
                 }
                 const auto &dir = *dirPtr;
-
-                while (!state.interruptRequested() && logZoom > Constants::Render::ZOOM_MIN) {
-                    scene.requestRecompute();
-                    thread.waitUntil([&scene] { return !scene.isRecomputeRequested() && scene.isIdle(); });
+                bool nextFrame = false;
+                while (logZoom > Constants::Render::ZOOM_MIN) {
+                    if (state.interruptRequested() || nextFrame) { //incomplete frame
+                        scene.requestRecompute();
+                        thread.waitUntil([&scene] { return !scene.isRecomputeRequested() && scene.isIdle(); });
+                    }
+                    if (state.interruptRequested()) {
+                        return;
+                    }
                     scene.getCurrentMap().exportAsKeyframe(dir);
                     logZoom -= std::log10(scene.getSettings().videoSettings.dataSettings.defaultZoomIncrement);
+                    nextFrame = true;
                 }
 
                 if (state.interruptRequested()) {
@@ -91,7 +97,6 @@ namespace merutilm::rff {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::EXPORT_ZOOM_VID = [
             ](SettingsMenu &, RenderScene &scene) {
         scene.getBackgroundThreads().createThread([&scene](BackgroundThread &) {
-
             const auto openPtr = IOUtilities::ioDirectoryDialog("Select Sample Keyframe folder");
 
             if (openPtr == nullptr) {
@@ -99,7 +104,7 @@ namespace merutilm::rff {
             }
             const auto &open = *openPtr;
             const auto savePtr = IOUtilities::ioFileDialog("Save Video Location", "Video file", IOUtilities::SAVE_FILE,
-                                               {Constants::Extension::VIDEO});
+                                                           {Constants::Extension::VIDEO});
             if (savePtr == nullptr) {
                 return;
             }

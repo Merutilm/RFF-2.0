@@ -22,6 +22,7 @@
 #include "../preset/shader/stripe/StripePresets.h"
 #include <opencv2/opencv.hpp>
 
+
 #include "CallbackExplore.h"
 #include "../locator/MandelbrotLocator.h"
 #include "../parallel/ParallelDispatcher.h"
@@ -204,11 +205,10 @@ namespace merutilm::rff {
     void RenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context,
                                    std::array<std::string, Constants::Status::LENGTH> *statusMessageRef) {
         Win32GLScene::configure(wnd, hdc, context);
-        this->statusMessageRef = statusMessageRef;
-
         makeContextCurrent();
-        renderer = std::make_unique<GLMultipassRenderer>();
 
+        this->statusMessageRef = statusMessageRef;
+        renderer = std::make_unique<GLMultipassRenderer>();
         rendererIteration = std::make_unique<GLRendererIteration>();
         rendererStripe = std::make_unique<GLRendererStripe>();
         rendererSlope = std::make_unique<GLRendererSlope>();
@@ -357,6 +357,7 @@ namespace merutilm::rff {
 
 
     bool RenderScene::compute(const Settings &settings) {
+        auto start = std::chrono::high_resolution_clock::now();
         const Settings settingsToUse = settings;
         uint16_t w = getIterationBufferWidth(settingsToUse);
         uint16_t h = getIterationBufferHeight(settingsToUse);
@@ -376,23 +377,22 @@ namespace merutilm::rff {
         const std::array<dex, 2> offset = offsetConversion(settingsToUse, 0, 0);
         dex dcMax = dex::ZERO;
         dex_trigonometric::hypot_approx(&dcMax, offset[0], offset[1]);
-
         const auto refreshInterval = Utilities::getRefreshInterval(logZoom);
-        std::function actionPerRefCalcIteration = [refreshInterval, this](const uint64_t p) {
+        std::function actionPerRefCalcIteration = [refreshInterval, this, &start](const uint64_t p) {
             if (p % refreshInterval == 0) {
                 setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "P : {:L}", p));
+                setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(start));
             }
         };
-        std::function actionPerCreatingTableIteration = [refreshInterval, this](const uint64_t p, const double i) {
+        std::function actionPerCreatingTableIteration = [refreshInterval, this, &start](const uint64_t p, const double i) {
             if (p % refreshInterval == 0) {
                 setStatusMessage(Constants::Status::RENDER_STATUS, std::format("A : {:.3f}%", i * 100));
+                setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(start));
             }
         };
 
 
         if (state.interruptRequested()) return false;
-        auto start = std::chrono::high_resolution_clock::now();
-
         switch (calc.reuseReferenceMethod) {
             using enum ReuseReferenceMethod;
             case CURRENT_REFERENCE: {
@@ -504,13 +504,8 @@ namespace merutilm::rff {
 
         auto statusThread = std::jthread([&renderPixelsCount, len, this, &start](const std::stop_token &stop) {
             while (!stop.stop_requested()) {
-                const auto current = std::chrono::system_clock::now();
-                const auto elapsed = std::chrono::milliseconds((current - start).count() / 1000000);
-                auto hms = std::chrono::hh_mm_ss(elapsed);
                 float ratio = static_cast<float>(renderPixelsCount.load()) / static_cast<float>(len) * 100;
-                setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("T : {:02d}:{:02d}:{:02d}:{:03d}", hms.hours().count(),
-                                             hms.minutes().count(), hms.seconds().count(), hms.subseconds().count()));
+                setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(start));
                 setStatusMessage(Constants::Status::RENDER_STATUS, std::format("C : {:.3f}%", ratio));
 
                 Sleep(Constants::Status::SET_PROCESS_INTERVAL_MS);

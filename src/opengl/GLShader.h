@@ -18,13 +18,13 @@ namespace merutilm::rff {
         };
 
 
-        static void compile(int shader, const char* src);
+        static void compile(GLuint shader, const char *src);
 
         void link() const;
 
-        static int textureUnitToIndex(int textureUnit);
+        static uint16_t textureUnitToIndex(GLuint textureUnit);
 
-        int getLocation(const std::string &varName) const;
+        GLuint getLocation(const std::string &varName) const;
 
     public:
         explicit GLShader(std::string_view vertexName, std::string_view fragmentName);
@@ -35,11 +35,11 @@ namespace merutilm::rff {
 
         static void detach();
 
-        static int recreateTexture2D(GLuint textureID, uint16_t width, uint16_t height, TextureFormat textureFormat);
+        static GLuint recreateTexture2D(GLuint textureID, uint16_t width, uint16_t height, TextureFormat textureFormat);
 
-        void uploadTexture2D(const std::string &varName, int textureUnit, int textureID) const;
+        void uploadTexture2D(const std::string &varName, GLuint textureUnit, uint16_t textureID) const;
 
-        void uploadTexture2D(const std::string &varName, int textureUnit, int textureID, const void *buffer, uint16_t w, uint16_t h,
+        void uploadTexture2D(const std::string &varName, GLuint textureUnit, uint16_t textureID, const void *buffer, uint16_t w, uint16_t h,
                              TextureFormat textureFormat) const;
 
         void uploadDouble(const std::string &varName, double value) const;

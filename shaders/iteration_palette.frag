@@ -11,7 +11,7 @@ uniform sampler2D palette;
 uniform int paletteWidth;
 uniform int paletteHeight;
 uniform int paletteLength;
-uniform float paletteOffset;
+uniform double paletteOffset;
 uniform float paletteInterval;
 
 uniform int smoothing;
@@ -72,10 +72,10 @@ vec4 getColor(double iteration){
     float hRemainder = (paletteLength - paletteWidth * hSquare) / paletteWidth;
     float hLength = hSquare + hRemainder;
 
-    float offset = mod(float(iteration / paletteInterval + paletteOffset), 1) * hLength;
+    double offset = mod(iteration / paletteInterval + paletteOffset, 1) * hLength;
     
-    float ox = mod(offset, 1);
-    float oy = (floor(offset) + 0.5) / paletteHeight;
+    float ox = float(mod(offset, 1));
+    float oy = float((floor(offset) + 0.5) / paletteHeight);
     
     return texture(palette, vec2(ox ,oy));
 }

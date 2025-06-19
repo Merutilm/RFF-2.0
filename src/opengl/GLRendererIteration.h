@@ -17,9 +17,9 @@ namespace merutilm::rff {
         double maxIteration = 0.0;
 
         GLuint paletteTextureID = 0;
-        int paletteWidth = 0;
-        int paletteHeight = 0;
-        int paletteLength = 0;
+        uint16_t paletteWidth = 0;
+        uint16_t paletteHeight = 0;
+        uint32_t paletteLength = 0;
         std::vector<float> paletteBuffer;
         float time = 0;
 
@@ -39,17 +39,15 @@ namespace merutilm::rff {
 
         GLRendererIteration &operator=(GLRendererIteration &&) = delete;
 
-        void setIteration(uint32_t x, uint32_t y, double iteration);
+        void setIteration(uint16_t x, uint16_t y, double iteration);
 
         void setTime(float time) override;
 
         void fillZero();
 
-        void setMaxIteration(int maxIteration);
-
         GLuint getIterationTextureID() override;
 
-        void reloadIterationBuffer(int iterWidth, int iterHeight, uint64_t maxIteration);
+        void reloadIterationBuffer(uint16_t iterWidth, uint16_t iterHeight, uint64_t maxIteration);
 
         void setPaletteSettings(const PaletteSettings &paletteSettings);
 
@@ -67,7 +65,7 @@ namespace merutilm::rff {
         static std::vector<float> emptyIterationBuffer(uint16_t iterWidth, uint16_t iterHeight);
 
 
-        static std::vector<float> createPaletteBuffer(const PaletteSettings &paletteSettings, int paletteWidth,
-                                                      int paletteHeight);
+        static std::vector<float> createPaletteBuffer(const PaletteSettings &paletteSettings, uint16_t paletteWidth,
+                                                      uint16_t paletteHeight);
     };
 }
