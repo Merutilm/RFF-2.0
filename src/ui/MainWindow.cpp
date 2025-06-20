@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <commctrl.h>
 
-#include "Win32GLContextLoader.h"
+#include "WGLContextLoader.h"
 #include "SettingsMenu.h"
 
 
@@ -28,9 +28,11 @@ namespace merutilm::rff {
                 RECT rect;
                 GetClientRect(masterWindow, &rect);
                 rect.bottom -= wnd.statusHeight;
-                wnd.adjustClient(rect);
-                wnd.scene.requestResize();
-                wnd.scene.requestRecompute();
+                if (rect.bottom - rect.top > 0 || rect.right - rect.left > 0) {
+                    wnd.adjustClient(rect);
+                    wnd.scene.requestResize();
+                    wnd.scene.requestRecompute();
+                }
                 return 0;
             }
             case WM_INITMENUPOPUP: {
@@ -216,7 +218,7 @@ namespace merutilm::rff {
 
         SetWindowLongPtr(renderWindow, GWLP_USERDATA, (LONG_PTR) this);
         hdc = GetDC(renderWindow);
-        Win32GLContextLoader::createContext(hdc, &context);
+        WGLContextLoader::createContext(hdc, &context);
     }
 
     void MainWindow::renderLoop() {
@@ -239,9 +241,12 @@ namespace merutilm::rff {
                 scene.requestResize();
                 scene.requestRecompute();
             }
+            RECT rect;
+            GetClientRect(masterWindow, &rect);
+            const bool visible = rect.top < rect.bottom || rect.left < rect.right;
 
             if (auto currentTime = std::chrono::high_resolution_clock::now();
-                currentTime - lastRender > std::chrono::milliseconds(ms)) {
+                currentTime - lastRender > std::chrono::milliseconds(ms) && visible) {
                 scene.renderGL();
                 scene.getBackgroundThreads().removeAllEndedThread();
                 refreshStatusBar();

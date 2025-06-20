@@ -1,7 +1,7 @@
 //
 // Created by Merutilm on 2025-05-08.
 //
-#include "Win32GLScene.h"
+#include "WGLScene.h"
 
 #include <iostream>
 
@@ -13,7 +13,7 @@
 namespace merutilm::rff {
 
 
-    void Win32GLScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {
+    void WGLScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {
         this->renderWindow = wnd;
         this->hdc = hdc;
         this->context = context;
@@ -21,7 +21,7 @@ namespace merutilm::rff {
     }
 
 
-    void Win32GLScene::makeContextCurrent() const {
+    void WGLScene::makeContextCurrent() const {
         if (!init) {
             std::cout << INIT_NOT_CALLED << std::flush;
             return;
@@ -30,7 +30,7 @@ namespace merutilm::rff {
     }
 
 
-    void Win32GLScene::swapBuffers() const {
+    void WGLScene::swapBuffers() const {
         if (!init) {
             std::cout << INIT_NOT_CALLED << std::flush;
             return;
@@ -40,15 +40,15 @@ namespace merutilm::rff {
     }
 
 
-    HWND Win32GLScene::getRenderWindow() const {
+    HWND WGLScene::getRenderWindow() const {
         return renderWindow;
     }
 
-    HDC Win32GLScene::getHDC() const {
+    HDC WGLScene::getHDC() const {
         return hdc;
     }
 
-    HGLRC Win32GLScene::getContext() const {
+    HGLRC WGLScene::getContext() const {
         return context;
     }
 }

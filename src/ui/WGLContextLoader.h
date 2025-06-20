@@ -8,7 +8,7 @@
 
 namespace merutilm::rff {
 
-    struct Win32GLContextLoader {
+    struct WGLContextLoader {
 
         static void initGL();
 

@@ -28,9 +28,14 @@
 #include "../parallel/ParallelDispatcher.h"
 #include "../preset/calc/CalculationPresets.h"
 #include "../preset/render/RenderPresets.h"
+#include <opencv2/core/ocl.hpp>
 
 namespace merutilm::rff {
     RenderScene::RenderScene() : state(ParallelRenderState()), settings(initSettings()) {
+        if (!cv::ocl::useOpenCL()) {
+            std::cout << "OpenCL initialization failed." << std::endl;
+        }
+
     }
 
     RenderScene::~RenderScene() {
@@ -204,7 +209,7 @@ namespace merutilm::rff {
 
     void RenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context,
                                    std::array<std::string, Constants::Status::LENGTH> *statusMessageRef) {
-        Win32GLScene::configure(wnd, hdc, context);
+        WGLScene::configure(wnd, hdc, context);
         makeContextCurrent();
 
         this->statusMessageRef = statusMessageRef;

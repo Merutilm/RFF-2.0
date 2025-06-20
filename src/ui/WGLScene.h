@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace merutilm::rff {
-    class Win32GLScene {
+    class WGLScene {
 
         const std::string INIT_NOT_CALLED = "Failed to load context. is called initGL()?\n";
         bool init = false;
@@ -20,7 +20,7 @@ namespace merutilm::rff {
         HDC hdc = nullptr;
         HGLRC context = nullptr;
 
-        virtual ~Win32GLScene() = default;
+        virtual ~WGLScene() = default;
         virtual void configure(HWND wnd, HDC hdc, HGLRC context);
         virtual void renderGL() = 0;
         void makeContextCurrent() const;

@@ -54,13 +54,13 @@ add_executable(
         src/calc/fp_decimal_calculator.h
         src/calc/fp_decimal.cpp
         src/calc/fp_decimal.h
-        src/ui/Win32GLContextLoader.cpp
-        src/ui/Win32GLContextLoader.h
+        src/ui/WGLContextLoader.cpp
+        src/ui/WGLContextLoader.h
         src/ui/RenderScene.cpp
         src/ui/RenderScene.h
         src/formula/Perturbator.h
-        src/ui/Win32GLScene.h
-        src/ui/Win32GLScene.cpp
+        src/ui/WGLScene.h
+        src/ui/WGLScene.cpp
         src/io/RFFMap.cpp
         src/io/RFFMap.h
         src/data/Matrix.h

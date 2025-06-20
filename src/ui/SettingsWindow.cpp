@@ -24,6 +24,12 @@ namespace merutilm::rff {
                                                    Constants::Win32::FONT_DEFAULT));
     }
 
+    SettingsWindow::~SettingsWindow() {
+        if (IsWindow(window)) {
+            DestroyWindow(window);
+        }
+    }
+
 
     int SettingsWindow::getFixedNameWidth() const {
         RECT rect;
@@ -43,7 +49,8 @@ namespace merutilm::rff {
             0, 0, Constants::Win32::INIT_SETTINGS_WINDOW_WIDTH,
             getYOffset() + Constants::Win32::SETTINGS_INPUT_HEIGHT + Constants::Win32::GAP_SETTINGS_INPUT,
         };
-        AdjustWindowRectEx(&rect, Constants::Win32::STYLE_SETTINGS_WINDOW, FALSE, Constants::Win32::STYLE_EX_SETTINGS_WINDOW);
+        AdjustWindowRectEx(&rect, Constants::Win32::STYLE_SETTINGS_WINDOW, FALSE,
+                           Constants::Win32::STYLE_EX_SETTINGS_WINDOW);
 
         SetWindowPos(window, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOMOVE);
     }
@@ -67,7 +74,7 @@ namespace merutilm::rff {
     }
 
     void SettingsWindow::createLabel(const std::string_view &settingsName, const std::string_view descriptionTitle,
-                                        const std::string_view descriptionDetail, const int nw) {
+                                     const std::string_view descriptionDetail, const int nw) {
         const HWND text = CreateWindowEx(0, WC_STATIC, settingsName.data(),
                                          Constants::Win32::STYLE_LABEL, 0,
                                          getYOffset(), nw,
@@ -96,7 +103,7 @@ namespace merutilm::rff {
 
 
     LRESULT SettingsWindow::settingsWindowProc(const HWND window, const UINT message, const WPARAM wParam,
-                                            const LPARAM lParam) {
+                                               const LPARAM lParam) {
         SettingsWindow &wnd = *reinterpret_cast<SettingsWindow *>(GetWindowLongPtr(window, GWLP_USERDATA));
 
         switch (message) {
@@ -167,9 +174,9 @@ namespace merutilm::rff {
     }
 
     LRESULT SettingsWindow::textFieldProc(const HWND window, const UINT message, const WPARAM wParam,
-                                             const LPARAM lParam,
-                                             [[maybe_unused]] UINT_PTR uIdSubclass,
-                                             [[maybe_unused]] DWORD_PTR dwRefData) {
+                                          const LPARAM lParam,
+                                          [[maybe_unused]] UINT_PTR uIdSubclass,
+                                          [[maybe_unused]] DWORD_PTR dwRefData) {
         auto &wnd = *reinterpret_cast<SettingsWindow *>(GetWindowLongPtr(window, GWLP_USERDATA));
 
         if (message == WM_KEYDOWN) {
@@ -213,7 +220,6 @@ namespace merutilm::rff {
         MessageBox(window, "Invalid value!!", "Error", MB_OK | MB_ICONERROR);
         error[index] = false;
     }
-
 
 
     std::string SettingsWindow::currValueToString(const int index) const {

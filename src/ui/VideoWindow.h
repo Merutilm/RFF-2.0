@@ -24,7 +24,7 @@ namespace merutilm::rff {
     public:
         VideoWindow(uint16_t width, uint16_t height);
 
-        ~VideoWindow();
+        ~VideoWindow() = default;
 
         VideoWindow(const VideoWindow&) = delete;
 
@@ -40,6 +40,6 @@ namespace merutilm::rff {
 
         static void createVideo(const Settings &settings, const std::filesystem::path &open, const std::filesystem::path &save);
 
-        void messageLoop() const;
+        static void messageLoop();
     };
 }

@@ -74,8 +74,15 @@ namespace merutilm::rff {
                 if (dirPtr == nullptr) {
                     return;
                 }
+                if (!IsWindow(scene.getRenderWindow()) || !IsWindowVisible(scene.getRenderWindow())) {
+                    MessageBox(nullptr, "Target Window already been destroyed", "FATAL", MB_OK | MB_ICONERROR);
+                    return;
+                }
+
                 const auto &dir = *dirPtr;
                 bool nextFrame = false;
+
+
                 while (logZoom > Constants::Render::ZOOM_MIN) {
                     if (state.interruptRequested() || nextFrame) { //incomplete frame
                         scene.requestRecompute();

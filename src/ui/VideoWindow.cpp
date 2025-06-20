@@ -11,7 +11,7 @@
 #include <commctrl.h>
 
 #include "Constants.h"
-#include "Win32GLContextLoader.h"
+#include "WGLContextLoader.h"
 #include "../parallel/BackgroundThreads.h"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
@@ -44,10 +44,6 @@ namespace merutilm::rff {
     }
 
 
-    VideoWindow::~VideoWindow() {
-        ReleaseDC(renderWindow, hdc);
-        PostMessage(videoWindow, WM_CLOSE, 0, 0);
-    }
 
 
     void VideoWindow::setClientSize(const int width, const int height) const {
@@ -69,7 +65,9 @@ namespace merutilm::rff {
         switch (message) {
             case WM_DESTROY: {
                 MessageBox(hwnd, "Render Finished!", "Done", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
-                break;
+                ReleaseDC(window.renderWindow, window.hdc);
+                PostQuitMessage(0);
+                return 0;
             }
             case WM_PAINT: {
                 PAINTSTRUCT ps;
@@ -141,7 +139,7 @@ namespace merutilm::rff {
         auto window = VideoWindow(cw, ch);
         std::jthread thread(
             [&window, &cw, &ch, &imgWidth, &imgHeight, &writer, &settings, &open, &save] {
-                Win32GLContextLoader::createContext(window.hdc, &window.context);
+                WGLContextLoader::createContext(window.hdc, &window.context);
                 window.scene.configure(window.renderWindow, window.hdc, window.context);
                 window.scene.makeContextCurrent();
                 window.scene.getRenderer().reloadSize(cw, ch, imgWidth, imgHeight);
@@ -244,14 +242,12 @@ namespace merutilm::rff {
         window.messageLoop();
     }
 
-    void VideoWindow::messageLoop() const {
+    void VideoWindow::messageLoop() {
         MSG msg;
 
         while (GetMessage(&msg, nullptr, 0, 0) != 0) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-
-        DestroyWindow(videoWindow);
     }
 }

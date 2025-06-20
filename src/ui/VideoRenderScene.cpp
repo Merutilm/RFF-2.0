@@ -10,7 +10,7 @@
 
 
 namespace merutilm::rff {
-    VideoRenderScene::VideoRenderScene() : Win32GLScene() {
+    VideoRenderScene::VideoRenderScene() : WGLScene() {
 
     }
 
@@ -51,7 +51,7 @@ namespace merutilm::rff {
     }
 
     void VideoRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {
-        Win32GLScene::configure(wnd, hdc, context);
+        WGLScene::configure(wnd, hdc, context);
         makeContextCurrent();
 
         renderer = std::make_unique<GLMultipassRenderer>();

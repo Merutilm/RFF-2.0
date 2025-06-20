@@ -37,6 +37,16 @@ namespace merutilm::rff {
     public:
         explicit SettingsWindow(const std::string_view &name);
 
+        ~SettingsWindow();
+
+        SettingsWindow(const SettingsWindow &) = delete;
+
+        SettingsWindow &operator=(const SettingsWindow &) = delete;
+
+        SettingsWindow(SettingsWindow &&) = delete;
+
+        SettingsWindow &operator=(SettingsWindow &&) = delete;
+
 
         void setWindowCloseFunction(std::function<void()> &&function);
 

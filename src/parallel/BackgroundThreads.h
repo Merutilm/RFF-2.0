@@ -11,13 +11,13 @@
 
 namespace merutilm::rff {
     class BackgroundThreads final {
-        std::list<BackgroundThread> threads;
-        std::list<bool> ended;
         std::mutex mutex;
+        std::list<bool> ended;
+        std::list<BackgroundThread> threads;
 
     public:
         template<typename T> requires std::is_invocable_r_v<void, T, BackgroundThread &>
-        BackgroundThread &createThread(T &&func);
+        void createThread(T &&func);
 
         void removeThreadFlag(const BackgroundThread &thread);
 
@@ -27,7 +27,7 @@ namespace merutilm::rff {
     };
 
     template<typename T> requires std::is_invocable_r_v<void, T, BackgroundThread &>
-    BackgroundThread &BackgroundThreads::createThread(T &&func) {
+    void BackgroundThreads::createThread(T &&func) {
         std::scoped_lock lock(mutex);
         ended.emplace_back(false);
         threads.emplace_back([this, f = std::forward<T>(func)](BackgroundThread &thread) {
@@ -35,7 +35,6 @@ namespace merutilm::rff {
             removeThreadFlag(thread);
         });
 
-        return threads.back();
     }
 
     inline void BackgroundThreads::removeThreadFlag(const BackgroundThread &thread) {

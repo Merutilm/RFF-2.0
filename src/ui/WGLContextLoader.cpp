@@ -3,7 +3,7 @@
 //
 
 #include <glad_wgl.h>
-#include "Win32GLContextLoader.h"
+#include "WGLContextLoader.h"
 
 #include <assert.h>
 #include <windows.h>
@@ -14,7 +14,7 @@
 
 namespace merutilm::rff {
 
-    void Win32GLContextLoader::initGL() {
+    void WGLContextLoader::initGL() {
         SetProcessDPIAware();
 
         WNDCLASSEX glDummyClass = {};
@@ -66,7 +66,7 @@ namespace merutilm::rff {
     }
 
 
-    void Win32GLContextLoader::createContext(const HDC hdc, HGLRC *target) {
+    void WGLContextLoader::createContext(const HDC hdc, HGLRC *target) {
         const int pixelFormatAttrib[] = {
             WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
             WGL_SUPPORT_OPENGL_ARB, GL_TRUE,

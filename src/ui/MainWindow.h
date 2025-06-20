@@ -10,7 +10,6 @@
 namespace merutilm::rff {
     class MainWindow {
 
-        std::unique_ptr<SettingsMenu> settingsMenu = nullptr;
         HDC hdc;
         HGLRC context;
         int statusHeight = 0;
@@ -20,7 +19,7 @@ namespace merutilm::rff {
         HWND renderWindow = nullptr;
         HWND statusBar;
         RenderScene scene;
-
+        std::unique_ptr<SettingsMenu> settingsMenu = nullptr;
 
     public:
         MainWindow();

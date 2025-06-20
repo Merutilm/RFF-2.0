@@ -1,6 +1,6 @@
 #include <memory>
 
-#include "Win32GLContextLoader.h"
+#include "WGLContextLoader.h"
 #include "MainWindow.h"
 #include "SettingsWindow.h"
 #include "assert.h"
@@ -50,23 +50,11 @@ void registerClasses() {
 
 }
 
-void unregisterAll() {
-
-    using namespace merutilm::rff::Constants::Win32;
-    UnregisterClass(CLASS_MASTER_WINDOW, nullptr);
-    UnregisterClass(CLASS_VIDEO_WINDOW, nullptr);
-    UnregisterClass(CLASS_SETTINGS_WINDOW, nullptr);
-    UnregisterClass(CLASS_VIDEO_RENDER_WINDOW, nullptr);
-    UnregisterClass(CLASS_RENDER_SCENE, nullptr);
-}
-
-
 int main() {
     using namespace merutilm::rff;
     registerClasses();
-    Win32GLContextLoader::initGL();
+    WGLContextLoader::initGL();
     const auto wnd = std::make_unique<MainWindow>();
     wnd->renderLoop();
-    unregisterAll();
     return 0;
 }

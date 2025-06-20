@@ -7,7 +7,7 @@
 #include "../settings/Settings.h"
 #include <windows.h>
 
-#include "Win32GLScene.h"
+#include "WGLScene.h"
 #include "../data/ApproxTableCache.h"
 
 #include "../data/Matrix.h"
@@ -28,16 +28,16 @@
 
 
 namespace merutilm::rff {
-    class RenderScene final : private Win32GLScene {
+    class RenderScene final : public WGLScene {
+
         ParallelRenderState state;
         Settings settings;
+
         uint16_t interactedMX = 0;
         uint16_t interactedMY = 0;
 
         uint64_t lastPeriod = 1;
 
-        ApproxTableCache approxTableCache = ApproxTableCache();
-        BackgroundThreads backgroundThreads = BackgroundThreads();
 
         std::atomic<bool> recomputeRequested = false;
         std::atomic<bool> resizeRequested = false;
@@ -45,6 +45,8 @@ namespace merutilm::rff {
         std::atomic<bool> createImageRequested = false;
 
         std::atomic<bool> idle = true;
+
+        ApproxTableCache approxTableCache = ApproxTableCache();
 
         std::array<std::string, Constants::Status::LENGTH> *statusMessageRef = nullptr;
         std::unique_ptr<RFFMap> currentMap = nullptr;
@@ -63,11 +65,12 @@ namespace merutilm::rff {
         uint16_t cwRequest = 0;
         uint16_t chRequest = 0;
 
+        BackgroundThreads backgroundThreads = BackgroundThreads();
+
     public:
-        RenderScene();
+        explicit RenderScene();
 
         ~RenderScene() override;
-
 
         RenderScene(const RenderScene &) = delete;
 
