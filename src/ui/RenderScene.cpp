@@ -144,7 +144,9 @@ namespace merutilm::rff {
                     float &logZoom = settings.calculationSettings.logZoom;
                     logZoom += increment;
                     settings.calculationSettings.center = settings.calculationSettings.center.addCenterDouble(
-                        offset[0] * (1 - mzi), offset[1] * (1 - mzi), Perturbator::logZoomToExp10(logZoom));
+                        offset[0] * (1 - mzi),
+                        offset[1] * (1 - mzi),
+                        Perturbator::logZoomToExp10(logZoom));
                 }
                 if (value == -1) {
                     const std::array<dex, 2> offset = offsetConversion(settings, getMouseXOnIterationBuffer(),
@@ -153,7 +155,9 @@ namespace merutilm::rff {
                     float &logZoom = settings.calculationSettings.logZoom;
                     logZoom -= increment;
                     settings.calculationSettings.center = settings.calculationSettings.center.addCenterDouble(
-                        offset[0] * (1 - mzo), offset[1] * (1 - mzo), Perturbator::logZoomToExp10(logZoom));
+                        offset[0] * (1 - mzo),
+                        offset[1] * (1 - mzo),
+                        Perturbator::logZoomToExp10(logZoom));
                 }
 
 

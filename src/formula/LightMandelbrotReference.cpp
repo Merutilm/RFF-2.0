@@ -18,7 +18,8 @@ namespace merutilm::rff {
                                                        std::vector<uint64_t> &&period,
                                                        fp_complex &&lastReference,
                                                        fp_complex &&fpgBn) : MandelbrotReference(std::move(center),
-                                                                                 std::move(compressor), std::move(period),
+                                                                                 std::move(compressor),
+                                                                                 std::move(period),
                                                                                  std::move(lastReference),
                                                                                  std::move(fpgBn)),
                                                                              refReal(std::move(refReal)),
@@ -37,7 +38,8 @@ namespace merutilm::rff {
      * @return the result of generation. but returns @code PROCESS_TERMINATED_REFERENCE@endcode if the process is terminated
      */
     std::unique_ptr<LightMandelbrotReference> LightMandelbrotReference::createReference(
-        const ParallelRenderState &state, const CalculationSettings &calc, int exp10, uint64_t initialPeriod, double dcMax,
+        const ParallelRenderState &state, const CalculationSettings &calc, int exp10, uint64_t initialPeriod,
+        double dcMax,
         const bool strictFPG, std::function<void(uint64_t)> &&actionPerRefCalcIteration) {
         if (state.interruptRequested()) {
             return Constants::NullPointer::PROCESS_TERMINATED_REFERENCE;
@@ -99,7 +101,7 @@ namespace merutilm::rff {
                         initialPeriod != 0 && initialPeriod == iteration)) {
                     periodArray.push_back(iteration);
                     break;
-                        }
+                }
 
                 fpgBnr = fpgBnrTemp;
                 fpgBni = fpgBniTemp;
@@ -141,11 +143,10 @@ namespace merutilm::rff {
             }
 
 
-
             if (compressCriteria > 0 && iteration >= 1) {
                 if (const int64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
-                    fabs(zr / rr[refIndex] - 1) <= compressionThreshold &&
-                    fabs(zi / ri[refIndex] - 1) <= compressionThreshold && canReuse
+                    ((zr == rr[refIndex] && zr == 0) || fabs(zr / rr[refIndex] - 1) <= compressionThreshold) &&
+                    ((zi == ri[refIndex] && zi == 0) || fabs(zi / ri[refIndex] - 1) <= compressionThreshold) && canReuse
                 ) {
                     ++reuseIndex;
                 } else if (reuseIndex != 0) {
@@ -171,10 +172,10 @@ namespace merutilm::rff {
                     index == rr.size()) {
                     rr.push_back(zr);
                     ri.push_back(zi);
-                    } else {
-                        rr[index] = zr;
-                        ri[index] = zi;
-                    }
+                } else {
+                    rr[index] = zr;
+                    ri[index] = zi;
+                }
             }
         }
 
@@ -188,7 +189,8 @@ namespace merutilm::rff {
         ri.shrink_to_fit();
         periodArray = periodArray.empty() ? std::vector(1, period) : periodArray;
 
-        return std::make_unique<LightMandelbrotReference>(std::move(center), std::move(rr), std::move(ri), std::move(tools),
+        return std::make_unique<LightMandelbrotReference>(std::move(center), std::move(rr), std::move(ri),
+                                                          std::move(tools),
                                                           std::move(periodArray), fp_complex(z), fp_complex(fpgBn));
     }
 
