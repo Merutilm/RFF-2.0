@@ -8,21 +8,29 @@
 #include "IOUtilities.h"
 #include "Callback.h"
 #include "VideoWindow.h"
+#include "../io/RFFStaticMap.h"
+#include "../preset/shader/bloom/BloomPresets.h"
+#include "../preset/shader/color/ColorPresets.h"
+#include "../preset/shader/fog/FogPresets.h"
+#include "../preset/shader/slope/SlopePresets.h"
+#include "../preset/shader/stripe/StripePresets.h"
 
 
 namespace merutilm::rff {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::DATA_SETTINGS = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[defaultZoomIncrement] = scene.getSettings().videoSettings.dataSettings;
+        auto &[defaultZoomIncrement, isStatic] = scene.getSettings().videoSettings.dataSettings;
         auto window = std::make_unique<SettingsWindow>("Data Settings");
 
-        window->registerTextInput<float>("Max Iteration", &defaultZoomIncrement,
+        window->registerTextInput<float>("Default Zoom Increment", &defaultZoomIncrement,
                                          Unparser::FLOAT,
                                          Parser::FLOAT,
                                          [](const float &v) { return v > 1; },
                                          Callback::NOTHING, "Set Default Zoom increment",
                                          "Set the log-Zoom interval between two adjacent video data.");
 
+        window->registerBoolInput("Static data", &isStatic, Callback::NOTHING, "Use static video data",
+                                  "Generates using .png image instead of data file. all shaders will be disabled when trying to generate video data.");
 
         window->setWindowCloseFunction([&settingsMenu] {
             settingsMenu.setCurrentActiveSettingsWindow(nullptr);
@@ -81,18 +89,37 @@ namespace merutilm::rff {
 
                 const auto &dir = *dirPtr;
                 bool nextFrame = false;
+                Settings &settings = scene.getSettings();
+                const VideoSettings &videoSettings = settings.videoSettings;
 
-
+                if (videoSettings.dataSettings.isStatic) {
+                    settings.shaderSettings.stripeSettings = StripePresets::Disabled().stripeSettings();
+                    settings.shaderSettings.slopeSettings = SlopePresets::Disabled().slopeSettings();
+                    settings.shaderSettings.fogSettings = FogPresets::Disabled().fogSettings();
+                    settings.shaderSettings.bloomSettings = BloomPresets::Disabled().bloomSettings();
+                    scene.requestColor();
+                    thread.waitUntil([&scene] { return !scene.isColorRequested(); });
+                }
+                const float increment = std::log10(videoSettings.dataSettings.defaultZoomIncrement);
                 while (logZoom > Constants::Render::ZOOM_MIN) {
-                    if (state.interruptRequested() || nextFrame) { //incomplete frame
+                    if (state.interruptRequested() || nextFrame) {
+                        //incomplete frame
                         scene.requestRecompute();
-                        thread.waitUntil([&scene] { return !scene.isRecomputeRequested() && scene.isIdle(); });
+                        thread.waitUntil([&scene] { return !scene.isRecomputeRequested() && scene.isIdleCompute(); });
                     }
                     if (state.interruptRequested()) {
                         return;
                     }
-                    scene.getCurrentMap().exportAsKeyframe(dir);
-                    logZoom -= std::log10(scene.getSettings().videoSettings.dataSettings.defaultZoomIncrement);
+                    if (videoSettings.dataSettings.isStatic) {
+                        const std::string &path = IOUtilities::generateFileName(dir, Constants::Extension::IMAGE).
+                                string();
+                        scene.requestCreateImage(path);
+                        thread.waitUntil([&scene] { return !scene.isCreateImageRequested(); });
+                        RFFStaticMap(logZoom, scene.getIterationBufferWidth(settings), scene.getIterationBufferHeight(settings)).exportAsKeyframe(dir);
+                    } else {
+                        scene.getCurrentMap().exportAsKeyframe(dir);
+                    }
+                    logZoom -= increment;
                     nextFrame = true;
                 }
 

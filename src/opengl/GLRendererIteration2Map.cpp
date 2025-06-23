@@ -11,13 +11,16 @@ namespace merutilm::rff {
     GLRendererIteration2Map::GLRendererIteration2Map() : GLRenderer("iteration_palette_2_map.frag") {
     }
 
-    void GLRendererIteration2Map::reloadIterationBuffer(const uint16_t iterWidth, const uint16_t iterHeight, const uint64_t maxIteration) {
+    void GLRendererIteration2Map::reloadIterationBuffer(const uint16_t iterWidth, const uint16_t iterHeight) {
         this->iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
         this->iterationTextureID = getShader().recreateTexture2D(iterationTextureID, iterWidth, iterHeight,
-                                                                       Constants::TextureFormats::FLOAT4);
+                                                                       Constants::TextureFormats::FF4);
         this->iterWidth = iterWidth;
         this->iterHeight = iterHeight;
-        this->maxIteration = static_cast<double>(maxIteration);
+    }
+
+    void GLRendererIteration2Map::setMaxIteration(const double maxIteration) {
+        this->maxIteration = maxIteration;
     }
 
     void GLRendererIteration2Map::setCurrentFrame(const float currentFrame) {
@@ -40,7 +43,7 @@ namespace merutilm::rff {
         shader.uploadDouble("maxIteration", maxIteration);
         shader.uploadTexture2D("normalAndZoomed", GL_TEXTURE0, iterationTextureID, iterationBuffer.data(), iterWidth,
                                iterHeight,
-                               Constants::TextureFormats::FLOAT4);
+                               Constants::TextureFormats::FF4);
         shader.uploadFloat("defaultZoomIncrement", dataSettings->defaultZoomIncrement);
         shader.uploadFloat("currentFrame", currentFrame);
     }

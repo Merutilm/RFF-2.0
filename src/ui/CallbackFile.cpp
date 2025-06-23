@@ -13,11 +13,11 @@
 
 namespace merutilm::rff {
     const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::OPEN_MAP = [](SettingsMenu&, RenderScene& scene) {
-        const auto path = IOUtilities::ioFileDialog("Open Map", "RFF Map file", IOUtilities::OPEN_FILE, {Constants::Extension::MAP});
+        const auto path = IOUtilities::ioFileDialog("Open Map", "RFF Map file", IOUtilities::OPEN_FILE, {Constants::Extension::DYNAMIC_MAP});
         if (path == nullptr) {
             return;
         }
-        scene.setCurrentMap(RFFMap::read(*path));
+        scene.setCurrentMap(RFFDynamicMap::read(*path));
         scene.overwriteMatrixFromMap();
     };
     const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::SAVE_MAP = [](SettingsMenu&, RenderScene&) {

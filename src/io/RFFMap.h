@@ -1,41 +1,26 @@
 //
-// Created by Merutilm on 2025-05-08.
+// Created by Merutilm on 2025-06-23.
 //
 
 #pragma once
 #include <filesystem>
-#include "../data/Matrix.h"
 
 namespace merutilm::rff {
     class RFFMap {
+
         float logZoom;
-        uint64_t period;
-        uint64_t maxIteration;
-        Matrix<double> iterations;
 
     public:
-        static const RFFMap DEFAULT_MAP;
+        explicit RFFMap(float logZoom);
 
-        RFFMap(float logZoom, uint64_t period, uint64_t maxIteration, Matrix<double> iterations);
+        virtual ~RFFMap() = default;
 
-        bool hasData() const;
+        virtual bool hasData() const = 0;
 
-        static RFFMap readByID(const std::filesystem::path &open, uint32_t id);
+        virtual void exportAsKeyframe(const std::filesystem::path &dir) const = 0;
 
-        static RFFMap read(const std::filesystem::path &path);
-
-        void exportAsKeyframe(const std::filesystem::path &dir) const;
-
-        void exportRFM(const std::filesystem::path &path) const;
+        virtual void exportFile(const std::filesystem::path &path) const = 0;
 
         float getLogZoom() const;
-
-        uint64_t getPeriod() const;
-
-        uint64_t getMaxIteration() const;
-
-        const Matrix<double> &getMatrix() const;
     };
-
-    inline const RFFMap RFFMap::DEFAULT_MAP = RFFMap(0, 0, 0, Matrix<double>(0, 0));
 }

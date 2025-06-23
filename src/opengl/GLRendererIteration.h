@@ -47,13 +47,13 @@ namespace merutilm::rff {
 
         GLuint getIterationTextureID() override;
 
-        void reloadIterationBuffer(uint16_t iterWidth, uint16_t iterHeight, uint64_t maxIteration);
+        void reloadIterationBuffer(uint16_t iterWidth, uint16_t iterHeight);
 
         void setPaletteSettings(const PaletteSettings &paletteSettings);
 
         int getIterationTextureID() const;
 
-        void setMaxIteration(uint64_t maxIteration);
+        void setMaxIteration(double maxIteration);
 
         void update() override;
 

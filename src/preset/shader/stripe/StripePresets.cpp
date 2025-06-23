@@ -5,6 +5,15 @@
 #include "StripePresets.h"
 
 namespace merutilm::rff {
+
+    std::string StripePresets::Disabled::getName() const {
+        return "Disabled";
+    }
+
+    StripeSettings StripePresets::Disabled::stripeSettings() const {
+        return StripeSettings{StripeType::NONE, 10, 50, 1, 0, 0};
+    }
+
     std::string StripePresets::SlowAnimated::getName() const {
         return "Slow Animated";
     }

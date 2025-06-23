@@ -32,12 +32,10 @@ namespace merutilm::rff {
         return iterationTextureID;
     }
 
-    void GLRendererIteration::reloadIterationBuffer(const uint16_t iterWidth, const uint16_t iterHeight,
-                                                    const uint64_t maxIteration) {
+    void GLRendererIteration::reloadIterationBuffer(const uint16_t iterWidth, const uint16_t iterHeight) {
         this->iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
         this->iterationTextureID = GLShader::recreateTexture2D(iterationTextureID, iterWidth, iterHeight,
-                                                                     Constants::TextureFormats::FLOAT2);
-        this->maxIteration = static_cast<double>(maxIteration);
+                                                                     Constants::TextureFormats::FF2);
         this->iterWidth = iterWidth;
         this->iterHeight = iterHeight;
     }
@@ -51,7 +49,7 @@ namespace merutilm::rff {
         this->paletteHeight = static_cast<uint16_t>((paletteLength - 1) / paletteWidth + 1);
         this->paletteBuffer = createPaletteBuffer(paletteSettings, paletteWidth, paletteHeight);
         this->paletteTextureID = GLShader::recreateTexture2D(paletteTextureID, paletteWidth, paletteHeight,
-                                                                   Constants::TextureFormats::FLOAT4);
+                                                                   Constants::TextureFormats::FF4);
     }
 
     int GLRendererIteration::getIterationTextureID() const {
@@ -68,7 +66,7 @@ namespace merutilm::rff {
                 return;
             }
             shader.uploadTexture2D("iterations", GL_TEXTURE0, iterationTextureID, iterationBuffer.data(), iterWidth,
-                                   iterHeight, Constants::TextureFormats::FLOAT2);
+                                   iterHeight, Constants::TextureFormats::FF2);
         } else {
             shader.uploadTexture2D("iterations", GL_TEXTURE0, previousFBOTextureID);
         }
@@ -76,7 +74,7 @@ namespace merutilm::rff {
         shader.uploadDouble("maxIteration", maxIteration);
 
         shader.uploadTexture2D("palette", GL_TEXTURE1, paletteTextureID, paletteBuffer.data(), paletteWidth, paletteHeight,
-                               Constants::TextureFormats::FLOAT4);
+                               Constants::TextureFormats::FF4);
         shader.uploadInt("paletteWidth", paletteWidth);
         shader.uploadInt("paletteHeight", paletteHeight);
         shader.uploadInt("paletteLength", paletteLength);
@@ -104,8 +102,8 @@ namespace merutilm::rff {
     }
 
 
-    void GLRendererIteration::setMaxIteration(const uint64_t maxIteration) {
-        this->maxIteration = static_cast<double>(maxIteration);
+    void GLRendererIteration::setMaxIteration(const double maxIteration) {
+        this->maxIteration = maxIteration;
     }
 
     void GLRendererIteration::setAllIterations(const Matrix<double> &iterations) {

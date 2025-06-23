@@ -8,6 +8,13 @@
 
 
 namespace merutilm::rff::SlopePresets {
+
+    struct Disabled final : public Presets::ShaderPresets::SlopePreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] SlopeSettings slopeSettings() const override;
+    };
+
     struct Normal final : public Presets::ShaderPresets::SlopePreset {
         [[nodiscard]] std::string getName() const override;
 

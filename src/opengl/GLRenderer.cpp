@@ -87,7 +87,7 @@ namespace merutilm::rff {
             return;
         }
         fboTextureID = GLShader::recreateTexture2D(fboTextureID, width, height,
-                                                         Constants::TextureFormats::FLOAT4);
+                                                         Constants::TextureFormats::FF4);
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTextureID, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

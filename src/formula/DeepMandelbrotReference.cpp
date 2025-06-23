@@ -17,7 +17,8 @@ namespace merutilm::rff {
                                                      std::vector<uint64_t> &&period, fp_complex &&lastReference,
                                                      fp_complex &&fpgBn) : MandelbrotReference(std::move(center),
                                                                                std::move(compressor), std::move(period),
-                                                                               std::move(lastReference), std::move(fpgBn)),
+                                                                               std::move(lastReference),
+                                                                               std::move(fpgBn)),
                                                                            refReal(std::move(refReal)),
                                                                            refImag(std::move(refImag)) {
     }
@@ -113,7 +114,7 @@ namespace merutilm::rff {
                         initialPeriod != 0 && initialPeriod == iteration)) {
                     periodArray.push_back(iteration);
                     break;
-                        }
+                }
 
                 dex::cpy(&fpgBnr, temps[2]);
                 dex::cpy(&fpgBni, temps[3]);
@@ -162,12 +163,15 @@ namespace merutilm::rff {
 
 
             if (compressCriteria > 0 && iteration >= 1) {
-                const int64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
-                dex::div(&temps[0], zr, rr[refIndex]);
-                dex::div(&temps[1], zi, ri[refIndex]);
+                const uint64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
+                const bool sr = zr.sgn() == rr[refIndex].sgn() && zr.sgn() == 0;
+                const bool si = zi.sgn() == ri[refIndex].sgn() && zi.sgn() == 0;
+                if (!sr) dex::div(&temps[0], zr, rr[refIndex]);
+                if (!si) dex::div(&temps[1], zi, ri[refIndex]);
+
                 if (
-                    std::fabs(static_cast<double>(temps[0]) - 1) <= compressionThreshold &&
-                    std::fabs(static_cast<double>(temps[1]) - 1) <= compressionThreshold && canReuse
+                    (sr || std::fabs(static_cast<double>(temps[0]) - 1) <= compressionThreshold) &&
+                    (si || std::fabs(static_cast<double>(temps[1]) - 1) <= compressionThreshold) && canReuse
                 ) {
                     ++reuseIndex;
                 } else if (reuseIndex != 0) {
@@ -193,10 +197,10 @@ namespace merutilm::rff {
                     index == rr.size()) {
                     rr.push_back(zr);
                     ri.push_back(zi);
-                    } else {
-                        rr[index] = zr;
-                        ri[index] = zi;
-                    }
+                } else {
+                    rr[index] = zr;
+                    ri[index] = zi;
+                }
             }
         }
 
@@ -210,7 +214,8 @@ namespace merutilm::rff {
         ri.shrink_to_fit();
         periodArray = periodArray.empty() ? std::vector(1, period) : periodArray;
 
-        return std::make_unique<DeepMandelbrotReference>(std::move(center), std::move(rr), std::move(ri), std::move(tools),
+        return std::make_unique<DeepMandelbrotReference>(std::move(center), std::move(rr), std::move(ri),
+                                                         std::move(tools),
                                                          std::move(periodArray), fp_complex(z), fp_complex(fpgBn));
     }
 

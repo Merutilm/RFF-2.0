@@ -12,7 +12,7 @@
 
 #include "../data/Matrix.h"
 #include "../formula/LightMandelbrotPerturbator.h"
-#include "../io/RFFMap.h"
+#include "../io/RFFDynamicMap.h"
 #include "../mrthy/DeepPA.h"
 #include "../opengl/GLMultipassRenderer.h"
 #include "../opengl/GLRendererAntialiasing.h"
@@ -43,13 +43,14 @@ namespace merutilm::rff {
         std::atomic<bool> resizeRequested = false;
         std::atomic<bool> colorRequested = false;
         std::atomic<bool> createImageRequested = false;
+        std::string createImageRequestedFilename = "";
 
-        std::atomic<bool> idle = true;
+        std::atomic<bool> idleCompute = true;
 
         ApproxTableCache approxTableCache = ApproxTableCache();
 
         std::array<std::string, Constants::Status::LENGTH> *statusMessageRef = nullptr;
-        std::unique_ptr<RFFMap> currentMap = nullptr;
+        std::unique_ptr<RFFDynamicMap> currentMap = nullptr;
         std::unique_ptr<Matrix<double> > iterationMatrix = nullptr;
         std::unique_ptr<MandelbrotPerturbator> currentPerturbator = nullptr;
 
@@ -109,7 +110,7 @@ namespace merutilm::rff {
 
         void requestRecompute();
 
-        void requestCreateImage();
+        void requestCreateImage(const std::string &filename = "");
 
         void applyCreateImage() const;
 
@@ -123,9 +124,9 @@ namespace merutilm::rff {
 
         uint16_t getMouseYOnIterationBuffer() const;
 
-        void recompute();
+        void recomputeThreaded();
 
-        void beforeCompute(Settings &settings);
+        void beforeCompute(Settings &settings) const;
 
         bool compute(const Settings &settings);
 
@@ -145,9 +146,9 @@ namespace merutilm::rff {
 
         BackgroundThreads &getBackgroundThreads();
 
-        RFFMap &getCurrentMap() const;
+        RFFDynamicMap &getCurrentMap() const;
 
-        void setCurrentMap(const RFFMap &map);
+        void setCurrentMap(const RFFDynamicMap &map);
 
         bool isRecomputeRequested() const;
 
@@ -157,7 +158,7 @@ namespace merutilm::rff {
 
         bool isCreateImageRequested() const;
 
-        bool isIdle() const;
+        bool isIdleCompute() const;
 
         int getCWRequest() const;
 

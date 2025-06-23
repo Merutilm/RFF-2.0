@@ -30,12 +30,13 @@
 #include "../preset/render/RenderPresets.h"
 #include <opencv2/core/ocl.hpp>
 
+#include "IOUtilities.h"
+
 namespace merutilm::rff {
     RenderScene::RenderScene() : state(ParallelRenderState()), settings(initSettings()) {
         if (!cv::ocl::useOpenCL()) {
             std::cout << "OpenCL initialization failed." << std::endl;
         }
-
     }
 
     RenderScene::~RenderScene() {
@@ -73,7 +74,8 @@ namespace merutilm::rff {
             },
             .videoSettings = {
                 .dataSettings = {
-                    .defaultZoomIncrement = 2
+                    .defaultZoomIncrement = 2,
+                    .isStatic = false
                 },
                 .animationSettings = {
                     .overZoom = 2,
@@ -139,7 +141,7 @@ namespace merutilm::rff {
                                                                 settings.calculationSettings.logZoom);
                 if (value == 1) {
                     const std::array<dex, 2> offset = offsetConversion(settings, getMouseXOnIterationBuffer(),
-                                                                              getMouseYOnIterationBuffer());
+                                                                       getMouseYOnIterationBuffer());
                     const double mzi = 1.0 / pow(10, Constants::Render::ZOOM_INTERVAL);
                     float &logZoom = settings.calculationSettings.logZoom;
                     logZoom += increment;
@@ -150,7 +152,7 @@ namespace merutilm::rff {
                 }
                 if (value == -1) {
                     const std::array<dex, 2> offset = offsetConversion(settings, getMouseXOnIterationBuffer(),
-                                                                              getMouseYOnIterationBuffer());
+                                                                       getMouseYOnIterationBuffer());
                     const double mzo = 1.0 / pow(10, -Constants::Render::ZOOM_INTERVAL);
                     float &logZoom = settings.calculationSettings.logZoom;
                     logZoom -= increment;
@@ -212,7 +214,7 @@ namespace merutilm::rff {
 
 
     void RenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context,
-                                   std::array<std::string, Constants::Status::LENGTH> *statusMessageRef) {
+                                std::array<std::string, Constants::Status::LENGTH> *statusMessageRef) {
         WGLScene::configure(wnd, hdc, context);
         makeContextCurrent();
 
@@ -241,25 +243,33 @@ namespace merutilm::rff {
     }
 
     void RenderScene::renderGL() {
-
         makeContextCurrent();
         renderer->setTime(Utilities::getTime());
 
-        if (colorRequested.exchange(false)) {
+        if (colorRequested) {
             applyColor(settings);
+            colorRequested.exchange(false);
+            backgroundThreads.notifyAll();
         }
 
-        if (resizeRequested.exchange(false)) {
+        if (resizeRequested) {
             state.cancel();
             applyResize();
+            resizeRequested.exchange(false);
+            backgroundThreads.notifyAll();
         }
 
-        if (recomputeRequested.exchange(false)) {
-            recompute();
+        if (recomputeRequested) {
+            idleCompute = false;
+            recomputeRequested.exchange(false);
+            recomputeThreaded();
+            //it is threaded, not idle
         }
 
-        if (createImageRequested.exchange(false)) {
+        if (createImageRequested) {
             applyCreateImage();
+            createImageRequested.exchange(false);
+            backgroundThreads.notifyAll();
         }
 
         glClear(GL_COLOR_BUFFER_BIT);
@@ -280,12 +290,17 @@ namespace merutilm::rff {
         recomputeRequested = true;
     }
 
-    void RenderScene::requestCreateImage() {
+    void RenderScene::requestCreateImage(const std::string &filename) {
         createImageRequested = true;
+        createImageRequestedFilename = filename;
     }
 
 
     void RenderScene::applyCreateImage() const {
+        if (createImageRequestedFilename.empty()) {
+            IOUtilities::ioFileDialog("Save image", "image file", IOUtilities::SAVE_FILE,
+                                      {Constants::Extension::IMAGE});
+        }
         const GLuint fbo = renderer->getRenderedFBO();
         const GLuint fboID = renderer->getRenderedFBOTexID();
         const int width = renderer->getWidth();
@@ -297,7 +312,7 @@ namespace merutilm::rff {
         auto img = cv::Mat(height, width, CV_8UC4, pixels.data());
         cv::flip(img, img, 0);
         cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
-        cv::imwrite("sample.png", img);
+        cv::imwrite(createImageRequestedFilename, img);
         GLRenderer::unbindFBO(fbo);
     }
 
@@ -312,22 +327,22 @@ namespace merutilm::rff {
     }
 
     void RenderScene::applyResize() {
-        const int cw = getClientWidth();
-        const int ch = getClientHeight();
-        const int iw = getIterationBufferWidth(settings);
-        const int ih = getIterationBufferHeight(settings);
+        const uint16_t cw = getClientWidth();
+        const uint16_t ch = getClientHeight();
+        const uint16_t iw = getIterationBufferWidth(settings);
+        const uint16_t ih = getIterationBufferHeight(settings);
         glViewport(0, 0, cw, ch);
         rendererSlope->setClarityMultiplier(settings.renderSettings.clarityMultiplier);
-        rendererIteration->reloadIterationBuffer(iw, ih, settings.calculationSettings.maxIteration);
+        rendererIteration->reloadIterationBuffer(iw, ih);
         renderer->reloadSize(cw, ch, iw, ih);
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
     }
 
     void RenderScene::overwriteMatrixFromMap() const {
-        renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->getMatrix().getWidth(), currentMap->getMatrix().getHeight());
-        rendererIteration->setMaxIteration(currentMap->getMaxIteration());
+        renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->getMatrix().getWidth(),
+                             currentMap->getMatrix().getHeight());
+        rendererIteration->setMaxIteration(static_cast<double>(currentMap->getMaxIteration()));
         rendererIteration->setAllIterations(currentMap->getMatrix());
-
     }
 
 
@@ -348,7 +363,7 @@ namespace merutilm::rff {
     }
 
 
-    void RenderScene::recompute() {
+    void RenderScene::recomputeThreaded() {
         state.createThread([this](std::stop_token) {
             Settings settings = this->settings; //clone the settings
             beforeCompute(settings);
@@ -357,11 +372,11 @@ namespace merutilm::rff {
         });
     }
 
-    void RenderScene::beforeCompute(Settings &settings) {
-        idle = false;
+    void RenderScene::beforeCompute(Settings &settings) const {
         settings.calculationSettings.maxIteration = std::max(this->settings.calculationSettings.maxIteration,
-                                                             lastPeriod * Constants::Render::AUTOMATIC_ITERATION_MULTIPLIER);
-        rendererIteration->setMaxIteration(settings.calculationSettings.maxIteration);
+                                                             lastPeriod *
+                                                             Constants::Render::AUTOMATIC_ITERATION_MULTIPLIER);
+        rendererIteration->setMaxIteration(static_cast<double>(settings.calculationSettings.maxIteration));
     }
 
 
@@ -393,7 +408,8 @@ namespace merutilm::rff {
                 setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(start));
             }
         };
-        std::function actionPerCreatingTableIteration = [refreshInterval, this, &start](const uint64_t p, const double i) {
+        std::function actionPerCreatingTableIteration = [refreshInterval, this, &start
+                ](const uint64_t p, const double i) {
             if (p % refreshInterval == 0) {
                 setStatusMessage(Constants::Status::RENDER_STATUS, std::format("A : {:.3f}%", i * 100));
                 setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(start));
@@ -403,7 +419,7 @@ namespace merutilm::rff {
 
         if (state.interruptRequested()) return false;
         switch (calc.reuseReferenceMethod) {
-            using enum ReuseReferenceMethod;
+                using enum ReuseReferenceMethod;
             case CURRENT_REFERENCE: {
                 if (auto p = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
                     currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxAsDoubleExp(), approxTableCache);
@@ -481,7 +497,8 @@ namespace merutilm::rff {
             mpaLen = t->getTable().getLength();
         }
 
-        setStatusMessage(Constants::Status::PERIOD_STATUS, std::format("P : {:L} ({:L}, {:L})", lastPeriod, refLength, mpaLen));
+        setStatusMessage(Constants::Status::PERIOD_STATUS,
+                         std::format("P : {:L} ({:L}, {:L})", lastPeriod, refLength, mpaLen));
         if (state.interruptRequested()) return false;
 
 
@@ -491,7 +508,8 @@ namespace merutilm::rff {
 
         auto previewer = ParallelArrayDispatcher<double>(
             state, *iterationMatrix,
-            [settingsToUse, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y, const uint16_t xRes, uint16_t, float,
+            [settingsToUse, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y,
+                                                                 const uint16_t xRes, uint16_t, float,
                                                                  float, const uint32_t i,
                                                                  double) {
                 rendered[i] = true;
@@ -538,7 +556,7 @@ namespace merutilm::rff {
 
         if (state.interruptRequested()) return false;
 
-        currentMap = std::make_unique<RFFMap>(calc.logZoom, lastPeriod, calc.maxIteration, *iterationMatrix);
+        currentMap = std::make_unique<RFFDynamicMap>(calc.logZoom, lastPeriod, calc.maxIteration, *iterationMatrix);
         setStatusMessage(Constants::Status::RENDER_STATUS, std::string("Done"));
 
         return true;
@@ -551,7 +569,7 @@ namespace merutilm::rff {
         if (success && settings.calculationSettings.reuseReferenceMethod == ReuseReferenceMethod::CENTERED_REFERENCE) {
             settings.calculationSettings.reuseReferenceMethod = ReuseReferenceMethod::CURRENT_REFERENCE;
         }
-        idle = true;
+        idleCompute = true;
         backgroundThreads.notifyAll();
     }
 
@@ -585,12 +603,12 @@ namespace merutilm::rff {
         return backgroundThreads;
     }
 
-    RFFMap &RenderScene::getCurrentMap() const {
+    RFFDynamicMap &RenderScene::getCurrentMap() const {
         return *currentMap;
     }
 
-    void RenderScene::setCurrentMap(const RFFMap &map) {
-        this->currentMap = std::make_unique<RFFMap>(map);
+    void RenderScene::setCurrentMap(const RFFDynamicMap &map) {
+        this->currentMap = std::make_unique<RFFDynamicMap>(map);
     }
 
     bool RenderScene::isRecomputeRequested() const {
@@ -609,8 +627,8 @@ namespace merutilm::rff {
         return colorRequested;
     }
 
-    bool RenderScene::isIdle() const {
-        return idle;
+    bool RenderScene::isIdleCompute() const {
+        return idleCompute;
     }
 
     int RenderScene::getCWRequest() const {
@@ -626,7 +644,3 @@ namespace merutilm::rff {
         chRequest = 0;
     }
 }
-
-
-
-

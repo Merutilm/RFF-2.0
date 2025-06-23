@@ -21,7 +21,7 @@ double getIterationNormal(ivec2 coord){
     uvec2 ith = floatBitsToUint(iteration.yx);
     double result = packDouble2x32(ith);
     if(result >= maxIteration){
-        return maxIteration * 2; // smooth mandelbrot plane
+        return maxIteration * 2; // smooth plane
     }
     return result;
 }
@@ -31,7 +31,7 @@ double getIterationZoomed(ivec2 coord){
     uvec2 ith = floatBitsToUint(iteration.wz);
     double result = packDouble2x32(ith);
     if(result >= maxIteration){
-        return maxIteration * 2; // smooth mandelbrot plane
+        return maxIteration * 2; // smooth plane
     }
     return result;
 }

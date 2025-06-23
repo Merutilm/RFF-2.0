@@ -6,12 +6,13 @@
 #include "VideoWindow.h"
 
 #include "IOUtilities.h"
-#include "../io/RFFMap.h"
+#include "../io/RFFDynamicMap.h"
 #include "opencv2/videoio.hpp"
 #include <commctrl.h>
 
 #include "Constants.h"
 #include "WGLContextLoader.h"
+#include "../io/RFFStaticMap.h"
 #include "../parallel/BackgroundThreads.h"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
@@ -21,13 +22,15 @@ namespace merutilm::rff {
         videoWindow = CreateWindowEx(0,
                                      Constants::Win32::CLASS_VIDEO_WINDOW,
                                      "Preview video",
-                                     WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+                                     WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT,
+                                     CW_USEDEFAULT,
                                      CW_USEDEFAULT, nullptr, nullptr,
                                      nullptr, nullptr);
 
         renderWindow = CreateWindowEx(0, Constants::Win32::CLASS_VIDEO_RENDER_WINDOW, nullptr,
                                       WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS, CW_USEDEFAULT,
-                                      CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr, nullptr);
+                                      CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr,
+                                      nullptr);
 
         bar = CreateWindowEx(0, WC_STATIC, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS,
                              CW_USEDEFAULT,
@@ -44,8 +47,6 @@ namespace merutilm::rff {
     }
 
 
-
-
     void VideoWindow::setClientSize(const int width, const int height) const {
         const RECT rect = {0, 0, width, height};
         RECT adjusted = rect;
@@ -55,12 +56,13 @@ namespace merutilm::rff {
                      adjusted.bottom - adjusted.top + Constants::Win32::PROGRESS_BAR_HEIGHT, SWP_NOMOVE | SWP_NOZORDER);
         SetWindowPos(renderWindow, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top,
                      SWP_NOZORDER);
-        SetWindowPos(bar, nullptr, 0, rect.bottom - rect.top, rect.right - rect.left, Constants::Win32::PROGRESS_BAR_HEIGHT,
+        SetWindowPos(bar, nullptr, 0, rect.bottom - rect.top, rect.right - rect.left,
+                     Constants::Win32::PROGRESS_BAR_HEIGHT,
                      SWP_NOZORDER);
     }
 
     LRESULT VideoWindow::videoWindowProc(const HWND hwnd, const UINT message, const WPARAM wParam,
-                                            const LPARAM lParam) {
+                                         const LPARAM lParam) {
         const auto &window = *reinterpret_cast<VideoWindow *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
         switch (message) {
             case WM_DESTROY: {
@@ -79,7 +81,8 @@ namespace merutilm::rff {
                 const auto pos = window.barRatio;
 
                 RECT prc = rc;
-                prc.right = static_cast<int>(std::lerp(static_cast<float>(prc.left), static_cast<float>(prc.right), pos));
+                prc.right = static_cast<int>(
+                    std::lerp(static_cast<float>(prc.left), static_cast<float>(prc.right), pos));
 
                 const HBRUSH pBar = CreateSolidBrush(Constants::Win32::COLOR_PROGRESS_BACKGROUND_PROG);
                 FillRect(hdcBar, &prc, pBar);
@@ -117,20 +120,36 @@ namespace merutilm::rff {
 
 
     void VideoWindow::createVideo(const Settings &settings,
-                                     const std::filesystem::path &open,
-                                     const std::filesystem::path &save) {
-        const RFFMap targetMap = RFFMap::readByID(open, 1);
-        if (!targetMap.hasData()) {
-            MessageBox(nullptr, "Cannot create video. There is no samples in the directory", "Export failed",
-                       MB_ICONERROR | MB_OK);
-            return;
+                                  const std::filesystem::path &open,
+                                  const std::filesystem::path &save) {
+        uint16_t imgWidth = 0;
+        uint16_t imgHeight = 0;
+
+        if (settings.videoSettings.dataSettings.isStatic) {
+            const RFFStaticMap targetMap = RFFStaticMap::readByID(open, 1);
+            if (!targetMap.hasData()) {
+                MessageBox(nullptr, "Cannot create video. There is no samples in the directory", "Export failed",
+                           MB_ICONERROR | MB_OK);
+                return;
+            }
+
+            imgWidth = targetMap.getWidth();
+            imgHeight = targetMap.getHeight();
+        }else {
+            const RFFDynamicMap targetMap = RFFDynamicMap::readByID(open, 1);
+            if (!targetMap.hasData()) {
+                MessageBox(nullptr, "Cannot create video. There is no samples in the directory", "Export failed",
+                           MB_ICONERROR | MB_OK);
+                return;
+            }
+
+            const Matrix<double> &targetMatrix = targetMap.getMatrix();
+
+            imgWidth = targetMatrix.getWidth();
+            imgHeight = targetMatrix.getHeight();
         }
 
-        const Matrix<double> &targetMatrix = targetMap.getMatrix();
-        uint16_t imgWidth = targetMatrix.getWidth();
-        uint16_t imgHeight = targetMatrix.getHeight();
         cv::VideoWriter writer;
-
 
         uint16_t cw = std::min(imgWidth, static_cast<uint16_t>(1280));
         auto ch = static_cast<uint16_t>(static_cast<uint32_t>(cw) * imgHeight / imgWidth);
@@ -142,16 +161,15 @@ namespace merutilm::rff {
                 WGLContextLoader::createContext(window.hdc, &window.context);
                 window.scene.configure(window.renderWindow, window.hdc, window.context);
                 window.scene.makeContextCurrent();
-                window.scene.getRenderer().reloadSize(cw, ch, imgWidth, imgHeight);
-                window.scene.reloadImageBuffer(imgWidth, imgHeight);
+                window.scene.reloadSize(cw, ch, imgWidth, imgHeight);
                 window.scene.applyColor(settings);
 
-                const auto &[defaultZoomIncrement] = settings.videoSettings.dataSettings;
+                const auto &[defaultZoomIncrement, isStatic] = settings.videoSettings.dataSettings;
                 const auto &[overZoom, showText, mps] = settings.videoSettings.animationSettings;
                 const auto &[fps, bitrate] = settings.videoSettings.exportSettings;
 
                 const auto frameInterval = mps / fps;
-                const uint32_t maxNumber = IOUtilities::fileNameCount(open, Constants::Extension::MAP);
+                const uint32_t maxNumber = isStatic ? IOUtilities::fileNameCount(open, Constants::Extension::STATIC_MAP) : IOUtilities::fileNameCount(open, Constants::Extension::DYNAMIC_MAP);
                 const float minNumber = -overZoom;
                 auto currentFrameNumber = static_cast<float>(maxNumber);
                 float currentSec = 0;
@@ -164,25 +182,50 @@ namespace merutilm::rff {
                 }
                 const float startSec = Utilities::getTime();
 
-                RFFMap zoomed = RFFMap::DEFAULT_MAP;
-                RFFMap normal = RFFMap::DEFAULT_MAP;
+
+                RFFDynamicMap zoomedDynamic = RFFDynamicMap::DEFAULT_MAP;
+                RFFDynamicMap normalDynamic = RFFDynamicMap::DEFAULT_MAP;
+                RFFStaticMap zoomedStatic = RFFStaticMap::DEFAULT_MAP;
+                RFFStaticMap normalStatic = RFFStaticMap::DEFAULT_MAP;
+                cv::Mat zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
+                cv::Mat normalStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
+
 
                 while (currentFrameNumber > minNumber) {
                     currentFrameNumber -= frameInterval;
                     currentSec += 1 / fps;
                     bool requiredRefresh = false;
+
+
                     if (currentFrameNumber < 1) {
                         if (0 != pf1) {
-                            zoomed = RFFMap::DEFAULT_MAP;
-                            normal = RFFMap::readByID(open, 1);
+                            if (isStatic) {
+                                zoomedStatic = RFFStaticMap::DEFAULT_MAP;
+                                normalStatic = RFFStaticMap::readByID(open, 1);
+                                zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
+                                normalStaticImage = RFFStaticMap::loadImageByID(open, 1);
+                                cv::flip(normalStaticImage, normalStaticImage, 0);
+                            } else {
+                                zoomedDynamic = RFFDynamicMap::DEFAULT_MAP;
+                                normalDynamic = RFFDynamicMap::readByID(open, 1);
+                            }
                             pf1 = 0;
                             requiredRefresh = true;
                         }
                     } else {
                         if (const auto f1 = static_cast<uint32_t>(currentFrameNumber); f1 != pf1) {
                             const uint32_t f2 = f1 + 1;
-                            zoomed = RFFMap::readByID(open, f1);
-                            normal = RFFMap::readByID(open, f2);
+                            if (isStatic) {
+                                zoomedStatic = RFFStaticMap::readByID(open, f1);
+                                normalStatic = RFFStaticMap::readByID(open, f2);
+                                zoomedStaticImage = RFFStaticMap::loadImageByID(open, f1);
+                                normalStaticImage = RFFStaticMap::loadImageByID(open, f2);
+                                cv::flip(normalStaticImage, normalStaticImage, 0);
+                                cv::flip(zoomedStaticImage, zoomedStaticImage, 0);
+                            } else {
+                                zoomedDynamic = RFFDynamicMap::readByID(open, f1);
+                                normalDynamic = RFFDynamicMap::readByID(open, f2);
+                            }
                             pf1 = f1;
                             requiredRefresh = true;
                         }
@@ -192,17 +235,24 @@ namespace merutilm::rff {
                         break;
                     }
 
+                    cv::Mat img = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
+                    window.scene.setStatic(isStatic);
                     window.scene.setCurrentFrame(currentFrameNumber);
                     window.scene.applyCurrentFrame();
-                    if (requiredRefresh) {
-                        window.scene.setMap(std::move(normal), std::move(zoomed));
-                        window.scene.applyCurrentMap();
-                    }
-                    window.scene.getRenderer().setTime(currentSec);
-                    window.scene.renderGL();
 
+                    if (requiredRefresh) {
+                        if (isStatic) {
+                            window.scene.setMap(&normalStatic, &zoomedStatic);
+                            window.scene.applyCurrentStaticImage(normalStaticImage, zoomedStaticImage);
+                        } else {
+                            window.scene.setMap(&normalDynamic, &zoomedDynamic);
+                            window.scene.applyCurrentDynamicMap(normalDynamic, zoomedDynamic);
+                        }
+                    }
                     const float zoom = window.scene.calculateZoom(defaultZoomIncrement);
-                    const cv::Mat &img = window.scene.getCurrentImage();
+                    window.scene.getDynamicRenderer().setTime(currentSec);
+                    window.scene.renderGL();
+                    img = window.scene.getCurrentImage();
 
                     if (showText) {
                         const int xg = std::max(1, imgWidth / 72);

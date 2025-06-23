@@ -10,6 +10,7 @@
 #include "../settings/Settings.h"
 
 namespace merutilm::rff {
+
     class VideoWindow {
 
         HWND videoWindow;

@@ -7,5 +7,6 @@
 namespace merutilm::rff {
     struct DataSettings {
         float defaultZoomIncrement;
+        bool isStatic;
     };
 }

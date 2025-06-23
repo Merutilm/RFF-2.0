@@ -21,7 +21,9 @@ namespace merutilm::rff {
     public:
         GLRendererIteration2Map();
 
-        void reloadIterationBuffer(uint16_t iterWidth, uint16_t iterHeight, uint64_t maxIteration);
+        void reloadIterationBuffer(uint16_t iterWidth, uint16_t iterHeight);
+
+        void setMaxIteration(double maxIteration);
 
         ~GLRendererIteration2Map() override = default;
 

@@ -8,6 +8,11 @@
 
 
 namespace merutilm::rff::BloomPresets {
+    struct Disabled final : public Presets::ShaderPresets::BloomPreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] BloomSettings bloomSettings() const override;
+    };
     struct Normal final : public Presets::ShaderPresets::BloomPreset {
         [[nodiscard]] std::string getName() const override;
 

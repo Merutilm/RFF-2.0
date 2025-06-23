@@ -144,7 +144,7 @@ namespace merutilm::rff {
 
 
             if (compressCriteria > 0 && iteration >= 1) {
-                if (const int64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
+                if (const uint64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
                     ((zr == rr[refIndex] && zr == 0) || fabs(zr / rr[refIndex] - 1) <= compressionThreshold) &&
                     ((zi == ri[refIndex] && zi == 0) || fabs(zi / ri[refIndex] - 1) <= compressionThreshold) && canReuse
                 ) {
