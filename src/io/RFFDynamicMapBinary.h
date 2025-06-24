@@ -5,26 +5,26 @@
 #pragma once
 #include <filesystem>
 
-#include "RFFMap.h"
+#include "RFFBinary.h"
 #include "../data/Matrix.h"
 #include "opencv2/core/mat.hpp"
 
 namespace merutilm::rff {
-    class RFFDynamicMap : public RFFMap{
+    class RFFDynamicMapBinary final : public RFFBinary{
         uint64_t period;
         uint64_t maxIteration;
         Matrix<double> iterations;
 
     public:
-        static const RFFDynamicMap DEFAULT_MAP;
+        static const RFFDynamicMapBinary DEFAULT;
 
-        RFFDynamicMap(float logZoom, uint64_t period, uint64_t maxIteration, Matrix<double> iterations);
+        RFFDynamicMapBinary(float logZoom, uint64_t period, uint64_t maxIteration, Matrix<double> iterations);
 
         [[nodiscard]] bool hasData() const override;
 
-        [[nodiscard]] static RFFDynamicMap read(const std::filesystem::path &path);
+        [[nodiscard]] static RFFDynamicMapBinary read(const std::filesystem::path &path);
 
-        [[nodiscard]] static RFFDynamicMap readByID(const std::filesystem::path &dir, uint32_t id);
+        [[nodiscard]] static RFFDynamicMapBinary readByID(const std::filesystem::path &dir, uint32_t id);
 
         void exportAsKeyframe(const std::filesystem::path &dir) const override;
 

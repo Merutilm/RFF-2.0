@@ -10,7 +10,6 @@
 namespace merutilm::rff {
     struct CallbackExplore {
         static const std::function<void(SettingsMenu &, RenderScene &)> RECOMPUTE;
-        static const std::function<void(SettingsMenu &, RenderScene &)> REFRESH_COLOR;
         static const std::function<void(SettingsMenu &, RenderScene &)> RESET;
         static const std::function<void(SettingsMenu &, RenderScene &)> CANCEL_RENDER;
         static const std::function<void(SettingsMenu &, RenderScene &)> FIND_CENTER;

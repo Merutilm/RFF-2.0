@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-06-23.
 //
 
-#include "RFFStaticMap.h"
+#include "RFFStaticMapBinary.h"
 
 #include "../ui/IOUtilities.h"
 #include "opencv2/imgcodecs.hpp"
@@ -11,25 +11,25 @@
 namespace merutilm::rff {
 
 
-    const RFFStaticMap RFFStaticMap::DEFAULT_MAP = RFFStaticMap(0, 0, 0);
+    const RFFStaticMapBinary RFFStaticMapBinary::DEFAULT = RFFStaticMapBinary(0, 0, 0);
 
-    RFFStaticMap::RFFStaticMap(const float logZoom, const uint32_t width, const uint32_t height) : RFFMap(logZoom), width(width), height(height) {
+    RFFStaticMapBinary::RFFStaticMapBinary(const float logZoom, const uint32_t width, const uint32_t height) : RFFBinary(logZoom), width(width), height(height) {
 
     }
 
-    bool RFFStaticMap::hasData() const {
+    bool RFFStaticMapBinary::hasData() const {
         return width > 0 && height > 0;
     }
 
 
-    RFFStaticMap RFFStaticMap::read(const std::filesystem::path &path) {
+    RFFStaticMapBinary RFFStaticMapBinary::read(const std::filesystem::path &path) {
         if (!std::filesystem::exists(path)) {
-            return DEFAULT_MAP;
+            return DEFAULT;
         }
         std::ifstream in(path, std::ios::in | std::ios::binary);
 
         if (!in.is_open()) {
-            return DEFAULT_MAP;
+            return DEFAULT;
         }
 
         float lz;
@@ -38,22 +38,22 @@ namespace merutilm::rff {
         IOUtilities::readAndDecode(in, &w);
         uint32_t h;
         IOUtilities::readAndDecode(in, &h);
-        return RFFStaticMap(lz, w, h);
+        return RFFStaticMapBinary(lz, w, h);
     }
 
-    RFFStaticMap RFFStaticMap::readByID(const std::filesystem::path& dir, const uint32_t id) {
+    RFFStaticMapBinary RFFStaticMapBinary::readByID(const std::filesystem::path& dir, const uint32_t id) {
         return read(dir / IOUtilities::fileNameFormat(id, Constants::Extension::STATIC_MAP));
     }
-    cv::Mat RFFStaticMap::loadImageByID(const std::filesystem::path &dir, const uint32_t id) {
+    cv::Mat RFFStaticMapBinary::loadImageByID(const std::filesystem::path &dir, const uint32_t id) {
         return cv::imread((dir / IOUtilities::fileNameFormat(id, Constants::Extension::IMAGE)).string(), cv::IMREAD_COLOR_RGB);
     }
 
 
-    void RFFStaticMap::exportAsKeyframe(const std::filesystem::path &dir) const {
+    void RFFStaticMapBinary::exportAsKeyframe(const std::filesystem::path &dir) const {
         exportFile(IOUtilities::generateFileName(dir, Constants::Extension::STATIC_MAP));
     }
 
-    void RFFStaticMap::exportFile(const std::filesystem::path &path) const {
+    void RFFStaticMapBinary::exportFile(const std::filesystem::path &path) const {
         if (std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc); out.is_open()) {
             IOUtilities::encodeAndWrite(out, getLogZoom());
             IOUtilities::encodeAndWrite(out, getWidth());
@@ -64,10 +64,10 @@ namespace merutilm::rff {
         }
     }
 
-    uint32_t RFFStaticMap::getWidth() const {
+    uint32_t RFFStaticMapBinary::getWidth() const {
         return width;
     }
-    uint32_t RFFStaticMap::getHeight() const {
+    uint32_t RFFStaticMapBinary::getHeight() const {
         return height;
     }
 

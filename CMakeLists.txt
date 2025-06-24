@@ -61,8 +61,8 @@ add_executable(
         src/formula/Perturbator.h
         src/ui/WGLScene.h
         src/ui/WGLScene.cpp
-        src/io/RFFDynamicMap.cpp
-        src/io/RFFDynamicMap.h
+        src/io/RFFDynamicMapBinary.cpp
+        src/io/RFFDynamicMapBinary.h
         src/data/Matrix.h
         src/opengl/GLRendererIteration.cpp
         src/opengl/GLRendererIteration.h
@@ -178,12 +178,14 @@ add_executable(
         src/opengl/GLShaderLoader.cpp
         src/opengl/GLShaderConfig.h
         src/opengl/GLShaderConfig.cpp
-        src/io/RFFStaticMap.cpp
-        src/io/RFFStaticMap.h
-        src/io/RFFMap.cpp
-        src/io/RFFMap.h
+        src/io/RFFStaticMapBinary.cpp
+        src/io/RFFStaticMapBinary.h
+        src/io/RFFBinary.cpp
+        src/io/RFFBinary.h
         src/opengl/GLRendererStatic2Image.cpp
         src/opengl/GLRendererStatic2Image.h
+        src/io/RFFLocationBinary.cpp
+        src/io/RFFLocationBinary.h
 )
 
 

@@ -18,6 +18,7 @@ namespace merutilm::rff {
         ReferenceCompressionSettings referenceCompressionSettings;
         ReuseReferenceMethod reuseReferenceMethod;
         bool autoMaxIteration;
+        uint16_t autoIterationMultiplier;
         bool absoluteIterationMode;
     };
 }

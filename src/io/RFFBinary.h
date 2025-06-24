@@ -6,14 +6,14 @@
 #include <filesystem>
 
 namespace merutilm::rff {
-    class RFFMap {
+    class RFFBinary {
 
         float logZoom;
 
     public:
-        explicit RFFMap(float logZoom);
+        explicit RFFBinary(float logZoom);
 
-        virtual ~RFFMap() = default;
+        virtual ~RFFBinary() = default;
 
         virtual bool hasData() const = 0;
 

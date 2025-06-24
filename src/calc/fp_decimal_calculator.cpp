@@ -5,7 +5,6 @@
 #include "fp_decimal_calculator.h"
 
 #include <float.h>
-#include <iostream>
 #include <math.h>
 
 #include "fp_complex_calculator.h"

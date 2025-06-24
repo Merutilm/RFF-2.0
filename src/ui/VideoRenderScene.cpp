@@ -19,7 +19,7 @@ namespace merutilm::rff {
         rendererStatic2Image->setCurrentFrame(currentFrame);
     }
 
-    void VideoRenderScene::applyCurrentDynamicMap(const RFFDynamicMap &normal, const RFFDynamicMap &zoomed) const {
+    void VideoRenderScene::applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed) const {
 
         auto &normalI = normal.getMatrix();
 
@@ -120,7 +120,7 @@ namespace merutilm::rff {
         this->isStatic = isStatic;
     }
 
-    void VideoRenderScene::setMap(RFFMap *normal, RFFMap *zoomed) {
+    void VideoRenderScene::setMap(RFFBinary *normal, RFFBinary *zoomed) {
         this->normal = normal;
         this->zoomed = zoomed;
     }

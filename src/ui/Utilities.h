@@ -43,6 +43,10 @@ namespace merutilm::rff {
             return std::filesystem::path(buffer.data()).parent_path().parent_path();
         }
 
+        static bool endsWith(const std::string &str, const std::string &suffix) {
+            return str.size() >= suffix.size() && std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
+        }
+
         static std::string joinString(const std::string &delimiter, const std::vector<std::string> &arr) {
             std::ostringstream v;
             for (int i = 0; i < arr.size(); ++i) {

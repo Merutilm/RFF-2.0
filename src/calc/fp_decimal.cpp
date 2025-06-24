@@ -4,7 +4,6 @@
 
 #include "fp_decimal.h"
 
-#include <iostream>
 #include <string>
 #include "fp_decimal_calculator.h"
 

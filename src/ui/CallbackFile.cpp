@@ -4,26 +4,50 @@
 
 #include "CallbackFile.h"
 
-#include <iostream>
-
 #include "Constants.h"
 #include "IOUtilities.h"
 #include "SettingsMenu.h"
+#include "../io/RFFLocationBinary.h"
 
 
 namespace merutilm::rff {
-    const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::OPEN_MAP = [](SettingsMenu&, RenderScene& scene) {
-        const auto path = IOUtilities::ioFileDialog("Open Map", "RFF Map file", IOUtilities::OPEN_FILE, {Constants::Extension::DYNAMIC_MAP});
+    const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::SAVE_MAP = [](const SettingsMenu&, const RenderScene& scene) {
+        const auto path = IOUtilities::ioFileDialog("Save Map", Constants::Extension::DESC_DYNAMIC_MAP, IOUtilities::SAVE_FILE, Constants::Extension::DYNAMIC_MAP);
         if (path == nullptr) {
             return;
         }
-        scene.setCurrentMap(RFFDynamicMap::read(*path));
+        scene.getCurrentMap().exportFile(*path);
+    };
+    const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::SAVE_IMAGE = [](const SettingsMenu&, RenderScene& scene) {
+        scene.requestCreateImage();
+    };
+    const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::SAVE_LOCATION = [](const SettingsMenu&, RenderScene& scene) {
+        const auto path = IOUtilities::ioFileDialog("Save Location", Constants::Extension::DESC_LOCATION, IOUtilities::SAVE_FILE, Constants::Extension::LOCATION);
+        if (path == nullptr) {
+            return;
+        }
+        const auto settings = scene.getSettings().calculationSettings; // clone the settings
+        const auto &center = settings.center;
+        RFFLocationBinary(settings.logZoom, center.real.to_string(), center.imag.to_string(), settings.maxIteration).exportFile(*path);
+    };
+    const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::LOAD_MAP = [](const SettingsMenu&, RenderScene& scene) {
+        const auto path = IOUtilities::ioFileDialog("Load Map", Constants::Extension::DESC_DYNAMIC_MAP, IOUtilities::OPEN_FILE, Constants::Extension::DYNAMIC_MAP);
+        if (path == nullptr) {
+            return;
+        }
+        scene.setCurrentMap(RFFDynamicMapBinary::read(*path));
         scene.overwriteMatrixFromMap();
     };
-    const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::SAVE_MAP = [](SettingsMenu&, RenderScene&) {
+    const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::LOAD_LOCATION = [](SettingsMenu&, RenderScene& scene) {
+        const auto path = IOUtilities::ioFileDialog("Load Map", Constants::Extension::DESC_LOCATION, IOUtilities::OPEN_FILE, Constants::Extension::LOCATION);
+        if (path == nullptr) {
+            return;
+        }
+        const RFFLocationBinary location = RFFLocationBinary::read(*path);
 
-    };
-    const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::SAVE_IMAGE = [](SettingsMenu&, RenderScene& scene) {
-        scene.requestCreateImage();
+        scene.getSettings().calculationSettings.center = fp_complex(location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
+        scene.getSettings().calculationSettings.logZoom = location.getLogZoom();
+        scene.getSettings().calculationSettings.maxIteration = location.getMaxIteration();
+        scene.requestRecompute();
     };
 }

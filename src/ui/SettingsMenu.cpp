@@ -48,14 +48,16 @@ namespace merutilm::rff {
         HMENU subMenu2 = nullptr;
 
         currentMenu = addChildMenu(menubar, "File");
-        addChildItem(currentMenu, "Open Map", CallbackFile::OPEN_MAP);
         addChildItem(currentMenu, "Save Map", CallbackFile::SAVE_MAP);
         addChildItem(currentMenu, "Save Image", CallbackFile::SAVE_IMAGE);
+        addChildItem(currentMenu, "Save Location", CallbackFile::SAVE_LOCATION);
+        addChildItem(currentMenu, "Load Map", CallbackFile::LOAD_MAP);
+        addChildItem(currentMenu, "Load Location", CallbackFile::LOAD_LOCATION);
 
         currentMenu = addChildMenu(menubar, "Fractal");
         addChildItem(currentMenu, "Reference", CallbackFractal::REFERENCE);
         addChildItem(currentMenu, "Iterations", CallbackFractal::ITERATIONS);
-        addChildItem(currentMenu, "MPA", CallbackFractal::MPA);
+        addChildItem(currentMenu, "MP-Approximation", CallbackFractal::MPA);
         addChildCheckbox(currentMenu, "Automatic Iterations", CallbackFractal::AUTOMATIC_ITERATIONS);
         addChildCheckbox(currentMenu, "Absolute Iteration Mode", CallbackFractal::ABSOLUTE_ITERATION_MODE);
 

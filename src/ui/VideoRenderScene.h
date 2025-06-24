@@ -4,8 +4,8 @@
 
 #pragma once
 #include "WGLScene.h"
-#include "../io/RFFDynamicMap.h"
-#include "../io/RFFStaticMap.h"
+#include "../io/RFFDynamicMapBinary.h"
+#include "../io/RFFStaticMapBinary.h"
 #include "../opengl/GLMultipassRenderer.h"
 #include "../opengl/GLRendererAntialiasing.h"
 #include "../opengl/GLRendererBloom.h"
@@ -22,8 +22,8 @@
 
 namespace merutilm::rff {
     class VideoRenderScene final : public WGLScene {
-        RFFMap *normal = nullptr;
-        RFFMap *zoomed = nullptr;
+        RFFBinary *normal = nullptr;
+        RFFBinary *zoomed = nullptr;
         bool isStatic = false;
         std::vector<char> pixels = std::vector<char>();
         cv::Mat currentImage;
@@ -47,7 +47,7 @@ namespace merutilm::rff {
 
         void applyCurrentFrame() const;
 
-        void applyCurrentDynamicMap(const RFFDynamicMap &normal, const RFFDynamicMap &zoomed) const;
+        void applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed) const;
 
         void applyColor(const Settings &settings) const;
 
@@ -63,7 +63,7 @@ namespace merutilm::rff {
 
         void setStatic(bool isStatic);
 
-        void setMap(RFFMap *normal, RFFMap *zoomed);
+        void setMap(RFFBinary *normal, RFFBinary *zoomed);
 
         void applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const;
 

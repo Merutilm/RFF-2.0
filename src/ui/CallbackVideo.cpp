@@ -8,9 +8,8 @@
 #include "IOUtilities.h"
 #include "Callback.h"
 #include "VideoWindow.h"
-#include "../io/RFFStaticMap.h"
+#include "../io/RFFStaticMapBinary.h"
 #include "../preset/shader/bloom/BloomPresets.h"
-#include "../preset/shader/color/ColorPresets.h"
 #include "../preset/shader/fog/FogPresets.h"
 #include "../preset/shader/slope/SlopePresets.h"
 #include "../preset/shader/stripe/StripePresets.h"
@@ -72,7 +71,7 @@ namespace merutilm::rff {
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::GENERATE_VID_KEYFRAME = [
-            ](SettingsMenu &, RenderScene &scene) {
+            ](const SettingsMenu &, RenderScene &scene) {
         scene.getBackgroundThreads().createThread(
             [&scene](BackgroundThread &thread) {
                 const auto &state = scene.getState();
@@ -115,7 +114,7 @@ namespace merutilm::rff {
                                 string();
                         scene.requestCreateImage(path);
                         thread.waitUntil([&scene] { return !scene.isCreateImageRequested(); });
-                        RFFStaticMap(logZoom, scene.getIterationBufferWidth(settings), scene.getIterationBufferHeight(settings)).exportAsKeyframe(dir);
+                        RFFStaticMapBinary(logZoom, scene.getIterationBufferWidth(settings), scene.getIterationBufferHeight(settings)).exportAsKeyframe(dir);
                     } else {
                         scene.getCurrentMap().exportAsKeyframe(dir);
                     }
@@ -129,16 +128,16 @@ namespace merutilm::rff {
             });
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::EXPORT_ZOOM_VID = [
-            ](SettingsMenu &, RenderScene &scene) {
-        scene.getBackgroundThreads().createThread([&scene](BackgroundThread &) {
+            ](const SettingsMenu &, RenderScene &scene) {
+        scene.getBackgroundThreads().createThread([&scene](const BackgroundThread &) {
             const auto openPtr = IOUtilities::ioDirectoryDialog("Select Sample Keyframe folder");
 
             if (openPtr == nullptr) {
                 return;
             }
             const auto &open = *openPtr;
-            const auto savePtr = IOUtilities::ioFileDialog("Save Video Location", "Video file", IOUtilities::SAVE_FILE,
-                                                           {Constants::Extension::VIDEO});
+            const auto savePtr = IOUtilities::ioFileDialog("Save Video Location", Constants::Extension::DESC_VIDEO, IOUtilities::SAVE_FILE,
+                                                           Constants::Extension::VIDEO);
             if (savePtr == nullptr) {
                 return;
             }

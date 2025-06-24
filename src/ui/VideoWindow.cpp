@@ -6,13 +6,13 @@
 #include "VideoWindow.h"
 
 #include "IOUtilities.h"
-#include "../io/RFFDynamicMap.h"
+#include "../io/RFFDynamicMapBinary.h"
 #include "opencv2/videoio.hpp"
 #include <commctrl.h>
 
 #include "Constants.h"
 #include "WGLContextLoader.h"
-#include "../io/RFFStaticMap.h"
+#include "../io/RFFStaticMapBinary.h"
 #include "../parallel/BackgroundThreads.h"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
@@ -126,7 +126,7 @@ namespace merutilm::rff {
         uint16_t imgHeight = 0;
 
         if (settings.videoSettings.dataSettings.isStatic) {
-            const RFFStaticMap targetMap = RFFStaticMap::readByID(open, 1);
+            const RFFStaticMapBinary targetMap = RFFStaticMapBinary::readByID(open, 1);
             if (!targetMap.hasData()) {
                 MessageBox(nullptr, "Cannot create video. There is no samples in the directory", "Export failed",
                            MB_ICONERROR | MB_OK);
@@ -136,7 +136,7 @@ namespace merutilm::rff {
             imgWidth = targetMap.getWidth();
             imgHeight = targetMap.getHeight();
         }else {
-            const RFFDynamicMap targetMap = RFFDynamicMap::readByID(open, 1);
+            const RFFDynamicMapBinary targetMap = RFFDynamicMapBinary::readByID(open, 1);
             if (!targetMap.hasData()) {
                 MessageBox(nullptr, "Cannot create video. There is no samples in the directory", "Export failed",
                            MB_ICONERROR | MB_OK);
@@ -183,10 +183,10 @@ namespace merutilm::rff {
                 const float startSec = Utilities::getTime();
 
 
-                RFFDynamicMap zoomedDynamic = RFFDynamicMap::DEFAULT_MAP;
-                RFFDynamicMap normalDynamic = RFFDynamicMap::DEFAULT_MAP;
-                RFFStaticMap zoomedStatic = RFFStaticMap::DEFAULT_MAP;
-                RFFStaticMap normalStatic = RFFStaticMap::DEFAULT_MAP;
+                RFFDynamicMapBinary zoomedDynamic = RFFDynamicMapBinary::DEFAULT;
+                RFFDynamicMapBinary normalDynamic = RFFDynamicMapBinary::DEFAULT;
+                RFFStaticMapBinary zoomedStatic = RFFStaticMapBinary::DEFAULT;
+                RFFStaticMapBinary normalStatic = RFFStaticMapBinary::DEFAULT;
                 cv::Mat zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
                 cv::Mat normalStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
 
@@ -200,14 +200,14 @@ namespace merutilm::rff {
                     if (currentFrameNumber < 1) {
                         if (0 != pf1) {
                             if (isStatic) {
-                                zoomedStatic = RFFStaticMap::DEFAULT_MAP;
-                                normalStatic = RFFStaticMap::readByID(open, 1);
+                                zoomedStatic = RFFStaticMapBinary::DEFAULT;
+                                normalStatic = RFFStaticMapBinary::readByID(open, 1);
                                 zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
-                                normalStaticImage = RFFStaticMap::loadImageByID(open, 1);
+                                normalStaticImage = RFFStaticMapBinary::loadImageByID(open, 1);
                                 cv::flip(normalStaticImage, normalStaticImage, 0);
                             } else {
-                                zoomedDynamic = RFFDynamicMap::DEFAULT_MAP;
-                                normalDynamic = RFFDynamicMap::readByID(open, 1);
+                                zoomedDynamic = RFFDynamicMapBinary::DEFAULT;
+                                normalDynamic = RFFDynamicMapBinary::readByID(open, 1);
                             }
                             pf1 = 0;
                             requiredRefresh = true;
@@ -216,15 +216,15 @@ namespace merutilm::rff {
                         if (const auto f1 = static_cast<uint32_t>(currentFrameNumber); f1 != pf1) {
                             const uint32_t f2 = f1 + 1;
                             if (isStatic) {
-                                zoomedStatic = RFFStaticMap::readByID(open, f1);
-                                normalStatic = RFFStaticMap::readByID(open, f2);
-                                zoomedStaticImage = RFFStaticMap::loadImageByID(open, f1);
-                                normalStaticImage = RFFStaticMap::loadImageByID(open, f2);
+                                zoomedStatic = RFFStaticMapBinary::readByID(open, f1);
+                                normalStatic = RFFStaticMapBinary::readByID(open, f2);
+                                zoomedStaticImage = RFFStaticMapBinary::loadImageByID(open, f1);
+                                normalStaticImage = RFFStaticMapBinary::loadImageByID(open, f2);
                                 cv::flip(normalStaticImage, normalStaticImage, 0);
                                 cv::flip(zoomedStaticImage, zoomedStaticImage, 0);
                             } else {
-                                zoomedDynamic = RFFDynamicMap::readByID(open, f1);
-                                normalDynamic = RFFDynamicMap::readByID(open, f2);
+                                zoomedDynamic = RFFDynamicMapBinary::readByID(open, f1);
+                                normalDynamic = RFFDynamicMapBinary::readByID(open, f2);
                             }
                             pf1 = f1;
                             requiredRefresh = true;

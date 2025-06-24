@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-05-08.
 //
 
-#include "RFFDynamicMap.h"
+#include "RFFDynamicMapBinary.h"
 
 #include <filesystem>
 #include <fstream>
@@ -14,27 +14,27 @@
 
 namespace merutilm::rff {
 
-    inline const RFFDynamicMap RFFDynamicMap::DEFAULT_MAP = RFFDynamicMap(0, 0, 0, Matrix<double>(0, 0));
+    inline const RFFDynamicMapBinary RFFDynamicMapBinary::DEFAULT = RFFDynamicMapBinary(0, 0, 0, Matrix<double>(0, 0));
 
-    RFFDynamicMap::RFFDynamicMap(const float logZoom, const uint64_t period, const uint64_t maxIteration,
-                                  Matrix<double> iterations) : RFFMap(logZoom), period(period), maxIteration(maxIteration),
+    RFFDynamicMapBinary::RFFDynamicMapBinary(const float logZoom, const uint64_t period, const uint64_t maxIteration,
+                                  Matrix<double> iterations) : RFFBinary(logZoom), period(period), maxIteration(maxIteration),
                                                                iterations(std::move(iterations)) {
     }
 
 
-    bool RFFDynamicMap::hasData() const {
+    bool RFFDynamicMapBinary::hasData() const {
         return iterations.getWidth() > 0;
     }
 
 
-    RFFDynamicMap RFFDynamicMap::read(const std::filesystem::path &path) {
+    RFFDynamicMapBinary RFFDynamicMapBinary::read(const std::filesystem::path &path) {
         if (!std::filesystem::exists(path)) {
-            return DEFAULT_MAP;
+            return DEFAULT;
         }
         std::ifstream in(path, std::ios::in | std::ios::binary);
 
         if (!in.is_open()) {
-            return DEFAULT_MAP;
+            return DEFAULT;
         }
 
         uint16_t w;
@@ -49,19 +49,19 @@ namespace merutilm::rff {
         IOUtilities::readAndDecode(in, &m);
         auto i = std::vector<double>(w * h);
         IOUtilities::readAndDecode(in, &i);
-        return RFFDynamicMap(z, p, m, Matrix(w, h, i));
+        return RFFDynamicMapBinary(z, p, m, Matrix(w, h, i));
     }
 
-    RFFDynamicMap RFFDynamicMap::readByID(const std::filesystem::path& dir, const uint32_t id) {
+    RFFDynamicMapBinary RFFDynamicMapBinary::readByID(const std::filesystem::path& dir, const uint32_t id) {
         return read(dir / IOUtilities::fileNameFormat(id, Constants::Extension::DYNAMIC_MAP));
     }
 
 
-    void RFFDynamicMap::exportAsKeyframe(const std::filesystem::path &dir) const {
+    void RFFDynamicMapBinary::exportAsKeyframe(const std::filesystem::path &dir) const {
         exportFile(IOUtilities::generateFileName(dir, Constants::Extension::DYNAMIC_MAP));
     }
 
-    void RFFDynamicMap::exportFile(const std::filesystem::path &path) const {
+    void RFFDynamicMapBinary::exportFile(const std::filesystem::path &path) const {
         if (std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc); out.is_open()) {
             IOUtilities::encodeAndWrite(out, iterations.getWidth());
             IOUtilities::encodeAndWrite(out, iterations.getHeight());
@@ -76,15 +76,15 @@ namespace merutilm::rff {
     }
 
 
-    uint64_t RFFDynamicMap::getPeriod() const {
+    uint64_t RFFDynamicMapBinary::getPeriod() const {
         return period;
     }
 
-    uint64_t RFFDynamicMap::getMaxIteration() const {
+    uint64_t RFFDynamicMapBinary::getMaxIteration() const {
         return maxIteration;
     }
 
-    const Matrix<double> &RFFDynamicMap::getMatrix() const {
+    const Matrix<double> &RFFDynamicMapBinary::getMatrix() const {
         return iterations;
     }
 }

@@ -63,7 +63,6 @@ namespace merutilm::rff::Constants {
         constexpr float ZOOM_INTERVAL = 0.235f;
         constexpr float ZOOM_DEADLINE = 290;
         constexpr uint64_t MINIMUM_ITERATION = 100;
-        constexpr int AUTOMATIC_ITERATION_MULTIPLIER = 100;
         constexpr uint16_t GAUSSIAN_MAX_WIDTH = 200;
         constexpr int GAUSSIAN_REQUIRES_BOX = 3;
         constexpr double INTENTIONAL_ERROR_DCLMB = 1e16; //DCmax for Locate Mini Brot
@@ -114,8 +113,14 @@ namespace merutilm::rff::Constants {
     namespace Extension {
         constexpr auto DYNAMIC_MAP = "rfm";
         constexpr auto STATIC_MAP = "rfsm";
+        constexpr auto LOCATION = "rfl";
         constexpr auto IMAGE = "png";
         constexpr auto VIDEO = "mp4";
+        constexpr auto DESC_DYNAMIC_MAP = "RFF dynamic map binary";
+        constexpr auto DESC_STATIC_MAP = "RFF static map binary";
+        constexpr auto DESC_LOCATION = "RFF location binary";
+        constexpr auto DESC_IMAGE = "Image file";
+        constexpr auto DESC_VIDEO = "Video file";
     }
 
     namespace GLConfig {

@@ -17,12 +17,10 @@ namespace merutilm::rff {
             ](const SettingsMenu &, RenderScene &scene) {
         scene.requestRecompute();
     };
-    const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::REFRESH_COLOR = [
-            ](const SettingsMenu &, RenderScene &scene) {
-        scene.requestColor();
-    };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::RESET = [
             ](const SettingsMenu &, RenderScene &scene) {
+        scene.getSettings() = scene.defaultSettings();
+        scene.requestRecompute();
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::CANCEL_RENDER = [
             ](const SettingsMenu &, RenderScene &scene) {
@@ -87,7 +85,7 @@ namespace merutilm::rff {
         return [&scene, logZoom, longestPeriod](const uint64_t p, int i) {
             if (p % Utilities::getRefreshInterval(logZoom) == 0) {
                 scene.setStatusMessage(Constants::Status::RENDER_STATUS,
-                                       std::format("C : {:.3f}%[{}]",
+                                       std::format("L : {:.3f}%[{}]",
                                                    static_cast<float>(100 * p) / static_cast<float>(
                                                        longestPeriod),
                                                    i));

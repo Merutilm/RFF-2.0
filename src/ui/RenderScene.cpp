@@ -33,7 +33,7 @@
 #include "IOUtilities.h"
 
 namespace merutilm::rff {
-    RenderScene::RenderScene() : state(ParallelRenderState()), settings(initSettings()) {
+    RenderScene::RenderScene() : state(ParallelRenderState()), settings(defaultSettings()) {
         if (!cv::ocl::useOpenCL()) {
             std::cout << "OpenCL initialization failed." << std::endl;
         }
@@ -43,7 +43,7 @@ namespace merutilm::rff {
         state.cancel();
     }
 
-    Settings RenderScene::initSettings() {
+    Settings RenderScene::defaultSettings() {
         return Settings{
             .calculationSettings = CalculationSettings{
                 .center = fp_complex("-0.85",
@@ -61,6 +61,7 @@ namespace merutilm::rff {
                 .referenceCompressionSettings = CalculationPresets::UltraFast().referenceCompressionSettings(),
                 .reuseReferenceMethod = ReuseReferenceMethod::DISABLED,
                 .autoMaxIteration = true,
+                .autoIterationMultiplier = 100,
                 .absoluteIterationMode = false
             },
             .renderSettings = RenderPresets::High().renderSettings(),
@@ -290,7 +291,7 @@ namespace merutilm::rff {
         recomputeRequested = true;
     }
 
-    void RenderScene::requestCreateImage(const std::string &filename) {
+    void RenderScene::requestCreateImage(const std::string_view filename) {
         createImageRequested = true;
         createImageRequestedFilename = filename;
     }
@@ -298,8 +299,8 @@ namespace merutilm::rff {
 
     void RenderScene::applyCreateImage() const {
         if (createImageRequestedFilename.empty()) {
-            IOUtilities::ioFileDialog("Save image", "image file", IOUtilities::SAVE_FILE,
-                                      {Constants::Extension::IMAGE});
+            IOUtilities::ioFileDialog("Save image", Constants::Extension::DESC_IMAGE, IOUtilities::SAVE_FILE,
+                                      Constants::Extension::IMAGE);
         }
         const GLuint fbo = renderer->getRenderedFBO();
         const GLuint fboID = renderer->getRenderedFBOTexID();
@@ -373,9 +374,10 @@ namespace merutilm::rff {
     }
 
     void RenderScene::beforeCompute(Settings &settings) const {
-        settings.calculationSettings.maxIteration = std::max(this->settings.calculationSettings.maxIteration,
-                                                             lastPeriod *
-                                                             Constants::Render::AUTOMATIC_ITERATION_MULTIPLIER);
+        settings.calculationSettings.maxIteration = settings.calculationSettings.autoMaxIteration
+                                                        ? lastPeriod * settings.calculationSettings.
+                                                          autoIterationMultiplier
+                                                        : this->settings.calculationSettings.maxIteration;
         rendererIteration->setMaxIteration(static_cast<double>(settings.calculationSettings.maxIteration));
     }
 
@@ -556,7 +558,8 @@ namespace merutilm::rff {
 
         if (state.interruptRequested()) return false;
 
-        currentMap = std::make_unique<RFFDynamicMap>(calc.logZoom, lastPeriod, calc.maxIteration, *iterationMatrix);
+        currentMap = std::make_unique<RFFDynamicMapBinary>(calc.logZoom, lastPeriod, calc.maxIteration,
+                                                           *iterationMatrix);
         setStatusMessage(Constants::Status::RENDER_STATUS, std::string("Done"));
 
         return true;
@@ -603,12 +606,12 @@ namespace merutilm::rff {
         return backgroundThreads;
     }
 
-    RFFDynamicMap &RenderScene::getCurrentMap() const {
+    RFFDynamicMapBinary &RenderScene::getCurrentMap() const {
         return *currentMap;
     }
 
-    void RenderScene::setCurrentMap(const RFFDynamicMap &map) {
-        this->currentMap = std::make_unique<RFFDynamicMap>(map);
+    void RenderScene::setCurrentMap(const RFFDynamicMapBinary &map) {
+        this->currentMap = std::make_unique<RFFDynamicMapBinary>(map);
     }
 
     bool RenderScene::isRecomputeRequested() const {

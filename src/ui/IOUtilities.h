@@ -23,7 +23,7 @@ namespace merutilm::rff {
         static constexpr char SAVE_FILE = 1;
 
         static std::unique_ptr<std::filesystem::path> ioFileDialog(std::string_view title, std::string_view desc,
-                                                                   char type, std::vector<std::string> &&extensions);
+                                                                   char type, std::string_view extension);
 
         static std::unique_ptr<std::filesystem::path> ioDirectoryDialog(std::string_view title);
 
@@ -36,11 +36,15 @@ namespace merutilm::rff {
         template<typename T> requires std::is_arithmetic_v<T>
         static void encodeAndWrite(std::ofstream &out, const T &t);
 
+        static void encodeAndWrite(std::ofstream &out, const char *t, uint64_t length);
+
         template<typename T> requires std::is_arithmetic_v<T>
         static void encodeAndWrite(std::ofstream &out, const std::vector<T> &t);
 
         template<typename T> requires std::is_arithmetic_v<T>
         static void readAndDecode(std::ifstream &in, T *t);
+
+        static void readAndDecode(std::ifstream &in, uint64_t length, char *t);
 
         template<typename T> requires std::is_arithmetic_v<T>
         static void readAndDecode(std::ifstream &in, std::vector<T> *t);
@@ -59,6 +63,10 @@ namespace merutilm::rff {
         out.write(ot.data(), ot.size());
     }
 
+    inline void IOUtilities::encodeAndWrite(std::ofstream &out, const char *t, const uint64_t length) {
+        out.write(t, length);
+    }
+
     template<typename T> requires std::is_arithmetic_v<T>
     void IOUtilities::encodeAndWrite(std::ofstream &out, const std::vector<T> &t) {
         std::vector<char> ot;
@@ -75,6 +83,10 @@ namespace merutilm::rff {
         auto it = std::array<char, sizeof(T)>();
         in.read(it.data(), it.size());
         fromBinaryArray(it, t);
+    }
+
+    inline void IOUtilities::readAndDecode(std::ifstream &in, const uint64_t length, char *t) {
+        in.read(t, length);
     }
 
     template<typename T> requires std::is_arithmetic_v<T>

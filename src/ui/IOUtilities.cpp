@@ -5,7 +5,6 @@
 #include "IOUtilities.h"
 
 #include <filesystem>
-#include <iostream>
 
 #include "Utilities.h"
 #include "../data/ApproxTableCache.h"
@@ -15,21 +14,16 @@ namespace merutilm::rff {
     std::unique_ptr<std::filesystem::path> IOUtilities::ioFileDialog(const std::string_view title,
                                                                      const std::string_view desc,
                                                                      const char type,
-                                                                     std::vector<std::string> &&extensions) {
+                                                                     const std::string_view extension) {
         OPENFILENAME fn;
         ZeroMemory(&fn, sizeof(fn));
 
-        auto ext = std::move(extensions);
-        for (auto &extension: ext) {
-            extension = "*." + extension;
-        }
-
-
-        auto display = std::format("{}({})", desc, Utilities::joinString(",", ext));
-        auto filter = Utilities::joinString(";", ext);
+        auto display = std::format("{}(*.{})", desc, extension);
         auto pattern = std::vector<char>();
         pattern.insert(pattern.end(), display.begin(), display.end());
         pattern.push_back('\0');
+
+        const auto filter = std::format("*.{}", extension);
         pattern.insert(pattern.end(), filter.begin(), filter.end());
         pattern.push_back('\0');
         pattern.push_back('\0');
@@ -42,16 +36,29 @@ namespace merutilm::rff {
         fn.lpstrFile[0] = '\0';
         fn.lpstrTitle = title.data();
         fn.Flags = OFN_PATHMUSTEXIST;
+        const std::string end = std::format(".{}", extension.data());
 
         switch (type) {
             case OPEN_FILE: {
                 fn.Flags |= OFN_FILEMUSTEXIST;
-                if (GetOpenFileName(&fn)) return std::make_unique<std::filesystem::path>(fn.lpstrFile);
+                if (GetOpenFileName(&fn)) {
+                    std::string result = fn.lpstrFile;
+                    if (!Utilities::endsWith(result, end)) {
+                        result.append(end);
+                    }
+                    return std::make_unique<std::filesystem::path>(result);
+                }
                 break;
             }
             case SAVE_FILE: {
                 fn.Flags |= OFN_OVERWRITEPROMPT;
-                if (GetSaveFileName(&fn)) return std::make_unique<std::filesystem::path>(fn.lpstrFile);
+                if (GetSaveFileName(&fn)) {
+                    std::string result = fn.lpstrFile;
+                    if (!Utilities::endsWith(result, end)) {
+                        result.append(end);
+                    }
+                    return std::make_unique<std::filesystem::path>(result);
+                }
                 break;
             }
             default: break;

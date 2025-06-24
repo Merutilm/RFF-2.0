@@ -12,7 +12,7 @@
 
 #include "../data/Matrix.h"
 #include "../formula/LightMandelbrotPerturbator.h"
-#include "../io/RFFDynamicMap.h"
+#include "../io/RFFDynamicMapBinary.h"
 #include "../mrthy/DeepPA.h"
 #include "../opengl/GLMultipassRenderer.h"
 #include "../opengl/GLRendererAntialiasing.h"
@@ -50,7 +50,7 @@ namespace merutilm::rff {
         ApproxTableCache approxTableCache = ApproxTableCache();
 
         std::array<std::string, Constants::Status::LENGTH> *statusMessageRef = nullptr;
-        std::unique_ptr<RFFDynamicMap> currentMap = nullptr;
+        std::unique_ptr<RFFDynamicMapBinary> currentMap = nullptr;
         std::unique_ptr<Matrix<double> > iterationMatrix = nullptr;
         std::unique_ptr<MandelbrotPerturbator> currentPerturbator = nullptr;
 
@@ -81,10 +81,8 @@ namespace merutilm::rff {
 
         RenderScene &operator=(RenderScene &&) = delete;
 
-    private:
-        static Settings initSettings();
+        static Settings defaultSettings();
 
-    public:
         void runAction(UINT message, WPARAM wParam);
 
         std::array<dex, 2> offsetConversion(const Settings &settings, int mx, int my) const;
@@ -110,7 +108,7 @@ namespace merutilm::rff {
 
         void requestRecompute();
 
-        void requestCreateImage(const std::string &filename = "");
+        void requestCreateImage(std::string_view = "");
 
         void applyCreateImage() const;
 
@@ -146,9 +144,9 @@ namespace merutilm::rff {
 
         BackgroundThreads &getBackgroundThreads();
 
-        RFFDynamicMap &getCurrentMap() const;
+        RFFDynamicMapBinary &getCurrentMap() const;
 
-        void setCurrentMap(const RFFDynamicMap &map);
+        void setCurrentMap(const RFFDynamicMapBinary &map);
 
         bool isRecomputeRequested() const;
 
