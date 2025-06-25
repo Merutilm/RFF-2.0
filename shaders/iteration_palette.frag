@@ -1,5 +1,4 @@
 #version 450
-#extension GL_ARB_gpu_shader_int64 : enable
 #define NONE 0
 #define NORMAL 1
 #define REVERSED 2
@@ -58,12 +57,12 @@ vec4 getColor(double iteration){
     }
     switch (smoothing){
         case NONE :
-        iteration = int64_t(iteration);
+        iteration = iteration - mod(iteration, 1);
         break;
         case NORMAL :
         break;
         case REVERSED :
-        iteration = 2 * int64_t(iteration) + 1 - iteration;
+        iteration = iteration + 1 - 2 * mod(iteration, 1);
         break;
     }
    

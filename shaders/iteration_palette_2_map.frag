@@ -1,5 +1,4 @@
 #version 450
-#extension GL_ARB_gpu_shader_int64 : enable
 
 
 uniform ivec2 resolution;
