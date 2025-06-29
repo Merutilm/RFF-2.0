@@ -5,7 +5,7 @@
 
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
     std::string SlopePresets::Disabled::getName() const {
         return "Disabled";

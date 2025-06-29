@@ -7,7 +7,7 @@
 #include "GLRenderer.h"
 #include "../settings/SlopeSettings.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererSlope final : public GLRenderer, public GLIterationTextureRenderer{
         int iterationTextureID = 0;
         float clarityMultiplier = 1;

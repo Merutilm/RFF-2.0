@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     enum class DecimalizeIterationMethod {
         /**
          * Do Not Use Decimal Iterations.

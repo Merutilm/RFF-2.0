@@ -9,7 +9,7 @@
 
 #include "BackgroundThread.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class BackgroundThreads final {
         std::mutex mutex;
         std::list<bool> ended;

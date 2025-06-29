@@ -7,7 +7,7 @@
 #include "../calc/fp_complex.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct CalculationSettings final{
         fp_complex center;
         float logZoom;

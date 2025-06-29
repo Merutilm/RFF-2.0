@@ -9,13 +9,13 @@
 #include "../opengl/GLShaderLoader.h"
 
 void registerClasses() {
-    using namespace merutilm::rff::Constants::Win32;
+    using namespace merutilm::rff2::Constants::Win32;
     WNDCLASSEX wc = {};
     wc.cbSize = sizeof(WNDCLASSEX);
 
     WNDCLASSEX masterWindowClass = wc;
     masterWindowClass.lpszClassName = CLASS_MASTER_WINDOW;
-    masterWindowClass.lpfnWndProc = merutilm::rff::MainWindow::masterWindowProc;
+    masterWindowClass.lpfnWndProc = merutilm::rff2::MainWindow::masterWindowProc;
     masterWindowClass.hIcon = static_cast<HICON>(LoadImage(
     GetModuleHandle(nullptr),
     MAKEINTRESOURCE(1),
@@ -26,7 +26,7 @@ void registerClasses() {
 
     WNDCLASSEX videoWindowClass = wc;
     videoWindowClass.lpszClassName = CLASS_VIDEO_WINDOW;
-    videoWindowClass.lpfnWndProc = merutilm::rff::VideoWindow::videoWindowProc;
+    videoWindowClass.lpfnWndProc = merutilm::rff2::VideoWindow::videoWindowProc;
     videoWindowClass.hIcon = masterWindowClass.hIcon;
     assert(RegisterClassEx(&videoWindowClass));
 
@@ -34,7 +34,7 @@ void registerClasses() {
     WNDCLASSEX settingsWindowClass = wc;
     settingsWindowClass.cbSize = sizeof(WNDCLASSEX);
     settingsWindowClass.lpszClassName = CLASS_SETTINGS_WINDOW;
-    settingsWindowClass.lpfnWndProc = merutilm::rff::SettingsWindow::settingsWindowProc;
+    settingsWindowClass.lpfnWndProc = merutilm::rff2::SettingsWindow::settingsWindowProc;
     settingsWindowClass.hbrBackground = CreateSolidBrush(COLOR_LABEL_BACKGROUND);
     assert(RegisterClassEx(&settingsWindowClass));
 
@@ -45,13 +45,13 @@ void registerClasses() {
 
     WNDCLASSEX renderSceneClass = wc;
     renderSceneClass.lpszClassName = CLASS_RENDER_SCENE;
-    renderSceneClass.lpfnWndProc = merutilm::rff::MainWindow::renderSceneProc;
+    renderSceneClass.lpfnWndProc = merutilm::rff2::MainWindow::renderSceneProc;
     assert(RegisterClassEx(&renderSceneClass));
 
 }
 
 int main() {
-    using namespace merutilm::rff;
+    using namespace merutilm::rff2;
     registerClasses();
     WGLContextLoader::initGL();
     const auto wnd = std::make_unique<MainWindow>();

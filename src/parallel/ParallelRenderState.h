@@ -9,7 +9,7 @@
 #include <thread>
 #include <set>
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class ParallelRenderState final {
         std::mutex mutex;
         std::jthread thread = std::jthread([](std::stop_token) {

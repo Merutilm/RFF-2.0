@@ -10,7 +10,7 @@
 #include "../data/ApproxTableCache.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     std::unique_ptr<std::filesystem::path> IOUtilities::ioFileDialog(const std::string_view title,
                                                                      const std::string_view desc,
                                                                      const char type,

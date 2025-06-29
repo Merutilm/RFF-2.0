@@ -7,7 +7,7 @@
 #include "SettingsMenu.h"
 #include "SettingsWindow.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class MainWindow {
 
         HDC hdc;

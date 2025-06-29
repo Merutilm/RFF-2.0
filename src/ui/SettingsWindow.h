@@ -16,7 +16,7 @@
 
 #include "../settings/Selectable.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class SettingsWindow {
         HWND window;
         int count = 0;

@@ -8,7 +8,7 @@
 #include "../data/Matrix.h"
 #include "../settings/DataSettings.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererIteration2Map final : public GLRenderer, public GLIterationTextureProvider{
         uint16_t iterWidth = 0;
         uint16_t iterHeight = 0;

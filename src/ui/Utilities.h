@@ -11,7 +11,7 @@
 
 #include "Constants.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct Utilities {
         Utilities() = delete;
 

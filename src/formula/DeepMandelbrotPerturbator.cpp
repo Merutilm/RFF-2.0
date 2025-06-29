@@ -4,7 +4,7 @@
 
 #include "DeepMandelbrotPerturbator.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
 
     DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,

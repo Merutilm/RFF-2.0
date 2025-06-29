@@ -3,7 +3,7 @@
 //
 #include "FogPresets.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
     std::string FogPresets::Disabled::getName() const {
         return "Disabled";

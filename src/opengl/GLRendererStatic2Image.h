@@ -7,7 +7,7 @@
 #include "../settings/DataSettings.h"
 #include "opencv2/core/mat.hpp"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererStatic2Image final : public GLRenderer {
 
         const DataSettings * dataSettings = nullptr;

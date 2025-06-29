@@ -11,7 +11,7 @@
 #include "RenderScene.h"
 #include "SettingsWindow.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct SettingsMenu {
         HMENU menubar;
         int count = 0;

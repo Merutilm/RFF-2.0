@@ -11,7 +11,7 @@
 #include "SettingsMenu.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     LRESULT CALLBACK MainWindow::masterWindowProc(const HWND masterWindow, const UINT message, const WPARAM wParam,
                                                                  const LPARAM lParam) {
         auto &wnd = *reinterpret_cast<MainWindow *>(GetWindowLongPtr(masterWindow, GWLP_USERDATA));

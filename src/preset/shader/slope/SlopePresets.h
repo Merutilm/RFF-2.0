@@ -7,7 +7,7 @@
 #include "../../../settings/SlopeSettings.h"
 
 
-namespace merutilm::rff::SlopePresets {
+namespace merutilm::rff2::SlopePresets {
 
     struct Disabled final : public Presets::ShaderPresets::SlopePreset {
         [[nodiscard]] std::string getName() const override;

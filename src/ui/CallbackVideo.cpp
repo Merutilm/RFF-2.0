@@ -15,7 +15,7 @@
 #include "../preset/shader/stripe/StripePresets.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::DATA_SETTINGS = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[defaultZoomIncrement, isStatic] = scene.getSettings().videoSettings.dataSettings;

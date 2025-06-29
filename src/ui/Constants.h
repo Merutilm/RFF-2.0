@@ -11,7 +11,7 @@
 
 using TextureFormat = std::array<GLuint, 3>;
 
-namespace merutilm::rff::Constants {
+namespace merutilm::rff2::Constants {
     namespace Win32 {
         constexpr short INIT_RENDER_SCENE_WIDTH = 1280;
         constexpr short INIT_RENDER_SCENE_HEIGHT = 720;

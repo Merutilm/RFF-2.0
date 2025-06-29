@@ -6,7 +6,7 @@
 #include "dex.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct dex_std {
         explicit dex_std() = delete;
 

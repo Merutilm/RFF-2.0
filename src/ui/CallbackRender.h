@@ -7,7 +7,7 @@
 #include "RenderScene.h"
 #include "SettingsMenu.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct CallbackRender {
         static const std::function<void(SettingsMenu &, RenderScene &)> SET_CLARITY;
         static const std::function<bool*(RenderScene &)> ANTIALIASING;

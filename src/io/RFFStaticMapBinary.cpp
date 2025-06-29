@@ -8,7 +8,7 @@
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/core/mat.hpp"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
 
     const RFFStaticMapBinary RFFStaticMapBinary::DEFAULT = RFFStaticMapBinary(0, 0, 0);

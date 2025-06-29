@@ -29,7 +29,7 @@
 #include "../preset/shader/stripe/StripePresets.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     SettingsMenu::SettingsMenu(const HMENU hMenubar) : menubar(hMenubar) {
         configure();
     }

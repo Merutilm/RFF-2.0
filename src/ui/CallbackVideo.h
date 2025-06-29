@@ -8,7 +8,7 @@
 #include "RenderScene.h"
 #include "SettingsMenu.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct CallbackVideo {
         static const std::function<void(SettingsMenu &, RenderScene &)> DATA_SETTINGS;
         static const std::function<void(SettingsMenu &, RenderScene &)> ANIMATION_SETTINGS;

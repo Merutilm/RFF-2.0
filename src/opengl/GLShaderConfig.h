@@ -6,7 +6,7 @@
 #include <filesystem>
 #include "GLShader.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLShaderConfig {
         std::string filename;
         GLuint shaderID;

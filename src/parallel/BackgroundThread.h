@@ -7,7 +7,7 @@
 #include <mutex>
 #include <thread>
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class BackgroundThread {
         std::mutex mutex;
         std::condition_variable cv;

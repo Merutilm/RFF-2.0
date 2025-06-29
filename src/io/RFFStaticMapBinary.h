@@ -8,7 +8,7 @@
 #include "RFFBinary.h"
 #include "opencv2/core/mat.hpp"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class RFFStaticMapBinary final : public RFFBinary {
         uint32_t width;
         uint32_t height;

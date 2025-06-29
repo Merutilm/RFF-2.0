@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class WGLScene {
 
         const std::string INIT_NOT_CALLED = "Failed to load context. is called initGL()?\n";

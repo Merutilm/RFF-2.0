@@ -5,7 +5,7 @@
 #pragma once
 #include "../calc/rff_math.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct ColorFloat {
         float r;
         float g;

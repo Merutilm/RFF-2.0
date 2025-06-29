@@ -6,7 +6,7 @@
 #include "../settings/DecimalizeIterationMethod.h"
 #include "../ui/Constants.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct Perturbator {
 
         virtual ~Perturbator() = default;

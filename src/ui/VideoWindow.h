@@ -9,7 +9,7 @@
 #include "../parallel/BackgroundThreads.h"
 #include "../settings/Settings.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
     class VideoWindow {
 

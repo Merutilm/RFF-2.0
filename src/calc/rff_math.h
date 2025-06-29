@@ -6,7 +6,7 @@
 #include <cmath>
 #include <random>
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct rff_math {
 
         inline static auto rd = std::random_device();

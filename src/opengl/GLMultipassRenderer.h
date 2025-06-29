@@ -8,7 +8,7 @@
 #include "GLRenderer.h"
 #include "GLRendererDisplayer.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLMultipassRenderer {
         std::vector<GLRenderer*> renderers = std::vector<GLRenderer*>();
         std::unique_ptr<GLRendererDisplayer> displayer = nullptr;

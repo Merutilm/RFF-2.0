@@ -1,6 +1,6 @@
 #pragma once
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct SlopeSettings {
         float depth;
         float reflectionRatio;

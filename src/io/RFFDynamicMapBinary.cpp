@@ -12,7 +12,7 @@
 #include "../ui/Utilities.h"
 #include "opencv2/imgcodecs.hpp"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
     inline const RFFDynamicMapBinary RFFDynamicMapBinary::DEFAULT = RFFDynamicMapBinary(0, 0, 0, Matrix<double>(0, 0));
 

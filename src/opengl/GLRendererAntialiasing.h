@@ -5,7 +5,7 @@
 #pragma once
 #include "GLRenderer.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererAntialiasing final : public GLRenderer {
         bool use = false;
 

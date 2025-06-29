@@ -8,7 +8,7 @@
 #include "../calc/double_exp_math.h"
 #include "../formula/DeepMandelbrotReference.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class DeepMPATable final : public MPATable<DeepMandelbrotReference, dex>{
 
     public:

@@ -7,7 +7,7 @@
 
 #include "GLRenderer.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererBoxBlur final : public GLRenderer {
         std::function<void(GLShader &)> additionalParams = [](GLShader &) {
         };

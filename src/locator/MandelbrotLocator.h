@@ -7,7 +7,7 @@
 #include "../calc/fp_complex.h"
 #include "../data/ApproxTableCache.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct MandelbrotLocator {
         static constexpr float MINIBROT_LOG_ZOOM_OFFSET = 1.5f;
         static constexpr float ZOOM_INCREMENT_LIMIT = 0.01f;

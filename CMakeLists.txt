@@ -167,7 +167,7 @@ add_executable(
         src/ui/IOUtilities.cpp
         src/ui/IOUtilities.h
         src/parallel/BackgroundThreads.h
-        src/parallel/Backgroundthread.h
+        src/parallel/BackgroundThread.h
         src/ui/VideoWindow.cpp
         src/ui/VideoWindow.h
         src/ui/VideoRenderScene.cpp

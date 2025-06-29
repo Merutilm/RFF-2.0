@@ -8,7 +8,7 @@
 #include "SettingsMenu.h"
 #include "../formula/Perturbator.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::REFERENCE = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &calc = scene.getSettings().calculationSettings;

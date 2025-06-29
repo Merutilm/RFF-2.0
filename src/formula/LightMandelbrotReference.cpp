@@ -11,7 +11,7 @@
 #include "../mrthy/ArrayCompressor.h"
 #include "../ui/Constants.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     LightMandelbrotReference::LightMandelbrotReference(fp_complex &&center, std::vector<double> &&refReal,
                                                        std::vector<double> &&refImag,
                                                        std::vector<ArrayCompressionTool> &&compressor,

@@ -5,7 +5,7 @@
 #pragma once
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct ReferenceCompressionSettings final{
         uint32_t compressCriteria;
         uint8_t compressionThresholdPower;

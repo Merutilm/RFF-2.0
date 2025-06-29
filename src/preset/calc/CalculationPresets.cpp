@@ -5,7 +5,7 @@
 #include "CalculationPresets.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     std::string CalculationPresets::UltraFast::getName() const {
         return "Ultra Fast";
     }

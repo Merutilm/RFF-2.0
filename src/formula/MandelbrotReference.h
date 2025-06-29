@@ -8,7 +8,7 @@
 #include "../calc/fp_complex.h"
 #include "../mrthy/ArrayCompressionTool.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct MandelbrotReference {
         const fp_complex center;
         const std::vector<ArrayCompressionTool> compressor;

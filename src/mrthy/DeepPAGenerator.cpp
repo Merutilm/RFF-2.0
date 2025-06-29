@@ -7,7 +7,7 @@
 #include "ArrayCompressor.h"
 #include "../calc/double_exp_math.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     DeepPAGenerator::DeepPAGenerator(const DeepMandelbrotReference &reference, const double epsilon, const dex &dcMax,
                                                     const uint64_t start, std::array<dex, 8> &temps) : PAGenerator(start, 0, reference.compressor, epsilon), anr(dex::ONE),
                                                                                          ani(dex::ZERO),

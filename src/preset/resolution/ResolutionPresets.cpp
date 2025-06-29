@@ -7,7 +7,7 @@
 #include <array>
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     std::string ResolutionPresets::L1::getName() const {
         return "640x360";
     }

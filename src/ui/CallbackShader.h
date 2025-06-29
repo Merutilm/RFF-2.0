@@ -6,7 +6,7 @@
 #include "RenderScene.h"
 #include "SettingsMenu.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct CallbackShader {
         static const std::function<void(SettingsMenu&, RenderScene&)> PALETTE;
         static const std::function<void(SettingsMenu&, RenderScene&)> STRIPE;

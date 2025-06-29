@@ -8,7 +8,7 @@
 
 #include "RFFBinary.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class RFFLocationBinary final : public RFFBinary{
         std::string real;
         std::string imag;

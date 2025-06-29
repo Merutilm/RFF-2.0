@@ -8,7 +8,7 @@
 #include "MandelbrotPerturbator.h"
 #include "../mrthy/LightMPATable.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class LightMandelbrotPerturbator final : public MandelbrotPerturbator{
         std::unique_ptr<LightMandelbrotReference> reference = nullptr;
         std::unique_ptr<LightMPATable> table = nullptr;

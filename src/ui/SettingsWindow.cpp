@@ -6,7 +6,7 @@
 #include "Constants.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     SettingsWindow::SettingsWindow(const std::string_view &name) {
         window = CreateWindowEx(Constants::Win32::STYLE_EX_SETTINGS_WINDOW, Constants::Win32::CLASS_SETTINGS_WINDOW,
                                 name.data(),

@@ -7,7 +7,7 @@
 
 #include "PA.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct PAGenerator {
 
         uint64_t start;

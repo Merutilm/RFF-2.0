@@ -5,7 +5,7 @@
 #pragma once
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct FogSettings {
         float radius;
         float opacity;

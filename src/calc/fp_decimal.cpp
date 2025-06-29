@@ -8,7 +8,7 @@
 #include "fp_decimal_calculator.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     fp_decimal::fp_decimal(const std::string& value, const int exp10) : fp_decimal(fp_decimal_calculator(value, exp10)){};
 
 

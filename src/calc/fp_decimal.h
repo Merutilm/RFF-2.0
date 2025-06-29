@@ -6,7 +6,7 @@
 #include "gmp.h"
 #include "fp_decimal_calculator.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class fp_decimal {
         int exp2;
         mpz_t value;

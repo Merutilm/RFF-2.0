@@ -12,7 +12,7 @@
 
 struct ArrayCompressionTool;
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct DeepMandelbrotReference final : public MandelbrotReference{
         const std::vector<dex> refReal;
         const std::vector<dex> refImag;

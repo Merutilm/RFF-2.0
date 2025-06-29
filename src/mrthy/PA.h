@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct PA {
         const uint64_t skip;
     };

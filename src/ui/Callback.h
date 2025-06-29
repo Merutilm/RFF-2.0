@@ -4,7 +4,7 @@
 #pragma once
 #include <string>
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     namespace ValidCondition {
         constexpr auto POSITIVE_CHAR = [](const char &e) { return e > 0; };
         constexpr auto NEGATIVE_CHAR = [](const char &e) { return e < 0; };

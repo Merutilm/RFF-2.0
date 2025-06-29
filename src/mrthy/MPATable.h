@@ -16,7 +16,7 @@
 #include <algorithm>
 #include "../ui/Utilities.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     template<typename Ref, typename Num>
     struct MPATable {
         static constexpr int REQUIRED_PERTURBATION = 2;

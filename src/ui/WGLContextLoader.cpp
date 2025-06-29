@@ -12,7 +12,7 @@
 #include "glad.h"
 #include "Constants.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
     void WGLContextLoader::initGL() {
         SetProcessDPIAware();

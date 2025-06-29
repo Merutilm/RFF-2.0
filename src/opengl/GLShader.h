@@ -7,7 +7,7 @@
 
 #include "../ui/Constants.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLShader {
         GLuint shaderProgram;
         GLuint vaoID;

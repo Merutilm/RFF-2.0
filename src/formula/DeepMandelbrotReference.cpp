@@ -10,7 +10,7 @@
 #include "../ui/Constants.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     DeepMandelbrotReference::DeepMandelbrotReference(fp_complex &&center, std::vector<dex> &&refReal,
                                                      std::vector<dex> &&refImag,
                                                      std::vector<ArrayCompressionTool> &&compressor,

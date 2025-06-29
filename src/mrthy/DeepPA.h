@@ -11,7 +11,7 @@
 #include "../formula/DeepMandelbrotReference.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct DeepPA final : public PA{
         const dex anr;
         const dex ani;

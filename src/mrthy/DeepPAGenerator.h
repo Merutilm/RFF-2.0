@@ -8,7 +8,7 @@
 #include "../calc/dex.h"
 #include "../formula/DeepMandelbrotReference.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class DeepPAGenerator final : public PAGenerator{
         dex anr;
         dex ani;

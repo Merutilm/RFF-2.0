@@ -7,7 +7,7 @@
 #include <vector>
 #include <array>
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     template<typename T>
     class Matrix {
         uint16_t width;

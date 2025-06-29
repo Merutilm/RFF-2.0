@@ -4,7 +4,7 @@
 
 #include "StripePresets.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
     std::string StripePresets::Disabled::getName() const {
         return "Disabled";

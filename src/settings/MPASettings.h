@@ -9,7 +9,7 @@
 #include "MPASelectionMethod.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct MPASettings final {
         uint16_t minSkipReference;
         uint8_t maxMultiplierBetweenLevel;

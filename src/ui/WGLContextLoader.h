@@ -6,7 +6,7 @@
 #include <windows.h>
 #include <vector>
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
     struct WGLContextLoader {
 

@@ -8,7 +8,7 @@
 #include "fp_complex_calculator.h"
 #include "fp_decimal.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct fp_complex {
         fp_decimal real;
         fp_decimal imag;

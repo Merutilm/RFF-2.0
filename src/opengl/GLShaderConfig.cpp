@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLShaderConfig::GLShaderConfig(const std::filesystem::path &filename) {
         this->filename = filename.string();
         this->shaderID = createMatchingShader(filename);

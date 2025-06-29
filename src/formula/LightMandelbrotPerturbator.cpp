@@ -10,7 +10,7 @@
 #include "Perturbator.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
 
     LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,

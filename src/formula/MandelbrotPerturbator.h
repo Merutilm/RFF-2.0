@@ -9,7 +9,7 @@
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/CalculationSettings.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct MandelbrotPerturbator : public Perturbator {
         ParallelRenderState &state;
         const CalculationSettings calc;

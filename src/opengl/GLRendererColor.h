@@ -5,7 +5,7 @@
 #pragma once
 #include "GLRenderer.h"
 #include "../settings/ColorSettings.h"
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererColor final : public GLRenderer {
 
         const ColorSettings *colorSettings = nullptr;

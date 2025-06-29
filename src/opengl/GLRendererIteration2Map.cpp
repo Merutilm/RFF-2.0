@@ -7,7 +7,7 @@
 #include <cstring>
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLRendererIteration2Map::GLRendererIteration2Map() : GLRenderer("iteration_palette_2_map.frag") {
     }
 

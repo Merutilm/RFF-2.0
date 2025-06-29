@@ -5,7 +5,7 @@
 #include "GLRendererDisplayer.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLRendererDisplayer::GLRendererDisplayer() : GLRenderer("displayer.frag") {
         setToDisplay();
     }

@@ -8,7 +8,7 @@
 #include "GLRenderer.h"
 #include "GLRendererBoxBlur.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererGaussianBlur : public GLRenderer {
         std::array<std::unique_ptr<GLRendererBoxBlur>, Constants::Render::GAUSSIAN_REQUIRES_BOX> boxBlurs;
     public:

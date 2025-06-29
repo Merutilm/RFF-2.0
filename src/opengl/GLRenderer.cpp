@@ -8,7 +8,7 @@
 #include <mutex>
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLRenderer::GLRenderer(const std::string_view name) : shader(
         GLShader(Constants::GLConfig::VERTEX_PATH_DEFAULT, name)) {
         //-----------------------------------------------

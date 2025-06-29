@@ -9,7 +9,7 @@
 #include "../data/Matrix.h"
 #include "../settings/PaletteSettings.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererIteration final : public GLRenderer, public GLTimeRenderer, public GLIterationTextureProvider {
         const PaletteSettings *paletteSettings = nullptr;
         uint16_t iterWidth = 0;

@@ -32,7 +32,7 @@
 
 #include "IOUtilities.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     RenderScene::RenderScene() : state(ParallelRenderState()), settings(defaultSettings()) {
         if (!cv::ocl::useOpenCL()) {
             std::cout << "OpenCL initialization failed." << std::endl;

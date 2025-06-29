@@ -10,7 +10,7 @@
 #include "fp_complex_calculator.h"
 #include "../ui/Constants.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     fp_decimal_calculator::fp_decimal_calculator() {
         exp2 = 0;
         mpz_init(value);

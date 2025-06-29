@@ -9,7 +9,7 @@
 #include "PAGenerator.h"
 #include "../formula/LightMandelbrotReference.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class LightPAGenerator final : public PAGenerator{
         double anr;
         double ani;

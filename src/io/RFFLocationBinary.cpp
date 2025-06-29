@@ -8,7 +8,7 @@
 
 #include "../ui/IOUtilities.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     inline const RFFLocationBinary RFFLocationBinary::DEFAULT = RFFLocationBinary(0, "", "", 0);
 
     RFFLocationBinary::RFFLocationBinary(const float logZoom, std::string real, std::string imag,

@@ -7,7 +7,7 @@
 #include "../../../settings/BloomSettings.h"
 
 
-namespace merutilm::rff::BloomPresets {
+namespace merutilm::rff2::BloomPresets {
     struct Disabled final : public Presets::ShaderPresets::BloomPreset {
         [[nodiscard]] std::string getName() const override;
 

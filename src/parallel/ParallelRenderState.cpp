@@ -8,7 +8,7 @@
 #include <mutex>
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     std::stop_token ParallelRenderState::stopToken() const {
         return thread.get_stop_token();
     }

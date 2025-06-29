@@ -9,7 +9,7 @@
 #include "GLTimeRenderer.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLMultipassRenderer::GLMultipassRenderer() {
         displayer = std::make_unique<GLRendererDisplayer>();
     }

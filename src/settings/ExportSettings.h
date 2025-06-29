@@ -5,7 +5,7 @@
 #pragma once
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct ExportSettings {
         float fps;
         uint32_t bitrate;

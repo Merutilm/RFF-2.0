@@ -8,7 +8,7 @@
 #include "ExportSettings.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct VideoSettings {
         DataSettings dataSettings;
         AnimationSettings animationSettings;

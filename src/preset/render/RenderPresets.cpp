@@ -5,7 +5,7 @@
 #include "RenderPresets.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     std::string RenderPresets::Potato::getName() const {
         return "Potato";
     }

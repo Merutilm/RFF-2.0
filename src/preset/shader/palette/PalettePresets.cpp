@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     std::string PalettePresets::LongRandom64::getName() const {
         return "Long Random 64";
     }

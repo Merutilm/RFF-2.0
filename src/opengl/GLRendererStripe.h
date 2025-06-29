@@ -8,7 +8,7 @@
 #include "GLTimeRenderer.h"
 #include "../settings/StripeSettings.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererStripe final : public GLRenderer, public GLIterationTextureRenderer, public GLTimeRenderer {
         GLuint iterationTextureID = 0;
         float clarityMultiplier = 1;

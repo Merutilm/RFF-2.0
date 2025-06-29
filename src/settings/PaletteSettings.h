@@ -4,7 +4,7 @@
 #include "ColorSmoothingSettings.h"
 #include "../data/ColorFloat.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct PaletteSettings {
         std::vector<ColorFloat> colors;
         ColorSmoothingSettings colorSmoothing;

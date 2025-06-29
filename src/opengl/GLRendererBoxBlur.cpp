@@ -4,7 +4,7 @@
 
 #include "GLRendererBoxBlur.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLRendererBoxBlur::GLRendererBoxBlur(const std::string_view name) : GLRenderer(name){
 
     }

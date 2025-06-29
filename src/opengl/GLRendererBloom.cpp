@@ -4,7 +4,7 @@
 
 #include "GLRendererBloom.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLRendererBloom::GLRendererBloom() : GLRendererGaussianBlur("bloom.frag", "gaussian_blur_for_bloom_single_pass.frag") {
     }
 

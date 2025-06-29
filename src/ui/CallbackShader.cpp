@@ -5,7 +5,7 @@
 #include "Callback.h"
 #include "CallbackShader.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::PALETTE = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[colors, colorSmoothing, iterationInterval, offsetRatio, animationSpeed] = scene.getSettings().shaderSettings.paletteSettings;

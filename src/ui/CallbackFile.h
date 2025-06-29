@@ -8,7 +8,7 @@
 #include "RenderScene.h"
 #include "SettingsMenu.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct CallbackFile {
         static const std::function<void(SettingsMenu &, RenderScene &)> SAVE_MAP;
         static const std::function<void(SettingsMenu &, RenderScene &)> SAVE_IMAGE;

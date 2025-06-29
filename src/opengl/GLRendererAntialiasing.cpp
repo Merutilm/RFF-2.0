@@ -4,7 +4,7 @@
 
 #include "GLRendererAntialiasing.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLRendererAntialiasing::GLRendererAntialiasing() : GLRenderer("antialiasing.frag"){
 
     }

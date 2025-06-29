@@ -9,7 +9,7 @@
 #include "../mrthy/DeepPA.h"
 #include "../mrthy/LightPA.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class DeepMandelbrotPerturbator final : public MandelbrotPerturbator {
         std::unique_ptr<DeepMandelbrotReference> reference = nullptr;
         std::unique_ptr<DeepMPATable> table = nullptr;

@@ -8,7 +8,7 @@
 #include <memory>
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     MPAPeriod::MPAPeriod(std::vector<uint64_t> &&tablePeriod, std::vector<bool> &&isArtificial, std::vector<uint64_t> &&tableElements) : tablePeriod(std::move(tablePeriod)), isArtificial(std::move(isArtificial)), tableElements(std::move(tableElements)){
     }
 

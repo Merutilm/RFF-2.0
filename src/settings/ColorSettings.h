@@ -1,7 +1,7 @@
 
 #pragma once
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct ColorSettings {
         float gamma;
         float exposure;

@@ -5,7 +5,7 @@
 #include "GLRendererSlope.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLRendererSlope::GLRendererSlope() : GLRenderer("slope.frag"){
 
     }

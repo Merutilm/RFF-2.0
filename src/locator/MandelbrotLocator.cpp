@@ -10,7 +10,7 @@
 #include "../formula/DeepMandelbrotPerturbator.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     std::unique_ptr<fp_complex> MandelbrotLocator::findCenter(const MandelbrotPerturbator *perturbator) {
         const int exp10 = Perturbator::logZoomToExp10(perturbator->getCalculationSettings().logZoom);
         fp_complex_calculator center = perturbator->getReference()->center.edit(exp10);

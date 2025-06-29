@@ -9,7 +9,7 @@
 #include "../data/Matrix.h"
 #include "opencv2/core/mat.hpp"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class RFFDynamicMapBinary final : public RFFBinary{
         uint64_t period;
         uint64_t maxIteration;

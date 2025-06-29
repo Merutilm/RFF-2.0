@@ -5,7 +5,7 @@
 #include "GLRendererColor.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLRendererColor::GLRendererColor() : GLRenderer("color.frag") {
 
     }

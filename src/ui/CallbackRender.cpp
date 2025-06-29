@@ -8,7 +8,7 @@
 #include "Callback.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     const std::function<void(SettingsMenu&, RenderScene&)> CallbackRender::SET_CLARITY = [](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto window = std::make_unique<SettingsWindow>("Set clarity");
         auto &[clarityMultiplier, antialiasing] = scene.getSettings().renderSettings;

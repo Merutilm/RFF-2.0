@@ -5,7 +5,7 @@
 #include "GLRendererGaussianBlur.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLRendererGaussianBlur::GLRendererGaussianBlur(const std::string_view name, const std::string_view blurName) : GLRenderer(name) {
         for (int i = 0; i < boxBlurs.size(); ++i) {
             boxBlurs[i] = std::make_unique<GLRendererBoxBlur>(blurName);

@@ -11,7 +11,7 @@
 #include "../formula/LightMandelbrotReference.h"
 #include "../settings/MPASettings.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class LightMPATable final : public MPATable<LightMandelbrotReference, double>{
 
     public:

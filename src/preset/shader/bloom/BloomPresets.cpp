@@ -3,7 +3,7 @@
 //
 #include "BloomPresets.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
     std::string BloomPresets::Disabled::getName() const {
         return "Disabled";

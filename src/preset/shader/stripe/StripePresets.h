@@ -8,7 +8,7 @@
 
 
 
-namespace merutilm::rff::StripePresets {
+namespace merutilm::rff2::StripePresets {
     struct Disabled final : Presets::ShaderPresets::StripePreset {
         [[nodiscard]] std::string getName() const override;
 

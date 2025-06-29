@@ -27,7 +27,7 @@
 #include "../preset/Presets.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class RenderScene final : public WGLScene {
 
         ParallelRenderState state;

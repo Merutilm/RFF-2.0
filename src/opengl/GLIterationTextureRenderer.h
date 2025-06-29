@@ -4,7 +4,7 @@
 
 #pragma once
 #include "glad.h"
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct GLIterationTextureRenderer {
         virtual ~GLIterationTextureRenderer() = default;
         virtual void setIterationTextureID(GLuint textureID) = 0;

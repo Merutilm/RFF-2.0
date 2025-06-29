@@ -8,7 +8,7 @@
 
 #include "../settings/MPASettings.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct MPAPeriod {
         const std::vector<uint64_t> tablePeriod;
         const std::vector<bool> isArtificial;

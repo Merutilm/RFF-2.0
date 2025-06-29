@@ -12,7 +12,7 @@
 #include "Constants.h"
 #include "../locator/MandelbrotLocator.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::RECOMPUTE = [
             ](const SettingsMenu &, RenderScene &scene) {
         scene.requestRecompute();
@@ -20,6 +20,7 @@ namespace merutilm::rff {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::RESET = [
             ](const SettingsMenu &, RenderScene &scene) {
         scene.getSettings() = scene.defaultSettings();
+        scene.requestColor();
         scene.requestRecompute();
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::CANCEL_RENDER = [

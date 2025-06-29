@@ -4,7 +4,7 @@
 
 #include "ColorPresets.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     std::string ColorPresets::WeakContrast::getName() const {
         return "Weak Contrast";
     }

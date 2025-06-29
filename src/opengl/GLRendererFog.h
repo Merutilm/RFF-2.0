@@ -6,7 +6,7 @@
 #include "GLRendererGaussianBlur.h"
 #include "../settings/FogSettings.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererFog final : public GLRendererGaussianBlur {
         const FogSettings *fogSettings = nullptr;
 

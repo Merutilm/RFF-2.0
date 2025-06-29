@@ -6,7 +6,7 @@
 #include "GLRendererGaussianBlur.h"
 #include "../settings/BloomSettings.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererBloom final : public GLRendererGaussianBlur {
         const BloomSettings *bloomSettings = nullptr;
 

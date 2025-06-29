@@ -5,7 +5,7 @@
 #pragma once
 #include <filesystem>
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class RFFBinary {
 
         float logZoom;

@@ -4,7 +4,7 @@
 
 #include "GLShader.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRenderer {
         GLShader shader;
         uint16_t w = 0;

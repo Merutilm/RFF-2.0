@@ -9,7 +9,7 @@
 #include "ArrayCompressionTool.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     /**
      * <b>Array compressor</b><br/>
      * A class for compressing when detecting duplicated elements in an array. <br/>

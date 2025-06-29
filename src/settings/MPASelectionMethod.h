@@ -5,7 +5,7 @@
 #pragma once
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     enum class MPASelectionMethod {
         /**
         * Checks the lowest-level MPA first, increases the level until not valid.

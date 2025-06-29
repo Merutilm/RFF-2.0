@@ -7,7 +7,7 @@
 #include "dex.h"
 #include "gmp.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct fp_decimal_calculator final {
         int exp2;
         mpz_t value;

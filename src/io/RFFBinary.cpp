@@ -5,7 +5,7 @@
 #include "RFFBinary.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     RFFBinary::RFFBinary(const float logZoom) : logZoom(logZoom) {
     }
 

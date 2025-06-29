@@ -14,7 +14,7 @@
 #include "StripeType.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct Selectable {
         template<typename E> requires std::is_enum_v<E> || std::is_same_v<E, bool>
         static std::vector<E> values() {

@@ -6,7 +6,7 @@
 #include "../formula/LightMandelbrotReference.h"
 #include "PA.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct LightPA final : public PA {
         const double anr;
         const double ani;

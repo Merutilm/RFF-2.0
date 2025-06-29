@@ -17,8 +17,8 @@ void main(){
 
     float r = int(max(0, currentFrame)) - currentFrame;
 
-    float nsr = pow(defaultZoomIncrement, r + 1); // r = 0 ~ 1
-    float zsr = pow(defaultZoomIncrement, r); // r = -1 ~ 0
+    float nsr = pow(defaultZoomIncrement, r + 1);// r = 0 ~ 1
+    float zsr = pow(defaultZoomIncrement, r);// r = -1 ~ 0
 
 
     int off = 3;
@@ -26,10 +26,10 @@ void main(){
     vec2 ztx = (coord - 0.5) / zsr + 0.5;
     vec2 px = off / vec2(resolution);
 
-    if(ztx.x >= 1 - px.x || ztx.y >= 1 - px.y || ztx.x <= px.x || ztx.y <= px.y || currentFrame < 1){
+    if (ztx.x >= 1 - px.x || ztx.y >= 1 - px.y || ztx.x <= px.x || ztx.y <= px.y || currentFrame < 1){
         color = texture(normal, ntx);
-    }else{
-        color = texture(zoomed, ztx);
+    } else {
+        color = texture(normal, ntx) * (-r) + texture(zoomed, ztx) * (r + 1);
     }
 
 }

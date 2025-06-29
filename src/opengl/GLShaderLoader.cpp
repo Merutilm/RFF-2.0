@@ -9,7 +9,7 @@
 
 #include "../ui/Utilities.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
     void GLShaderLoader::getSource(const std::filesystem::path &path, std::string *src) {
         std::ifstream file(path);

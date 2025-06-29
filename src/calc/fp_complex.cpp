@@ -8,7 +8,7 @@
 
 #include "dex.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     fp_complex::fp_complex(const std::string &re, const std::string &im, const int exp10) : real(fp_decimal(re, exp10)),
                                                                                             imag(fp_decimal(im, exp10)) {
     }

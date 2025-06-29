@@ -20,7 +20,7 @@
 #include "opencv2/core/mat.hpp"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class VideoRenderScene final : public WGLScene {
         RFFBinary *normal = nullptr;
         RFFBinary *zoomed = nullptr;

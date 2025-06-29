@@ -7,7 +7,7 @@
 
 #include "SettingsMenu.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     struct CallbackExplore {
         static const std::function<void(SettingsMenu &, RenderScene &)> RECOMPUTE;
         static const std::function<void(SettingsMenu &, RenderScene &)> RESET;

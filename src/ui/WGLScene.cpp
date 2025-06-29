@@ -10,7 +10,7 @@
 #include <assert.h>
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
 
 
     void WGLScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {

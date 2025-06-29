@@ -5,7 +5,7 @@
 #include "GLRendererStripe.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLRendererStripe::GLRendererStripe() : GLRenderer("stripe.frag"){
 
     }

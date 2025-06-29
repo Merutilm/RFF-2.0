@@ -6,7 +6,7 @@
 #include "../Presets.h"
 #include "../../settings/RenderSettings.h"
 
-namespace merutilm::rff::RenderPresets {
+namespace merutilm::rff2::RenderPresets {
     struct Potato final : public Presets::RenderPresets {
         [[nodiscard]] std::string getName() const override;
         [[nodiscard]] RenderSettings renderSettings() const override;

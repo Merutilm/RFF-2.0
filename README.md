@@ -7,14 +7,15 @@
 - As the name suggests, its priority is ONLY Speed, and defaulted for the fastest settings.
 
 
-## Features
+## Overview
 
 - A program that achieves extremely fast `Power-2 Mandelbrot set`.
 
+- This program uses Fast-period-guessing which I invented. It automatically generates the period of the selected location.
+This value is unmodifiable.
 
-- This program uses an undiscovered `Multilevel Periodic Approximation` algorithm.
+- This program uses an `Multilevel Periodic Approximation` algorithm which I invented.
 It completely replaces traditional `BLA`, achieving speedups of more than 2 times.
-
 
 - You can specify a compressor to render even extremely long period using less memory.
 Of course, the approximation table can also be compressed using this algorithm, and jumps a <u>**HUGE**</u> process!
@@ -32,6 +33,17 @@ This will be <u>**SIGNIFICANTLY**</u> faster because it <u>**SUPERJUMPS**</u> pr
 - It's very simple. Just go into the `releases`, 
 download the zip, 
 unzip it and run it from the `bin` directory.
+
+
+## Features
+- The status bar on the window means the following (from left to right):
+
+1. The iterations of the pixel pointed to by the mouse cursor
+2. The zoom of current location.
+3. The estimated period of this location. (The number in parentheses is the length of the Reference and MPA array.)
+4. The elapsed time since the calculation started
+5. The Process.
+
 
 
 

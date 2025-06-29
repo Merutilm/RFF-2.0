@@ -4,7 +4,7 @@
 
 #include "GLRendererIteration.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLRendererIteration::GLRendererIteration() : GLRenderer("iteration_palette.frag") {
     }
 

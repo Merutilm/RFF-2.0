@@ -10,7 +10,7 @@
 #include "../io/RFFLocationBinary.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::SAVE_MAP = [](const SettingsMenu&, const RenderScene& scene) {
         const auto path = IOUtilities::ioFileDialog("Save Map", Constants::Extension::DESC_DYNAMIC_MAP, IOUtilities::SAVE_FILE, Constants::Extension::DYNAMIC_MAP);
         if (path == nullptr) {

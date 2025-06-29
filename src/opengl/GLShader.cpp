@@ -8,7 +8,7 @@
 #include "../ui/Constants.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     GLShader::GLShader(const std::string_view vertexName, const std::string_view fragmentName) {
 
         const GLShaderConfig vert = GLShaderLoader::configureShader(vertexName);

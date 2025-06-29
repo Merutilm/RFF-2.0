@@ -6,7 +6,7 @@
 #include <cstdint>
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     /**
      * <b>Array Compression Tool</b>
      * <br/>

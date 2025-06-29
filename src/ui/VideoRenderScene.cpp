@@ -9,7 +9,7 @@
 #include "opencv2/core/hal/interface.h"
 
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     VideoRenderScene::VideoRenderScene() : WGLScene() {
     }
 

@@ -4,7 +4,7 @@
 
 #pragma once
 #include "GLRenderer.h"
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class GLRendererDisplayer final : public GLRenderer {
     public:
         GLRendererDisplayer();

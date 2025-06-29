@@ -17,7 +17,7 @@
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     VideoWindow::VideoWindow(const uint16_t width, const uint16_t height) : scene(VideoRenderScene()) {
         videoWindow = CreateWindowEx(0,
                                      Constants::Win32::CLASS_VIDEO_WINDOW,

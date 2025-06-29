@@ -5,7 +5,7 @@
 #include "dex.h"
 #include "fp_decimal_calculator.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     class fp_complex_calculator {
 
         fp_decimal_calculator real;

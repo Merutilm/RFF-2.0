@@ -8,7 +8,7 @@
 
 
 
-namespace merutilm::rff::FogPresets {
+namespace merutilm::rff2::FogPresets {
 
     struct Disabled final : public Presets::ShaderPresets::FogPreset {
         [[nodiscard]] std::string getName() const override;

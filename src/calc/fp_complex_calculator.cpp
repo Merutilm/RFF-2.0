@@ -4,7 +4,7 @@
 
 #include "fp_complex.h"
 
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     fp_complex_calculator::fp_complex_calculator(const std::string &re, const std::string &im, const int exp10) {
         this->real = fp_decimal_calculator(re, exp10);
         this->imag = fp_decimal_calculator(im, exp10);

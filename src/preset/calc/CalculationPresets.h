@@ -7,7 +7,7 @@
 #include "../../settings/MPASettings.h"
 #include "../../settings/ReferenceCompressionSettings.h"
 
-namespace merutilm::rff::CalculationPresets {
+namespace merutilm::rff2::CalculationPresets {
     struct UltraFast final : public Presets::CalculationPresets {
         [[nodiscard]] std::string getName() const override;
         [[nodiscard]] MPASettings mpaSettings() const override;

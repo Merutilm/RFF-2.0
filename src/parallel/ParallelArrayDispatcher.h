@@ -5,7 +5,7 @@
 #pragma once
 #include "ParallelRenderState.h"
 #include "../data/Matrix.h"
-namespace merutilm::rff {
+namespace merutilm::rff2 {
     template<typename T>
     using ParallelArrayRenderer = std::function<T(uint16_t x, uint16_t y, uint16_t xRes, uint16_t yRes, float xRat, float yRat, uint32_t index,
                                                   T value)>;
