@@ -297,10 +297,10 @@ namespace merutilm::rff2 {
     }
 
 
-    void RenderScene::applyCreateImage() const {
+    void RenderScene::applyCreateImage() {
         if (createImageRequestedFilename.empty()) {
-            IOUtilities::ioFileDialog("Save image", Constants::Extension::DESC_IMAGE, IOUtilities::SAVE_FILE,
-                                      Constants::Extension::IMAGE);
+            createImageRequestedFilename = IOUtilities::ioFileDialog("Save image", Constants::Extension::DESC_IMAGE, IOUtilities::SAVE_FILE,
+                                      Constants::Extension::IMAGE)->string();
         }
         const GLuint fbo = renderer->getRenderedFBO();
         const GLuint fboID = renderer->getRenderedFBOTexID();

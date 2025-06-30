@@ -110,7 +110,7 @@ namespace merutilm::rff2 {
 
         void requestCreateImage(std::string_view = "");
 
-        void applyCreateImage() const;
+        void applyCreateImage();
 
         void applyColor(const Settings &settings) const;
 
