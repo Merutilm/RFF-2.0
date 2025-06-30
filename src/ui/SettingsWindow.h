@@ -148,6 +148,7 @@ namespace merutilm::rff2 {
         SetWindowSubclass(text, textFieldProc, 1, 0);
         SetWindowLongPtr(text, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
         SendMessage(text, WM_SETFONT, font, TRUE);
+        SendMessage(text, EM_SETLIMITTEXT, 0, 0);
         createdChildWindows.push_back(text);
         ++elements;
         registerActions<T>(ptr, std::move(unparser), std::optional{std::move(parser)},
