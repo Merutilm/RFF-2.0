@@ -36,7 +36,7 @@ namespace merutilm::rff2 {
 
 
     void GLMultipassRenderer::render() const {
-        int iterationTextureID = 0;
+        GLuint shdIterationTextureID = 0;
         for (int i = 0; i < renderers.size(); ++i) {
             GLRenderer *rendererPtr = renderers[i];
 
@@ -46,11 +46,11 @@ namespace merutilm::rff2 {
 
             GLRenderer &renderer = *rendererPtr;
             if (const auto k = dynamic_cast<GLIterationTextureProvider *>(&renderer);
-                k != nullptr && iterationTextureID == 0) {
-                iterationTextureID = k->getIterationTextureID();
+                k != nullptr && shdIterationTextureID == 0) {
+                shdIterationTextureID = k->getIterationTextureID();
                 }
             if (const auto r = dynamic_cast<GLIterationTextureRenderer *>(&renderer)) {
-                r->setIterationTextureID(iterationTextureID);
+                r->setShdIterationTextureID(shdIterationTextureID);
             }
             if (const auto t = dynamic_cast<GLTimeRenderer *>(&renderer)) {
                 t->setTime(timeSec);

@@ -7,19 +7,21 @@
 #include "GLRenderer.h"
 #include "../data/Matrix.h"
 #include "../settings/DataSettings.h"
+#include "../settings/VideoSettings.h"
 
 namespace merutilm::rff2 {
-    class GLRendererIteration2Map final : public GLRenderer, public GLIterationTextureProvider{
+    class GLRendererIteration2Map : public GLRenderer{
         uint16_t iterWidth = 0;
         uint16_t iterHeight = 0;
         double maxIteration = 0.0;
-        const DataSettings *dataSettings = nullptr;
+        const VideoSettings *videoSettings = nullptr;
         float currentFrame = 0;
+        GLuint colIterationTextureID = 0;
         GLuint iterationTextureID = 0;
         std::vector<float> iterationBuffer;
 
     public:
-        GLRendererIteration2Map();
+        explicit GLRendererIteration2Map(std::string_view name);
 
         void reloadIterationBuffer(uint16_t iterWidth, uint16_t iterHeight);
 
@@ -37,9 +39,7 @@ namespace merutilm::rff2 {
 
         void setCurrentFrame(float currentFrame);
 
-        GLuint getIterationTextureID() override;
-
-        void setDataSettings(const DataSettings &dataSettings);
+        void setVideoSettings(const VideoSettings &dataSettings);
 
         void setAllIterations(const std::vector<double> &normal, const std::vector<double> &zoomed);
 

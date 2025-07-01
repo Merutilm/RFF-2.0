@@ -6,9 +6,11 @@
 
 #include <cstring>
 
+#include "../settings/VideoSettings.h"
+
 
 namespace merutilm::rff2 {
-    GLRendererIteration2Map::GLRendererIteration2Map() : GLRenderer("iteration_palette_2_map.frag") {
+    GLRendererIteration2Map::GLRendererIteration2Map(const std::string_view name) : GLRenderer(name) {
     }
 
     void GLRendererIteration2Map::reloadIterationBuffer(const uint16_t iterWidth, const uint16_t iterHeight) {
@@ -27,13 +29,9 @@ namespace merutilm::rff2 {
         this->currentFrame = currentFrame;
     }
 
-    GLuint GLRendererIteration2Map::getIterationTextureID() {
-        return getFBOTextureID();
-    }
 
-
-    void GLRendererIteration2Map::setDataSettings(const DataSettings &dataSettings) {
-        this->dataSettings = &dataSettings;
+    void GLRendererIteration2Map::setVideoSettings(const VideoSettings &videoSettings) {
+        this->videoSettings = &videoSettings;
     }
 
 
@@ -44,7 +42,7 @@ namespace merutilm::rff2 {
         shader.uploadTexture2D("normalAndZoomed", GL_TEXTURE0, iterationTextureID, iterationBuffer.data(), iterWidth,
                                iterHeight,
                                Constants::TextureFormats::FF4);
-        shader.uploadFloat("defaultZoomIncrement", dataSettings->defaultZoomIncrement);
+        shader.uploadFloat("defaultZoomIncrement", videoSettings->dataSettings.defaultZoomIncrement);
         shader.uploadFloat("currentFrame", currentFrame);
     }
 

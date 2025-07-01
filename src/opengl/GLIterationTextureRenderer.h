@@ -7,6 +7,6 @@
 namespace merutilm::rff2 {
     struct GLIterationTextureRenderer {
         virtual ~GLIterationTextureRenderer() = default;
-        virtual void setIterationTextureID(GLuint textureID) = 0;
+        virtual void setShdIterationTextureID(GLuint textureID) = 0;
     };
 }

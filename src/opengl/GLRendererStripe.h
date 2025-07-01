@@ -28,7 +28,7 @@ namespace merutilm::rff2 {
 
         GLRendererStripe &operator=(GLRendererStripe &&) = delete;
 
-        void setIterationTextureID(GLuint textureID) override;
+        void setShdIterationTextureID(GLuint textureID) override;
 
         void setTime(float time) override;
 

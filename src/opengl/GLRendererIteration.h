@@ -4,6 +4,7 @@
 
 #pragma once
 #include "GLIterationTextureProvider.h"
+#include "GLIterationTextureRenderer.h"
 #include "GLRenderer.h"
 #include "GLTimeRenderer.h"
 #include "../data/Matrix.h"

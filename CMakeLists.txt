@@ -186,6 +186,8 @@ add_executable(
         src/opengl/GLRendererStatic2Image.h
         src/io/RFFLocationBinary.cpp
         src/io/RFFLocationBinary.h
+        src/opengl/GLRendererShdIteration2Map.h
+        src/opengl/GLRendererColIteration2Map.cpp
 )
 
 

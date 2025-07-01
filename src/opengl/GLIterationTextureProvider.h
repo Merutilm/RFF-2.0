@@ -10,4 +10,5 @@ namespace merutilm::rff2 {
         virtual ~GLIterationTextureProvider() = default;
         virtual GLuint getIterationTextureID() = 0;
     };
+
 }

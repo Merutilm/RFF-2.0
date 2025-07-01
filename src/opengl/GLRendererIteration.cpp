@@ -35,7 +35,7 @@ namespace merutilm::rff2 {
     void GLRendererIteration::reloadIterationBuffer(const uint16_t iterWidth, const uint16_t iterHeight) {
         this->iterationBuffer = emptyIterationBuffer(iterWidth, iterHeight);
         this->iterationTextureID = GLShader::recreateTexture2D(iterationTextureID, iterWidth, iterHeight,
-                                                                     Constants::TextureFormats::FF2);
+                                                               Constants::TextureFormats::FF2);
         this->iterWidth = iterWidth;
         this->iterHeight = iterHeight;
     }
@@ -49,8 +49,9 @@ namespace merutilm::rff2 {
         this->paletteHeight = static_cast<uint16_t>((paletteLength - 1) / paletteWidth + 1);
         this->paletteBuffer = createPaletteBuffer(paletteSettings, paletteWidth, paletteHeight);
         this->paletteTextureID = GLShader::recreateTexture2D(paletteTextureID, paletteWidth, paletteHeight,
-                                                                   Constants::TextureFormats::FF4);
+                                                             Constants::TextureFormats::FF4);
     }
+
 
     int GLRendererIteration::getIterationTextureID() const {
         return iterationTextureID;
@@ -61,26 +62,24 @@ namespace merutilm::rff2 {
             return;
         }
         const GLShader &shader = getShader();
-        if (const GLuint previousFBOTextureID = getPrevFBOTextureID(); previousFBOTextureID == 0) {
-            if (iterationBuffer.empty()) {
-                return;
-            }
-            shader.uploadTexture2D("iterations", GL_TEXTURE0, iterationTextureID, iterationBuffer.data(), iterWidth,
-                                   iterHeight, Constants::TextureFormats::FF2);
-        } else {
-            shader.uploadTexture2D("iterations", GL_TEXTURE0, previousFBOTextureID);
+        if (iterationBuffer.empty()) {
+            return;
         }
+        shader.uploadTexture2D("iterations", GL_TEXTURE0, iterationTextureID, iterationBuffer.data(), iterWidth,
+                               iterHeight, Constants::TextureFormats::FF2);
 
         shader.uploadDouble("maxIteration", maxIteration);
 
-        shader.uploadTexture2D("palette", GL_TEXTURE1, paletteTextureID, paletteBuffer.data(), paletteWidth, paletteHeight,
+        shader.uploadTexture2D("palette", GL_TEXTURE1, paletteTextureID, paletteBuffer.data(), paletteWidth,
+                               paletteHeight,
                                Constants::TextureFormats::FF4);
         shader.uploadInt("paletteWidth", paletteWidth);
         shader.uploadInt("paletteHeight", paletteHeight);
         shader.uploadInt("paletteLength", paletteLength);
         shader.uploadDouble("paletteOffset",
-                           static_cast<double>(paletteSettings->offsetRatio) - static_cast<double>(time) * paletteSettings->animationSpeed / paletteSettings->
-                           iterationInterval);
+                            static_cast<double>(paletteSettings->offsetRatio) - static_cast<double>(time) *
+                            paletteSettings->animationSpeed / paletteSettings->
+                            iterationInterval);
         shader.uploadFloat("paletteInterval", paletteSettings->iterationInterval);
         shader.uploadInt("smoothing", static_cast<int>(paletteSettings->colorSmoothing));
     }
@@ -116,7 +115,8 @@ namespace merutilm::rff2 {
     }
 
     std::vector<float> GLRendererIteration::createPaletteBuffer(const PaletteSettings &paletteSettings,
-                                                                const uint16_t paletteWidth, const uint16_t paletteHeight) {
+                                                                const uint16_t paletteWidth,
+                                                                const uint16_t paletteHeight) {
         const std::vector<ColorFloat> &colors = paletteSettings.colors;
         auto result = std::vector<float>();
         result.reserve(static_cast<uint32_t>(paletteWidth) * paletteHeight * 4);

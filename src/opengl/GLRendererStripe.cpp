@@ -10,7 +10,7 @@ namespace merutilm::rff2 {
 
     }
 
-    void GLRendererStripe::setIterationTextureID(const GLuint textureID) {
+    void GLRendererStripe::setShdIterationTextureID(const GLuint textureID) {
         iterationTextureID = textureID;
     }
 

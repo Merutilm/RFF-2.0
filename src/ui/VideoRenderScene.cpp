@@ -4,6 +4,8 @@
 
 #include "VideoRenderScene.h"
 
+#include "../opengl/GLRendererColIteration2Map.h"
+#include "../opengl/GLRendererShdIteration2Map.h"
 #include "../settings/Settings.h"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/core/hal/interface.h"
@@ -15,7 +17,8 @@ namespace merutilm::rff2 {
 
 
     void VideoRenderScene::applyCurrentFrame() const {
-        rendererIteration2Map->setCurrentFrame(currentFrame);
+        rendererShdIteration2Map->setCurrentFrame(currentFrame);
+        rendererColIteration2Map->setCurrentFrame(currentFrame);
         rendererStatic2Image->setCurrentFrame(currentFrame);
     }
 
@@ -26,22 +29,25 @@ namespace merutilm::rff2 {
         if (currentFrame < 1) {
             const double maxIteration = static_cast<double>(normal.getMaxIteration());
             const std::vector<double> zoomedDefault(normalI.getLength());
-            rendererIteration2Map->setAllIterations(normalI.getCanvas(), zoomedDefault);
-            rendererIteration2Map->setMaxIteration(maxIteration);
-            rendererIteration->setMaxIteration(maxIteration);
+            rendererShdIteration2Map->setAllIterations(normalI.getCanvas(), zoomedDefault);
+            rendererColIteration2Map->setAllIterations(normalI.getCanvas(), zoomedDefault);
+            rendererShdIteration2Map->setMaxIteration(maxIteration);
+            rendererColIteration2Map->setMaxIteration(maxIteration);
         } else {
             auto &zoomedI = zoomed.getMatrix();
             const double maxIteration = static_cast<double>(std::min(zoomed.getMaxIteration(), normal.getMaxIteration()));
-            rendererIteration2Map->setAllIterations(normalI.getCanvas(), zoomedI.getCanvas());
-            rendererIteration2Map->setMaxIteration(maxIteration);
-            rendererIteration->setMaxIteration(maxIteration);
+            rendererShdIteration2Map->setAllIterations(normalI.getCanvas(), zoomedI.getCanvas());
+            rendererColIteration2Map->setAllIterations(normalI.getCanvas(), zoomedI.getCanvas());
+            rendererShdIteration2Map->setMaxIteration(maxIteration);
+            rendererColIteration2Map->setMaxIteration(maxIteration);
         }
     }
 
     void VideoRenderScene::applyColor(const Settings &settings) const {
-        rendererIteration2Map->setDataSettings(settings.videoSettings.dataSettings);
+        rendererShdIteration2Map->setVideoSettings(settings.videoSettings);
+        rendererColIteration2Map->setVideoSettings(settings.videoSettings);
+        rendererColIteration2Map->setPaletteSettings(settings.shaderSettings.paletteSettings);
         rendererStatic2Image->setDataSettings(settings.videoSettings.dataSettings);
-        rendererIteration->setPaletteSettings(settings.shaderSettings.paletteSettings);
         rendererStripe->setStripeSettings(settings.shaderSettings.stripeSettings);
         rendererSlope->setSlopeSettings(settings.shaderSettings.slopeSettings);
         rendererColor->setColorSettings(settings.shaderSettings.colorSettings);
@@ -60,8 +66,8 @@ namespace merutilm::rff2 {
         rendererStatic->add(*rendererStatic2Image);
 
         renderer = std::make_unique<GLMultipassRenderer>();
-        rendererIteration2Map = std::make_unique<GLRendererIteration2Map>();
-        rendererIteration = std::make_unique<GLRendererIteration>();
+        rendererShdIteration2Map = std::make_unique<GLRendererShdIteration2Map>();
+        rendererColIteration2Map = std::make_unique<GLRendererColIteration2Map>();
         rendererStripe = std::make_unique<GLRendererStripe>();
         rendererSlope = std::make_unique<GLRendererSlope>();
         rendererColor = std::make_unique<GLRendererColor>();
@@ -69,8 +75,8 @@ namespace merutilm::rff2 {
         rendererBloom = std::make_unique<GLRendererBloom>();
         rendererAntialiasing = std::make_unique<GLRendererAntialiasing>();
 
-        renderer->add(*rendererIteration2Map);
-        renderer->add(*rendererIteration);
+        renderer->add(*rendererShdIteration2Map);
+        renderer->add(*rendererColIteration2Map);
         renderer->add(*rendererStripe);
         renderer->add(*rendererSlope);
         renderer->add(*rendererColor);
@@ -130,8 +136,8 @@ namespace merutilm::rff2 {
     }
 
     void VideoRenderScene::reloadSize(const uint16_t cw, const uint16_t ch, const uint16_t iw, const uint16_t ih) {
-        rendererIteration->reloadIterationBuffer(iw, ih);
-        rendererIteration2Map->reloadIterationBuffer(iw, ih);
+        rendererShdIteration2Map->reloadIterationBuffer(iw, ih);
+        rendererColIteration2Map->reloadIterationBuffer(iw, ih);
         renderer->reloadSize(cw, ch, iw, ih);
         rendererStatic->reloadSize(cw, ch, iw, ih);
         reloadImageBuffer(iw, ih);

@@ -44,6 +44,8 @@ unzip it and run it from the `bin` directory.
 4. The elapsed time since the calculation started
 5. The Process.
 
+- Video renderer is built-in!
+
 
 
 
@@ -52,3 +54,5 @@ unzip it and run it from the `bin` directory.
 - This is weak for complex spiral patterns and mandelbrot plane, because there are only formulas for the  recursive julia sets.  
   I will add that formulas in the future.
 - The `Locate Minibrot` algorithm is currently inefficient. It is 50% slower than `kf2`.
+
+

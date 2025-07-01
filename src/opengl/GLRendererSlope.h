@@ -28,7 +28,7 @@ namespace merutilm::rff2 {
 
         GLRendererSlope& operator=(GLRendererSlope&&) = delete;
 
-        void setIterationTextureID(GLuint textureID) override;
+        void setShdIterationTextureID(GLuint textureID) override;
 
         void setSlopeSettings(const SlopeSettings &slopeSettings);
 

@@ -19,8 +19,8 @@ double getIterationNormal(ivec2 coord){
     vec4 iteration = texelFetch(normalAndZoomed, ivec2(coord), 0);
     uvec2 ith = floatBitsToUint(iteration.yx);
     double result = packDouble2x32(ith);
-    if(result >= maxIteration){
-        return maxIteration * 2; // smooth plane
+    if (result >= maxIteration){
+        return maxIteration * 2;// smooth plane
     }
     return result;
 }
@@ -29,8 +29,8 @@ double getIterationZoomed(ivec2 coord){
     vec4 iteration = texelFetch(normalAndZoomed, ivec2(coord), 0);
     uvec2 ith = floatBitsToUint(iteration.wz);
     double result = packDouble2x32(ith);
-    if(result >= maxIteration){
-        return maxIteration * 2; // smooth plane
+    if (result >= maxIteration){
+        return maxIteration * 2;// smooth plane
     }
     return result;
 }
@@ -42,8 +42,8 @@ void main(){
     coord -= center;
     float r = int(max(0, currentFrame)) - currentFrame;
 
-    float nsr = pow(defaultZoomIncrement, r + 1); // r = 0 ~ 1
-    float zsr = pow(defaultZoomIncrement, r); // r = -1 ~ 0
+    float nsr = pow(defaultZoomIncrement, r + 1);// r = 0 ~ 1
+    float zsr = pow(defaultZoomIncrement, r);// r = -1 ~ 0
 
     vec2 ntx = coord / nsr + center;
     vec2 ztx = coord / zsr + center;
@@ -54,7 +54,7 @@ void main(){
     double nMain = getIterationNormal(ivec2(ntx));
     double zMain = getIterationZoomed(ivec2(ztx));
 
-    if(ztx.x >= resolution.x - 1 || ztx.y >= resolution.y - 1 || ztx.x < 0 || ztx.y < 0 || zMain == 0){
+    if (ztx.x >= resolution.x - 1 || ztx.y >= resolution.y - 1 || ztx.x < 0 || ztx.y < 0 || zMain == 0){
         double i2 = getIterationNormal(ivec2(ntx) + ivec2(1, 0));
         double i3 = getIterationNormal(ivec2(ntx) + ivec2(0, 1));
         double i4 = getIterationNormal(ivec2(ntx) + ivec2(1, 1));
@@ -65,7 +65,7 @@ void main(){
         vec2 it = toFloatIteration(i7);
 
         color = vec4(it, 0, 0);
-    }else{
+    } else {
         double i2 = getIterationZoomed(ivec2(ztx) + ivec2(1, 0));
         double i3 = getIterationZoomed(ivec2(ztx) + ivec2(0, 1));
         double i4 = getIterationZoomed(ivec2(ztx) + ivec2(1, 1));
