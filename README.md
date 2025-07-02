@@ -60,7 +60,7 @@ the extension of `info` file is `.rfsm`.
 - More features will be added soon.
 
 
-## Limits
+## Known Issues & Problems
 - The program was compiled with -Ofast, so sometimes results incorrect image at some location.
 - This is weak for complex spiral patterns and mandelbrot plane, because there are only formulas for the  recursive julia sets.  
   I will add that formulas in the future.
@@ -68,4 +68,7 @@ the extension of `info` file is `.rfsm`.
 
 - An issue occurs where the reference calculation slows down unusually at the certain very deep locations.
 
-~~_________________________________________________________~~
+- No viable algorithms for interior detection(Coming soon). 
+it will slow down the speed for interior pixels.
+
+- I will do my best to accelerate as reference calculations account for more than 90% of the total
