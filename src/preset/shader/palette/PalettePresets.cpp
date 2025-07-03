@@ -7,6 +7,113 @@
 #include <algorithm>
 
 namespace merutilm::rff2 {
+#define PI static_cast<float>(M_PI)
+    std::string PalettePresets::Classic1::getName() const {
+        return "Classic 1";
+    }
+
+    PaletteSettings PalettePresets::Classic1::paletteSettings() const {
+        PaletteSettings p = {};
+        for (uint8_t cnt = 0; cnt < 200; ++cnt) {
+            const float i = PI * cnt / 100;
+            const float r = 0.5f + 0.5f * std::sin(i - 2);
+            const float g = 0.5f + 0.5f * std::sin(i - 1.3f);
+            const float b = 0.5f + 0.5f * std::sin(i - 0.6f);
+            p.colors.emplace_back(r, g, b, 1);
+        }
+        p.iterationInterval = 250;
+        return p;
+    }
+
+    std::string PalettePresets::Classic2::getName() const {
+        return "Classic 2";
+    }
+
+    PaletteSettings PalettePresets::Classic2::paletteSettings() const {
+        PaletteSettings p = {};
+        for (uint8_t cnt = 0; cnt < 200; ++cnt) {
+            const float i = PI * cnt / 100;
+            const float r = 0.5f + 0.5f * std::sin(i - 2);
+            const float g = 0.5f + 0.5f * std::sin(i - 0.6f);
+            const float b = 0.5f + 0.5f * std::sin(i - 1.3f);
+            p.colors.emplace_back(r, g, b, 1);
+        }
+        p.iterationInterval = 250;
+        return p;
+    }
+
+    std::string PalettePresets::Azure::getName() const {
+        return "Azure";
+    }
+
+    PaletteSettings PalettePresets::Azure::paletteSettings() const {
+        PaletteSettings p = {};
+        for (uint8_t cnt = 0; cnt < 200; ++cnt) {
+            const float i = PI * cnt / 100;
+            const float r = 0.5f + 0.5f * std::sin(1.5f * std::sin(i) - 0.5f);
+            const float g = 0.5f + 0.5f * std::sin(1.5f * std::sin(i));
+            const float b = 0.5f + 0.5f * std::sin(1.5f * std::sin(i) + 0.5f);
+            p.colors.emplace_back(r, g, b, 1);
+        }
+        p.iterationInterval = 300;
+        p.offsetRatio = 0.7f;
+        return p;
+    }
+
+    std::string PalettePresets::Cinematic::getName() const {
+        return "Cinematic";
+    }
+
+    PaletteSettings PalettePresets::Cinematic::paletteSettings() const {
+        PaletteSettings p = {};
+        for (uint8_t cnt = 0; cnt < 200; ++cnt) {
+            const float i = PI * cnt / 100;
+            float v = 0.5f + 0.5f * std::sin(i);
+            ColorFloat c{v, v, v, 1};
+            c = c.forEachExceptAlpha(ColorFloat{1.000000f, 0.647058f, 0.000000f, 1.000000f},
+                                     [v](const float e, const float ta) { return e * (1 - v * 0.3f) + ta * v * 0.3f; });
+            p.colors.push_back(c);
+        }
+        p.iterationInterval = 100;
+        p.offsetRatio = 0.7f;
+        return p;
+    }
+
+    std::string PalettePresets::Desert::getName() const {
+        return "Desert";
+    }
+
+    PaletteSettings PalettePresets::Desert::paletteSettings() const {
+        PaletteSettings p = {};
+        for (uint8_t cnt = 0; cnt < 200; ++cnt) {
+            const float i = PI * cnt / 100;
+            ColorFloat c = {0.75f, 0.5f, 0.25f, 1};
+            p.colors.emplace_back(ColorFloat::lerp(c, ColorFloat{1, 1, 1, 1}, -0.3f + 0.3f * std::cos(i)));
+        }
+        p.iterationInterval = 250;
+        p.offsetRatio = 0.7f;
+        return p;
+    }
+
+    std::string PalettePresets::Flame::getName() const {
+        return "Flame";
+    }
+
+    PaletteSettings PalettePresets::Flame::paletteSettings() const {
+        PaletteSettings p = {};
+        for (uint8_t cnt = 0; cnt < 200; ++cnt) {
+            const float i = PI * cnt / 100;
+            const float r = 0.5f + 0.5f * std::sin(1.5f * std::sin(i) + 0.5f);
+            const float g = 0.5f + 0.5f * std::sin(1.5f * std::sin(i));
+            const float b = 0.5f + 0.5f * std::sin(1.5f * std::sin(i) - 0.5f);
+            p.colors.emplace_back(r, g, b, 1);
+        }
+        p.iterationInterval = 300;
+        p.offsetRatio = 0.7f;
+        return p;
+    }
+
+
     std::string PalettePresets::LongRandom64::getName() const {
         return "Long Random 64";
     }
@@ -115,6 +222,7 @@ namespace merutilm::rff2 {
         p.colorSmoothing = ColorSmoothingSettings::NORMAL;
         return p;
     }
+
     std::string PalettePresets::Rainbow::getName() const {
         return "Rainbow";
     }

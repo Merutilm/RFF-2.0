@@ -15,7 +15,37 @@ namespace merutilm::rff2::SlopePresets {
         [[nodiscard]] SlopeSettings slopeSettings() const override;
     };
 
-    struct Normal final : public Presets::ShaderPresets::SlopePreset {
+    struct NoReflection final : public Presets::ShaderPresets::SlopePreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] SlopeSettings slopeSettings() const override;
+    };
+
+    struct Reflective final : public Presets::ShaderPresets::SlopePreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] SlopeSettings slopeSettings() const override;
+    };
+
+
+    struct Translucent final : public Presets::ShaderPresets::SlopePreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] SlopeSettings slopeSettings() const override;
+    };
+    struct Reversed final : public Presets::ShaderPresets::SlopePreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] SlopeSettings slopeSettings() const override;
+    };
+
+    struct Micro final : public Presets::ShaderPresets::SlopePreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] SlopeSettings slopeSettings() const override;
+    };
+
+    struct Nano final : public Presets::ShaderPresets::SlopePreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] SlopeSettings slopeSettings() const override;

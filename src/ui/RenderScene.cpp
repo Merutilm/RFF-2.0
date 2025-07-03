@@ -68,7 +68,7 @@ namespace merutilm::rff2 {
             .shaderSettings = {
                 .paletteSettings = PalettePresets::LongRandom64().paletteSettings(),
                 .stripeSettings = StripePresets::SlowAnimated().stripeSettings(),
-                .slopeSettings = SlopePresets::Normal().slopeSettings(),
+                .slopeSettings = SlopePresets::Translucent().slopeSettings(),
                 .colorSettings = ColorPresets::WeakContrast().colorSettings(),
                 .fogSettings = FogPresets::Medium().fogSettings(),
                 .bloomSettings = BloomPresets::Normal().bloomSettings()

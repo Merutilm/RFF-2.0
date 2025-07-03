@@ -20,4 +20,19 @@ namespace merutilm::rff2::StripePresets {
 
         [[nodiscard]] StripeSettings stripeSettings() const override;
     };
+    struct FastAnimated final : Presets::ShaderPresets::StripePreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] StripeSettings stripeSettings() const override;
+    };
+    struct Smooth final : Presets::ShaderPresets::StripePreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] StripeSettings stripeSettings() const override;
+    };
+    struct SmoothTranslucent final : Presets::ShaderPresets::StripePreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] StripeSettings stripeSettings() const override;
+    };
 }

@@ -13,7 +13,32 @@ namespace merutilm::rff2::BloomPresets {
 
         [[nodiscard]] BloomSettings bloomSettings() const override;
     };
+
+    struct Highlighted final : public Presets::ShaderPresets::BloomPreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] BloomSettings bloomSettings() const override;
+    };
+
+    struct HighlightedStrong final : public Presets::ShaderPresets::BloomPreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] BloomSettings bloomSettings() const override;
+    };
+
+    struct Weak final : public Presets::ShaderPresets::BloomPreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] BloomSettings bloomSettings() const override;
+    };
+
     struct Normal final : public Presets::ShaderPresets::BloomPreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] BloomSettings bloomSettings() const override;
+    };
+
+    struct Strong final : public Presets::ShaderPresets::BloomPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] BloomSettings bloomSettings() const override;

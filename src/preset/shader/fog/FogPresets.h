@@ -15,8 +15,22 @@ namespace merutilm::rff2::FogPresets {
 
         [[nodiscard]] FogSettings fogSettings() const override;
     };
+    struct Low final : public Presets::ShaderPresets::FogPreset {
+        [[nodiscard]] std::string getName() const override;
 
+        [[nodiscard]] FogSettings fogSettings() const override;
+    };
     struct Medium final : public Presets::ShaderPresets::FogPreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] FogSettings fogSettings() const override;
+    };
+    struct High final : public Presets::ShaderPresets::FogPreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] FogSettings fogSettings() const override;
+    };
+    struct Ultra final : public Presets::ShaderPresets::FogPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] FogSettings fogSettings() const override;
