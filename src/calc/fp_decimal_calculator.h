@@ -10,8 +10,8 @@
 namespace merutilm::rff2 {
     struct fp_decimal_calculator final {
         int exp2;
-        mpz_t value;
-        mpz_t temp;
+        mpz_t value = {};
+        mpz_t temp = {};
 
         explicit fp_decimal_calculator();
 

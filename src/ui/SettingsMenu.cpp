@@ -71,6 +71,8 @@ namespace merutilm::rff2 {
         addChildItem(currentMenu, "Color", CallbackShader::COLOR);
         addChildItem(currentMenu, "Fog", CallbackShader::FOG);
         addChildItem(currentMenu, "Bloom", CallbackShader::BLOOM);
+        addChildItem(currentMenu, "Load KFR Color", CallbackShader::LOAD_KFR_PALETTE);
+
         currentMenu = addChildMenu(menubar, "Preset");
         subMenu1 = addChildMenu(currentMenu, "Calculation");
         addPresetExecutor(subMenu1, CalculationPresets::UltraFast());

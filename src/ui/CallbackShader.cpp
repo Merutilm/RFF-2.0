@@ -5,7 +5,10 @@
 #include "Callback.h"
 #include "CallbackShader.h"
 
+#include "../io/KFRColorLoader.hpp"
+
 namespace merutilm::rff2 {
+
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::PALETTE = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[colors, colorSmoothing, iterationInterval, offsetRatio, animationSpeed] = scene.getSettings().shaderSettings.paletteSettings;
@@ -176,5 +179,14 @@ namespace merutilm::rff2 {
             settingsMenu.setCurrentActiveSettingsWindow(nullptr);
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
+    };
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::LOAD_KFR_PALETTE = [
+            ](SettingsMenu &, RenderScene &scene) {
+        const auto colors = KFRColorLoader::loadPaletteSettings();
+        if (colors.empty()) {
+            MessageBox(nullptr, "No colors found", "Error", MB_OK | MB_ICONERROR);
+        }
+        scene.getSettings().shaderSettings.paletteSettings.colors = colors;
+        scene.requestColor();
     };
 }

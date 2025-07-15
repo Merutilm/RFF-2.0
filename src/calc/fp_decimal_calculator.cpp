@@ -4,8 +4,8 @@
 
 #include "fp_decimal_calculator.h"
 
-#include <float.h>
-#include <math.h>
+#include <cfloat>
+#include <cmath>
 
 #include "fp_complex_calculator.h"
 #include "../ui/Constants.h"

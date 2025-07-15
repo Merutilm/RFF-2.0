@@ -16,11 +16,11 @@ namespace merutilm::rff2 {
                                                        std::vector<double> &&refImag,
                                                        std::vector<ArrayCompressionTool> &&compressor,
                                                        std::vector<uint64_t> &&period,
-                                                       fp_complex &&lastReference,
+                                                       fp_complex &&fpgReference,
                                                        fp_complex &&fpgBn) : MandelbrotReference(std::move(center),
                                                                                  std::move(compressor),
                                                                                  std::move(period),
-                                                                                 std::move(lastReference),
+                                                                                 std::move(fpgReference),
                                                                                  std::move(fpgBn)),
                                                                              refReal(std::move(refReal)),
                                                                              refImag(std::move(refImag)) {
@@ -77,6 +77,8 @@ namespace merutilm::rff2 {
         double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
         bool canReuse = withoutNormalize;
 
+        std::unique_ptr<fp_complex> fpgReference = nullptr;
+
         while (zr * zr + zi * zi < bailoutSqr && iteration < maxIteration) {
             if (iteration % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return Constants::NullPointer::PROCESS_TERMINATED_REFERENCE;
@@ -86,6 +88,7 @@ namespace merutilm::rff2 {
 
             if (iteration > 0) {
                 double radius2 = zr * zr + zi * zi;
+
                 double fpgLimit = radius2 / dcMax;
                 double fpgBnrTemp = fpgBnr * zr * 2 - fpgBni * zi * 2 + 1;
                 double fpgBniTemp = fpgBnr * zi * 2 + fpgBni * zr * 2;
@@ -97,9 +100,15 @@ namespace merutilm::rff2 {
                     periodArray.push_back(iteration);
                 }
 
-                if (fpgRadius > fpgLimit || radius2 == 0 || iteration == maxIteration - 1 || (
+                if (iteration == maxIteration - 1) {
+                    periodArray.push_back(iteration);
+                    break;
+                }
+
+                if ((fpgReference == nullptr && fpgRadius > fpgLimit) || radius2 == 0 || (
                         initialPeriod != 0 && initialPeriod == iteration)) {
                     periodArray.push_back(iteration);
+                    fpgReference = std::make_unique<fp_complex>(z);
                     break;
                 }
 
@@ -179,9 +188,9 @@ namespace merutilm::rff2 {
             }
         }
 
-        if (!strictFPG) {
-            fpgBn = fp_complex_calculator(fpgBnr, fpgBni, exp10);
-        }
+
+        if (!strictFPG) fpgBn = fp_complex_calculator(fpgBnr, fpgBni, exp10);
+        if (fpgReference == nullptr) fpgReference = std::make_unique<fp_complex>(z);
 
         rr.resize(period - compressed + 1);
         ri.resize(period - compressed + 1);
@@ -191,7 +200,7 @@ namespace merutilm::rff2 {
 
         return std::make_unique<LightMandelbrotReference>(std::move(center), std::move(rr), std::move(ri),
                                                           std::move(tools),
-                                                          std::move(periodArray), fp_complex(z), fp_complex(fpgBn));
+                                                          std::move(periodArray), std::move(*fpgReference), fp_complex(fpgBn));
     }
 
 

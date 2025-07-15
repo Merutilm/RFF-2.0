@@ -22,7 +22,7 @@ namespace merutilm::rff2 {
 
         explicit LightMandelbrotReference(fp_complex &&center, std::vector<double> &&refReal,
                                  std::vector<double> &&refImag, std::vector<ArrayCompressionTool> &&compressor,
-                                 std::vector<uint64_t> &&period, fp_complex &&lastReference, fp_complex &&fpgBn);
+                                 std::vector<uint64_t> &&period, fp_complex &&fpgReference, fp_complex &&fpgBn);
 
         static std::unique_ptr<LightMandelbrotReference> createReference(const ParallelRenderState &state,
                                                                          const CalculationSettings &calc, int exp10,

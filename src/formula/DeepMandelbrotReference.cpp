@@ -14,10 +14,10 @@ namespace merutilm::rff2 {
     DeepMandelbrotReference::DeepMandelbrotReference(fp_complex &&center, std::vector<dex> &&refReal,
                                                      std::vector<dex> &&refImag,
                                                      std::vector<ArrayCompressionTool> &&compressor,
-                                                     std::vector<uint64_t> &&period, fp_complex &&lastReference,
+                                                     std::vector<uint64_t> &&period, fp_complex &&fpgReference,
                                                      fp_complex &&fpgBn) : MandelbrotReference(std::move(center),
                                                                                std::move(compressor), std::move(period),
-                                                                               std::move(lastReference),
+                                                                               std::move(fpgReference),
                                                                                std::move(fpgBn)),
                                                                            refReal(std::move(refReal)),
                                                                            refImag(std::move(refImag)) {
@@ -75,6 +75,8 @@ namespace merutilm::rff2 {
 
         double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
         bool canReuse = withoutNormalize;
+
+        std::unique_ptr<fp_complex> fpgReference = nullptr;
         auto temps = std::array<dex, 8>();
 
         while ((iteration == 0 || dex_trigonometric::hypot2(zr, zi) < bailoutSqr) && iteration < maxIteration) {
@@ -108,11 +110,19 @@ namespace merutilm::rff2 {
                     dex::cpy(&minZRadius, temps[0]);
                     periodArray.push_back(iteration);
                 }
+
+
+                if (iteration == maxIteration - 1) {
+                    periodArray.push_back(iteration);
+                    break;
+                }
+
                 dex::sub(&temps[4], temps[4], temps[1]);
 
-                if (temps[4].sgn() == 1 || iteration == maxIteration - 1 || temps[0].sgn() == 0 || (
+                if ((fpgReference == nullptr && temps[4].sgn() == 1) || temps[0].sgn() == 0 || (
                         initialPeriod != 0 && initialPeriod == iteration)) {
                     periodArray.push_back(iteration);
+                    fpgReference = std::make_unique<fp_complex>(z);
                     break;
                 }
 
@@ -204,9 +214,8 @@ namespace merutilm::rff2 {
             }
         }
 
-        if (!strictFPG) {
-            fpgBn = fp_complex_calculator(fpgBnr, fpgBni, exp10);
-        }
+        if (!strictFPG) fpgBn = fp_complex_calculator(fpgBnr, fpgBni, exp10);
+        if (fpgReference == nullptr) std::make_unique<fp_complex>(z);
 
         rr.resize(period - compressed + 1);
         ri.resize(period - compressed + 1);
@@ -216,7 +225,7 @@ namespace merutilm::rff2 {
 
         return std::make_unique<DeepMandelbrotReference>(std::move(center), std::move(rr), std::move(ri),
                                                          std::move(tools),
-                                                         std::move(periodArray), fp_complex(z), fp_complex(fpgBn));
+                                                         std::move(periodArray), std::move(*fpgReference), fp_complex(fpgBn));
     }
 
 

@@ -34,7 +34,7 @@ namespace merutilm::rff2 {
         }
 
         fp_complex_calculator bn = reference->fpgBn.edit(exp10);
-        fp_complex_calculator z = reference->lastReference.edit(exp10);
+        fp_complex_calculator z = reference->fpgReference.edit(exp10);
         z /= bn.negate();
         return std::make_unique<fp_complex>(z);
     }

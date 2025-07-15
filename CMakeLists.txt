@@ -188,6 +188,8 @@ add_executable(
         src/io/RFFLocationBinary.h
         src/opengl/GLRendererShdIteration2Map.h
         src/opengl/GLRendererColIteration2Map.cpp
+        src/io/KFRColorLoader.cpp
+        src/io/KFRColorLoader.hpp
 )
 
 

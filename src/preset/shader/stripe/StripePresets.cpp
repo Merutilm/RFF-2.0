@@ -43,6 +43,6 @@ namespace merutilm::rff2 {
     }
 
     StripeSettings StripePresets::SmoothTranslucent::stripeSettings() const {
-        return StripeSettings{StripeType::SQUARED, 20, 100, 0.5f, 0, 1};
+        return StripeSettings{StripeType::SQUARED, 1, 1, 0.5f, 0, 1};
     }
 }

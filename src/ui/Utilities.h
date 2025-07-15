@@ -58,6 +58,18 @@ namespace merutilm::rff2 {
             return v.str();
         }
 
+        static std::vector<std::string> split(const std::string &input, const char delimiter) {
+            std::vector<std::string> split;
+            std::stringstream ss(input);
+            std::string val;
+
+            while (getline(ss, val, delimiter)) {
+                split.push_back(val);
+            }
+
+            return split;
+        }
+
         static int getRefreshInterval(const float logZoom) {
             return std::max(1, static_cast<int>(100000.0 / logZoom));
         };

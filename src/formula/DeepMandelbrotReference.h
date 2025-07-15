@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
 
         DeepMandelbrotReference(fp_complex &&center, std::vector<dex> &&refReal,
                                  std::vector<dex> &&refImag, std::vector<ArrayCompressionTool> &&compressor,
-                                 std::vector<uint64_t> &&period, fp_complex &&lastReference, fp_complex &&fpgBn);
+                                 std::vector<uint64_t> &&period, fp_complex &&fpgReference, fp_complex &&fpgBn);
 
         static std::unique_ptr<DeepMandelbrotReference> createReference(const ParallelRenderState &state,
                                                                          const CalculationSettings &calc, int exp10,
