@@ -185,6 +185,7 @@ namespace merutilm::rff2 {
         const auto colors = KFRColorLoader::loadPaletteSettings();
         if (colors.empty()) {
             MessageBox(nullptr, "No colors found", "Error", MB_OK | MB_ICONERROR);
+            return;
         }
         scene.getSettings().shaderSettings.paletteSettings.colors = colors;
         scene.requestColor();
