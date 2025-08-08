@@ -5,7 +5,6 @@
 #pragma once
 #include <windows.h>
 #include <string>
-#include <vector>
 
 namespace merutilm::rff2 {
     class WGLScene {
@@ -13,12 +12,11 @@ namespace merutilm::rff2 {
         const std::string INIT_NOT_CALLED = "Failed to load context. is called initGL()?\n";
         bool init = false;
 
-
-    public:
-
         HWND renderWindow = nullptr;
         HDC hdc = nullptr;
         HGLRC context = nullptr;
+
+    public:
 
         virtual ~WGLScene() = default;
         virtual void configure(HWND wnd, HDC hdc, HGLRC context);
@@ -27,11 +25,11 @@ namespace merutilm::rff2 {
         void swapBuffers() const;
 
 
-        HWND getRenderWindow() const;
+        [[nodiscard]] HWND getRenderWindow() const;
 
-        HDC getHDC() const;
+        [[nodiscard]] HDC getHDC() const;
 
-        HGLRC getContext() const;
+        [[nodiscard]] HGLRC getContext() const;
 
     };
 }

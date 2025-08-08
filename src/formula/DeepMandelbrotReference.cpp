@@ -7,7 +7,7 @@
 #include "../calc/double_exp_math.h"
 #include "../calc/rff_math.h"
 #include "../mrthy/ArrayCompressor.h"
-#include "../ui/Constants.h"
+#include "../constants/Constants.hpp"
 
 
 namespace merutilm::rff2 {

@@ -9,10 +9,10 @@
 #include "../formula/Perturbator.h"
 
 namespace merutilm::rff2 {
-    const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::REFERENCE = [
-            ](SettingsMenu &settingsMenu, RenderScene &scene) {
+    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackFractal::REFERENCE = [
+            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
         auto &calc = scene.getSettings().calculationSettings;
-        auto window = std::make_unique<SettingsWindow>("Reference");
+        auto window = std::make_unique<SettingsWindow>(L"Reference");
 
         auto centerPtr = std::make_shared<std::array<std::string, 2> >();
         *centerPtr = {calc.center.real.to_string(), calc.center.imag.to_string()};
@@ -82,10 +82,10 @@ namespace merutilm::rff2 {
             });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::ITERATIONS = [
-            ](SettingsMenu &settingsMenu, RenderScene &scene) {
+    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackFractal::ITERATIONS = [
+            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
         auto &calc = scene.getSettings().calculationSettings;
-        auto window = std::make_unique<SettingsWindow>("Iterations");
+        auto window = std::make_unique<SettingsWindow>(L"Iterations");
 
 
         window->registerTextInput<uint64_t>("Max Iteration", &calc.maxIteration,
@@ -114,11 +114,11 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::MPA = [
-            ](SettingsMenu &settingsMenu, RenderScene &scene) {
+    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackFractal::MPA = [
+            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
         auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod, mpaCompressionMethod] =
                 scene.getSettings().calculationSettings.mpaSettings;
-        auto window = std::make_unique<SettingsWindow>("MP-Approximation");
+        auto window = std::make_unique<SettingsWindow>(L"MP-Approximation");
         window->registerTextInput<uint16_t>("Min Skip Reference", &minSkipReference, Unparser::U_SHORT,
                                             Parser::U_SHORT, [](const unsigned short &v) { return v >= 4; },
                                             Callback::NOTHING, "Min Skip Reference",
@@ -155,13 +155,13 @@ namespace merutilm::rff2 {
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
 
-    const std::function<bool*(RenderScene &)> CallbackFractal::AUTOMATIC_ITERATIONS = [
-            ](RenderScene &scene) {
+    const std::function<bool*(GLRenderScene &)> CallbackFractal::AUTOMATIC_ITERATIONS = [
+            ](GLRenderScene &scene) {
         return &scene.getSettings().calculationSettings.autoMaxIteration;
     };
 
-    const std::function<bool*(RenderScene &)> CallbackFractal::ABSOLUTE_ITERATION_MODE = [
-            ](RenderScene &scene) {
+    const std::function<bool*(GLRenderScene &)> CallbackFractal::ABSOLUTE_ITERATION_MODE = [
+            ](GLRenderScene &scene) {
         return &scene.getSettings().calculationSettings.absoluteIterationMode;
     };
 }

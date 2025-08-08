@@ -1,4 +1,9 @@
+
+- ### ⚠️ The application is currently being rewritten from <u>OpenGL</u> to <u>Vulkan API</u>. Please use the latest release version.
+
+
 # RFF 2.0
+
 
 ## What is RFF?
 
@@ -54,8 +59,6 @@ the extension of `info` file is `.rfsm`.
 
 
 - Find the nearest Minibrot with `Locate Minibrot` in `Explore` menu.
-
-- You can modify the shader code provided in the `shaders` directory as you wish!
 
 - More features will be added soon.
 

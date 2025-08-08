@@ -4,7 +4,7 @@
 
 #include "CallbackVideo.h"
 
-#include "Constants.h"
+#include "../constants/Constants.hpp"
 #include "IOUtilities.h"
 #include "Callback.h"
 #include "VideoWindow.h"
@@ -16,10 +16,10 @@
 
 
 namespace merutilm::rff2 {
-    const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::DATA_SETTINGS = [
-            ](SettingsMenu &settingsMenu, RenderScene &scene) {
+    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackVideo::DATA_SETTINGS = [
+            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
         auto &[defaultZoomIncrement, isStatic] = scene.getSettings().videoSettings.dataSettings;
-        auto window = std::make_unique<SettingsWindow>("Data Settings");
+        auto window = std::make_unique<SettingsWindow>(L"Data Settings");
 
         window->registerTextInput<float>("Default Zoom Increment", &defaultZoomIncrement,
                                          Unparser::FLOAT,
@@ -37,10 +37,10 @@ namespace merutilm::rff2 {
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
 
-    const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::ANIMATION_SETTINGS = [
-            ](SettingsMenu &settingsMenu, RenderScene &scene) {
+    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackVideo::ANIMATION_SETTINGS = [
+            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
         auto &[overZoom, showText, mps] = scene.getSettings().videoSettings.animationSettings;
-        auto window = std::make_unique<SettingsWindow>("Animation Settings");
+        auto window = std::make_unique<SettingsWindow>(L"Animation Settings");
         window->registerTextInput<float>("Over Zoom", &overZoom, Unparser::FLOAT, Parser::FLOAT,
                                          ValidCondition::POSITIVE_FLOAT_ZERO, Callback::NOTHING, "Over Zoom",
                                          "Zoom the final video data.");
@@ -55,9 +55,9 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::EXPORT_SETTINGS = [
-            ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto window = std::make_unique<SettingsWindow>("Export Settings");
+    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackVideo::EXPORT_SETTINGS = [
+            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+        auto window = std::make_unique<SettingsWindow>(L"Export Settings");
         auto &[fps, bitrate] = scene.getSettings().videoSettings.exportSettings;
         window->registerTextInput<float>("FPS", &fps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
                                          Callback::NOTHING, "Set video FPS", "Set the fps of the video to export.");
@@ -70,8 +70,8 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::GENERATE_VID_KEYFRAME = [
-            ](const SettingsMenu &, RenderScene &scene) {
+    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackVideo::GENERATE_VID_KEYFRAME = [
+            ](const SettingsMenu &, GLRenderScene &scene) {
         scene.getBackgroundThreads().createThread(
             [&scene](BackgroundThread &thread) {
                 const auto &state = scene.getState();
@@ -127,8 +127,8 @@ namespace merutilm::rff2 {
                 }
             });
     };
-    const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::EXPORT_ZOOM_VID = [
-            ](const SettingsMenu &, RenderScene &scene) {
+    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackVideo::EXPORT_ZOOM_VID = [
+            ](const SettingsMenu &, GLRenderScene &scene) {
         scene.getBackgroundThreads().createThread([&scene](const BackgroundThread &) {
             const auto openPtr = IOUtilities::ioDirectoryDialog("Select Sample Keyframe folder");
 

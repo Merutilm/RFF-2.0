@@ -5,7 +5,7 @@
 #include <string>
 #include <glad.h>
 
-#include "../ui/Constants.h"
+#include "../constants/Constants.hpp"
 
 namespace merutilm::rff2 {
     class GLShader {

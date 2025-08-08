@@ -9,7 +9,7 @@
 #include <cfloat>
 #include "../calc/rff_math.h"
 #include "../mrthy/ArrayCompressor.h"
-#include "../ui/Constants.h"
+#include "../constants/Constants.hpp"
 
 namespace merutilm::rff2 {
     LightMandelbrotReference::LightMandelbrotReference(fp_complex &&center, std::vector<double> &&refReal,

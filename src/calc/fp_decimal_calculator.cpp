@@ -8,7 +8,7 @@
 #include <cmath>
 
 #include "fp_complex_calculator.h"
-#include "../ui/Constants.h"
+#include "../constants/Constants.hpp"
 
 namespace merutilm::rff2 {
     fp_decimal_calculator::fp_decimal_calculator() {

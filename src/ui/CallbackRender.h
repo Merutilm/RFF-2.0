@@ -4,12 +4,12 @@
 
 #pragma once
 #include <functional>
-#include "RenderScene.h"
+#include "GLRenderScene.h"
 #include "SettingsMenu.h"
 
 namespace merutilm::rff2 {
     struct CallbackRender {
-        static const std::function<void(SettingsMenu &, RenderScene &)> SET_CLARITY;
-        static const std::function<bool*(RenderScene &)> ANTIALIASING;
+        static const std::function<void(SettingsMenu &, GLRenderScene &)> SET_CLARITY;
+        static const std::function<bool*(GLRenderScene &)> ANTIALIASING;
     };
 }

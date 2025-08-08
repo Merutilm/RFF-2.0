@@ -10,7 +10,7 @@
 #include "opencv2/videoio.hpp"
 #include <commctrl.h>
 
-#include "Constants.h"
+#include "../constants/Constants.hpp"
 #include "WGLContextLoader.h"
 #include "../io/RFFStaticMapBinary.h"
 #include "../parallel/BackgroundThreads.h"
@@ -19,15 +19,15 @@
 
 namespace merutilm::rff2 {
     VideoWindow::VideoWindow(const uint16_t width, const uint16_t height) : scene(VideoRenderScene()) {
-        videoWindow = CreateWindowEx(0,
+        videoWindow = CreateWindowExW(0,
                                      Constants::Win32::CLASS_VIDEO_WINDOW,
-                                     "Preview video",
+                                     L"Preview video",
                                      WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT,
                                      CW_USEDEFAULT,
                                      CW_USEDEFAULT, nullptr, nullptr,
                                      nullptr, nullptr);
 
-        renderWindow = CreateWindowEx(0, Constants::Win32::CLASS_VIDEO_RENDER_WINDOW, nullptr,
+        renderWindow = CreateWindowExW(0, Constants::Win32::CLASS_VIDEO_RENDER_WINDOW, nullptr,
                                       WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS, CW_USEDEFAULT,
                                       CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr,
                                       nullptr);
@@ -180,7 +180,7 @@ namespace merutilm::rff2 {
                     MessageBox(nullptr, "Cannot open file!!", "Export failed", MB_ICONERROR | MB_OK);
                     return;
                 }
-                const float startSec = Utilities::getTime();
+                const float startSec = Utilities::getCurrentTime();
 
 
                 RFFDynamicMapBinary zoomedDynamic = RFFDynamicMapBinary::DEFAULT;
@@ -274,7 +274,7 @@ namespace merutilm::rff2 {
 
                     const float progressRatio = (static_cast<float>(maxNumber) - currentFrameNumber) / (
                                                     static_cast<float>(maxNumber) + overZoom);
-                    const float spentSec = Utilities::getTime() - startSec;
+                    const float spentSec = Utilities::getCurrentTime() - startSec;
                     float remainedSec = (1 - progressRatio) / progressRatio * spentSec;
                     const auto remainedTime = std::chrono::duration_cast<std::chrono::seconds>(
                         std::chrono::duration<float>(remainedSec));

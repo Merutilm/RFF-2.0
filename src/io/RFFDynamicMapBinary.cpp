@@ -8,7 +8,7 @@
 #include <fstream>
 
 #include "../ui/IOUtilities.h"
-#include "../ui/Constants.h"
+#include "../constants/Constants.hpp"
 #include "../ui/Utilities.h"
 #include "opencv2/imgcodecs.hpp"
 

@@ -5,7 +5,7 @@
 #pragma once
 #include "ParallelRenderState.h"
 #include "../data/Matrix.h"
-#include "../ui/Constants.h"
+#include "../constants/Constants.hpp"
 namespace merutilm::rff2 {
     using ParallelRenderer = std::function<void(uint16_t x, uint16_t y, uint16_t xRes, uint16_t yRes, float xRat,
                                                 float yRat, uint32_t index)>;

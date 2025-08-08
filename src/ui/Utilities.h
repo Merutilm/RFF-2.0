@@ -9,18 +9,27 @@
 #include <filesystem>
 #include <iostream>
 
-#include "Constants.h"
+#include "../constants/Constants.hpp"
 
 namespace merutilm::rff2 {
     struct Utilities {
         Utilities() = delete;
 
+        static void logErr(const std::string &message) {
+            std::cerr << getCurrentPutTime() << " | " << message << "\n" << std::flush;
+            MessageBox(nullptr, message.data(), "Error", MB_ICONERROR | MB_OK);
+        }
+
         static void log(const std::string &message) {
+            std::cout << getCurrentPutTime() << " | " << message << "\n" << std::flush;
+        }
+
+        static std::_Put_time<char> getCurrentPutTime() {
             const auto t = std::chrono::system_clock::now();
             const auto time = std::chrono::system_clock::to_time_t(t);
             std::tm tm = {};
             localtime_s(&tm, &time);
-            std::cout << std::put_time(&tm, "%Y/%m/%d, %H:%M:%S") << " | " << message << "\n" << std::flush;
+            return std::put_time(&tm, "%Y/%m/%d, %H:%M:%S");
         }
 
         static std::string elapsed_time(const std::chrono::time_point<std::chrono::system_clock> start) {
@@ -31,7 +40,7 @@ namespace merutilm::rff2 {
                                          hms.minutes().count(), hms.seconds().count(), hms.subseconds().count());
         }
 
-        static float getTime() {
+        static float getCurrentTime() {
             return static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count() - Constants::Render::INIT_TIME)
                    / 1e9;
         }

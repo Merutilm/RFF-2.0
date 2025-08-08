@@ -1,10 +1,10 @@
 #include <glad_wgl.h>
-#include "MainWindow.h"
+#include "GLMainWindow.h"
 
 #include <iostream>
 #include <windows.h>
-#include "Constants.h"
-#include <assert.h>
+#include "../constants/Constants.hpp"
+#include <cassert>
 #include <commctrl.h>
 
 #include "WGLContextLoader.h"
@@ -12,9 +12,9 @@
 
 
 namespace merutilm::rff2 {
-    LRESULT CALLBACK MainWindow::masterWindowProc(const HWND masterWindow, const UINT message, const WPARAM wParam,
+    LRESULT CALLBACK GLMainWindow::masterWindowProc(const HWND masterWindow, const UINT message, const WPARAM wParam,
                                                                  const LPARAM lParam) {
-        auto &wnd = *reinterpret_cast<MainWindow *>(GetWindowLongPtr(masterWindow, GWLP_USERDATA));
+        auto &wnd = *reinterpret_cast<GLMainWindow *>(GetWindowLongPtr(masterWindow, GWLP_USERDATA));
 
         switch (message) {
             case WM_GETMINMAXINFO:
@@ -87,9 +87,9 @@ namespace merutilm::rff2 {
         }
     }
 
-    LRESULT CALLBACK MainWindow::renderSceneProc(const HWND renderWindow, const UINT message, const WPARAM wParam,
+    LRESULT CALLBACK GLMainWindow::renderSceneProc(const HWND renderWindow, const UINT message, const WPARAM wParam,
                                                       const LPARAM lParam) {
-        auto &wnd = *reinterpret_cast<MainWindow *>(GetWindowLongPtr(renderWindow, GWLP_USERDATA));
+        auto &wnd = *reinterpret_cast<GLMainWindow *>(GetWindowLongPtr(renderWindow, GWLP_USERDATA));
         wnd.scene.runAction(message, wParam);
         switch (message) {
             case WM_CLOSE: {
@@ -104,16 +104,16 @@ namespace merutilm::rff2 {
         }
     }
 
-    MainWindow::MainWindow() : scene(RenderScene()) {
+    GLMainWindow::GLMainWindow() : scene(GLRenderScene()) {
         initWindow();
     }
 
-    void MainWindow::initMenu(const HMENU hMenubar) {
+    void GLMainWindow::initMenu(const HMENU hMenubar) {
         settingsMenu = std::make_unique<SettingsMenu>(hMenubar);
     }
 
 
-    void MainWindow::initWindow() {
+    void GLMainWindow::initWindow() {
         SetProcessDPIAware();
 
         const HMENU hMenubar = CreateMenu();
@@ -139,7 +139,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void MainWindow::setClientSize(const int width, const int height) const {
+    void GLMainWindow::setClientSize(const int width, const int height) const {
         const RECT rect = {0, 0, width, height};
         RECT adjusted = rect;
         AdjustWindowRect(&adjusted, WS_OVERLAPPEDWINDOW | WS_SYSMENU, true);
@@ -149,7 +149,7 @@ namespace merutilm::rff2 {
         adjustClient(rect);
     }
 
-    void MainWindow::adjustClient(const RECT &rect) const {
+    void GLMainWindow::adjustClient(const RECT &rect) const {
         SetWindowPos(renderWindow, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
         SetWindowPos(statusBar, nullptr, 0, rect.bottom - rect.top, rect.right - rect.left, statusHeight, SWP_NOZORDER);
 
@@ -165,13 +165,13 @@ namespace merutilm::rff2 {
         SendMessage(statusBar, SB_SETPARTS, Constants::Status::LENGTH, (LPARAM) rightEdges.data());
     }
 
-    void MainWindow::refreshStatusBar() const {
+    void GLMainWindow::refreshStatusBar() const {
         for (int i = 0; i < Constants::Status::LENGTH; ++i) {
             SendMessage(statusBar, SB_SETTEXT, i, (LPARAM) TEXT(statusMessages[i].data()));
         }
     }
 
-    void MainWindow::createStatusBar() {
+    void GLMainWindow::createStatusBar() {
         statusBar = CreateWindowEx(
             0,
             STATUSCLASSNAME,
@@ -184,12 +184,12 @@ namespace merutilm::rff2 {
             nullptr);
     }
 
-    void MainWindow::createMasterWindow(const HMENU hMenubar) {
+    void GLMainWindow::createMasterWindow(const HMENU hMenubar) {
 
-        masterWindow = CreateWindowEx(
+        masterWindow = CreateWindowExW(
             0,
             Constants::Win32::CLASS_MASTER_WINDOW,
-            "RFF 2.0",
+            L"RFF 2.0",
             WS_OVERLAPPEDWINDOW | WS_SYSMENU,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
@@ -200,11 +200,11 @@ namespace merutilm::rff2 {
         SetWindowLongPtr(masterWindow, GWLP_USERDATA, (LONG_PTR) this);
     }
 
-    void MainWindow::createRenderScene() {
-        renderWindow = CreateWindowEx(
+    void GLMainWindow::createRenderScene() {
+        renderWindow = CreateWindowExW(
             0,
-            Constants::Win32::CLASS_RENDER_SCENE,
-            "",
+            Constants::Win32::CLASS_GL_RENDER_SCENE,
+            L"",
             WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS,
             CW_USEDEFAULT,
             CW_USEDEFAULT,
@@ -217,11 +217,14 @@ namespace merutilm::rff2 {
         }
 
         SetWindowLongPtr(renderWindow, GWLP_USERDATA, (LONG_PTR) this);
+
+
         hdc = GetDC(renderWindow);
         WGLContextLoader::createContext(hdc, &context);
     }
 
-    void MainWindow::renderLoop() {
+
+    void GLMainWindow::renderLoop() {
         scene.configure(renderWindow, hdc, context, &statusMessages);
         MSG msg;
         auto lastRender = std::chrono::high_resolution_clock::now();
@@ -257,7 +260,7 @@ namespace merutilm::rff2 {
     }
 
 
-    RenderScene &MainWindow::getRenderScene() {
+    GLRenderScene &GLMainWindow::getRenderScene() {
         return scene;
     }
 }

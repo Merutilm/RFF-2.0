@@ -12,7 +12,7 @@
 #include "MPAPeriod.h"
 #include "../data/ApproxTableCache.h"
 #include "../settings/MPACompressionMethod.h"
-#include "../ui/Constants.h"
+#include "../constants/Constants.hpp"
 #include <algorithm>
 #include "../ui/Utilities.h"
 

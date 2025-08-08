@@ -6,8 +6,8 @@
 #include <iostream>
 
 #include "glad_wgl.h"
-#include "Constants.h"
-#include <assert.h>
+#include "../constants/Constants.hpp"
+#include <cassert>
 
 
 namespace merutilm::rff2 {

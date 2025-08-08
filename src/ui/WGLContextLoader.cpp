@@ -10,21 +10,21 @@
 #include <assert.h>
 
 #include "glad.h"
-#include "Constants.h"
+#include "../constants/Constants.hpp"
 
 namespace merutilm::rff2 {
 
     void WGLContextLoader::initGL() {
         SetProcessDPIAware();
 
-        WNDCLASSEX glDummyClass = {};
+        WNDCLASSEXW glDummyClass = {};
         glDummyClass.cbSize = sizeof(WNDCLASSEX);
         glDummyClass.lpszClassName = Constants::Win32::CLASS_GL_DUMMY;
         glDummyClass.lpfnWndProc = DefWindowProc;
         glDummyClass.style = CS_OWNDC;
-        RegisterClassEx(&glDummyClass);
+        RegisterClassExW(&glDummyClass);
 
-        const auto dummyWnd = CreateWindowEx(
+        const auto dummyWnd = CreateWindowExW(
             0,
             Constants::Win32::CLASS_GL_DUMMY,
             Constants::Win32::CLASS_GL_DUMMY,

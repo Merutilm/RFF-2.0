@@ -8,7 +8,7 @@
 #include <iostream>
 #include <string>
 
-#include "Constants.h"
+#include "../constants/Constants.hpp"
 #include <windows.h>
 #include <commctrl.h>
 #include <memory>
@@ -35,7 +35,7 @@ namespace merutilm::rff2 {
         LPARAM font;
 
     public:
-        explicit SettingsWindow(const std::string_view &name);
+        explicit SettingsWindow(const std::wstring_view &name);
 
         ~SettingsWindow();
 

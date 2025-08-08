@@ -3,12 +3,12 @@
 //
 
 #include "SettingsWindow.h"
-#include "Constants.h"
+#include "../constants/Constants.hpp"
 
 
 namespace merutilm::rff2 {
-    SettingsWindow::SettingsWindow(const std::string_view &name) {
-        window = CreateWindowEx(Constants::Win32::STYLE_EX_SETTINGS_WINDOW, Constants::Win32::CLASS_SETTINGS_WINDOW,
+    SettingsWindow::SettingsWindow(const std::wstring_view &name) {
+        window = CreateWindowExW(Constants::Win32::STYLE_EX_SETTINGS_WINDOW, Constants::Win32::CLASS_SETTINGS_WINDOW,
                                 name.data(),
                                 WS_SYSMENU, 0, 0,
                                 Constants::Win32::INIT_SETTINGS_WINDOW_WIDTH, 0, nullptr, nullptr, nullptr, nullptr);

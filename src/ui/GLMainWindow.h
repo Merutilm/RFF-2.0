@@ -3,36 +3,36 @@
 //
 #pragma once
 
-#include "RenderScene.h"
+#include "GLRenderScene.h"
 #include "SettingsMenu.h"
 #include "SettingsWindow.h"
 
 namespace merutilm::rff2 {
-    class MainWindow {
+    class GLMainWindow {
 
-        HDC hdc;
-        HGLRC context;
+        HDC hdc = nullptr;
+        HGLRC context = nullptr;
         int statusHeight = 0;
         bool running = false;
         std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
         HWND masterWindow = nullptr;
         HWND renderWindow = nullptr;
-        HWND statusBar;
-        RenderScene scene;
+        HWND statusBar = nullptr;
+        GLRenderScene scene;
         std::unique_ptr<SettingsMenu> settingsMenu = nullptr;
 
     public:
-        MainWindow();
+        GLMainWindow();
 
-        ~MainWindow() = default;
+        ~GLMainWindow() = default;
 
-        MainWindow(const MainWindow& other) = delete;
+        GLMainWindow(const GLMainWindow& other) = delete;
 
-        MainWindow& operator=(const MainWindow& other) = delete;
+        GLMainWindow& operator=(const GLMainWindow& other) = delete;
 
-        MainWindow(MainWindow&& other) noexcept = delete;
+        GLMainWindow(GLMainWindow&& other) noexcept = delete;
 
-        MainWindow& operator=(MainWindow&& other) noexcept = delete;
+        GLMainWindow& operator=(GLMainWindow&& other) noexcept = delete;
 
         void initMenu(HMENU hMenubar);
 
@@ -52,7 +52,7 @@ namespace merutilm::rff2 {
 
         void renderLoop();
 
-        RenderScene &getRenderScene();
+        GLRenderScene &getRenderScene();
 
         static LRESULT masterWindowProc(HWND masterWindow, UINT message, WPARAM wParam, LPARAM lParam);
 

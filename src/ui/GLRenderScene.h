@@ -28,7 +28,7 @@
 
 
 namespace merutilm::rff2 {
-    class RenderScene final : public WGLScene {
+    class GLRenderScene final : public WGLScene {
 
         ParallelRenderState state;
         Settings settings;
@@ -69,17 +69,17 @@ namespace merutilm::rff2 {
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
     public:
-        explicit RenderScene();
+        explicit GLRenderScene();
 
-        ~RenderScene() override;
+        ~GLRenderScene() override;
 
-        RenderScene(const RenderScene &) = delete;
+        GLRenderScene(const GLRenderScene &) = delete;
 
-        RenderScene &operator=(const RenderScene &) = delete;
+        GLRenderScene &operator=(const GLRenderScene &) = delete;
 
-        RenderScene(RenderScene &&) noexcept = delete;
+        GLRenderScene(GLRenderScene &&) noexcept = delete;
 
-        RenderScene &operator=(RenderScene &&) = delete;
+        GLRenderScene &operator=(GLRenderScene &&) = delete;
 
         static Settings defaultSettings();
 
@@ -170,7 +170,7 @@ namespace merutilm::rff2 {
 
 
     template<typename P> requires std::is_base_of_v<Preset, P>
-    void RenderScene::changePreset(P &preset) {
+    void GLRenderScene::changePreset(P &preset) {
         if constexpr (std::is_base_of_v<Presets::CalculationPresets, P>) {
             settings.calculationSettings.mpaSettings = preset.mpaSettings();
             settings.calculationSettings.referenceCompressionSettings = preset.referenceCompressionSettings();
