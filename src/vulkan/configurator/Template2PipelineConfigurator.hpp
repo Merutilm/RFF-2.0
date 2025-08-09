@@ -19,7 +19,7 @@ namespace merutilm::mvk {
         static constexpr uint32_t PUSH_RESOLUTION_SIZE = 0;
 
     public:
-        using GeneralPostProcessPipelineConfigurator::GeneralPostProcessPipelineConfigurator;
+        Template2PipelineConfigurator(const Engine&engine, uint32_t subpassIndex);
 
         ~Template2PipelineConfigurator() override = default;
 

@@ -9,10 +9,15 @@
 #include "../struct/Vertex.hpp"
 
 namespace merutilm::mvk {
+    Template2PipelineConfigurator::Template2PipelineConfigurator(const Engine &engine, const uint32_t subpassIndex)
+        : GeneralPostProcessPipelineConfigurator(engine, subpassIndex, "vk_template-2.frag") {
+        Template2PipelineConfigurator::configure();
+    }
+
+
     void Template2PipelineConfigurator::updateQueue(DescriptorUpdateQueue &queue, const uint32_t frameIndex,
                                                     const uint32_t imageIndex,
                                                     const uint32_t width, const uint32_t height) {
-
         //TIME
         auto &descTime = getDescriptor(SET_TIME);
         const auto &descTimeCurrent = descTime.getDescriptorManager().get<std::unique_ptr<Uniform> >(
@@ -51,26 +56,36 @@ namespace merutilm::mvk {
         appendDescriptor(SET_TIME, descriptors, layoutRepo, repo, DescriptorName::TIME, VK_SHADER_STAGE_FRAGMENT_BIT);
 
         auto inputManager = std::make_unique<DescriptorManager>();
-        inputManager->appendCombinedImgSampler(BINDING_INPUT_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, std::make_unique<Sampler2D>(engine.getCore(), VkSamplerCreateInfo{
-            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .magFilter = VK_FILTER_LINEAR,
-            .minFilter = VK_FILTER_LINEAR,
-            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-            .mipLodBias = 0,
-            .anisotropyEnable = VK_TRUE,
-            .maxAnisotropy = engine.getCore().getPhysicalDevice().getPhysicalDeviceProperties().limits.maxSamplerAnisotropy,
-            .compareEnable = VK_FALSE,
-            .compareOp = VK_COMPARE_OP_ALWAYS,
-            .minLod = 0,
-            .maxLod = 1,
-            .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
-            .unnormalizedCoordinates = VK_FALSE
-        }));
+        inputManager->appendCombinedImgSampler(BINDING_INPUT_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT,
+                                               std::make_unique<Sampler2D>(engine.getCore(), VkSamplerCreateInfo{
+                                                                               .sType =
+                                                                               VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+                                                                               .pNext = nullptr,
+                                                                               .flags = 0,
+                                                                               .magFilter = VK_FILTER_LINEAR,
+                                                                               .minFilter = VK_FILTER_LINEAR,
+                                                                               .mipmapMode =
+                                                                               VK_SAMPLER_MIPMAP_MODE_LINEAR,
+                                                                               .addressModeU =
+                                                                               VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                                                               .addressModeV =
+                                                                               VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                                                               .addressModeW =
+                                                                               VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                                                               .mipLodBias = 0,
+                                                                               .anisotropyEnable = VK_TRUE,
+                                                                               .maxAnisotropy = engine.getCore().
+                                                                               getPhysicalDevice().
+                                                                               getPhysicalDeviceProperties().limits.
+                                                                               maxSamplerAnisotropy,
+                                                                               .compareEnable = VK_FALSE,
+                                                                               .compareOp = VK_COMPARE_OP_ALWAYS,
+                                                                               .minLod = 0,
+                                                                               .maxLod = 1,
+                                                                               .borderColor =
+                                                                               VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
+                                                                               .unnormalizedCoordinates = VK_FALSE
+                                                                           }));
         inputManager->appendInputAttachment(BINDING_INPUT_ATTACHMENT_ELEM, VK_SHADER_STAGE_FRAGMENT_BIT);
 
         appendUniqueDescriptor(SET_INPUT, descriptors, layoutRepo, std::move(inputManager));
@@ -82,5 +97,4 @@ namespace merutilm::mvk {
                                                         PushConstantReserve<glm::vec2>{PUSH_RESOLUTION_SIZE}
         );
     }
-
 }

@@ -11,15 +11,14 @@ namespace merutilm::mvk {
         inline static bool initializedVertexIndex = false;
         inline static std::unique_ptr<VertexBuffer> vertexBufferPP = nullptr;
         inline static std::unique_ptr<IndexBuffer> indexBufferPP = nullptr;
+        static constexpr auto VERTEX_MODULE_PATH = "vk_post_process.vert";
 
     public:
-        static constexpr auto VERTEX_MODULE_PATH = "vk_post_process.vert";
 
         explicit GeneralPostProcessPipelineConfigurator(const Engine &engine,
                                                         const uint32_t subpassIndex,
-                                                        const std::string &vertName,
                                                         const std::string &fragName) : PipelineConfigurator(
-            engine, subpassIndex, vertName, fragName) {
+            engine, subpassIndex, VERTEX_MODULE_PATH, fragName) {
         }
 
         ~GeneralPostProcessPipelineConfigurator() override = default;

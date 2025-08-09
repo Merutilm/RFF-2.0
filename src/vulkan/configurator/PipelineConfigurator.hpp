@@ -81,10 +81,8 @@ namespace merutilm::mvk {
 
         template<typename ProgramName> requires std::is_base_of_v<PipelineConfigurator, ProgramName>
         static std::unique_ptr<ProgramName> createShaderProgram(const Engine &engine,
-                                                                const uint32_t subpassIndex,
-                                                                const std::string &vertName,
-                                                                const std::string &fragName) {
-            auto shaderProgram = std::make_unique<ProgramName>(engine, subpassIndex, vertName, fragName);
+                                                                const uint32_t subpassIndex) {
+            auto shaderProgram = std::make_unique<ProgramName>(engine, subpassIndex);
             shaderProgram->configure();
             return shaderProgram;
         }

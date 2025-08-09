@@ -3,18 +3,22 @@
 //
 
 #pragma once
+#include <vector>
 #include <windows.h>
 
-#include "../vulkan/handle/Handler.hpp"
+#include "../vulkan/configurator/PipelineConfigurator.hpp"
+#include "../vulkan/handle/EngineHandler.hpp"
 
 namespace merutilm::rff2 {
-    class RenderScene final : public mvk::Handler {
+    class RenderScene final {
+        mvk::Engine &engine;
         HWND window;
+        std::vector<std::unique_ptr<mvk::PipelineConfigurator>> shaderPrograms = {};
 
     public:
-        explicit RenderScene(HWND window);
+        explicit RenderScene(mvk::Engine& engine, HWND window);
 
-        ~RenderScene() override;
+        ~RenderScene();
 
         RenderScene(const RenderScene &) = delete;
 
@@ -24,11 +28,17 @@ namespace merutilm::rff2 {
 
         RenderScene &operator=(RenderScene &&) = delete;
 
-        HWND getWindowHandle() const { return window; };
+        HWND getWindowHandle() const { return window; }
+
+        std::vector<std::unique_ptr<mvk::PipelineConfigurator>> &getShaderPrograms() { return shaderPrograms; }
 
     private:
-        void init() override;
+        void init();
 
-        void destroy() override;
+        void initRenderContext() const;
+
+        void initShaderPrograms();
+
+        void destroy();
     };
 }

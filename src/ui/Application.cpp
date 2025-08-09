@@ -5,8 +5,7 @@
 #include "Application.hpp"
 
 #include "../vulkan/configurator/BasicRenderContextConfigurator.hpp"
-#include "../vulkan/configurator/Template1PipelineConfigurator.hpp"
-#include "../vulkan/configurator/Template2PipelineConfigurator.hpp"
+#include "../vulkan/configurator/GeneralPostProcessPipelineConfigurator.hpp"
 #include "../vulkan/executor/RenderPassExecutor.hpp"
 #include "../vulkan/util/Presenter.hpp"
 
@@ -30,10 +29,11 @@ namespace merutilm::rff2 {
 
         const HMENU hMenubar = initMenu();
         createMasterWindow(hMenubar);
-        createRenderScene();
+        createRenderWindow();
         createStatusBar();
         setClientSize(Constants::Win32::INIT_RENDER_SCENE_WIDTH, Constants::Win32::INIT_RENDER_SCENE_HEIGHT);
         createVulkanContext();
+        createRenderScene();
         prepareWindow();
         setProcedure();
     }
@@ -94,7 +94,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    void Application::createRenderScene() {
+    void Application::createRenderWindow() {
         renderWindow = CreateWindowExW(
             0,
             Constants::Win32::CLASS_VK_RENDER_SCENE,
@@ -133,31 +133,18 @@ namespace merutilm::rff2 {
     void Application::createVulkanContext() {
         auto core = mvk::Core::createCore();
         core->createGraphicsContextForWindow(renderWindow, Constants::Win32::INIT_RENDER_SCENE_FPS,
-                                             MAIN_WINDOW_ATTACHMENT_INDEX);
+                                             Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
         engine = std::make_unique<mvk::Engine>(std::move(core));
-        const auto &swapchain = *engine->getCore().getWindowContext(MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
-        auto configurator = std::make_unique<mvk::BasicRenderContextConfigurator>(engine->getCore(), swapchain);
+    }
 
-        engine->attachRenderContext(std::make_unique<mvk::RenderContext>(engine->getCore(),
-                                                                         swapchain.populateSwapchainExtent(),
-                                                                         std::move(configurator)));
-
-
-        shaderPrograms.emplace_back(
-            mvk::PipelineConfigurator::createShaderProgram<mvk::Template1PipelineConfigurator>(
-                *engine, mvk::BasicRenderContextConfigurator::SUBPASS_PRIMARY_INDEX, mvk::GeneralPostProcessPipelineConfigurator::VERTEX_MODULE_PATH,
-                "vk_template-1.frag"));
-        shaderPrograms.emplace_back(
-            mvk::PipelineConfigurator::createShaderProgram<mvk::Template2PipelineConfigurator>(
-                *engine, mvk::BasicRenderContextConfigurator::SUBPASS_SECONDARY_INDEX, mvk::GeneralPostProcessPipelineConfigurator::VERTEX_MODULE_PATH,
-                "vk_template-2.frag"
-            ));
+    void Application::createRenderScene() {
+        scene = std::make_unique<RenderScene>(*engine, renderWindow);
     }
 
     void Application::setProcedure() {
         const HCURSOR hCursor = LoadCursor(nullptr, IDC_ARROW);
 
-        mvk::GraphicsContextWindow &window = *engine->getCore().getWindowContext(MAIN_WINDOW_ATTACHMENT_INDEX).window;
+        mvk::GraphicsContextWindow &window = *engine->getCore().getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window;
 
         //TODO : Set Procedure when finish to change opengl to vulkan
         window.setListener(
@@ -254,12 +241,12 @@ namespace merutilm::rff2 {
 
         mvk::Core &core = engine->getCore();
         mvk::RenderContext &renderContext = engine->getRenderContext();
-        if (core.getWindowContext(MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
+        if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
             return;
         }
         vkDeviceWaitIdle(core.getLogicalDevice().getLogicalDeviceHandle());
 
-        mvk::Swapchain &swapchain = *core.getWindowContext(MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+        mvk::Swapchain &swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
         swapchain.recreate();
         renderContext.recreate(swapchain.populateSwapchainExtent());
         drawFrame();
@@ -268,11 +255,11 @@ namespace merutilm::rff2 {
     void Application::drawFrame() {
         mvk::Core &core = engine->getCore();
         const mvk::RenderContext &renderContext = engine->getRenderContext();
-        if (core.getWindowContext(MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
+        if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
             return;
         }
         changeFrameIndex();
-        const mvk::Swapchain &swapchain = *core.getWindowContext(MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+        const mvk::Swapchain &swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const VkFence currentFence = engine->getSyncObject().getFence(currentFrame);
         const VkSemaphore imageAvailableSemaphore = engine->getSyncObject().getImageAvailableSemaphore(currentFrame);
@@ -290,6 +277,7 @@ namespace merutilm::rff2 {
 
         mvk::DescriptorUpdateQueue queue = {};
 
+        const auto &shaderPrograms = scene->getShaderPrograms();
         for (const auto &shaderProgram: shaderPrograms) {
             shaderProgram->updateQueue(queue, currentFrame, imageIndex, extent.width, extent.height);
         }
@@ -331,22 +319,21 @@ namespace merutilm::rff2 {
         ShowWindow(masterWindow, SW_SHOW);
         UpdateWindow(masterWindow);
         SetWindowLongPtr(masterWindow, GWLP_USERDATA,
-                         reinterpret_cast<LONG_PTR>(engine->getCore().getWindowContext(MAIN_WINDOW_ATTACHMENT_INDEX).
+                         reinterpret_cast<LONG_PTR>(engine->getCore().getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                              window.get()));
     }
 
     void Application::start() const {
-        const mvk::GraphicsContextWindow &window = *engine->getCore().getWindowContext(MAIN_WINDOW_ATTACHMENT_INDEX).
+        const mvk::GraphicsContextWindow &window = *engine->getCore().getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 window;
         window.start();
     }
 
     void Application::destroy() {
         vkDeviceWaitIdle(engine->getCore().getLogicalDevice().getLogicalDeviceHandle());
-        shaderPrograms.clear();
+        scene = nullptr;
         mvk::GeneralPostProcessPipelineConfigurator::cleanup();
         engine = nullptr;
         settingsMenu = nullptr;
-        scene = nullptr;
     }
 }

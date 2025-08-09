@@ -11,7 +11,6 @@
 namespace merutilm::rff2 {
 
     class Application final : public mvk::Handler {
-        static constexpr uint32_t MAIN_WINDOW_ATTACHMENT_INDEX = 0;
         int statusHeight = 0;
         std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
         HWND masterWindow = nullptr;
@@ -20,7 +19,6 @@ namespace merutilm::rff2 {
         std::unique_ptr<RenderScene> scene = nullptr;
         std::unique_ptr<SettingsMenu> settingsMenu = nullptr;
         std::unique_ptr<mvk::Engine> engine = nullptr;
-        std::vector<std::unique_ptr<mvk::PipelineConfigurator> > shaderPrograms = {};
         uint32_t currentFrame = 0;
         bool windowResizing = false;
 
@@ -58,6 +56,8 @@ namespace merutilm::rff2 {
 
         void createVulkanContext();
 
+        void createRenderScene();
+
         void setProcedure();
 
         void resolveWindowResizeEnd();
@@ -70,7 +70,7 @@ namespace merutilm::rff2 {
 
         void createMasterWindow(HMENU hMenubar);
 
-        void createRenderScene();
+        void createRenderWindow();
 
         void destroy() override;
     };

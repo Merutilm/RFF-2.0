@@ -305,6 +305,7 @@ add_executable(
         src/constants/ExtensionConstants.hpp
         src/constants/StatusConstants.hpp
         src/vulkan/configurator/PipelineConfigurator.hpp
+        src/constants/VulkanWindowConstants.hpp
 )
 
 

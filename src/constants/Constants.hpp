@@ -7,4 +7,5 @@
 #include "RenderConstants.hpp"
 #include "StatusConstants.hpp"
 #include "TextureFormatConstants.hpp"
+#include "VulkanWindowConstants.hpp"
 #include "Win32Constants.hpp"
