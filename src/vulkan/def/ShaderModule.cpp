@@ -11,7 +11,7 @@
 
 namespace merutilm::mvk {
     ShaderModule::ShaderModule(const Core &core, const std::string &filename) : CoreHandler(core), shaderStage(getShaderStage(filename)),
-                                                         filename(filename + ".spv") {
+                                                         filename(SHADER_PATH_PREFIX + filename + ".spv") {
         ShaderModule::init();
     }
 

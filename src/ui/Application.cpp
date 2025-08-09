@@ -144,13 +144,13 @@ namespace merutilm::rff2 {
 
 
         shaderPrograms.emplace_back(
-            mvk::GeneralPipelineConfigurator::createShaderProgram<mvk::Template1PipelineConfigurator>(
-                *engine, mvk::BasicRenderContextConfigurator::SUBPASS_PRIMARY_INDEX, "../shaders/vk_template.vert",
-                "../shaders/vk_template-1.frag"));
+            mvk::PipelineConfigurator::createShaderProgram<mvk::Template1PipelineConfigurator>(
+                *engine, mvk::BasicRenderContextConfigurator::SUBPASS_PRIMARY_INDEX, mvk::GeneralPostProcessPipelineConfigurator::VERTEX_MODULE_PATH,
+                "vk_template-1.frag"));
         shaderPrograms.emplace_back(
-            mvk::GeneralPipelineConfigurator::createShaderProgram<mvk::Template2PipelineConfigurator>(
-                *engine, mvk::BasicRenderContextConfigurator::SUBPASS_SECONDARY_INDEX, "../shaders/vk_template.vert",
-                "../shaders/vk_template-2.frag"
+            mvk::PipelineConfigurator::createShaderProgram<mvk::Template2PipelineConfigurator>(
+                *engine, mvk::BasicRenderContextConfigurator::SUBPASS_SECONDARY_INDEX, mvk::GeneralPostProcessPipelineConfigurator::VERTEX_MODULE_PATH,
+                "vk_template-2.frag"
             ));
     }
 
@@ -175,18 +175,20 @@ namespace merutilm::rff2 {
             windowResizing = true;
             return static_cast<LRESULT>(0);
         });
+        window.setListener(WM_SIZE, [this](const mvk::GraphicsContextWindow &, HWND, const WPARAM wparam, LPARAM) {
+            if (wparam == SIZE_MAXIMIZED) {
+                resolveWindowResizeEnd();
+            }
+            if (wparam == SIZE_RESTORED && !windowResizing) {
+                resolveWindowResizeEnd();
+            }
+            return static_cast<LRESULT>(0);
+        });
+
         window.setListener(WM_EXITSIZEMOVE, [this](const mvk::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
             if (windowResizing) {
                 windowResizing = false;
-                RECT rect;
-                GetClientRect(masterWindow, &rect);
-                rect.bottom -= statusHeight;
-                if (rect.bottom - rect.top > 0 || rect.right - rect.left > 0) {
-                    adjustClient(rect);
-                    //scene.requestResize();
-                    //scene.requestRecompute();
-                }
-                resolveWindowResize();
+                resolveWindowResizeEnd();
             }
             return static_cast<LRESULT>(0);
         });
@@ -240,7 +242,16 @@ namespace merutilm::rff2 {
         });
     }
 
-    void Application::resolveWindowResize() {
+    void Application::resolveWindowResizeEnd() {
+        RECT rect;
+        GetClientRect(masterWindow, &rect);
+        rect.bottom -= statusHeight;
+        if (rect.bottom - rect.top > 0 || rect.right - rect.left > 0) {
+            adjustClient(rect);
+            //scene.requestResize();
+            //scene.requestRecompute();
+        }
+
         mvk::Core &core = engine->getCore();
         mvk::RenderContext &renderContext = engine->getRenderContext();
         if (core.getWindowContext(MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
@@ -301,7 +312,7 @@ namespace merutilm::rff2 {
             swapchain.matchViewportAndScissor(cbh);
 
             for (int i = 0; i < shaderPrograms.size(); ++i) {
-                shaderPrograms[i]->getPipeline().bind(cbh, currentFrame);
+                shaderPrograms[i]->pipeline->bind(cbh, currentFrame);
                 shaderPrograms[i]->render(cbh, currentFrame, extent.width, extent.height);
                 if (i < shaderPrograms.size() - 1) {
                     vkCmdNextSubpass(cbh, VK_SUBPASS_CONTENTS_INLINE);
@@ -333,6 +344,7 @@ namespace merutilm::rff2 {
     void Application::destroy() {
         vkDeviceWaitIdle(engine->getCore().getLogicalDevice().getLogicalDeviceHandle());
         shaderPrograms.clear();
+        mvk::GeneralPostProcessPipelineConfigurator::cleanup();
         engine = nullptr;
         settingsMenu = nullptr;
         scene = nullptr;

@@ -4,15 +4,23 @@
 
 #pragma once
 #include "GeneralPipelineConfigurator.hpp"
+#include "PipelineConfigurator.hpp"
 
 namespace merutilm::mvk {
-    class GeneralPostProcessPipelineConfigurator : public GeneralPipelineConfigurator {
-
-        bool initializedVertexIndex = false;
+    class GeneralPostProcessPipelineConfigurator : public PipelineConfigurator {
+        inline static bool initializedVertexIndex = false;
+        inline static std::unique_ptr<VertexBuffer> vertexBufferPP = nullptr;
+        inline static std::unique_ptr<IndexBuffer> indexBufferPP = nullptr;
 
     public:
+        static constexpr auto VERTEX_MODULE_PATH = "vk_post_process.vert";
 
-        using GeneralPipelineConfigurator::GeneralPipelineConfigurator;
+        explicit GeneralPostProcessPipelineConfigurator(const Engine &engine,
+                                                        const uint32_t subpassIndex,
+                                                        const std::string &vertName,
+                                                        const std::string &fragName) : PipelineConfigurator(
+            engine, subpassIndex, vertName, fragName) {
+        }
 
         ~GeneralPostProcessPipelineConfigurator() override = default;
 
@@ -24,11 +32,26 @@ namespace merutilm::mvk {
 
         GeneralPostProcessPipelineConfigurator &operator=(GeneralPostProcessPipelineConfigurator &&) = delete;
 
+        void configure() override;
+
+        static void cleanup() {
+            vertexBufferPP = nullptr;
+            indexBufferPP = nullptr;
+            initializedVertexIndex = false;
+        }
+
     protected:
-        void updateUninitializedVertexIndex();
+        VertexBuffer &getVertexBuffer() const override { return *vertexBufferPP; }
+
+        IndexBuffer &getIndexBuffer() const override { return *indexBufferPP; }
 
         void configureVertexBuffer(ShaderObjectManager &som) override;
 
         void configureIndexBuffer(ShaderObjectManager &som) override;
+
+    private:
+        void init() override;
+
+        void destroy() override;
     };
 }

@@ -304,6 +304,7 @@ add_executable(
         src/constants/TextureFormatConstants.hpp
         src/constants/ExtensionConstants.hpp
         src/constants/StatusConstants.hpp
+        src/vulkan/configurator/PipelineConfigurator.hpp
 )
 
 

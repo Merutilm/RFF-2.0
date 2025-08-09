@@ -13,8 +13,6 @@ namespace merutilm::mvk {
                                                     const uint32_t imageIndex,
                                                     const uint32_t width, const uint32_t height) {
 
-        updateUninitializedVertexIndex();
-
         //TIME
         auto &descTime = getDescriptor(SET_TIME);
         const auto &descTimeCurrent = descTime.getDescriptorManager().get<std::unique_ptr<Uniform> >(

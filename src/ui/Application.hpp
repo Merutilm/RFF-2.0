@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<RenderScene> scene = nullptr;
         std::unique_ptr<SettingsMenu> settingsMenu = nullptr;
         std::unique_ptr<mvk::Engine> engine = nullptr;
-        std::vector<std::unique_ptr<mvk::GeneralPipelineConfigurator> > shaderPrograms = {};
+        std::vector<std::unique_ptr<mvk::PipelineConfigurator> > shaderPrograms = {};
         uint32_t currentFrame = 0;
         bool windowResizing = false;
 
@@ -60,7 +60,7 @@ namespace merutilm::rff2 {
 
         void setProcedure();
 
-        void resolveWindowResize();
+        void resolveWindowResizeEnd();
 
         void drawFrame();
 

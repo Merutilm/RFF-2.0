@@ -11,6 +11,9 @@
 
 namespace merutilm::mvk {
     class ShaderModule final : public CoreHandler {
+
+        static constexpr auto SHADER_PATH_PREFIX = "../shaders/";
+
         VkShaderStageFlagBits shaderStage;
         VkShaderModule shaderModule = nullptr;
         const std::vector<char> code = {};

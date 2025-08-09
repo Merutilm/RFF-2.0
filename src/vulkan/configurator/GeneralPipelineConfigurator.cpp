@@ -13,28 +13,12 @@ namespace merutilm::mvk {
     GeneralPipelineConfigurator::GeneralPipelineConfigurator(const Engine &engine,
                                                              const uint32_t subpassIndex,
                                                              const std::string &vertName,
-                                                             const std::string &fragName) : EngineHandler(engine),
-        subpassIndex(subpassIndex),
-        vertexShader(
-            engine.getRepositories().getRepository<
-                ShaderModuleRepo>()->pick(vertName)),
-        fragmentShader(
-            engine.getRepositories().getRepository<
-                ShaderModuleRepo>()->pick(fragName)) {
+                                                             const std::string &fragName) : PipelineConfigurator(engine, subpassIndex, vertName, fragName){
         GeneralPipelineConfigurator::init();
     }
 
     GeneralPipelineConfigurator::~GeneralPipelineConfigurator() {
         GeneralPipelineConfigurator::destroy();
-    }
-
-    void GeneralPipelineConfigurator::draw(const VkCommandBuffer cbh, const uint32_t frameIndex,
-                                           const uint32_t indexVarBinding) const {
-        const VkBuffer vertexBufferHandle = getVertexBuffer().getBufferHandle(frameIndex);
-        constexpr VkDeviceSize vertexBufferOffset = 0;
-        vkCmdBindVertexBuffers(cbh, 0, 1, &vertexBufferHandle, &vertexBufferOffset);
-        getIndexBuffer().bind(cbh, frameIndex, indexVarBinding);
-        vkCmdDrawIndexed(cbh, getIndexBuffer().getElementCount(indexVarBinding), 1, 0, 0, 0);
     }
 
 
@@ -72,7 +56,7 @@ namespace merutilm::mvk {
         vertexBuffer = std::make_unique<VertexBuffer>(engine.getCore(), std::move(vertManager));
         indexBuffer = std::make_unique<IndexBuffer>(engine.getCore(), std::move(indexManager));
 
-        pipeline = std::make_unique<Pipeline>(engine, pipelineLayout, *vertexBuffer, *indexBuffer, subpassIndex,
+        pipeline = std::make_unique<Pipeline>(engine, pipelineLayout, vertexBuffer.get(), indexBuffer.get(), subpassIndex,
                                               std::move(pipelineManager));
     }
 
