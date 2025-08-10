@@ -3,10 +3,10 @@
 //
 
 #pragma once
-#include "RenderContextConfigurator.hpp"
+#include "../vulkan_helper/configurator/RenderContextConfigurator.hpp"
 
-namespace merutilm::mvk {
-    struct BasicRenderContextConfigurator final : RenderContextConfigurator {
+namespace merutilm::rff2 {
+    struct BasicRenderContextConfigurator final : mvk::RenderContextConfigurator {
         static constexpr uint32_t SUBPASS_PRIMARY_INDEX = 0;
         static constexpr uint32_t SUBPASS_SECONDARY_INDEX = 1;
 
@@ -15,15 +15,15 @@ namespace merutilm::mvk {
 
         static constexpr uint32_t PRIMARY_SUBPASS_RESULT_IMAGE = 0;
 
-        explicit BasicRenderContextConfigurator(const Core &core,
-                                                const Swapchain &swapchain) : RenderContextConfigurator(
+        explicit BasicRenderContextConfigurator(const mvk::Core &core,
+                                                const mvk::Swapchain &swapchain) : RenderContextConfigurator(
             core, swapchain) {
         }
 
         void configureImageContext() override {
             const auto [width, height] = swapchain.populateSwapchainExtent();
 
-            appendStoredImageContext(PRIMARY_SUBPASS_RESULT_IMAGE, ImageContext::init(core, ImageInitInfo{
+            appendStoredImageContext(PRIMARY_SUBPASS_RESULT_IMAGE, mvk::ImageContext::init(core, mvk::ImageInitInfo{
                                          .imageType = VK_IMAGE_TYPE_2D,
                                          .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
                                          .imageFormat = VK_FORMAT_R8G8B8A8_SRGB,
@@ -40,7 +40,7 @@ namespace merutilm::mvk {
                                      }));
         }
 
-        void configureRenderContext(RenderPassManager &rpm) override {
+        void configureRenderContext(mvk::RenderPassManager &rpm) override {
             rpm.appendAttachment(COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,
                                      .format = VK_FORMAT_R8G8B8A8_SRGB,
@@ -62,15 +62,15 @@ namespace merutilm::mvk {
                                      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                      .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-                                 }, ImageContext::fromSwapchain(
+                                 }, mvk::ImageContext::fromSwapchain(
                                      swapchain, core.getPhysicalDevice().getMaxFramesInFlight()));
 
 
             rpm.appendSubpass(SUBPASS_PRIMARY_INDEX);
-            rpm.appendReference(COLOR_ATTACHMENT_INDEX, RenderPassAttachmentType::COLOR);
+            rpm.appendReference(COLOR_ATTACHMENT_INDEX, mvk::RenderPassAttachmentType::COLOR);
             rpm.appendSubpass(SUBPASS_SECONDARY_INDEX);
-            rpm.appendReference(COLOR_ATTACHMENT_INDEX, RenderPassAttachmentType::INPUT);
-            rpm.appendReference(PRESENT_ATTACHMENT_INDEX, RenderPassAttachmentType::COLOR);
+            rpm.appendReference(COLOR_ATTACHMENT_INDEX, mvk::RenderPassAttachmentType::INPUT);
+            rpm.appendReference(PRESENT_ATTACHMENT_INDEX, mvk::RenderPassAttachmentType::COLOR);
 
             rpm.appendDependency({
                 .srcSubpass = VK_SUBPASS_EXTERNAL,

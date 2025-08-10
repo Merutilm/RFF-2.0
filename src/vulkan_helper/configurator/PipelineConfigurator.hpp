@@ -5,6 +5,7 @@
 #pragma once
 #include "../def/Pipeline.hpp"
 #include "../handle/EngineHandler.hpp"
+#include "../struct/DescriptorTemplate.hpp"
 
 namespace merutilm::mvk {
     struct PipelineConfigurator : public EngineHandler {
@@ -96,12 +97,12 @@ namespace merutilm::mvk {
             return *r;
         }
 
+        template<DescTemplateHasID D>
         static void appendDescriptor(const uint32_t setExpected, std::vector<const Descriptor *> &descriptors,
-                                     DescriptorSetLayoutRepo &layoutRepo, SharedDescriptorRepo &repo,
-                                     const DescriptorName descriptorName, const VkShaderStageFlags useStage) {
+                                     DescriptorSetLayoutRepo &layoutRepo, SharedDescriptorRepo &repo, const VkShaderStageFlags useStage) {
             IndexChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
                                           "Unique Descriptor Add");
-            descriptors.push_back(&repo.pick(descriptorName, layoutRepo, useStage));
+            descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), layoutRepo, useStage));
         }
 
         void appendUniqueDescriptor(const uint32_t setExpected, std::vector<const Descriptor *> &descriptors,

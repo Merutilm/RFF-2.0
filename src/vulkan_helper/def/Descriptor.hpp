@@ -44,9 +44,9 @@ namespace merutilm::mvk {
             return descriptorPools[frameIndex];
         }
 
-        void updateQueue(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex) const;
+        void queue(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex) const;
 
-        void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex, std::vector<uint32_t> &&bindings) const;
+        void queue(DescriptorUpdateQueue &queue, uint32_t frameIndex, std::vector<uint32_t> &&bindings) const;
 
     private:
 
@@ -58,7 +58,7 @@ namespace merutilm::mvk {
     };
 
 
-    inline void Descriptor::updateQueue(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex) const {
+    inline void Descriptor::queue(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex) const {
         const uint32_t elementCount = descriptorManager->getElements();
         std::vector<uint32_t> specifiedIndices(elementCount);
         std::iota(specifiedIndices.begin(), specifiedIndices.end(), 0);
@@ -66,7 +66,7 @@ namespace merutilm::mvk {
     }
 
 
-    inline void Descriptor::updateQueue(DescriptorUpdateQueue &queue, const uint32_t frameIndex, std::vector<uint32_t> &&bindings) const {
+    inline void Descriptor::queue(DescriptorUpdateQueue &queue, const uint32_t frameIndex, std::vector<uint32_t> &&bindings) const {
         auto bm = std::move(bindings);
         std::ranges::sort(bm);
         updateIndices(queue, frameIndex, bm);

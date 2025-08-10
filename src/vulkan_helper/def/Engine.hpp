@@ -34,7 +34,7 @@ namespace merutilm::mvk {
 
         Engine &operator=(Engine &&) = delete;
 
-        void attachRenderContext(std::unique_ptr<RenderContext> &&renderContext);
+        std::unique_ptr<RenderContext> attachRenderContext(std::unique_ptr<RenderContext> &&renderContext);
 
         [[nodiscard]] Core &getCore() const { return *core; }
 
@@ -50,8 +50,6 @@ namespace merutilm::mvk {
 
     private:
         void init() override;
-
-        std::unique_ptr<RenderContext> detachRenderContext();
 
         void destroy() override;
     };

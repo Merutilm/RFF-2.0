@@ -4,10 +4,10 @@
 
 #include "Application.hpp"
 
-#include "../vulkan/configurator/BasicRenderContextConfigurator.hpp"
-#include "../vulkan/configurator/GeneralPostProcessPipelineConfigurator.hpp"
-#include "../vulkan/executor/RenderPassExecutor.hpp"
-#include "../vulkan/util/Presenter.hpp"
+#include "../vulkan/BasicRenderContextConfigurator.hpp"
+#include "../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
+#include "../vulkan_helper/executor/RenderPassExecutor.hpp"
+#include "../vulkan_helper/util/Presenter.hpp"
 
 namespace merutilm::rff2 {
     Application::Application() {

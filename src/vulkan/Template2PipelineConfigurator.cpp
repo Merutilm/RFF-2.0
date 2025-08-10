@@ -2,40 +2,41 @@
 // Created by Merutilm on 2025-07-20.
 //
 
-#include "Template2PipelineConfigurator.hpp"
+#include "../vulkan/Template2PipelineConfigurator.hpp"
 
 #include "BasicRenderContextConfigurator.hpp"
-#include "../repo/SharedDescriptorRepo.hpp"
-#include "../struct/Vertex.hpp"
+#include "../vulkan_helper/repo/SharedDescriptorRepo.hpp"
+#include "../vulkan_helper/struct/Vertex.hpp"
+#include "shared_desc_template/DSSharedTemplate.hpp"
 
-namespace merutilm::mvk {
-    Template2PipelineConfigurator::Template2PipelineConfigurator(const Engine &engine, const uint32_t subpassIndex)
+namespace merutilm::rff2 {
+    Template2PipelineConfigurator::Template2PipelineConfigurator(const mvk::Engine &engine, const uint32_t subpassIndex)
         : GeneralPostProcessPipelineConfigurator(engine, subpassIndex, "vk_template-2.frag") {
         Template2PipelineConfigurator::configure();
     }
 
 
-    void Template2PipelineConfigurator::updateQueue(DescriptorUpdateQueue &queue, const uint32_t frameIndex,
+    void Template2PipelineConfigurator::updateQueue(mvk::DescriptorUpdateQueue &queue, const uint32_t frameIndex,
                                                     const uint32_t imageIndex,
                                                     const uint32_t width, const uint32_t height) {
         //TIME
         auto &descTime = getDescriptor(SET_TIME);
-        const auto &descTimeCurrent = descTime.getDescriptorManager().get<std::unique_ptr<Uniform> >(
+        const auto &descTimeCurrent = descTime.getDescriptorManager().get<std::unique_ptr<mvk::Uniform> >(
             DSSharedTemplate::Time::UBO_TIME);
         descTimeCurrent->set(DSSharedTemplate::Time::TIME_CURRENT, engine.getCore().getTime());
         descTimeCurrent->update(frameIndex);
-        descTime.updateQueue(queue, frameIndex);
+        descTime.queue(queue, frameIndex);
 
         //INPUT
         auto &descInput = getDescriptor(SET_INPUT);
         descInput.getDescriptorManager().get<std::unique_ptr<
-            Sampler2D> >(BINDING_INPUT_SAMPLER)->setImageContext(
+            mvk::Sampler2D> >(BINDING_INPUT_SAMPLER)->setImageContext(
             getRenderContextConfigurator<BasicRenderContextConfigurator>().getImageContext(
                 BasicRenderContextConfigurator::PRIMARY_SUBPASS_RESULT_IMAGE)[imageIndex]);
-        descInput.getDescriptorManager().get<ImageContext>(BINDING_INPUT_ATTACHMENT_ELEM) =
+        descInput.getDescriptorManager().get<mvk::ImageContext>(BINDING_INPUT_ATTACHMENT_ELEM) =
                 getRenderContextConfigurator<BasicRenderContextConfigurator>().getImageContext(
                     BasicRenderContextConfigurator::PRIMARY_SUBPASS_RESULT_IMAGE)[imageIndex];
-        descInput.updateQueue(queue, frameIndex);
+        descInput.queue(queue, frameIndex);
 
         getPushConstantManager(PUSH_RESOLUTION).set(PUSH_RESOLUTION_SIZE, glm::vec2{
                                                         static_cast<float>(width), static_cast<float>(height)
@@ -50,14 +51,14 @@ namespace merutilm::mvk {
     }
 
 
-    void Template2PipelineConfigurator::configureDescriptors(std::vector<const Descriptor *> &descriptors,
-                                                             DescriptorSetLayoutRepo &layoutRepo,
-                                                             SharedDescriptorRepo &repo) {
-        appendDescriptor(SET_TIME, descriptors, layoutRepo, repo, DescriptorName::TIME, VK_SHADER_STAGE_FRAGMENT_BIT);
+    void Template2PipelineConfigurator::configureDescriptors(std::vector<const mvk::Descriptor *> &descriptors,
+                                                             mvk::DescriptorSetLayoutRepo &layoutRepo,
+                                                             mvk::SharedDescriptorRepo &repo) {
+        appendDescriptor<DSSharedTemplate::Time>(SET_TIME, descriptors, layoutRepo, repo, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-        auto inputManager = std::make_unique<DescriptorManager>();
+        auto inputManager = std::make_unique<mvk::DescriptorManager>();
         inputManager->appendCombinedImgSampler(BINDING_INPUT_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                               std::make_unique<Sampler2D>(engine.getCore(), VkSamplerCreateInfo{
+                                               std::make_unique<mvk::Sampler2D>(engine.getCore(), VkSamplerCreateInfo{
                                                                                .sType =
                                                                                VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                                                                                .pNext = nullptr,
@@ -91,10 +92,10 @@ namespace merutilm::mvk {
         appendUniqueDescriptor(SET_INPUT, descriptors, layoutRepo, std::move(inputManager));
     }
 
-    void Template2PipelineConfigurator::configurePushConstant(DescriptorSetLayoutRepo &layoutRepo,
-                                                              PipelineLayoutManager &pipelineLayoutManager) {
+    void Template2PipelineConfigurator::configurePushConstant(mvk::DescriptorSetLayoutRepo &layoutRepo,
+                                                              mvk::PipelineLayoutManager &pipelineLayoutManager) {
         pipelineLayoutManager.appendPushConstantManager(PUSH_RESOLUTION, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        PushConstantReserve<glm::vec2>{PUSH_RESOLUTION_SIZE}
+                                                        mvk::PushConstantReserve<glm::vec2>{PUSH_RESOLUTION_SIZE}
         );
     }
 }

@@ -40,9 +40,9 @@ namespace merutilm::mvk {
         }
 
     protected:
-        VertexBuffer &getVertexBuffer() const override { return *vertexBufferPP; }
+        [[nodiscard]] VertexBuffer &getVertexBuffer() const override { return *vertexBufferPP; }
 
-        IndexBuffer &getIndexBuffer() const override { return *indexBufferPP; }
+        [[nodiscard]] IndexBuffer &getIndexBuffer() const override { return *indexBufferPP; }
 
         void configureVertexBuffer(ShaderObjectManager &som) override;
 

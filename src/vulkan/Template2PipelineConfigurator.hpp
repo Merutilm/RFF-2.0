@@ -3,11 +3,11 @@
 //
 
 #pragma once
-#include "GeneralPostProcessPipelineConfigurator.hpp"
-#include "../repo/SharedDescriptorRepo.hpp"
+#include "../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
+#include "../vulkan_helper/repo/SharedDescriptorRepo.hpp"
 
-namespace merutilm::mvk {
-    class Template2PipelineConfigurator final : public GeneralPostProcessPipelineConfigurator {
+namespace merutilm::rff2 {
+    class Template2PipelineConfigurator final : public mvk::GeneralPostProcessPipelineConfigurator {
 
         static constexpr uint32_t SET_TIME = 0;
         static constexpr uint32_t SET_INPUT = 1;
@@ -19,7 +19,7 @@ namespace merutilm::mvk {
         static constexpr uint32_t PUSH_RESOLUTION_SIZE = 0;
 
     public:
-        Template2PipelineConfigurator(const Engine&engine, uint32_t subpassIndex);
+        Template2PipelineConfigurator(const mvk::Engine&engine, uint32_t subpassIndex);
 
         ~Template2PipelineConfigurator() override = default;
 
@@ -31,15 +31,15 @@ namespace merutilm::mvk {
 
         Template2PipelineConfigurator &operator=(Template2PipelineConfigurator &&) = delete;
 
-        void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width, uint32_t height) override;
+        void updateQueue(mvk::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width, uint32_t height) override;
 
         void render(VkCommandBuffer cbh, uint32_t frameIndex, uint32_t width, uint32_t height) override;
 
     protected:
-        void configureDescriptors(std::vector<const Descriptor *> &descriptors,
-                                                         DescriptorSetLayoutRepo &layoutRepo,
-                                                         SharedDescriptorRepo &repo) override;
-        void configurePushConstant(DescriptorSetLayoutRepo &layoutRepo, PipelineLayoutManager &pipelineLayoutManager) override;
+        void configureDescriptors(std::vector<const mvk::Descriptor *> &descriptors,
+                                                         mvk::DescriptorSetLayoutRepo &layoutRepo,
+                                                         mvk::SharedDescriptorRepo &repo) override;
+        void configurePushConstant(mvk::DescriptorSetLayoutRepo &layoutRepo, mvk::PipelineLayoutManager &pipelineLayoutManager) override;
 
     };
 }

@@ -2,13 +2,12 @@
 // Created by Merutilm on 2025-07-29.
 //
 
-#include "Template1PipelineConfigurator.hpp"
+#include "../vulkan/Template1PipelineConfigurator.hpp"
 
-#include "../struct/Vertex.hpp"
-#include "../util/ImageContextUtils.hpp"
+#include "../vulkan_helper/util/ImageContextUtils.hpp"
 
-namespace merutilm::mvk {
-    Template1PipelineConfigurator::Template1PipelineConfigurator(const Engine &engine,
+namespace merutilm::rff2 {
+    Template1PipelineConfigurator::Template1PipelineConfigurator(const mvk::Engine &engine,
                                                                  const uint32_t
                                                                  subpassIndex) : GeneralPostProcessPipelineConfigurator(
         engine, subpassIndex, "vk_template-1.frag") {
@@ -16,11 +15,11 @@ namespace merutilm::mvk {
     }
 
 
-    void Template1PipelineConfigurator::updateQueue(DescriptorUpdateQueue &queue, const uint32_t frameIndex,
+    void Template1PipelineConfigurator::updateQueue(mvk::DescriptorUpdateQueue &queue, const uint32_t frameIndex,
                                                     const uint32_t imageIndex,
                                                     const uint32_t width, const uint32_t height) {
 
-        getDescriptor(0).updateQueue(queue, frameIndex);
+        getDescriptor(0).queue(queue, frameIndex);
     }
 
     void Template1PipelineConfigurator::render(const VkCommandBuffer cbh, const uint32_t frameIndex,
@@ -29,15 +28,15 @@ namespace merutilm::mvk {
     }
 
 
-    void Template1PipelineConfigurator::configurePushConstant(DescriptorSetLayoutRepo &layoutRepo,
-                                                              PipelineLayoutManager &pipelineLayoutManager) {
+    void Template1PipelineConfigurator::configurePushConstant(mvk::DescriptorSetLayoutRepo &layoutRepo,
+                                                              mvk::PipelineLayoutManager &pipelineLayoutManager) {
         //noop
     }
 
-    void Template1PipelineConfigurator::configureDescriptors(std::vector<const Descriptor *> &descriptors,
-                                                             DescriptorSetLayoutRepo &layoutRepo,
-                                                             SharedDescriptorRepo &descRepo) {
-        auto texture = std::make_unique<Sampler2D>(engine.getCore(), VkSamplerCreateInfo{
+    void Template1PipelineConfigurator::configureDescriptors(std::vector<const mvk::Descriptor *> &descriptors,
+                                                             mvk::DescriptorSetLayoutRepo &layoutRepo,
+                                                             mvk::SharedDescriptorRepo &descRepo) {
+        auto texture = std::make_unique<mvk::Sampler2D>(engine.getCore(), VkSamplerCreateInfo{
                                                        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                                                        .pNext = nullptr,
                                                        .flags = 0,
@@ -59,9 +58,9 @@ namespace merutilm::mvk {
                                                        .unnormalizedCoordinates = VK_FALSE
                                                    });
         texture->setImageContext(
-            ImageContextUtils::imageFromPath(engine.getCore(), engine.getCommandPool(), "../res/icon.png"));
+            mvk::ImageContextUtils::imageFromPath(engine.getCore(), engine.getCommandPool(), "../res/icon.png"));
 
-        auto manager = std::make_unique<DescriptorManager>();
+        auto manager = std::make_unique<mvk::DescriptorManager>();
         manager->appendCombinedImgSampler(0, VK_SHADER_STAGE_FRAGMENT_BIT, std::move(texture));
         appendUniqueDescriptor(0, descriptors, layoutRepo, std::move(manager));
     }

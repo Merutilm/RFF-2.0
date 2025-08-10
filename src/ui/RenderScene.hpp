@@ -6,8 +6,8 @@
 #include <vector>
 #include <windows.h>
 
-#include "../vulkan/configurator/PipelineConfigurator.hpp"
-#include "../vulkan/handle/EngineHandler.hpp"
+#include "../vulkan_helper/configurator/PipelineConfigurator.hpp"
+#include "../vulkan_helper/handle/EngineHandler.hpp"
 
 namespace merutilm::rff2 {
     class RenderScene final {

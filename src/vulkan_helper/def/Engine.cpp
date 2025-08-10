@@ -21,12 +21,10 @@ namespace merutilm::mvk {
     }
 
 
-    void Engine::attachRenderContext(std::unique_ptr<RenderContext> &&renderContext) {
+    std::unique_ptr<RenderContext> Engine::attachRenderContext(std::unique_ptr<RenderContext> &&renderContext) {
+        auto prev = std::move(this->renderContext);
         this->renderContext = std::move(renderContext);
-    }
-
-    std::unique_ptr<RenderContext> Engine::detachRenderContext() {
-        return std::move(renderContext);
+        return prev;
     }
 
     void Engine::destroy() {

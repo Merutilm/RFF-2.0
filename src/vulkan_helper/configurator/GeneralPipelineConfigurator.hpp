@@ -32,9 +32,9 @@ namespace merutilm::mvk {
 
         GeneralPipelineConfigurator &operator=(GeneralPipelineConfigurator &&) = delete;
 
-        VertexBuffer &getVertexBuffer() const override { return *vertexBuffer; }
+        [[nodiscard]] VertexBuffer &getVertexBuffer() const override { return *vertexBuffer; }
 
-        IndexBuffer &getIndexBuffer() const override { return *indexBuffer; }
+        [[nodiscard]] IndexBuffer &getIndexBuffer() const override { return *indexBuffer; }
 
         void configure() override;
 
