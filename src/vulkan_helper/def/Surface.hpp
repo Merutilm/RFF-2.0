@@ -9,7 +9,7 @@
 #include "GraphicsContextWindow.hpp"
 #include "../handle/Handler.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class Surface final : public Handler {
 
         const Instance &instance;

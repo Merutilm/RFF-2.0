@@ -10,7 +10,7 @@
 #include "../context/DescriptorUpdateContext.hpp"
 #include "../exception/exception.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     Descriptor::Descriptor(const Core &core, const DescriptorSetLayout &descriptorSetLayout,
                            std::unique_ptr<DescriptorManager> &&descriptorManager) : CoreHandler(core),
         descriptorSetLayout(descriptorSetLayout),

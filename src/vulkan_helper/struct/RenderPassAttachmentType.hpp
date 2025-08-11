@@ -3,7 +3,7 @@
 //
 
 #pragma once
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     enum class RenderPassAttachmentType {
         INPUT,
         COLOR,

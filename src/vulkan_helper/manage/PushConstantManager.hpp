@@ -8,7 +8,7 @@
 #include "CompleteShaderObjectManager.hpp"
 #include "ShaderObjectManager.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class PushConstantManager : public CompleteShaderObjectManager {
         VkShaderStageFlags useStage;
 

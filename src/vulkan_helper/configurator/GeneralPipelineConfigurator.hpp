@@ -11,7 +11,7 @@
 #include "../def/Pipeline.hpp"
 
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class GeneralPipelineConfigurator : public PipelineConfigurator {
         std::unique_ptr<VertexBuffer> vertexBuffer = {};
         std::unique_ptr<IndexBuffer> indexBuffer = nullptr;

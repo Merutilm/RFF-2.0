@@ -5,12 +5,12 @@
 #pragma once
 #include "RenderScene.hpp"
 #include "SettingsMenu.h"
-#include "../vulkan_helper/configurator/GeneralPipelineConfigurator.hpp"
-#include "../vulkan_helper/def/Engine.hpp"
+#include "../../vulkan_helper/configurator/GeneralPipelineConfigurator.hpp"
+#include "../../vulkan_helper/def/Engine.hpp"
 
 namespace merutilm::rff2 {
 
-    class Application final : public mvk::Handler {
+    class Application final : public vkh::Handler {
         int statusHeight = 0;
         std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
         HWND masterWindow = nullptr;
@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
         HWND statusBar = nullptr;
         std::unique_ptr<RenderScene> scene = nullptr;
         std::unique_ptr<SettingsMenu> settingsMenu = nullptr;
-        std::unique_ptr<mvk::Engine> engine = nullptr;
+        std::unique_ptr<vkh::Engine> engine = nullptr;
         uint32_t currentFrame = 0;
         bool windowResizing = false;
 
@@ -35,7 +35,7 @@ namespace merutilm::rff2 {
 
         Application &operator=(Application &&) = delete;
 
-        mvk::Engine &getEngine() const { return *engine; }
+        vkh::Engine &getEngine() const { return *engine; }
 
         void start() const;
 

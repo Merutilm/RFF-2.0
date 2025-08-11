@@ -8,7 +8,7 @@
 #include "../def/DescriptorSetLayout.hpp"
 #include "../struct/PushConstantReserve.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class PipelineLayoutManager {
 
         std::vector<const DescriptorSetLayout *> descriptorSetLayouts = {};

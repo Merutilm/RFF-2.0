@@ -9,7 +9,7 @@
 #include "../def/CommandPool.hpp"
 #include "BufferImageUtils.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
     struct ImageContextUtils {
         static ImageContext imageFromPath(const Core &core, const CommandPool &commandPool, const std::string &path) {

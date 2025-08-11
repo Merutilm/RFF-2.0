@@ -7,7 +7,7 @@
 #include <format>
 #include "../exception/exception.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct IndexChecker {
         IndexChecker() = delete;
 

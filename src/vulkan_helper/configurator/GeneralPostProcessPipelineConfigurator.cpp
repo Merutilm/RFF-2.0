@@ -6,7 +6,7 @@
 
 #include "../struct/Vertex.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
 
 
@@ -62,7 +62,7 @@ namespace merutilm::mvk {
 
 
     void GeneralPostProcessPipelineConfigurator::configureVertexBuffer(ShaderObjectManager &som) {
-        som.add(0, std::vector{
+        som.addArray(0, std::vector{
                     Vertex::generate({1, 1, 0}, {1, 1, 1}, {1, 1}),
                     Vertex::generate({1, -1, 0}, {1, 1, 1}, {1, 0}),
                     Vertex::generate({-1, -1, 0}, {1, 1, 1}, {0, 0}),
@@ -71,7 +71,7 @@ namespace merutilm::mvk {
     }
 
     void GeneralPostProcessPipelineConfigurator::configureIndexBuffer(ShaderObjectManager &som) {
-        som.add(0, std::vector<uint32_t>{0, 1, 2, 2, 3, 0});
+        som.addArray(0, std::vector<uint32_t>{0, 1, 2, 2, 3, 0});
     }
 
     void GeneralPostProcessPipelineConfigurator::init() {

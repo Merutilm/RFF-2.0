@@ -10,7 +10,7 @@
 #include "../exception/exception.hpp"
 #include "../manage/RenderPassManager.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     RenderPass::RenderPass(const Core &core,
                            std::unique_ptr<RenderPassManager> &&manager) : CoreHandler(core),
                                                                            manager(std::move(manager)) {

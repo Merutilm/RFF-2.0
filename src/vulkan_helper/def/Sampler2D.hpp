@@ -6,7 +6,7 @@
 #include "../context/ImageContext.hpp"
 #include "../handle/CoreHandler.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class Sampler2D final : public CoreHandler {
         ImageContext imageContext;
         VkSampler sampler = nullptr;

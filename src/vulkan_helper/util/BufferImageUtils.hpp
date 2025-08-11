@@ -7,7 +7,7 @@
 #include "../def/Core.hpp"
 #include "../struct/ImageInitInfo.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct BufferImageUtils {
         BufferImageUtils() = delete;
 

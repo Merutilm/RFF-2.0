@@ -9,7 +9,7 @@
 #include "Repo.hpp"
 #include "../def/DescriptorSetLayout.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct DescriptorSetLayoutRepo final : Repo<DescriptorSetLayoutBuilder, const DescriptorSetLayoutBuilder &, DescriptorSetLayout,
                 DescriptorSetLayoutBuilderHasher, std::equal_to<>> {
         using Repo::Repo;

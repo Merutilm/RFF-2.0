@@ -9,7 +9,7 @@
 #include "../repo/SharedDescriptorRepo.hpp"
 #include "../repo/Repositories.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     GeneralPipelineConfigurator::GeneralPipelineConfigurator(const Engine &engine,
                                                              const uint32_t subpassIndex,
                                                              const std::string &vertName,

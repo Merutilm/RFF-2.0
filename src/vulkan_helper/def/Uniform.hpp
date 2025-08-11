@@ -5,7 +5,7 @@
 #pragma once
 #include "BufferObject.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class Uniform final : public BufferObject {
 
     public:

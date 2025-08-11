@@ -7,7 +7,7 @@
 
 #include <vector>
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct RenderPassAttachment {
         VkAttachmentDescription attachment;
         MultiframeImageContext imageContext;

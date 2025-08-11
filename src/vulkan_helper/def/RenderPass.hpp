@@ -9,7 +9,7 @@
 #include "../manage/RenderPassManager.hpp"
 #include "../handle/CoreHandler.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class RenderPass final : public CoreHandler {
 
         std::unique_ptr<RenderPassManager> manager = nullptr;

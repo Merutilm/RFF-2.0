@@ -3,14 +3,14 @@
 //
 
 #pragma once
-#include "../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
+#include "../../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    class Template1PipelineConfigurator final : public mvk::GeneralPostProcessPipelineConfigurator {
+    class Template1PipelineConfigurator final : public vkh::GeneralPostProcessPipelineConfigurator {
         static constexpr uint32_t SET_SAMPLE_IMAGE = 0;
 
     public:
-        Template1PipelineConfigurator(const mvk::Engine &engine,
+        Template1PipelineConfigurator(const vkh::Engine &engine,
                                       uint32_t subpassIndex);
 
         ~Template1PipelineConfigurator() override = default;
@@ -23,17 +23,17 @@ namespace merutilm::rff2 {
 
         Template1PipelineConfigurator &operator=(Template1PipelineConfigurator &&) = delete;
 
-        void updateQueue(mvk::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width,
+        void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width,
                          uint32_t height) override;
 
         void render(VkCommandBuffer cbh, uint32_t frameIndex, uint32_t width, uint32_t height) override;
 
     protected:
-        void configurePushConstant(mvk::DescriptorSetLayoutRepo &layoutRepo,
-                                   mvk::PipelineLayoutManager &pipelineLayoutManager) override;
+        void configurePushConstant(vkh::DescriptorSetLayoutRepo &layoutRepo,
+                                   vkh::PipelineLayoutManager &pipelineLayoutManager) override;
 
-        void configureDescriptors(std::vector<const mvk::Descriptor *> &descriptors, mvk::DescriptorSetLayoutRepo &layoutRepo,
-                                  mvk::SharedDescriptorRepo &descRepo) override;
+        void configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors, vkh::DescriptorSetLayoutRepo &layoutRepo,
+                                  vkh::SharedDescriptorRepo &descRepo) override;
 
     };
 }

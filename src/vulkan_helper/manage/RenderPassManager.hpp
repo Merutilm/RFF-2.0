@@ -12,7 +12,7 @@
 #include "../struct/RenderPassAttachmentType.hpp"
 #include "../util/IndexChecker.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class RenderPassManager {
         std::vector<RenderPassAttachment> attachments = {};
         std::vector<std::vector<uint32_t> > preserveIndices = {};

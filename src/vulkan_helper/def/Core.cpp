@@ -6,7 +6,7 @@
 
 #include "../exception/exception.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
     Core::Core() {
         Core::init();

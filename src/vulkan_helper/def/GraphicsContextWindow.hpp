@@ -7,10 +7,11 @@
 #include <functional>
 #include <windows.h>
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class GraphicsContextWindow final {
         HWND window = nullptr;
         const float framerate;
+        std::function<void(UINT, WPARAM)> headListener = {};
         std::unordered_map<UINT, std::function<LRESULT(const GraphicsContextWindow &, HWND, WPARAM, LPARAM)> > listeners
                 = {};
         std::vector<std::function<void()> > renderers = {};
@@ -37,6 +38,9 @@ namespace merutilm::mvk {
                    rect.right - rect.left <= 0;
         }
 
+        template<typename F> requires std::is_invocable_r_v<void, F, UINT, WPARAM>
+        void setListener(F &&func);
+
         template<typename F> requires std::is_invocable_r_v<LRESULT, F, const GraphicsContextWindow &, HWND, WPARAM,
             LPARAM>
         void setListener(UINT message, F &&func);
@@ -56,6 +60,11 @@ namespace merutilm::mvk {
 
         LRESULT runListeners(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
     };
+
+    template<typename F> requires std::is_invocable_r_v<void, F, UINT, WPARAM>
+    void GraphicsContextWindow::setListener(F&& func) {
+        headListener = std::forward<F>(func);
+    }
 
     template<typename F> requires std::is_invocable_r_v<LRESULT, F, const GraphicsContextWindow &, HWND, WPARAM, LPARAM>
     void GraphicsContextWindow::setListener(const UINT message, F &&func) {

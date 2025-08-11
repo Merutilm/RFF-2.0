@@ -8,7 +8,7 @@
 
 #include "../handle/Handler.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class ValidationLayer final : public Handler {
         VkInstance instance = nullptr;
         VkDebugUtilsMessengerEXT debugMessenger = nullptr;

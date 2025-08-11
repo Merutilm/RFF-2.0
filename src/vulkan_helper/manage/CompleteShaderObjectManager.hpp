@@ -10,7 +10,7 @@
 #include <vector>
 #include "ShaderObjectManager.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct CompleteShaderObjectManager {
         std::vector<std::byte> data = {};
         std::vector<uint32_t> elements = {};

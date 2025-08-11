@@ -3,8 +3,11 @@
 //
 
 #pragma once
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct PointerDerefEquals {
+
+        using is_transparent = void;
+
         template<typename T>
         bool operator()(const T *lhs, const T *rhs) const {
             if (lhs == rhs) return true;

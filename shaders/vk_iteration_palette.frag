@@ -72,7 +72,6 @@ vec4 getColor(double iteration){
         break;
     }
 
-
     float hSquare = palette_attr.height - 1;
     float hRemainder = (palette_attr.size - palette_attr.width * hSquare) / palette_attr.width;
     float hLength = hSquare + hRemainder;

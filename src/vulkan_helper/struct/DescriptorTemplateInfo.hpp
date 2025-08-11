@@ -5,10 +5,10 @@
 #pragma once
 #include "../manage/DescriptorManager.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
     struct DescriptorTemplateInfo {
         uint32_t id;
-        std::function<std::unique_ptr<DescriptorManager>(const Core &, VkShaderStageFlags)> descriptorGenerator;
+        std::function<std::unique_ptr<DescriptorManager>(const Core &)> descriptorGenerator;
     };
 }

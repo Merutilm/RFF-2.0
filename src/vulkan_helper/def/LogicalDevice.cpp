@@ -8,7 +8,7 @@
 
 #include "../exception/exception.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
     LogicalDevice::LogicalDevice(const Instance& instance, const PhysicalDevice &physicalDevice) :  instance(instance), physicalDevice(physicalDevice) {
         LogicalDevice::init();

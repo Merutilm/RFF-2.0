@@ -11,7 +11,7 @@
 #include "../def/Framebuffer.hpp"
 #include "../def/RenderPass.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct RenderContext final {
         const Core &core;
         std::unique_ptr<RenderContextConfigurator> configurator = nullptr;

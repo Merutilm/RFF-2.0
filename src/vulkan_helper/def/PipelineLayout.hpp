@@ -7,7 +7,7 @@
 #include "../handle/CoreHandler.hpp"
 #include "../manage/PipelineLayoutManager.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class PipelineLayout final : public CoreHandler {
 
         std::unique_ptr<PipelineLayoutManager> pipelineLayoutManager = nullptr;

@@ -8,7 +8,7 @@
 #include "../manage/DescriptorManager.hpp"
 
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class DescriptorSetLayout final : public CoreHandler {
         const DescriptorSetLayoutBuilder &layoutBuilder;
         VkDescriptorSetLayout layout = nullptr;

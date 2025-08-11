@@ -9,7 +9,7 @@
 
 #include "../util/BufferImageUtils.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     Framebuffer::Framebuffer(const Core &core, const RenderPass &renderPass,
                              const VkExtent2D extent) : CoreHandler(core), renderPass(renderPass), extent(extent) {
         Framebuffer::init();

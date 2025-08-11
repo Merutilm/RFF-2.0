@@ -8,7 +8,7 @@
 #include "../struct/Vertex.hpp"
 #include "../util/BufferImageUtils.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     VertexBuffer::VertexBuffer(const Core &core, std::unique_ptr<ShaderObjectManager> &&manager) : BufferObject(
         core, std::move(manager), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) {
         VertexBuffer::init();

@@ -5,8 +5,11 @@
 #pragma once
 #include <memory>
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct UniquePtrEquals {
+
+        using is_transparent = void;
+
         template<typename T>
         bool operator()(const std::unique_ptr<T> &lhs, const std::unique_ptr<T> &rhs) const {
             if (lhs == rhs) return true;

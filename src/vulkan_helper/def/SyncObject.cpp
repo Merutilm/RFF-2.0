@@ -6,7 +6,7 @@
 
 #include "../exception/exception.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     SyncObject::SyncObject(const Core &core) : CoreHandler(core) {
         SyncObject::init();
     }

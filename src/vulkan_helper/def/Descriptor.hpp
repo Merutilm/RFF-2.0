@@ -13,7 +13,7 @@
 #include "../manage/DescriptorManager.hpp"
 
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class Descriptor final : public CoreHandler {
         std::vector<VkDescriptorPool> descriptorPools = {};
         std::vector<VkDescriptorSet> descriptorSets = {};

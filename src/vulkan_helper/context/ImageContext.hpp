@@ -8,7 +8,7 @@
 #include "../struct/ImageInitInfo.hpp"
 #include "../util/BufferImageUtils.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct ImageContext;
 
     using MultiframeImageContext = std::vector<ImageContext>;

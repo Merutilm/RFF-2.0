@@ -8,7 +8,7 @@
 
 #include "RenderPass.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     Pipeline::Pipeline(const Engine &engine, const PipelineLayout &pipelineLayout,
                        VertexBuffer * const vertexBuffer,
                        IndexBuffer * const indexBuffer,

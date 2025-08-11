@@ -6,7 +6,7 @@
 #include <list>
 #include <vulkan/vulkan.h>
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct DescriptorUpdateContext {
         VkWriteDescriptorSet writeSet;
         VkDescriptorBufferInfo bufferInfo;

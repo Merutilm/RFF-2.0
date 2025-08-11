@@ -5,7 +5,7 @@
 #pragma once
 #include <string>
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
     template<typename T>
     struct PushConstantReserve {

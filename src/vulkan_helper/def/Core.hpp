@@ -12,7 +12,7 @@
 #include "LogicalDevice.hpp"
 #include "PhysicalDevice.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class Core final : public Handler {
         std::unique_ptr<Instance> instance = nullptr;
         std::unique_ptr<PhysicalDevice> physicalDevice = nullptr;

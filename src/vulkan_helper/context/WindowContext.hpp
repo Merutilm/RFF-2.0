@@ -9,7 +9,7 @@
 #include "../def/Surface.hpp"
 #include "../def/Swapchain.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct WindowContext final {
         std::unique_ptr<GraphicsContextWindow> window = nullptr;
         std::unique_ptr<Surface> surface = nullptr;

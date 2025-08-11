@@ -10,7 +10,7 @@
 #include "../def/ShaderModule.hpp"
 #include "../struct/StringHasher.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct ShaderModuleRepo final : Repo<std::string, const std::string&, ShaderModule, StringHasher, std::equal_to<>>{
 
         using Repo::Repo;

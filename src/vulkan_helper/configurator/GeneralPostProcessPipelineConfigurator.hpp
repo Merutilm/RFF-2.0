@@ -6,7 +6,7 @@
 #include "GeneralPipelineConfigurator.hpp"
 #include "PipelineConfigurator.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class GeneralPostProcessPipelineConfigurator : public PipelineConfigurator {
         inline static bool initializedVertexIndex = false;
         inline static std::unique_ptr<VertexBuffer> vertexBufferPP = nullptr;

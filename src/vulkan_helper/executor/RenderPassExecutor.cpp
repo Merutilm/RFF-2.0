@@ -8,7 +8,7 @@
 
 #include "../context/RenderContext.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     RenderPassExecutor::RenderPassExecutor(const Engine &engine, const RenderContext &renderContext,
                                            const VkExtent2D extent,
                                            const uint32_t frameIndex,

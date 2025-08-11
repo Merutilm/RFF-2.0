@@ -7,7 +7,7 @@
 
 #include "BoostHasher.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
     template<typename T, typename Hasher = std::hash<T>>
     struct VectorHasher {

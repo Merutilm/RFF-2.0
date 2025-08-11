@@ -6,7 +6,7 @@
 #include "RenderPass.hpp"
 #include "../handle/CoreHandler.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class Framebuffer final : public CoreHandler {
         std::vector<VkFramebuffer> framebuffer = {};
         const RenderPass &renderPass;

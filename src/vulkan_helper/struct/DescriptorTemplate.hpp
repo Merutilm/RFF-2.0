@@ -6,7 +6,7 @@
 #include "DescriptorTemplateInfo.hpp"
 #include "../manage/DescriptorManager.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct DescriptorTemplate;
 
     template<typename T>
@@ -21,15 +21,15 @@ namespace merutilm::mvk {
     struct DescriptorTemplate {
         virtual ~DescriptorTemplate() = default;
 
-        virtual std::unique_ptr<DescriptorManager> create(const Core &core, VkShaderStageFlags useStage) = 0;
+        virtual std::unique_ptr<DescriptorManager> create(const Core &core) = 0;
 
         template<DescTemplateHasID D>
         static DescriptorTemplateInfo from() {
             return DescriptorTemplateInfo{
                 .id = D::ID,
-                .descriptorGenerator = [](const Core &core, const VkShaderStageFlags stage) {
+                .descriptorGenerator = [](const Core &core) {
                     auto instance = D();
-                    return instance.create(core, stage);
+                    return instance.create(core);
                 }
             };
         }

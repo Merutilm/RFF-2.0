@@ -4,10 +4,9 @@
 
 #include "Application.hpp"
 
-#include "../vulkan/BasicRenderContextConfigurator.hpp"
-#include "../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
-#include "../vulkan_helper/executor/RenderPassExecutor.hpp"
-#include "../vulkan_helper/util/Presenter.hpp"
+#include "../../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
+#include "../../vulkan_helper/executor/RenderPassExecutor.hpp"
+#include "../../vulkan_helper/util/Presenter.hpp"
 
 namespace merutilm::rff2 {
     Application::Application() {
@@ -131,10 +130,10 @@ namespace merutilm::rff2 {
     }
 
     void Application::createVulkanContext() {
-        auto core = mvk::Core::createCore();
+        auto core = vkh::Core::createCore();
         core->createGraphicsContextForWindow(renderWindow, Constants::Win32::INIT_RENDER_SCENE_FPS,
                                              Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
-        engine = std::make_unique<mvk::Engine>(std::move(core));
+        engine = std::make_unique<vkh::Engine>(std::move(core));
     }
 
     void Application::createRenderScene() {
@@ -144,25 +143,28 @@ namespace merutilm::rff2 {
     void Application::setProcedure() {
         const HCURSOR hCursor = LoadCursor(nullptr, IDC_ARROW);
 
-        mvk::GraphicsContextWindow &window = *engine->getCore().getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window;
+        vkh::GraphicsContextWindow &window = *engine->getCore().getWindowContext(
+            Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window;
 
         //TODO : Set Procedure when finish to change opengl to vulkan
+
+        window.setListener([this](const UINT message, const WPARAM wparam) { scene->runAction(message, wparam); });
         window.setListener(
-            WM_GETMINMAXINFO, [this](const mvk::GraphicsContextWindow &, HWND, WPARAM, const LPARAM lparam) {
+            WM_GETMINMAXINFO, [](const vkh::GraphicsContextWindow &, HWND, WPARAM, const LPARAM lparam) {
                 const auto min = reinterpret_cast<LPMINMAXINFO>(lparam);
                 min->ptMinTrackSize.x = Constants::Win32::MIN_WINDOW_WIDTH;
                 min->ptMinTrackSize.y = Constants::Win32::MIN_WINDOW_HEIGHT;
                 return static_cast<LRESULT>(0);
             });
-        window.setListener(WM_MOUSEMOVE, [hCursor](const mvk::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
+        window.setListener(WM_MOUSEMOVE, [hCursor](const vkh::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
             SetCursor(hCursor);
             return static_cast<LRESULT>(true);
         });
-        window.setListener(WM_SIZING, [this](const mvk::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
+        window.setListener(WM_SIZING, [this](const vkh::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
             windowResizing = true;
             return static_cast<LRESULT>(0);
         });
-        window.setListener(WM_SIZE, [this](const mvk::GraphicsContextWindow &, HWND, const WPARAM wparam, LPARAM) {
+        window.setListener(WM_SIZE, [this](const vkh::GraphicsContextWindow &, HWND, const WPARAM wparam, LPARAM) {
             if (wparam == SIZE_MAXIMIZED) {
                 resolveWindowResizeEnd();
             }
@@ -172,7 +174,7 @@ namespace merutilm::rff2 {
             return static_cast<LRESULT>(0);
         });
 
-        window.setListener(WM_EXITSIZEMOVE, [this](const mvk::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
+        window.setListener(WM_EXITSIZEMOVE, [this](const vkh::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
             if (windowResizing) {
                 windowResizing = false;
                 resolveWindowResizeEnd();
@@ -180,7 +182,7 @@ namespace merutilm::rff2 {
             return static_cast<LRESULT>(0);
         });
         window.setListener(
-            WM_INITMENUPOPUP, [this](const mvk::GraphicsContextWindow &, HWND, const WPARAM wparam, LPARAM) {
+            WM_INITMENUPOPUP, [this](const vkh::GraphicsContextWindow &, HWND, const WPARAM wparam, LPARAM) {
                 const auto popup = reinterpret_cast<HMENU>(wparam);
                 const int count = GetMenuItemCount(popup);
                 for (int i = 0; i < count; ++i) {
@@ -200,7 +202,7 @@ namespace merutilm::rff2 {
                 }
                 return static_cast<LRESULT>(0);
             });
-        window.setListener(WM_COMMAND, [this](const mvk::GraphicsContextWindow &, HWND, const WPARAM wparam, LPARAM) {
+        window.setListener(WM_COMMAND, [this](const vkh::GraphicsContextWindow &, HWND, const WPARAM wparam, LPARAM) {
             const HMENU menu = GetMenu(masterWindow);
             // if (const int menuID = LOWORD(wparam);
             //     settingsMenu->hasCheckbox(menuID)
@@ -215,11 +217,11 @@ namespace merutilm::rff2 {
             // }
             return static_cast<LRESULT>(0);
         });
-        window.setListener(WM_CLOSE, [this](const mvk::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
+        window.setListener(WM_CLOSE, [this](const vkh::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
             DestroyWindow(masterWindow);
             return static_cast<LRESULT>(0);
         });
-        window.setListener(WM_DESTROY, [this](const mvk::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
+        window.setListener(WM_DESTROY, [](const vkh::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
             PostQuitMessage(0);
             return static_cast<LRESULT>(0);
         });
@@ -235,31 +237,33 @@ namespace merutilm::rff2 {
         rect.bottom -= statusHeight;
         if (rect.bottom - rect.top > 0 || rect.right - rect.left > 0) {
             adjustClient(rect);
-            //scene.requestResize();
-            //scene.requestRecompute();
+            scene->requestResize();
+            scene->requestRecompute();
         }
 
-        mvk::Core &core = engine->getCore();
-        mvk::RenderContext &renderContext = engine->getRenderContext();
+        vkh::Core &core = engine->getCore();
+        vkh::RenderContext &renderContext = engine->getRenderContext();
         if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
             return;
         }
         vkDeviceWaitIdle(core.getLogicalDevice().getLogicalDeviceHandle());
 
-        mvk::Swapchain &swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+        vkh::Swapchain &swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
+                swapchain;
         swapchain.recreate();
         renderContext.recreate(swapchain.populateSwapchainExtent());
         drawFrame();
     }
 
     void Application::drawFrame() {
-        mvk::Core &core = engine->getCore();
-        const mvk::RenderContext &renderContext = engine->getRenderContext();
+        vkh::Core &core = engine->getCore();
+        const vkh::RenderContext &renderContext = engine->getRenderContext();
         if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
             return;
         }
         changeFrameIndex();
-        const mvk::Swapchain &swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+        const vkh::Swapchain &swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
+                swapchain;
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const VkFence currentFence = engine->getSyncObject().getFence(currentFrame);
         const VkSemaphore imageAvailableSemaphore = engine->getSyncObject().getImageAvailableSemaphore(currentFrame);
@@ -275,7 +279,7 @@ namespace merutilm::rff2 {
 
         const auto extent = swapchain.populateSwapchainExtent();
 
-        mvk::DescriptorUpdateQueue queue = {};
+        vkh::DescriptorUpdateQueue queue = {};
 
         const auto &shaderPrograms = scene->getShaderPrograms();
         for (const auto &shaderProgram: shaderPrograms) {
@@ -283,7 +287,7 @@ namespace merutilm::rff2 {
         }
 
         std::vector<VkWriteDescriptorSet> writeDescriptorSets(queue.size());
-        std::ranges::transform(queue, writeDescriptorSets.begin(), [](const mvk::DescriptorUpdateContext &context) {
+        std::ranges::transform(queue, writeDescriptorSets.begin(), [](const vkh::DescriptorUpdateContext &context) {
             return context.writeSet;
         });
 
@@ -293,22 +297,15 @@ namespace merutilm::rff2 {
 
         //COMMAND SCOPE START
         {
-            const auto renderPassExecutor = mvk::RenderPassExecutor(*engine, renderContext, extent,
+            const auto renderPassExecutor = vkh::RenderPassExecutor(*engine, renderContext, extent,
                                                                     currentFrame, imageIndex);
 
             const VkCommandBuffer cbh = engine->getCommandBuffer().getCommandBufferHandle(currentFrame);
             swapchain.matchViewportAndScissor(cbh);
-
-            for (int i = 0; i < shaderPrograms.size(); ++i) {
-                shaderPrograms[i]->pipeline->bind(cbh, currentFrame);
-                shaderPrograms[i]->render(cbh, currentFrame, extent.width, extent.height);
-                if (i < shaderPrograms.size() - 1) {
-                    vkCmdNextSubpass(cbh, VK_SUBPASS_CONTENTS_INLINE);
-                }
-            }
+            scene->render(cbh, currentFrame, extent);
         } // COMMAND SCOPE END
 
-        mvk::Presenter::present(*engine, swapchainHandle, currentFrame, imageIndex);
+        vkh::Presenter::present(*engine, swapchainHandle, currentFrame, imageIndex);
     }
 
     void Application::changeFrameIndex() {
@@ -319,12 +316,14 @@ namespace merutilm::rff2 {
         ShowWindow(masterWindow, SW_SHOW);
         UpdateWindow(masterWindow);
         SetWindowLongPtr(masterWindow, GWLP_USERDATA,
-                         reinterpret_cast<LONG_PTR>(engine->getCore().getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
+                         reinterpret_cast<LONG_PTR>(engine->getCore().getWindowContext(
+                                 Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                              window.get()));
     }
 
     void Application::start() const {
-        const mvk::GraphicsContextWindow &window = *engine->getCore().getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
+        const vkh::GraphicsContextWindow &window = *engine->getCore().getWindowContext(
+                    Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 window;
         window.start();
     }
@@ -332,7 +331,7 @@ namespace merutilm::rff2 {
     void Application::destroy() {
         vkDeviceWaitIdle(engine->getCore().getLogicalDevice().getLogicalDeviceHandle());
         scene = nullptr;
-        mvk::GeneralPostProcessPipelineConfigurator::cleanup();
+        vkh::GeneralPostProcessPipelineConfigurator::cleanup();
         engine = nullptr;
         settingsMenu = nullptr;
     }

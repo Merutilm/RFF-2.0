@@ -6,7 +6,7 @@
 #include <string>
 
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
     struct StringHasher {
         using is_transparent = void;

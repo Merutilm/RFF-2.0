@@ -6,7 +6,6 @@
 #include "GLMainWindow.h"
 #include "SettingsWindow.h"
 #include "VideoWindow.h"
-#include "../calc/dex_exp.h"
 
 void registerClasses() {
     using namespace merutilm::rff2::Constants::Win32;
@@ -15,7 +14,7 @@ void registerClasses() {
 
     WNDCLASSEXW masterWindowClass = wc;
     masterWindowClass.lpszClassName = CLASS_MASTER_WINDOW;
-    masterWindowClass.lpfnWndProc = merutilm::mvk::GraphicsContextWindow::GraphicsContextWindowProc;
+    masterWindowClass.lpfnWndProc = merutilm::vkh::GraphicsContextWindow::GraphicsContextWindowProc;
     masterWindowClass.hIcon = static_cast<HICON>(LoadImage(
     GetModuleHandle(nullptr),
     MAKEINTRESOURCE(1),
@@ -80,7 +79,7 @@ void countLines() {
 
 int main() {
     using namespace merutilm::rff2;
-    using namespace merutilm::mvk;
+    using namespace merutilm::vkh;
     registerClasses();
     countLines();
 

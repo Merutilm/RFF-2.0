@@ -1,49 +1,91 @@
 //
-// Created by Merutilm on 2025-05-07.
+// Created by Merutilm on 2025-08-08.
 //
 
-#include "GLRenderScene.h"
+#include "RenderScene.hpp"
 
-#include <chrono>
-#include <cmath>
-#include <format>
-#include "glad.h"
-#include "../constants/Constants.hpp"
-#include "Utilities.h"
-#include "../calc/double_exp_math.h"
+#include "CallbackExplore.h"
+#include "IOUtilities.h"
+#include "../constants/VulkanWindowConstants.hpp"
+#include "../vulkan/BasicRenderContextConfigurator.hpp"
+#include "../vulkan/Template1PipelineConfigurator.hpp"
+#include "../vulkan/Template2PipelineConfigurator.hpp"
+#include "../calc/dex_exp.h"
 #include "../formula/DeepMandelbrotPerturbator.h"
-#include "../formula/Perturbator.h"
+#include "../formula/LightMandelbrotPerturbator.h"
+#include "../locator/MandelbrotLocator.h"
 #include "../parallel/ParallelArrayDispatcher.h"
+#include "../parallel/ParallelDispatcher.h"
+#include "../preset/calc/CalculationPresets.h"
+#include "../preset/render/RenderPresets.h"
 #include "../preset/shader/bloom/BloomPresets.h"
 #include "../preset/shader/color/ColorPresets.h"
 #include "../preset/shader/fog/FogPresets.h"
 #include "../preset/shader/palette/PalettePresets.h"
 #include "../preset/shader/slope/SlopePresets.h"
 #include "../preset/shader/stripe/StripePresets.h"
-#include <opencv2/opencv.hpp>
+#include "../vulkan/SharedDescriptorTemplate.hpp"
 
-
-#include "CallbackExplore.h"
-#include "../locator/MandelbrotLocator.h"
-#include "../parallel/ParallelDispatcher.h"
-#include "../preset/calc/CalculationPresets.h"
-#include "../preset/render/RenderPresets.h"
-#include <opencv2/core/ocl.hpp>
-
-#include "IOUtilities.h"
 
 namespace merutilm::rff2 {
-    GLRenderScene::GLRenderScene() : state(ParallelRenderState()), settings(defaultSettings()) {
-        if (!cv::ocl::useOpenCL()) {
-            std::cout << "OpenCL initialization failed." << std::endl;
+    RenderScene::RenderScene(vkh::Engine &engine, const HWND window) : engine(engine), window(window), settings(defaultSettings()) {
+        init();
+    }
+
+    RenderScene::~RenderScene() {
+        destroy();
+    }
+
+    void RenderScene::init() {
+        initRenderContext();
+        initShaderPrograms();
+    }
+
+    void RenderScene::render(const VkCommandBuffer cbh, const uint32_t frameIndex, const VkExtent2D &extent) {
+        using namespace SharedDescriptorTemplate;
+        auto &layoutRepo = *engine.getRepositories().getRepository<vkh::DescriptorSetLayoutRepo>();
+
+        engine.getRepositories().getRepository<vkh::SharedDescriptorRepo>()->pick(vkh::DescriptorTemplate::from<DescTime>(), layoutRepo).getDescriptorManager().get<std::unique_ptr<vkh::Uniform>>(DescTime::BINDING_UBO_TIME)
+        ->set(DescTime::TARGET_TIME_CURRENT, Utilities::getCurrentTime());
+        //renderer->setTime(Utilities::getCurrentTime());
+
+        if (colorRequested) {
+            applyColor(settings);
+            colorRequested.exchange(false);
+            backgroundThreads.notifyAll();
+        }
+
+        if (resizeRequested) {
+            state.cancel();
+            applyResize();
+            resizeRequested.exchange(false);
+            backgroundThreads.notifyAll();
+        }
+
+        if (recomputeRequested) {
+            idleCompute = false;
+            recomputeRequested.exchange(false);
+            recomputeThreaded();
+            //it is threaded, not idle
+        }
+
+        if (createImageRequested) {
+            applyCreateImage();
+            createImageRequested.exchange(false);
+            backgroundThreads.notifyAll();
+        }
+
+
+        for (int i = 0; i < shaderPrograms.size(); ++i) {
+            shaderPrograms[i]->pipeline->bind(cbh, frameIndex);
+            shaderPrograms[i]->render(cbh, frameIndex, extent.width, extent.height);
+            if (i < shaderPrograms.size() - 1) {
+                vkCmdNextSubpass(cbh, VK_SUBPASS_CONTENTS_INLINE);
+            }
         }
     }
 
-    GLRenderScene::~GLRenderScene() {
-        state.cancel();
-    }
-
-    Settings GLRenderScene::defaultSettings() {
+    Settings RenderScene::defaultSettings() {
         return Settings{
             .calculationSettings = CalculationSettings{
                 .center = fp_complex("-0.85",
@@ -91,8 +133,7 @@ namespace merutilm::rff2 {
         };
     }
 
-
-    void GLRenderScene::runAction(const UINT message, const WPARAM wParam) {
+    void RenderScene::runAction(const UINT message, const WPARAM wParam) {
         switch (message) {
             case WM_LBUTTONDOWN: {
                 SetCursor(LoadCursor(nullptr, IDC_SIZEALL));
@@ -173,8 +214,7 @@ namespace merutilm::rff2 {
         }
     }
 
-
-    std::array<dex, 2> GLRenderScene::offsetConversion(const Settings &settings, const int mx, const int my) const {
+    std::array<dex, 2> RenderScene::offsetConversion(const Settings &settings, int mx, int my) const {
         return {
             dex::value(static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth(settings)) / 2.0) /
             getDivisor(settings)
@@ -185,186 +225,100 @@ namespace merutilm::rff2 {
         };
     }
 
-    dex GLRenderScene::getDivisor(const Settings &settings) {
+    dex RenderScene::getDivisor(const Settings &settings) {
         dex v = dex::ZERO;
         dex_exp::exp10(&v, settings.calculationSettings.logZoom);
         return v;
     }
 
-    uint16_t GLRenderScene::getClientWidth() const {
+    uint16_t RenderScene::getClientWidth() const {
         RECT rect;
-        GetClientRect(getRenderWindow(), &rect);
+        GetClientRect(window, &rect);
         return static_cast<uint16_t>(rect.right - rect.left);
     }
 
-    uint16_t GLRenderScene::getClientHeight() const {
+    uint16_t RenderScene::getClientHeight() const {
         RECT rect;
-        GetClientRect(getRenderWindow(), &rect);
+        GetClientRect(window, &rect);
         return static_cast<uint16_t>(rect.bottom - rect.top);
     }
 
-    uint16_t GLRenderScene::getIterationBufferWidth(const Settings &settings) const {
+    uint16_t RenderScene::getIterationBufferWidth(const Settings &settings) const {
         const float multiplier = settings.renderSettings.clarityMultiplier;
         return static_cast<uint16_t>(static_cast<float>(getClientWidth()) * multiplier);
     }
 
-    uint16_t GLRenderScene::getIterationBufferHeight(const Settings &settings) const {
+    uint16_t RenderScene::getIterationBufferHeight(const Settings &settings) const {
         const float multiplier = settings.renderSettings.clarityMultiplier;
         return static_cast<uint16_t>(static_cast<float>(getClientHeight()) * multiplier);
     }
 
-
-    void GLRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context,
-                                std::array<std::string, Constants::Status::LENGTH> *statusMessageRef) {
-        WGLScene::configure(wnd, hdc, context);
-        makeContextCurrent();
-
-        this->statusMessageRef = statusMessageRef;
-        renderer = std::make_unique<GLMultipassRenderer>();
-        rendererIteration = std::make_unique<GLRendererIteration>();
-        rendererStripe = std::make_unique<GLRendererStripe>();
-        rendererSlope = std::make_unique<GLRendererSlope>();
-        rendererColorFilter = std::make_unique<GLRendererColor>();
-        rendererFog = std::make_unique<GLRendererFog>();
-        rendererBloom = std::make_unique<GLRendererBloom>();
-        rendererAntialiasing = std::make_unique<GLRendererAntialiasing>();
-
-
-        renderer->add(*rendererIteration);
-        renderer->add(*rendererStripe);
-        renderer->add(*rendererSlope);
-        renderer->add(*rendererColorFilter);
-        renderer->add(*rendererFog);
-        renderer->add(*rendererBloom);
-        renderer->add(*rendererAntialiasing);
-
-        requestResize();
-        requestColor();
-        requestRecompute();
-    }
-
-    void GLRenderScene::renderGL() {
-        makeContextCurrent();
-        renderer->setTime(Utilities::getCurrentTime());
-
-        if (colorRequested) {
-            applyColor(settings);
-            colorRequested.exchange(false);
-            backgroundThreads.notifyAll();
-        }
-
-        if (resizeRequested) {
-            state.cancel();
-            applyResize();
-            resizeRequested.exchange(false);
-            backgroundThreads.notifyAll();
-        }
-
-        if (recomputeRequested) {
-            idleCompute = false;
-            recomputeRequested.exchange(false);
-            recomputeThreaded();
-            //it is threaded, not idle
-        }
-
-        if (createImageRequested) {
-            applyCreateImage();
-            createImageRequested.exchange(false);
-            backgroundThreads.notifyAll();
-        }
-
-        glClear(GL_COLOR_BUFFER_BIT);
-        renderer->render();
-        renderer->display();
-        swapBuffers();
-    }
-
-    void GLRenderScene::requestColor() {
-        colorRequested = true;
-    }
-
-    void GLRenderScene::requestResize() {
-        resizeRequested = true;
-    }
-
-    void GLRenderScene::requestRecompute() {
-        recomputeRequested = true;
-    }
-
-    void GLRenderScene::requestCreateImage(const std::string_view filename) {
-        createImageRequested = true;
-        createImageRequestedFilename = filename;
-    }
-
-
-    void GLRenderScene::applyCreateImage() {
+    void RenderScene::applyCreateImage() {
         if (createImageRequestedFilename.empty()) {
             createImageRequestedFilename = IOUtilities::ioFileDialog("Save image", Constants::Extension::DESC_IMAGE, IOUtilities::SAVE_FILE,
                                       Constants::Extension::IMAGE)->string();
         }
-        const GLuint fbo = renderer->getRenderedFBO();
-        const GLuint fboID = renderer->getRenderedFBOTexID();
-        const int width = renderer->getWidth();
-        const int height = renderer->getHeight();
-        GLRenderer::bindFBO(fbo, fboID);
-        std::vector<char> pixels(width * height * 4);
-        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
-
-        auto img = cv::Mat(height, width, CV_8UC4, pixels.data());
-        cv::flip(img, img, 0);
-        cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
-        cv::imwrite(createImageRequestedFilename, img);
-        GLRenderer::unbindFBO(fbo);
+        // const GLuint fbo = renderer->getRenderedFBO();
+        // const GLuint fboID = renderer->getRenderedFBOTexID();
+        // const int width = renderer->getWidth();
+        // const int height = renderer->getHeight();
+        // GLRenderer::bindFBO(fbo, fboID);
+        // std::vector<char> pixels(width * height * 4);
+        // glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+        //
+        // auto img = cv::Mat(height, width, CV_8UC4, pixels.data());
+        // cv::flip(img, img, 0);
+        // cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
+        // cv::imwrite(createImageRequestedFilename, img);
+        // GLRenderer::unbindFBO(fbo);
     }
 
-    void GLRenderScene::applyColor(const Settings &settings) const {
-        rendererIteration->setPaletteSettings(settings.shaderSettings.paletteSettings);
-        rendererStripe->setStripeSettings(settings.shaderSettings.stripeSettings);
-        rendererSlope->setSlopeSettings(settings.shaderSettings.slopeSettings);
-        rendererColorFilter->setColorSettings(settings.shaderSettings.colorSettings);
-        rendererFog->setFogSettings(settings.shaderSettings.fogSettings);
-        rendererBloom->setBloomSettings(settings.shaderSettings.bloomSettings);
-        rendererAntialiasing->setUse(settings.renderSettings.antialiasing);
+    void RenderScene::applyColor(const Settings &settings) const {
+        // rendererIteration->setPaletteSettings(settings.shaderSettings.paletteSettings);
+        // rendererStripe->setStripeSettings(settings.shaderSettings.stripeSettings);
+        // rendererSlope->setSlopeSettings(settings.shaderSettings.slopeSettings);
+        // rendererColorFilter->setColorSettings(settings.shaderSettings.colorSettings);
+        // rendererFog->setFogSettings(settings.shaderSettings.fogSettings);
+        // rendererBloom->setBloomSettings(settings.shaderSettings.bloomSettings);
+        // rendererAntialiasing->setUse(settings.renderSettings.antialiasing);
     }
 
-    void GLRenderScene::applyResize() {
+    void RenderScene::applyResize() {
         const uint16_t cw = getClientWidth();
         const uint16_t ch = getClientHeight();
         const uint16_t iw = getIterationBufferWidth(settings);
         const uint16_t ih = getIterationBufferHeight(settings);
-        glViewport(0, 0, cw, ch);
-        rendererSlope->setClarityMultiplier(settings.renderSettings.clarityMultiplier);
-        rendererIteration->reloadIterationBuffer(iw, ih);
-        renderer->reloadSize(cw, ch, iw, ih);
+        // glViewport(0, 0, cw, ch);
+        // rendererSlope->setClarityMultiplier(settings.renderSettings.clarityMultiplier);
+        // rendererIteration->reloadIterationBuffer(iw, ih);
+        // renderer->reloadSize(cw, ch, iw, ih);
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
     }
 
-    void GLRenderScene::overwriteMatrixFromMap() const {
-        renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->getMatrix().getWidth(),
-                             currentMap->getMatrix().getHeight());
-        rendererIteration->setMaxIteration(static_cast<double>(currentMap->getMaxIteration()));
-        rendererIteration->setAllIterations(currentMap->getMatrix());
+    void RenderScene::overwriteMatrixFromMap() const {
+        // renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->getMatrix().getWidth(),
+        //                      currentMap->getMatrix().getHeight());
+        // rendererIteration->setMaxIteration(static_cast<double>(currentMap->getMaxIteration()));
+        // rendererIteration->setAllIterations(currentMap->getMatrix());
     }
 
-
-    uint16_t GLRenderScene::getMouseXOnIterationBuffer() const {
+    uint16_t RenderScene::getMouseXOnIterationBuffer() const {
         POINT cursor;
         GetCursorPos(&cursor);
-        ScreenToClient(getRenderWindow(), &cursor);
+        ScreenToClient(window, &cursor);
         const float multiplier = settings.renderSettings.clarityMultiplier;
         return static_cast<uint16_t>(static_cast<float>(cursor.x) * multiplier);
     }
 
-    uint16_t GLRenderScene::getMouseYOnIterationBuffer() const {
+    uint16_t RenderScene::getMouseYOnIterationBuffer() const {
         POINT cursor;
         GetCursorPos(&cursor);
-        ScreenToClient(getRenderWindow(), &cursor);
+        ScreenToClient(window, &cursor);
         const float multiplier = settings.renderSettings.clarityMultiplier;
         return getIterationBufferHeight(settings) - static_cast<uint16_t>(static_cast<float>(cursor.y) * multiplier);
     }
 
-
-    void GLRenderScene::recomputeThreaded() {
+    void RenderScene::recomputeThreaded() {
         state.createThread([this](std::stop_token) {
             Settings settings = this->settings; //clone the settings
             beforeCompute(settings);
@@ -373,25 +327,23 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GLRenderScene::beforeCompute(Settings &settings) const {
+    void RenderScene::beforeCompute(Settings &settings) const {
         settings.calculationSettings.maxIteration = settings.calculationSettings.autoMaxIteration
                                                         ? lastPeriod * settings.calculationSettings.
                                                           autoIterationMultiplier
                                                         : this->settings.calculationSettings.maxIteration;
-        rendererIteration->setMaxIteration(static_cast<double>(settings.calculationSettings.maxIteration));
+        // rendererIteration->setMaxIteration(static_cast<double>(settings.calculationSettings.maxIteration));
     }
 
-
-    bool GLRenderScene::compute(const Settings &settings) {
+    bool RenderScene::compute(const Settings &settings) {
         auto start = std::chrono::high_resolution_clock::now();
-        const Settings settingsToUse = settings;
-        uint16_t w = getIterationBufferWidth(settingsToUse);
-        uint16_t h = getIterationBufferHeight(settingsToUse);
+        uint16_t w = getIterationBufferWidth(settings);
+        uint16_t h = getIterationBufferHeight(settings);
         uint32_t len = uint32_t(w) * h;
 
         if (state.interruptRequested()) return false;
 
-        auto &calc = settingsToUse.calculationSettings;
+        auto &calc = settings.calculationSettings;
 
         float logZoom = calc.logZoom;
 
@@ -400,7 +352,7 @@ namespace merutilm::rff2 {
         setStatusMessage(Constants::Status::ZOOM_STATUS,
                          std::format("Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
-        const std::array<dex, 2> offset = offsetConversion(settingsToUse, 0, 0);
+        const std::array<dex, 2> offset = offsetConversion(settings, 0, 0);
         dex dcMax = dex::ZERO;
         dex_trigonometric::hypot_approx(&dcMax, offset[0], offset[1]);
         const auto refreshInterval = Utilities::getRefreshInterval(logZoom);
@@ -433,35 +385,35 @@ namespace merutilm::rff2 {
                 break;
             }
             case CENTERED_REFERENCE: {
-                uint64_t period = currentPerturbator->getReference()->longestPeriod();
-                auto center = MandelbrotLocator::locateMinibrot(state, currentPerturbator.get(), approxTableCache,
-                                                                CallbackExplore::getActionWhileFindingMinibrotCenter(
-                                                                    *this, logZoom, period),
-                                                                CallbackExplore::getActionWhileCreatingTable(
-                                                                    *this, logZoom),
-                                                                CallbackExplore::getActionWhileFindingZoom(*this)
-                );
-                if (center == nullptr) return false;
-
-                CalculationSettings refCalc = calc;
-                refCalc.center = center->perturbator->calc.center;
-                refCalc.logZoom = center->perturbator->calc.logZoom;
-                int refExp10 = Perturbator::logZoomToExp10(refCalc.logZoom);
-
-                if (refCalc.logZoom > Constants::Render::ZOOM_DEADLINE) {
-                    currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
-                                state, refCalc, center->perturbator->getDcMaxAsDoubleExp(),
-                                refExp10,
-                                period, approxTableCache, std::move(actionPerRefCalcIteration),
-                                std::move(actionPerCreatingTableIteration))
-                            ->reuse(calc, dcMax, approxTableCache);
-                } else {
-                    currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(state, refCalc,
-                                static_cast<double>(center->perturbator->getDcMaxAsDoubleExp()),
-                                refExp10, period, approxTableCache, std::move(actionPerRefCalcIteration),
-                                std::move(actionPerCreatingTableIteration))
-                            ->reuse(calc, static_cast<double>(dcMax), approxTableCache);
-                }
+                // uint64_t period = currentPerturbator->getReference()->longestPeriod();
+                // auto center = MandelbrotLocator::locateMinibrot(state, currentPerturbator.get(), approxTableCache,
+                //                                                 CallbackExplore::getActionWhileFindingMinibrotCenter(
+                //                                                     *this, logZoom, period),
+                //                                                 CallbackExplore::getActionWhileCreatingTable(
+                //                                                     *this, logZoom),
+                //                                                 CallbackExplore::getActionWhileFindingZoom(*this)
+                // );
+                // if (center == nullptr) return false;
+                //
+                // CalculationSettings refCalc = calc;
+                // refCalc.center = center->perturbator->calc.center;
+                // refCalc.logZoom = center->perturbator->calc.logZoom;
+                // int refExp10 = Perturbator::logZoomToExp10(refCalc.logZoom);
+                //
+                // if (refCalc.logZoom > Constants::Render::ZOOM_DEADLINE) {
+                //     currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
+                //                 state, refCalc, center->perturbator->getDcMaxAsDoubleExp(),
+                //                 refExp10,
+                //                 period, approxTableCache, std::move(actionPerRefCalcIteration),
+                //                 std::move(actionPerCreatingTableIteration))
+                //             ->reuse(calc, dcMax, approxTableCache);
+                // } else {
+                //     currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(state, refCalc,
+                //                 static_cast<double>(center->perturbator->getDcMaxAsDoubleExp()),
+                //                 refExp10, period, approxTableCache, std::move(actionPerRefCalcIteration),
+                //                 std::move(actionPerCreatingTableIteration))
+                //             ->reuse(calc, static_cast<double>(dcMax), approxTableCache);
+                // }
                 break;
             }
             case DISABLED: {
@@ -510,18 +462,18 @@ namespace merutilm::rff2 {
 
         auto previewer = ParallelArrayDispatcher<double>(
             state, *iterationMatrix,
-            [settingsToUse, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y,
+            [settings, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y,
                                                                  const uint16_t xRes, uint16_t, float,
                                                                  float, const uint32_t i,
                                                                  double) {
                 rendered[i] = true;
-                const auto dc = offsetConversion(settingsToUse, x, y);
+                const auto dc = offsetConversion(settings, x, y);
                 const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
-                rendererIteration->setIteration(x, y, iteration);
+                // rendererIteration->setIteration(x, y, iteration);
 
                 int16_t my = y - 1;
                 while (my >= 0 && !rendered[my * xRes + x]) {
-                    rendererIteration->setIteration(x, my, iteration);
+                    // rendererIteration->setIteration(x, my, iteration);
                     --my;
                 }
 
@@ -529,7 +481,7 @@ namespace merutilm::rff2 {
                 return iteration;
             });
 
-        rendererIteration->fillZero();
+        // rendererIteration->fillZero();
 
         auto statusThread = std::jthread([&renderPixelsCount, len, this, &start](const std::stop_token &stop) {
             while (!stop.stop_requested()) {
@@ -551,7 +503,7 @@ namespace merutilm::rff2 {
         auto syncer = ParallelDispatcher(
             state, w, h,
             [this](const uint16_t x, const uint16_t y, uint16_t, uint16_t, float, float, uint32_t) {
-                rendererIteration->setIteration(x, y, (*iterationMatrix)(x, y));
+                // rendererIteration->setIteration(x, y, (*iterationMatrix)(x, y));
             });
 
         syncer.dispatch();
@@ -565,7 +517,7 @@ namespace merutilm::rff2 {
         return true;
     }
 
-    void GLRenderScene::afterCompute(const bool success) {
+    void RenderScene::afterCompute(bool success) {
         if (!success) {
             Utilities::log("Recompute cancelled.");
         }
@@ -577,73 +529,27 @@ namespace merutilm::rff2 {
     }
 
 
-    void GLRenderScene::setStatusMessage(const int index, const std::string_view &message) const {
-        (*statusMessageRef)[index] = std::string("  ").append(message);
+    void RenderScene::initRenderContext() const {
+        const auto &swapchain = *engine.getCore().getWindowContext(
+            Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+        auto configurator = std::make_unique<BasicRenderContextConfigurator>(engine.getCore(), swapchain);
+
+        engine.attachRenderContext(std::make_unique<vkh::RenderContext>(engine.getCore(),
+                                                                        swapchain.populateSwapchainExtent(),
+                                                                        std::move(configurator)));
     }
 
-    Settings &GLRenderScene::getSettings() {
-        return settings;
-    }
-
-    ParallelRenderState &GLRenderScene::getState() {
-        return state;
-    }
-
-    MandelbrotPerturbator *GLRenderScene::getCurrentPerturbator() const {
-        return currentPerturbator.get();
+    void RenderScene::initShaderPrograms() {
+        shaderPrograms.emplace_back(
+            vkh::PipelineConfigurator::createShaderProgram<Template1PipelineConfigurator>(
+                engine, BasicRenderContextConfigurator::SUBPASS_PRIMARY_INDEX));
+        shaderPrograms.emplace_back(
+            vkh::PipelineConfigurator::createShaderProgram<Template2PipelineConfigurator>(
+                engine, BasicRenderContextConfigurator::SUBPASS_SECONDARY_INDEX));
     }
 
 
-    void GLRenderScene::setCurrentPerturbator(std::unique_ptr<MandelbrotPerturbator> perturbator) {
-        this->currentPerturbator = std::move(perturbator);
-    }
-
-    ApproxTableCache &GLRenderScene::getApproxTableCache() {
-        return approxTableCache;
-    }
-
-    BackgroundThreads &GLRenderScene::getBackgroundThreads() {
-        return backgroundThreads;
-    }
-
-    RFFDynamicMapBinary &GLRenderScene::getCurrentMap() const {
-        return *currentMap;
-    }
-
-    void GLRenderScene::setCurrentMap(const RFFDynamicMapBinary &map) {
-        this->currentMap = std::make_unique<RFFDynamicMapBinary>(map);
-    }
-
-    bool GLRenderScene::isRecomputeRequested() const {
-        return recomputeRequested;
-    }
-
-    bool GLRenderScene::isCreateImageRequested() const {
-        return createImageRequested;
-    }
-
-    bool GLRenderScene::isResizeRequested() const {
-        return resizeRequested;
-    }
-
-    bool GLRenderScene::isColorRequested() const {
-        return colorRequested;
-    }
-
-    bool GLRenderScene::isIdleCompute() const {
-        return idleCompute;
-    }
-
-    int GLRenderScene::getCWRequest() const {
-        return cwRequest;
-    }
-
-    int GLRenderScene::getCHRequest() const {
-        return chRequest;
-    }
-
-    void GLRenderScene::clientResizeRequestSolved() {
-        cwRequest = 0;
-        chRequest = 0;
+    void RenderScene::destroy() {
+        shaderPrograms.clear();
     }
 }

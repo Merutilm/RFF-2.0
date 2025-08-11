@@ -10,7 +10,7 @@
 #include "VectorHasher.hpp"
 
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
     struct PipelineLayoutManagerPtrHasher{
         using is_transparent = void;

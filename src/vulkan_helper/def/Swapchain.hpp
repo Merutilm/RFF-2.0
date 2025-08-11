@@ -9,7 +9,7 @@
 
 #include "LogicalDevice.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class Swapchain final : public Handler {
 
         const Surface &surface;

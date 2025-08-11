@@ -9,7 +9,7 @@
 #include "../def/PipelineLayout.hpp"
 #include "../def/ShaderModule.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class PipelineManager {
         const PipelineLayout &layout;
         std::vector<const Descriptor *> descriptors = {};

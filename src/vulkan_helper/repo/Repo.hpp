@@ -6,7 +6,7 @@
 #include "IRepo.hpp"
 #include "../def/Core.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
     template<typename Key, typename KeyInput, typename Type, typename KeyHasher, typename KeyPredicate, typename... Args>
     struct Repo : IRepo{

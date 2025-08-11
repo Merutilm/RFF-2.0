@@ -6,7 +6,7 @@
 #include "BoostHasher.hpp"
 #include "../struct/DescriptorSetLayoutBuildType.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct DescriptorSetLayoutBuildTypeHasher {
         using is_transparent = void;
 

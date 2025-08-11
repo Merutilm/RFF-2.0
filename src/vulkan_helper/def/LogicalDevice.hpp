@@ -9,7 +9,7 @@
 #include "PhysicalDevice.hpp"
 #include "../handle/Handler.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class LogicalDevice final : public Handler {
         const Instance &instance;
         const PhysicalDevice &physicalDevice;

@@ -6,8 +6,9 @@
 #include <chrono>
 #include <windows.h>
 
-namespace merutilm::mvk {
-    GraphicsContextWindow::GraphicsContextWindow(const HWND window, const float framerate) : window(window), framerate(framerate) {
+namespace merutilm::vkh {
+    GraphicsContextWindow::GraphicsContextWindow(const HWND window, const float framerate) : window(window),
+        framerate(framerate) {
     }
 
 
@@ -28,9 +29,10 @@ namespace merutilm::mvk {
 
             auto now = high_resolution_clock::now();
 
-            if (auto elapsed = duration_cast<milliseconds>(now - started); static_cast<float>(elapsed.count()) > 1000 / framerate) {
+            if (auto elapsed = duration_cast<milliseconds>(now - started);
+                static_cast<float>(elapsed.count()) > 1000 / framerate) {
                 started = now;
-                for (const auto &renderer : renderers) {
+                for (const auto &renderer: renderers) {
                     renderer();
                 }
             }
@@ -38,8 +40,8 @@ namespace merutilm::mvk {
     }
 
 
-
-    LRESULT GraphicsContextWindow::GraphicsContextWindowProc(const HWND hwnd, const UINT message, const WPARAM wparam, const LPARAM lparam) {
+    LRESULT GraphicsContextWindow::GraphicsContextWindowProc(const HWND hwnd, const UINT message, const WPARAM wparam,
+                                                             const LPARAM lparam) {
         const auto windowPtr = reinterpret_cast<GraphicsContextWindow *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
         if (windowPtr == nullptr) {
@@ -52,14 +54,16 @@ namespace merutilm::mvk {
             PostQuitMessage(0);
         }
 
+        window.headListener(message, wparam);
+
         return window.runListeners(hwnd, message, wparam, lparam);
     }
 
-    LRESULT GraphicsContextWindow::runListeners(const HWND hwnd, const UINT message, const WPARAM wparam, const LPARAM lparam) {
+    LRESULT GraphicsContextWindow::runListeners(const HWND hwnd, const UINT message, const WPARAM wparam,
+                                                const LPARAM lparam) {
         if (listeners.contains(message)) {
             return listeners[message](*this, hwnd, wparam, lparam);
         }
         return DefWindowProc(hwnd, message, wparam, lparam);
     }
-
 }

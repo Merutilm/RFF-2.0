@@ -7,7 +7,7 @@
 
 #include "../manage/RenderPassManager.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     /**
      * RenderPass Framebuffer Configurator
      */

@@ -10,7 +10,7 @@
 
 #include "../handle/EngineHandler.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class Pipeline final : public EngineHandler {
         VkPipeline pipeline = nullptr;
         const PipelineLayout &pipelineLayout;

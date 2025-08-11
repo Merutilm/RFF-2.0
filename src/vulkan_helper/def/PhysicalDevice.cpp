@@ -9,7 +9,7 @@
 #include "../exception/exception.hpp"
 #include "../struct/StringHasher.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     PhysicalDevice::PhysicalDevice(const Instance &instance, const Surface &surface) : instance(instance), surface(surface) {
         PhysicalDevice::init();
     }

@@ -12,7 +12,7 @@
 #include "ShaderModuleRepo.hpp"
 #include "../exception/exception.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class Repositories {
 
         std::vector<std::unique_ptr<IRepo> > repositories = {};

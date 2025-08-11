@@ -12,7 +12,7 @@
 #include "../handle/Handler.hpp"
 #include "ValidationLayer.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class Instance final : public Handler {
         VkInstance instance = nullptr;
         std::unique_ptr<ValidationLayer> validationLayer;

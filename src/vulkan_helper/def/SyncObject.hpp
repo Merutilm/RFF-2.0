@@ -5,7 +5,7 @@
 #pragma once
 #include "../handle/CoreHandler.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class SyncObject final : public CoreHandler {
         std::vector<VkSemaphore> imageRenderedSemaphores;
         std::vector<VkSemaphore> renderFinishedSemaphores;

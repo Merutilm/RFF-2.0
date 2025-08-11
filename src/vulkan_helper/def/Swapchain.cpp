@@ -7,7 +7,7 @@
 #include "../exception/exception.hpp"
 #include "../util/BufferImageUtils.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     Swapchain::Swapchain(const Surface &surface, const PhysicalDevice &physicalDevice,
                          const LogicalDevice &logicalDevice) : surface(surface), physicalDevice(physicalDevice),
                                                                logicalDevice(logicalDevice) {

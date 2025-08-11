@@ -6,7 +6,7 @@
 
 #include "../exception/exception.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
     Instance::Instance(const bool enableValidationLayer) : enableValidationLayer(enableValidationLayer){
         Instance::init();

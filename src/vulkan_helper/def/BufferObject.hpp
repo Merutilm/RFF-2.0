@@ -8,7 +8,7 @@
 #include "../manage/CompleteShaderObjectManager.hpp"
 #include "../manage/ShaderObjectManager.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class BufferObject : public CoreHandler, public CompleteShaderObjectManager{
 
         VkBufferUsageFlags bufferUsage;

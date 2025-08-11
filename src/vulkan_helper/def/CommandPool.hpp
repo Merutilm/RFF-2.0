@@ -5,7 +5,7 @@
 #pragma once
 #include "../handle/CoreHandler.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class CommandPool final : public CoreHandler {
         VkCommandPool commandPool = {};
 

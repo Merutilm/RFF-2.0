@@ -7,7 +7,7 @@
 #include "../handle/CoreHandler.hpp"
 #include "Core.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class CommandBuffer final : public CoreHandler {
         std::vector<VkCommandBuffer> commandBuffers = {};
         const CommandPool &commandPool;

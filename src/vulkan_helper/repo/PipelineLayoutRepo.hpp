@@ -9,7 +9,7 @@
 #include "../manage/PipelineLayoutManager.hpp"
 #include "../def/PipelineLayout.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct PipelineLayoutRepo final : Repo<PipelineLayoutManager *, std::unique_ptr<PipelineLayoutManager> &&, PipelineLayout, PipelineLayoutManagerPtrHasher, PointerDerefEquals>{
 
         using Repo::Repo;

@@ -12,7 +12,7 @@
 
 #include "../exception/exception.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     ValidationLayer::ValidationLayer(const VkInstance instance, const bool enabled) : instance(instance),
         enabled(enabled) {
         ValidationLayer::init();

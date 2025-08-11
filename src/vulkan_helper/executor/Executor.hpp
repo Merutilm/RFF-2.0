@@ -5,7 +5,7 @@
 #pragma once
 #include "../def/Engine.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct Executor {
         const Core &core;
 

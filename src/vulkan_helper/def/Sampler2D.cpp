@@ -6,7 +6,7 @@
 
 #include "../util/ImageContextUtils.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     Sampler2D::Sampler2D(const Core &core, VkSamplerCreateInfo &&samplerInfo) : CoreHandler(core), samplerInfo(std::move(samplerInfo)) {
         Sampler2D::init();
     }

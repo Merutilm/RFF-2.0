@@ -4,7 +4,7 @@
 
 #include "PipelineLayout.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     PipelineLayout::PipelineLayout(const Core &core,
                                    std::unique_ptr<PipelineLayoutManager> &&pipelineLayoutManager) : CoreHandler(
         core), pipelineLayoutManager(std::move(pipelineLayoutManager)) {

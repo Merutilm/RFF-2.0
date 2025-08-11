@@ -9,7 +9,7 @@
 #include "../executor/ScopedCommandExecutor.hpp"
 #include "../util/BufferImageUtils.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     BufferObject::BufferObject(const Core &core, std::unique_ptr<ShaderObjectManager> &&dataManager,
                                const VkBufferUsageFlags bufferUsage) : CoreHandler(core),
                                                                        CompleteShaderObjectManager(std::move(dataManager)),

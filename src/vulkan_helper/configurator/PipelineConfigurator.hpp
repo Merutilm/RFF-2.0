@@ -7,7 +7,7 @@
 #include "../handle/EngineHandler.hpp"
 #include "../struct/DescriptorTemplate.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct PipelineConfigurator : public EngineHandler {
         const uint32_t subpassIndex;
         const ShaderModule &vertexShader;
@@ -99,10 +99,10 @@ namespace merutilm::mvk {
 
         template<DescTemplateHasID D>
         static void appendDescriptor(const uint32_t setExpected, std::vector<const Descriptor *> &descriptors,
-                                     DescriptorSetLayoutRepo &layoutRepo, SharedDescriptorRepo &repo, const VkShaderStageFlags useStage) {
+                                     DescriptorSetLayoutRepo &layoutRepo, SharedDescriptorRepo &repo) {
             IndexChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
                                           "Unique Descriptor Add");
-            descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), layoutRepo, useStage));
+            descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), layoutRepo));
         }
 
         void appendUniqueDescriptor(const uint32_t setExpected, std::vector<const Descriptor *> &descriptors,

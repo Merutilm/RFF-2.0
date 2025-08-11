@@ -12,7 +12,7 @@
 #include "SyncObject.hpp"
 #include "../context/RenderContext.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class Engine final : public Handler {
         std::unique_ptr<Core> core = nullptr;
         std::unique_ptr<Repositories> repositories = nullptr;

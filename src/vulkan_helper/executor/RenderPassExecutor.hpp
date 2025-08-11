@@ -6,7 +6,7 @@
 #include "Executor.hpp"
 #include "../context/RenderContext.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class RenderPassExecutor final : public Executor {
         const Engine &engine;
         const RenderContext &renderContext;

@@ -14,7 +14,7 @@
 #include "../struct/StringHasher.hpp"
 #include "../context/ImageContext.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     using DescriptorSetLayoutBuilder = std::vector<DescriptorSetLayoutBuildType>;
     using DescriptorSetLayoutBuilderHasher = VectorHasher<DescriptorSetLayoutBuildType,
         DescriptorSetLayoutBuildTypeHasher>;
@@ -56,7 +56,7 @@ namespace merutilm::mvk {
         const DescriptorType &getRaw(uint32_t bindingIndex);
 
         template<typename T>
-        [[nodiscard]] T &get(uint32_t index);
+        [[nodiscard]] T &get(uint32_t bindingIndex);
     };
 
     template<typename T>
@@ -106,11 +106,11 @@ namespace merutilm::mvk {
 
 
     template<typename T>
-    T &DescriptorManager::get(const uint32_t index) {
-        if (index >= data.size()) {
-            throw exception_invalid_args("index out of range");
+    T &DescriptorManager::get(const uint32_t bindingIndex) {
+        if (bindingIndex >= data.size()) {
+            throw exception_invalid_args("binding out of range");
         }
-        return std::get<T>(data[index]);
+        return std::get<T>(data[bindingIndex]);
     }
 
 }

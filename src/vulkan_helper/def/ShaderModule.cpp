@@ -9,7 +9,7 @@
 #include "../exception/exception.hpp"
 #include <fstream>
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     ShaderModule::ShaderModule(const Core &core, const std::string &filename) : CoreHandler(core), shaderStage(getShaderStage(filename)),
                                                          filename(SHADER_PATH_PREFIX + filename + ".spv") {
         ShaderModule::init();

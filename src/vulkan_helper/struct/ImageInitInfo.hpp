@@ -5,7 +5,7 @@
 #pragma once
 #include <vulkan/vulkan.h>
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct ImageInitInfo {
         VkImageType imageType;
         VkImageViewType imageViewType;

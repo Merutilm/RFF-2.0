@@ -9,7 +9,7 @@
 #include "../struct/QueueFamilyIndices.hpp"
 #include "../handle/Handler.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class PhysicalDevice final : public Handler {
 
         const Instance &instance;

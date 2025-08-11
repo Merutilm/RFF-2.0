@@ -9,7 +9,7 @@
 
 #include "../exception/exception.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     Surface::Surface(const Instance &instance, const GraphicsContextWindow &window) : instance(instance), window(window) {
         Surface::init();
     }

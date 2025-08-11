@@ -7,7 +7,7 @@
 #include "Handler.hpp"
 #include "../def/Core.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     struct CoreHandler : Handler {
         const Core &core;
 

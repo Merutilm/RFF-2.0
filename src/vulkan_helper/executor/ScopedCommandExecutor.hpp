@@ -5,7 +5,7 @@
 #pragma once
 #include "Executor.hpp"
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
     class ScopedCommandExecutor final : public Executor {
         const CommandPool &commandPool;
         VkCommandBuffer commandBuffer = nullptr;

@@ -5,7 +5,7 @@
 #pragma once
 #include <memory>
 
-namespace merutilm::mvk {
+namespace merutilm::vkh {
 
     struct UniquePtrHasher {
         using is_transparent = void;
