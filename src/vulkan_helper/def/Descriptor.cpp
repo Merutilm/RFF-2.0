@@ -51,12 +51,12 @@ namespace merutilm::vkh {
                     .pTexelBufferView = nullptr,
                 };
             }
-            if (std::holds_alternative<std::unique_ptr<Sampler2D> >(raw)) {
-                auto &tex = std::get<std::unique_ptr<Sampler2D> >(raw);
+            if (std::holds_alternative<std::unique_ptr<CombinedImageSampler> >(raw)) {
+                auto &tex = std::get<std::unique_ptr<CombinedImageSampler> >(raw);
 
                 queue.push_back({
                     .imageInfo = VkDescriptorImageInfo{
-                        .sampler = tex->getSamplerHandle(),
+                        .sampler = tex->getSampler().getSamplerHandle(),
                         .imageView = tex->getImageContext().imageView,
                         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                     }
@@ -106,7 +106,7 @@ namespace merutilm::vkh {
     void Descriptor::init() {
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         const uint32_t ubo = descriptorManager->getElementCount<std::unique_ptr<Uniform> >();
-        const uint32_t sampler = descriptorManager->getElementCount<std::unique_ptr<Sampler2D> >();
+        const uint32_t sampler = descriptorManager->getElementCount<std::unique_ptr<CombinedImageSampler> >();
         const uint32_t inputAttachment = descriptorManager->getElementCount<ImageContext>();
         const uint32_t elements = descriptorManager->getElements();
 

@@ -6,6 +6,7 @@
 #include "GLShaderLoader.h"
 
 #include <fstream>
+#include <iostream>
 
 #include "../ui/Utilities.h"
 

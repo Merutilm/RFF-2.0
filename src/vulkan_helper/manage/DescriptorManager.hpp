@@ -6,7 +6,7 @@
 #include <variant>
 #include <vector>
 
-#include "../def/Sampler2D.hpp"
+#include "../def/CombinedImageSampler.hpp"
 #include "../def/Uniform.hpp"
 #include "../hash/DescriptorSetLayoutBuildTypeHasher.hpp"
 #include "../hash/VectorHasher.hpp"
@@ -19,7 +19,7 @@ namespace merutilm::vkh {
     using DescriptorSetLayoutBuilderHasher = VectorHasher<DescriptorSetLayoutBuildType,
         DescriptorSetLayoutBuildTypeHasher>;
 
-    using DescriptorType = std::variant<std::unique_ptr<Uniform>, std::unique_ptr<Sampler2D>,  ImageContext >;
+    using DescriptorType = std::variant<std::unique_ptr<Uniform>, std::unique_ptr<CombinedImageSampler>,  ImageContext >;
 
     class DescriptorManager {
 
@@ -42,7 +42,7 @@ namespace merutilm::vkh {
         void appendUBO(uint32_t bindingExpected, VkShaderStageFlags useStage, std::unique_ptr<Uniform> &&ubo);
 
         void appendCombinedImgSampler(uint32_t bindingExpected, VkShaderStageFlags useStage,
-                                      std::unique_ptr<Sampler2D> &&texture);
+                                      std::unique_ptr<CombinedImageSampler> &&sampler);
 
         void appendInputAttachment(uint32_t bindingExpected, VkShaderStageFlags useStage);
 
@@ -82,10 +82,10 @@ namespace merutilm::vkh {
     }
 
     inline void DescriptorManager::appendCombinedImgSampler(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
-                                                            std::unique_ptr<Sampler2D> &&texture) {
+                                                            std::unique_ptr<CombinedImageSampler> &&sampler) {
 
         IndexChecker::checkIndexEqual(bindingExpected,  static_cast<uint32_t>(data.size()), "Descriptor Sampler add");
-        data.emplace_back(std::move(texture));
+        data.emplace_back(std::move(sampler));
         layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, useStage);
     }
 

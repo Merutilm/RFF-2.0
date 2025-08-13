@@ -8,7 +8,7 @@
 #include "IOUtilities.h"
 #include "../constants/VulkanWindowConstants.hpp"
 #include "../vulkan/BasicRenderContextConfigurator.hpp"
-#include "../vulkan/Template1PipelineConfigurator.hpp"
+#include "../vulkan/IterationPalettePipelineConfigurator.hpp"
 #include "../vulkan/Template2PipelineConfigurator.hpp"
 #include "../calc/dex_exp.h"
 #include "../formula/DeepMandelbrotPerturbator.h"
@@ -28,7 +28,9 @@
 
 
 namespace merutilm::rff2 {
-    RenderScene::RenderScene(vkh::Engine &engine, const HWND window) : engine(engine), window(window), settings(defaultSettings()) {
+    RenderScene::RenderScene(vkh::Engine &engine, const HWND window,
+                             std::array<std::string, Constants::Status::LENGTH> *statusMessageRef) : engine(engine),
+        window(window), settings(defaultSettings()), statusMessageRef(statusMessageRef) {
         init();
     }
 
@@ -43,11 +45,13 @@ namespace merutilm::rff2 {
 
     void RenderScene::render(const VkCommandBuffer cbh, const uint32_t frameIndex, const VkExtent2D &extent) {
         using namespace SharedDescriptorTemplate;
-        auto &layoutRepo = *engine.getRepositories().getRepository<vkh::DescriptorSetLayoutRepo>();
 
-        engine.getRepositories().getRepository<vkh::SharedDescriptorRepo>()->pick(vkh::DescriptorTemplate::from<DescTime>(), layoutRepo).getDescriptorManager().get<std::unique_ptr<vkh::Uniform>>(DescTime::BINDING_UBO_TIME)
-        ->set(DescTime::TARGET_TIME_CURRENT, Utilities::getCurrentTime());
-        //renderer->setTime(Utilities::getCurrentTime());
+        engine.getRepositories().getRepository<vkh::SharedDescriptorRepo>()->
+                pick(vkh::DescriptorTemplate::from<DescTime>(),
+                     engine.getRepositories().getDescriptorRequiresRepositoryContext()).getDescriptorManager().get<
+                    std::unique_ptr<
+                        vkh::Uniform> >(DescTime::BINDING_UBO_TIME)
+                ->set(DescTime::TARGET_TIME_CURRENT, Utilities::getCurrentTime());
 
         if (colorRequested) {
             applyColor(settings);
@@ -255,8 +259,9 @@ namespace merutilm::rff2 {
 
     void RenderScene::applyCreateImage() {
         if (createImageRequestedFilename.empty()) {
-            createImageRequestedFilename = IOUtilities::ioFileDialog("Save image", Constants::Extension::DESC_IMAGE, IOUtilities::SAVE_FILE,
-                                      Constants::Extension::IMAGE)->string();
+            createImageRequestedFilename = IOUtilities::ioFileDialog("Save image", Constants::Extension::DESC_IMAGE,
+                                                                     IOUtilities::SAVE_FILE,
+                                                                     Constants::Extension::IMAGE)->string();
         }
         // const GLuint fbo = renderer->getRenderedFBO();
         // const GLuint fboID = renderer->getRenderedFBOTexID();
@@ -337,8 +342,8 @@ namespace merutilm::rff2 {
 
     bool RenderScene::compute(const Settings &settings) {
         auto start = std::chrono::high_resolution_clock::now();
-        uint16_t w = getIterationBufferWidth(settings);
-        uint16_t h = getIterationBufferHeight(settings);
+        const uint16_t w = getIterationBufferWidth(settings);
+        const uint16_t h = getIterationBufferHeight(settings);
         uint32_t len = uint32_t(w) * h;
 
         if (state.interruptRequested()) return false;
@@ -463,9 +468,9 @@ namespace merutilm::rff2 {
         auto previewer = ParallelArrayDispatcher<double>(
             state, *iterationMatrix,
             [settings, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y,
-                                                                 const uint16_t xRes, uint16_t, float,
-                                                                 float, const uint32_t i,
-                                                                 double) {
+                                                            const uint16_t xRes, uint16_t, float,
+                                                            float, const uint32_t i,
+                                                            double) {
                 rendered[i] = true;
                 const auto dc = offsetConversion(settings, x, y);
                 const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
@@ -519,7 +524,7 @@ namespace merutilm::rff2 {
 
     void RenderScene::afterCompute(bool success) {
         if (!success) {
-            Utilities::log("Recompute cancelled.");
+            vkh::logger::log("Recompute cancelled.");
         }
         if (success && settings.calculationSettings.reuseReferenceMethod == ReuseReferenceMethod::CENTERED_REFERENCE) {
             settings.calculationSettings.reuseReferenceMethod = ReuseReferenceMethod::CURRENT_REFERENCE;
@@ -540,12 +545,10 @@ namespace merutilm::rff2 {
     }
 
     void RenderScene::initShaderPrograms() {
-        shaderPrograms.emplace_back(
-            vkh::PipelineConfigurator::createShaderProgram<Template1PipelineConfigurator>(
-                engine, BasicRenderContextConfigurator::SUBPASS_PRIMARY_INDEX));
-        shaderPrograms.emplace_back(
-            vkh::PipelineConfigurator::createShaderProgram<Template2PipelineConfigurator>(
-                engine, BasicRenderContextConfigurator::SUBPASS_SECONDARY_INDEX));
+        rendererIteration = vkh::PipelineConfigurator::createShaderProgram<IterationPalettePipelineConfigurator>(
+            shaderPrograms, engine, BasicRenderContextConfigurator::SUBPASS_ITERATION_INDEX);
+        vkh::PipelineConfigurator::createShaderProgram<Template2PipelineConfigurator>(
+            shaderPrograms, engine, BasicRenderContextConfigurator::SUBPASS_SECONDARY_INDEX);
     }
 
 

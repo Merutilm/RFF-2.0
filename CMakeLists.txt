@@ -214,7 +214,7 @@ add_executable(
         src/vulkan_helper/def/CommandBuffer.hpp
         src/vulkan_helper/def/Descriptor.cpp
         src/vulkan_helper/def/Descriptor.hpp
-        src/vulkan_helper/manage/ShaderObjectManager.hpp
+        src/vulkan_helper/manage/BufferObjectManager.hpp
         src/vulkan_helper/def/BufferObject.cpp
         src/vulkan_helper/def/BufferObject.hpp
         src/vulkan_helper/util/BufferImageUtils.hpp
@@ -265,8 +265,8 @@ add_executable(
         src/vulkan_helper/repo/PipelineLayoutRepo.hpp
         src/vulkan_helper/def/IndexBuffer.cpp
         src/vulkan_helper/def/IndexBuffer.hpp
-        src/vulkan_helper/def/Sampler2D.cpp
-        src/vulkan_helper/def/Sampler2D.hpp
+        src/vulkan_helper/def/CombinedImageSampler.cpp
+        src/vulkan_helper/def/CombinedImageSampler.hpp
         src/vulkan_helper/configurator/GeneralPipelineConfigurator.cpp
         src/vulkan_helper/configurator/GeneralPipelineConfigurator.hpp
         src/vulkan_helper/repo/SharedDescriptorRepo.hpp
@@ -284,8 +284,8 @@ add_executable(
         src/vulkan_helper/hash/DescriptorSetLayoutBuildTypeHasher.hpp
         src/vulkan_helper/context/ImageContext.hpp
         src/vulkan_helper/util/Presenter.hpp
-        src/rff2/vulkan/Template1PipelineConfigurator.cpp
-        src/rff2/vulkan/Template1PipelineConfigurator.hpp
+        src/rff2/vulkan/IterationPalettePipelineConfigurator.cpp
+        src/rff2/vulkan/IterationPalettePipelineConfigurator.hpp
         src/vulkan_helper/context/DescriptorUpdateContext.hpp
         src/vulkan_helper/util/IndexChecker.hpp
         src/vulkan_helper/util/ImageContextUtils.hpp
@@ -306,6 +306,16 @@ add_executable(
         src/vulkan_helper/configurator/PipelineConfigurator.hpp
         src/rff2/constants/VulkanWindowConstants.hpp
         src/vulkan_helper/struct/DescriptorTemplate.hpp
+        src/vulkan_helper/def/Sampler.cpp
+        src/vulkan_helper/def/Sampler.hpp
+        src/vulkan_helper/repo/SamplerRepo.hpp
+        src/vulkan_helper/hash/SamplerCreateInfoHasher.hpp
+        src/vulkan_helper/hash/SamplerCreateInfoEquals.hpp
+        src/vulkan_helper/context/DescriptorRequiresRepoContext.hpp
+        src/vulkan_helper/def/ShaderStorage.cpp
+        src/vulkan_helper/def/ShaderStorage.hpp
+        src/vulkan_helper/struct/BufferLock.hpp
+        src/vulkan_helper/util/Logger.hpp
 )
 
 

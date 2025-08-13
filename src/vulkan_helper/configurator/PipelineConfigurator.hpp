@@ -51,15 +51,13 @@ namespace merutilm::vkh {
 
         virtual void configure() = 0;
 
-        virtual void configureVertexBuffer(ShaderObjectManager &som) = 0;
+        virtual void configureVertexBuffer(BufferObjectManager &som) = 0;
 
-        virtual void configureIndexBuffer(ShaderObjectManager &som) = 0;
+        virtual void configureIndexBuffer(BufferObjectManager &som) = 0;
 
-        virtual void configurePushConstant(DescriptorSetLayoutRepo &layoutRepo,
-                                           PipelineLayoutManager &pipelineLayoutManager) = 0;
+        virtual void configurePushConstant(PipelineLayoutManager &pipelineLayoutManager) = 0;
 
-        virtual void configureDescriptors(std::vector<const Descriptor *> &descriptors,
-                                          DescriptorSetLayoutRepo &layoutRepo, SharedDescriptorRepo &descRepo) = 0;
+        virtual void configureDescriptors(std::vector<const Descriptor *> &descriptors) = 0;
 
 
         [[nodiscard]] const Descriptor &getDescriptor(const uint32_t setIndex) const {
@@ -81,11 +79,13 @@ namespace merutilm::vkh {
         }
 
         template<typename ProgramName> requires std::is_base_of_v<PipelineConfigurator, ProgramName>
-        static std::unique_ptr<ProgramName> createShaderProgram(const Engine &engine,
-                                                                const uint32_t subpassIndex) {
+        static ProgramName *createShaderProgram(std::vector<std::unique_ptr<PipelineConfigurator> > &shaderPrograms,
+                                                const Engine &engine,
+                                                const uint32_t subpassIndex) {
             auto shaderProgram = std::make_unique<ProgramName>(engine, subpassIndex);
             shaderProgram->configure();
-            return shaderProgram;
+            shaderPrograms.emplace_back(std::move(shaderProgram));
+            return dynamic_cast<ProgramName *>(shaderPrograms.back().get());
         }
 
         template<typename Expected> requires std::is_base_of_v<RenderContextConfigurator, Expected>
@@ -98,15 +98,21 @@ namespace merutilm::vkh {
         }
 
         template<DescTemplateHasID D>
-        static void appendDescriptor(const uint32_t setExpected, std::vector<const Descriptor *> &descriptors,
-                                     DescriptorSetLayoutRepo &layoutRepo, SharedDescriptorRepo &repo) {
+        void appendDescriptor(const uint32_t setExpected, std::vector<const Descriptor *> &descriptors) {
+
+            const auto context = engine.getRepositories().getDescriptorRequiresRepositoryContext();
+            SharedDescriptorRepo &repo = *engine.getRepositories().getRepository<SharedDescriptorRepo>();
+
             IndexChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
                                           "Unique Descriptor Add");
-            descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), layoutRepo));
+            descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), context));
         }
 
         void appendUniqueDescriptor(const uint32_t setExpected, std::vector<const Descriptor *> &descriptors,
-                                    DescriptorSetLayoutRepo &layoutRepo, std::unique_ptr<DescriptorManager> &&manager) {
+                                    std::unique_ptr<DescriptorManager> &&manager) {
+
+            DescriptorSetLayoutRepo &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
+
             IndexChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
                                           "Unique Descriptor Add");
             auto desc = std::make_unique<Descriptor>(engine.getCore(), layoutRepo.pick(manager->getLayoutBuilder()),

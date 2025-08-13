@@ -69,7 +69,7 @@ namespace merutilm::rff2 {
                 );
 
                 if (locator == nullptr) {
-                    Utilities::log("Locate Minibrot Cancelled.");
+                    vkh::logger::log("Locate Minibrot Cancelled.");
                     return;
                 }
                 const CalculationSettings &locatorCalc = locator->perturbator->getCalculationSettings();

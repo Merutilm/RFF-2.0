@@ -7,24 +7,24 @@
 #include "../util/IndexChecker.hpp"
 
 namespace merutilm::vkh {
-    struct ShaderObjectManager final {
+    struct BufferObjectManager final {
         std::vector<std::byte> data = {};
         std::vector<uint32_t> elements = {};
         std::vector<uint32_t> sizes = {};
         std::vector<uint32_t> offsets = {};
         std::vector<bool> initialized = {};
 
-        explicit ShaderObjectManager() = default;
+        explicit BufferObjectManager() = default;
 
-        ~ShaderObjectManager() = default;
+        ~BufferObjectManager() = default;
 
-        ShaderObjectManager(const ShaderObjectManager &) = delete;
+        BufferObjectManager(const BufferObjectManager &) = delete;
 
-        ShaderObjectManager &operator=(const ShaderObjectManager &) = delete;
+        BufferObjectManager &operator=(const BufferObjectManager &) = delete;
 
-        ShaderObjectManager(ShaderObjectManager &&) noexcept = delete;
+        BufferObjectManager(BufferObjectManager &&) noexcept = delete;
 
-        ShaderObjectManager &operator=(ShaderObjectManager &&) noexcept = delete;
+        BufferObjectManager &operator=(BufferObjectManager &&) noexcept = delete;
 
 
         template<typename T> requires std::is_trivially_copyable_v<T>
@@ -42,7 +42,7 @@ namespace merutilm::vkh {
 
 
     template<typename T> requires std::is_trivially_copyable_v<T>
-    void ShaderObjectManager::reserve(const uint32_t targetExpected, const uint32_t padding) {
+    void BufferObjectManager::reserve(const uint32_t targetExpected, const uint32_t padding) {
         offsets.push_back(static_cast<uint32_t>(data.size()));
         elements.push_back(1);
         IndexChecker::checkIndexEqual(targetExpected, static_cast<uint32_t>(sizes.size()), "Shader Object Value Reserve");
@@ -52,7 +52,7 @@ namespace merutilm::vkh {
     }
 
     template<typename T> requires std::is_trivially_copyable_v<T>
-    void ShaderObjectManager::reserveArray(const uint32_t targetExpected, const uint32_t elementCount, const uint32_t padding) {
+    void BufferObjectManager::reserveArray(const uint32_t targetExpected, const uint32_t elementCount, const uint32_t padding) {
         offsets.push_back(static_cast<uint32_t>(data.size()));
         elements.push_back(elementCount);
         IndexChecker::checkIndexEqual(targetExpected, static_cast<uint32_t>(sizes.size()), "Shader Object Vector Reserve");
@@ -63,7 +63,7 @@ namespace merutilm::vkh {
 
 
     template<typename T> requires std::is_trivially_copyable_v<T>
-    void ShaderObjectManager::add(const uint32_t targetExpected, const T &t, const uint32_t padding) {
+    void BufferObjectManager::add(const uint32_t targetExpected, const T &t, const uint32_t padding) {
         const auto raw = reinterpret_cast<const std::byte *>(&t);
         offsets.push_back(static_cast<uint32_t>(data.size()));
         elements.push_back(1);
@@ -75,7 +75,7 @@ namespace merutilm::vkh {
     }
 
     template<typename T> requires std::is_trivially_copyable_v<T>
-    void ShaderObjectManager::addArray(const uint32_t targetExpected, const std::vector<T> &t, const uint32_t padding) {
+    void BufferObjectManager::addArray(const uint32_t targetExpected, const std::vector<T> &t, const uint32_t padding) {
         const auto raw = reinterpret_cast<const std::byte *>(t.data());
         offsets.push_back(static_cast<uint32_t>(data.size()));
         elements.push_back(t.size());

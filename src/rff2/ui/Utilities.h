@@ -7,30 +7,12 @@
 #include <string>
 #include <ctime>
 #include <filesystem>
-#include <iostream>
 
 #include "../constants/Constants.hpp"
 
 namespace merutilm::rff2 {
     struct Utilities {
         Utilities() = delete;
-
-        static void logErr(const std::string &message) {
-            std::cerr << getCurrentPutTime() << " | " << message << "\n" << std::flush;
-            MessageBox(nullptr, message.data(), "Error", MB_ICONERROR | MB_OK);
-        }
-
-        static void log(const std::string &message) {
-            std::cout << getCurrentPutTime() << " | " << message << "\n" << std::flush;
-        }
-
-        static std::_Put_time<char> getCurrentPutTime() {
-            const auto t = std::chrono::system_clock::now();
-            const auto time = std::chrono::system_clock::to_time_t(t);
-            std::tm tm = {};
-            localtime_s(&tm, &time);
-            return std::put_time(&tm, "%Y/%m/%d, %H:%M:%S");
-        }
 
         static std::string elapsed_time(const std::chrono::time_point<std::chrono::system_clock> start) {
             const auto current = std::chrono::system_clock::now();

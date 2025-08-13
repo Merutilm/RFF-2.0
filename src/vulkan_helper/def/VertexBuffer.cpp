@@ -4,13 +4,13 @@
 
 #include "VertexBuffer.hpp"
 
-#include "../manage/ShaderObjectManager.hpp"
+#include "../manage/BufferObjectManager.hpp"
 #include "../struct/Vertex.hpp"
 #include "../util/BufferImageUtils.hpp"
 
 namespace merutilm::vkh {
-    VertexBuffer::VertexBuffer(const Core &core, std::unique_ptr<ShaderObjectManager> &&manager) : BufferObject(
-        core, std::move(manager), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) {
+    VertexBuffer::VertexBuffer(const Core &core, std::unique_ptr<BufferObjectManager> &&manager, const BufferLock bufferLock) : BufferObject(
+        core, std::move(manager), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, bufferLock) {
         VertexBuffer::init();
     }
 

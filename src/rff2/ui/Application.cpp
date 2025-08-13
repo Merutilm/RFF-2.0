@@ -89,7 +89,7 @@ namespace merutilm::rff2 {
         );
 
         if (!masterWindow) {
-            Utilities::logErr("Failed to create window!\n");
+            vkh::logger::log_err("Failed to create window!\n");
         }
     }
 
@@ -105,7 +105,7 @@ namespace merutilm::rff2 {
             CW_USEDEFAULT, masterWindow, nullptr, nullptr, nullptr);
 
         if (!renderWindow) {
-            Utilities::logErr("Failed to create window!\n");
+            vkh::logger::log_err("Failed to create window!\n");
         }
     }
 
@@ -137,7 +137,7 @@ namespace merutilm::rff2 {
     }
 
     void Application::createRenderScene() {
-        scene = std::make_unique<RenderScene>(*engine, renderWindow);
+        scene = std::make_unique<RenderScene>(*engine, renderWindow, &statusMessages);
     }
 
     void Application::setProcedure() {

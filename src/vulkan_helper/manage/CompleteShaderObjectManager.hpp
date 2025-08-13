@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "ShaderObjectManager.hpp"
+#include "BufferObjectManager.hpp"
 
 namespace merutilm::vkh {
     struct CompleteShaderObjectManager {
@@ -18,7 +18,7 @@ namespace merutilm::vkh {
         std::vector<uint32_t> offsets = {};
         std::vector<bool> initialized = {};
 
-        explicit CompleteShaderObjectManager(std::unique_ptr<ShaderObjectManager> &&uploadManager) : data(std::move(
+        explicit CompleteShaderObjectManager(std::unique_ptr<BufferObjectManager> &&uploadManager) : data(std::move(
                 uploadManager->data)),
             elements(std::move(uploadManager->elements)),
             sizes(std::move(uploadManager->sizes)),

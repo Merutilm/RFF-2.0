@@ -21,15 +21,15 @@ namespace merutilm::vkh {
     struct DescriptorTemplate {
         virtual ~DescriptorTemplate() = default;
 
-        virtual std::unique_ptr<DescriptorManager> create(const Core &core) = 0;
+        virtual std::unique_ptr<DescriptorManager> create(const Core &core, const DescriptorRequiresRepoContext &context) = 0;
 
         template<DescTemplateHasID D>
         static DescriptorTemplateInfo from() {
             return DescriptorTemplateInfo{
                 .id = D::ID,
-                .descriptorGenerator = [](const Core &core) {
+                .descriptorGenerator = [](const Core &core, const DescriptorRequiresRepoContext &context) {
                     auto instance = D();
-                    return instance.create(core);
+                    return instance.create(core, context);
                 }
             };
         }

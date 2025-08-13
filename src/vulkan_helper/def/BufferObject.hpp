@@ -6,7 +6,8 @@
 #include "CommandPool.hpp"
 #include "../handle/CoreHandler.hpp"
 #include "../manage/CompleteShaderObjectManager.hpp"
-#include "../manage/ShaderObjectManager.hpp"
+#include "../manage/BufferObjectManager.hpp"
+#include "../struct/BufferLock.hpp"
 
 namespace merutilm::vkh {
     class BufferObject : public CoreHandler, public CompleteShaderObjectManager{
@@ -15,11 +16,12 @@ namespace merutilm::vkh {
         std::vector<VkBuffer> buffers = {};
         std::vector<VkDeviceMemory> bufferMemory = {};
         std::vector<void *> bufferMapped = {};
-        bool finalized = false;
+        BufferLock bufferLock;
+        bool locked = false;
         bool allInitialized = false;
 
     public:
-        explicit BufferObject(const Core &core, std::unique_ptr<ShaderObjectManager> &&dataManager, VkBufferUsageFlags bufferUsage);
+        explicit BufferObject(const Core &core, std::unique_ptr<BufferObjectManager> &&dataManager, VkBufferUsageFlags bufferUsage, BufferLock bufferLock);
 
         ~BufferObject() override;
 
@@ -31,7 +33,9 @@ namespace merutilm::vkh {
 
         BufferObject &operator=(BufferObject &&) noexcept = delete;
 
-        void finalize(const CommandPool &commandPool);
+        void lock(const CommandPool &commandPool);
+
+        void unlock(const CommandPool &commandPool);
 
         [[nodiscard]] VkBuffer getBufferHandle(const uint32_t frameIndex) const { return buffers[frameIndex]; }
 

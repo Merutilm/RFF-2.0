@@ -2,22 +2,22 @@
 // Created by Merutilm on 2025-07-18.
 //
 
-#include "Sampler2D.hpp"
+#include "CombinedImageSampler.hpp"
 
 #include "../util/ImageContextUtils.hpp"
 
 namespace merutilm::vkh {
-    Sampler2D::Sampler2D(const Core &core, VkSamplerCreateInfo &&samplerInfo) : CoreHandler(core), samplerInfo(std::move(samplerInfo)) {
-        Sampler2D::init();
+    CombinedImageSampler::CombinedImageSampler(const Core &core, const Sampler &sampler) : CoreHandler(core), sampler(sampler) {
+        CombinedImageSampler::init();
     }
 
 
-    Sampler2D::~Sampler2D() {
-        Sampler2D::destroy();
+    CombinedImageSampler::~CombinedImageSampler() {
+        CombinedImageSampler::destroy();
     }
 
 
-    const ImageContext &Sampler2D::getImageContext() const {
+    const ImageContext &CombinedImageSampler::getImageContext() const {
         if (!initialized) {
             throw exception_invalid_state{"Sampler2D is not initialized. Is setImageContext() called?"};
         }
@@ -25,16 +25,13 @@ namespace merutilm::vkh {
     }
 
 
-    void Sampler2D::init() {
-
-        if (vkCreateSampler(core.getLogicalDevice().getLogicalDeviceHandle(), &samplerInfo, nullptr, &sampler)) {
-            throw exception_init("Failed to create sampler!");
-        }
+    void CombinedImageSampler::init() {
+        //no operation
     }
 
-    void Sampler2D::destroy() {
+    void CombinedImageSampler::destroy() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        vkDestroySampler(device, sampler, nullptr);
+
         if (isUnique) {
             vkDestroyImageView(device, imageContext.imageView, nullptr);
             vkDestroyImage(device, imageContext.image, nullptr);

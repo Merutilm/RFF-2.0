@@ -33,13 +33,9 @@ namespace merutilm::rff2 {
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width, uint32_t height) override;
 
-        void render(VkCommandBuffer cbh, uint32_t frameIndex, uint32_t width, uint32_t height) override;
-
     protected:
-        void configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors,
-                                                         vkh::DescriptorSetLayoutRepo &layoutRepo,
-                                                         vkh::SharedDescriptorRepo &repo) override;
-        void configurePushConstant(vkh::DescriptorSetLayoutRepo &layoutRepo, vkh::PipelineLayoutManager &pipelineLayoutManager) override;
+        void configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors) override;
+        void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
 
     };
 }

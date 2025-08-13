@@ -7,7 +7,7 @@
 
 namespace merutilm::rff2 {
     struct BasicRenderContextConfigurator final : vkh::RenderContextConfigurator {
-        static constexpr uint32_t SUBPASS_PRIMARY_INDEX = 0;
+        static constexpr uint32_t SUBPASS_ITERATION_INDEX = 0;
         static constexpr uint32_t SUBPASS_SECONDARY_INDEX = 1;
 
         static constexpr uint32_t COLOR_ATTACHMENT_INDEX = 0;
@@ -66,7 +66,7 @@ namespace merutilm::rff2 {
                                      swapchain, core.getPhysicalDevice().getMaxFramesInFlight()));
 
 
-            rpm.appendSubpass(SUBPASS_PRIMARY_INDEX);
+            rpm.appendSubpass(SUBPASS_ITERATION_INDEX);
             rpm.appendReference(COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR);
             rpm.appendSubpass(SUBPASS_SECONDARY_INDEX);
             rpm.appendReference(COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::INPUT);
@@ -74,7 +74,7 @@ namespace merutilm::rff2 {
 
             rpm.appendDependency({
                 .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = SUBPASS_PRIMARY_INDEX,
+                .dstSubpass = SUBPASS_ITERATION_INDEX,
                 .srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                 .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .srcAccessMask = 0,
@@ -82,7 +82,7 @@ namespace merutilm::rff2 {
                 .dependencyFlags = 0
             });
             rpm.appendDependency({
-                .srcSubpass = SUBPASS_PRIMARY_INDEX,
+                .srcSubpass = SUBPASS_ITERATION_INDEX,
                 .dstSubpass = SUBPASS_SECONDARY_INDEX,
                 .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,

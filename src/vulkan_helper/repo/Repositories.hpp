@@ -9,6 +9,7 @@
 #include "DescriptorSetLayoutRepo.hpp"
 #include "PipelineLayoutRepo.hpp"
 #include "Repo.hpp"
+#include "SamplerRepo.hpp"
 #include "ShaderModuleRepo.hpp"
 #include "../exception/exception.hpp"
 
@@ -19,11 +20,12 @@ namespace merutilm::vkh {
 
     public:
 
-        explicit Repositories(const Core &engine) {
-            addRepository<DescriptorSetLayoutRepo>(engine);
-            addRepository<SharedDescriptorRepo>(engine);
-            addRepository<PipelineLayoutRepo>(engine);
-            addRepository<ShaderModuleRepo>(engine);
+        explicit Repositories(const Core &core) {
+            addRepository<DescriptorSetLayoutRepo>(core);
+            addRepository<SharedDescriptorRepo>(core);
+            addRepository<PipelineLayoutRepo>(core);
+            addRepository<ShaderModuleRepo>(core);
+            addRepository<SamplerRepo>(core);
         }
 
         template<typename RepoType> requires std::is_base_of_v<IRepo, RepoType>
@@ -35,6 +37,13 @@ namespace merutilm::vkh {
                 }
             }
             return nullptr;
+        }
+
+        DescriptorRequiresRepoContext getDescriptorRequiresRepositoryContext() {
+            return {
+                .layoutRepo = *getRepository<DescriptorSetLayoutRepo>(),
+                .samplerRepo = *getRepository<SamplerRepo>(),
+            };
         }
 
         template<typename RepoType> requires std::is_base_of_v<IRepo, RepoType>

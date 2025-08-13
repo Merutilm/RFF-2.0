@@ -123,7 +123,7 @@ namespace merutilm::rff2 {
                 }
 
                 if (state.interruptRequested()) {
-                    Utilities::log("Keyframe generation cancelled.");
+                    vkh::logger::log("Keyframe generation cancelled.");
                 }
             });
     };

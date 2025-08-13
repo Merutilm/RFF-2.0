@@ -85,17 +85,17 @@ namespace merutilm::rff2 {
 
         void runAction(UINT message, WPARAM wParam);
 
-        std::array<dex, 2> offsetConversion(const Settings &settings, int mx, int my) const;
+        [[nodiscard]] std::array<dex, 2> offsetConversion(const Settings &settings, int mx, int my) const;
 
         static dex getDivisor(const Settings &settings);
 
-        uint16_t getClientWidth() const;
+        [[nodiscard]] uint16_t getClientWidth() const;
 
-        uint16_t getClientHeight() const;
+        [[nodiscard]] uint16_t getClientHeight() const;
 
-        uint16_t getIterationBufferWidth(const Settings &settings) const;
+        [[nodiscard]] uint16_t getIterationBufferWidth(const Settings &settings) const;
 
-        uint16_t getIterationBufferHeight(const Settings &settings) const;
+        [[nodiscard]] uint16_t getIterationBufferHeight(const Settings &settings) const;
 
         void configure(HWND wnd, HDC hdc, HGLRC context,
                        std::array<std::string, Constants::Status::LENGTH> *statusMessageRef);

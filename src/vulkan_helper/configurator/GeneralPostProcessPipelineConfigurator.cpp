@@ -13,17 +13,16 @@ namespace merutilm::vkh {
     void GeneralPostProcessPipelineConfigurator::configure() {
         auto pipelineLayoutManager = std::make_unique<PipelineLayoutManager>();
         auto &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
-        auto &descRepo = *engine.getRepositories().getRepository<SharedDescriptorRepo>();
 
         std::vector<const Descriptor *> descriptors = {};
-        configureDescriptors(descriptors, layoutRepo, descRepo);
+        configureDescriptors(descriptors);
 
         for (const auto descriptor: descriptors) {
             const DescriptorSetLayout &layout = layoutRepo.pick(descriptor->getDescriptorManager().getLayoutBuilder());
             pipelineLayoutManager->appendDescriptorSetLayout(&layout);
         }
 
-        configurePushConstant(layoutRepo, *pipelineLayoutManager);
+        configurePushConstant(*pipelineLayoutManager);
         const PipelineLayout &pipelineLayout = engine.getRepositories().getRepository<PipelineLayoutRepo>()->pick(
             std::move(pipelineLayoutManager));
 
@@ -36,32 +35,37 @@ namespace merutilm::vkh {
 
 
         if (!initializedVertexIndex) {
-            auto vertManager = std::make_unique<ShaderObjectManager>();
-            auto indexManager = std::make_unique<ShaderObjectManager>();
+            auto vertManager = std::make_unique<BufferObjectManager>();
+            auto indexManager = std::make_unique<BufferObjectManager>();
 
             configureVertexBuffer(*vertManager);
             configureIndexBuffer(*indexManager);
 
-            vertexBufferPP = std::make_unique<VertexBuffer>(engine.getCore(), std::move(vertManager));
-            indexBufferPP = std::make_unique<IndexBuffer>(engine.getCore(), std::move(indexManager));
+            vertexBufferPP = std::make_unique<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_ONLY);
+            indexBufferPP = std::make_unique<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_ONLY);
             for (int i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
                 vertexBufferPP->update(i);
                 indexBufferPP->update(i);
             }
-            vertexBufferPP->finalize(engine.getCommandPool());
-            indexBufferPP->finalize(engine.getCommandPool());
+            vertexBufferPP->lock(engine.getCommandPool());
+            indexBufferPP->lock(engine.getCommandPool());
             initializedVertexIndex = true;
         }
 
         if (initializedVertexIndex) {
-            pipeline = std::make_unique<Pipeline>(engine, pipelineLayout, vertexBufferPP.get(), indexBufferPP.get(),
+            pipeline = std::make_unique<Pipeline>(engine, pipelineLayout, getVertexBuffer(), getIndexBuffer(),
                                                   subpassIndex,
                                                   std::move(pipelineManager));
         }
     }
 
+    void GeneralPostProcessPipelineConfigurator::render(const VkCommandBuffer cbh, const uint32_t frameIndex, uint32_t width, uint32_t height) {
+        pushAll(cbh);
+        draw(cbh, frameIndex, 0);
+    }
 
-    void GeneralPostProcessPipelineConfigurator::configureVertexBuffer(ShaderObjectManager &som) {
+
+    void GeneralPostProcessPipelineConfigurator::configureVertexBuffer(BufferObjectManager &som) {
         som.addArray(0, std::vector{
                     Vertex::generate({1, 1, 0}, {1, 1, 1}, {1, 1}),
                     Vertex::generate({1, -1, 0}, {1, 1, 1}, {1, 0}),
@@ -70,7 +74,7 @@ namespace merutilm::vkh {
                 });
     }
 
-    void GeneralPostProcessPipelineConfigurator::configureIndexBuffer(ShaderObjectManager &som) {
+    void GeneralPostProcessPipelineConfigurator::configureIndexBuffer(BufferObjectManager &som) {
         som.addArray(0, std::vector<uint32_t>{0, 1, 2, 2, 3, 0});
     }
 

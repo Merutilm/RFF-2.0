@@ -10,9 +10,7 @@
 #include "../../vulkan_helper/struct/DescriptorTemplate.hpp"
 
 namespace merutilm::rff2::SharedDescriptorTemplate {
-
-    struct DescCamera3D final : public vkh::DescriptorTemplate{
-
+    struct DescCamera3D final : public vkh::DescriptorTemplate {
         static constexpr uint32_t ID = 0;
         static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_VERTEX_BIT;
 
@@ -22,22 +20,21 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_CAMERA_VIEW = 1;
         static constexpr uint32_t TARGET_CAMERA_PROJ = 2;
 
-        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core) override {
-            auto bufferManager = std::make_unique<vkh::ShaderObjectManager>();
+        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core, const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = std::make_unique<vkh::BufferObjectManager>();
 
             bufferManager->reserve<glm::mat4>(TARGET_CAMERA_MODEL);
             bufferManager->reserve<glm::mat4>(TARGET_CAMERA_VIEW);
             bufferManager->reserve<glm::mat4>(TARGET_CAMERA_PROJ);
 
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager));
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::ALWAYS_MUTABLE);
             auto descManager = std::make_unique<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_CAMERA, STAGE, std::move(ubo));
             return descManager;
         }
     };
 
-    struct DescTime final : public vkh::DescriptorTemplate{
-
+    struct DescTime final : public vkh::DescriptorTemplate {
         static constexpr uint32_t ID = 1;
         static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
@@ -45,10 +42,10 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
         static constexpr uint32_t TARGET_TIME_CURRENT = 0;
 
-        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core) override {
-            auto bufferManager = std::make_unique<vkh::ShaderObjectManager>();
+        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core, const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = std::make_unique<vkh::BufferObjectManager>();
             bufferManager->reserve<float>(TARGET_TIME_CURRENT);
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager));
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::ALWAYS_MUTABLE);
             auto descManager = std::make_unique<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_TIME, STAGE, std::move(ubo));
             return descManager;
@@ -64,12 +61,12 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
         static constexpr uint32_t TARGET_ITERATION_MAX = 0;
 
-        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core) override {
-            auto bufferManager = std::make_unique<vkh::ShaderObjectManager>();
+        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core, const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = std::make_unique<vkh::BufferObjectManager>();
             bufferManager->reserve<double>(TARGET_ITERATION_MAX);
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager));
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
             auto descManager = std::make_unique<vkh::DescriptorManager>();
-            descManager->appendCombinedImgSampler(BINDING_SAMPLER_ITERATION, STAGE, std::make_unique<vkh::Sampler2D>(core, VkSamplerCreateInfo{
+            const vkh::Sampler &sampler = context.samplerRepo.pick({
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
@@ -88,7 +85,9 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
                 .maxLod = 0,
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
                 .unnormalizedCoordinates = VK_TRUE
-            }));
+            });
+            descManager->appendCombinedImgSampler(BINDING_SAMPLER_ITERATION, STAGE,
+                                                  std::make_unique<vkh::CombinedImageSampler>(core, sampler));
             descManager->appendUBO(BINDING_UBO_ITERATION, STAGE, std::move(ubo));
             return descManager;
         }
@@ -108,8 +107,9 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_PALETTE_INTERVAL = 3;
         static constexpr uint32_t TARGET_PALETTE_OFFSET = 4;
         static constexpr uint32_t TARGET_PALETTE_SMOOTHING = 5;
-        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core) override {
-            auto bufferManager = std::make_unique<vkh::ShaderObjectManager>();
+
+        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core, const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = std::make_unique<vkh::BufferObjectManager>();
             bufferManager->reserve<int>(TARGET_PALETTE_WIDTH);
             bufferManager->reserve<int>(TARGET_PALETTE_HEIGHT);
             bufferManager->reserve<int>(TARGET_PALETTE_SIZE);
@@ -117,10 +117,10 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager->reserve<double>(TARGET_PALETTE_OFFSET);
             bufferManager->reserve<int>(TARGET_PALETTE_SMOOTHING);
 
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager));
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
             auto descManager = std::make_unique<vkh::DescriptorManager>();
 
-            descManager->appendCombinedImgSampler(BINDING_SAMPLER_PALETTE, STAGE, std::make_unique<vkh::Sampler2D>(core, VkSamplerCreateInfo{
+            const vkh::Sampler &sampler = context.samplerRepo.pick(VkSamplerCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
@@ -139,10 +139,11 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
                 .maxLod = 0,
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
                 .unnormalizedCoordinates = VK_FALSE,
-            }));
+            });
+            descManager->appendCombinedImgSampler(BINDING_SAMPLER_PALETTE, STAGE,
+                                                  std::make_unique<vkh::CombinedImageSampler>(core, sampler));
             descManager->appendUBO(BINDING_UBO_PALETTE, STAGE, std::move(ubo));
             return descManager;
         }
     };
-
 }

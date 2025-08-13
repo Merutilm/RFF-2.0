@@ -15,6 +15,7 @@
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
 #include "../settings/Settings.h"
+#include "../vulkan/IterationPalettePipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
     class RenderScene final {
@@ -35,7 +36,7 @@ namespace merutilm::rff2 {
         std::atomic<bool> resizeRequested = false;
         std::atomic<bool> colorRequested = false;
         std::atomic<bool> createImageRequested = false;
-        std::string createImageRequestedFilename = "";
+        std::string createImageRequestedFilename;
 
         std::atomic<bool> idleCompute = true;
 
@@ -47,6 +48,9 @@ namespace merutilm::rff2 {
         std::unique_ptr<MandelbrotPerturbator> currentPerturbator = nullptr;
         
         std::vector<std::unique_ptr<vkh::PipelineConfigurator>> shaderPrograms = {};
+        IterationPalettePipelineConfigurator * rendererIteration;
+
+
 
         uint16_t cwRequest = 0;
         uint16_t chRequest = 0;
@@ -54,7 +58,7 @@ namespace merutilm::rff2 {
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
     public:
-        explicit RenderScene(vkh::Engine& engine, HWND window);
+        explicit RenderScene(vkh::Engine& engine, HWND window, std::array<std::string, Constants::Status::LENGTH> *statusMessageRef);
 
         ~RenderScene();
 
@@ -66,7 +70,7 @@ namespace merutilm::rff2 {
 
         RenderScene &operator=(RenderScene &&) = delete;
 
-        HWND getWindowHandle() const { return window; }
+        [[nodiscard]] HWND getWindowHandle() const { return window; }
 
         void render(VkCommandBuffer cbh, uint32_t frameIndex, const VkExtent2D &extent);
 
@@ -93,17 +97,17 @@ namespace merutilm::rff2 {
 
         void runAction(UINT message, WPARAM wParam);
 
-        std::array<dex, 2> offsetConversion(const Settings &settings, int mx, int my) const;
+        [[nodiscard]] std::array<dex, 2> offsetConversion(const Settings &settings, int mx, int my) const;
 
         static dex getDivisor(const Settings &settings);
 
-        uint16_t getClientWidth() const;
+        [[nodiscard]] uint16_t getClientWidth() const;
 
-        uint16_t getClientHeight() const;
+        [[nodiscard]] uint16_t getClientHeight() const;
 
-        uint16_t getIterationBufferWidth(const Settings &settings) const;
+        [[nodiscard]] uint16_t getIterationBufferWidth(const Settings &settings) const;
 
-        uint16_t getIterationBufferHeight(const Settings &settings) const;
+        [[nodiscard]] uint16_t getIterationBufferHeight(const Settings &settings) const;
 
         void applyCreateImage();
 
@@ -113,9 +117,9 @@ namespace merutilm::rff2 {
 
         void overwriteMatrixFromMap() const;
 
-        uint16_t getMouseXOnIterationBuffer() const;
+        [[nodiscard]] uint16_t getMouseXOnIterationBuffer() const;
 
-        uint16_t getMouseYOnIterationBuffer() const;
+        [[nodiscard]] uint16_t getMouseYOnIterationBuffer() const;
 
         void recomputeThreaded();
 
@@ -127,17 +131,17 @@ namespace merutilm::rff2 {
 
         void setStatusMessage(const int index, const std::string_view &message) const {
             (*statusMessageRef)[index] = std::string("  ").append(message);
-        };
+        }
 
-        Settings &getSettings() {
+        [[nodiscard]] Settings &getSettings() {
             return settings;
-        };
+        }
 
-        ParallelRenderState &getState() {
+        [[nodiscard]] ParallelRenderState &getState() {
             return state;
         }
 
-        MandelbrotPerturbator *getCurrentPerturbator() const {
+        [[nodiscard]] MandelbrotPerturbator *getCurrentPerturbator() const {
             return currentPerturbator.get();
         }
 
@@ -145,49 +149,49 @@ namespace merutilm::rff2 {
             currentPerturbator = std::move(perturbator);
         }
 
-        ApproxTableCache &getApproxTableCache() {
+        [[nodiscard]] ApproxTableCache &getApproxTableCache() {
             return approxTableCache;
         }
 
-        BackgroundThreads &getBackgroundThreads() {
+        [[nodiscard]] BackgroundThreads &getBackgroundThreads() {
             return backgroundThreads;
         }
 
-        RFFDynamicMapBinary &getCurrentMap() const {
+        [[nodiscard]] RFFDynamicMapBinary &getCurrentMap() const {
             return *currentMap;
         }
 
         void setCurrentMap(const RFFDynamicMapBinary &map) {
             currentMap = std::make_unique<RFFDynamicMapBinary>(map);
-        };
+        }
 
-        const std::vector<std::unique_ptr<vkh::PipelineConfigurator>> &getShaderPrograms() { return shaderPrograms; }
+        [[nodiscard]] const std::vector<std::unique_ptr<vkh::PipelineConfigurator>> &getShaderPrograms() { return shaderPrograms; }
         
-        bool isRecomputeRequested() const {
+        [[nodiscard]] bool isRecomputeRequested() const {
             return recomputeRequested;
         }
 
-        bool isCreateImageRequested() const {
+        [[nodiscard]] bool isCreateImageRequested() const {
             return createImageRequested;
         }
 
-        bool isResizeRequested() const {
+        [[nodiscard]] bool isResizeRequested() const {
             return resizeRequested;
         }
 
-        bool isColorRequested() const {
+        [[nodiscard]] bool isColorRequested() const {
             return colorRequested;
         }
 
-        bool isIdleCompute() const {
+        [[nodiscard]] bool isIdleCompute() const {
             return idleCompute;
         }
 
-        int getCWRequest() const {
+        [[nodiscard]] int getCWRequest() const {
             return cwRequest;
         }
 
-        int getCHRequest() const {
+        [[nodiscard]] int getCHRequest() const {
             return chRequest;
         }
 

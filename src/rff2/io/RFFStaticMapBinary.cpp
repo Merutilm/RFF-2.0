@@ -4,6 +4,7 @@
 
 #include "RFFStaticMapBinary.h"
 
+#include "../../vulkan_helper/util/logger.hpp"
 #include "../ui/IOUtilities.h"
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/core/mat.hpp"
@@ -60,7 +61,7 @@ namespace merutilm::rff2 {
             IOUtilities::encodeAndWrite(out, getHeight());
             out.close();
         } else {
-            Utilities::log("ERROR : Cannot save file");
+            vkh::logger::log("ERROR : Cannot save file");
         }
     }
 

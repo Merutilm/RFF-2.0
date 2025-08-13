@@ -15,14 +15,14 @@ namespace merutilm::vkh {
         VkPipeline pipeline = nullptr;
         const PipelineLayout &pipelineLayout;
         const uint32_t subpassIndex;
-        VertexBuffer * const vertexBuffer;
-        IndexBuffer * const indexBuffer;
+        VertexBuffer & vertexBuffer;
+        IndexBuffer & indexBuffer;
         const std::unique_ptr<PipelineManager> pipelineManager = nullptr;
 
     public:
         explicit Pipeline(const Engine &engine, const PipelineLayout &pipelineLayout,
-                          VertexBuffer * const vertexBuffer,
-                          IndexBuffer * const indexBuffer,
+                          VertexBuffer & vertexBuffer,
+                          IndexBuffer & indexBuffer,
                           uint32_t subpassIndex,
                           std::unique_ptr<PipelineManager> &&pipelineManager);
 
@@ -42,13 +42,13 @@ namespace merutilm::vkh {
 
         [[nodiscard]] PipelineManager &getPipelineManager() { return *pipelineManager; }
 
-        [[nodiscard]] const VertexBuffer &getVertexBuffer() const { return *vertexBuffer; }
+        [[nodiscard]] const VertexBuffer &getVertexBuffer() const { return vertexBuffer; }
 
-        [[nodiscard]] const IndexBuffer &getIndexBuffer() const { return *indexBuffer; }
+        [[nodiscard]] const IndexBuffer &getIndexBuffer() const { return indexBuffer; }
 
-        [[nodiscard]] VertexBuffer &getVertexBuffer() { return *vertexBuffer; }
+        [[nodiscard]] VertexBuffer &getVertexBuffer() { return vertexBuffer; }
 
-        [[nodiscard]] IndexBuffer &getIndexBuffer() { return *indexBuffer; }
+        [[nodiscard]] IndexBuffer &getIndexBuffer() { return indexBuffer; }
 
         [[nodiscard]] VkPipeline getPipelineHandle() const { return pipeline; }
 

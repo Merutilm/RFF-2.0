@@ -10,8 +10,8 @@
 
 namespace merutilm::vkh {
     Pipeline::Pipeline(const Engine &engine, const PipelineLayout &pipelineLayout,
-                       VertexBuffer * const vertexBuffer,
-                       IndexBuffer * const indexBuffer,
+                       VertexBuffer & vertexBuffer,
+                       IndexBuffer & indexBuffer,
                        const uint32_t subpassIndex,
                        std::unique_ptr<PipelineManager> &&pipelineManager) : EngineHandler(engine),
                                                                              pipelineLayout(pipelineLayout),
@@ -53,8 +53,8 @@ namespace merutilm::vkh {
             };
         }
 
-        auto &vertInputAttributeDescription = vertexBuffer->getVertexInputAttributeDescriptions();
-        auto &vertBindingDescription = vertexBuffer->getVertexInputBindingDescriptions();
+        auto &vertInputAttributeDescription = vertexBuffer.getVertexInputAttributeDescriptions();
+        auto &vertBindingDescription = vertexBuffer.getVertexInputBindingDescriptions();
 
 
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = {

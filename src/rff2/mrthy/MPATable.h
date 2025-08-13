@@ -14,6 +14,9 @@
 #include "../settings/MPACompressionMethod.h"
 #include "../constants/Constants.hpp"
 #include <algorithm>
+
+#include "../../vulkan_helper/util/BufferImageUtils.hpp"
+#include "../../vulkan_helper/util/logger.hpp"
 #include "../ui/Utilities.h"
 
 namespace merutilm::rff2 {
@@ -90,7 +93,8 @@ namespace merutilm::rff2 {
                                  actionPerCreatingTableIteration) : mpaSettings(*mpaSettings), tableRef(tableRef) {
         initTable(reference);
         if constexpr (std::is_same_v<Ref, LightMandelbrotReference>) {
-            generateTable<LightPA, LightPAGenerator>(state, reference, dcMax, std::move(actionPerCreatingTableIteration));
+            generateTable<LightPA, LightPAGenerator>(state, reference, dcMax,
+                                                     std::move(actionPerCreatingTableIteration));
         } else {
             generateTable<DeepPA, DeepPAGenerator>(state, reference, dcMax, std::move(actionPerCreatingTableIteration));
         }
@@ -105,7 +109,7 @@ namespace merutilm::rff2 {
             longestPeriod < minSkip) {
             this->pulledMPACompressor = std::vector<ArrayCompressionTool>();
             return;
-            }
+        }
 
         const MPACompressionMethod compressionMethod = mpaSettings.mpaCompressionMethod;
         this->mpaPeriod = MPAPeriod::create(referencePeriod, mpaSettings);
@@ -249,27 +253,22 @@ namespace merutilm::rff2 {
 
                 for (uint64_t i = level + 1; i < levels; ++i) {
                     if (i <= level && periodCount[i] != 0) {
-                        const std::string log = std::format(
+                        vkh::logger::log_err(
                             "WARNING : Failed to compress!! \n what : the table period count {} is not zero.",
                             periodCount[i]);
-                        Utilities::log(log);
-                        MessageBox(nullptr, log.data(), "FATAL", MB_OK | MB_ICONWARNING);
                         valid = false;
                         break;
                     }
                     if (periodCount[i] + skip > tablePeriod[i] - REQUIRED_PERTURBATION) {
-                        const std::string log = std::format(
+                        vkh::logger::log_err(
                             "WARNING : Failed to compress!! \n what : the table period count {} + skip {} exceeds its period {}.",
                             periodCount[i], skip, tablePeriod[i]);
-                        Utilities::log(log);
-                        MessageBox(nullptr, log.data(), "FATAL", MB_OK | MB_ICONWARNING);
                         valid = false;
                         break;
                     }
                 }
 
                 if (valid) {
-
                     for (uint64_t i = 0; i < levels; ++i) {
                         if (i <= level) {
                             pa.push_back(mainReferenceMPA[i]);
@@ -318,7 +317,7 @@ namespace merutilm::rff2 {
                 if (currentPA[i] != nullptr && periodCount[i] + REQUIRED_PERTURBATION <
                     tablePeriod[i]) {
                     currentPA[i]->step();
-                    }
+                }
 
 
                 periodCount[i]++;
@@ -333,11 +332,9 @@ namespace merutilm::rff2 {
 
 
                         if (compTableIndex == UINT64_MAX) {
-                            const std::string log = std::format(
+                            vkh::logger::log_err(
                                 "FATAL : FAILED TO CREATING TABLE!!\n what : iteration {} is not pullable. aborting the table creation...",
                                 currentLevel->getStart());
-                            Utilities::log(log);
-                            MessageBox(nullptr, log.data(), "FATAL", MB_OK | MB_ICONERROR);
                             return;
                         }
 
@@ -413,7 +410,7 @@ namespace merutilm::rff2 {
                 1 > tablePeriod[i]) {
                 return UINT64_MAX;
                 //Insufficient length, ("Pulled Table Index" must be skipped for at least "shortest period")
-                }
+            }
 
 
             index += remainder / tablePeriod[i - 1] * tablePeriodElements[i - 1];
@@ -429,7 +426,7 @@ namespace merutilm::rff2 {
                                                            const std::vector<ArrayCompressionTool> &pulledMPACompressor,
                                                            const uint64_t iteration) {
         switch (mpaCompressionMethod) {
-            using enum MPACompressionMethod;
+                using enum MPACompressionMethod;
             case NO_COMPRESSION: return iteration;
             case LITTLE_COMPRESSION: return iterationToPulledTableIndex(mpaPeriod, iteration);
             case STRONGEST: {

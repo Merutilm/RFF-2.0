@@ -25,17 +25,16 @@ namespace merutilm::vkh {
     void GeneralPipelineConfigurator::configure() {
         auto pipelineLayoutManager = std::make_unique<PipelineLayoutManager>();
         auto &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
-        auto &descRepo = *engine.getRepositories().getRepository<SharedDescriptorRepo>();
 
         std::vector<const Descriptor *> descriptors = {};
-        configureDescriptors(descriptors, layoutRepo, descRepo);
+        configureDescriptors(descriptors);
 
         for (const auto descriptor: descriptors) {
             const DescriptorSetLayout &layout = layoutRepo.pick(descriptor->getDescriptorManager().getLayoutBuilder());
             pipelineLayoutManager->appendDescriptorSetLayout(&layout);
         }
 
-        configurePushConstant(layoutRepo, *pipelineLayoutManager);
+        configurePushConstant(*pipelineLayoutManager);
         const PipelineLayout &pipelineLayout = engine.getRepositories().getRepository<PipelineLayoutRepo>()->pick(
             std::move(pipelineLayoutManager));
 
@@ -47,16 +46,16 @@ namespace merutilm::vkh {
         pipelineManager->attachShader(&vertexShader);
         pipelineManager->attachShader(&fragmentShader);
 
-        auto vertManager = std::make_unique<ShaderObjectManager>();
-        auto indexManager = std::make_unique<ShaderObjectManager>();
+        auto vertManager = std::make_unique<BufferObjectManager>();
+        auto indexManager = std::make_unique<BufferObjectManager>();
 
         configureVertexBuffer(*vertManager);
         configureIndexBuffer(*indexManager);
 
-        vertexBuffer = std::make_unique<VertexBuffer>(engine.getCore(), std::move(vertManager));
-        indexBuffer = std::make_unique<IndexBuffer>(engine.getCore(), std::move(indexManager));
+        vertexBuffer = std::make_unique<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_UNLOCK);
+        indexBuffer = std::make_unique<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_UNLOCK);
 
-        pipeline = std::make_unique<Pipeline>(engine, pipelineLayout, vertexBuffer.get(), indexBuffer.get(), subpassIndex,
+        pipeline = std::make_unique<Pipeline>(engine, pipelineLayout, *vertexBuffer, *indexBuffer, subpassIndex,
                                               std::move(pipelineManager));
     }
 

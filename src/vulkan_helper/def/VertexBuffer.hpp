@@ -15,7 +15,7 @@ namespace merutilm::vkh {
         std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
 
     public:
-        explicit VertexBuffer(const Core &core, std::unique_ptr<ShaderObjectManager> &&manager);
+        explicit VertexBuffer(const Core &core, std::unique_ptr<BufferObjectManager> &&manager, BufferLock bufferLock);
 
         ~VertexBuffer() override;
 

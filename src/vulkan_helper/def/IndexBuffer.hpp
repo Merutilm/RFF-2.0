@@ -9,7 +9,7 @@ namespace merutilm::vkh {
     class IndexBuffer final : public BufferObject {
 
     public:
-        explicit IndexBuffer(const Core &core, std::unique_ptr<ShaderObjectManager> &&manager);
+        explicit IndexBuffer(const Core &core, std::unique_ptr<BufferObjectManager> &&manager, BufferLock bufferLock);
 
         ~IndexBuffer() override;
 

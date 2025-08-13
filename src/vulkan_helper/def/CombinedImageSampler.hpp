@@ -3,29 +3,29 @@
 //
 
 #pragma once
+#include "Sampler.hpp"
 #include "../context/ImageContext.hpp"
 #include "../handle/CoreHandler.hpp"
 
 namespace merutilm::vkh {
-    class Sampler2D final : public CoreHandler {
+    class CombinedImageSampler final : public CoreHandler {
         ImageContext imageContext;
-        VkSampler sampler = nullptr;
-        VkSamplerCreateInfo samplerInfo;
+        const Sampler &sampler;
         bool initialized = false;
         bool isUnique = false;
 
     public:
-        explicit Sampler2D(const Core &core, VkSamplerCreateInfo &&samplerInfo);
+        explicit CombinedImageSampler(const Core &core, const Sampler &sampler);
 
-        ~Sampler2D() override;
+        ~CombinedImageSampler() override;
 
-        Sampler2D(const Sampler2D &) = delete;
+        CombinedImageSampler(const CombinedImageSampler &) = delete;
 
-        Sampler2D &operator=(const Sampler2D &) = delete;
+        CombinedImageSampler &operator=(const CombinedImageSampler &) = delete;
 
-        Sampler2D(Sampler2D &&) = delete;
+        CombinedImageSampler(CombinedImageSampler &&) = delete;
 
-        Sampler2D &operator=(Sampler2D &&) = delete;
+        CombinedImageSampler &operator=(CombinedImageSampler &&) = delete;
 
         void setImageContext(const ImageContext &imageContext) {
             initialized = true;
@@ -42,7 +42,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] bool isInitialized() const { return initialized; }
 
-        [[nodiscard]] VkSampler getSamplerHandle() const { return sampler; }
+        [[nodiscard]] const Sampler &getSampler() const { return sampler; }
 
     private:
         void init() override;

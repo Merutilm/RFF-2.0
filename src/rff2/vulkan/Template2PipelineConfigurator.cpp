@@ -30,7 +30,7 @@ namespace merutilm::rff2 {
         //INPUT
         auto &descInput = getDescriptor(SET_INPUT);
         descInput.getDescriptorManager().get<std::unique_ptr<
-            vkh::Sampler2D> >(BINDING_INPUT_SAMPLER)->setImageContext(
+            vkh::CombinedImageSampler> >(BINDING_INPUT_SAMPLER)->setImageContext(
             getRenderContextConfigurator<BasicRenderContextConfigurator>().getImageContext(
                 BasicRenderContextConfigurator::PRIMARY_SUBPASS_RESULT_IMAGE)[imageIndex]);
         descInput.getDescriptorManager().get<vkh::ImageContext>(BINDING_INPUT_ATTACHMENT_ELEM) =
@@ -43,57 +43,43 @@ namespace merutilm::rff2 {
                                                     });
     }
 
-    void Template2PipelineConfigurator::render(const VkCommandBuffer cbh, const uint32_t frameIndex,
-                                               const uint32_t width,
-                                               const uint32_t height) {
-        pushAll(cbh);
-        draw(cbh, frameIndex, 0);
-    }
 
-
-    void Template2PipelineConfigurator::configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors,
-                                                             vkh::DescriptorSetLayoutRepo &layoutRepo,
-                                                             vkh::SharedDescriptorRepo &repo) {
-        appendDescriptor<SharedDescriptorTemplate::DescTime>(SET_TIME, descriptors, layoutRepo, repo);
+    void Template2PipelineConfigurator::configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors) {
+        appendDescriptor<SharedDescriptorTemplate::DescTime>(SET_TIME, descriptors);
+        VkSamplerCreateInfo samplerInfo = {
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .magFilter = VK_FILTER_LINEAR,
+            .minFilter = VK_FILTER_LINEAR,
+            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
+            .addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+            .mipLodBias = 0,
+            .anisotropyEnable = VK_TRUE,
+            .maxAnisotropy = engine.getCore().getPhysicalDevice().getPhysicalDeviceProperties().limits.
+            maxSamplerAnisotropy,
+            .compareEnable = VK_FALSE,
+            .compareOp = VK_COMPARE_OP_ALWAYS,
+            .minLod = 0,
+            .maxLod = 1,
+            .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
+            .unnormalizedCoordinates = VK_FALSE
+        };
 
         auto inputManager = std::make_unique<vkh::DescriptorManager>();
         inputManager->appendCombinedImgSampler(BINDING_INPUT_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                               std::make_unique<vkh::Sampler2D>(engine.getCore(), VkSamplerCreateInfo{
-                                                                               .sType =
-                                                                               VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                                                                               .pNext = nullptr,
-                                                                               .flags = 0,
-                                                                               .magFilter = VK_FILTER_LINEAR,
-                                                                               .minFilter = VK_FILTER_LINEAR,
-                                                                               .mipmapMode =
-                                                                               VK_SAMPLER_MIPMAP_MODE_LINEAR,
-                                                                               .addressModeU =
-                                                                               VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                                                                               .addressModeV =
-                                                                               VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                                                                               .addressModeW =
-                                                                               VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                                                                               .mipLodBias = 0,
-                                                                               .anisotropyEnable = VK_TRUE,
-                                                                               .maxAnisotropy = engine.getCore().
-                                                                               getPhysicalDevice().
-                                                                               getPhysicalDeviceProperties().limits.
-                                                                               maxSamplerAnisotropy,
-                                                                               .compareEnable = VK_FALSE,
-                                                                               .compareOp = VK_COMPARE_OP_ALWAYS,
-                                                                               .minLod = 0,
-                                                                               .maxLod = 1,
-                                                                               .borderColor =
-                                                                               VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
-                                                                               .unnormalizedCoordinates = VK_FALSE
-                                                                           }));
+                                               std::make_unique<vkh::CombinedImageSampler>(
+                                                   engine.getCore(),
+                                                   engine.getRepositories().getRepository<vkh::SamplerRepo>()->pick(
+                                                       std::move(samplerInfo))));
         inputManager->appendInputAttachment(BINDING_INPUT_ATTACHMENT_ELEM, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-        appendUniqueDescriptor(SET_INPUT, descriptors, layoutRepo, std::move(inputManager));
+        appendUniqueDescriptor(SET_INPUT, descriptors, std::move(inputManager));
     }
 
-    void Template2PipelineConfigurator::configurePushConstant(vkh::DescriptorSetLayoutRepo &layoutRepo,
-                                                              vkh::PipelineLayoutManager &pipelineLayoutManager) {
+    void Template2PipelineConfigurator::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
         pipelineLayoutManager.appendPushConstantManager(PUSH_RESOLUTION, VK_SHADER_STAGE_FRAGMENT_BIT,
                                                         vkh::PushConstantReserve<glm::vec2>{PUSH_RESOLUTION_SIZE}
         );

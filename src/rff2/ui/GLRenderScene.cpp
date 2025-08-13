@@ -566,7 +566,7 @@ namespace merutilm::rff2 {
 
     void GLRenderScene::afterCompute(const bool success) {
         if (!success) {
-            Utilities::log("Recompute cancelled.");
+            vkh::logger::log("Recompute cancelled.");
         }
         if (success && settings.calculationSettings.reuseReferenceMethod == ReuseReferenceMethod::CENTERED_REFERENCE) {
             settings.calculationSettings.reuseReferenceMethod = ReuseReferenceMethod::CURRENT_REFERENCE;
