@@ -51,6 +51,30 @@ namespace merutilm::vkh {
                     .pTexelBufferView = nullptr,
                 };
             }
+            if (std::holds_alternative<std::unique_ptr<ShaderStorage> >(raw)) {
+                auto &ubo = std::get<std::unique_ptr<ShaderStorage> >(raw);
+
+
+                queue.push_back({
+                    .bufferInfo = VkDescriptorBufferInfo{
+                        .buffer = ubo->getBufferHandle(frameIndex),
+                        .offset = 0,
+                        .range = ubo->getTotalSizeByte()
+                    },
+                });
+                queue.back().writeSet = {
+                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    .pNext = nullptr,
+                    .dstSet = descriptorSets[frameIndex],
+                    .dstBinding = index,
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                    .pImageInfo = nullptr,
+                    .pBufferInfo = &queue.back().bufferInfo,
+                    .pTexelBufferView = nullptr,
+                };
+            }
             if (std::holds_alternative<std::unique_ptr<CombinedImageSampler> >(raw)) {
                 auto &tex = std::get<std::unique_ptr<CombinedImageSampler> >(raw);
 
@@ -97,7 +121,6 @@ namespace merutilm::vkh {
                     .pBufferInfo = nullptr,
                     .pTexelBufferView = nullptr,
                 };
-
             }
         }
     }
@@ -106,6 +129,7 @@ namespace merutilm::vkh {
     void Descriptor::init() {
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         const uint32_t ubo = descriptorManager->getElementCount<std::unique_ptr<Uniform> >();
+        const uint32_t ssbo = descriptorManager->getElementCount<std::unique_ptr<ShaderStorage> >();
         const uint32_t sampler = descriptorManager->getElementCount<std::unique_ptr<CombinedImageSampler> >();
         const uint32_t inputAttachment = descriptorManager->getElementCount<ImageContext>();
         const uint32_t elements = descriptorManager->getElements();
@@ -116,6 +140,12 @@ namespace merutilm::vkh {
             sizes.push_back({
                 .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                 .descriptorCount = ubo
+            });
+        }
+        if (ssbo > 0) {
+            sizes.push_back({
+                .type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .descriptorCount = ssbo
             });
         }
 

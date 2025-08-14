@@ -13,7 +13,7 @@
 namespace merutilm::vkh {
     BufferObject::BufferObject(const Core &core, std::unique_ptr<BufferObjectManager> &&dataManager,
                                const VkBufferUsageFlags bufferUsage, const BufferLock bufferLock) : CoreHandler(core),
-        CompleteShaderObjectManager(std::move(dataManager)),
+        CompleteBufferObjectManager(std::move(dataManager)),
         bufferUsage(bufferUsage), bufferLock(bufferLock) {
         BufferObject::init();
     }

@@ -3,9 +3,11 @@
 #define NORMAL 1
 #define REVERSED 2
 
-layout(set = 0, binding = 0) uniform sampler2D iterations;
-layout(set = 0, binding = 1) uniform IterUBO{
+layout(set = 0, binding = 0) buffer IterSSBO{
+    int width;
+    int height;
     double max_value;
+    double iterations[];
 } iteration_attr;
 
 layout(set = 1, binding = 0) uniform sampler2D palette;
@@ -25,13 +27,7 @@ layout(location = 0) out vec4 color;
 
 
 double getIteration0(ivec2 iterCoord){
-    vec4 iter_raw = texelFetch(iterations, iterCoord, 0);
-    uvec2 iter_uintbits = floatBitsToUint(iter_raw.yx);
-    double result = packDouble2x32(iter_uintbits);
-    if (result >= iteration_attr.max_value){
-        return iteration_attr.max_value * 2;// smooth mandelbrot plane
-    }
-    return result;
+    return iteration_attr.iterations[iterCoord.y * iteration_attr.width + iterCoord.x];
 }
 
 double getIteration(vec2 coord){

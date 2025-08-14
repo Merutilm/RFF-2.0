@@ -5,12 +5,12 @@
 #pragma once
 #include "CommandPool.hpp"
 #include "../handle/CoreHandler.hpp"
-#include "../manage/CompleteShaderObjectManager.hpp"
+#include "../manage/CompleteBufferObjectManager.hpp"
 #include "../manage/BufferObjectManager.hpp"
 #include "../struct/BufferLock.hpp"
 
 namespace merutilm::vkh {
-    class BufferObject : public CoreHandler, public CompleteShaderObjectManager{
+    class BufferObject : public CoreHandler, public CompleteBufferObjectManager{
 
         VkBufferUsageFlags bufferUsage;
         std::vector<VkBuffer> buffers = {};

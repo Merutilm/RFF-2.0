@@ -248,7 +248,7 @@ add_executable(
         src/vulkan_helper/struct/Vertex.hpp
         src/vulkan_helper/def/VertexBuffer.cpp
         src/vulkan_helper/def/VertexBuffer.hpp
-        src/vulkan_helper/manage/CompleteShaderObjectManager.hpp
+        src/vulkan_helper/manage/CompleteBufferObjectManager.hpp
         src/vulkan_helper/def/Uniform.cpp
         src/vulkan_helper/def/Uniform.hpp
         src/vulkan_helper/executor/Executor.hpp

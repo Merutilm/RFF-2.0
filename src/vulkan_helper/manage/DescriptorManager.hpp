@@ -13,13 +13,14 @@
 #include "../struct/DescriptorSetLayoutBuildType.hpp"
 #include "../struct/StringHasher.hpp"
 #include "../context/ImageContext.hpp"
+#include "../def/ShaderStorage.hpp"
 
 namespace merutilm::vkh {
     using DescriptorSetLayoutBuilder = std::vector<DescriptorSetLayoutBuildType>;
     using DescriptorSetLayoutBuilderHasher = VectorHasher<DescriptorSetLayoutBuildType,
         DescriptorSetLayoutBuildTypeHasher>;
 
-    using DescriptorType = std::variant<std::unique_ptr<Uniform>, std::unique_ptr<CombinedImageSampler>,  ImageContext >;
+    using DescriptorType = std::variant<std::unique_ptr<Uniform>, std::unique_ptr<ShaderStorage>,std::unique_ptr<CombinedImageSampler>,  ImageContext >;
 
     class DescriptorManager {
 
@@ -41,12 +42,15 @@ namespace merutilm::vkh {
 
         void appendUBO(uint32_t bindingExpected, VkShaderStageFlags useStage, std::unique_ptr<Uniform> &&ubo);
 
+        void appendSSBO(uint32_t bindingExpected, VkShaderStageFlags useStage,
+                                 std::unique_ptr<ShaderStorage> &&ssbo);
+
         void appendCombinedImgSampler(uint32_t bindingExpected, VkShaderStageFlags useStage,
                                       std::unique_ptr<CombinedImageSampler> &&sampler);
 
         void appendInputAttachment(uint32_t bindingExpected, VkShaderStageFlags useStage);
 
-        const DescriptorSetLayoutBuilder &getLayoutBuilder() const { return layoutBuilder; }
+        [[nodiscard]] const DescriptorSetLayoutBuilder &getLayoutBuilder() const { return layoutBuilder; }
 
         template<typename T>
         [[nodiscard]] uint32_t getElementCount() const;
@@ -79,6 +83,14 @@ namespace merutilm::vkh {
         IndexChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()), "Descriptor UBO add");
         data.emplace_back(std::move(ubo));
         layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, useStage);
+    }
+
+    inline void DescriptorManager::appendSSBO(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
+                                             std::unique_ptr<ShaderStorage> &&ssbo) {
+
+        IndexChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()), "Descriptor SSBO add");
+        data.emplace_back(std::move(ssbo));
+        layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, useStage);
     }
 
     inline void DescriptorManager::appendCombinedImgSampler(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
