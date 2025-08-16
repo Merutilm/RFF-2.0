@@ -6,7 +6,9 @@
 
 #include "../../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
 #include "../../vulkan_helper/executor/RenderPassExecutor.hpp"
+#include "../../vulkan_helper/util/DescriptorUpdater.hpp"
 #include "../../vulkan_helper/util/Presenter.hpp"
+#include "../vulkan/SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
     Application::Application() {
@@ -146,9 +148,6 @@ namespace merutilm::rff2 {
         vkh::GraphicsContextWindow &window = *engine->getCore().getWindowContext(
             Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window;
 
-        //TODO : Set Procedure when finish to change opengl to vulkan
-
-        window.setListener([this](const UINT message, const WPARAM wparam) { scene->runAction(message, wparam); });
         window.setListener(
             WM_GETMINMAXINFO, [](const vkh::GraphicsContextWindow &, HWND, WPARAM, const LPARAM lparam) {
                 const auto min = reinterpret_cast<LPMINMAXINFO>(lparam);
@@ -190,31 +189,31 @@ namespace merutilm::rff2 {
                     MENUITEMINFO info = {};
                     info.cbSize = sizeof(MENUITEMINFO);
                     info.fMask = MIIM_ID;
-                    // if (GetMenuItemInfo(popup, i, TRUE, &info)) {
-                    //     if (const UINT id = info.wID;
-                    //         settingsMenu->hasCheckbox(id)
-                    //     ) {
-                    //         const bool *ref = settingsMenu->getBool(scene, id);
-                    //         assert(ref != nullptr);
-                    //         CheckMenuItem(popup, id, MF_BYCOMMAND | (*ref ? MF_CHECKED : MF_UNCHECKED));
-                    //     }
-                    // }
+                    if (GetMenuItemInfo(popup, i, TRUE, &info)) {
+                        if (const UINT id = info.wID;
+                            settingsMenu->hasCheckbox(id)
+                        ) {
+                            const bool *ref = settingsMenu->getBool(*scene, id);
+                            assert(ref != nullptr);
+                            CheckMenuItem(popup, id, MF_BYCOMMAND | (*ref ? MF_CHECKED : MF_UNCHECKED));
+                        }
+                    }
                 }
                 return static_cast<LRESULT>(0);
             });
         window.setListener(WM_COMMAND, [this](const vkh::GraphicsContextWindow &, HWND, const WPARAM wparam, LPARAM) {
             const HMENU menu = GetMenu(masterWindow);
-            // if (const int menuID = LOWORD(wparam);
-            //     settingsMenu->hasCheckbox(menuID)
-            // ) {
-            //     bool *ref = settingsMenu->getBool(scene, menuID);
-            //     assert(ref != nullptr);
-            //     *ref = !*ref;
-            //     settingsMenu->executeAction(scene, menuID);
-            //     CheckMenuItem(menu, menuID, *ref ? MF_CHECKED : MF_UNCHECKED);
-            // } else {
-            //     settingsMenu->executeAction(scene, menuID);
-            // }
+            if (const int menuID = LOWORD(wparam);
+                settingsMenu->hasCheckbox(menuID)
+            ) {
+                bool *ref = settingsMenu->getBool(*scene, menuID);
+                assert(ref != nullptr);
+                *ref = !*ref;
+                settingsMenu->executeAction(*scene, menuID);
+                CheckMenuItem(menu, menuID, *ref ? MF_CHECKED : MF_UNCHECKED);
+            } else {
+                settingsMenu->executeAction(*scene, menuID);
+            }
             return static_cast<LRESULT>(0);
         });
         window.setListener(WM_CLOSE, [this](const vkh::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
@@ -279,21 +278,28 @@ namespace merutilm::rff2 {
 
         const auto extent = swapchain.populateSwapchainExtent();
 
-        vkh::DescriptorUpdateQueue queue = {};
+        vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
 
-        const auto &shaderPrograms = scene->getShaderPrograms();
-        for (const auto &shaderProgram: shaderPrograms) {
+        for (const auto &shaderPrograms = scene->getShaderPrograms();
+            const auto &shaderProgram: shaderPrograms) {
             shaderProgram->updateQueue(queue, currentFrame, imageIndex, extent.width, extent.height);
         }
 
-        std::vector<VkWriteDescriptorSet> writeDescriptorSets(queue.size());
-        std::ranges::transform(queue, writeDescriptorSets.begin(), [](const vkh::DescriptorUpdateContext &context) {
-            return context.writeSet;
-        });
+        //TODO : Move to TimeDescConfigurator and invoke it from external class (Every Frame)
+        using namespace SharedDescriptorTemplate;
+        auto &desc = engine->getRepositories().getRepository<vkh::SharedDescriptorRepo>()->
+                pick(vkh::DescriptorTemplate::from<DescTime>(),
+                     engine->getRepositories().getDescriptorRequiresRepositoryContext());
+        const auto &timeBinding = *desc.getDescriptorManager().get<
+                    std::unique_ptr<
+                        vkh::Uniform> >(DescTime::BINDING_UBO_TIME);
+        timeBinding.getHostObject().set(DescTime::TARGET_TIME_CURRENT, Utilities::getCurrentTime());
+        timeBinding.update(currentFrame);
+        desc.queue(queue, currentFrame);
+        //TODO_END
 
-        vkUpdateDescriptorSets(core.getLogicalDevice().getLogicalDeviceHandle(),
-                               static_cast<uint32_t>(writeDescriptorSets.size()),
-                               writeDescriptorSets.data(), 0, nullptr);
+
+        vkh::DescriptorUpdater::write(device, queue);
 
         //COMMAND SCOPE START
         {
@@ -319,6 +325,8 @@ namespace merutilm::rff2 {
                          reinterpret_cast<LONG_PTR>(engine->getCore().getWindowContext(
                                  Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                              window.get()));
+        SetWindowLongPtr(renderWindow, GWLP_USERDATA,
+                         reinterpret_cast<LONG_PTR>(scene.get()));
     }
 
     void Application::start() const {

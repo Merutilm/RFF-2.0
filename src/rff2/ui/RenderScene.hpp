@@ -16,8 +16,10 @@
 #include "../preset/Presets.h"
 #include "../settings/Settings.h"
 #include "../vulkan/IterationPalettePipelineConfigurator.hpp"
+#include "../vulkan/StripePipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
+
     class RenderScene final {
 
         vkh::Engine &engine;
@@ -49,6 +51,7 @@ namespace merutilm::rff2 {
         
         std::vector<std::unique_ptr<vkh::PipelineConfigurator>> shaderPrograms = {};
         IterationPalettePipelineConfigurator * rendererIteration;
+        StripePipelineConfigurator * rendererStripe;
 
 
 
@@ -95,7 +98,7 @@ namespace merutilm::rff2 {
 
         static Settings defaultSettings();
 
-        void runAction(UINT message, WPARAM wParam);
+        static LRESULT CALLBACK renderSceneProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
         [[nodiscard]] std::array<dex, 2> offsetConversion(const Settings &settings, int mx, int my) const;
 
@@ -205,6 +208,9 @@ namespace merutilm::rff2 {
         void changePreset(P &preset);
         
     private:
+
+        void runAction(UINT msg, WPARAM wparam, LPARAM lparam);
+
         void init();
 
         void initRenderContext() const;

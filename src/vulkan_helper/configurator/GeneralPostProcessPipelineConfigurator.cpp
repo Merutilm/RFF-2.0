@@ -8,7 +8,33 @@
 
 namespace merutilm::vkh {
 
+    GeneralPostProcessPipelineConfigurator::GeneralPostProcessPipelineConfigurator(const Engine &engine, uint32_t subpassIndex, const std::string &fragName)  : PipelineConfigurator(
+            engine, subpassIndex, VERTEX_MODULE_PATH, fragName) {
+        GeneralPostProcessPipelineConfigurator::init();
+    }
+    GeneralPostProcessPipelineConfigurator::~GeneralPostProcessPipelineConfigurator() {
+        GeneralPostProcessPipelineConfigurator::destroy();
+    }
 
+
+    void GeneralPostProcessPipelineConfigurator::render(const VkCommandBuffer cbh, const uint32_t frameIndex, uint32_t width, uint32_t height) {
+        pushAll(cbh);
+        draw(cbh, frameIndex, 0);
+    }
+
+
+    void GeneralPostProcessPipelineConfigurator::configureVertexBuffer(HostBufferObjectManager &som) {
+        som.addArray(0, std::vector{
+                    Vertex::generate({1, 1, 0}, {1, 1, 1}, {1, 1}),
+                    Vertex::generate({1, -1, 0}, {1, 1, 1}, {1, 0}),
+                    Vertex::generate({-1, -1, 0}, {1, 1, 1}, {0, 0}),
+                    Vertex::generate({-1, 1, 0}, {1, 1, 1}, {0, 1}),
+                });
+    }
+
+    void GeneralPostProcessPipelineConfigurator::configureIndexBuffer(HostBufferObjectManager &som) {
+        som.addArray(0, std::vector<uint32_t>{0, 1, 2, 2, 3, 0});
+    }
 
     void GeneralPostProcessPipelineConfigurator::configure() {
         auto pipelineLayoutManager = std::make_unique<PipelineLayoutManager>();
@@ -35,8 +61,8 @@ namespace merutilm::vkh {
 
 
         if (!initializedVertexIndex) {
-            auto vertManager = std::make_unique<BufferObjectManager>();
-            auto indexManager = std::make_unique<BufferObjectManager>();
+            auto vertManager = std::make_unique<HostBufferObjectManager>();
+            auto indexManager = std::make_unique<HostBufferObjectManager>();
 
             configureVertexBuffer(*vertManager);
             configureIndexBuffer(*indexManager);
@@ -59,30 +85,11 @@ namespace merutilm::vkh {
         }
     }
 
-    void GeneralPostProcessPipelineConfigurator::render(const VkCommandBuffer cbh, const uint32_t frameIndex, uint32_t width, uint32_t height) {
-        pushAll(cbh);
-        draw(cbh, frameIndex, 0);
-    }
-
-
-    void GeneralPostProcessPipelineConfigurator::configureVertexBuffer(BufferObjectManager &som) {
-        som.addArray(0, std::vector{
-                    Vertex::generate({1, 1, 0}, {1, 1, 1}, {1, 1}),
-                    Vertex::generate({1, -1, 0}, {1, 1, 1}, {1, 0}),
-                    Vertex::generate({-1, -1, 0}, {1, 1, 1}, {0, 0}),
-                    Vertex::generate({-1, 1, 0}, {1, 1, 1}, {0, 1}),
-                });
-    }
-
-    void GeneralPostProcessPipelineConfigurator::configureIndexBuffer(BufferObjectManager &som) {
-        som.addArray(0, std::vector<uint32_t>{0, 1, 2, 2, 3, 0});
-    }
-
     void GeneralPostProcessPipelineConfigurator::init() {
         //no operation
     }
 
     void GeneralPostProcessPipelineConfigurator::destroy() {
-        //no operation
+        pipeline = nullptr;
     }
 }

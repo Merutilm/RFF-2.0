@@ -16,12 +16,10 @@ namespace merutilm::vkh {
     public:
 
         explicit GeneralPostProcessPipelineConfigurator(const Engine &engine,
-                                                        const uint32_t subpassIndex,
-                                                        const std::string &fragName) : PipelineConfigurator(
-            engine, subpassIndex, VERTEX_MODULE_PATH, fragName) {
-        }
+                                                        uint32_t subpassIndex,
+                                                        const std::string &fragName);
 
-        ~GeneralPostProcessPipelineConfigurator() override = default;
+        ~GeneralPostProcessPipelineConfigurator() override;
 
         GeneralPostProcessPipelineConfigurator(const GeneralPostProcessPipelineConfigurator &) = delete;
 
@@ -30,6 +28,7 @@ namespace merutilm::vkh {
         GeneralPostProcessPipelineConfigurator(GeneralPostProcessPipelineConfigurator &&) = delete;
 
         GeneralPostProcessPipelineConfigurator &operator=(GeneralPostProcessPipelineConfigurator &&) = delete;
+
 
         void configure() override;
 
@@ -46,11 +45,10 @@ namespace merutilm::vkh {
 
         [[nodiscard]] IndexBuffer &getIndexBuffer() const override { return *indexBufferPP; }
 
-        void configureVertexBuffer(BufferObjectManager &som) override;
+        void configureVertexBuffer(HostBufferObjectManager &som) override;
 
-        void configureIndexBuffer(BufferObjectManager &som) override;
+        void configureIndexBuffer(HostBufferObjectManager &som) override;
 
-    private:
         void init() override;
 
         void destroy() override;

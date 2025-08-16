@@ -11,6 +11,7 @@ namespace merutilm::rff2 {
 
         inline static auto rd = std::random_device();
         inline static auto gen = std::mt19937(rd());
+        inline static auto urd_i = std::uniform_int_distribution(0, 255);
         inline static auto urd_f = std::uniform_real_distribution(0.0f, 1.0f);
         inline static auto urd_d = std::uniform_real_distribution(0.0, 1.0);
 
@@ -29,6 +30,9 @@ namespace merutilm::rff2 {
             }
 
             return max + 0.428 * min / max * min;
+        }
+        static float random_i() {
+            return urd_i(gen);
         }
         static float random_f() {
             return urd_f(gen);

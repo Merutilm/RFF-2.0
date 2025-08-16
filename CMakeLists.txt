@@ -24,8 +24,6 @@ add_executable(
         src/rff2/opengl/GLRenderer.h
         src/rff2/calc/fp_complex_calculator.cpp
         src/rff2/calc/fp_complex_calculator.h
-        src/rff2/ui/GLMainWindow.cpp
-        src/rff2/ui/GLMainWindow.h
         src/rff2/constants/Constants.hpp
         src/rff2/settings/Settings.h
         src/rff2/settings/CalculationSettings.h
@@ -51,10 +49,6 @@ add_executable(
         src/rff2/calc/fp_decimal_calculator.h
         src/rff2/calc/fp_decimal.cpp
         src/rff2/calc/fp_decimal.h
-        src/rff2/ui/WGLContextLoader.cpp
-        src/rff2/ui/WGLContextLoader.h
-        src/rff2/ui/GLRenderScene.cpp
-        src/rff2/ui/GLRenderScene.h
         src/rff2/formula/Perturbator.h
         src/rff2/ui/WGLScene.h
         src/rff2/ui/WGLScene.cpp
@@ -64,7 +58,7 @@ add_executable(
         src/rff2/opengl/GLRendererIteration.cpp
         src/rff2/opengl/GLRendererIteration.h
         src/rff2/settings/ColorSmoothingSettings.h
-        src/rff2/data/ColorFloat.h
+        src/rff2/data/NormalizedColor.h
         src/rff2/settings/StripeType.h
         src/rff2/settings/AnimationSettings.h
         src/rff2/opengl/GLTimeRenderer.h
@@ -85,15 +79,15 @@ add_executable(
         src/rff2/mrthy/MPAPeriod.cpp
         src/rff2/mrthy/MPAPeriod.h
         src/rff2/ui/SettingsWindow.cpp
-        src/rff2/ui/SettingsWindow.h
+        src/rff2/ui/SettingsWindow.hpp
         src/rff2/ui/SettingsMenu.cpp
-        src/rff2/ui/SettingsMenu.h
+        src/rff2/ui/SettingsMenu.hpp
         src/rff2/ui/CallbackFile.cpp
-        src/rff2/ui/CallbackFile.h
+        src/rff2/ui/CallbackFile.hpp
         src/rff2/ui/CallbackFractal.cpp
-        src/rff2/ui/CallbackFractal.h
+        src/rff2/ui/CallbackFractal.hpp
         src/rff2/ui/CallbackRender.cpp
-        src/rff2/ui/CallbackRender.h
+        src/rff2/ui/CallbackRender.hpp
         src/rff2/opengl/GLMultipassRenderer.cpp
         src/rff2/opengl/GLMultipassRenderer.h
         src/rff2/opengl/GLRendererStripe.cpp
@@ -113,11 +107,11 @@ add_executable(
         src/rff2/opengl/GLRendererAntialiasing.cpp
         src/rff2/opengl/GLRendererAntialiasing.h
         src/rff2/ui/CallbackShader.cpp
-        src/rff2/ui/CallbackShader.h
+        src/rff2/ui/CallbackShader.hpp
         src/rff2/locator/MandelbrotLocator.cpp
         src/rff2/locator/MandelbrotLocator.h
         src/rff2/ui/CallbackExplore.cpp
-        src/rff2/ui/CallbackExplore.h
+        src/rff2/ui/CallbackExplore.hpp
         src/rff2/calc/dex.h
         src/rff2/formula/DeepMandelbrotReference.cpp
         src/rff2/formula/DeepMandelbrotReference.h
@@ -131,7 +125,7 @@ add_executable(
         src/rff2/mrthy/DeepMPATable.h
         src/rff2/mrthy/MPATable.h
         src/rff2/mrthy/PA.h
-        src/rff2/ui/Callback.h
+        src/rff2/ui/Callback.hpp
         src/rff2/mrthy/PAGenerator.h
         src/rff2/mrthy/LightPAGenerator.cpp
         src/rff2/mrthy/LightPAGenerator.h
@@ -160,15 +154,15 @@ add_executable(
         src/rff2/preset/calc/CalculationPresets.cpp
         src/rff2/preset/calc/CalculationPresets.h
         src/rff2/ui/CallbackVideo.cpp
-        src/rff2/ui/CallbackVideo.h
+        src/rff2/ui/CallbackVideo.hpp
         src/rff2/ui/IOUtilities.cpp
         src/rff2/ui/IOUtilities.h
         src/rff2/parallel/BackgroundThreads.h
         src/rff2/parallel/BackgroundThread.h
-        src/rff2/ui/VideoWindow.cpp
-        src/rff2/ui/VideoWindow.h
-        src/rff2/ui/VideoRenderScene.cpp
-        src/rff2/ui/VideoRenderScene.h
+        src/rff2/ui/GLVideoWindow.cpp
+        src/rff2/ui/GLVideoWindow.h
+        src/rff2/ui/GLVideoRenderScene.cpp
+        src/rff2/ui/GLVideoRenderScene.h
         src/rff2/opengl/GLRendererIteration2Map.cpp
         src/rff2/opengl/GLRendererIteration2Map.h
         src/rff2/opengl/GLShaderLoader.h
@@ -214,7 +208,7 @@ add_executable(
         src/vulkan_helper/def/CommandBuffer.hpp
         src/vulkan_helper/def/Descriptor.cpp
         src/vulkan_helper/def/Descriptor.hpp
-        src/vulkan_helper/manage/BufferObjectManager.hpp
+        src/vulkan_helper/manage/HostBufferObjectManager.hpp
         src/vulkan_helper/def/BufferObject.cpp
         src/vulkan_helper/def/BufferObject.hpp
         src/vulkan_helper/util/BufferImageUtils.hpp
@@ -248,7 +242,7 @@ add_executable(
         src/vulkan_helper/struct/Vertex.hpp
         src/vulkan_helper/def/VertexBuffer.cpp
         src/vulkan_helper/def/VertexBuffer.hpp
-        src/vulkan_helper/manage/CompleteBufferObjectManager.hpp
+        src/vulkan_helper/def/HostBufferObject.hpp
         src/vulkan_helper/def/Uniform.cpp
         src/vulkan_helper/def/Uniform.hpp
         src/vulkan_helper/executor/Executor.hpp
@@ -280,14 +274,14 @@ add_executable(
         src/vulkan_helper/executor/ScopedCommandExecutor.hpp
         src/vulkan_helper/struct/PushConstantReserve.hpp
         src/vulkan_helper/configurator/RenderContextConfigurator.hpp
-        src/rff2/vulkan/BasicRenderContextConfigurator.hpp
+        src/rff2/vulkan/RFFRenderContextConfigurator.hpp
         src/vulkan_helper/hash/DescriptorSetLayoutBuildTypeHasher.hpp
         src/vulkan_helper/context/ImageContext.hpp
         src/vulkan_helper/util/Presenter.hpp
         src/rff2/vulkan/IterationPalettePipelineConfigurator.cpp
         src/rff2/vulkan/IterationPalettePipelineConfigurator.hpp
         src/vulkan_helper/context/DescriptorUpdateContext.hpp
-        src/vulkan_helper/util/IndexChecker.hpp
+        src/vulkan_helper/util/SafeArrayChecker.hpp
         src/vulkan_helper/util/ImageContextUtils.hpp
         src/vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.cpp
         src/vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp
@@ -316,6 +310,20 @@ add_executable(
         src/vulkan_helper/def/ShaderStorage.hpp
         src/vulkan_helper/struct/BufferLock.hpp
         src/vulkan_helper/util/Logger.hpp
+        src/vulkan_helper/util/DescriptorUpdater.hpp
+        src/rff2/data/Color.hpp
+        src/rff2/vulkan/StripePipelineConfigurator.cpp
+        src/rff2/vulkan/StripePipelineConfigurator.hpp
+        src/rff2/vulkan/SlopePipelineConfigurator.cpp
+        src/rff2/vulkan/SlopePipelineConfigurator.hpp
+        src/rff2/vulkan/ColorPipelineConfigurator.cpp
+        src/rff2/vulkan/ColorPipelineConfigurator.hpp
+        src/rff2/vulkan/FogPipelineConfigurator.cpp
+        src/rff2/vulkan/FogPipelineConfigurator.hpp
+        src/rff2/vulkan/BloomPipelineConfigurator.cpp
+        src/rff2/vulkan/BloomPipelineConfigurator.hpp
+        src/rff2/vulkan/BoxBlurPipelineConfigurator.cpp
+        src/rff2/vulkan/BoxBlurPipelineConfigurator.hpp
 )
 
 

@@ -54,8 +54,6 @@ namespace merutilm::vkh {
             PostQuitMessage(0);
         }
 
-        window.headListener(message, wparam);
-
         return window.runListeners(hwnd, message, wparam, lparam);
     }
 

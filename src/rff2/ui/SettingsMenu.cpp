@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-05-14.
 //
 
-#include "SettingsMenu.h"
+#include "SettingsMenu.hpp"
 
 #include <assert.h>
 #include <functional>
@@ -11,13 +11,13 @@
 #include <windows.h>
 
 #include "../constants/Constants.hpp"
-#include "CallbackExplore.h"
-#include "CallbackFile.h"
-#include "CallbackFractal.h"
-#include "CallbackRender.h"
-#include "CallbackShader.h"
-#include "CallbackVideo.h"
-#include "GLRenderScene.h"
+#include "CallbackExplore.hpp"
+#include "CallbackFile.hpp"
+#include "CallbackFractal.hpp"
+#include "CallbackRender.hpp"
+#include "CallbackShader.hpp"
+#include "CallbackVideo.hpp"
+#include "RenderScene.hpp"
 #include "../preset/render/RenderPresets.h"
 #include "../preset/resolution/ResolutionPresets.h"
 #include "../preset/calc/CalculationPresets.h"
@@ -156,7 +156,7 @@ namespace merutilm::rff2 {
 
 
     HMENU SettingsMenu::addChildMenu(const HMENU target, const std::string_view child) {
-        return add(target, child, [](const SettingsMenu &, const GLRenderScene &) {
+        return add(target, child, [](const SettingsMenu &, const RenderScene &) {
             //it is "MENU", The callback not required
         }, true, false, std::nullopt);
     }
@@ -164,22 +164,22 @@ namespace merutilm::rff2 {
 
     HMENU SettingsMenu::addChildItem(const HMENU target, const std::string_view child,
                                         const std::function<void
-                                            (SettingsMenu &, GLRenderScene &)> &callback) {
+                                            (SettingsMenu &, RenderScene &)> &callback) {
         return add(target, child, callback, false, false, std::nullopt);
     }
 
     HMENU SettingsMenu::addChildCheckbox(const HMENU target, const std::string_view child,
-                                            const std::function<bool*(GLRenderScene &)> &checkboxAction) {
-        return add(target, child, [](SettingsMenu &, GLRenderScene &) {
+                                            const std::function<bool*(RenderScene &)> &checkboxAction) {
+        return add(target, child, [](SettingsMenu &, RenderScene &) {
                    }, false,
                    true, checkboxAction);
     }
 
     HMENU SettingsMenu::add(const HMENU target, const std::string_view child,
-                               const std::function<void(SettingsMenu &, GLRenderScene &)> &
+                               const std::function<void(SettingsMenu &, RenderScene &)> &
                                callback,
                                const bool hasChild, const bool hasCheckbox,
-                               const std::optional<std::function<bool*(GLRenderScene &)> > &checkboxAction) {
+                               const std::optional<std::function<bool*(RenderScene &)> > &checkboxAction) {
         const HMENU hmenu = CreateMenu();
 
         if (hasChild) {
@@ -195,7 +195,7 @@ namespace merutilm::rff2 {
         return hmenu;
     }
 
-    void SettingsMenu::executeAction(GLRenderScene &scene, const int menuID) {
+    void SettingsMenu::executeAction(RenderScene &scene, const int menuID) {
         if (currentActiveSettingsWindow != nullptr) {
             MessageBox(currentActiveSettingsWindow->getWindow(),
                        "Failed to open settings. Close the previous settings window.", "Warning", MB_OK | MB_ICONWARNING);
@@ -223,7 +223,7 @@ namespace merutilm::rff2 {
     }
 
 
-    bool *SettingsMenu::getBool(GLRenderScene &scene, const int menuID) const {
+    bool *SettingsMenu::getBool(RenderScene &scene, const int menuID) const {
         if (const auto id = getIndex(menuID);
             checkIndex(id)
         ) {

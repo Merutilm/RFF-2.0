@@ -10,7 +10,7 @@
 #include "../exception/exception.hpp"
 #include "../struct/RenderPassAttachment.hpp"
 #include "../struct/RenderPassAttachmentType.hpp"
-#include "../util/IndexChecker.hpp"
+#include "../util/SafeArrayChecker.hpp"
 
 namespace merutilm::vkh {
     class RenderPassManager {
@@ -101,7 +101,7 @@ namespace merutilm::vkh {
         attachmentReferences.back()[RESOLVE];
         attachmentReferences.back()[DEPTH_STENCIL];
         preserveIndices.emplace_back();
-        IndexChecker::checkIndexEqual(subpassIndexExpected, subpassCount, "Subpass Index");
+        SafeArrayChecker::checkIndexEqual(subpassIndexExpected, subpassCount, "Subpass Index");
         ++subpassCount;
     }
 
@@ -147,7 +147,7 @@ namespace merutilm::vkh {
                                                     const VkAttachmentDescription &attachmentDescription,
                                                     const MultiframeImageContext &imageContext) {
         attachments.emplace_back(attachmentDescription, imageContext);
-        IndexChecker::checkIndexEqual(attachmentIndexExpected, static_cast<uint32_t>(attachments.size() - 1), "Attachment Index");
+        SafeArrayChecker::checkIndexEqual(attachmentIndexExpected, static_cast<uint32_t>(attachments.size() - 1), "Attachment Index");
     }
 
 

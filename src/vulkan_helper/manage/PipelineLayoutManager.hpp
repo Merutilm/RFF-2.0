@@ -37,8 +37,8 @@ namespace merutilm::vkh {
         void appendPushConstantManager(const uint32_t pushIndexExpected, VkShaderStageFlags useStage, PushConstantReserve<T>&&...pushConstantReservesExpected) {
 
 
-            IndexChecker::checkIndexEqual(pushIndexExpected, pushConstantManagers.size(), "Push Index");
-            auto som = std::make_unique<BufferObjectManager>();
+            SafeArrayChecker::checkIndexEqual(pushIndexExpected, pushConstantManagers.size(), "Push Index");
+            auto som = std::make_unique<HostBufferObjectManager>();
             (som->reserve<T>(pushConstantReservesExpected.binding), ...);
             auto pcm = std::make_unique<PushConstantManager>(useStage, std::move(som));
             pushConstantManagers.emplace_back(std::move(pcm));

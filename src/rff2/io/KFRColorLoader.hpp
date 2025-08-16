@@ -11,6 +11,6 @@ namespace merutilm::rff2 {
     struct KFRColorLoader {
         KFRColorLoader() = delete;
 
-        static std::vector<ColorFloat>  loadPaletteSettings();
+        static std::vector<NormalizedColor>  loadPaletteSettings();
     };
 }

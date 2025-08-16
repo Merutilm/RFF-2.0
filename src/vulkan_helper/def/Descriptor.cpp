@@ -35,7 +35,7 @@ namespace merutilm::vkh {
                     .bufferInfo = VkDescriptorBufferInfo{
                         .buffer = ubo->getBufferHandle(frameIndex),
                         .offset = 0,
-                        .range = ubo->getTotalSizeByte()
+                        .range = ubo->getHostObject().getTotalSizeByte()
                     },
                 });
                 queue.back().writeSet = {
@@ -52,14 +52,14 @@ namespace merutilm::vkh {
                 };
             }
             if (std::holds_alternative<std::unique_ptr<ShaderStorage> >(raw)) {
-                auto &ubo = std::get<std::unique_ptr<ShaderStorage> >(raw);
+                auto &ssbo = std::get<std::unique_ptr<ShaderStorage> >(raw);
 
 
                 queue.push_back({
                     .bufferInfo = VkDescriptorBufferInfo{
-                        .buffer = ubo->getBufferHandle(frameIndex),
+                        .buffer = ssbo->getBufferHandle(frameIndex),
                         .offset = 0,
-                        .range = ubo->getTotalSizeByte()
+                        .range = ssbo->getHostObject().getTotalSizeByte()
                     },
                 });
                 queue.back().writeSet = {

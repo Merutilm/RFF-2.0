@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-06-12.
 //
 
-#include "VideoRenderScene.h"
+#include "GLVideoRenderScene.h"
 
 #include "../opengl/GLRendererColIteration2Map.h"
 #include "../opengl/GLRendererShdIteration2Map.h"
@@ -12,17 +12,17 @@
 
 
 namespace merutilm::rff2 {
-    VideoRenderScene::VideoRenderScene() : WGLScene() {
+    GLVideoRenderScene::GLVideoRenderScene() : WGLScene() {
     }
 
 
-    void VideoRenderScene::applyCurrentFrame() const {
+    void GLVideoRenderScene::applyCurrentFrame() const {
         rendererShdIteration2Map->setCurrentFrame(currentFrame);
         rendererColIteration2Map->setCurrentFrame(currentFrame);
         rendererStatic2Image->setCurrentFrame(currentFrame);
     }
 
-    void VideoRenderScene::applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed) const {
+    void GLVideoRenderScene::applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed) const {
 
         auto &normalI = normal.getMatrix();
 
@@ -43,7 +43,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    void VideoRenderScene::applyColor(const Settings &settings) const {
+    void GLVideoRenderScene::applyColor(const Settings &settings) const {
         rendererShdIteration2Map->setVideoSettings(settings.videoSettings);
         rendererColIteration2Map->setVideoSettings(settings.videoSettings);
         rendererColIteration2Map->setPaletteSettings(settings.shaderSettings.paletteSettings);
@@ -56,7 +56,7 @@ namespace merutilm::rff2 {
         rendererAntialiasing->setUse(settings.renderSettings.antialiasing);
     }
 
-    void VideoRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {
+    void GLVideoRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {
         WGLScene::configure(wnd, hdc, context);
         makeContextCurrent();
 
@@ -85,7 +85,7 @@ namespace merutilm::rff2 {
         renderer->add(*rendererAntialiasing);
     }
 
-    float VideoRenderScene::calculateZoom(const double defaultZoomIncrement) const {
+    float GLVideoRenderScene::calculateZoom(const double defaultZoomIncrement) const {
         if (currentFrame < 1) {
             const float r = 1 - currentFrame;
 
@@ -110,32 +110,32 @@ namespace merutilm::rff2 {
         return std::lerp(z2, z1, r);
     }
 
-    GLMultipassRenderer &VideoRenderScene::getStaticRenderer() const {
+    GLMultipassRenderer &GLVideoRenderScene::getStaticRenderer() const {
         return *rendererStatic;
     }
 
-    GLMultipassRenderer &VideoRenderScene::getDynamicRenderer() const {
+    GLMultipassRenderer &GLVideoRenderScene::getDynamicRenderer() const {
         return *renderer;
     }
 
-    void VideoRenderScene::setCurrentFrame(const float currentFrame) {
+    void GLVideoRenderScene::setCurrentFrame(const float currentFrame) {
         this->currentFrame = currentFrame;
     }
 
-    void VideoRenderScene::setStatic(const bool isStatic){
+    void GLVideoRenderScene::setStatic(const bool isStatic){
         this->isStatic = isStatic;
     }
 
-    void VideoRenderScene::setMap(RFFBinary *normal, RFFBinary *zoomed) {
+    void GLVideoRenderScene::setMap(RFFBinary *normal, RFFBinary *zoomed) {
         this->normal = normal;
         this->zoomed = zoomed;
     }
 
-    void VideoRenderScene::applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const {
+    void GLVideoRenderScene::applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const {
         rendererStatic2Image->setImageBuffer(normal, zoomed);
     }
 
-    void VideoRenderScene::reloadSize(const uint16_t cw, const uint16_t ch, const uint16_t iw, const uint16_t ih) {
+    void GLVideoRenderScene::reloadSize(const uint16_t cw, const uint16_t ch, const uint16_t iw, const uint16_t ih) {
         rendererShdIteration2Map->reloadIterationBuffer(iw, ih);
         rendererColIteration2Map->reloadIterationBuffer(iw, ih);
         renderer->reloadSize(cw, ch, iw, ih);
@@ -144,13 +144,13 @@ namespace merutilm::rff2 {
     }
 
 
-    void VideoRenderScene::reloadImageBuffer(const uint16_t w, const uint16_t h) {
+    void GLVideoRenderScene::reloadImageBuffer(const uint16_t w, const uint16_t h) {
         pixels = std::vector<char>(static_cast<uint32_t>(w) * h * 3);
         currentImage = cv::Mat(h, w, CV_8UC3, pixels.data());
     }
 
 
-    void VideoRenderScene::renderGL() {
+    void GLVideoRenderScene::renderGL() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         GLMultipassRenderer *targetRenderer;
@@ -176,7 +176,7 @@ namespace merutilm::rff2 {
     }
 
 
-    const cv::Mat &VideoRenderScene::getCurrentImage() const {
+    const cv::Mat &GLVideoRenderScene::getCurrentImage() const {
         return currentImage;
     }
 }

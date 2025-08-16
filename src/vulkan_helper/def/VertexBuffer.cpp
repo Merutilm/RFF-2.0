@@ -4,12 +4,12 @@
 
 #include "VertexBuffer.hpp"
 
-#include "../manage/BufferObjectManager.hpp"
+#include "../manage/HostBufferObjectManager.hpp"
 #include "../struct/Vertex.hpp"
 #include "../util/BufferImageUtils.hpp"
 
 namespace merutilm::vkh {
-    VertexBuffer::VertexBuffer(const Core &core, std::unique_ptr<BufferObjectManager> &&manager, const BufferLock bufferLock) : BufferObject(
+    VertexBuffer::VertexBuffer(const Core &core, std::unique_ptr<HostBufferObjectManager> &&manager, const BufferLock bufferLock) : BufferObject(
         core, std::move(manager), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, bufferLock) {
         VertexBuffer::init();
     }
@@ -20,11 +20,12 @@ namespace merutilm::vkh {
 
 
     void VertexBuffer::init() {
-        const uint32_t len = getObjectCount();
+        const auto &host = getHostObject();
+        const uint32_t len = host.getObjectCount();
         for (uint32_t i = 0; i < len; ++i) {
-            const uint32_t size = sizes[i];
-            const uint32_t offset = offsets[i];
-            if (const uint32_t element = elements[i]; size != sizeof(Vertex) * element) {
+            const uint32_t size = host.sizes[i];
+            const uint32_t offset = host.offsets[i];
+            if (const uint32_t element = host.elements[i]; size != sizeof(Vertex) * element) {
                 throw exception_invalid_args(std::format("size {} and {} is not match", size,
                                                          sizeof(Vertex) * element));
             }

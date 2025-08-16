@@ -2,10 +2,8 @@
 #include <fstream>
 
 #include "Application.hpp"
-#include "WGLContextLoader.h"
-#include "GLMainWindow.h"
-#include "SettingsWindow.h"
-#include "VideoWindow.h"
+#include "SettingsWindow.hpp"
+#include "GLVideoWindow.h"
 
 void registerClasses() {
     using namespace merutilm::rff2::Constants::Win32;
@@ -41,14 +39,9 @@ void registerClasses() {
     videoRenderWindowClass.lpfnWndProc = DefWindowProc;
     assert(RegisterClassExW(&videoRenderWindowClass));
 
-    WNDCLASSEXW renderSceneClass = wc;
-    renderSceneClass.lpszClassName = CLASS_GL_RENDER_SCENE;
-    renderSceneClass.lpfnWndProc = merutilm::rff2::GLMainWindow::renderSceneProc;
-    assert(RegisterClassExW(&renderSceneClass));
-
     WNDCLASSEXW vkRenderSceneClass = wc;
     vkRenderSceneClass.lpszClassName = CLASS_VK_RENDER_SCENE;
-    vkRenderSceneClass.lpfnWndProc = DefWindowProc;
+    vkRenderSceneClass.lpfnWndProc = merutilm::rff2::RenderScene::renderSceneProc;
     assert(RegisterClassExW(&vkRenderSceneClass));
 
 }
@@ -83,10 +76,7 @@ int main() {
     registerClasses();
     countLines();
 
-    //WGLContextLoader::initGL();
-    //const auto wnd = std::make_unique<GLMainWindow>();
-    //wnd->renderLoop();
-    auto app = Application();
+    const auto app = Application();
     app.start();
     return 0;
 }

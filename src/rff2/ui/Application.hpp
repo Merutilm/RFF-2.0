@@ -4,8 +4,7 @@
 
 #pragma once
 #include "RenderScene.hpp"
-#include "SettingsMenu.h"
-#include "../../vulkan_helper/configurator/GeneralPipelineConfigurator.hpp"
+#include "SettingsMenu.hpp"
 #include "../../vulkan_helper/def/Engine.hpp"
 
 namespace merutilm::rff2 {

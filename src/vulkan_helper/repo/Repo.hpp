@@ -17,6 +17,10 @@ namespace merutilm::vkh {
 
         explicit Repo(const Core &core) : core(core) {}
 
+        void remove(Key key) {
+            repository.erase(key);
+        }
+
         virtual const Type &pick(KeyInput keyInput, Args... args) = 0;
 
     };

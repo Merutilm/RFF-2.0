@@ -8,7 +8,6 @@
 
 namespace merutilm::rff2 {
     class Template2PipelineConfigurator final : public vkh::GeneralPostProcessPipelineConfigurator {
-
         static constexpr uint32_t SET_TIME = 0;
         static constexpr uint32_t SET_INPUT = 1;
 
@@ -19,9 +18,9 @@ namespace merutilm::rff2 {
         static constexpr uint32_t PUSH_RESOLUTION_SIZE = 0;
 
     public:
-        Template2PipelineConfigurator(const vkh::Engine&engine, uint32_t subpassIndex);
+        Template2PipelineConfigurator(const vkh::Engine &engine, uint32_t subpassIndex);
 
-        ~Template2PipelineConfigurator() override = default;
+        ~Template2PipelineConfigurator() override;
 
         Template2PipelineConfigurator(const Template2PipelineConfigurator &) = delete;
 
@@ -31,11 +30,16 @@ namespace merutilm::rff2 {
 
         Template2PipelineConfigurator &operator=(Template2PipelineConfigurator &&) = delete;
 
-        void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width, uint32_t height) override;
+        void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width,
+                         uint32_t height) override;
 
     protected:
         void configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors) override;
+
         void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
 
+        void init() override;
+
+        void destroy() override;
     };
 }

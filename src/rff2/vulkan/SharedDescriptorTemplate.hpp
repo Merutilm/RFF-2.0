@@ -20,8 +20,9 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_CAMERA_VIEW = 1;
         static constexpr uint32_t TARGET_CAMERA_PROJ = 2;
 
-        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core, const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = std::make_unique<vkh::BufferObjectManager>();
+        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core,
+                                                       const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = std::make_unique<vkh::HostBufferObjectManager>();
 
             bufferManager->reserve<glm::mat4>(TARGET_CAMERA_MODEL);
             bufferManager->reserve<glm::mat4>(TARGET_CAMERA_VIEW);
@@ -42,8 +43,9 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
         static constexpr uint32_t TARGET_TIME_CURRENT = 0;
 
-        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core, const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = std::make_unique<vkh::BufferObjectManager>();
+        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core,
+                                                       const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = std::make_unique<vkh::HostBufferObjectManager>();
             bufferManager->reserve<float>(TARGET_TIME_CURRENT);
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::ALWAYS_MUTABLE);
             auto descManager = std::make_unique<vkh::DescriptorManager>();
@@ -56,20 +58,20 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t ID = 2;
         static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        static constexpr uint32_t BINDING_SSBO_ITERATION = 1;
+        static constexpr uint32_t BINDING_SSBO_ITERATION = 0;
 
-        static constexpr uint32_t TARGET_ITERATION_WIDTH = 0;
-        static constexpr uint32_t TARGET_ITERATION_HEIGHT = 1;
-        static constexpr uint32_t TARGET_ITERATION_MAX = 2;
-        static constexpr uint32_t TARGET_ITERATION_BUFFER = 3;
+        static constexpr uint32_t TARGET_ITERATION_EXTENT = 0;
+        static constexpr uint32_t TARGET_ITERATION_MAX = 1;
+        static constexpr uint32_t TARGET_ITERATION_BUFFER = 2;
 
-        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core, const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = std::make_unique<vkh::BufferObjectManager>();
-            bufferManager->reserve<int>(TARGET_ITERATION_WIDTH);
-            bufferManager->reserve<int>(TARGET_ITERATION_HEIGHT);
+        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core,
+                                                       const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = std::make_unique<vkh::HostBufferObjectManager>();
+            bufferManager->reserve<glm::uvec2>(TARGET_ITERATION_EXTENT);
             bufferManager->reserve<double>(TARGET_ITERATION_MAX);
             bufferManager->reserveArray<double>(TARGET_ITERATION_BUFFER, 0);
-            auto ssbo = std::make_unique<vkh::ShaderStorage>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto ssbo = std::make_unique<vkh::ShaderStorage>(core, std::move(bufferManager),
+                                                             vkh::BufferLock::LOCK_UNLOCK);
             auto descManager = std::make_unique<vkh::DescriptorManager>();
             descManager->appendSSBO(BINDING_SSBO_ITERATION, STAGE, std::move(ssbo));
             return descManager;
@@ -84,21 +86,22 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t BINDING_SAMPLER_PALETTE = 0;
         static constexpr uint32_t BINDING_UBO_PALETTE = 1;
 
-        static constexpr uint32_t TARGET_PALETTE_WIDTH = 0;
-        static constexpr uint32_t TARGET_PALETTE_HEIGHT = 1;
-        static constexpr uint32_t TARGET_PALETTE_SIZE = 2;
-        static constexpr uint32_t TARGET_PALETTE_INTERVAL = 3;
-        static constexpr uint32_t TARGET_PALETTE_OFFSET = 4;
-        static constexpr uint32_t TARGET_PALETTE_SMOOTHING = 5;
+        static constexpr uint32_t TARGET_PALETTE_EXTENT = 0;
+        static constexpr uint32_t TARGET_PALETTE_SIZE = 1;
+        static constexpr uint32_t TARGET_PALETTE_INTERVAL = 2;
+        static constexpr uint32_t TARGET_PALETTE_OFFSET = 3;
+        static constexpr uint32_t TARGET_PALETTE_SMOOTHING = 4;
+        static constexpr uint32_t TARGET_PALETTE_ANIMATION_SPEED = 5;
 
-        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core, const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = std::make_unique<vkh::BufferObjectManager>();
-            bufferManager->reserve<int>(TARGET_PALETTE_WIDTH);
-            bufferManager->reserve<int>(TARGET_PALETTE_HEIGHT);
-            bufferManager->reserve<int>(TARGET_PALETTE_SIZE);
+        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core,
+                                                       const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = std::make_unique<vkh::HostBufferObjectManager>();
+            bufferManager->reserve<glm::uvec2>(TARGET_PALETTE_EXTENT);
+            bufferManager->reserve<uint32_t>(TARGET_PALETTE_SIZE);
             bufferManager->reserve<float>(TARGET_PALETTE_INTERVAL);
             bufferManager->reserve<double>(TARGET_PALETTE_OFFSET);
-            bufferManager->reserve<int>(TARGET_PALETTE_SMOOTHING);
+            bufferManager->reserve<uint32_t>(TARGET_PALETTE_SMOOTHING);
+            bufferManager->reserve<float>(TARGET_PALETTE_ANIMATION_SPEED);
 
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
             auto descManager = std::make_unique<vkh::DescriptorManager>();
@@ -109,10 +112,10 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
                 .flags = 0,
                 .magFilter = VK_FILTER_LINEAR,
                 .minFilter = VK_FILTER_LINEAR,
-                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR,
-                .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
-                .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,
+                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+                .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+                .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
                 .mipLodBias = 0,
                 .anisotropyEnable = VK_FALSE,
                 .maxAnisotropy = 0,
@@ -126,6 +129,36 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             descManager->appendCombinedImgSampler(BINDING_SAMPLER_PALETTE, STAGE,
                                                   std::make_unique<vkh::CombinedImageSampler>(core, sampler));
             descManager->appendUBO(BINDING_UBO_PALETTE, STAGE, std::move(ubo));
+            return descManager;
+        }
+    };
+
+    struct DescStripe final : public vkh::DescriptorTemplate {
+        static constexpr uint32_t ID = 4;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        static constexpr uint32_t BINDING_UBO_STRIPE = 0;
+
+        static constexpr uint32_t TARGET_STRIPE_TYPE = 0;
+        static constexpr uint32_t TARGET_STRIPE_FIRST_INTERVAL = 1;
+        static constexpr uint32_t TARGET_STRIPE_SECOND_INTERVAL = 2;
+        static constexpr uint32_t TARGET_STRIPE_OPACITY = 3;
+        static constexpr uint32_t TARGET_STRIPE_OFFSET = 4;
+        static constexpr uint32_t TARGET_STRIPE_ANIMATION_SPEED = 5;
+
+
+        std::unique_ptr<vkh::DescriptorManager> create(const vkh::Core &core,
+                                                       const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = std::make_unique<vkh::HostBufferObjectManager>();
+            bufferManager->reserve<uint32_t>(TARGET_STRIPE_TYPE);
+            bufferManager->reserve<float>(TARGET_STRIPE_FIRST_INTERVAL);
+            bufferManager->reserve<float>(TARGET_STRIPE_SECOND_INTERVAL);
+            bufferManager->reserve<float>(TARGET_STRIPE_OPACITY);
+            bufferManager->reserve<float>(TARGET_STRIPE_OFFSET);
+            bufferManager->reserve<float>(TARGET_STRIPE_ANIMATION_SPEED);
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto descManager = std::make_unique<vkh::DescriptorManager>();
+            descManager->appendUBO(BINDING_UBO_STRIPE, STAGE, std::move(ubo));
             return descManager;
         }
     };

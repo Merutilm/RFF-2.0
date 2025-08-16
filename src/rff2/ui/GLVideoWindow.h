@@ -5,7 +5,7 @@
 #pragma once
 #include <filesystem>
 
-#include "VideoRenderScene.h"
+#include "GLVideoRenderScene.h"
 #include "../parallel/BackgroundThreads.h"
 #include "../settings/Settings.h"
 
@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
         std::string barText = "";
         HDC hdc;
         HGLRC context;
-        VideoRenderScene scene;
+        GLVideoRenderScene scene;
 
     public:
         VideoWindow(uint16_t width, uint16_t height);

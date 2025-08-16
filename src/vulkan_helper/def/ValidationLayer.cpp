@@ -123,7 +123,7 @@ namespace merutilm::vkh {
             }
         }
         if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-            logger::log("{} {} : {}", severityStr, messageTypeStr, pCallbackData->pMessage);
+            logger::log_err_silent("{} {} : {}", severityStr, messageTypeStr, pCallbackData->pMessage);
         }
 
         return VK_FALSE;

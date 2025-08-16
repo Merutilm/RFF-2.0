@@ -47,7 +47,7 @@ namespace merutilm::rff2 {
     std::vector<float> GLRendererColIteration2Map::createPaletteBuffer(const PaletteSettings &paletteSettings,
                                                                 const uint16_t paletteWidth,
                                                                 const uint16_t paletteHeight) {
-        const std::vector<ColorFloat> &colors = paletteSettings.colors;
+        const std::vector<NormalizedColor> &colors = paletteSettings.colors;
         auto result = std::vector<float>();
         result.reserve(static_cast<uint32_t>(paletteWidth) * paletteHeight * 4);
         for (const auto &[r, g, b, a]: colors) {

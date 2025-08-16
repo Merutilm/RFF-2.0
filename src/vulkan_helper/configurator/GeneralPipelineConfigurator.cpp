@@ -21,7 +21,6 @@ namespace merutilm::vkh {
         GeneralPipelineConfigurator::destroy();
     }
 
-
     void GeneralPipelineConfigurator::configure() {
         auto pipelineLayoutManager = std::make_unique<PipelineLayoutManager>();
         auto &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
@@ -46,8 +45,8 @@ namespace merutilm::vkh {
         pipelineManager->attachShader(&vertexShader);
         pipelineManager->attachShader(&fragmentShader);
 
-        auto vertManager = std::make_unique<BufferObjectManager>();
-        auto indexManager = std::make_unique<BufferObjectManager>();
+        auto vertManager = std::make_unique<HostBufferObjectManager>();
+        auto indexManager = std::make_unique<HostBufferObjectManager>();
 
         configureVertexBuffer(*vertManager);
         configureIndexBuffer(*indexManager);

@@ -23,7 +23,7 @@
 
 
 namespace merutilm::rff2 {
-    class VideoRenderScene final : public WGLScene {
+    class GLVideoRenderScene final : public WGLScene {
         RFFBinary *normal = nullptr;
         RFFBinary *zoomed = nullptr;
         bool isStatic = false;
@@ -45,7 +45,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<GLRendererAntialiasing> rendererAntialiasing;
 
     public:
-        VideoRenderScene();
+        GLVideoRenderScene();
 
         void applyCurrentFrame() const;
 

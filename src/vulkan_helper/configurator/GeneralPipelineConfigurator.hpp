@@ -32,11 +32,11 @@ namespace merutilm::vkh {
 
         GeneralPipelineConfigurator &operator=(GeneralPipelineConfigurator &&) = delete;
 
+        void configure() override;
+
         [[nodiscard]] VertexBuffer &getVertexBuffer() const override { return *vertexBuffer; }
 
         [[nodiscard]] IndexBuffer &getIndexBuffer() const override { return *indexBuffer; }
-
-        void configure() override;
 
     private:
         void init() override;

@@ -8,17 +8,17 @@
 #include <vector>
 #include <windef.h>
 
-#include "GLRenderScene.h"
-#include "SettingsWindow.h"
+#include "RenderScene.hpp"
+#include "SettingsWindow.hpp"
 
 namespace merutilm::rff2 {
     struct SettingsMenu {
         HMENU menubar;
         int count = 0;
         std::vector<HMENU> childMenus = {};
-        std::vector<std::function<void(SettingsMenu &, GLRenderScene &)> > callbacks = {};
+        std::vector<std::function<void(SettingsMenu &, RenderScene &)> > callbacks = {};
         std::vector<bool> hasCheckboxes = {};
-        std::vector<std::optional<std::function<bool*(GLRenderScene &)> > > checkboxActions = {};
+        std::vector<std::optional<std::function<bool*(RenderScene &)> > > checkboxActions = {};
         std::unique_ptr<SettingsWindow> currentActiveSettingsWindow = nullptr;
 
         explicit SettingsMenu(HMENU hMenubar);
@@ -40,24 +40,24 @@ namespace merutilm::rff2 {
         HMENU addChildMenu(HMENU target, std::string_view child);
 
         HMENU addChildItem(HMENU target, std::string_view child,
-                           const std::function<void(SettingsMenu &, GLRenderScene &)> &callback);
+                           const std::function<void(SettingsMenu &, RenderScene &)> &callback);
 
         HMENU addChildCheckbox(HMENU target, std::string_view child,
-                               const std::function<bool*(GLRenderScene &)>
+                               const std::function<bool*(RenderScene &)>
                                &checkboxAction);
 
         template<typename P> requires std::is_base_of_v<Preset, P>
         HMENU addPresetExecutor(HMENU target, P preset);
 
         HMENU add(HMENU target, std::string_view child,
-                  const std::function<void(SettingsMenu &, GLRenderScene &)> &callback, bool
-                  hasChild, bool hasCheckbox, const std::optional<std::function<bool*(GLRenderScene &)> > &checkboxAction);
+                  const std::function<void(SettingsMenu &, RenderScene &)> &callback, bool
+                  hasChild, bool hasCheckbox, const std::optional<std::function<bool*(RenderScene &)> > &checkboxAction);
 
-        void executeAction(GLRenderScene &scene, int menuID);
+        void executeAction(RenderScene &scene, int menuID);
 
         void setCurrentActiveSettingsWindow(std::unique_ptr<SettingsWindow> &&scene);
 
-        bool *getBool(GLRenderScene &scene, int menuID) const;
+        bool *getBool(RenderScene &scene, int menuID) const;
 
         static int getIndex(int menuID);
 
@@ -66,7 +66,7 @@ namespace merutilm::rff2 {
 
     template<typename P> requires std::is_base_of_v<Preset, P>
     HMENU SettingsMenu::addPresetExecutor(HMENU target, const P preset) {
-        return add(target, preset.getName(), [p1 = std::move(preset)](SettingsMenu &, GLRenderScene &scene) {
+        return add(target, preset.getName(), [p1 = std::move(preset)](SettingsMenu &, RenderScene &scene) {
             scene.changePreset(p1);
         }, false, false, std::nullopt);
     }

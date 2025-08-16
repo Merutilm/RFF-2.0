@@ -19,7 +19,14 @@ namespace merutilm::vkh {
         VkImageView imageView;
         VkImageLayout imageLayout;
 
-        static MultiframeImageContext init(const Core &core, const ImageInitInfo &imageInitInfo) {
+        static ImageContext createContext(const Core &core,  const ImageInitInfo &imageInitInfo) {
+            ImageContext result = {};
+            BufferImageUtils::initImage(core, imageInitInfo, &result.image, &result.imageMemory,
+                                                        &result.imageView);
+            return result;
+        }
+
+        static MultiframeImageContext createMultiframeContext(const Core &core, const ImageInitInfo &imageInitInfo) {
             const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
             std::vector<ImageContext> result(maxFramesInFlight);
 
@@ -30,18 +37,26 @@ namespace merutilm::vkh {
             return result;
         }
 
-        static void destroy(const Core &core, const MultiframeImageContext &imgCtx) {
+        static void destroyContext(const Core &core, const ImageContext * const imgCtx) {
             const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-            for (const auto &[image, imageMemory, imageView, imageLayout]: imgCtx) {
+            vkDestroyImageView(device, imgCtx->imageView, nullptr);
+            vkDestroyImage(device, imgCtx->image, nullptr);
+            vkFreeMemory(device, imgCtx->imageMemory, nullptr);
+        }
+
+        static void destroyContext(const Core &core, const MultiframeImageContext * const imgCtx) {
+            const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
+            for (const auto &[image, imageMemory, imageView, imageLayout]: *imgCtx) {
                 vkDestroyImageView(device, imageView, nullptr);
                 vkDestroyImage(device, image, nullptr);
                 vkFreeMemory(device, imageMemory, nullptr);
             }
         }
 
-        static MultiframeImageContext fromSwapchain(const Swapchain &swapchain, const uint32_t maxFramesInFlight) {
+        static MultiframeImageContext fromSwapchain(const Core &core, const Swapchain &swapchain) {
             const auto images = swapchain.getSwapchainImages();
             const auto imageViews = swapchain.getSwapchainImageViews();
+            const auto maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
             std::vector<ImageContext> result(maxFramesInFlight);
             for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
                 result[i].image = images[i];

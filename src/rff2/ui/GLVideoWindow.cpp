@@ -3,7 +3,7 @@
 //
 
 
-#include "VideoWindow.h"
+#include "GLVideoWindow.h"
 
 #include "IOUtilities.h"
 #include "../io/RFFDynamicMapBinary.h"
@@ -11,14 +11,13 @@
 #include <commctrl.h>
 
 #include "../constants/Constants.hpp"
-#include "WGLContextLoader.h"
 #include "../io/RFFStaticMapBinary.h"
 #include "../parallel/BackgroundThreads.h"
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
 
 namespace merutilm::rff2 {
-    VideoWindow::VideoWindow(const uint16_t width, const uint16_t height) : scene(VideoRenderScene()) {
+    VideoWindow::VideoWindow(const uint16_t width, const uint16_t height) : scene(GLVideoRenderScene()) {
         videoWindow = CreateWindowExW(0,
                                      Constants::Win32::CLASS_VIDEO_WINDOW,
                                      L"Preview video",
@@ -158,7 +157,7 @@ namespace merutilm::rff2 {
         auto window = VideoWindow(cw, ch);
         std::jthread thread(
             [&window, &cw, &ch, &imgWidth, &imgHeight, &writer, &settings, &open, &save] {
-                WGLContextLoader::createContext(window.hdc, &window.context);
+                // WGLContextLoader::createContext(window.hdc, &window.context);
                 window.scene.configure(window.renderWindow, window.hdc, window.context);
                 window.scene.makeContextCurrent();
                 window.scene.reloadSize(cw, ch, imgWidth, imgHeight);

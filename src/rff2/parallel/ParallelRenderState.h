@@ -3,16 +3,14 @@
 //
 
 #pragma once
-#include <condition_variable>
 #include <functional>
 #include <mutex>
 #include <thread>
-#include <set>
 
 namespace merutilm::rff2 {
     class ParallelRenderState final {
         std::mutex mutex;
-        std::jthread thread = std::jthread([](std::stop_token) {
+        std::jthread thread = std::jthread([](const std::stop_token&) {
             //default empty thread
         });
 
@@ -20,12 +18,12 @@ namespace merutilm::rff2 {
     public:
         ParallelRenderState() = default;
 
-        template<typename T> requires std::is_invocable_r_v<void, T, std::stop_token>
+        template<typename T> requires std::is_invocable_r_v<void, T, const std::stop_token &>
         void createThread(T &&func);
 
-        std::stop_token stopToken() const;
+        [[nodiscard]] std::stop_token stopToken() const;
 
-        bool interruptRequested() const;
+        [[nodiscard]] bool interruptRequested() const;
 
         void cancel();
 
@@ -35,7 +33,7 @@ namespace merutilm::rff2 {
         void cancelUnsafe();
     };
 
-    template<typename T> requires std::is_invocable_r_v<void, T, std::stop_token>
+    template<typename T> requires std::is_invocable_r_v<void, T, const std::stop_token &>
     void ParallelRenderState::createThread(T &&func) {
         std::scoped_lock lock(mutex);
         cancelUnsafe();

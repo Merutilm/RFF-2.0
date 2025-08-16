@@ -7,7 +7,7 @@
 
 #include "BufferObject.hpp"
 #include "../handle/CoreHandler.hpp"
-#include "../manage/CompleteBufferObjectManager.hpp"
+#include "HostBufferObject.hpp"
 
 namespace merutilm::vkh {
     class VertexBuffer final : public BufferObject {
@@ -15,7 +15,7 @@ namespace merutilm::vkh {
         std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
 
     public:
-        explicit VertexBuffer(const Core &core, std::unique_ptr<BufferObjectManager> &&manager, BufferLock bufferLock);
+        explicit VertexBuffer(const Core &core, std::unique_ptr<HostBufferObjectManager> &&manager, BufferLock bufferLock);
 
         ~VertexBuffer() override;
 

@@ -2,15 +2,15 @@
 // Created by Merutilm on 2025-05-16.
 //
 
-#include "Callback.h"
-#include "CallbackShader.h"
+#include "Callback.hpp"
+#include "CallbackShader.hpp"
 
 #include "../io/KFRColorLoader.hpp"
 
 namespace merutilm::rff2 {
 
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackShader::PALETTE = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::PALETTE = [
+            ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[colors, colorSmoothing, iterationInterval, offsetRatio, animationSpeed] = scene.getSettings().shaderSettings.paletteSettings;
         auto window = std::make_unique<SettingsWindow>(L"Set Palette");
         window->registerTextInput<float>("Iteration Interval", &iterationInterval, Unparser::FLOAT,
@@ -36,8 +36,8 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackShader::STRIPE = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::STRIPE = [
+            ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[stripeType, firstInterval, secondInterval, opacity, offset, animationSpeed] = scene.getSettings().shaderSettings.stripeSettings;
         auto window = std::make_unique<SettingsWindow>(L"Set Stripe");
         window->registerRadioButtonInput<StripeType>("Stripe Type", &stripeType, [&scene] {
@@ -69,8 +69,8 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackShader::SLOPE = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::SLOPE = [
+            ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[depth, reflectionRatio, opacity, zenith, azimuth] = scene.getSettings().shaderSettings.slopeSettings;
         auto window = std::make_unique<SettingsWindow>(L"Set Slope");
         window->registerTextInput<float>("Depth", &depth, Unparser::FLOAT, Parser::FLOAT,
@@ -105,8 +105,8 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackShader::COLOR = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::COLOR = [
+            ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[gamma, exposure, hue, saturation, brightness, contrast] = scene.getSettings().shaderSettings.colorSettings;
         auto window = std::make_unique<SettingsWindow>(L"Set Color");
         window->registerTextInput<float>("Gamma", &gamma, Unparser::FLOAT, Parser::FLOAT,
@@ -138,8 +138,8 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackShader::FOG = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::FOG = [
+            ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[radius, opacity] = scene.getSettings().shaderSettings.fogSettings;
         auto window = std::make_unique<SettingsWindow>(L"Set Fog");
         window->registerTextInput<float>("Radius", &radius, Unparser::FLOAT, Parser::FLOAT,
@@ -155,8 +155,8 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackShader::BLOOM = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::BLOOM = [
+            ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[threshold, radius, softness, intensity] = scene.getSettings().shaderSettings.bloomSettings;
         auto window = std::make_unique<SettingsWindow>(L"Set Bloom");
         window->registerTextInput<float>("Threshold", &threshold, Unparser::FLOAT, Parser::FLOAT,
@@ -180,8 +180,8 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackShader::LOAD_KFR_PALETTE = [
-            ](SettingsMenu &, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::LOAD_KFR_PALETTE = [
+            ](SettingsMenu &, RenderScene &scene) {
         const auto colors = KFRColorLoader::loadPaletteSettings();
         if (colors.empty()) {
             MessageBox(nullptr, "No colors found", "Error", MB_OK | MB_ICONERROR);

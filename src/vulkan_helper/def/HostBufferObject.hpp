@@ -8,58 +8,73 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "BufferObjectManager.hpp"
+
+#include "../manage/HostBufferObjectManager.hpp"
 
 namespace merutilm::vkh {
-    struct CompleteBufferObjectManager {
+    struct HostBufferObject {
         std::vector<std::byte> data = {};
         std::vector<uint32_t> elements = {};
         std::vector<uint32_t> sizes = {};
         std::vector<uint32_t> offsets = {};
-        std::vector<bool> initialized = {};
 
-        explicit CompleteBufferObjectManager(std::unique_ptr<BufferObjectManager> &&uploadManager) : data(std::move(
+        explicit HostBufferObject(std::unique_ptr<HostBufferObjectManager> &&uploadManager) : data(std::move(
                 uploadManager->data)),
             elements(std::move(uploadManager->elements)),
             sizes(std::move(uploadManager->sizes)),
-            offsets(std::move(uploadManager->offsets)),
-            initialized(std::move(uploadManager->initialized)) {
+            offsets(std::move(uploadManager->offsets)) {
+        }
+
+        ~HostBufferObject() = default;
+
+        HostBufferObject(const HostBufferObject &) = delete;
+
+        HostBufferObject &operator=(const HostBufferObject &) = delete;
+
+        HostBufferObject(HostBufferObject &&) = delete;
+
+        HostBufferObject &operator=(HostBufferObject &&) = delete;
+
+        template<typename T> requires std::is_trivially_copyable_v<T>
+        const T &get(const uint32_t target) const {
+            SafeArrayChecker::checkSizeEqual(sizes[target], sizeof(T), "Buffer Object get");
+            auto view = std::span(data.begin() + offsets[target], data.begin() + offsets[target] + sizes[target]);
+            return *reinterpret_cast<const T *>(view.data());
+        }
+
+        template<typename T> requires std::is_trivially_copyable_v<T>
+        const T &get(const uint32_t target, const uint32_t index) const {
+            const uint32_t size = sizeof(T) * elements.size();
+            SafeArrayChecker::checkSizeEqual(sizes[target], size, "Buffer Object Vector get");
+            auto view = std::span(data.begin() + offsets[target] + sizeof(T) * index, data.begin() + offsets[target] + sizeof(T) * (index + 1));
+            return *reinterpret_cast<const T *>(view.data());
         }
 
         template<typename T> requires std::is_trivially_copyable_v<T>
         void set(const uint32_t target, const T &t) {
-            if (sizes[target] != sizeof(T)) {
-                throw exception_invalid_args(
-                    std::format("size mismatch : {} and {} in target {}", sizes[target], sizeof(T), target));
-            }
+            SafeArrayChecker::checkSizeEqual(sizes[target], sizeof(T), "Buffer Object set");
             const uint32_t offset = offsets[target];
             memcpy(&data[offset], &t, sizeof(T));
-            initialized[target] = true;
         }
 
 
         template<typename T> requires std::is_trivially_copyable_v<T>
         void set(const uint32_t target, const std::vector<T> &arr) {
             const uint32_t size = sizeof(T) * arr.size();
-            if (sizes[target] != size) {
-                throw exception_invalid_args(
-                    std::format("size mismatch : {} and {} in target {}", sizes[target], size, target));
-            }
+            SafeArrayChecker::checkSizeEqual(sizes[target], size, "Buffer Object Vector set");
             const uint32_t offset = offsets[target];
             memcpy(&data[offset], arr.data(), size);
-            initialized[target] = true;
         }
 
         template<typename T> requires std::is_trivially_copyable_v<T>
         void set(const uint32_t target, const uint32_t arrIndex, T &t) {
-            if (!initialized[target]) {
-                throw exception_invalid_state(
-                    "initialize vector first using set(uint32_t target, const std::vector<T> &arr) before use set(uint32_t target, uint32_t arrIndex, T& t)");
-            }
             const uint32_t offset = offsets[target] + arrIndex * sizeof(T);
             memcpy(&data[offset], &t, sizeof(T));
         }
 
+        void reset(const uint32_t target) {
+            std::fill_n(data.begin() + offsets[target], sizes[target], static_cast<std::byte>(0));
+        }
 
         template<typename T> requires std::is_trivially_copyable_v<T>
         void resize(const uint32_t target, const uint32_t elementCount) {

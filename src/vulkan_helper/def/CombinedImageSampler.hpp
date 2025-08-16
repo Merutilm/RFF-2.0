@@ -9,7 +9,7 @@
 
 namespace merutilm::vkh {
     class CombinedImageSampler final : public CoreHandler {
-        ImageContext imageContext;
+        ImageContext imageContext = {};
         const Sampler &sampler;
         bool initialized = false;
         bool isUnique = false;
@@ -28,11 +28,18 @@ namespace merutilm::vkh {
         CombinedImageSampler &operator=(CombinedImageSampler &&) = delete;
 
         void setImageContext(const ImageContext &imageContext) {
+            if (isUnique) {
+                ImageContext::destroyContext(core, &this->imageContext);
+            }
             initialized = true;
+            isUnique = false;
             this->imageContext = imageContext;
         }
 
-        void setImageContext(ImageContext &&imageContext) {
+        void setUniqueImageContext(ImageContext &&imageContext) {
+            if (isUnique) {
+                ImageContext::destroyContext(core, &this->imageContext);
+            }
             initialized = true;
             isUnique = true;
             this->imageContext = std::move(imageContext);

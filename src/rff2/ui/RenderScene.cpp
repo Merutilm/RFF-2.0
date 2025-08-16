@@ -4,10 +4,10 @@
 
 #include "RenderScene.hpp"
 
-#include "CallbackExplore.h"
+#include "CallbackExplore.hpp"
 #include "IOUtilities.h"
 #include "../constants/VulkanWindowConstants.hpp"
-#include "../vulkan/BasicRenderContextConfigurator.hpp"
+#include "../vulkan/RFFRenderContextConfigurator.hpp"
 #include "../vulkan/IterationPalettePipelineConfigurator.hpp"
 #include "../vulkan/Template2PipelineConfigurator.hpp"
 #include "../calc/dex_exp.h"
@@ -43,16 +43,28 @@ namespace merutilm::rff2 {
         initShaderPrograms();
     }
 
+    void RenderScene::initRenderContext() const {
+        const auto &swapchain = *engine.getCore().getWindowContext(
+            Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+        auto configurator = std::make_unique<RFFRenderContextConfigurator>(engine.getCore(), swapchain);
+
+        engine.attachRenderContext(std::make_unique<vkh::RenderContext>(engine.getCore(),
+                                                                        swapchain.populateSwapchainExtent(),
+                                                                        std::move(configurator)));
+    }
+
+    void RenderScene::initShaderPrograms() {
+        rendererIteration = vkh::PipelineConfigurator::createShaderProgram<IterationPalettePipelineConfigurator>(
+            shaderPrograms, engine, RFFRenderContextConfigurator::SUBPASS_ITERATION_INDEX);
+        rendererStripe = vkh::PipelineConfigurator::createShaderProgram<StripePipelineConfigurator>(
+            shaderPrograms, engine, RFFRenderContextConfigurator::SUBPASS_STRIPE_INDEX);
+
+        applyResize();
+        applyColor(settings);
+        requestRecompute();
+    }
+
     void RenderScene::render(const VkCommandBuffer cbh, const uint32_t frameIndex, const VkExtent2D &extent) {
-        using namespace SharedDescriptorTemplate;
-
-        engine.getRepositories().getRepository<vkh::SharedDescriptorRepo>()->
-                pick(vkh::DescriptorTemplate::from<DescTime>(),
-                     engine.getRepositories().getDescriptorRequiresRepositoryContext()).getDescriptorManager().get<
-                    std::unique_ptr<
-                        vkh::Uniform> >(DescTime::BINDING_UBO_TIME)
-                ->set(DescTime::TARGET_TIME_CURRENT, Utilities::getCurrentTime());
-
         if (colorRequested) {
             applyColor(settings);
             colorRequested.exchange(false);
@@ -137,8 +149,14 @@ namespace merutilm::rff2 {
         };
     }
 
-    void RenderScene::runAction(const UINT message, const WPARAM wParam) {
-        switch (message) {
+    LRESULT RenderScene::renderSceneProc(const HWND hwnd, const UINT msg, const WPARAM wparam, const LPARAM lparam) {
+        RenderScene &scene = *reinterpret_cast<RenderScene *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+        scene.runAction(msg, wparam, lparam);
+        return DefWindowProc(hwnd, msg, wparam, lparam);
+    }
+
+    void RenderScene::runAction(const UINT msg, const WPARAM wparam, const LPARAM) {
+        switch (msg) {
             case WM_LBUTTONDOWN: {
                 SetCursor(LoadCursor(nullptr, IDC_SIZEALL));
                 interactedMX = getMouseXOnIterationBuffer();
@@ -153,7 +171,7 @@ namespace merutilm::rff2 {
             case WM_MOUSEMOVE: {
                 const uint16_t x = getMouseXOnIterationBuffer();
                 const uint16_t y = getMouseYOnIterationBuffer();
-                if (wParam == MK_LBUTTON && interactedMX > 0 && interactedMY > 0) {
+                if (wparam == MK_LBUTTON && interactedMX > 0 && interactedMY > 0) {
                     SetCursor(LoadCursor(nullptr, IDC_SIZEALL));
                     const auto dx = static_cast<int16_t>(interactedMX - x);
                     const auto dy = static_cast<int16_t>(interactedMY - y);
@@ -180,7 +198,7 @@ namespace merutilm::rff2 {
                 break;
             }
             case WM_MOUSEWHEEL: {
-                const int value = GET_WHEEL_DELTA_WPARAM(wParam) > 0 ? 1 : -1;
+                const int value = GET_WHEEL_DELTA_WPARAM(wparam) > 0 ? 1 : -1;
                 constexpr float increment = Constants::Render::ZOOM_INTERVAL;
 
                 settings.calculationSettings.logZoom = std::max(Constants::Render::ZOOM_MIN,
@@ -218,7 +236,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    std::array<dex, 2> RenderScene::offsetConversion(const Settings &settings, int mx, int my) const {
+    std::array<dex, 2> RenderScene::offsetConversion(const Settings &settings, const int mx, const int my) const {
         return {
             dex::value(static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth(settings)) / 2.0) /
             getDivisor(settings)
@@ -279,8 +297,8 @@ namespace merutilm::rff2 {
     }
 
     void RenderScene::applyColor(const Settings &settings) const {
-        // rendererIteration->setPaletteSettings(settings.shaderSettings.paletteSettings);
-        // rendererStripe->setStripeSettings(settings.shaderSettings.stripeSettings);
+        rendererIteration->setPaletteSettings(settings.shaderSettings.paletteSettings);
+        rendererStripe->setStripeSettings(settings.shaderSettings.stripeSettings);
         // rendererSlope->setSlopeSettings(settings.shaderSettings.slopeSettings);
         // rendererColorFilter->setColorSettings(settings.shaderSettings.colorSettings);
         // rendererFog->setFogSettings(settings.shaderSettings.fogSettings);
@@ -295,7 +313,7 @@ namespace merutilm::rff2 {
         const uint16_t ih = getIterationBufferHeight(settings);
         // glViewport(0, 0, cw, ch);
         // rendererSlope->setClarityMultiplier(settings.renderSettings.clarityMultiplier);
-        // rendererIteration->reloadIterationBuffer(iw, ih);
+        rendererIteration->reloadIterationBuffer(iw, ih);
         // renderer->reloadSize(cw, ch, iw, ih);
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
     }
@@ -303,8 +321,8 @@ namespace merutilm::rff2 {
     void RenderScene::overwriteMatrixFromMap() const {
         // renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->getMatrix().getWidth(),
         //                      currentMap->getMatrix().getHeight());
-        // rendererIteration->setMaxIteration(static_cast<double>(currentMap->getMaxIteration()));
-        // rendererIteration->setAllIterations(currentMap->getMatrix());
+        rendererIteration->setMaxIteration(static_cast<double>(currentMap->getMaxIteration()));
+        rendererIteration->setAllIterations(currentMap->getMatrix().getCanvas());
     }
 
     uint16_t RenderScene::getMouseXOnIterationBuffer() const {
@@ -320,11 +338,11 @@ namespace merutilm::rff2 {
         GetCursorPos(&cursor);
         ScreenToClient(window, &cursor);
         const float multiplier = settings.renderSettings.clarityMultiplier;
-        return getIterationBufferHeight(settings) - static_cast<uint16_t>(static_cast<float>(cursor.y) * multiplier);
+        return static_cast<uint16_t>(getIterationBufferHeight(settings) - static_cast<float>(cursor.y) * multiplier);
     }
 
     void RenderScene::recomputeThreaded() {
-        state.createThread([this](std::stop_token) {
+        state.createThread([this](const std::stop_token &) {
             Settings settings = this->settings; //clone the settings
             beforeCompute(settings);
             const bool success = compute(settings);
@@ -337,7 +355,7 @@ namespace merutilm::rff2 {
                                                         ? lastPeriod * settings.calculationSettings.
                                                           autoIterationMultiplier
                                                         : this->settings.calculationSettings.maxIteration;
-        // rendererIteration->setMaxIteration(static_cast<double>(settings.calculationSettings.maxIteration));
+        rendererIteration->setMaxIteration(static_cast<double>(settings.calculationSettings.maxIteration));
     }
 
     bool RenderScene::compute(const Settings &settings) {
@@ -350,7 +368,7 @@ namespace merutilm::rff2 {
 
         auto &calc = settings.calculationSettings;
 
-        float logZoom = calc.logZoom;
+        const float logZoom = calc.logZoom;
 
         if (state.interruptRequested()) return false;
 
@@ -390,35 +408,35 @@ namespace merutilm::rff2 {
                 break;
             }
             case CENTERED_REFERENCE: {
-                // uint64_t period = currentPerturbator->getReference()->longestPeriod();
-                // auto center = MandelbrotLocator::locateMinibrot(state, currentPerturbator.get(), approxTableCache,
-                //                                                 CallbackExplore::getActionWhileFindingMinibrotCenter(
-                //                                                     *this, logZoom, period),
-                //                                                 CallbackExplore::getActionWhileCreatingTable(
-                //                                                     *this, logZoom),
-                //                                                 CallbackExplore::getActionWhileFindingZoom(*this)
-                // );
-                // if (center == nullptr) return false;
-                //
-                // CalculationSettings refCalc = calc;
-                // refCalc.center = center->perturbator->calc.center;
-                // refCalc.logZoom = center->perturbator->calc.logZoom;
-                // int refExp10 = Perturbator::logZoomToExp10(refCalc.logZoom);
-                //
-                // if (refCalc.logZoom > Constants::Render::ZOOM_DEADLINE) {
-                //     currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
-                //                 state, refCalc, center->perturbator->getDcMaxAsDoubleExp(),
-                //                 refExp10,
-                //                 period, approxTableCache, std::move(actionPerRefCalcIteration),
-                //                 std::move(actionPerCreatingTableIteration))
-                //             ->reuse(calc, dcMax, approxTableCache);
-                // } else {
-                //     currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(state, refCalc,
-                //                 static_cast<double>(center->perturbator->getDcMaxAsDoubleExp()),
-                //                 refExp10, period, approxTableCache, std::move(actionPerRefCalcIteration),
-                //                 std::move(actionPerCreatingTableIteration))
-                //             ->reuse(calc, static_cast<double>(dcMax), approxTableCache);
-                // }
+                uint64_t period = currentPerturbator->getReference()->longestPeriod();
+                auto center = MandelbrotLocator::locateMinibrot(state, currentPerturbator.get(), approxTableCache,
+                                                                CallbackExplore::getActionWhileFindingMinibrotCenter(
+                                                                    *this, logZoom, period),
+                                                                CallbackExplore::getActionWhileCreatingTable(
+                                                                    *this, logZoom),
+                                                                CallbackExplore::getActionWhileFindingZoom(*this)
+                );
+                if (center == nullptr) return false;
+
+                CalculationSettings refCalc = calc;
+                refCalc.center = center->perturbator->calc.center;
+                refCalc.logZoom = center->perturbator->calc.logZoom;
+                int refExp10 = Perturbator::logZoomToExp10(refCalc.logZoom);
+
+                if (refCalc.logZoom > Constants::Render::ZOOM_DEADLINE) {
+                    currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
+                                state, refCalc, center->perturbator->getDcMaxAsDoubleExp(),
+                                refExp10,
+                                period, approxTableCache, std::move(actionPerRefCalcIteration),
+                                std::move(actionPerCreatingTableIteration))
+                            ->reuse(calc, dcMax, approxTableCache);
+                } else {
+                    currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(state, refCalc,
+                                static_cast<double>(center->perturbator->getDcMaxAsDoubleExp()),
+                                refExp10, period, approxTableCache, std::move(actionPerRefCalcIteration),
+                                std::move(actionPerCreatingTableIteration))
+                            ->reuse(calc, static_cast<double>(dcMax), approxTableCache);
+                }
                 break;
             }
             case DISABLED: {
@@ -449,10 +467,10 @@ namespace merutilm::rff2 {
         lastPeriod = reference->longestPeriod();
         size_t refLength = reference->length();
         size_t mpaLen;
-        if (auto t = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get())) {
+        if (const auto t = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get())) {
             mpaLen = t->getTable().getLength();
         }
-        if (auto t = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
+        if (const auto t = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
             mpaLen = t->getTable().getLength();
         }
 
@@ -474,11 +492,11 @@ namespace merutilm::rff2 {
                 rendered[i] = true;
                 const auto dc = offsetConversion(settings, x, y);
                 const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
-                // rendererIteration->setIteration(x, y, iteration);
+                rendererIteration->setIteration(x, y, iteration);
 
-                int16_t my = y - 1;
+                auto my = static_cast<int16_t>(y - 1);
                 while (my >= 0 && !rendered[my * xRes + x]) {
-                    // rendererIteration->setIteration(x, my, iteration);
+                    rendererIteration->setIteration(x, my, iteration);
                     --my;
                 }
 
@@ -486,7 +504,7 @@ namespace merutilm::rff2 {
                 return iteration;
             });
 
-        // rendererIteration->fillZero();
+        rendererIteration->resetIterationBuffer();
 
         auto statusThread = std::jthread([&renderPixelsCount, len, this, &start](const std::stop_token &stop) {
             while (!stop.stop_requested()) {
@@ -505,10 +523,10 @@ namespace merutilm::rff2 {
 
         if (state.interruptRequested()) return false;
 
-        auto syncer = ParallelDispatcher(
+        const auto syncer = ParallelDispatcher(
             state, w, h,
             [this](const uint16_t x, const uint16_t y, uint16_t, uint16_t, float, float, uint32_t) {
-                // rendererIteration->setIteration(x, y, (*iterationMatrix)(x, y));
+                rendererIteration->setIteration(x, y, (*iterationMatrix)(x, y));
             });
 
         syncer.dispatch();
@@ -522,7 +540,7 @@ namespace merutilm::rff2 {
         return true;
     }
 
-    void RenderScene::afterCompute(bool success) {
+    void RenderScene::afterCompute(const bool success) {
         if (!success) {
             vkh::logger::log("Recompute cancelled.");
         }
@@ -531,24 +549,6 @@ namespace merutilm::rff2 {
         }
         idleCompute = true;
         backgroundThreads.notifyAll();
-    }
-
-
-    void RenderScene::initRenderContext() const {
-        const auto &swapchain = *engine.getCore().getWindowContext(
-            Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
-        auto configurator = std::make_unique<BasicRenderContextConfigurator>(engine.getCore(), swapchain);
-
-        engine.attachRenderContext(std::make_unique<vkh::RenderContext>(engine.getCore(),
-                                                                        swapchain.populateSwapchainExtent(),
-                                                                        std::move(configurator)));
-    }
-
-    void RenderScene::initShaderPrograms() {
-        rendererIteration = vkh::PipelineConfigurator::createShaderProgram<IterationPalettePipelineConfigurator>(
-            shaderPrograms, engine, BasicRenderContextConfigurator::SUBPASS_ITERATION_INDEX);
-        vkh::PipelineConfigurator::createShaderProgram<Template2PipelineConfigurator>(
-            shaderPrograms, engine, BasicRenderContextConfigurator::SUBPASS_SECONDARY_INDEX);
     }
 
 

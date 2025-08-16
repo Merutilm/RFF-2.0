@@ -46,14 +46,14 @@ namespace merutilm::vkh {
             constexpr VkDeviceSize vertexBufferOffset = 0;
             vkCmdBindVertexBuffers(cbh, 0, 1, &vertexBufferHandle, &vertexBufferOffset);
             getIndexBuffer().bind(cbh, frameIndex, indexVarBinding);
-            vkCmdDrawIndexed(cbh, getIndexBuffer().getElementCount(indexVarBinding), 1, 0, 0, 0);
+            vkCmdDrawIndexed(cbh, getIndexBuffer().getHostObject().getElementCount(indexVarBinding), 1, 0, 0, 0);
         }
 
         virtual void configure() = 0;
 
-        virtual void configureVertexBuffer(BufferObjectManager &som) = 0;
+        virtual void configureVertexBuffer(HostBufferObjectManager &som) = 0;
 
-        virtual void configureIndexBuffer(BufferObjectManager &som) = 0;
+        virtual void configureIndexBuffer(HostBufferObjectManager &som) = 0;
 
         virtual void configurePushConstant(PipelineLayoutManager &pipelineLayoutManager) = 0;
 
@@ -103,7 +103,7 @@ namespace merutilm::vkh {
             const auto context = engine.getRepositories().getDescriptorRequiresRepositoryContext();
             SharedDescriptorRepo &repo = *engine.getRepositories().getRepository<SharedDescriptorRepo>();
 
-            IndexChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
+            SafeArrayChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
                                           "Unique Descriptor Add");
             descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), context));
         }
@@ -113,7 +113,7 @@ namespace merutilm::vkh {
 
             DescriptorSetLayoutRepo &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
 
-            IndexChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
+            SafeArrayChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
                                           "Unique Descriptor Add");
             auto desc = std::make_unique<Descriptor>(engine.getCore(), layoutRepo.pick(manager->getLayoutBuilder()),
                                                      std::move(manager));

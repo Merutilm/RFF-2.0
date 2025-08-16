@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-05-13.
 //
 
-#include "SettingsWindow.h"
+#include "SettingsWindow.hpp"
 #include "../constants/Constants.hpp"
 
 
@@ -139,7 +139,6 @@ namespace merutilm::rff2 {
             }
             case WM_DESTROY: {
                 DeleteObject(reinterpret_cast<HGDIOBJ>(wnd.font));
-                PostQuitMessage(0);
                 return 0;
             }
             case WM_CTLCOLOREDIT: {

@@ -2,15 +2,15 @@
 // Created by Merutilm on 2025-05-14.
 //
 
-#include "CallbackFractal.h"
+#include "CallbackFractal.hpp"
 
-#include "Callback.h"
-#include "SettingsMenu.h"
+#include "Callback.hpp"
+#include "SettingsMenu.hpp"
 #include "../formula/Perturbator.h"
 
 namespace merutilm::rff2 {
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackFractal::REFERENCE = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::REFERENCE = [
+            ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &calc = scene.getSettings().calculationSettings;
         auto window = std::make_unique<SettingsWindow>(L"Reference");
 
@@ -82,8 +82,8 @@ namespace merutilm::rff2 {
             });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackFractal::ITERATIONS = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::ITERATIONS = [
+            ](SettingsMenu &settingsMenu, RenderScene  &scene) {
         auto &calc = scene.getSettings().calculationSettings;
         auto window = std::make_unique<SettingsWindow>(L"Iterations");
 
@@ -114,8 +114,8 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackFractal::MPA = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::MPA = [
+            ](SettingsMenu &settingsMenu, RenderScene  &scene) {
         auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod, mpaCompressionMethod] =
                 scene.getSettings().calculationSettings.mpaSettings;
         auto window = std::make_unique<SettingsWindow>(L"MP-Approximation");
@@ -155,13 +155,13 @@ namespace merutilm::rff2 {
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
 
-    const std::function<bool*(GLRenderScene &)> CallbackFractal::AUTOMATIC_ITERATIONS = [
-            ](GLRenderScene &scene) {
+    const std::function<bool*(RenderScene &)> CallbackFractal::AUTOMATIC_ITERATIONS = [
+            ](RenderScene  &scene) {
         return &scene.getSettings().calculationSettings.autoMaxIteration;
     };
 
-    const std::function<bool*(GLRenderScene &)> CallbackFractal::ABSOLUTE_ITERATION_MODE = [
-            ](GLRenderScene &scene) {
+    const std::function<bool*(RenderScene &)> CallbackFractal::ABSOLUTE_ITERATION_MODE = [
+            ](RenderScene  &scene) {
         return &scene.getSettings().calculationSettings.absoluteIterationMode;
     };
 }

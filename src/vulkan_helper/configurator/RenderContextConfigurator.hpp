@@ -43,7 +43,7 @@ namespace merutilm::vkh {
 
         void appendStoredImageContext(const uint32_t contextIndexExpected, MultiframeImageContext &&context) {
             contexts.emplace_back(std::move(context));
-            IndexChecker::checkIndexEqual(contextIndexExpected, contexts.size() - 1, "Stored Image Context");
+            SafeArrayChecker::checkIndexEqual(contextIndexExpected, contexts.size() - 1, "Stored Image Context");
         }
 
         const MultiframeImageContext &getImageContext(const uint32_t contextIndex) const {
@@ -52,7 +52,7 @@ namespace merutilm::vkh {
 
         void cleanupContexts() {
             for (const auto &context : contexts) {
-                ImageContext::destroy(core, context);
+                ImageContext::destroyContext(core, &context);
             }
             contexts.clear();
         }

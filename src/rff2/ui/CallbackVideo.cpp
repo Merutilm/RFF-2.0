@@ -2,12 +2,12 @@
 // Created by Merutilm on 2025-06-08.
 //
 
-#include "CallbackVideo.h"
+#include "CallbackVideo.hpp"
 
 #include "../constants/Constants.hpp"
 #include "IOUtilities.h"
-#include "Callback.h"
-#include "VideoWindow.h"
+#include "Callback.hpp"
+#include "GLVideoWindow.h"
 #include "../io/RFFStaticMapBinary.h"
 #include "../preset/shader/bloom/BloomPresets.h"
 #include "../preset/shader/fog/FogPresets.h"
@@ -16,8 +16,8 @@
 
 
 namespace merutilm::rff2 {
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackVideo::DATA_SETTINGS = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::DATA_SETTINGS = [
+            ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[defaultZoomIncrement, isStatic] = scene.getSettings().videoSettings.dataSettings;
         auto window = std::make_unique<SettingsWindow>(L"Data Settings");
 
@@ -37,8 +37,8 @@ namespace merutilm::rff2 {
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
 
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackVideo::ANIMATION_SETTINGS = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::ANIMATION_SETTINGS = [
+            ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[overZoom, showText, mps] = scene.getSettings().videoSettings.animationSettings;
         auto window = std::make_unique<SettingsWindow>(L"Animation Settings");
         window->registerTextInput<float>("Over Zoom", &overZoom, Unparser::FLOAT, Parser::FLOAT,
@@ -55,8 +55,8 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackVideo::EXPORT_SETTINGS = [
-            ](SettingsMenu &settingsMenu, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::EXPORT_SETTINGS = [
+            ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto window = std::make_unique<SettingsWindow>(L"Export Settings");
         auto &[fps, bitrate] = scene.getSettings().videoSettings.exportSettings;
         window->registerTextInput<float>("FPS", &fps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
@@ -70,8 +70,8 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackVideo::GENERATE_VID_KEYFRAME = [
-            ](const SettingsMenu &, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::GENERATE_VID_KEYFRAME = [
+            ](const SettingsMenu &, RenderScene &scene) {
         scene.getBackgroundThreads().createThread(
             [&scene](BackgroundThread &thread) {
                 const auto &state = scene.getState();
@@ -81,7 +81,7 @@ namespace merutilm::rff2 {
                 if (dirPtr == nullptr) {
                     return;
                 }
-                if (!IsWindow(scene.getRenderWindow()) || !IsWindowVisible(scene.getRenderWindow())) {
+                if (!IsWindow(scene.getWindowHandle()) || !IsWindowVisible(scene.getWindowHandle())) {
                     MessageBox(nullptr, "Target Window already been destroyed", "FATAL", MB_OK | MB_ICONERROR);
                     return;
                 }
@@ -127,8 +127,8 @@ namespace merutilm::rff2 {
                 }
             });
     };
-    const std::function<void(SettingsMenu &, GLRenderScene &)> CallbackVideo::EXPORT_ZOOM_VID = [
-            ](const SettingsMenu &, GLRenderScene &scene) {
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::EXPORT_ZOOM_VID = [
+            ](const SettingsMenu &, RenderScene &scene) {
         scene.getBackgroundThreads().createThread([&scene](const BackgroundThread &) {
             const auto openPtr = IOUtilities::ioDirectoryDialog("Select Sample Keyframe folder");
 

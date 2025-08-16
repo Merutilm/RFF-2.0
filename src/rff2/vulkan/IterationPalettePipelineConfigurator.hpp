@@ -4,15 +4,22 @@
 
 #pragma once
 #include "../../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
+#include "../settings/PaletteSettings.h"
 
 namespace merutilm::rff2 {
     class IterationPalettePipelineConfigurator final : public vkh::GeneralPostProcessPipelineConfigurator {
         static constexpr uint32_t SET_ITERATION = 0;
         static constexpr uint32_t SET_PALETTE = 1;
+        static constexpr uint32_t SET_TIME = 2;
+
+        uint32_t width = 0;
+        uint32_t height = 0;
 
     public:
         IterationPalettePipelineConfigurator(const vkh::Engine &engine,
-                                      uint32_t subpassIndex);
+                                             const uint32_t subpassIndex): GeneralPostProcessPipelineConfigurator(
+            engine, subpassIndex, "vk_iteration_palette.frag") {
+        };
 
         ~IterationPalettePipelineConfigurator() override = default;
 
@@ -27,10 +34,21 @@ namespace merutilm::rff2 {
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width,
                          uint32_t height) override;
 
+        void reloadIterationBuffer(uint32_t width, uint32_t height);
+
+        void resetIterationBuffer() const;
+
+        void setIteration(uint32_t x, uint32_t y, double iteration) const;
+
+        void setAllIterations(const std::vector<double> &iterations) const;
+
+        void setMaxIteration(double maxIteration) const;
+
+        void setPaletteSettings(const PaletteSettings &paletteSettings) const;
+
     protected:
         void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
 
         void configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors) override;
-
     };
 }

@@ -20,7 +20,7 @@ namespace merutilm::vkh {
     using DescriptorSetLayoutBuilderHasher = VectorHasher<DescriptorSetLayoutBuildType,
         DescriptorSetLayoutBuildTypeHasher>;
 
-    using DescriptorType = std::variant<std::unique_ptr<Uniform>, std::unique_ptr<ShaderStorage>,std::unique_ptr<CombinedImageSampler>,  ImageContext >;
+    using DescriptorType = std::variant<std::unique_ptr<Uniform>, std::unique_ptr<ShaderStorage>,std::unique_ptr<CombinedImageSampler>,  ImageContext>;
 
     class DescriptorManager {
 
@@ -80,7 +80,7 @@ namespace merutilm::vkh {
     inline void DescriptorManager::appendUBO(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
                                              std::unique_ptr<Uniform> &&ubo) {
 
-        IndexChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()), "Descriptor UBO add");
+        SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()), "Descriptor UBO add");
         data.emplace_back(std::move(ubo));
         layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, useStage);
     }
@@ -88,7 +88,7 @@ namespace merutilm::vkh {
     inline void DescriptorManager::appendSSBO(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
                                              std::unique_ptr<ShaderStorage> &&ssbo) {
 
-        IndexChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()), "Descriptor SSBO add");
+        SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()), "Descriptor SSBO add");
         data.emplace_back(std::move(ssbo));
         layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, useStage);
     }
@@ -96,13 +96,13 @@ namespace merutilm::vkh {
     inline void DescriptorManager::appendCombinedImgSampler(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
                                                             std::unique_ptr<CombinedImageSampler> &&sampler) {
 
-        IndexChecker::checkIndexEqual(bindingExpected,  static_cast<uint32_t>(data.size()), "Descriptor Sampler add");
+        SafeArrayChecker::checkIndexEqual(bindingExpected,  static_cast<uint32_t>(data.size()), "Descriptor Sampler add");
         data.emplace_back(std::move(sampler));
         layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, useStage);
     }
 
     inline void DescriptorManager::appendInputAttachment(const uint32_t bindingExpected, const VkShaderStageFlags useStage) {
-        IndexChecker::checkIndexEqual(bindingExpected,  static_cast<uint32_t>(data.size()), "Descriptor Input Attachment add");
+        SafeArrayChecker::checkIndexEqual(bindingExpected,  static_cast<uint32_t>(data.size()), "Descriptor Input Attachment add");
         data.emplace_back(ImageContext{});
         layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, useStage);
     }
