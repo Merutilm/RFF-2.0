@@ -45,9 +45,9 @@ namespace merutilm::vkh {
 
         [[nodiscard]] IndexBuffer &getIndexBuffer() const override { return *indexBufferPP; }
 
-        void configureVertexBuffer(HostBufferObjectManager &som) override;
+        void configureVertexBuffer(HostBufferObjectManagerRef som) override;
 
-        void configureIndexBuffer(HostBufferObjectManager &som) override;
+        void configureIndexBuffer(HostBufferObjectManagerRef som) override;
 
         void init() override;
 

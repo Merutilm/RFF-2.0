@@ -12,12 +12,9 @@
 #include "../opengl/GLRendererColIteration2Map.h"
 #include "../opengl/GLRendererColor.h"
 #include "../opengl/GLRendererFog.h"
-#include "../opengl/GLRendererIteration.h"
-#include "../opengl/GLRendererIteration2Map.h"
 #include "../opengl/GLRendererShdIteration2Map.h"
 #include "../opengl/GLRendererSlope.h"
 #include "../opengl/GLRendererStatic2Image.h"
-#include "../opengl/GLRendererStripe.h"
 #include "../settings/Settings.h"
 #include "opencv2/core/mat.hpp"
 
@@ -37,7 +34,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<GLMultipassRenderer> renderer;
         std::unique_ptr<GLRendererShdIteration2Map> rendererShdIteration2Map;
         std::unique_ptr<GLRendererColIteration2Map> rendererColIteration2Map;
-        std::unique_ptr<GLRendererStripe> rendererStripe;
+        // std::unique_ptr<GLRendererStripe> rendererStripe;
         std::unique_ptr<GLRendererSlope> rendererSlope;
         std::unique_ptr<GLRendererColor> rendererColor;
         std::unique_ptr<GLRendererFog> rendererFog;

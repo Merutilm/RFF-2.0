@@ -4,7 +4,7 @@
 
 #pragma once
 #include "IRepo.hpp"
-#include "../def/Core.hpp"
+#include "../impl/Core.hpp"
 
 namespace merutilm::vkh {
 

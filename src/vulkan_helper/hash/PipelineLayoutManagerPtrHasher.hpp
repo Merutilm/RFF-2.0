@@ -15,12 +15,12 @@ namespace merutilm::vkh {
     struct PipelineLayoutManagerPtrHasher{
         using is_transparent = void;
 
-        size_t operator()(const PipelineLayoutManager *key) const {
+        size_t operator()(const PipelineLayoutManagerPtr key) const {
             size_t seed = 0;
             constexpr auto descHasher = VectorHasher<const DescriptorSetLayout *>();
             BoostHasher::hash(descHasher(key->getDescriptorSetLayouts()), &seed);
 
-            constexpr auto pushMngPtrHasher = VectorHasher<std::unique_ptr<PushConstantManager>, UniquePtrHasher>();
+            constexpr auto pushMngPtrHasher = VectorHasher<PushConstantManager, UniquePtrHasher>();
             BoostHasher::hash(pushMngPtrHasher(key->getPushConstantManagers()), &seed);
             return seed;
         }

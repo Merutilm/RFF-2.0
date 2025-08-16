@@ -48,7 +48,7 @@ namespace merutilm::rff2 {
         rendererColIteration2Map->setVideoSettings(settings.videoSettings);
         rendererColIteration2Map->setPaletteSettings(settings.shaderSettings.paletteSettings);
         rendererStatic2Image->setDataSettings(settings.videoSettings.dataSettings);
-        rendererStripe->setStripeSettings(settings.shaderSettings.stripeSettings);
+        // rendererStripe->setStripeSettings(settings.shaderSettings.stripeSettings);
         rendererSlope->setSlopeSettings(settings.shaderSettings.slopeSettings);
         rendererColor->setColorSettings(settings.shaderSettings.colorSettings);
         rendererFog->setFogSettings(settings.shaderSettings.fogSettings);
@@ -68,7 +68,7 @@ namespace merutilm::rff2 {
         renderer = std::make_unique<GLMultipassRenderer>();
         rendererShdIteration2Map = std::make_unique<GLRendererShdIteration2Map>();
         rendererColIteration2Map = std::make_unique<GLRendererColIteration2Map>();
-        rendererStripe = std::make_unique<GLRendererStripe>();
+        // rendererStripe = std::make_unique<GLRendererStripe>();
         rendererSlope = std::make_unique<GLRendererSlope>();
         rendererColor = std::make_unique<GLRendererColor>();
         rendererFog = std::make_unique<GLRendererFog>();
@@ -77,7 +77,7 @@ namespace merutilm::rff2 {
 
         renderer->add(*rendererShdIteration2Map);
         renderer->add(*rendererColIteration2Map);
-        renderer->add(*rendererStripe);
+        // renderer->add(*rendererStripe);
         renderer->add(*rendererSlope);
         renderer->add(*rendererColor);
         renderer->add(*rendererFog);

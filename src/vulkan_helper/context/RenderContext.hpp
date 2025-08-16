@@ -5,11 +5,9 @@
 #pragma once
 #include <memory>
 
-#include "ImageContext.hpp"
 #include "../configurator/RenderContextConfigurator.hpp"
-#include "../def/CommandBuffer.hpp"
-#include "../def/Framebuffer.hpp"
-#include "../def/RenderPass.hpp"
+#include "../impl/Framebuffer.hpp"
+#include "../impl/RenderPass.hpp"
 
 namespace merutilm::vkh {
     struct RenderContext final {
@@ -21,9 +19,9 @@ namespace merutilm::vkh {
         explicit RenderContext(const Core &core, const VkExtent2D &extent,
                                std::unique_ptr<RenderContextConfigurator> &&renderPassConfigurator) : core(core) {
 
-            auto renderPassManager = std::make_unique<RenderPassManager>();
+            auto renderPassManager = Factory::create<RenderPassManager>();
             configurator = std::move(renderPassConfigurator);
-            configurator->configure(*renderPassManager);
+            configurator->configure(renderPassManager);
             renderPass = std::make_unique<RenderPass>(core, std::move(renderPassManager));
             framebuffer = std::make_unique<Framebuffer>(core, *renderPass, extent);
         }
@@ -32,9 +30,9 @@ namespace merutilm::vkh {
             framebuffer = nullptr;
             renderPass = nullptr;
 
-            auto renderPassManager = std::make_unique<RenderPassManager>();
+            auto renderPassManager = Factory::create<RenderPassManager>();
             configurator->cleanupContexts();
-            configurator->configure(*renderPassManager);
+            configurator->configure(renderPassManager);
             renderPass = std::make_unique<RenderPass>(core, std::move(renderPassManager));
             framebuffer = std::make_unique<Framebuffer>(core, *renderPass, extent);
         }

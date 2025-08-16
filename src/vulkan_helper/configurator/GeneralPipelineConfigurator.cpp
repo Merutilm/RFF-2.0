@@ -6,6 +6,7 @@
 
 #include <utility>
 
+#include "../def/Factory.hpp"
 #include "../repo/SharedDescriptorRepo.hpp"
 #include "../repo/Repositories.hpp"
 
@@ -22,7 +23,7 @@ namespace merutilm::vkh {
     }
 
     void GeneralPipelineConfigurator::configure() {
-        auto pipelineLayoutManager = std::make_unique<PipelineLayoutManager>();
+        auto pipelineLayoutManager = Factory::create<PipelineLayoutManager>();
         auto &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
 
         std::vector<const Descriptor *> descriptors = {};
@@ -38,15 +39,15 @@ namespace merutilm::vkh {
             std::move(pipelineLayoutManager));
 
 
-        auto pipelineManager = std::make_unique<PipelineManager>(pipelineLayout);
+        auto pipelineManager = Factory::create<PipelineManager>(pipelineLayout);
 
 
         pipelineManager->attachDescriptor(std::move(descriptors));
         pipelineManager->attachShader(&vertexShader);
         pipelineManager->attachShader(&fragmentShader);
 
-        auto vertManager = std::make_unique<HostBufferObjectManager>();
-        auto indexManager = std::make_unique<HostBufferObjectManager>();
+        auto vertManager = Factory::create<HostBufferObjectManager>();
+        auto indexManager = Factory::create<HostBufferObjectManager>();
 
         configureVertexBuffer(*vertManager);
         configureIndexBuffer(*indexManager);

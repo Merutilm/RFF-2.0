@@ -4,9 +4,6 @@
 
 #include "Framebuffer.hpp"
 
-#include <iostream>
-#include <ranges>
-
 #include "../util/BufferImageUtils.hpp"
 
 namespace merutilm::vkh {

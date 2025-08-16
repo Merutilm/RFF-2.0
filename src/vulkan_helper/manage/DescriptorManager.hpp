@@ -6,123 +6,109 @@
 #include <variant>
 #include <vector>
 
-#include "../def/CombinedImageSampler.hpp"
-#include "../def/Uniform.hpp"
+#include "../impl/CombinedImageSampler.hpp"
+#include "../impl/Uniform.hpp"
 #include "../hash/DescriptorSetLayoutBuildTypeHasher.hpp"
 #include "../hash/VectorHasher.hpp"
 #include "../struct/DescriptorSetLayoutBuildType.hpp"
 #include "../struct/StringHasher.hpp"
 #include "../context/ImageContext.hpp"
-#include "../def/ShaderStorage.hpp"
+#include "../impl/ShaderStorage.hpp"
 
 namespace merutilm::vkh {
     using DescriptorSetLayoutBuilder = std::vector<DescriptorSetLayoutBuildType>;
     using DescriptorSetLayoutBuilderHasher = VectorHasher<DescriptorSetLayoutBuildType,
         DescriptorSetLayoutBuildTypeHasher>;
 
-    using DescriptorType = std::variant<std::unique_ptr<Uniform>, std::unique_ptr<ShaderStorage>,std::unique_ptr<CombinedImageSampler>,  ImageContext>;
+    using DescriptorType = std::variant<std::unique_ptr<Uniform>, std::unique_ptr<ShaderStorage>, std::unique_ptr<
+        CombinedImageSampler>, ImageContext>;
 
-    class DescriptorManager {
 
+    class DescriptorManagerImpl {
         std::vector<DescriptorType> data = {};
         DescriptorSetLayoutBuilder layoutBuilder = {};
 
     public:
-        explicit DescriptorManager() = default;
+        explicit DescriptorManagerImpl() = default;
 
-        ~DescriptorManager() = default;
+        ~DescriptorManagerImpl() = default;
 
-        DescriptorManager(const DescriptorManager &) = delete;
+        DescriptorManagerImpl(const DescriptorManagerImpl &) = delete;
 
-        DescriptorManager &operator=(const DescriptorManager &) = delete;
+        DescriptorManagerImpl &operator=(const DescriptorManagerImpl &) = delete;
 
-        DescriptorManager(DescriptorManager &&) noexcept = delete;
+        DescriptorManagerImpl(DescriptorManagerImpl &&) noexcept = delete;
 
-        DescriptorManager &operator=(DescriptorManager &&) noexcept = delete;
+        DescriptorManagerImpl &operator=(DescriptorManagerImpl &&) noexcept = delete;
 
-        void appendUBO(uint32_t bindingExpected, VkShaderStageFlags useStage, std::unique_ptr<Uniform> &&ubo);
+        template<typename T>
+        uint32_t getElementCount() const {
+            uint32_t count = 0;
+            for (auto &variant: data) {
+                if (std::holds_alternative<T>(variant)) ++count;
+            }
+            return count;
+        }
 
-        void appendSSBO(uint32_t bindingExpected, VkShaderStageFlags useStage,
-                                 std::unique_ptr<ShaderStorage> &&ssbo);
+        uint32_t getElements() const {
+            return static_cast<uint32_t>(data.size());
+        }
 
-        void appendCombinedImgSampler(uint32_t bindingExpected, VkShaderStageFlags useStage,
-                                      std::unique_ptr<CombinedImageSampler> &&sampler);
 
-        void appendInputAttachment(uint32_t bindingExpected, VkShaderStageFlags useStage);
+        void appendUBO(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
+                       std::unique_ptr<Uniform> &&ubo) {
+            SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()),
+                                              "Descriptor UBO add");
+            data.emplace_back(std::move(ubo));
+            layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, useStage);
+        }
+
+        void appendSSBO(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
+                        std::unique_ptr<ShaderStorage> &&ssbo) {
+            SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()),
+                                              "Descriptor SSBO add");
+            data.emplace_back(std::move(ssbo));
+            layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, useStage);
+        }
+
+        void appendCombinedImgSampler(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
+                                      std::unique_ptr<CombinedImageSampler> &&sampler) {
+            SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()),
+                                              "Descriptor Sampler add");
+            data.emplace_back(std::move(sampler));
+            layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, useStage);
+        }
+
+        void appendInputAttachment(const uint32_t bindingExpected, const VkShaderStageFlags useStage) {
+            SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()),
+                                              "Descriptor Input Attachment add");
+            data.emplace_back(ImageContext{});
+            layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, useStage);
+        }
+
+
+        const DescriptorType &getRaw(
+            const uint32_t bindingIndex) {
+            if (bindingIndex >= data.size()) {
+                throw exception_invalid_args("bindingIndex out of range");
+            }
+            return data[bindingIndex];
+        }
+
+
+        template<typename T>
+        T &get(const uint32_t bindingIndex) {
+            if (bindingIndex >= data.size()) {
+                throw exception_invalid_args("binding out of range");
+            }
+            return std::get<T>(data[bindingIndex]);
+        }
+
 
         [[nodiscard]] const DescriptorSetLayoutBuilder &getLayoutBuilder() const { return layoutBuilder; }
-
-        template<typename T>
-        [[nodiscard]] uint32_t getElementCount() const;
-
-        uint32_t getElements() const;
-
-        const DescriptorType &getRaw(uint32_t bindingIndex);
-
-        template<typename T>
-        [[nodiscard]] T &get(uint32_t bindingIndex);
     };
 
-    template<typename T>
-    uint32_t DescriptorManager::getElementCount() const {
-        uint32_t count = 0;
-        for (auto &variant: data) {
-            if (std::holds_alternative<T>(variant)) ++count;
-        }
-        return count;
-    }
-
-    inline uint32_t DescriptorManager::getElements() const {
-        return static_cast<uint32_t>(data.size());
-    }
-
-
-    inline void DescriptorManager::appendUBO(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
-                                             std::unique_ptr<Uniform> &&ubo) {
-
-        SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()), "Descriptor UBO add");
-        data.emplace_back(std::move(ubo));
-        layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, useStage);
-    }
-
-    inline void DescriptorManager::appendSSBO(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
-                                             std::unique_ptr<ShaderStorage> &&ssbo) {
-
-        SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()), "Descriptor SSBO add");
-        data.emplace_back(std::move(ssbo));
-        layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, useStage);
-    }
-
-    inline void DescriptorManager::appendCombinedImgSampler(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
-                                                            std::unique_ptr<CombinedImageSampler> &&sampler) {
-
-        SafeArrayChecker::checkIndexEqual(bindingExpected,  static_cast<uint32_t>(data.size()), "Descriptor Sampler add");
-        data.emplace_back(std::move(sampler));
-        layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, useStage);
-    }
-
-    inline void DescriptorManager::appendInputAttachment(const uint32_t bindingExpected, const VkShaderStageFlags useStage) {
-        SafeArrayChecker::checkIndexEqual(bindingExpected,  static_cast<uint32_t>(data.size()), "Descriptor Input Attachment add");
-        data.emplace_back(ImageContext{});
-        layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, useStage);
-    }
-
-
-    inline const DescriptorType &DescriptorManager::getRaw(
-        const uint32_t bindingIndex) {
-        if (bindingIndex >= data.size()) {
-            throw exception_invalid_args("bindingIndex out of range");
-        }
-        return data[bindingIndex];
-    }
-
-
-    template<typename T>
-    T &DescriptorManager::get(const uint32_t bindingIndex) {
-        if (bindingIndex >= data.size()) {
-            throw exception_invalid_args("binding out of range");
-        }
-        return std::get<T>(data[bindingIndex]);
-    }
-
+    using DescriptorManager = std::unique_ptr<DescriptorManagerImpl>;
+    using DescriptorManagerPtr = DescriptorManagerImpl *;
+    using DescriptorManagerRef = DescriptorManagerImpl &;
 }

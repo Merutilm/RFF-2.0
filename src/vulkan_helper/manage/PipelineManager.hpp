@@ -5,21 +5,24 @@
 #pragma once
 #include <algorithm>
 
-#include "../def/Descriptor.hpp"
-#include "../def/PipelineLayout.hpp"
-#include "../def/ShaderModule.hpp"
+#include "../impl/Descriptor.hpp"
+#include "../impl/PipelineLayout.hpp"
+#include "../impl/ShaderModule.hpp"
 
 namespace merutilm::vkh {
-    class PipelineManager {
+    class PipelineManagerImpl {
         const PipelineLayout &layout;
         std::vector<const Descriptor *> descriptors = {};
         std::vector<const ShaderModule *> shaderModules;
 
     public:
-        explicit PipelineManager(const PipelineLayout &layout) : layout(layout) {
+        explicit PipelineManagerImpl(const PipelineLayout &layout) : layout(layout) {
         }
 
-        void attachShader(const ShaderModule *shaderStage);
+
+        void attachShader(const ShaderModule *shaderStage) {
+            shaderModules.emplace_back(shaderStage);
+        }
 
         void attachDescriptor(std::vector<const Descriptor *> &&descriptor) { descriptors = std::move(descriptor); }
 
@@ -29,7 +32,14 @@ namespace merutilm::vkh {
 
         [[nodiscard]] std::vector<const Descriptor *> &getDescriptors() { return descriptors; }
 
-        [[nodiscard]] std::vector<VkDescriptorSet> getDescriptorSets(uint32_t frameIndex);
+
+        std::vector<VkDescriptorSet> getDescriptorSets(uint32_t frameIndex) {
+            std::vector<VkDescriptorSet> sets(descriptors.size());
+            std::ranges::transform(descriptors, sets.begin(), [frameIndex](const Descriptor *desc) {
+                return desc->getDescriptorSetHandle(frameIndex);
+            });
+            return sets;
+        }
 
         [[nodiscard]] const PipelineLayout &getLayout() const { return layout; }
 
@@ -38,15 +48,7 @@ namespace merutilm::vkh {
         }
     };
 
-    inline void PipelineManager::attachShader(const ShaderModule *shaderStage) {
-        shaderModules.emplace_back(shaderStage);
-    }
-
-    inline std::vector<VkDescriptorSet> PipelineManager::getDescriptorSets(uint32_t frameIndex) {
-        std::vector<VkDescriptorSet> sets(descriptors.size());
-        std::ranges::transform(descriptors, sets.begin(), [frameIndex](const Descriptor *desc) {
-            return desc->getDescriptorSetHandle(frameIndex);
-        });
-        return sets;
-    }
+    using PipelineManager = std::unique_ptr<PipelineManagerImpl>;
+    using PipelineManagerPtr = PipelineManagerImpl *;
+    using PipelineManagerRef = PipelineManagerImpl &;
 }

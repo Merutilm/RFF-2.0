@@ -55,8 +55,6 @@ add_executable(
         src/rff2/io/RFFDynamicMapBinary.cpp
         src/rff2/io/RFFDynamicMapBinary.h
         src/rff2/data/Matrix.h
-        src/rff2/opengl/GLRendererIteration.cpp
-        src/rff2/opengl/GLRendererIteration.h
         src/rff2/settings/ColorSmoothingSettings.h
         src/rff2/data/NormalizedColor.h
         src/rff2/settings/StripeType.h
@@ -90,8 +88,6 @@ add_executable(
         src/rff2/ui/CallbackRender.hpp
         src/rff2/opengl/GLMultipassRenderer.cpp
         src/rff2/opengl/GLMultipassRenderer.h
-        src/rff2/opengl/GLRendererStripe.cpp
-        src/rff2/opengl/GLRendererStripe.h
         src/rff2/opengl/GLRendererSlope.cpp
         src/rff2/opengl/GLRendererSlope.h
         src/rff2/opengl/GLRendererColor.cpp
@@ -185,66 +181,66 @@ add_executable(
         extern/stb_image.c
         extern/stb_image.h
         src/vulkan_helper/handle/Handler.hpp
-        src/vulkan_helper/def/GraphicsContextWindow.cpp
-        src/vulkan_helper/def/GraphicsContextWindow.hpp
-        src/vulkan_helper/def/ValidationLayer.cpp
-        src/vulkan_helper/def/ValidationLayer.hpp
+        src/vulkan_helper/impl/GraphicsContextWindow.cpp
+        src/vulkan_helper/impl/GraphicsContextWindow.hpp
+        src/vulkan_helper/impl/ValidationLayer.cpp
+        src/vulkan_helper/impl/ValidationLayer.hpp
         src/vulkan_helper/exception/exception.hpp
-        src/vulkan_helper/def/Instance.cpp
-        src/vulkan_helper/def/Instance.hpp
-        src/vulkan_helper/def/Surface.cpp
-        src/vulkan_helper/def/Surface.hpp
-        src/vulkan_helper/def/PhysicalDevice.cpp
-        src/vulkan_helper/def/PhysicalDevice.hpp
+        src/vulkan_helper/impl/Instance.cpp
+        src/vulkan_helper/impl/Instance.hpp
+        src/vulkan_helper/impl/Surface.cpp
+        src/vulkan_helper/impl/Surface.hpp
+        src/vulkan_helper/impl/PhysicalDevice.cpp
+        src/vulkan_helper/impl/PhysicalDevice.hpp
         src/vulkan_helper/struct/QueueFamilyIndices.hpp
-        src/vulkan_helper/def/LogicalDevice.cpp
-        src/vulkan_helper/def/LogicalDevice.hpp
+        src/vulkan_helper/impl/LogicalDevice.cpp
+        src/vulkan_helper/impl/LogicalDevice.hpp
         src/vulkan_helper/struct/StringHasher.hpp
-        src/vulkan_helper/def/Swapchain.cpp
-        src/vulkan_helper/def/Swapchain.hpp
-        src/vulkan_helper/def/CommandPool.cpp
-        src/vulkan_helper/def/CommandPool.hpp
-        src/vulkan_helper/def/CommandBuffer.cpp
-        src/vulkan_helper/def/CommandBuffer.hpp
-        src/vulkan_helper/def/Descriptor.cpp
-        src/vulkan_helper/def/Descriptor.hpp
+        src/vulkan_helper/impl/Swapchain.cpp
+        src/vulkan_helper/impl/Swapchain.hpp
+        src/vulkan_helper/impl/CommandPool.cpp
+        src/vulkan_helper/impl/CommandPool.hpp
+        src/vulkan_helper/impl/CommandBuffer.cpp
+        src/vulkan_helper/impl/CommandBuffer.hpp
+        src/vulkan_helper/impl/Descriptor.cpp
+        src/vulkan_helper/impl/Descriptor.hpp
         src/vulkan_helper/manage/HostBufferObjectManager.hpp
-        src/vulkan_helper/def/BufferObject.cpp
-        src/vulkan_helper/def/BufferObject.hpp
+        src/vulkan_helper/impl/BufferObject.cpp
+        src/vulkan_helper/impl/BufferObject.hpp
         src/vulkan_helper/util/BufferImageUtils.hpp
         src/vulkan_helper/manage/DescriptorManager.hpp
-        src/vulkan_helper/def/Pipeline.cpp
-        src/vulkan_helper/def/Pipeline.hpp
-        src/vulkan_helper/def/RenderPass.cpp
-        src/vulkan_helper/def/RenderPass.hpp
+        src/vulkan_helper/impl/Pipeline.cpp
+        src/vulkan_helper/impl/Pipeline.hpp
+        src/vulkan_helper/impl/RenderPass.cpp
+        src/vulkan_helper/impl/RenderPass.hpp
         src/vulkan_helper/manage/PipelineManager.hpp
-        src/vulkan_helper/def/DescriptorSetLayout.hpp
+        src/vulkan_helper/impl/DescriptorSetLayout.hpp
         src/vulkan_helper/struct/DescriptorSetLayoutBuildType.hpp
-        src/vulkan_helper/def/PipelineLayout.hpp
-        src/vulkan_helper/def/DescriptorSetLayout.cpp
-        src/vulkan_helper/def/PipelineLayout.cpp
+        src/vulkan_helper/impl/PipelineLayout.hpp
+        src/vulkan_helper/impl/DescriptorSetLayout.cpp
+        src/vulkan_helper/impl/PipelineLayout.cpp
         src/vulkan_helper/manage/PushConstantManager.hpp
-        src/vulkan_helper/def/ShaderModule.hpp
-        src/vulkan_helper/def/ShaderModule.cpp
+        src/vulkan_helper/impl/ShaderModule.hpp
+        src/vulkan_helper/impl/ShaderModule.cpp
         src/vulkan_helper/manage/RenderPassManager.hpp
         src/vulkan_helper/struct/RenderPassAttachmentType.hpp
-        src/vulkan_helper/def/Core.cpp
-        src/vulkan_helper/def/Core.hpp
+        src/vulkan_helper/impl/Core.cpp
+        src/vulkan_helper/impl/Core.hpp
         src/vulkan_helper/handle/CoreHandler.hpp
-        src/vulkan_helper/def/Framebuffer.cpp
-        src/vulkan_helper/def/Framebuffer.hpp
+        src/vulkan_helper/impl/Framebuffer.cpp
+        src/vulkan_helper/impl/Framebuffer.hpp
         src/vulkan_helper/struct/RenderPassAttachment.hpp
         src/vulkan_helper/struct/ImageInitInfo.hpp
-        src/vulkan_helper/def/SyncObject.cpp
-        src/vulkan_helper/def/SyncObject.hpp
+        src/vulkan_helper/impl/SyncObject.cpp
+        src/vulkan_helper/impl/SyncObject.hpp
         src/vulkan_helper/executor/RenderPassExecutor.cpp
         src/vulkan_helper/executor/RenderPassExecutor.hpp
         src/vulkan_helper/struct/Vertex.hpp
-        src/vulkan_helper/def/VertexBuffer.cpp
-        src/vulkan_helper/def/VertexBuffer.hpp
-        src/vulkan_helper/def/HostBufferObject.hpp
-        src/vulkan_helper/def/Uniform.cpp
-        src/vulkan_helper/def/Uniform.hpp
+        src/vulkan_helper/impl/VertexBuffer.cpp
+        src/vulkan_helper/impl/VertexBuffer.hpp
+        src/vulkan_helper/impl/HostBufferObject.hpp
+        src/vulkan_helper/impl/Uniform.cpp
+        src/vulkan_helper/impl/Uniform.hpp
         src/vulkan_helper/executor/Executor.hpp
         src/vulkan_helper/repo/ShaderModuleRepo.hpp
         src/vulkan_helper/context/WindowContext.hpp
@@ -257,19 +253,17 @@ add_executable(
         src/vulkan_helper/manage/PipelineLayoutManager.hpp
         src/vulkan_helper/hash/BoostHasher.hpp
         src/vulkan_helper/repo/PipelineLayoutRepo.hpp
-        src/vulkan_helper/def/IndexBuffer.cpp
-        src/vulkan_helper/def/IndexBuffer.hpp
-        src/vulkan_helper/def/CombinedImageSampler.cpp
-        src/vulkan_helper/def/CombinedImageSampler.hpp
+        src/vulkan_helper/impl/IndexBuffer.cpp
+        src/vulkan_helper/impl/IndexBuffer.hpp
+        src/vulkan_helper/impl/CombinedImageSampler.cpp
+        src/vulkan_helper/impl/CombinedImageSampler.hpp
         src/vulkan_helper/configurator/GeneralPipelineConfigurator.cpp
         src/vulkan_helper/configurator/GeneralPipelineConfigurator.hpp
         src/vulkan_helper/repo/SharedDescriptorRepo.hpp
         src/vulkan_helper/struct/DescriptorTemplateInfo.hpp
         src/rff2/vulkan/SharedDescriptorTemplate.hpp
-        src/vulkan_helper/def/Engine.cpp
-        src/vulkan_helper/def/Engine.hpp
-        src/rff2/vulkan/Template2PipelineConfigurator.cpp
-        src/rff2/vulkan/Template2PipelineConfigurator.hpp
+        src/vulkan_helper/impl/Engine.cpp
+        src/vulkan_helper/impl/Engine.hpp
         src/vulkan_helper/executor/ScopedCommandExecutor.cpp
         src/vulkan_helper/executor/ScopedCommandExecutor.hpp
         src/vulkan_helper/struct/PushConstantReserve.hpp
@@ -300,14 +294,14 @@ add_executable(
         src/vulkan_helper/configurator/PipelineConfigurator.hpp
         src/rff2/constants/VulkanWindowConstants.hpp
         src/vulkan_helper/struct/DescriptorTemplate.hpp
-        src/vulkan_helper/def/Sampler.cpp
-        src/vulkan_helper/def/Sampler.hpp
+        src/vulkan_helper/impl/Sampler.cpp
+        src/vulkan_helper/impl/Sampler.hpp
         src/vulkan_helper/repo/SamplerRepo.hpp
         src/vulkan_helper/hash/SamplerCreateInfoHasher.hpp
         src/vulkan_helper/hash/SamplerCreateInfoEquals.hpp
         src/vulkan_helper/context/DescriptorRequiresRepoContext.hpp
-        src/vulkan_helper/def/ShaderStorage.cpp
-        src/vulkan_helper/def/ShaderStorage.hpp
+        src/vulkan_helper/impl/ShaderStorage.cpp
+        src/vulkan_helper/impl/ShaderStorage.hpp
         src/vulkan_helper/struct/BufferLock.hpp
         src/vulkan_helper/util/Logger.hpp
         src/vulkan_helper/util/DescriptorUpdater.hpp
@@ -324,6 +318,7 @@ add_executable(
         src/rff2/vulkan/BloomPipelineConfigurator.hpp
         src/rff2/vulkan/BoxBlurPipelineConfigurator.cpp
         src/rff2/vulkan/BoxBlurPipelineConfigurator.hpp
+        src/vulkan_helper/def/Factory.hpp
 )
 
 

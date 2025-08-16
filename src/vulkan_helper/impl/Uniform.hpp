@@ -9,7 +9,7 @@ namespace merutilm::vkh {
     class Uniform final : public BufferObject {
 
     public:
-        explicit Uniform(const Core &core, std::unique_ptr<HostBufferObjectManager> &&manager, BufferLock bufferLock);
+        explicit Uniform(const Core &core, HostBufferObjectManager &&manager, BufferLock bufferLock);
 
         ~Uniform() override;
 

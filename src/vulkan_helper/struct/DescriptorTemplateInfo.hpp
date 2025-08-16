@@ -10,6 +10,6 @@ namespace merutilm::vkh {
 
     struct DescriptorTemplateInfo {
         uint32_t id;
-        std::function<std::unique_ptr<DescriptorManager>(const Core &, const DescriptorRequiresRepoContext &)> descriptorGenerator;
+        std::function<DescriptorManager(const Core &, const DescriptorRequiresRepoContext &)> descriptorGenerator;
     };
 }

@@ -6,7 +6,7 @@
 
 namespace merutilm::vkh {
 
-    ShaderStorage::ShaderStorage(const Core &core, std::unique_ptr<HostBufferObjectManager> &&manager, const BufferLock bufferLock) : BufferObject(core, std::move(manager), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, bufferLock){
+    ShaderStorage::ShaderStorage(const Core &core, HostBufferObjectManager &&manager, const BufferLock bufferLock) : BufferObject(core, std::move(manager), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, bufferLock){
         ShaderStorage::init();
     }
 

@@ -7,15 +7,15 @@
 #include "../hash/PipelineLayoutManagerPtrHasher.hpp"
 #include "../hash/PointerDerefEquals.hpp"
 #include "../manage/PipelineLayoutManager.hpp"
-#include "../def/PipelineLayout.hpp"
+#include "../impl/PipelineLayout.hpp"
 
 namespace merutilm::vkh {
-    struct PipelineLayoutRepo final : Repo<PipelineLayoutManager *, std::unique_ptr<PipelineLayoutManager> &&, PipelineLayout, PipelineLayoutManagerPtrHasher, PointerDerefEquals>{
+    struct PipelineLayoutRepo final : Repo<PipelineLayoutManagerPtr, PipelineLayoutManager &&, PipelineLayout, PipelineLayoutManagerPtrHasher, PointerDerefEquals>{
 
         using Repo::Repo;
 
-        const PipelineLayout &pick(std::unique_ptr<PipelineLayoutManager> &&layoutManager) override {
-            auto *ptr = layoutManager.get();
+        const PipelineLayout &pick(PipelineLayoutManager &&layoutManager) override {
+            const PipelineLayoutManagerPtr ptr = layoutManager.get();
             return *repository.try_emplace(ptr, std::make_unique<PipelineLayout>(core, std::move(layoutManager))).first->
                     second;
         }

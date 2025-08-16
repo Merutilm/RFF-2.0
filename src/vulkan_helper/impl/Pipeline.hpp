@@ -17,14 +17,14 @@ namespace merutilm::vkh {
         const uint32_t subpassIndex;
         VertexBuffer & vertexBuffer;
         IndexBuffer & indexBuffer;
-        const std::unique_ptr<PipelineManager> pipelineManager = nullptr;
+        const PipelineManager pipelineManager = nullptr;
 
     public:
         explicit Pipeline(const Engine &engine, const PipelineLayout &pipelineLayout,
                           VertexBuffer & vertexBuffer,
                           IndexBuffer & indexBuffer,
                           uint32_t subpassIndex,
-                          std::unique_ptr<PipelineManager> &&pipelineManager);
+                          PipelineManager &&pipelineManager);
 
         ~Pipeline() override;
 
@@ -38,9 +38,7 @@ namespace merutilm::vkh {
 
         void bind( VkCommandBuffer cbh, uint32_t frameIndex) const;
 
-        [[nodiscard]] const PipelineManager &getPipelineManager() const { return *pipelineManager; }
-
-        [[nodiscard]] PipelineManager &getPipelineManager() { return *pipelineManager; }
+        [[nodiscard]] PipelineManagerRef getPipelineManager() const { return *pipelineManager; }
 
         [[nodiscard]] const VertexBuffer &getVertexBuffer() const { return vertexBuffer; }
 

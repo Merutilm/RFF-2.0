@@ -18,11 +18,11 @@ namespace merutilm::vkh {
         std::vector<VkDescriptorPool> descriptorPools = {};
         std::vector<VkDescriptorSet> descriptorSets = {};
         const DescriptorSetLayout &descriptorSetLayout;
-        const std::unique_ptr<DescriptorManager> descriptorManager = nullptr;
+        const DescriptorManager descriptorManager = nullptr;
 
     public:
         explicit Descriptor(const Core &core, const DescriptorSetLayout &descriptorSetLayout,
-                            std::unique_ptr<DescriptorManager> &&descriptorManager);
+                            DescriptorManager &&descriptorManager);
 
         ~Descriptor() override;
 
@@ -34,7 +34,7 @@ namespace merutilm::vkh {
 
         Descriptor &operator=(Descriptor &&) = delete;
 
-        [[nodiscard]] DescriptorManager &getDescriptorManager() const { return *descriptorManager; }
+        [[nodiscard]] DescriptorManagerRef getDescriptorManager() const { return *descriptorManager; }
 
         [[nodiscard]] VkDescriptorSet getDescriptorSetHandle(const uint32_t frameIndex) const {
             return descriptorSets[frameIndex];

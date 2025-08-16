@@ -47,7 +47,7 @@ namespace merutilm::rff2 {
         void setPaletteSettings(const PaletteSettings &paletteSettings) const;
 
     protected:
-        void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
+        void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
 
         void configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors) override;
     };

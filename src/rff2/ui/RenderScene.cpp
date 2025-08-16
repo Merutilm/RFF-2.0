@@ -9,7 +9,6 @@
 #include "../constants/VulkanWindowConstants.hpp"
 #include "../vulkan/RFFRenderContextConfigurator.hpp"
 #include "../vulkan/IterationPalettePipelineConfigurator.hpp"
-#include "../vulkan/Template2PipelineConfigurator.hpp"
 #include "../calc/dex_exp.h"
 #include "../formula/DeepMandelbrotPerturbator.h"
 #include "../formula/LightMandelbrotPerturbator.h"

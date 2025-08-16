@@ -41,8 +41,8 @@ namespace merutilm::rff2 {
                                          }));
         }
 
-        void configureRenderContext(vkh::RenderPassManager &rpm) override {
-            rpm.appendAttachment(COLOR_ATTACHMENT_INDEX, {
+        void configureRenderContext(const vkh::RenderPassManager &rpm) override {
+            rpm->appendAttachment(COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,
                                      .format = VK_FORMAT_R8G8B8A8_SRGB,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -53,7 +53,7 @@ namespace merutilm::rff2 {
                                      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                  }, contexts[PRIMARY_SUBPASS_RESULT_COLOR_IMAGE]);
-            rpm.appendAttachment(PRESENT_ATTACHMENT_INDEX, {
+            rpm->appendAttachment(PRESENT_ATTACHMENT_INDEX, {
                                      .flags = 0,
                                      .format = VK_FORMAT_R8G8B8A8_SRGB,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -66,13 +66,13 @@ namespace merutilm::rff2 {
                                  }, vkh::ImageContext::fromSwapchain(core, swapchain));
 
 
-            rpm.appendSubpass(SUBPASS_ITERATION_INDEX);
-            rpm.appendReference(COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR);
-            rpm.appendSubpass(SUBPASS_STRIPE_INDEX);
-            rpm.appendReference(COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::INPUT);
-            rpm.appendReference(PRESENT_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR);
+            rpm->appendSubpass(SUBPASS_ITERATION_INDEX);
+            rpm->appendReference(COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR);
+            rpm->appendSubpass(SUBPASS_STRIPE_INDEX);
+            rpm->appendReference(COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::INPUT);
+            rpm->appendReference(PRESENT_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR);
 
-            rpm.appendDependency({
+            rpm->appendDependency({
                 .srcSubpass = VK_SUBPASS_EXTERNAL,
                 .dstSubpass = SUBPASS_ITERATION_INDEX,
                 .srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
@@ -81,7 +81,7 @@ namespace merutilm::rff2 {
                 .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .dependencyFlags = 0
             });
-            rpm.appendDependency({
+            rpm->appendDependency({
                 .srcSubpass = SUBPASS_ITERATION_INDEX,
                 .dstSubpass = SUBPASS_STRIPE_INDEX,
                 .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -90,7 +90,7 @@ namespace merutilm::rff2 {
                 .dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
                 .dependencyFlags = 0
             });
-            rpm.appendDependency({
+            rpm->appendDependency({
                 .srcSubpass = SUBPASS_STRIPE_INDEX,
                 .dstSubpass = VK_SUBPASS_EXTERNAL,
                 .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,

@@ -4,6 +4,7 @@
 
 #include "GeneralPostProcessPipelineConfigurator.hpp"
 
+#include "../def/Factory.hpp"
 #include "../struct/Vertex.hpp"
 
 namespace merutilm::vkh {
@@ -23,7 +24,7 @@ namespace merutilm::vkh {
     }
 
 
-    void GeneralPostProcessPipelineConfigurator::configureVertexBuffer(HostBufferObjectManager &som) {
+    void GeneralPostProcessPipelineConfigurator::configureVertexBuffer(HostBufferObjectManagerRef som) {
         som.addArray(0, std::vector{
                     Vertex::generate({1, 1, 0}, {1, 1, 1}, {1, 1}),
                     Vertex::generate({1, -1, 0}, {1, 1, 1}, {1, 0}),
@@ -32,12 +33,12 @@ namespace merutilm::vkh {
                 });
     }
 
-    void GeneralPostProcessPipelineConfigurator::configureIndexBuffer(HostBufferObjectManager &som) {
+    void GeneralPostProcessPipelineConfigurator::configureIndexBuffer(HostBufferObjectManagerRef som) {
         som.addArray(0, std::vector<uint32_t>{0, 1, 2, 2, 3, 0});
     }
 
     void GeneralPostProcessPipelineConfigurator::configure() {
-        auto pipelineLayoutManager = std::make_unique<PipelineLayoutManager>();
+        auto pipelineLayoutManager = Factory::create<PipelineLayoutManager>();
         auto &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
 
         std::vector<const Descriptor *> descriptors = {};
@@ -53,7 +54,7 @@ namespace merutilm::vkh {
             std::move(pipelineLayoutManager));
 
 
-        auto pipelineManager = std::make_unique<PipelineManager>(pipelineLayout);
+        auto pipelineManager = Factory::create<PipelineManager>(pipelineLayout);
 
         pipelineManager->attachDescriptor(std::move(descriptors));
         pipelineManager->attachShader(&vertexShader);
@@ -61,8 +62,8 @@ namespace merutilm::vkh {
 
 
         if (!initializedVertexIndex) {
-            auto vertManager = std::make_unique<HostBufferObjectManager>();
-            auto indexManager = std::make_unique<HostBufferObjectManager>();
+            auto vertManager = Factory::create<HostBufferObjectManager>();;
+            auto indexManager = Factory::create<HostBufferObjectManager>();;
 
             configureVertexBuffer(*vertManager);
             configureIndexBuffer(*indexManager);

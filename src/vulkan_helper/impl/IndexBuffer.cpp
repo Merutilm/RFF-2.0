@@ -5,7 +5,7 @@
 #include "IndexBuffer.hpp"
 
 namespace merutilm::vkh {
-    IndexBuffer::IndexBuffer(const Core &core, std::unique_ptr<HostBufferObjectManager> &&manager, const BufferLock bufferLock) : BufferObject(
+    IndexBuffer::IndexBuffer(const Core &core, HostBufferObjectManager &&manager, const BufferLock bufferLock) : BufferObject(
         core, std::move(manager), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, bufferLock) {
         IndexBuffer::init();
     }

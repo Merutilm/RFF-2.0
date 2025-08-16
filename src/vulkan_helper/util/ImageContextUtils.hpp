@@ -6,7 +6,7 @@
 #include "../executor/ScopedCommandExecutor.hpp"
 #include "../context/ImageContext.hpp"
 #include <stb_image.h>
-#include "../def/CommandPool.hpp"
+#include "../impl/CommandPool.hpp"
 #include "BufferImageUtils.hpp"
 
 namespace merutilm::vkh {

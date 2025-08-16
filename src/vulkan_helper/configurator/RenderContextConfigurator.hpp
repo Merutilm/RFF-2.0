@@ -31,14 +31,14 @@ namespace merutilm::vkh {
 
         RenderContextConfigurator &operator=(RenderContextConfigurator &&) = delete;
 
-        void configure(RenderPassManager &manager) {
+        void configure(const RenderPassManager &manager) {
             configureImageContext();
             configureRenderContext(manager);
         }
 
         virtual void configureImageContext() = 0;
 
-        virtual void configureRenderContext(RenderPassManager &manager) = 0;
+        virtual void configureRenderContext(const RenderPassManager &manager) = 0;
 
 
         void appendStoredImageContext(const uint32_t contextIndexExpected, MultiframeImageContext &&context) {
@@ -46,8 +46,8 @@ namespace merutilm::vkh {
             SafeArrayChecker::checkIndexEqual(contextIndexExpected, contexts.size() - 1, "Stored Image Context");
         }
 
-        const MultiframeImageContext &getImageContext(const uint32_t contextIndex) const {
-            return contexts.at(contextIndex);
+        const ImageContext &getImageContext(const uint32_t contextIndex, const uint32_t imageIndex) const {
+            return contexts.at(contextIndex)[imageIndex];
         }
 
         void cleanupContexts() {

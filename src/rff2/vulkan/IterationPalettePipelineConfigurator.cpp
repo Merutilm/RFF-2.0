@@ -9,6 +9,7 @@
 #include "../../vulkan_helper/util/ImageContextUtils.hpp"
 #include "../data/Color.hpp"
 #include "../settings/PaletteSettings.h"
+#include "../ui/Utilities.h"
 
 namespace merutilm::rff2 {
 
@@ -20,6 +21,11 @@ namespace merutilm::rff2 {
         const auto &iterSSBO = *iterDesc.getDescriptorManager().get<std::unique_ptr<vkh::ShaderStorage> >(
             DescIteration::BINDING_SSBO_ITERATION);
         iterSSBO.update(frameIndex);
+        auto &timeDesc = getDescriptor(SET_TIME);
+        const auto &timeBinding = *timeDesc.getDescriptorManager().get<std::unique_ptr<vkh::Uniform> >(DescTime::BINDING_UBO_TIME);
+        timeBinding.getHostObject().set(DescTime::TARGET_TIME_CURRENT, Utilities::getCurrentTime());
+        timeBinding.update(frameIndex);
+        timeDesc.queue(queue, frameIndex);
     }
 
     void IterationPalettePipelineConfigurator::reloadIterationBuffer(const uint32_t width, const uint32_t height) {
@@ -120,7 +126,7 @@ namespace merutilm::rff2 {
 
 
     void IterationPalettePipelineConfigurator::configurePushConstant(
-        vkh::PipelineLayoutManager &pipelineLayoutManager) {
+        vkh::PipelineLayoutManagerRef pipelineLayoutManager) {
         //noop
     }
 

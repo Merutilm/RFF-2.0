@@ -4,7 +4,7 @@
 
 #pragma once
 #include "BoostHasher.hpp"
-#include "../def/CombinedImageSampler.hpp"
+#include "../impl/CombinedImageSampler.hpp"
 
 namespace merutilm::vkh {
 

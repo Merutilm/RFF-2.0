@@ -4,7 +4,7 @@
 
 #pragma once
 #include <vector>
-#include "../def/Swapchain.hpp"
+#include "../impl/Swapchain.hpp"
 #include "../struct/ImageInitInfo.hpp"
 #include "../util/BufferImageUtils.hpp"
 

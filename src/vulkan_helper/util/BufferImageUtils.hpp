@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../exception/exception.hpp"
-#include "../def/Core.hpp"
+#include "../impl/Core.hpp"
 #include "../struct/ImageInitInfo.hpp"
 
 namespace merutilm::vkh {

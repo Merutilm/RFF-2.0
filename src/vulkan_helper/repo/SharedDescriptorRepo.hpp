@@ -6,7 +6,7 @@
 #include "DescriptorSetLayoutRepo.hpp"
 #include "Repo.hpp"
 #include "../context/DescriptorRequiresRepoContext.hpp"
-#include "../def/Descriptor.hpp"
+#include "../impl/Descriptor.hpp"
 #include "../struct/DescriptorTemplateInfo.hpp"
 
 namespace merutilm::vkh {

@@ -5,30 +5,34 @@
 #pragma once
 
 
-#include "../def/HostBufferObject.hpp"
+#include "../impl/HostBufferObject.hpp"
 #include "HostBufferObjectManager.hpp"
 
 namespace merutilm::vkh {
-    class PushConstantManager : public HostBufferObject {
+    class PushConstantManagerImpl : public HostBufferObject {
         VkShaderStageFlags useStage;
 
     public:
-        explicit PushConstantManager(const VkShaderStageFlags useStage,
-                              std::unique_ptr<HostBufferObjectManager> &&manager) : HostBufferObject(std::move(manager)),
+        explicit PushConstantManagerImpl(const VkShaderStageFlags useStage,
+                              HostBufferObjectManager &&manager) : HostBufferObject(std::move(manager)),
                                                                           useStage(useStage) {
         }
 
-        ~PushConstantManager() = default;
+        ~PushConstantManagerImpl() = default;
 
-        PushConstantManager(const PushConstantManager &) = delete;
+        PushConstantManagerImpl(const PushConstantManagerImpl &) = delete;
 
-        PushConstantManager &operator=(const PushConstantManager &) = delete;
+        PushConstantManagerImpl &operator=(const PushConstantManagerImpl &) = delete;
 
-        PushConstantManager(PushConstantManager &&) = delete;
+        PushConstantManagerImpl(PushConstantManagerImpl &&) = delete;
 
-        PushConstantManager &operator=(PushConstantManager &&) = delete;
+        PushConstantManagerImpl &operator=(PushConstantManagerImpl &&) = delete;
 
         [[nodiscard]] VkShaderStageFlags getUseStage() const {return useStage;}
 
     };
+
+    using PushConstantManager = std::unique_ptr<PushConstantManagerImpl>;
+    using PushConstantManagerPtr = PushConstantManagerImpl *;
+    using PushConstantManagerRef = PushConstantManagerImpl &;
 }

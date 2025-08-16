@@ -12,7 +12,7 @@
 
 namespace merutilm::vkh {
     Descriptor::Descriptor(const Core &core, const DescriptorSetLayout &descriptorSetLayout,
-                           std::unique_ptr<DescriptorManager> &&descriptorManager) : CoreHandler(core),
+                           DescriptorManager &&descriptorManager) : CoreHandler(core),
         descriptorSetLayout(descriptorSetLayout),
         descriptorManager(std::move(descriptorManager)) {
         Descriptor::init();

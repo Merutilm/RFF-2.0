@@ -13,7 +13,7 @@
 #include "../util/SafeArrayChecker.hpp"
 
 namespace merutilm::vkh {
-    class RenderPassManager {
+    class RenderPassManagerImpl {
         std::vector<RenderPassAttachment> attachments = {};
         std::vector<std::vector<uint32_t> > preserveIndices = {};
         std::vector<std::unordered_map<RenderPassAttachmentType, std::vector<VkAttachmentReference> > >
@@ -22,17 +22,17 @@ namespace merutilm::vkh {
         uint32_t subpassCount = 0;
 
     public:
-        explicit RenderPassManager() = default;
+        explicit RenderPassManagerImpl() = default;
 
-        ~RenderPassManager() = default;
+        ~RenderPassManagerImpl() = default;
 
-        RenderPassManager(const RenderPassManager &) = delete;
+        RenderPassManagerImpl(const RenderPassManagerImpl &) = delete;
 
-        RenderPassManager &operator=(const RenderPassManager &) = delete;
+        RenderPassManagerImpl &operator=(const RenderPassManagerImpl &) = delete;
 
-        RenderPassManager(RenderPassManager &&) = delete;
+        RenderPassManagerImpl(RenderPassManagerImpl &&) = delete;
 
-        RenderPassManager &operator=(RenderPassManager &&) = delete;
+        RenderPassManagerImpl &operator=(RenderPassManagerImpl &&) = delete;
 
         [[nodiscard]] uint32_t getPreserveIndicesCount(const uint32_t subpassIndex) const {
             return static_cast<uint32_t>(preserveIndices[subpassIndex].size());
@@ -60,98 +60,85 @@ namespace merutilm::vkh {
         }
 
 
-        void setPreserved(uint32_t attachmentIndex);
-
-        void unsetPreserved(uint32_t attachmentIndex);
-
-        void appendSubpass(uint32_t subpassIndexExpected);
-
-        void appendReference(uint32_t attachmentIndex, RenderPassAttachmentType attachmentType);
-
-        void appendAttachment(uint32_t attachmentIndexExpected,
-                              const VkAttachmentDescription &attachmentDescription,
-                              const MultiframeImageContext &imageContext);
-
-
-        void appendDependency(const VkSubpassDependency &subpassDependency);
-
-    };
-
-
-    inline void RenderPassManager::setPreserved(const uint32_t attachmentIndex) {
-        preserveIndices.back().emplace_back(attachmentIndex);
-    }
-
-
-    inline void RenderPassManager::unsetPreserved(const uint32_t attachmentIndex) {
-        auto &indices = preserveIndices.back();
-        const auto it = std::ranges::find(indices, attachmentIndex);
-        if (it == indices.end()) {
-            throw exception_invalid_args("given attachment is not preserved");
+        void setPreserved(const uint32_t attachmentIndex) {
+            preserveIndices.back().emplace_back(attachmentIndex);
         }
-        indices.erase(it);
-    }
 
 
-    inline void RenderPassManager::appendSubpass(const uint32_t subpassIndexExpected) {
-        using enum RenderPassAttachmentType;
-        attachmentReferences.emplace_back();
-        attachmentReferences.back()[INPUT];
-        attachmentReferences.back()[COLOR];
-        attachmentReferences.back()[RESOLVE];
-        attachmentReferences.back()[DEPTH_STENCIL];
-        preserveIndices.emplace_back();
-        SafeArrayChecker::checkIndexEqual(subpassIndexExpected, subpassCount, "Subpass Index");
-        ++subpassCount;
-    }
-
-    inline void RenderPassManager::appendReference(const uint32_t attachmentIndex,
-                                                   const RenderPassAttachmentType attachmentType) {
-        using enum RenderPassAttachmentType;
-
-        auto &ref = this->attachmentReferences.back()[attachmentType];
-        VkAttachmentReference attachmentReference = {};
-
-        switch (attachmentType) {
-            case INPUT: {
-                attachmentReference = {
-                    .attachment = attachmentIndex,
-                    .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                };
-                break;
+        void unsetPreserved(const uint32_t attachmentIndex) {
+            auto &indices = preserveIndices.back();
+            const auto it = std::ranges::find(indices, attachmentIndex);
+            if (it == indices.end()) {
+                throw exception_invalid_args("given attachment is not preserved");
             }
-            case COLOR:
-            case RESOLVE: {
-                attachmentReference = {
-                    .attachment = attachmentIndex,
-                    .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                };
-                break;
-            }
-            case DEPTH_STENCIL: {
-                if (!ref.empty()) {
-                    throw exception_invalid_args("Depth Stencil attachment has already been set");
+            indices.erase(it);
+        }
+
+
+        void appendSubpass(const uint32_t subpassIndexExpected) {
+            using enum RenderPassAttachmentType;
+            attachmentReferences.emplace_back();
+            attachmentReferences.back()[INPUT];
+            attachmentReferences.back()[COLOR];
+            attachmentReferences.back()[RESOLVE];
+            attachmentReferences.back()[DEPTH_STENCIL];
+            preserveIndices.emplace_back();
+            SafeArrayChecker::checkIndexEqual(subpassIndexExpected, subpassCount, "Subpass Index");
+            ++subpassCount;
+        }
+
+        void appendReference(const uint32_t attachmentIndex,
+                             const RenderPassAttachmentType attachmentType) {
+            using enum RenderPassAttachmentType;
+
+            auto &ref = this->attachmentReferences.back()[attachmentType];
+            VkAttachmentReference attachmentReference = {};
+
+            switch (attachmentType) {
+                case INPUT: {
+                    attachmentReference = {
+                        .attachment = attachmentIndex,
+                        .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+                    };
+                    break;
                 }
-                attachmentReference = {
-                    .attachment = attachmentIndex,
-                    .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                };
-                break;
+                case COLOR:
+                case RESOLVE: {
+                    attachmentReference = {
+                        .attachment = attachmentIndex,
+                        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                    };
+                    break;
+                }
+                case DEPTH_STENCIL: {
+                    if (!ref.empty()) {
+                        throw exception_invalid_args("Depth Stencil attachment has already been set");
+                    }
+                    attachmentReference = {
+                        .attachment = attachmentIndex,
+                        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                    };
+                    break;
+                }
             }
+            ref.emplace_back(attachmentReference);
         }
-        ref.emplace_back(attachmentReference);
-    }
 
 
-    inline void RenderPassManager::appendAttachment(const uint32_t attachmentIndexExpected,
-                                                    const VkAttachmentDescription &attachmentDescription,
-                                                    const MultiframeImageContext &imageContext) {
-        attachments.emplace_back(attachmentDescription, imageContext);
-        SafeArrayChecker::checkIndexEqual(attachmentIndexExpected, static_cast<uint32_t>(attachments.size() - 1), "Attachment Index");
-    }
+        void appendAttachment(const uint32_t attachmentIndexExpected,
+                              const VkAttachmentDescription &attachmentDescription,
+                              const MultiframeImageContext &imageContext) {
+            attachments.emplace_back(attachmentDescription, imageContext);
+            SafeArrayChecker::checkIndexEqual(attachmentIndexExpected, static_cast<uint32_t>(attachments.size() - 1),
+                                              "Attachment Index");
+        }
 
 
-    inline void RenderPassManager::appendDependency(const VkSubpassDependency &subpassDependency) {
-        subpassDependencies.push_back(subpassDependency);
-    }
+        void appendDependency(const VkSubpassDependency &subpassDependency) {
+            subpassDependencies.push_back(subpassDependency);
+        }
+    };
+    using RenderPassManager = std::unique_ptr<RenderPassManagerImpl>;
+    using RenderPassManagerPtr = RenderPassManagerImpl *;
+    using RenderPassManagerRef = RenderPassManagerImpl &;
 }

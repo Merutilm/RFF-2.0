@@ -20,7 +20,7 @@ namespace merutilm::vkh {
         bool locked = false;
 
     public:
-        explicit BufferObject(const Core &core, std::unique_ptr<HostBufferObjectManager> &&dataManager,
+        explicit BufferObject(const Core &core, HostBufferObjectManager &&dataManager,
                               VkBufferUsageFlags bufferUsage, BufferLock bufferLock);
 
         ~BufferObject() override;

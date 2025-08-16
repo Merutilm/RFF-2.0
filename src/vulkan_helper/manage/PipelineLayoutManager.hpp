@@ -5,29 +5,30 @@
 #pragma once
 #include <vector>
 #include "PushConstantManager.hpp"
-#include "../def/DescriptorSetLayout.hpp"
+#include "../def/Factory.hpp"
+#include "../impl/DescriptorSetLayout.hpp"
 #include "../struct/PushConstantReserve.hpp"
 
 namespace merutilm::vkh {
-    class PipelineLayoutManager {
+    class PipelineLayoutManagerImpl {
 
         std::vector<const DescriptorSetLayout *> descriptorSetLayouts = {};
-        std::vector<std::unique_ptr<PushConstantManager> > pushConstantManagers = {};
+        std::vector<PushConstantManager > pushConstantManagers = {};
 
     public:
-        PipelineLayoutManager() = default;
+        PipelineLayoutManagerImpl() = default;
 
-        ~PipelineLayoutManager() = default;
+        ~PipelineLayoutManagerImpl() = default;
 
-        PipelineLayoutManager(const PipelineLayoutManager &) = delete;
+        PipelineLayoutManagerImpl(const PipelineLayoutManagerImpl &) = delete;
 
-        PipelineLayoutManager &operator=(const PipelineLayoutManager &) = delete;
+        PipelineLayoutManagerImpl &operator=(const PipelineLayoutManagerImpl &) = delete;
 
-        PipelineLayoutManager(PipelineLayoutManager &&) = delete;
+        PipelineLayoutManagerImpl(PipelineLayoutManagerImpl &&) = delete;
 
-        PipelineLayoutManager &operator=(PipelineLayoutManager &&) = delete;
+        PipelineLayoutManagerImpl &operator=(PipelineLayoutManagerImpl &&) = delete;
 
-        bool operator==(const PipelineLayoutManager &) const = default;
+        bool operator==(const PipelineLayoutManagerImpl &) const = default;
 
         void appendDescriptorSetLayout(const DescriptorSetLayout *descriptorSetLayout) {
             descriptorSetLayouts.emplace_back(descriptorSetLayout);
@@ -38,9 +39,9 @@ namespace merutilm::vkh {
 
 
             SafeArrayChecker::checkIndexEqual(pushIndexExpected, pushConstantManagers.size(), "Push Index");
-            auto som = std::make_unique<HostBufferObjectManager>();
+            auto som = Factory::create<HostBufferObjectManager>();
             (som->reserve<T>(pushConstantReservesExpected.binding), ...);
-            auto pcm = std::make_unique<PushConstantManager>(useStage, std::move(som));
+            auto pcm = Factory::create<PushConstantManager>(useStage, std::move(som));
             pushConstantManagers.emplace_back(std::move(pcm));
         }
 
@@ -48,12 +49,17 @@ namespace merutilm::vkh {
             return descriptorSetLayouts;
         }
 
-        std::span<const std::unique_ptr<PushConstantManager>> getPushConstantManagers() const {
+        std::span<const PushConstantManager> getPushConstantManagers() const {
             return pushConstantManagers;
         }
 
-        PushConstantManager &getPCM(const uint32_t pushIndex) const {
-            return *pushConstantManagers[pushIndex];
+        const PushConstantManager &getPCM(const uint32_t pushIndex) const {
+            return pushConstantManagers[pushIndex];
         }
     };
+
+    using PipelineLayoutManager = std::unique_ptr<PipelineLayoutManagerImpl>;
+    using PipelineLayoutManagerPtr = PipelineLayoutManagerImpl *;
+    using PipelineLayoutManagerRef = PipelineLayoutManagerImpl &;
+
 }

@@ -10,8 +10,7 @@ namespace merutilm::rff2 {
     class StripePipelineConfigurator final : public vkh::GeneralPostProcessPipelineConfigurator {
 
         static constexpr uint32_t SET_PREV_RESULT = 0;
-        static constexpr uint32_t BINDING_PREV_RESULT_SAMPLER = 0;
-        static constexpr uint32_t BINDING_PREV_RESULT_INPUT = 1;
+        static constexpr uint32_t BINDING_PREV_RESULT_INPUT = 0;
 
         static constexpr uint32_t SET_ITERATION = 1;
         static constexpr uint32_t SET_STRIPE = 2;
@@ -42,7 +41,7 @@ namespace merutilm::rff2 {
         void setStripeSettings(const StripeSettings &stripeSettings) const;
 
     protected:
-        void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
+        void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
 
         void configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors) override;
     };

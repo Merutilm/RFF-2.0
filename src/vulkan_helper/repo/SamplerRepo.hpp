@@ -4,7 +4,7 @@
 
 #pragma once
 #include "Repo.hpp"
-#include "../def/Sampler.hpp"
+#include "../impl/Sampler.hpp"
 #include "../hash/SamplerCreateInfoEquals.hpp"
 #include "../hash/SamplerCreateInfoHasher.hpp"
 

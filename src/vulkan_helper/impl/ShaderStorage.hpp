@@ -8,7 +8,7 @@
 namespace merutilm::vkh {
     class ShaderStorage final : public BufferObject {
     public:
-        explicit ShaderStorage(const Core &core, std::unique_ptr<HostBufferObjectManager> &&manager, BufferLock bufferLock);
+        explicit ShaderStorage(const Core &core, HostBufferObjectManager &&manager, BufferLock bufferLock);
 
         ~ShaderStorage() override;
 

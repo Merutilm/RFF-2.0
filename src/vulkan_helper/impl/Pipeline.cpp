@@ -13,7 +13,7 @@ namespace merutilm::vkh {
                        VertexBuffer & vertexBuffer,
                        IndexBuffer & indexBuffer,
                        const uint32_t subpassIndex,
-                       std::unique_ptr<PipelineManager> &&pipelineManager) : EngineHandler(engine),
+                       PipelineManager &&pipelineManager) : EngineHandler(engine),
                                                                              pipelineLayout(pipelineLayout),
                                                                              subpassIndex(subpassIndex),
                                                                              vertexBuffer(vertexBuffer),

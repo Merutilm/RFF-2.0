@@ -285,20 +285,6 @@ namespace merutilm::rff2 {
             shaderProgram->updateQueue(queue, currentFrame, imageIndex, extent.width, extent.height);
         }
 
-        //TODO : Move to TimeDescConfigurator and invoke it from external class (Every Frame)
-        using namespace SharedDescriptorTemplate;
-        auto &desc = engine->getRepositories().getRepository<vkh::SharedDescriptorRepo>()->
-                pick(vkh::DescriptorTemplate::from<DescTime>(),
-                     engine->getRepositories().getDescriptorRequiresRepositoryContext());
-        const auto &timeBinding = *desc.getDescriptorManager().get<
-                    std::unique_ptr<
-                        vkh::Uniform> >(DescTime::BINDING_UBO_TIME);
-        timeBinding.getHostObject().set(DescTime::TARGET_TIME_CURRENT, Utilities::getCurrentTime());
-        timeBinding.update(currentFrame);
-        desc.queue(queue, currentFrame);
-        //TODO_END
-
-
         vkh::DescriptorUpdater::write(device, queue);
 
         //COMMAND SCOPE START

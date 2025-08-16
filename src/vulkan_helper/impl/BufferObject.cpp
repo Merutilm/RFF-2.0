@@ -11,7 +11,7 @@
 #include "../util/logger.hpp"
 
 namespace merutilm::vkh {
-    BufferObject::BufferObject(const Core &core, std::unique_ptr<HostBufferObjectManager> &&dataManager,
+    BufferObject::BufferObject(const Core &core, HostBufferObjectManager &&dataManager,
                                const VkBufferUsageFlags bufferUsage, const BufferLock bufferLock) : CoreHandler(core),
         hostBufferObject(std::make_unique<HostBufferObject>(std::move(dataManager))),
         bufferUsage(bufferUsage), bufferLock(bufferLock) {

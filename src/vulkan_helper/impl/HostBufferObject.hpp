@@ -18,7 +18,7 @@ namespace merutilm::vkh {
         std::vector<uint32_t> sizes = {};
         std::vector<uint32_t> offsets = {};
 
-        explicit HostBufferObject(std::unique_ptr<HostBufferObjectManager> &&uploadManager) : data(std::move(
+        explicit HostBufferObject(HostBufferObjectManager &&uploadManager) : data(std::move(
                 uploadManager->data)),
             elements(std::move(uploadManager->elements)),
             sizes(std::move(uploadManager->sizes)),

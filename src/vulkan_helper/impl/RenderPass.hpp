@@ -12,11 +12,11 @@
 namespace merutilm::vkh {
     class RenderPass final : public CoreHandler {
 
-        std::unique_ptr<RenderPassManager> manager = nullptr;
+        RenderPassManager manager = nullptr;
         VkRenderPass renderPass = VK_NULL_HANDLE;
 
     public:
-        explicit RenderPass(const Core &core, std::unique_ptr<RenderPassManager> &&manager);
+        explicit RenderPass(const Core &core, RenderPassManager &&manager);
 
         ~RenderPass() override;
 
@@ -28,7 +28,7 @@ namespace merutilm::vkh {
 
         RenderPass &operator=(RenderPass &&) = delete;
 
-        [[nodiscard]] const RenderPassManager &getManager() const { return *manager; }
+        [[nodiscard]] RenderPassManagerRef getManager() const { return *manager; }
 
         [[nodiscard]] VkRenderPass getRenderPassHandle() const { return renderPass; }
 

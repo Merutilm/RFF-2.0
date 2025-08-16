@@ -6,8 +6,7 @@
 #define SMOOTH 2
 #define SMOOTH_SQUARED 3
 
-layout (set = 0, binding = 0) uniform sampler2D prevSampler;
-layout (input_attachment_index = 0, set = 0, binding = 1) uniform subpassInput canvas;
+layout (input_attachment_index = 0, set = 0, binding = 0) uniform subpassInput canvas;
 
 layout (set = 1, binding = 0) buffer IterSSBO {
     uvec2 extent;
