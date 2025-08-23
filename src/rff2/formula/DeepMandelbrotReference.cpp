@@ -36,7 +36,7 @@ namespace merutilm::rff2 {
      * @return the result of generation. but returns @code PROCESS_TERMINATED_REFERENCE@endcode if the process is terminated
      */
     std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReference(
-        const ParallelRenderState &state, const CalculationSettings &calc, int exp10, uint64_t initialPeriod,
+        const ParallelRenderState &state, const CalcAttribute &calc, int exp10, uint64_t initialPeriod,
         dex dcMax,
         const bool strictFPG, std::function<void(uint64_t)> &&actionPerRefCalcIteration) {
         if (state.interruptRequested()) {
@@ -70,7 +70,7 @@ namespace merutilm::rff2 {
         auto tools = std::vector<ArrayCompressionTool>();
         uint64_t compressed = 0;
         uint64_t maxIteration = calc.maxIteration;
-        auto [compressCriteria, compressionThresholdPower, withoutNormalize] = calc.referenceCompressionSettings;
+        auto [compressCriteria, compressionThresholdPower, withoutNormalize] = calc.referenceCompAttribute;
         auto func = std::move(actionPerRefCalcIteration);
 
         double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);

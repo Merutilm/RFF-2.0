@@ -12,11 +12,11 @@ namespace merutilm::vkh {
      * RenderPass Framebuffer Configurator
      */
     struct RenderContextConfigurator {
-        const Core &core;
-        const Swapchain &swapchain;
+        CoreRef core;
+        SwapchainRef swapchain;
         std::vector<MultiframeImageContext> contexts = {};
 
-        explicit RenderContextConfigurator(const Core &core, const Swapchain &swapchain) : core(core), swapchain(swapchain) {
+        explicit RenderContextConfigurator(CoreRef core, SwapchainRef swapchain) : core(core), swapchain(swapchain) {
         }
 
         virtual ~RenderContextConfigurator() {

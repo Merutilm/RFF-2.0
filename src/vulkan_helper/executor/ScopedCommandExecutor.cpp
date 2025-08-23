@@ -7,7 +7,7 @@
 #include <iostream>
 
 namespace merutilm::vkh {
-    ScopedCommandExecutor::ScopedCommandExecutor(const Core &core, const CommandPool &commandPool) : Executor(core), commandPool(commandPool) {
+    ScopedCommandExecutor::ScopedCommandExecutor(const CoreRef core, const CommandPool &commandPool) : Executor(core), commandPool(commandPool) {
         ScopedCommandExecutor::begin();
     }
 

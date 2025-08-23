@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-#include "../settings/MPASettings.h"
+#include "../attr/CalMPAAttribute.h"
 
 namespace merutilm::rff2 {
     struct MPAPeriod {
@@ -23,9 +23,9 @@ namespace merutilm::rff2 {
 
         static std::vector<uint64_t> generatePeriodElements(const std::vector<uint64_t> &tablePeriod);
 
-        static Temp generateTablePeriod(const std::vector<uint64_t> &referencePeriod, const MPASettings &mpaSettings);
+        static Temp generateTablePeriod(const std::vector<uint64_t> &referencePeriod, const CalMPAAttribute &mpaSettings);
 
         static std::unique_ptr<MPAPeriod> create(const std::vector<uint64_t> &referencePeriod,
-                                                 const MPASettings &mpaSettings);
+                                                 const CalMPAAttribute &mpaSettings);
     };
 }

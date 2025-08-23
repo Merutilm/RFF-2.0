@@ -11,8 +11,8 @@
 
 namespace merutilm::vkh {
     struct WindowContext final {
-        std::unique_ptr<GraphicsContextWindow> window = nullptr;
-        std::unique_ptr<Surface> surface = nullptr;
-        std::unique_ptr<Swapchain> swapchain = nullptr;
+        GraphicsContextWindow window = nullptr;
+        Surface surface = nullptr;
+        Swapchain swapchain = nullptr;
     };
 }

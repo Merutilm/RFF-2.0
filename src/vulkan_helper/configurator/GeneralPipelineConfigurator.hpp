@@ -13,8 +13,8 @@
 
 namespace merutilm::vkh {
     class GeneralPipelineConfigurator : public PipelineConfigurator {
-        std::unique_ptr<VertexBuffer> vertexBuffer = {};
-        std::unique_ptr<IndexBuffer> indexBuffer = nullptr;
+        VertexBuffer vertexBuffer = {};
+        IndexBuffer indexBuffer = nullptr;
 
     public:
         explicit GeneralPipelineConfigurator(const Engine &engine,
@@ -34,9 +34,9 @@ namespace merutilm::vkh {
 
         void configure() override;
 
-        [[nodiscard]] VertexBuffer &getVertexBuffer() const override { return *vertexBuffer; }
+        [[nodiscard]] VertexBufferRef getVertexBuffer() const override { return *vertexBuffer; }
 
-        [[nodiscard]] IndexBuffer &getIndexBuffer() const override { return *indexBuffer; }
+        [[nodiscard]] IndexBufferRef getIndexBuffer() const override { return *indexBuffer; }
 
     private:
         void init() override;

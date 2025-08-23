@@ -3,30 +3,30 @@
 //
 
 #pragma once
-#include <cstdint>
 #include <functional>
+#include <memory>
 #include <windows.h>
 
 namespace merutilm::vkh {
-    class GraphicsContextWindow final {
+    class GraphicsContextWindowImpl final {
+        using Listeners = std::unordered_map<UINT, std::function<LRESULT(GraphicsContextWindowImpl &, HWND, WPARAM, LPARAM)> > ;
         HWND window = nullptr;
         const float framerate;
-        std::unordered_map<UINT, std::function<LRESULT(const GraphicsContextWindow &, HWND, WPARAM, LPARAM)> > listeners
-                = {};
+        Listeners listeners = {};
         std::vector<std::function<void()> > renderers = {};
 
     public:
-        explicit GraphicsContextWindow(HWND window, float framerate);
+        explicit GraphicsContextWindowImpl(HWND window, float framerate);
 
-        ~GraphicsContextWindow() = default;
+        ~GraphicsContextWindowImpl() = default;
 
-        GraphicsContextWindow(GraphicsContextWindow &) = delete;
+        GraphicsContextWindowImpl(GraphicsContextWindowImpl &) = delete;
 
-        GraphicsContextWindow(GraphicsContextWindow &&) = delete;
+        GraphicsContextWindowImpl(GraphicsContextWindowImpl &&) = delete;
 
-        GraphicsContextWindow &operator=(const GraphicsContextWindow &) = delete;
+        GraphicsContextWindowImpl &operator=(const GraphicsContextWindowImpl &) = delete;
 
-        GraphicsContextWindow &operator=(GraphicsContextWindow &&) = delete;
+        GraphicsContextWindowImpl &operator=(GraphicsContextWindowImpl &&) = delete;
 
         HWND getWindowHandle() const { return window; }
 
@@ -37,8 +37,7 @@ namespace merutilm::vkh {
                    rect.right - rect.left <= 0;
         }
 
-        template<typename F> requires std::is_invocable_r_v<LRESULT, F, const GraphicsContextWindow &, HWND, WPARAM,
-            LPARAM>
+        template<typename F> requires std::is_invocable_r_v<LRESULT, F, GraphicsContextWindowImpl &,  HWND, WPARAM,LPARAM>
         void setListener(UINT message, F &&func);
 
         template<typename F> requires std::is_invocable_r_v<void, F>
@@ -46,7 +45,7 @@ namespace merutilm::vkh {
 
         void start() const;
 
-        static LRESULT CALLBACK GraphicsContextWindowProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
+        const Listeners &getListeners() const {return listeners;};
 
     private:
         void clear() {
@@ -54,17 +53,20 @@ namespace merutilm::vkh {
             renderers.clear();
         }
 
-        LRESULT runListeners(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
     };
+    using GraphicsContextWindow = std::unique_ptr<GraphicsContextWindowImpl>;
+    using GraphicsContextWindowPtr = GraphicsContextWindowImpl *;
+    using GraphicsContextWindowRef = GraphicsContextWindowImpl &;
 
-
-    template<typename F> requires std::is_invocable_r_v<LRESULT, F, const GraphicsContextWindow &, HWND, WPARAM, LPARAM>
-    void GraphicsContextWindow::setListener(const UINT message, F &&func) {
+    template<typename F> requires std::is_invocable_r_v<LRESULT, F, GraphicsContextWindowRef, HWND, WPARAM, LPARAM>
+    void GraphicsContextWindowImpl::setListener(const UINT message, F &&func) {
         listeners[message] = std::forward<F>(func);
     }
 
     template<typename F> requires std::is_invocable_r_v<void, F>
-    void GraphicsContextWindow::appendRenderer(F &&func) {
+    void GraphicsContextWindowImpl::appendRenderer(F &&func) {
         renderers.emplace_back(std::forward<F>(func));
     }
+
+
 }

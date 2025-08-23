@@ -11,27 +11,27 @@
 #include <vulkan/vulkan_core.h>
 
 #include "../exception/exception.hpp"
-#include "../util/logger.hpp"
+#include "../util/Debugger.hpp"
 
 namespace merutilm::vkh {
-    ValidationLayer::ValidationLayer(const VkInstance instance, const bool enabled) : instance(instance),
+    ValidationLayerImpl::ValidationLayerImpl(const VkInstance instance, const bool enabled) : instance(instance),
         enabled(enabled) {
-        ValidationLayer::init();
+        ValidationLayerImpl::init();
     }
 
-    ValidationLayer::~ValidationLayer() {
-        ValidationLayer::destroy();
+    ValidationLayerImpl::~ValidationLayerImpl() {
+        ValidationLayerImpl::destroy();
     }
 
 
-    void ValidationLayer::checkValidationLayerSupport() const {
+    void ValidationLayerImpl::checkValidationLayerSupport() const {
         uint32_t layerCount;
         vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
         std::vector<VkLayerProperties> availableLayers(layerCount);
         vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
         const bool support = std::ranges::any_of(availableLayers, [](const VkLayerProperties &layerProperties) {
-            return strcmp(VALIDATION_LAYER, layerProperties.layerName) == 0;
+            return strcmp(Debugger::VALIDATION_LAYER, layerProperties.layerName) == 0;
         });
         if (enabled && !support) {
             throw exception_init("No validation layers available");
@@ -39,97 +39,24 @@ namespace merutilm::vkh {
     }
 
 
-    VkDebugUtilsMessengerCreateInfoEXT ValidationLayer::populateDebugMessengerCreateInfo() {
-        return {
-            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-            .pNext = nullptr,
-            .flags = 0,
-            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
-                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                               VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT,
-            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                           VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT,
-            .pfnUserCallback = debugCallback,
-            .pUserData = nullptr
-        };
-    }
-
-    void ValidationLayer::init() {
+    void ValidationLayerImpl::init() {
         checkValidationLayerSupport();
         setupDebugMessenger();
     }
 
-    void ValidationLayer::setupDebugMessenger() {
+    void ValidationLayerImpl::setupDebugMessenger() {
         if (!enabled) {
             return;
         }
 
-        if (const VkDebugUtilsMessengerCreateInfoEXT createInfo = populateDebugMessengerCreateInfo();
+        if (const VkDebugUtilsMessengerCreateInfoEXT createInfo = Debugger::populateDebugMessengerCreateInfo();
             createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
             throw exception_init("Failed to create debug messenger");
         }
     }
 
 
-    VkBool32 ValidationLayer::debugCallback(const VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                                            const VkDebugUtilsMessageTypeFlagsEXT messageType,
-                                            const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-                                            [[maybe_unused]] void *pUserData) {
-        const char *severityStr = nullptr;
-        switch (messageSeverity) {
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: {
-                severityStr = "[Verbose]";
-                break;
-            }
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: {
-                severityStr = "[Info]";
-                break;
-            }
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: {
-                severityStr = "[Warning]";
-                break;
-            }
-            case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: {
-                severityStr = "[Error]";
-                break;
-            }
-            default: {
-                severityStr = "[Unknown]";
-                break;
-            }
-        }
-
-        const char *messageTypeStr;
-        switch (messageType) {
-            case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT: {
-                messageTypeStr = "[General]";
-                break;
-            }
-            case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT: {
-                messageTypeStr = "[Validation]";
-                break;
-            }
-            case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: {
-                messageTypeStr = "[Performance]";
-                break;
-            }
-            case VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT: {
-                messageTypeStr = "[DeviceAddressBinding]";
-                break;
-            }
-            default: {
-                messageTypeStr = "[Unknown]";
-                break;
-            }
-        }
-        if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-            logger::log_err_silent("{} {} : {}", severityStr, messageTypeStr, pCallbackData->pMessage);
-        }
-
-        return VK_FALSE;
-    }
-
-    VkResult ValidationLayer::createDebugUtilsMessengerEXT(const VkInstance instance,
+    VkResult ValidationLayerImpl::createDebugUtilsMessengerEXT(const VkInstance instance,
                                                            const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
                                                            const VkAllocationCallbacks *pAllocator,
                                                            VkDebugUtilsMessengerEXT *pDebugMessenger) {
@@ -142,7 +69,7 @@ namespace merutilm::vkh {
     }
 
 
-    void ValidationLayer::destroyDebugUtilsMessengerEXT(const VkInstance instance,
+    void ValidationLayerImpl::destroyDebugUtilsMessengerEXT(const VkInstance instance,
                                                         const VkDebugUtilsMessengerEXT debugMessenger,
                                                         const VkAllocationCallbacks *pAllocator) {
         const auto func = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(
@@ -153,7 +80,7 @@ namespace merutilm::vkh {
         func(instance, debugMessenger, pAllocator);
     }
 
-    void ValidationLayer::destroy() {
+    void ValidationLayerImpl::destroy() {
         destroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
     }
 }

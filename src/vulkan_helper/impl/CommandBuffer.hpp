@@ -12,7 +12,7 @@ namespace merutilm::vkh {
         std::vector<VkCommandBuffer> commandBuffers = {};
         const CommandPool &commandPool;
     public:
-        explicit CommandBuffer(const Core &core, const CommandPool &commandPool);
+        explicit CommandBuffer(const CoreRef core, const CommandPool &commandPool);
 
         ~CommandBuffer() override;
 

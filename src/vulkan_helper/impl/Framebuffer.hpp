@@ -13,7 +13,7 @@ namespace merutilm::vkh {
         VkExtent2D extent;
 
     public:
-        explicit Framebuffer(const Core &core, const RenderPass &renderPass, VkExtent2D extent);
+        explicit Framebuffer(const CoreRef core, const RenderPass &renderPass, VkExtent2D extent);
 
         ~Framebuffer() override;
 

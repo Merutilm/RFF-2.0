@@ -7,7 +7,7 @@
 #include "../exception/exception.hpp"
 
 namespace merutilm::vkh {
-    SyncObject::SyncObject(const Core &core) : CoreHandler(core) {
+    SyncObject::SyncObject(const CoreRef core) : CoreHandler(core) {
         SyncObject::init();
     }
 

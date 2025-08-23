@@ -6,20 +6,20 @@
 #include "BufferObject.hpp"
 
 namespace merutilm::vkh {
-    class IndexBuffer final : public BufferObject {
+    class IndexBufferImpl final : public BufferObjectImpl {
 
     public:
-        explicit IndexBuffer(const Core &core, HostBufferObjectManager &&manager, BufferLock bufferLock);
+        explicit IndexBufferImpl(const CoreRef core, HostBufferObjectManager &&manager, BufferLock bufferLock);
 
-        ~IndexBuffer() override;
+        ~IndexBufferImpl() override;
 
-        IndexBuffer(const IndexBuffer &) = delete;
+        IndexBufferImpl(const IndexBufferImpl &) = delete;
 
-        IndexBuffer &operator=(const IndexBuffer &) = delete;
+        IndexBufferImpl &operator=(const IndexBufferImpl &) = delete;
 
-        IndexBuffer(IndexBuffer &&) = delete;
+        IndexBufferImpl(IndexBufferImpl &&) = delete;
 
-        IndexBuffer &operator=(IndexBuffer &&) = delete;
+        IndexBufferImpl &operator=(IndexBufferImpl &&) = delete;
 
         void bind(VkCommandBuffer cbh, uint32_t frameIndex, uint32_t binding) const;
 
@@ -29,4 +29,8 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    using IndexBuffer = std::unique_ptr<IndexBufferImpl>;
+    using IndexBufferPtr = IndexBufferImpl *;
+    using IndexBufferRef = IndexBufferImpl &;
 };

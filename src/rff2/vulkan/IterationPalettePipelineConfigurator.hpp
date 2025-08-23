@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
-#include "../settings/PaletteSettings.h"
+#include "../attr/ShdPaletteAttribute.h"
 
 namespace merutilm::rff2 {
     class IterationPalettePipelineConfigurator final : public vkh::GeneralPostProcessPipelineConfigurator {
@@ -44,7 +44,7 @@ namespace merutilm::rff2 {
 
         void setMaxIteration(double maxIteration) const;
 
-        void setPaletteSettings(const PaletteSettings &paletteSettings) const;
+        void setPalette(const ShdPaletteAttribute &palette) const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;

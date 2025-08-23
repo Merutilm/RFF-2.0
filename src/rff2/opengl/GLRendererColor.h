@@ -4,11 +4,11 @@
 
 #pragma once
 #include "GLRenderer.h"
-#include "../settings/ColorSettings.h"
+#include "../attr/ShdColorAttribute.h"
 namespace merutilm::rff2 {
     class GLRendererColor final : public GLRenderer {
 
-        const ColorSettings *colorSettings = nullptr;
+        const ShdColorAttribute *colorSettings = nullptr;
 
     public:
         explicit GLRendererColor();
@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
 
         GLRendererColor &operator=(GLRendererColor &&) = delete;
 
-        void setColorSettings(const ColorSettings &colorSettings);
+        void setColorSettings(const ShdColorAttribute &colorSettings);
 
         void update() override;
 

@@ -14,8 +14,9 @@
 #include "../io/RFFDynamicMapBinary.h"
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
-#include "../settings/Settings.h"
+#include "../attr/Attribute.h"
 #include "../vulkan/IterationPalettePipelineConfigurator.hpp"
+#include "../vulkan/SlopePipelineConfigurator.hpp"
 #include "../vulkan/StripePipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
@@ -26,7 +27,7 @@ namespace merutilm::rff2 {
         HWND window;
 
         ParallelRenderState state;
-        Settings settings;
+        Attribute attr;
 
         uint16_t interactedMX = 0;
         uint16_t interactedMY = 0;
@@ -52,6 +53,7 @@ namespace merutilm::rff2 {
         std::vector<std::unique_ptr<vkh::PipelineConfigurator>> shaderPrograms = {};
         IterationPalettePipelineConfigurator * rendererIteration;
         StripePipelineConfigurator * rendererStripe;
+        SlopePipelineConfigurator * rendererSlope;
 
 
 
@@ -96,25 +98,25 @@ namespace merutilm::rff2 {
         };
 
 
-        static Settings defaultSettings();
+        static Attribute defaultSettings();
 
         static LRESULT CALLBACK renderSceneProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
-        [[nodiscard]] std::array<dex, 2> offsetConversion(const Settings &settings, int mx, int my) const;
+        [[nodiscard]] std::array<dex, 2> offsetConversion(const Attribute &settings, int mx, int my) const;
 
-        static dex getDivisor(const Settings &settings);
+        static dex getDivisor(const Attribute &settings);
 
         [[nodiscard]] uint16_t getClientWidth() const;
 
         [[nodiscard]] uint16_t getClientHeight() const;
 
-        [[nodiscard]] uint16_t getIterationBufferWidth(const Settings &settings) const;
+        [[nodiscard]] uint16_t getIterationBufferWidth(const Attribute &settings) const;
 
-        [[nodiscard]] uint16_t getIterationBufferHeight(const Settings &settings) const;
+        [[nodiscard]] uint16_t getIterationBufferHeight(const Attribute &settings) const;
 
         void applyCreateImage();
 
-        void applyColor(const Settings &settings) const;
+        void applyColor(const Attribute &attr) const;
 
         void applyResize();
 
@@ -126,9 +128,9 @@ namespace merutilm::rff2 {
 
         void recomputeThreaded();
 
-        void beforeCompute(Settings &settings) const;
+        void beforeCompute(Attribute &settings) const;
 
-        bool compute(const Settings &settings);
+        bool compute(const Attribute &settings);
 
         void afterCompute(bool success);
 
@@ -136,8 +138,8 @@ namespace merutilm::rff2 {
             (*statusMessageRef)[index] = std::string("  ").append(message);
         }
 
-        [[nodiscard]] Settings &getSettings() {
-            return settings;
+        [[nodiscard]] Attribute &getSettings() {
+            return attr;
         }
 
         [[nodiscard]] ParallelRenderState &getState() {
@@ -224,38 +226,38 @@ namespace merutilm::rff2 {
     template<typename P> requires std::is_base_of_v<Preset, P>
     void RenderScene::changePreset(P &preset) {
         if constexpr (std::is_base_of_v<Presets::CalculationPresets, P>) {
-            settings.calculationSettings.mpaSettings = preset.mpaSettings();
-            settings.calculationSettings.referenceCompressionSettings = preset.referenceCompressionSettings();
+            attr.calc.mpaAttribute = preset.genMPA();
+            attr.calc.referenceCompAttribute = preset.genReferenceCompression();
             requestRecompute();
         }
         if constexpr (std::is_base_of_v<Presets::RenderPresets, P>) {
-            settings.renderSettings = preset.renderSettings();
+            attr.render = preset.genRender();
             requestResize();
             requestRecompute();
         }
         if constexpr (std::is_base_of_v<Presets::ResolutionPresets, P>) {
-            auto r = preset.getResolution();
+            auto r = preset.genResolution();
             cwRequest = r[0];
             chRequest = r[1];
         }
         if constexpr (std::is_base_of_v<Presets::ShaderPreset, P>) {
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::PalettePreset, P>) {
-                settings.shaderSettings.paletteSettings = preset.paletteSettings();
+                attr.shader.palette = preset.genPalette();
             }
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::StripePreset, P>) {
-                settings.shaderSettings.stripeSettings = preset.stripeSettings();
+                attr.shader.stripe = preset.genStripe();
             }
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::SlopePreset, P>) {
-                settings.shaderSettings.slopeSettings = preset.slopeSettings();
+                attr.shader.slope = preset.genSlope();
             }
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::ColorPreset, P>) {
-                settings.shaderSettings.colorSettings = preset.colorSettings();
+                attr.shader.color = preset.genColor();
             }
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::FogPreset, P>) {
-                settings.shaderSettings.fogSettings = preset.fogSettings();
+                attr.shader.fog = preset.genFog();
             }
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::BloomPreset, P>) {
-                settings.shaderSettings.bloomSettings = preset.bloomSettings();
+                attr.shader.bloom = preset.genBloom();
             }
             requestColor();
         }

@@ -6,23 +6,27 @@
 #include "BufferObject.hpp"
 
 namespace merutilm::vkh {
-    class ShaderStorage final : public BufferObject {
+    class ShaderStorageImpl final : public BufferObjectImpl {
     public:
-        explicit ShaderStorage(const Core &core, HostBufferObjectManager &&manager, BufferLock bufferLock);
+        explicit ShaderStorageImpl(const CoreRef core, HostBufferObjectManager &&manager, BufferLock bufferLock);
 
-        ~ShaderStorage() override;
+        ~ShaderStorageImpl() override;
 
-        ShaderStorage(const ShaderStorage &) = delete;
+        ShaderStorageImpl(const ShaderStorageImpl &) = delete;
 
-        ShaderStorage operator=(const ShaderStorage &) = delete;
+        ShaderStorageImpl operator=(const ShaderStorageImpl &) = delete;
 
-        ShaderStorage(ShaderStorage &&) = delete;
+        ShaderStorageImpl(ShaderStorageImpl &&) = delete;
 
-        ShaderStorage operator=(ShaderStorage &&) = delete;
+        ShaderStorageImpl operator=(ShaderStorageImpl &&) = delete;
 
     private:
         void init() override;
 
         void destroy() override;
     };
+
+    using ShaderStorage = std::unique_ptr<ShaderStorageImpl>;
+    using ShaderStoragePtr = ShaderStorageImpl *;
+    using ShaderStorageRef = ShaderStorageImpl &;
 }

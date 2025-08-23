@@ -11,44 +11,44 @@
 #include "../util/logger.hpp"
 
 namespace merutilm::vkh {
-    BufferObject::BufferObject(const Core &core, HostBufferObjectManager &&dataManager,
+    BufferObjectImpl::BufferObjectImpl(const CoreRef core, HostBufferObjectManager &&dataManager,
                                const VkBufferUsageFlags bufferUsage, const BufferLock bufferLock) : CoreHandler(core),
         hostBufferObject(std::make_unique<HostBufferObject>(std::move(dataManager))),
         bufferUsage(bufferUsage), bufferLock(bufferLock) {
-        BufferObject::init();
+        BufferObjectImpl::init();
     }
 
-    BufferObject::~BufferObject() {
-        BufferObject::destroy();
+    BufferObjectImpl::~BufferObjectImpl() {
+        BufferObjectImpl::destroy();
     }
 
 
-    void BufferObject::reloadBuffer() {
-        BufferObject::destroy();
-        BufferObject::init();
+    void BufferObjectImpl::reloadBuffer() {
+        BufferObjectImpl::destroy();
+        BufferObjectImpl::init();
     }
 
-    void BufferObject::update(const uint32_t frameIndex) const {
+    void BufferObjectImpl::update(const uint32_t frameIndex) const {
         checkFinalizedBeforeUpdate();
         memcpy(bufferMapped[frameIndex], hostBufferObject->data.data(), hostBufferObject->getTotalSizeByte());
     }
 
-    void BufferObject::update(const uint32_t frameIndex, const uint32_t target) const {
+    void BufferObjectImpl::update(const uint32_t frameIndex, const uint32_t target) const {
         checkFinalizedBeforeUpdate();
         const uint32_t offset = hostBufferObject->getOffset(target);
         const uint32_t size = hostBufferObject->getSizeByte(target);
         memcpy(static_cast<std::byte *>(bufferMapped[frameIndex]) + offset, hostBufferObject->data.data() + offset, size);
     }
 
-    void BufferObject::checkFinalizedBeforeUpdate() const {
+    void BufferObjectImpl::checkFinalizedBeforeUpdate() const {
         if (locked) {
             throw exception_invalid_state(
-                "BufferObject::update() This bufferObject is already been finalized. It cannot be modified.");
+                "BufferObjectImpl::update() This bufferObject is already been finalized. It cannot be modified.");
         }
     }
 
 
-    void BufferObject::init() {
+    void BufferObjectImpl::init() {
         const uint32_t size = hostBufferObject->getTotalSizeByte();
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         buffers.resize(maxFramesInFlight);
@@ -75,9 +75,9 @@ namespace merutilm::vkh {
         }
     }
 
-    void BufferObject::lock(const CommandPool &commandPool) {
+    void BufferObjectImpl::lock(const CommandPool &commandPool) {
         if (locked) {
-            logger::log_err_silent("Double-call of BufferObject::lock()");
+            logger::log_err_silent("Double-call of BufferObjectImpl::lock()");
             return;
         }
 
@@ -143,9 +143,9 @@ namespace merutilm::vkh {
     }
 
 
-    void BufferObject::unlock(const CommandPool &commandPool) {
+    void BufferObjectImpl::unlock(const CommandPool &commandPool) {
         if (!locked) {
-            logger::log_err_silent("Double-call of BufferObject::unlock()");
+            logger::log_err_silent("Double-call of BufferObjectImpl::unlock()");
             return;
         }
         VkBufferUsageFlags lockFlags = 0;
@@ -212,7 +212,7 @@ namespace merutilm::vkh {
     }
 
 
-    void BufferObject::destroy() {
+    void BufferObjectImpl::destroy() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {

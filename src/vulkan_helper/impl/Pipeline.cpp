@@ -10,8 +10,8 @@
 
 namespace merutilm::vkh {
     Pipeline::Pipeline(const Engine &engine, const PipelineLayout &pipelineLayout,
-                       VertexBuffer & vertexBuffer,
-                       IndexBuffer & indexBuffer,
+                       VertexBufferRef vertexBuffer,
+                       IndexBufferRef indexBuffer,
                        const uint32_t subpassIndex,
                        PipelineManager &&pipelineManager) : EngineHandler(engine),
                                                                              pipelineLayout(pipelineLayout),

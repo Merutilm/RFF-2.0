@@ -4,6 +4,7 @@
 #include "Application.hpp"
 #include "SettingsWindow.hpp"
 #include "GLVideoWindow.h"
+#include "../../vulkan_helper/util/GraphicsContextWindowProc.hpp"
 
 void registerClasses() {
     using namespace merutilm::rff2::Constants::Win32;
@@ -12,7 +13,7 @@ void registerClasses() {
 
     WNDCLASSEXW masterWindowClass = wc;
     masterWindowClass.lpszClassName = CLASS_MASTER_WINDOW;
-    masterWindowClass.lpfnWndProc = merutilm::vkh::GraphicsContextWindow::GraphicsContextWindowProc;
+    masterWindowClass.lpfnWndProc = merutilm::vkh::GraphicsContextWindowProc::WinProc;
     masterWindowClass.hIcon = static_cast<HICON>(LoadImage(
     GetModuleHandle(nullptr),
     MAKEINTRESOURCE(1),

@@ -5,7 +5,7 @@
 #include "Engine.hpp"
 
 namespace merutilm::vkh {
-    Engine::Engine(std::unique_ptr<Core> &&core) : core(std::move(core)) {
+    Engine::Engine(Core &&core) : core(std::move(core)) {
         Engine::init();
     }
 

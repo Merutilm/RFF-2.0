@@ -9,7 +9,7 @@
 #include "MPATable.h"
 #include "../calc/rff_math.h"
 #include "../formula/LightMandelbrotReference.h"
-#include "../settings/MPASettings.h"
+#include "../attr/CalMPAAttribute.h"
 
 namespace merutilm::rff2 {
     class LightMPATable final : public MPATable<LightMandelbrotReference, double>{
@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
 
 
         explicit LightMPATable(const ParallelRenderState &state, const LightMandelbrotReference &reference,
-                      const MPASettings *mpaSettings, double dcMax, ApproxTableCache &tableRef,
+                      const CalMPAAttribute *mpaSettings, double dcMax, ApproxTableCache &tableRef,
                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, tableRef, std::move(actionPerCreatingTableIteration)) {
 
         };
@@ -65,7 +65,7 @@ namespace merutilm::rff2 {
         const double r = rff_math::hypot_approx(dzr, dzi);
 
         switch (mpaSettings.mpaSelectionMethod) {
-            using enum MPASelectionMethod;
+            using enum CalMPASelectionMethod;
             case LOWEST: {
                 LightPA *pa = nullptr;
 

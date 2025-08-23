@@ -10,7 +10,7 @@ namespace merutilm::vkh {
         VkCommandPool commandPool = {};
 
     public:
-        explicit CommandPool(const Core &core);
+        explicit CommandPool(const CoreRef core);
 
         ~CommandPool() override;
 

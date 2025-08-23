@@ -6,24 +6,28 @@
 #include "BufferObject.hpp"
 
 namespace merutilm::vkh {
-    class Uniform final : public BufferObject {
+    class UniformImpl final : public BufferObjectImpl {
 
     public:
-        explicit Uniform(const Core &core, HostBufferObjectManager &&manager, BufferLock bufferLock);
+        explicit UniformImpl(const CoreRef core, HostBufferObjectManager &&manager, BufferLock bufferLock);
 
-        ~Uniform() override;
+        ~UniformImpl() override;
 
-        Uniform(const Uniform &) = delete;
+        UniformImpl(const UniformImpl &) = delete;
 
-        Uniform &operator=(const Uniform &) = delete;
+        UniformImpl &operator=(const UniformImpl &) = delete;
 
-        Uniform(Uniform &&) = delete;
+        UniformImpl(UniformImpl &&) = delete;
 
-        Uniform &operator=(Uniform &&) = delete;
+        UniformImpl &operator=(UniformImpl &&) = delete;
 
     private:
         void init() override;
 
         void destroy() override;
     };
+
+    using Uniform = std::unique_ptr<UniformImpl>;
+    using UniformPtr = UniformImpl *;
+    using UniformRef = UniformImpl &;
 }

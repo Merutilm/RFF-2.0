@@ -10,27 +10,27 @@
 #include "../handle/Handler.hpp"
 
 namespace merutilm::vkh {
-    class Surface final : public Handler {
+    class SurfaceImpl final : public Handler {
 
-        const Instance &instance;
-        const GraphicsContextWindow &window;
+        InstanceRef instance;
+        GraphicsContextWindowRef window;
 
         VkSurfaceKHR surface = nullptr;
 
     public:
-        explicit Surface(const Instance &instance, const GraphicsContextWindow &window);
+        explicit SurfaceImpl(InstanceRef instance, GraphicsContextWindowRef window);
 
-        ~Surface() override;
+        ~SurfaceImpl() override;
 
-        Surface(const Surface &) = delete;
+        SurfaceImpl(const SurfaceImpl &) = delete;
 
-        Surface &operator=(const Surface &) = delete;
+        SurfaceImpl &operator=(const SurfaceImpl &) = delete;
 
-        Surface(Surface &&) = delete;
+        SurfaceImpl(SurfaceImpl &&) = delete;
 
-        Surface &operator=(Surface &&) = delete;
+        SurfaceImpl &operator=(SurfaceImpl &&) = delete;
 
-        [[nodiscard]] const GraphicsContextWindow &getTargetWindow() const { return window; }
+        [[nodiscard]] GraphicsContextWindowRef getTargetWindow() const { return window; }
 
         [[nodiscard]] VkSurfaceKHR getSurfaceHandle() const { return surface; }
 
@@ -39,4 +39,8 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    using Surface = std::unique_ptr<SurfaceImpl>;
+    using SurfacePtr = SurfaceImpl *;
+    using SurfaceRef = SurfaceImpl &;
 }

@@ -11,7 +11,7 @@
 #include "../exception/exception.hpp"
 
 namespace merutilm::vkh {
-    Descriptor::Descriptor(const Core &core, const DescriptorSetLayout &descriptorSetLayout,
+    Descriptor::Descriptor(const CoreRef core, const DescriptorSetLayout &descriptorSetLayout,
                            DescriptorManager &&descriptorManager) : CoreHandler(core),
         descriptorSetLayout(descriptorSetLayout),
         descriptorManager(std::move(descriptorManager)) {
@@ -27,8 +27,8 @@ namespace merutilm::vkh {
                                    const std::vector<uint32_t> &indices) const {
         for (const uint32_t index: indices) {
             const auto &raw = descriptorManager->getRaw(index);
-            if (std::holds_alternative<std::unique_ptr<Uniform> >(raw)) {
-                auto &ubo = std::get<std::unique_ptr<Uniform> >(raw);
+            if (std::holds_alternative<Uniform>(raw)) {
+                auto &ubo = std::get<Uniform>(raw);
 
 
                 queue.push_back({
@@ -51,8 +51,8 @@ namespace merutilm::vkh {
                     .pTexelBufferView = nullptr,
                 };
             }
-            if (std::holds_alternative<std::unique_ptr<ShaderStorage> >(raw)) {
-                auto &ssbo = std::get<std::unique_ptr<ShaderStorage> >(raw);
+            if (std::holds_alternative<ShaderStorage >(raw)) {
+                auto &ssbo = std::get<ShaderStorage >(raw);
 
 
                 queue.push_back({
@@ -75,8 +75,8 @@ namespace merutilm::vkh {
                     .pTexelBufferView = nullptr,
                 };
             }
-            if (std::holds_alternative<std::unique_ptr<CombinedImageSampler> >(raw)) {
-                auto &tex = std::get<std::unique_ptr<CombinedImageSampler> >(raw);
+            if (std::holds_alternative<CombinedImageSampler>(raw)) {
+                auto &tex = std::get<CombinedImageSampler>(raw);
 
                 queue.push_back({
                     .imageInfo = VkDescriptorImageInfo{
@@ -128,9 +128,9 @@ namespace merutilm::vkh {
 
     void Descriptor::init() {
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
-        const uint32_t ubo = descriptorManager->getElementCount<std::unique_ptr<Uniform> >();
-        const uint32_t ssbo = descriptorManager->getElementCount<std::unique_ptr<ShaderStorage> >();
-        const uint32_t sampler = descriptorManager->getElementCount<std::unique_ptr<CombinedImageSampler> >();
+        const uint32_t ubo = descriptorManager->getElementCount<Uniform>();
+        const uint32_t ssbo = descriptorManager->getElementCount<ShaderStorage>();
+        const uint32_t sampler = descriptorManager->getElementCount<CombinedImageSampler>();
         const uint32_t inputAttachment = descriptorManager->getElementCount<ImageContext>();
         const uint32_t elements = descriptorManager->getElements();
 

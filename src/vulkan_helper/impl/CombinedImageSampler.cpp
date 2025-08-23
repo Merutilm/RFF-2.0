@@ -7,17 +7,17 @@
 #include "../util/ImageContextUtils.hpp"
 
 namespace merutilm::vkh {
-    CombinedImageSampler::CombinedImageSampler(const Core &core, const Sampler &sampler) : CoreHandler(core), sampler(sampler) {
-        CombinedImageSampler::init();
+    CombinedImageSamplerImpl::CombinedImageSamplerImpl(const CoreRef core, const Sampler &sampler) : CoreHandler(core), sampler(sampler) {
+        CombinedImageSamplerImpl::init();
     }
 
 
-    CombinedImageSampler::~CombinedImageSampler() {
-        CombinedImageSampler::destroy();
+    CombinedImageSamplerImpl::~CombinedImageSamplerImpl() {
+        CombinedImageSamplerImpl::destroy();
     }
 
 
-    const ImageContext &CombinedImageSampler::getImageContext() const {
+    const ImageContext &CombinedImageSamplerImpl::getImageContext() const {
         if (!initialized) {
             throw exception_invalid_state{"Sampler2D is not initialized. Is setImageContext() called?"};
         }
@@ -25,11 +25,11 @@ namespace merutilm::vkh {
     }
 
 
-    void CombinedImageSampler::init() {
+    void CombinedImageSamplerImpl::init() {
         //no operation
     }
 
-    void CombinedImageSampler::destroy() {
+    void CombinedImageSamplerImpl::destroy() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
 
         if (isUnique) {

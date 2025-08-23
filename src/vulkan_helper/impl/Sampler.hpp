@@ -12,7 +12,7 @@ namespace merutilm::vkh {
         VkSamplerCreateInfo samplerInfo;
 
     public:
-        explicit Sampler(const Core &core, VkSamplerCreateInfo &&samplerInfo);
+        explicit Sampler(const CoreRef core, VkSamplerCreateInfo &&samplerInfo);
 
         ~Sampler() override;
 

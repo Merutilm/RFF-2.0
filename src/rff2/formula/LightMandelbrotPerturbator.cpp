@@ -13,7 +13,7 @@
 namespace merutilm::rff2 {
 
 
-    LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
+    LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalcAttribute &calc,
                                                            const double dcMax, const int exp10,
                                                            const uint64_t initialPeriod,
                                                            ApproxTableCache &tableRef,
@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
         }
 
         if (reusedTable == nullptr) {
-            table = std::make_unique<LightMPATable>(state, *reference, &calc.mpaSettings, dcMax,
+            table = std::make_unique<LightMPATable>(state, *reference, &calc.mpaAttribute, dcMax,
                                                     tableRef,
                                                     std::move(actionPerCreatingTableIteration));
         } else {
@@ -149,7 +149,7 @@ namespace merutilm::rff2 {
 
 
     std::unique_ptr<LightMandelbrotPerturbator> LightMandelbrotPerturbator::reuse(
-        const CalculationSettings &calc, const double dcMax, ApproxTableCache &tableRef) {
+        const CalcAttribute &calc, const double dcMax, ApproxTableCache &tableRef) {
 
         const int exp10 = logZoomToExp10(calc.logZoom);
         double offR = 0;

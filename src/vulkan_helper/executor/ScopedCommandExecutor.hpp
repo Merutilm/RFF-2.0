@@ -11,7 +11,7 @@ namespace merutilm::vkh {
         VkCommandBuffer commandBuffer = nullptr;
 
     public:
-        explicit ScopedCommandExecutor(const Core &core, const CommandPool &commandPool);
+        explicit ScopedCommandExecutor(const CoreRef core, const CommandPool &commandPool);
 
         ~ScopedCommandExecutor() override;
 

@@ -7,9 +7,8 @@
 #include "../manage/DescriptorManager.hpp"
 
 namespace merutilm::vkh {
-
     struct DescriptorTemplateInfo {
         uint32_t id;
-        std::function<DescriptorManager(const Core &, const DescriptorRequiresRepoContext &)> descriptorGenerator;
+        std::function<DescriptorManager(CoreRef, const DescriptorRequiresRepoContext &)> descriptorGenerator;
     };
 }

@@ -12,7 +12,7 @@ namespace merutilm::vkh {
         BufferImageUtils() = delete;
 
 
-        static void initImage(const Core &core,
+        static void initImage(CoreRef core,
                               const ImageInitInfo &iii, VkImage *image,
                               VkDeviceMemory *imageMemory,
                               VkImageView *imageView) {
@@ -113,7 +113,7 @@ namespace merutilm::vkh {
             return VK_IMAGE_ASPECT_COLOR_BIT;
         }
 
-        static void initBuffer(const Core &core, const VkDeviceSize size, const VkBufferUsageFlags usage,
+        static void initBuffer(CoreRef core, const VkDeviceSize size, const VkBufferUsageFlags usage,
                                const VkMemoryPropertyFlags properties, VkBuffer *buffer, VkDeviceMemory *bufferMemory) {
             initBuffer(core.getLogicalDevice().getLogicalDeviceHandle(),
                        core.getPhysicalDevice().getPhysicalDeviceMemoryProperties(), size, usage,

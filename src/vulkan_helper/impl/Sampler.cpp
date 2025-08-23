@@ -5,7 +5,7 @@
 #include "Sampler.hpp"
 
 namespace merutilm::vkh {
-    Sampler::Sampler(const Core &core, VkSamplerCreateInfo &&samplerInfo) : CoreHandler(core), samplerInfo(std::move(samplerInfo)) {
+    Sampler::Sampler(const CoreRef core, VkSamplerCreateInfo &&samplerInfo) : CoreHandler(core), samplerInfo(std::move(samplerInfo)) {
         Sampler::init();
     }
 

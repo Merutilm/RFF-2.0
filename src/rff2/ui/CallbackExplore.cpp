@@ -39,15 +39,15 @@ namespace merutilm::rff2 {
         if (const std::unique_ptr<fp_complex> c = MandelbrotLocator::findCenter(perturbator); c == nullptr) {
             MessageBox(nullptr, "No center found!", "Caution", MB_OK | MB_ICONWARNING);
         } else {
-            scene.getSettings().calculationSettings.center = *c;
+            scene.getSettings().calc.center = *c;
             scene.requestRecompute();
         }
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::LOCATE_MINIBROT = [
             ](const SettingsMenu &, RenderScene &scene) {
-        Settings &settings = scene.getSettings();
+        Attribute &settings = scene.getSettings();
 
-        if (settings.calculationSettings.reuseReferenceMethod != ReuseReferenceMethod::DISABLED) {
+        if (settings.calc.reuseReferenceMethod != CalReuseReferenceMethod::DISABLED) {
             MessageBox(nullptr, "Do not reuse reference!", "Caution", MB_OK | MB_ICONWARNING);
             return;
         }
@@ -57,7 +57,7 @@ namespace merutilm::rff2 {
         assert(perturbator != nullptr);
 
         scene.getState().createThread(
-            [&scene, logZoom = settings.calculationSettings.logZoom, perturbator, &settings](
+            [&scene, logZoom = settings.calc.logZoom, perturbator, &settings](
         const std::stop_token&) {
                 ApproxTableCache &approxTableCache = scene.getApproxTableCache();
                 const uint64_t longestPeriod = perturbator->getReference()->longestPeriod();
@@ -73,9 +73,9 @@ namespace merutilm::rff2 {
                     vkh::logger::log("Locate Minibrot Cancelled.");
                     return;
                 }
-                const CalculationSettings &locatorCalc = locator->perturbator->getCalculationSettings();
-                settings.calculationSettings.center = locatorCalc.center;
-                settings.calculationSettings.logZoom = locatorCalc.logZoom - MandelbrotLocator::MINIBROT_LOG_ZOOM_OFFSET;
+                const CalcAttribute &locatorCalc = locator->perturbator->getCalculationSettings();
+                settings.calc.center = locatorCalc.center;
+                settings.calc.logZoom = locatorCalc.logZoom - MandelbrotLocator::MINIBROT_LOG_ZOOM_OFFSET;
                 scene.requestRecompute();
             }
         );

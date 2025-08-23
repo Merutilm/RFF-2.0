@@ -11,7 +11,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void GLRendererColor::setColorSettings(const ColorSettings &colorSettings) {
+    void GLRendererColor::setColorSettings(const ShdColorAttribute &colorSettings) {
         this->colorSettings = &colorSettings;
     }
 

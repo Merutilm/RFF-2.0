@@ -4,56 +4,54 @@
 
 #include "Core.hpp"
 
+#include "../def/Factory.hpp"
 #include "../exception/exception.hpp"
+#include "../util/PhysicalDeviceUtils.hpp"
 
 namespace merutilm::vkh {
 
-    Core::Core() {
-        Core::init();
+    CoreImpl::CoreImpl() {
+        CoreImpl::init();
     }
 
-    Core::~Core() {
-        Core::destroy();
+    CoreImpl::~CoreImpl() {
+        CoreImpl::destroy();
     }
 
-    std::unique_ptr<Core> Core::createCore() {
-        return std::make_unique<Core>();
-    }
-
-    float Core::getTime() const {
+    float CoreImpl::getTime() const {
         using namespace std::chrono;
         const auto currentTime = high_resolution_clock::now();
         return std::chrono::duration_cast<duration<float>>(currentTime - startTime).count();
     }
 
 
-    void Core::init() {
-        instance = std::make_unique<Instance>(true);
+    void CoreImpl::init() {
+        instance = Factory::create<Instance>(true);
         startTime = std::chrono::high_resolution_clock::now();
     }
 
-    void Core::createGraphicsContextForWindow(HWND hwnd, float framerate, const uint32_t graphicsWindowIndexExpected) {
+    void CoreImpl::createGraphicsContextForWindow(HWND hwnd, float framerate, const uint32_t graphicsWindowIndexExpected) {
         if (graphicsWindowIndexExpected != windowContexts.size()) {
             throw exception_init(std::format("Window index expected : {} but provided {}", windowContexts.size(), graphicsWindowIndexExpected));
         }
 
-        auto window = std::make_unique<GraphicsContextWindow>(hwnd, framerate);
-        auto surface = std::make_unique<Surface>(*instance, *window);
+        auto window = Factory::create<GraphicsContextWindow>(hwnd, framerate);
+        auto surface = Factory::create<Surface>(*instance, *window);
 
         if (physicalDevice == nullptr) {
-            physicalDevice = std::make_unique<PhysicalDevice>(*instance, *surface);
-            logicalDevice = std::make_unique<LogicalDevice>(*instance, *physicalDevice);
-        }else if (!PhysicalDevice::isDeviceSuitable(physicalDevice->getPhysicalDeviceHandle(), surface->getSurfaceHandle())){
+            physicalDevice = Factory::create<PhysicalDeviceLoader>(*instance, *surface);
+            logicalDevice = Factory::create<LogicalDevice>(*instance, *physicalDevice);
+        }else if (!PhysicalDeviceUtils::isDeviceSuitable(physicalDevice->getPhysicalDeviceHandle(), surface->getSurfaceHandle())){
             throw exception_invalid_args("Invalid window provided");
         }
 
-        auto swapchain = std::make_unique<Swapchain>(*surface, *physicalDevice, *logicalDevice);
+        auto swapchain = Factory::create<Swapchain>(*surface, *physicalDevice, *logicalDevice);
         windowContexts.push_back(WindowContext{std::move(window), std::move(surface), std::move(swapchain)});
 
     }
 
 
-    void Core::destroy() {
+    void CoreImpl::destroy() {
         windowContexts.clear();
         logicalDevice = nullptr;
         physicalDevice = nullptr;

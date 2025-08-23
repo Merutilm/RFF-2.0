@@ -11,7 +11,7 @@
 
 namespace merutilm::vkh {
     struct ImageContextUtils {
-        static ImageContext imageFromByteColorArray(const Core &core, const CommandPool &commandPool,
+        static ImageContext imageFromByteColorArray(CoreRef core, const CommandPool &commandPool,
                                                      const uint32_t width, const uint32_t height,
                                                      const uint32_t texChannels, const std::byte *const data) {
             VkBuffer stagingBuffer = VK_NULL_HANDLE;
@@ -85,7 +85,7 @@ namespace merutilm::vkh {
             return context;
         }
 
-        static ImageContext imageFromPath(const Core &core, const CommandPool &commandPool,
+        static ImageContext imageFromPath(CoreRef core, const CommandPool &commandPool,
                                           const std::string_view path) {
             stbi_uc *data = nullptr;
             int width = 0;

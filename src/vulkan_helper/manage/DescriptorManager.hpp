@@ -20,8 +20,7 @@ namespace merutilm::vkh {
     using DescriptorSetLayoutBuilderHasher = VectorHasher<DescriptorSetLayoutBuildType,
         DescriptorSetLayoutBuildTypeHasher>;
 
-    using DescriptorType = std::variant<std::unique_ptr<Uniform>, std::unique_ptr<ShaderStorage>, std::unique_ptr<
-        CombinedImageSampler>, ImageContext>;
+    using DescriptorType = std::variant<Uniform, ShaderStorage, CombinedImageSampler, ImageContext>;
 
 
     class DescriptorManagerImpl {
@@ -56,7 +55,7 @@ namespace merutilm::vkh {
 
 
         void appendUBO(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
-                       std::unique_ptr<Uniform> &&ubo) {
+                       Uniform &&ubo) {
             SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()),
                                               "Descriptor UBO add");
             data.emplace_back(std::move(ubo));
@@ -64,7 +63,7 @@ namespace merutilm::vkh {
         }
 
         void appendSSBO(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
-                        std::unique_ptr<ShaderStorage> &&ssbo) {
+                        ShaderStorage &&ssbo) {
             SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()),
                                               "Descriptor SSBO add");
             data.emplace_back(std::move(ssbo));
@@ -72,7 +71,7 @@ namespace merutilm::vkh {
         }
 
         void appendCombinedImgSampler(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
-                                      std::unique_ptr<CombinedImageSampler> &&sampler) {
+                                      CombinedImageSampler &&sampler) {
             SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()),
                                               "Descriptor Sampler add");
             data.emplace_back(std::move(sampler));

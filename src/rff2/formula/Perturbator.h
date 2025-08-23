@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "../settings/DecimalizeIterationMethod.h"
+#include "../attr/CalDecimalizeIterationMethod.h"
 #include "../constants/Constants.hpp"
 
 namespace merutilm::rff2 {
@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
 
         static double getDoubleValueIteration(uint64_t iteration, double prevIterDistance,
                                               double currIterDistance,
-                                              const DecimalizeIterationMethod &decimalizeIterationMethod, float
+                                              const CalDecimalizeIterationMethod &decimalizeIterationMethod, float
                                               bailout);
     };
 
@@ -24,7 +24,7 @@ namespace merutilm::rff2 {
     }
 
     inline double Perturbator::getDoubleValueIteration(const uint64_t iteration, const double prevIterDistance,
-        const double currIterDistance, const DecimalizeIterationMethod &decimalizeIterationMethod, const float bailout) {
+        const double currIterDistance, const CalDecimalizeIterationMethod &decimalizeIterationMethod, const float bailout) {
         // prevIterDistance = p
         // currIterDistance = c
         // bailout = b
@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
 
 
         switch (decimalizeIterationMethod) {
-            using enum DecimalizeIterationMethod;
+            using enum CalDecimalizeIterationMethod;
             case NONE : {
                 ratio = 0;
                 break;

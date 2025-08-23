@@ -7,18 +7,20 @@
 #include <queue>
 
 #include "../exception/exception.hpp"
+#include "../util/Debugger.hpp"
+#include "../util/PhysicalDeviceUtils.hpp"
 
 namespace merutilm::vkh {
 
-    LogicalDevice::LogicalDevice(const Instance& instance, const PhysicalDevice &physicalDevice) :  instance(instance), physicalDevice(physicalDevice) {
-        LogicalDevice::init();
+    LogicalDeviceImpl::LogicalDeviceImpl(InstanceRef instance, PhysicalDeviceLoaderRef physicalDevice) :  instance(instance), physicalDevice(physicalDevice) {
+        LogicalDeviceImpl::init();
     }
 
-    LogicalDevice::~LogicalDevice() {
-        LogicalDevice::destroy();
+    LogicalDeviceImpl::~LogicalDeviceImpl() {
+        LogicalDeviceImpl::destroy();
     }
 
-    void LogicalDevice::init() {
+    void LogicalDeviceImpl::init() {
         float queuePriority = 1;
         VkDeviceQueueCreateInfo queueCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -29,7 +31,7 @@ namespace merutilm::vkh {
             .pQueuePriorities = &queuePriority,
 
         };
-        const ValidationLayer &validationLayer = instance.getValidationLayer();
+        const ValidationLayerRef validationLayer = instance.getValidationLayer();
 
         if (const VkDeviceCreateInfo createInfo = {
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -38,9 +40,9 @@ namespace merutilm::vkh {
             .queueCreateInfoCount = 1,
             .pQueueCreateInfos = &queueCreateInfo,
             .enabledLayerCount = validationLayer.isEnabled() ? static_cast<uint32_t>(1) : 0,
-            .ppEnabledLayerNames = validationLayer.isEnabled() ? &ValidationLayer::VALIDATION_LAYER : nullptr,
-            .enabledExtensionCount = static_cast<uint32_t>(PhysicalDevice::PHYSICAL_DEVICE_EXTENSIONS.size()),
-            .ppEnabledExtensionNames = PhysicalDevice::PHYSICAL_DEVICE_EXTENSIONS.data(),
+            .ppEnabledLayerNames = validationLayer.isEnabled() ? &Debugger::VALIDATION_LAYER : nullptr,
+            .enabledExtensionCount = static_cast<uint32_t>(PhysicalDeviceUtils::PHYSICAL_DEVICE_EXTENSIONS.size()),
+            .ppEnabledExtensionNames = PhysicalDeviceUtils::PHYSICAL_DEVICE_EXTENSIONS.data(),
             .pEnabledFeatures = &physicalDevice.getPhysicalDeviceFeatures()
         }; vkCreateDevice(physicalDevice.getPhysicalDeviceHandle(), &createInfo, nullptr, &logicalDevice) !=
            VK_SUCCESS) {
@@ -51,7 +53,7 @@ namespace merutilm::vkh {
     }
 
 
-    void LogicalDevice::destroy() {
+    void LogicalDeviceImpl::destroy() {
         vkDestroyDevice(logicalDevice, nullptr);
     }
 }

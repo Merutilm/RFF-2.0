@@ -64,9 +64,9 @@ namespace merutilm::vkh {
 
         virtual void configureDescriptors(std::vector<const Descriptor *> &descriptors) = 0;
 
-        [[nodiscard]] virtual VertexBuffer &getVertexBuffer() const = 0;
+        [[nodiscard]] virtual VertexBufferRef getVertexBuffer() const = 0;
 
-        [[nodiscard]] virtual IndexBuffer &getIndexBuffer() const = 0;
+        [[nodiscard]] virtual IndexBufferRef getIndexBuffer() const = 0;
 
         void pushAll(const VkCommandBuffer cbh) const {
             pipeline->getPipelineManager().getLayout().push(cbh);
@@ -106,7 +106,7 @@ namespace merutilm::vkh {
 
 
         template<typename F> requires std::is_invocable_r_v<void, F, DescriptorUpdateQueue &, uint32_t>
-        void updateDescriptor(F&& func) const {
+        void writeDescriptorForEachFrame(F&& func) const {
             auto queue = DescriptorUpdater::createQueue();
             for (uint32_t i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
                 func(queue, i);

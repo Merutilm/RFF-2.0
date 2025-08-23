@@ -52,8 +52,8 @@ namespace merutilm::vkh {
         configureVertexBuffer(*vertManager);
         configureIndexBuffer(*indexManager);
 
-        vertexBuffer = std::make_unique<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_UNLOCK);
-        indexBuffer = std::make_unique<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_UNLOCK);
+        vertexBuffer = Factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_UNLOCK);
+        indexBuffer = Factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_UNLOCK);
 
         pipeline = std::make_unique<Pipeline>(engine, pipelineLayout, *vertexBuffer, *indexBuffer, subpassIndex,
                                               std::move(pipelineManager));

@@ -10,95 +10,95 @@ namespace merutilm::rff2 {
         return "Ultra Fast";
     }
 
-    MPASettings CalculationPresets::UltraFast::mpaSettings() const {
-        return MPASettings{4, 2, -3, MPASelectionMethod::HIGHEST, MPACompressionMethod::NO_COMPRESSION};
+    CalMPAAttribute CalculationPresets::UltraFast::genMPA() const {
+        return CalMPAAttribute{4, 2, -3, CalMPASelectionMethod::HIGHEST, CalMPACompressionMethod::NO_COMPRESSION};
     }
 
-    ReferenceCompressionSettings CalculationPresets::UltraFast::referenceCompressionSettings() const {
-        return ReferenceCompressionSettings{0, 0, false};
+    CalReferenceCompAttribute CalculationPresets::UltraFast::genReferenceCompression() const {
+        return CalReferenceCompAttribute{0, 0, false};
     }
 
     std::string CalculationPresets::Fast::getName() const {
         return "Fast";
     }
 
-    MPASettings CalculationPresets::Fast::mpaSettings() const {
-        return MPASettings{8, 2, -4, MPASelectionMethod::HIGHEST, MPACompressionMethod::NO_COMPRESSION};
+    CalMPAAttribute CalculationPresets::Fast::genMPA() const {
+        return CalMPAAttribute{8, 2, -4, CalMPASelectionMethod::HIGHEST, CalMPACompressionMethod::NO_COMPRESSION};
     }
 
-    ReferenceCompressionSettings CalculationPresets::Fast::referenceCompressionSettings() const {
-        return ReferenceCompressionSettings{1000000, 7, false};
+    CalReferenceCompAttribute CalculationPresets::Fast::genReferenceCompression() const {
+        return CalReferenceCompAttribute{1000000, 7, false};
     }
 
     std::string CalculationPresets::Normal::getName() const {
         return "Normal";
     }
 
-    MPASettings CalculationPresets::Normal::mpaSettings() const {
-        return MPASettings{8, 2, -5, MPASelectionMethod::HIGHEST, MPACompressionMethod::LITTLE_COMPRESSION};
+    CalMPAAttribute CalculationPresets::Normal::genMPA() const {
+        return CalMPAAttribute{8, 2, -5, CalMPASelectionMethod::HIGHEST, CalMPACompressionMethod::LITTLE_COMPRESSION};
     }
 
-    ReferenceCompressionSettings CalculationPresets::Normal::referenceCompressionSettings() const {
-        return ReferenceCompressionSettings{1000000, 11, false};
+    CalReferenceCompAttribute CalculationPresets::Normal::genReferenceCompression() const {
+        return CalReferenceCompAttribute{1000000, 11, false};
     }
 
     std::string CalculationPresets::Best::getName() const {
         return "Best";
     }
 
-    MPASettings CalculationPresets::Best::mpaSettings() const {
-        return MPASettings{8, 2, -6, MPASelectionMethod::HIGHEST, MPACompressionMethod::LITTLE_COMPRESSION};
+    CalMPAAttribute CalculationPresets::Best::genMPA() const {
+        return CalMPAAttribute{8, 2, -6, CalMPASelectionMethod::HIGHEST, CalMPACompressionMethod::LITTLE_COMPRESSION};
     }
 
-    ReferenceCompressionSettings CalculationPresets::Best::referenceCompressionSettings() const {
-        return ReferenceCompressionSettings{1000000, 15, false};
+    CalReferenceCompAttribute CalculationPresets::Best::genReferenceCompression() const {
+        return CalReferenceCompAttribute{1000000, 15, false};
     }
 
     std::string CalculationPresets::UltraBest::getName() const {
         return "Ultra Best";
     }
 
-    MPASettings CalculationPresets::UltraBest::mpaSettings() const {
-        return MPASettings{8, 2, -7, MPASelectionMethod::HIGHEST, MPACompressionMethod::LITTLE_COMPRESSION};
+    CalMPAAttribute CalculationPresets::UltraBest::genMPA() const {
+        return CalMPAAttribute{8, 2, -7, CalMPASelectionMethod::HIGHEST, CalMPACompressionMethod::LITTLE_COMPRESSION};
     }
 
-    ReferenceCompressionSettings CalculationPresets::UltraBest::referenceCompressionSettings() const {
-        return ReferenceCompressionSettings{1000000, 19, false};
+    CalReferenceCompAttribute CalculationPresets::UltraBest::genReferenceCompression() const {
+        return CalReferenceCompAttribute{1000000, 19, false};
     }
 
     std::string CalculationPresets::Stable::getName() const {
         return "Stable";
     }
 
-    MPASettings CalculationPresets::Stable::mpaSettings() const {
-        return MPASettings{8, 2, -4, MPASelectionMethod::HIGHEST, MPACompressionMethod::STRONGEST};
+    CalMPAAttribute CalculationPresets::Stable::genMPA() const {
+        return CalMPAAttribute{8, 2, -4, CalMPASelectionMethod::HIGHEST, CalMPACompressionMethod::STRONGEST};
     }
 
-    ReferenceCompressionSettings CalculationPresets::Stable::referenceCompressionSettings() const {
-        return ReferenceCompressionSettings{1000000, 6, false};
+    CalReferenceCompAttribute CalculationPresets::Stable::genReferenceCompression() const {
+        return CalReferenceCompAttribute{1000000, 6, false};
     }
 
     std::string CalculationPresets::MoreStable::getName() const {
         return "More Stable";
     }
 
-    MPASettings CalculationPresets::MoreStable::mpaSettings() const {
-        return MPASettings{8, 2, -4, MPASelectionMethod::HIGHEST, MPACompressionMethod::STRONGEST};
+    CalMPAAttribute CalculationPresets::MoreStable::genMPA() const {
+        return CalMPAAttribute{8, 2, -4, CalMPASelectionMethod::HIGHEST, CalMPACompressionMethod::STRONGEST};
     }
 
-    ReferenceCompressionSettings CalculationPresets::MoreStable::referenceCompressionSettings() const {
-        return ReferenceCompressionSettings{100000, 6, false};
+    CalReferenceCompAttribute CalculationPresets::MoreStable::genReferenceCompression() const {
+        return CalReferenceCompAttribute{100000, 6, false};
     }
 
     std::string CalculationPresets::UltraStable::getName() const {
         return "Ultra Stable";
     }
 
-    MPASettings CalculationPresets::UltraStable::mpaSettings() const {
-        return MPASettings{8, 2, -4, MPASelectionMethod::HIGHEST, MPACompressionMethod::STRONGEST};
+    CalMPAAttribute CalculationPresets::UltraStable::genMPA() const {
+        return CalMPAAttribute{8, 2, -4, CalMPASelectionMethod::HIGHEST, CalMPACompressionMethod::STRONGEST};
     }
 
-    ReferenceCompressionSettings CalculationPresets::UltraStable::referenceCompressionSettings() const {
-        return ReferenceCompressionSettings{10000, 6, true};
+    CalReferenceCompAttribute CalculationPresets::UltraStable::genReferenceCompression() const {
+        return CalReferenceCompAttribute{10000, 6, true};
     }
 }

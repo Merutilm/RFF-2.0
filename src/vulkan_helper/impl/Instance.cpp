@@ -4,26 +4,28 @@
 
 #include "Instance.hpp"
 
+#include "../def/Factory.hpp"
 #include "../exception/exception.hpp"
+#include "../util/Debugger.hpp"
 
 namespace merutilm::vkh {
 
-    Instance::Instance(const bool enableValidationLayer) : enableValidationLayer(enableValidationLayer){
-        Instance::init();
+    InstanceImpl::InstanceImpl(const bool enableValidationLayer) : enableValidationLayer(enableValidationLayer){
+        InstanceImpl::init();
     }
 
-    Instance::~Instance() {
-        Instance::destroy();
+    InstanceImpl::~InstanceImpl() {
+        InstanceImpl::destroy();
     }
 
 
-    void Instance::init() {
+    void InstanceImpl::init() {
         createInstance();
-        validationLayer = std::make_unique<ValidationLayer>(instance, enableValidationLayer);
+        validationLayer = Factory::create<ValidationLayer>(instance, enableValidationLayer);
     }
 
 
-    void Instance::createInstance() {
+    void InstanceImpl::createInstance() {
         VkApplicationInfo applicationInfo = {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pNext = nullptr,
@@ -36,7 +38,7 @@ namespace merutilm::vkh {
         if (enableValidationLayer) {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
-        VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo = ValidationLayer::populateDebugMessengerCreateInfo();
+        VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo = Debugger::populateDebugMessengerCreateInfo();
 
         const VkInstanceCreateInfo instanceCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -44,7 +46,7 @@ namespace merutilm::vkh {
             .flags = 0,
             .pApplicationInfo = &applicationInfo,
             .enabledLayerCount = enableValidationLayer ? static_cast<uint32_t>(1) : 0,
-            .ppEnabledLayerNames = enableValidationLayer ? &ValidationLayer::VALIDATION_LAYER : nullptr,
+            .ppEnabledLayerNames = enableValidationLayer ? &Debugger::VALIDATION_LAYER : nullptr,
             .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
             .ppEnabledExtensionNames = extensions.data(),
         };
@@ -54,7 +56,7 @@ namespace merutilm::vkh {
 
     }
 
-    void Instance::destroy() {
+    void InstanceImpl::destroy() {
         validationLayer = nullptr;
         vkDestroyInstance(instance, nullptr);
     }

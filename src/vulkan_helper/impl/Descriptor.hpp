@@ -21,7 +21,7 @@ namespace merutilm::vkh {
         const DescriptorManager descriptorManager = nullptr;
 
     public:
-        explicit Descriptor(const Core &core, const DescriptorSetLayout &descriptorSetLayout,
+        explicit Descriptor(const CoreRef core, const DescriptorSetLayout &descriptorSetLayout,
                             DescriptorManager &&descriptorManager);
 
         ~Descriptor() override;

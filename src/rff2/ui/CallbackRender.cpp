@@ -11,7 +11,7 @@
 namespace merutilm::rff2 {
     const std::function<void(SettingsMenu&, RenderScene&)> CallbackRender::SET_CLARITY = [](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto window = std::make_unique<SettingsWindow>(L"Set clarity");
-        auto &[clarityMultiplier, antialiasing] = scene.getSettings().renderSettings;
+        auto &[clarityMultiplier, antialiasing] = scene.getSettings().render;
         window->registerTextInput<float>("Clarity", &clarityMultiplier, Unparser::FLOAT, Parser::FLOAT, [](const float &v) {
             return v > 0.05 && v <= 4;
         }, [&scene] {
@@ -26,6 +26,6 @@ namespace merutilm::rff2 {
     };
     const std::function<bool*(RenderScene&)> CallbackRender::ANTIALIASING = [](RenderScene& scene) {
         scene.requestColor();
-        return &scene.getSettings().renderSettings.antialiasing;
+        return &scene.getSettings().render.antialiasing;
     };
 }

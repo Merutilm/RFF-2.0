@@ -8,24 +8,24 @@
 #include "../handle/CoreHandler.hpp"
 
 namespace merutilm::vkh {
-    class CombinedImageSampler final : public CoreHandler {
+    class CombinedImageSamplerImpl final : public CoreHandler {
         ImageContext imageContext = {};
         const Sampler &sampler;
         bool initialized = false;
         bool isUnique = false;
 
     public:
-        explicit CombinedImageSampler(const Core &core, const Sampler &sampler);
+        explicit CombinedImageSamplerImpl(const CoreRef core, const Sampler &sampler);
 
-        ~CombinedImageSampler() override;
+        ~CombinedImageSamplerImpl() override;
 
-        CombinedImageSampler(const CombinedImageSampler &) = delete;
+        CombinedImageSamplerImpl(const CombinedImageSamplerImpl &) = delete;
 
-        CombinedImageSampler &operator=(const CombinedImageSampler &) = delete;
+        CombinedImageSamplerImpl &operator=(const CombinedImageSamplerImpl &) = delete;
 
-        CombinedImageSampler(CombinedImageSampler &&) = delete;
+        CombinedImageSamplerImpl(CombinedImageSamplerImpl &&) = delete;
 
-        CombinedImageSampler &operator=(CombinedImageSampler &&) = delete;
+        CombinedImageSamplerImpl &operator=(CombinedImageSamplerImpl &&) = delete;
 
         void setImageContext(const ImageContext &imageContext) {
             if (isUnique) {
@@ -56,4 +56,8 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    using CombinedImageSampler = std::unique_ptr<CombinedImageSamplerImpl>;
+    using CombinedImageSamplerPtr = CombinedImageSamplerImpl *;
+    using CombinedImageSamplerRef = CombinedImageSamplerImpl &;
 }

@@ -6,29 +6,29 @@
 #include <vulkan/vulkan_core.h>
 
 #include "Instance.hpp"
-#include "PhysicalDevice.hpp"
+#include "PhysicalDeviceLoader.hpp"
 #include "../handle/Handler.hpp"
 
 namespace merutilm::vkh {
-    class LogicalDevice final : public Handler {
-        const Instance &instance;
-        const PhysicalDevice &physicalDevice;
+    class LogicalDeviceImpl final : public Handler {
+        InstanceRef instance;
+        PhysicalDeviceLoaderRef physicalDevice;
         VkDevice logicalDevice = nullptr;
         VkQueue graphicsQueue = nullptr;
         VkQueue presentQueue = nullptr;
 
     public:
-        explicit LogicalDevice(const Instance &instance, const PhysicalDevice &physicalDevice);
+        explicit LogicalDeviceImpl(InstanceRef instance, PhysicalDeviceLoaderRef physicalDevice);
 
-        ~LogicalDevice() override;
+        ~LogicalDeviceImpl() override;
 
-        LogicalDevice(const LogicalDevice &) = delete;
+        LogicalDeviceImpl(const LogicalDeviceImpl &) = delete;
 
-        LogicalDevice &operator=(const LogicalDevice &) = delete;
+        LogicalDeviceImpl &operator=(const LogicalDeviceImpl &) = delete;
 
-        LogicalDevice(LogicalDevice &&) = delete;
+        LogicalDeviceImpl(LogicalDeviceImpl &&) = delete;
 
-        LogicalDevice &operator=(LogicalDevice &&) = delete;
+        LogicalDeviceImpl &operator=(LogicalDeviceImpl &&) = delete;
 
         [[nodiscard]] VkDevice getLogicalDeviceHandle() const { return logicalDevice; }
 
@@ -41,4 +41,8 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    using LogicalDevice = std::unique_ptr<LogicalDeviceImpl>;
+    using LogicalDevicePtr = LogicalDeviceImpl *;
+    using LogicalDeviceRef = LogicalDeviceImpl &;
 }

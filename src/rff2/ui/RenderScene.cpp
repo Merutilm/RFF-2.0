@@ -17,19 +17,19 @@
 #include "../parallel/ParallelDispatcher.h"
 #include "../preset/calc/CalculationPresets.h"
 #include "../preset/render/RenderPresets.h"
-#include "../preset/shader/bloom/BloomPresets.h"
-#include "../preset/shader/color/ColorPresets.h"
-#include "../preset/shader/fog/FogPresets.h"
-#include "../preset/shader/palette/PalettePresets.h"
-#include "../preset/shader/slope/SlopePresets.h"
-#include "../preset/shader/stripe/StripePresets.h"
+#include "../preset/shader/bloom/ShdBloomPresets.h"
+#include "../preset/shader/color/ShdColorPresets.h"
+#include "../preset/shader/fog/ShdFogPresets.h"
+#include "../preset/shader/palette/ShdPalettePresets.h"
+#include "../preset/shader/slope/ShdSlopePresets.h"
+#include "../preset/shader/stripe/ShdStripePresets.h"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 
 
 namespace merutilm::rff2 {
     RenderScene::RenderScene(vkh::Engine &engine, const HWND window,
                              std::array<std::string, Constants::Status::LENGTH> *statusMessageRef) : engine(engine),
-        window(window), settings(defaultSettings()), statusMessageRef(statusMessageRef) {
+        window(window), attr(defaultSettings()), statusMessageRef(statusMessageRef) {
         init();
     }
 
@@ -43,7 +43,7 @@ namespace merutilm::rff2 {
     }
 
     void RenderScene::initRenderContext() const {
-        const auto &swapchain = *engine.getCore().getWindowContext(
+        auto & swapchain = *engine.getCore().getWindowContext(
             Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
         auto configurator = std::make_unique<RFFRenderContextConfigurator>(engine.getCore(), swapchain);
 
@@ -57,15 +57,17 @@ namespace merutilm::rff2 {
             shaderPrograms, engine, RFFRenderContextConfigurator::SUBPASS_ITERATION_INDEX);
         rendererStripe = vkh::PipelineConfigurator::createShaderProgram<StripePipelineConfigurator>(
             shaderPrograms, engine, RFFRenderContextConfigurator::SUBPASS_STRIPE_INDEX);
+        rendererSlope = vkh::PipelineConfigurator::createShaderProgram<SlopePipelineConfigurator>(
+            shaderPrograms, engine, RFFRenderContextConfigurator::SUBPASS_SLOPE_INDEX);
 
         applyResize();
-        applyColor(settings);
+        applyColor(attr);
         requestRecompute();
     }
 
     void RenderScene::render(const VkCommandBuffer cbh, const uint32_t frameIndex, const VkExtent2D &extent) {
         if (colorRequested) {
-            applyColor(settings);
+            applyColor(attr);
             colorRequested.exchange(false);
             backgroundThreads.notifyAll();
         }
@@ -100,9 +102,9 @@ namespace merutilm::rff2 {
         }
     }
 
-    Settings RenderScene::defaultSettings() {
-        return Settings{
-            .calculationSettings = CalculationSettings{
+    Attribute RenderScene::defaultSettings() {
+        return Attribute{
+            .calc = CalcAttribute{
                 .center = fp_complex("-0.85",
                                      "0",
                                      //"-1.29255707077531686131098415679305324693162987219277534742408945445699102528813182208390942132824552642640105852802031375797639923173781472397893283277669022615909880587638643429120957543820179919830492623879949932",
@@ -113,34 +115,34 @@ namespace merutilm::rff2 {
                 .logZoom = 2, //186.47, //85.190033f,
                 .maxIteration = 300,
                 .bailout = 2,
-                .decimalizeIterationMethod = DecimalizeIterationMethod::LOG_LOG,
-                .mpaSettings = CalculationPresets::UltraFast().mpaSettings(),
-                .referenceCompressionSettings = CalculationPresets::UltraFast().referenceCompressionSettings(),
-                .reuseReferenceMethod = ReuseReferenceMethod::DISABLED,
+                .decimalizeIterationMethod = CalDecimalizeIterationMethod::LOG_LOG,
+                .mpaAttribute = CalculationPresets::UltraFast().genMPA(),
+                .referenceCompAttribute = CalculationPresets::UltraFast().genReferenceCompression(),
+                .reuseReferenceMethod = CalReuseReferenceMethod::DISABLED,
                 .autoMaxIteration = true,
                 .autoIterationMultiplier = 100,
                 .absoluteIterationMode = false
             },
-            .renderSettings = RenderPresets::High().renderSettings(),
-            .shaderSettings = {
-                .paletteSettings = PalettePresets::LongRandom64().paletteSettings(),
-                .stripeSettings = StripePresets::SlowAnimated().stripeSettings(),
-                .slopeSettings = SlopePresets::Translucent().slopeSettings(),
-                .colorSettings = ColorPresets::WeakContrast().colorSettings(),
-                .fogSettings = FogPresets::Medium().fogSettings(),
-                .bloomSettings = BloomPresets::Normal().bloomSettings()
+            .render = RenderPresets::High().genRender(),
+            .shader = {
+                .palette = ShdPalettePresets::LongRandom64().genPalette(),
+                .stripe = ShdStripePresets::SlowAnimated().genStripe(),
+                .slope = ShdSlopePresets::Translucent().genSlope(),
+                .color = ShdColorPresets::WeakContrast().genColor(),
+                .fog = ShdFogPresets::Medium().genFog(),
+                .bloom = BloomPresets::Normal().genBloom()
             },
-            .videoSettings = {
-                .dataSettings = {
+            .video = {
+                .dataAttribute = {
                     .defaultZoomIncrement = 2,
                     .isStatic = false
                 },
-                .animationSettings = {
+                .animationAttribute = {
                     .overZoom = 2,
                     .showText = true,
                     .mps = 1
                 },
-                .exportSettings = {
+                .exportAttribute = {
                     .fps = 60,
                     .bitrate = 9000
                 }
@@ -174,11 +176,11 @@ namespace merutilm::rff2 {
                     SetCursor(LoadCursor(nullptr, IDC_SIZEALL));
                     const auto dx = static_cast<int16_t>(interactedMX - x);
                     const auto dy = static_cast<int16_t>(interactedMY - y);
-                    const float m = settings.renderSettings.clarityMultiplier;
-                    const float logZoom = settings.calculationSettings.logZoom;
-                    fp_complex &center = settings.calculationSettings.center;
-                    center = center.addCenterDouble(dex::value(static_cast<float>(dx) / m) / getDivisor(settings),
-                                                    dex::value(static_cast<float>(dy) / m) / getDivisor(settings),
+                    const float m = attr.render.clarityMultiplier;
+                    const float logZoom = attr.calc.logZoom;
+                    fp_complex &center = attr.calc.center;
+                    center = center.addCenterDouble(dex::value(static_cast<float>(dx) / m) / getDivisor(attr),
+                                                    dex::value(static_cast<float>(dy) / m) / getDivisor(attr),
                                                     Perturbator::logZoomToExp10(logZoom));
                     interactedMX = x;
                     interactedMY = y;
@@ -200,26 +202,26 @@ namespace merutilm::rff2 {
                 const int value = GET_WHEEL_DELTA_WPARAM(wparam) > 0 ? 1 : -1;
                 constexpr float increment = Constants::Render::ZOOM_INTERVAL;
 
-                settings.calculationSettings.logZoom = std::max(Constants::Render::ZOOM_MIN,
-                                                                settings.calculationSettings.logZoom);
+                attr.calc.logZoom = std::max(Constants::Render::ZOOM_MIN,
+                                                                attr.calc.logZoom);
                 if (value == 1) {
-                    const std::array<dex, 2> offset = offsetConversion(settings, getMouseXOnIterationBuffer(),
+                    const std::array<dex, 2> offset = offsetConversion(attr, getMouseXOnIterationBuffer(),
                                                                        getMouseYOnIterationBuffer());
                     const double mzi = 1.0 / pow(10, Constants::Render::ZOOM_INTERVAL);
-                    float &logZoom = settings.calculationSettings.logZoom;
+                    float &logZoom = attr.calc.logZoom;
                     logZoom += increment;
-                    settings.calculationSettings.center = settings.calculationSettings.center.addCenterDouble(
+                    attr.calc.center = attr.calc.center.addCenterDouble(
                         offset[0] * (1 - mzi),
                         offset[1] * (1 - mzi),
                         Perturbator::logZoomToExp10(logZoom));
                 }
                 if (value == -1) {
-                    const std::array<dex, 2> offset = offsetConversion(settings, getMouseXOnIterationBuffer(),
+                    const std::array<dex, 2> offset = offsetConversion(attr, getMouseXOnIterationBuffer(),
                                                                        getMouseYOnIterationBuffer());
                     const double mzo = 1.0 / pow(10, -Constants::Render::ZOOM_INTERVAL);
-                    float &logZoom = settings.calculationSettings.logZoom;
+                    float &logZoom = attr.calc.logZoom;
                     logZoom -= increment;
-                    settings.calculationSettings.center = settings.calculationSettings.center.addCenterDouble(
+                    attr.calc.center = attr.calc.center.addCenterDouble(
                         offset[0] * (1 - mzo),
                         offset[1] * (1 - mzo),
                         Perturbator::logZoomToExp10(logZoom));
@@ -235,20 +237,20 @@ namespace merutilm::rff2 {
         }
     }
 
-    std::array<dex, 2> RenderScene::offsetConversion(const Settings &settings, const int mx, const int my) const {
+    std::array<dex, 2> RenderScene::offsetConversion(const Attribute &settings, const int mx, const int my) const {
         return {
             dex::value(static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth(settings)) / 2.0) /
             getDivisor(settings)
-            / settings.renderSettings.clarityMultiplier,
+            / settings.render.clarityMultiplier,
             dex::value(static_cast<double>(my) - static_cast<double>(getIterationBufferHeight(settings)) / 2.0) /
             getDivisor(settings)
-            / settings.renderSettings.clarityMultiplier
+            / settings.render.clarityMultiplier
         };
     }
 
-    dex RenderScene::getDivisor(const Settings &settings) {
+    dex RenderScene::getDivisor(const Attribute &settings) {
         dex v = dex::ZERO;
-        dex_exp::exp10(&v, settings.calculationSettings.logZoom);
+        dex_exp::exp10(&v, settings.calc.logZoom);
         return v;
     }
 
@@ -264,13 +266,13 @@ namespace merutilm::rff2 {
         return static_cast<uint16_t>(rect.bottom - rect.top);
     }
 
-    uint16_t RenderScene::getIterationBufferWidth(const Settings &settings) const {
-        const float multiplier = settings.renderSettings.clarityMultiplier;
+    uint16_t RenderScene::getIterationBufferWidth(const Attribute &settings) const {
+        const float multiplier = settings.render.clarityMultiplier;
         return static_cast<uint16_t>(static_cast<float>(getClientWidth()) * multiplier);
     }
 
-    uint16_t RenderScene::getIterationBufferHeight(const Settings &settings) const {
-        const float multiplier = settings.renderSettings.clarityMultiplier;
+    uint16_t RenderScene::getIterationBufferHeight(const Attribute &settings) const {
+        const float multiplier = settings.render.clarityMultiplier;
         return static_cast<uint16_t>(static_cast<float>(getClientHeight()) * multiplier);
     }
 
@@ -295,23 +297,23 @@ namespace merutilm::rff2 {
         // GLRenderer::unbindFBO(fbo);
     }
 
-    void RenderScene::applyColor(const Settings &settings) const {
-        rendererIteration->setPaletteSettings(settings.shaderSettings.paletteSettings);
-        rendererStripe->setStripeSettings(settings.shaderSettings.stripeSettings);
-        // rendererSlope->setSlopeSettings(settings.shaderSettings.slopeSettings);
-        // rendererColorFilter->setColorSettings(settings.shaderSettings.colorSettings);
-        // rendererFog->setFogSettings(settings.shaderSettings.fogSettings);
-        // rendererBloom->setBloomSettings(settings.shaderSettings.bloomSettings);
-        // rendererAntialiasing->setUse(settings.renderSettings.antialiasing);
+    void RenderScene::applyColor(const Attribute &attr) const {
+        rendererIteration->setPalette(attr.shader.palette);
+        rendererStripe->setStripe(attr.shader.stripe);
+        rendererSlope->setSlope(attr.shader.slope);
+        // rendererColorFilter->setColorSettings(attr.shader.color);
+        // rendererFog->setFogSettings(attr.shader.fog);
+        // rendererBloom->setBloomSettings(attr.shader.bloomAttribute);
+        // rendererAntialiasing->setUse(attr.render.antialiasing);
     }
 
     void RenderScene::applyResize() {
         const uint16_t cw = getClientWidth();
         const uint16_t ch = getClientHeight();
-        const uint16_t iw = getIterationBufferWidth(settings);
-        const uint16_t ih = getIterationBufferHeight(settings);
+        const uint16_t iw = getIterationBufferWidth(attr);
+        const uint16_t ih = getIterationBufferHeight(attr);
         // glViewport(0, 0, cw, ch);
-        // rendererSlope->setClarityMultiplier(settings.renderSettings.clarityMultiplier);
+        rendererSlope->setResolution({cw, ch}, attr.render.clarityMultiplier);
         rendererIteration->reloadIterationBuffer(iw, ih);
         // renderer->reloadSize(cw, ch, iw, ih);
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
@@ -328,7 +330,7 @@ namespace merutilm::rff2 {
         POINT cursor;
         GetCursorPos(&cursor);
         ScreenToClient(window, &cursor);
-        const float multiplier = settings.renderSettings.clarityMultiplier;
+        const float multiplier = attr.render.clarityMultiplier;
         return static_cast<uint16_t>(static_cast<float>(cursor.x) * multiplier);
     }
 
@@ -336,28 +338,28 @@ namespace merutilm::rff2 {
         POINT cursor;
         GetCursorPos(&cursor);
         ScreenToClient(window, &cursor);
-        const float multiplier = settings.renderSettings.clarityMultiplier;
-        return static_cast<uint16_t>(getIterationBufferHeight(settings) - static_cast<float>(cursor.y) * multiplier);
+        const float multiplier = attr.render.clarityMultiplier;
+        return static_cast<uint16_t>(getIterationBufferHeight(attr) - static_cast<float>(cursor.y) * multiplier);
     }
 
     void RenderScene::recomputeThreaded() {
         state.createThread([this](const std::stop_token &) {
-            Settings settings = this->settings; //clone the settings
+            Attribute settings = this->attr; //clone the attr
             beforeCompute(settings);
             const bool success = compute(settings);
             afterCompute(success);
         });
     }
 
-    void RenderScene::beforeCompute(Settings &settings) const {
-        settings.calculationSettings.maxIteration = settings.calculationSettings.autoMaxIteration
-                                                        ? lastPeriod * settings.calculationSettings.
+    void RenderScene::beforeCompute(Attribute &settings) const {
+        settings.calc.maxIteration = settings.calc.autoMaxIteration
+                                                        ? lastPeriod * settings.calc.
                                                           autoIterationMultiplier
-                                                        : this->settings.calculationSettings.maxIteration;
-        rendererIteration->setMaxIteration(static_cast<double>(settings.calculationSettings.maxIteration));
+                                                        : this->attr.calc.maxIteration;
+        rendererIteration->setMaxIteration(static_cast<double>(settings.calc.maxIteration));
     }
 
-    bool RenderScene::compute(const Settings &settings) {
+    bool RenderScene::compute(const Attribute &settings) {
         auto start = std::chrono::high_resolution_clock::now();
         const uint16_t w = getIterationBufferWidth(settings);
         const uint16_t h = getIterationBufferHeight(settings);
@@ -365,7 +367,7 @@ namespace merutilm::rff2 {
 
         if (state.interruptRequested()) return false;
 
-        auto &calc = settings.calculationSettings;
+        auto &calc = settings.calc;
 
         const float logZoom = calc.logZoom;
 
@@ -395,7 +397,7 @@ namespace merutilm::rff2 {
 
         if (state.interruptRequested()) return false;
         switch (calc.reuseReferenceMethod) {
-                using enum ReuseReferenceMethod;
+                using enum CalReuseReferenceMethod;
             case CURRENT_REFERENCE: {
                 if (auto p = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
                     currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxAsDoubleExp(), approxTableCache);
@@ -417,7 +419,7 @@ namespace merutilm::rff2 {
                 );
                 if (center == nullptr) return false;
 
-                CalculationSettings refCalc = calc;
+                CalcAttribute refCalc = calc;
                 refCalc.center = center->perturbator->calc.center;
                 refCalc.logZoom = center->perturbator->calc.logZoom;
                 int refExp10 = Perturbator::logZoomToExp10(refCalc.logZoom);
@@ -543,8 +545,8 @@ namespace merutilm::rff2 {
         if (!success) {
             vkh::logger::log("Recompute cancelled.");
         }
-        if (success && settings.calculationSettings.reuseReferenceMethod == ReuseReferenceMethod::CENTERED_REFERENCE) {
-            settings.calculationSettings.reuseReferenceMethod = ReuseReferenceMethod::CURRENT_REFERENCE;
+        if (success && attr.calc.reuseReferenceMethod == CalReuseReferenceMethod::CENTERED_REFERENCE) {
+            attr.calc.reuseReferenceMethod = CalReuseReferenceMethod::CURRENT_REFERENCE;
         }
         idleCompute = true;
         backgroundThreads.notifyAll();
@@ -552,6 +554,7 @@ namespace merutilm::rff2 {
 
 
     void RenderScene::destroy() {
+        state.cancel();
         shaderPrograms.clear();
     }
 }

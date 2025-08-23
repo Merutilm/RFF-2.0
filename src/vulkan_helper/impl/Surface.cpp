@@ -10,15 +10,15 @@
 #include "../exception/exception.hpp"
 
 namespace merutilm::vkh {
-    Surface::Surface(const Instance &instance, const GraphicsContextWindow &window) : instance(instance), window(window) {
-        Surface::init();
+    SurfaceImpl::SurfaceImpl(InstanceRef instance, GraphicsContextWindowRef window) : instance(instance), window(window) {
+        SurfaceImpl::init();
     }
 
-    Surface::~Surface() {
-        Surface::destroy();
+    SurfaceImpl::~SurfaceImpl() {
+        SurfaceImpl::destroy();
     }
 
-    void Surface::init() {
+    void SurfaceImpl::init() {
         const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
             .pNext = nullptr,
@@ -32,7 +32,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void Surface::destroy() {
+    void SurfaceImpl::destroy() {
         vkDestroySurfaceKHR(instance.getInstanceHandle(), surface, nullptr);
     }
 }

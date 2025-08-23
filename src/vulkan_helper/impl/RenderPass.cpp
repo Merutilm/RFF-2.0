@@ -11,7 +11,7 @@
 #include "../manage/RenderPassManager.hpp"
 
 namespace merutilm::vkh {
-    RenderPass::RenderPass(const Core &core,
+    RenderPass::RenderPass(const CoreRef core,
                            RenderPassManager &&manager) : CoreHandler(core),
                                                                            manager(std::move(manager)) {
         RenderPass::init();

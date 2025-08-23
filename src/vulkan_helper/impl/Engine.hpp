@@ -14,7 +14,7 @@
 
 namespace merutilm::vkh {
     class Engine final : public Handler {
-        std::unique_ptr<Core> core = nullptr;
+        Core core = nullptr;
         std::unique_ptr<Repositories> repositories = nullptr;
         std::unique_ptr<CommandPool> commandPool = nullptr;
         std::unique_ptr<CommandBuffer> commandBuffer = nullptr;
@@ -22,7 +22,7 @@ namespace merutilm::vkh {
         std::unique_ptr<RenderContext> renderContext = nullptr;
 
     public:
-        explicit Engine(std::unique_ptr<Core> &&core);
+        explicit Engine(Core &&core);
 
         ~Engine() override;
 
@@ -36,7 +36,7 @@ namespace merutilm::vkh {
 
         std::unique_ptr<RenderContext> attachRenderContext(std::unique_ptr<RenderContext> &&renderContext);
 
-        [[nodiscard]] Core &getCore() const { return *core; }
+        [[nodiscard]] CoreRef getCore() const { return *core; }
 
         [[nodiscard]] Repositories &getRepositories() const { return *repositories; }
 

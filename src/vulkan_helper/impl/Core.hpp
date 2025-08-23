@@ -10,53 +10,42 @@
 #include "../exception/exception.hpp"
 #include "Instance.hpp"
 #include "LogicalDevice.hpp"
-#include "PhysicalDevice.hpp"
+#include "PhysicalDeviceLoader.hpp"
 
 namespace merutilm::vkh {
-    class Core final : public Handler {
-        std::unique_ptr<Instance> instance = nullptr;
-        std::unique_ptr<PhysicalDevice> physicalDevice = nullptr;
-        std::unique_ptr<LogicalDevice> logicalDevice = nullptr;
+    class CoreImpl final : public Handler {
+        Instance instance = nullptr;
+        PhysicalDeviceLoader physicalDevice = nullptr;
+        LogicalDevice logicalDevice = nullptr;
 
         std::vector<WindowContext> windowContexts = {};
 
         std::chrono::high_resolution_clock::time_point startTime;
 
     public:
+        explicit CoreImpl();
 
-        explicit Core();
+        ~CoreImpl() override;
 
-        ~Core() override;
+        CoreImpl(const CoreImpl &) = delete;
 
-        Core(const Core &) = delete;
+        CoreImpl &operator=(const CoreImpl &) = delete;
 
-        Core &operator=(const Core &) = delete;
+        CoreImpl(CoreImpl &&) = delete;
 
-        Core(Core &&) = delete;
-
-        Core &operator=(Core &&) = delete;
+        CoreImpl &operator=(CoreImpl &&) = delete;
 
         void createGraphicsContextForWindow(HWND hwnd, float framerate, uint32_t graphicsWindowIndexExpected);
 
-        [[nodiscard]] const Instance &getInstance() const { return *instance; }
+        [[nodiscard]] InstanceRef getInstance() const { return *instance; }
 
-        [[nodiscard]] const PhysicalDevice &getPhysicalDevice() const { return *physicalDevice; }
+        [[nodiscard]] PhysicalDeviceLoaderRef getPhysicalDevice() const { return *physicalDevice; }
 
-        [[nodiscard]] const LogicalDevice &getLogicalDevice() const { return *logicalDevice; }
+        [[nodiscard]] LogicalDeviceRef getLogicalDevice() const { return *logicalDevice; }
 
         [[nodiscard]] const WindowContext &getWindowContext(const uint32_t windowIndex) const {
             return windowContexts.at(windowIndex);
         }
-
-        [[nodiscard]] Instance &getInstance() { return *instance; }
-
-        [[nodiscard]] PhysicalDevice &getPhysicalDevice() { return *physicalDevice; }
-
-        [[nodiscard]] LogicalDevice &getLogicalDevice() { return *logicalDevice; }
-
-        [[nodiscard]] WindowContext &getWindowContext(const uint32_t windowIndex) { return windowContexts[windowIndex]; }
-
-        [[nodiscard]] static std::unique_ptr<Core> createCore();
 
         [[nodiscard]] float getTime() const;
 
@@ -65,4 +54,8 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    using Core = std::unique_ptr<CoreImpl>;
+    using CorePtr = CoreImpl *;
+    using CoreRef = CoreImpl &;
 }

@@ -6,7 +6,7 @@
 
 #include <cstring>
 
-#include "../settings/VideoSettings.h"
+#include "../attr/VideoAttribute.h"
 
 
 namespace merutilm::rff2 {
@@ -30,7 +30,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void GLRendererIteration2Map::setVideoSettings(const VideoSettings &videoSettings) {
+    void GLRendererIteration2Map::setVideoSettings(const VideoAttribute &videoSettings) {
         this->videoSettings = &videoSettings;
     }
 
@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
         shader.uploadTexture2D("normalAndZoomed", GL_TEXTURE0, iterationTextureID, iterationBuffer.data(), iterWidth,
                                iterHeight,
                                Constants::TextureFormats::FF4);
-        shader.uploadFloat("defaultZoomIncrement", videoSettings->dataSettings.defaultZoomIncrement);
+        shader.uploadFloat("defaultZoomIncrement", videoSettings->dataAttribute.defaultZoomIncrement);
         shader.uploadFloat("currentFrame", currentFrame);
     }
 

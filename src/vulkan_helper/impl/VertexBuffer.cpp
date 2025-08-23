@@ -9,17 +9,17 @@
 #include "../util/BufferImageUtils.hpp"
 
 namespace merutilm::vkh {
-    VertexBuffer::VertexBuffer(const Core &core, HostBufferObjectManager &&manager, const BufferLock bufferLock) : BufferObject(
+    VertexBufferImpl::VertexBufferImpl(const CoreRef core, HostBufferObjectManager &&manager, const BufferLock bufferLock) : BufferObjectImpl(
         core, std::move(manager), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, bufferLock) {
-        VertexBuffer::init();
+        VertexBufferImpl::init();
     }
 
-    VertexBuffer::~VertexBuffer() {
-        VertexBuffer::destroy();
+    VertexBufferImpl::~VertexBufferImpl() {
+        VertexBufferImpl::destroy();
     }
 
 
-    void VertexBuffer::init() {
+    void VertexBufferImpl::init() {
         const auto &host = getHostObject();
         const uint32_t len = host.getObjectCount();
         for (uint32_t i = 0; i < len; ++i) {
@@ -39,7 +39,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void VertexBuffer::destroy() {
+    void VertexBufferImpl::destroy() {
         //nothing to do
     }
 }

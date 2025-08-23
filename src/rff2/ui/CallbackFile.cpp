@@ -26,7 +26,7 @@ namespace merutilm::rff2 {
         if (path == nullptr) {
             return;
         }
-        const auto settings = scene.getSettings().calculationSettings; // clone the settings
+        const auto settings = scene.getSettings().calc; // clone the attr
         const auto &center = settings.center;
         RFFLocationBinary(settings.logZoom, center.real.to_string(), center.imag.to_string(), settings.maxIteration).exportFile(*path);
     };
@@ -45,9 +45,9 @@ namespace merutilm::rff2 {
         }
         const RFFLocationBinary location = RFFLocationBinary::read(*path);
 
-        scene.getSettings().calculationSettings.center = fp_complex(location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
-        scene.getSettings().calculationSettings.logZoom = location.getLogZoom();
-        scene.getSettings().calculationSettings.maxIteration = location.getMaxIteration();
+        scene.getSettings().calc.center = fp_complex(location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
+        scene.getSettings().calc.logZoom = location.getLogZoom();
+        scene.getSettings().calc.maxIteration = location.getMaxIteration();
         scene.requestRecompute();
     };
 }

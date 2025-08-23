@@ -12,7 +12,7 @@ namespace merutilm::vkh {
         std::vector<VkFence> fences;
 
     public:
-        explicit SyncObject(const Core &core);
+        explicit SyncObject(const CoreRef core);
 
         ~SyncObject() override;
 

@@ -7,7 +7,7 @@
 namespace merutilm::rff2 {
 
 
-    DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc,
+    DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const CalcAttribute &calc,
                                                          const dex &dcMax, const int exp10,
                                                          const uint64_t initialPeriod,
                                                          ApproxTableCache &tableRef,
@@ -33,7 +33,7 @@ namespace merutilm::rff2 {
         }
 
         if (reusedTable == nullptr) {
-            table = std::make_unique<DeepMPATable>(state, *reference, &calc.mpaSettings, dcMax,
+            table = std::make_unique<DeepMPATable>(state, *reference, &calc.mpaAttribute, dcMax,
                                                    tableRef,
                                                    std::move(actionPerCreatingTableIteration));
         } else {
@@ -172,7 +172,7 @@ namespace merutilm::rff2 {
 
 
     std::unique_ptr<DeepMandelbrotPerturbator> DeepMandelbrotPerturbator::reuse(
-        const CalculationSettings &calc, const dex &dcMax, ApproxTableCache &tableRef) {
+        const CalcAttribute &calc, const dex &dcMax, ApproxTableCache &tableRef) {
         dex offR = dex::ZERO;
         dex offI = dex::ZERO;
         uint64_t longestPeriod = 1;

@@ -4,7 +4,7 @@
 
 #include "GLRendererColIteration2Map.h"
 
-#include "../settings/PaletteSettings.h"
+#include "../attr/ShdPaletteAttribute.h"
 
 namespace merutilm::rff2 {
     GLRendererColIteration2Map::GLRendererColIteration2Map() : GLRendererIteration2Map("col_iteration_palette_2_map.frag") {};
@@ -14,7 +14,7 @@ namespace merutilm::rff2 {
         this->time = time;
     }
 
-    void GLRendererColIteration2Map::setPaletteSettings(const PaletteSettings &paletteSettings) {
+    void GLRendererColIteration2Map::setPaletteSettings(const ShdPaletteAttribute &paletteSettings) {
         this->paletteSettings = &paletteSettings;
         this->paletteLength = static_cast<uint32_t>(paletteSettings.colors.size());
         GLint max;
@@ -44,7 +44,7 @@ namespace merutilm::rff2 {
     }
 
 
-    std::vector<float> GLRendererColIteration2Map::createPaletteBuffer(const PaletteSettings &paletteSettings,
+    std::vector<float> GLRendererColIteration2Map::createPaletteBuffer(const ShdPaletteAttribute &paletteSettings,
                                                                 const uint16_t paletteWidth,
                                                                 const uint16_t paletteHeight) {
         const std::vector<NormalizedColor> &colors = paletteSettings.colors;

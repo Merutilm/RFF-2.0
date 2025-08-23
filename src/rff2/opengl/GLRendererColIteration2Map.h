@@ -5,11 +5,11 @@
 #pragma once
 #include "GLRendererIteration2Map.h"
 #include "GLTimeRenderer.h"
-#include "../settings/PaletteSettings.h"
+#include "../attr/ShdPaletteAttribute.h"
 
 namespace merutilm::rff2 {
     class GLRendererColIteration2Map final : public GLRendererIteration2Map, public GLTimeRenderer{
-        const PaletteSettings *paletteSettings = nullptr;
+        const ShdPaletteAttribute *paletteSettings = nullptr;
         GLuint paletteTextureID = 0;
         uint16_t paletteWidth = 0;
         uint16_t paletteHeight = 0;
@@ -24,11 +24,11 @@ namespace merutilm::rff2 {
 
         void setTime(float time) override;
 
-        void setPaletteSettings(const PaletteSettings &paletteSettings);
+        void setPaletteSettings(const ShdPaletteAttribute &paletteSettings);
 
         void update() override;
 
-        static std::vector<float> createPaletteBuffer(const PaletteSettings &paletteSettings, uint16_t paletteWidth,
+        static std::vector<float> createPaletteBuffer(const ShdPaletteAttribute &paletteSettings, uint16_t paletteWidth,
                                                       uint16_t paletteHeight);
     };
 }

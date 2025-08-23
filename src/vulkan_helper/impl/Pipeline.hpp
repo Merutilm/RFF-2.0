@@ -15,14 +15,14 @@ namespace merutilm::vkh {
         VkPipeline pipeline = nullptr;
         const PipelineLayout &pipelineLayout;
         const uint32_t subpassIndex;
-        VertexBuffer & vertexBuffer;
-        IndexBuffer & indexBuffer;
+        VertexBufferRef vertexBuffer;
+        IndexBufferRef indexBuffer;
         const PipelineManager pipelineManager = nullptr;
 
     public:
         explicit Pipeline(const Engine &engine, const PipelineLayout &pipelineLayout,
-                          VertexBuffer & vertexBuffer,
-                          IndexBuffer & indexBuffer,
+                          VertexBufferRef vertexBuffer,
+                          IndexBufferRef indexBuffer,
                           uint32_t subpassIndex,
                           PipelineManager &&pipelineManager);
 
@@ -40,13 +40,13 @@ namespace merutilm::vkh {
 
         [[nodiscard]] PipelineManagerRef getPipelineManager() const { return *pipelineManager; }
 
-        [[nodiscard]] const VertexBuffer &getVertexBuffer() const { return vertexBuffer; }
+        [[nodiscard]] const VertexBufferRef getVertexBuffer() const { return vertexBuffer; }
 
-        [[nodiscard]] const IndexBuffer &getIndexBuffer() const { return indexBuffer; }
+        [[nodiscard]] const IndexBufferRef getIndexBuffer() const { return indexBuffer; }
 
-        [[nodiscard]] VertexBuffer &getVertexBuffer() { return vertexBuffer; }
+        [[nodiscard]] VertexBufferRef getVertexBuffer() { return vertexBuffer; }
 
-        [[nodiscard]] IndexBuffer &getIndexBuffer() { return indexBuffer; }
+        [[nodiscard]] IndexBufferRef getIndexBuffer() { return indexBuffer; }
 
         [[nodiscard]] VkPipeline getPipelineHandle() const { return pipeline; }
 

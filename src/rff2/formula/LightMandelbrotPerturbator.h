@@ -19,7 +19,7 @@ namespace merutilm::rff2 {
 
     public:
 
-        explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalculationSettings &calc, double dcMax, int exp10,
+        explicit LightMandelbrotPerturbator(ParallelRenderState &state, const CalcAttribute &calc, double dcMax, int exp10,
                                    uint64_t initialPeriod, ApproxTableCache &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                    std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
                                    bool arbitraryPrecisionFPGBn = false, std::unique_ptr<LightMandelbrotReference> reusedReference = nullptr, std::unique_ptr<LightMPATable> reusedTable = nullptr,
@@ -28,7 +28,7 @@ namespace merutilm::rff2 {
 
         double iterate(const dex &dcr, const dex &dci) const override;
 
-        std::unique_ptr<LightMandelbrotPerturbator> reuse(const CalculationSettings &calc, double dcMax, ApproxTableCache &tableRef);
+        std::unique_ptr<LightMandelbrotPerturbator> reuse(const CalcAttribute &calc, double dcMax, ApproxTableCache &tableRef);
 
         const LightMandelbrotReference *getReference() const override;
 

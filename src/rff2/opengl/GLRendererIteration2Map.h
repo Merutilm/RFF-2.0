@@ -6,15 +6,15 @@
 #include "GLIterationTextureProvider.h"
 #include "GLRenderer.h"
 #include "../data/Matrix.h"
-#include "../settings/DataSettings.h"
-#include "../settings/VideoSettings.h"
+#include "../attr/VidDataAttribute.h"
+#include "../attr/VideoAttribute.h"
 
 namespace merutilm::rff2 {
     class GLRendererIteration2Map : public GLRenderer{
         uint16_t iterWidth = 0;
         uint16_t iterHeight = 0;
         double maxIteration = 0.0;
-        const VideoSettings *videoSettings = nullptr;
+        const VideoAttribute *videoSettings = nullptr;
         float currentFrame = 0;
         GLuint colIterationTextureID = 0;
         GLuint iterationTextureID = 0;
@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
 
         void setCurrentFrame(float currentFrame);
 
-        void setVideoSettings(const VideoSettings &dataSettings);
+        void setVideoSettings(const VideoAttribute &dataSettings);
 
         void setAllIterations(const std::vector<double> &normal, const std::vector<double> &zoomed);
 

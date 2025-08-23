@@ -9,16 +9,16 @@
 #include "Callback.hpp"
 #include "GLVideoWindow.h"
 #include "../io/RFFStaticMapBinary.h"
-#include "../preset/shader/bloom/BloomPresets.h"
-#include "../preset/shader/fog/FogPresets.h"
-#include "../preset/shader/slope/SlopePresets.h"
-#include "../preset/shader/stripe/StripePresets.h"
+#include "../preset/shader/bloom/ShdBloomPresets.h"
+#include "../preset/shader/fog/ShdFogPresets.h"
+#include "../preset/shader/slope/ShdSlopePresets.h"
+#include "../preset/shader/stripe/ShdStripePresets.h"
 
 
 namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::DATA_SETTINGS = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[defaultZoomIncrement, isStatic] = scene.getSettings().videoSettings.dataSettings;
+        auto &[defaultZoomIncrement, isStatic] = scene.getSettings().video.dataAttribute;
         auto window = std::make_unique<SettingsWindow>(L"Data Settings");
 
         window->registerTextInput<float>("Default Zoom Increment", &defaultZoomIncrement,
@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
 
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::ANIMATION_SETTINGS = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[overZoom, showText, mps] = scene.getSettings().videoSettings.animationSettings;
+        auto &[overZoom, showText, mps] = scene.getSettings().video.animationAttribute;
         auto window = std::make_unique<SettingsWindow>(L"Animation Settings");
         window->registerTextInput<float>("Over Zoom", &overZoom, Unparser::FLOAT, Parser::FLOAT,
                                          ValidCondition::POSITIVE_FLOAT_ZERO, Callback::NOTHING, "Over Zoom",
@@ -58,7 +58,7 @@ namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::EXPORT_SETTINGS = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto window = std::make_unique<SettingsWindow>(L"Export Settings");
-        auto &[fps, bitrate] = scene.getSettings().videoSettings.exportSettings;
+        auto &[fps, bitrate] = scene.getSettings().video.exportAttribute;
         window->registerTextInput<float>("FPS", &fps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
                                          Callback::NOTHING, "Set video FPS", "Set the fps of the video to export.");
         window->registerTextInput<uint32_t>("Bitrate", &bitrate, Unparser::U_SHORT, Parser::U_SHORT,
@@ -77,7 +77,7 @@ namespace merutilm::rff2 {
                 const auto &state = scene.getState();
                 const auto dirPtr = IOUtilities::ioDirectoryDialog("Folder to generate keyframes");
 
-                float &logZoom = scene.getSettings().calculationSettings.logZoom;
+                float &logZoom = scene.getSettings().calc.logZoom;
                 if (dirPtr == nullptr) {
                     return;
                 }
@@ -88,18 +88,18 @@ namespace merutilm::rff2 {
 
                 const auto &dir = *dirPtr;
                 bool nextFrame = false;
-                Settings &settings = scene.getSettings();
-                const VideoSettings &videoSettings = settings.videoSettings;
+                Attribute &settings = scene.getSettings();
+                const VideoAttribute &videoSettings = settings.video;
 
-                if (videoSettings.dataSettings.isStatic) {
-                    settings.shaderSettings.stripeSettings = StripePresets::Disabled().stripeSettings();
-                    settings.shaderSettings.slopeSettings = SlopePresets::Disabled().slopeSettings();
-                    settings.shaderSettings.fogSettings = FogPresets::Disabled().fogSettings();
-                    settings.shaderSettings.bloomSettings = BloomPresets::Disabled().bloomSettings();
+                if (videoSettings.dataAttribute.isStatic) {
+                    settings.shader.stripe = ShdStripePresets::Disabled().genStripe();
+                    settings.shader.slope = ShdSlopePresets::Disabled().genSlope();
+                    settings.shader.fog = ShdFogPresets::Disabled().genFog();
+                    settings.shader.bloom = BloomPresets::Disabled().genBloom();
                     scene.requestColor();
                     thread.waitUntil([&scene] { return !scene.isColorRequested(); });
                 }
-                const float increment = std::log10(videoSettings.dataSettings.defaultZoomIncrement);
+                const float increment = std::log10(videoSettings.dataAttribute.defaultZoomIncrement);
                 while (logZoom > Constants::Render::ZOOM_MIN) {
                     if (state.interruptRequested() || nextFrame) {
                         //incomplete frame
@@ -109,7 +109,7 @@ namespace merutilm::rff2 {
                     if (state.interruptRequested()) {
                         return;
                     }
-                    if (videoSettings.dataSettings.isStatic) {
+                    if (videoSettings.dataAttribute.isStatic) {
                         const std::string &path = IOUtilities::generateFileName(dir, Constants::Extension::IMAGE).
                                 string();
                         scene.requestCreateImage(path);

@@ -5,25 +5,25 @@
 #include "IndexBuffer.hpp"
 
 namespace merutilm::vkh {
-    IndexBuffer::IndexBuffer(const Core &core, HostBufferObjectManager &&manager, const BufferLock bufferLock) : BufferObject(
+    IndexBufferImpl::IndexBufferImpl(const CoreRef core, HostBufferObjectManager &&manager, const BufferLock bufferLock) : BufferObjectImpl(
         core, std::move(manager), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, bufferLock) {
-        IndexBuffer::init();
+        IndexBufferImpl::init();
     }
 
-    IndexBuffer::~IndexBuffer() {
-        IndexBuffer::destroy();
+    IndexBufferImpl::~IndexBufferImpl() {
+        IndexBufferImpl::destroy();
     }
 
-    void IndexBuffer::bind(const VkCommandBuffer cbh, const uint32_t frameIndex, const uint32_t binding) const {
+    void IndexBufferImpl::bind(const VkCommandBuffer cbh, const uint32_t frameIndex, const uint32_t binding) const {
         vkCmdBindIndexBuffer(cbh, getBufferHandle(frameIndex), getHostObject().getOffset(binding), VK_INDEX_TYPE_UINT32);
     }
 
 
-    void IndexBuffer::init() {
+    void IndexBufferImpl::init() {
         //no operation
     }
 
-    void IndexBuffer::destroy() {
+    void IndexBufferImpl::destroy() {
         //no operation
     }
 }

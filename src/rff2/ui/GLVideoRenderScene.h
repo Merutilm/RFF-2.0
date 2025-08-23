@@ -13,9 +13,8 @@
 #include "../opengl/GLRendererColor.h"
 #include "../opengl/GLRendererFog.h"
 #include "../opengl/GLRendererShdIteration2Map.h"
-#include "../opengl/GLRendererSlope.h"
 #include "../opengl/GLRendererStatic2Image.h"
-#include "../settings/Settings.h"
+#include "../attr/Attribute.h"
 #include "opencv2/core/mat.hpp"
 
 
@@ -35,7 +34,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<GLRendererShdIteration2Map> rendererShdIteration2Map;
         std::unique_ptr<GLRendererColIteration2Map> rendererColIteration2Map;
         // std::unique_ptr<GLRendererStripe> rendererStripe;
-        std::unique_ptr<GLRendererSlope> rendererSlope;
+        // std::unique_ptr<GLRendererSlope> rendererSlope;
         std::unique_ptr<GLRendererColor> rendererColor;
         std::unique_ptr<GLRendererFog> rendererFog;
         std::unique_ptr<GLRendererBloom> rendererBloom;
@@ -48,7 +47,7 @@ namespace merutilm::rff2 {
 
         void applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed) const;
 
-        void applyColor(const Settings &settings) const;
+        void applyColor(const Attribute &settings) const;
 
         void configure(HWND wnd, HDC hdc, HGLRC context) override;
 

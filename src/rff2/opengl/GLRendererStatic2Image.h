@@ -4,13 +4,13 @@
 
 #pragma once
 #include "GLRenderer.h"
-#include "../settings/DataSettings.h"
+#include "../attr/VidDataAttribute.h"
 #include "opencv2/core/mat.hpp"
 
 namespace merutilm::rff2 {
     class GLRendererStatic2Image final : public GLRenderer {
 
-        const DataSettings * dataSettings = nullptr;
+        const VidDataAttribute * dataSettings = nullptr;
         float currentFrame = 0;
         void * normalTextureBuffer = nullptr;
         GLuint normalTextureID = 0;
@@ -34,7 +34,7 @@ namespace merutilm::rff2 {
 
         void setCurrentFrame(float currentFrame);
 
-        void setDataSettings(const DataSettings &dataSettings);
+        void setDataSettings(const VidDataAttribute &dataSettings);
 
         void update() override;
     };

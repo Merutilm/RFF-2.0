@@ -7,9 +7,9 @@
 
 namespace merutilm::vkh {
     struct Executor {
-        const Core &core;
+        const CoreRef core;
 
-        explicit Executor(const Core &core) : core(core) {
+        explicit Executor(const CoreRef core) : core(core) {
         }
 
         virtual ~Executor() = default;

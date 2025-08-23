@@ -21,12 +21,12 @@
 #include "../preset/render/RenderPresets.h"
 #include "../preset/resolution/ResolutionPresets.h"
 #include "../preset/calc/CalculationPresets.h"
-#include "../preset/shader/bloom/BloomPresets.h"
-#include "../preset/shader/color/ColorPresets.h"
-#include "../preset/shader/fog/FogPresets.h"
-#include "../preset/shader/palette/PalettePresets.h"
-#include "../preset/shader/slope/SlopePresets.h"
-#include "../preset/shader/stripe/StripePresets.h"
+#include "../preset/shader/bloom/ShdBloomPresets.h"
+#include "../preset/shader/color/ShdColorPresets.h"
+#include "../preset/shader/fog/ShdFogPresets.h"
+#include "../preset/shader/palette/ShdPalettePresets.h"
+#include "../preset/shader/slope/ShdSlopePresets.h"
+#include "../preset/shader/stripe/ShdStripePresets.h"
 
 
 namespace merutilm::rff2 {
@@ -98,41 +98,41 @@ namespace merutilm::rff2 {
         addPresetExecutor(subMenu1, ResolutionPresets::L5());
         subMenu1 = addChildMenu(currentMenu, "Shader");
         subMenu2 = addChildMenu(subMenu1, "Palette");
-        addPresetExecutor(subMenu2, PalettePresets::Classic1());
-        addPresetExecutor(subMenu2, PalettePresets::Classic2());
-        addPresetExecutor(subMenu2, PalettePresets::Azure());
-        addPresetExecutor(subMenu2, PalettePresets::Cinematic());
-        addPresetExecutor(subMenu2, PalettePresets::Desert());
-        addPresetExecutor(subMenu2, PalettePresets::Flame());
-        addPresetExecutor(subMenu2, PalettePresets::LongRandom64());
-        addPresetExecutor(subMenu2, PalettePresets::LongRainbow7());
-        addPresetExecutor(subMenu2, PalettePresets::Rainbow());
+        addPresetExecutor(subMenu2, ShdPalettePresets::Classic1());
+        addPresetExecutor(subMenu2, ShdPalettePresets::Classic2());
+        addPresetExecutor(subMenu2, ShdPalettePresets::Azure());
+        addPresetExecutor(subMenu2, ShdPalettePresets::Cinematic());
+        addPresetExecutor(subMenu2, ShdPalettePresets::Desert());
+        addPresetExecutor(subMenu2, ShdPalettePresets::Flame());
+        addPresetExecutor(subMenu2, ShdPalettePresets::LongRandom64());
+        addPresetExecutor(subMenu2, ShdPalettePresets::LongRainbow7());
+        addPresetExecutor(subMenu2, ShdPalettePresets::Rainbow());
         subMenu2 = addChildMenu(subMenu1, "Stripe");
-        addPresetExecutor(subMenu2, StripePresets::Disabled());
-        addPresetExecutor(subMenu2, StripePresets::SlowAnimated());
-        addPresetExecutor(subMenu2, StripePresets::FastAnimated());
-        addPresetExecutor(subMenu2, StripePresets::Smooth());
-        addPresetExecutor(subMenu2, StripePresets::SmoothTranslucent());
+        addPresetExecutor(subMenu2, ShdStripePresets::Disabled());
+        addPresetExecutor(subMenu2, ShdStripePresets::SlowAnimated());
+        addPresetExecutor(subMenu2, ShdStripePresets::FastAnimated());
+        addPresetExecutor(subMenu2, ShdStripePresets::Smooth());
+        addPresetExecutor(subMenu2, ShdStripePresets::SmoothTranslucent());
         subMenu2 = addChildMenu(subMenu1, "Slope");
-        addPresetExecutor(subMenu2, SlopePresets::Disabled());
-        addPresetExecutor(subMenu2, SlopePresets::NoReflection());
-        addPresetExecutor(subMenu2, SlopePresets::Reflective());
-        addPresetExecutor(subMenu2, SlopePresets::Translucent());
-        addPresetExecutor(subMenu2, SlopePresets::Reversed());
-        addPresetExecutor(subMenu2, SlopePresets::Micro());
-        addPresetExecutor(subMenu2, SlopePresets::Nano());
+        addPresetExecutor(subMenu2, ShdSlopePresets::Disabled());
+        addPresetExecutor(subMenu2, ShdSlopePresets::NoReflection());
+        addPresetExecutor(subMenu2, ShdSlopePresets::Reflective());
+        addPresetExecutor(subMenu2, ShdSlopePresets::Translucent());
+        addPresetExecutor(subMenu2, ShdSlopePresets::Reversed());
+        addPresetExecutor(subMenu2, ShdSlopePresets::Micro());
+        addPresetExecutor(subMenu2, ShdSlopePresets::Nano());
         subMenu2 = addChildMenu(subMenu1, "Color");
-        addPresetExecutor(subMenu2, ColorPresets::Disabled());
-        addPresetExecutor(subMenu2, ColorPresets::WeakContrast());
-        addPresetExecutor(subMenu2, ColorPresets::HighContrast());
-        addPresetExecutor(subMenu2, ColorPresets::Dull());
-        addPresetExecutor(subMenu2, ColorPresets::Vivid());
+        addPresetExecutor(subMenu2, ShdColorPresets::Disabled());
+        addPresetExecutor(subMenu2, ShdColorPresets::WeakContrast());
+        addPresetExecutor(subMenu2, ShdColorPresets::HighContrast());
+        addPresetExecutor(subMenu2, ShdColorPresets::Dull());
+        addPresetExecutor(subMenu2, ShdColorPresets::Vivid());
         subMenu2 = addChildMenu(subMenu1, "Fog");
-        addPresetExecutor(subMenu2, FogPresets::Disabled());
-        addPresetExecutor(subMenu2, FogPresets::Low());
-        addPresetExecutor(subMenu2, FogPresets::Medium());
-        addPresetExecutor(subMenu2, FogPresets::High());
-        addPresetExecutor(subMenu2, FogPresets::Ultra());
+        addPresetExecutor(subMenu2, ShdFogPresets::Disabled());
+        addPresetExecutor(subMenu2, ShdFogPresets::Low());
+        addPresetExecutor(subMenu2, ShdFogPresets::Medium());
+        addPresetExecutor(subMenu2, ShdFogPresets::High());
+        addPresetExecutor(subMenu2, ShdFogPresets::Ultra());
         subMenu2 = addChildMenu(subMenu1, "Bloom");
         addPresetExecutor(subMenu2, BloomPresets::Disabled());
         addPresetExecutor(subMenu2, BloomPresets::Highlighted());

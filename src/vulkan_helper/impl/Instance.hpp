@@ -13,9 +13,9 @@
 #include "ValidationLayer.hpp"
 
 namespace merutilm::vkh {
-    class Instance final : public Handler {
+    class InstanceImpl final : public Handler {
         VkInstance instance = nullptr;
-        std::unique_ptr<ValidationLayer> validationLayer;
+        ValidationLayer validationLayer;
         bool enableValidationLayer;
         std::vector<const char *> extensions = {
             VK_KHR_SURFACE_EXTENSION_NAME,
@@ -23,21 +23,21 @@ namespace merutilm::vkh {
         };
 
     public:
-        explicit Instance(bool enableValidationLayer);
+        explicit InstanceImpl(bool enableValidationLayer);
 
-        ~Instance() override;
+        ~InstanceImpl() override;
 
-        Instance(const Instance &) = delete;
+        InstanceImpl(const InstanceImpl &) = delete;
 
-        Instance &operator=(const Instance &) = delete;
+        InstanceImpl &operator=(const InstanceImpl &) = delete;
 
-        Instance(Instance &&) = delete;
+        InstanceImpl(InstanceImpl &&) = delete;
 
-        Instance &operator=(Instance &&) = delete;
+        InstanceImpl &operator=(InstanceImpl &&) = delete;
 
         [[nodiscard]] VkInstance getInstanceHandle() const { return instance; }
 
-        [[nodiscard]] const ValidationLayer &getValidationLayer() const { return *validationLayer; }
+        [[nodiscard]] const ValidationLayerRef getValidationLayer() const { return *validationLayer; }
 
     private:
         void init() override;
@@ -46,4 +46,8 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    using Instance = std::unique_ptr<InstanceImpl>;
+    using InstancePtr = InstanceImpl *;
+    using InstanceRef = InstanceImpl &;
 }

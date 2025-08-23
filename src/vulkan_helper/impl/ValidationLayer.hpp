@@ -4,35 +4,33 @@
 
 #pragma once
 
+#include <memory>
 #include <vulkan/vulkan_core.h>
 
 #include "../handle/Handler.hpp"
 
 namespace merutilm::vkh {
-    class ValidationLayer final : public Handler {
+    class ValidationLayerImpl final : public Handler {
         VkInstance instance = nullptr;
         VkDebugUtilsMessengerEXT debugMessenger = nullptr;
         bool enabled;
 
     public:
-        static constexpr auto VALIDATION_LAYER = "VK_LAYER_KHRONOS_validation";
 
-        explicit ValidationLayer(VkInstance instance, bool enabled);
+        explicit ValidationLayerImpl(VkInstance instance, bool enabled);
 
-        ~ValidationLayer() override;
+        ~ValidationLayerImpl() override;
 
-        ValidationLayer(const ValidationLayer &) = delete;
+        ValidationLayerImpl(const ValidationLayerImpl &) = delete;
 
-        ValidationLayer &operator=(const ValidationLayer &) = delete;
+        ValidationLayerImpl &operator=(const ValidationLayerImpl &) = delete;
 
-        ValidationLayer(ValidationLayer &&) = delete;
+        ValidationLayerImpl(ValidationLayerImpl &&) = delete;
 
-        ValidationLayer &operator=(ValidationLayer &&) = delete;
+        ValidationLayerImpl &operator=(ValidationLayerImpl &&) = delete;
 
         [[nodiscard]] bool isEnabled() const { return enabled; }
 
-
-        static VkDebugUtilsMessengerCreateInfoEXT populateDebugMessengerCreateInfo();
 
     private:
         void checkValidationLayerSupport() const;
@@ -40,12 +38,6 @@ namespace merutilm::vkh {
         void init() override;
 
         void setupDebugMessenger();
-
-        static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-            VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-            VkDebugUtilsMessageTypeFlagsEXT messageType,
-            const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-            [[maybe_unused]] void *pUserData);
 
         static VkResult createDebugUtilsMessengerEXT(VkInstance instance,
                                                      const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
@@ -59,5 +51,9 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    using ValidationLayer = std::unique_ptr<ValidationLayerImpl>;
+    using ValidationLayerPtr = ValidationLayerImpl *;
+    using ValidationLayerRef = ValidationLayerImpl &;
 
 }

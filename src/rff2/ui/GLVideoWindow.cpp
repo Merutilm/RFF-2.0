@@ -118,13 +118,13 @@ namespace merutilm::rff2 {
     }
 
 
-    void VideoWindow::createVideo(const Settings &settings,
+    void VideoWindow::createVideo(const Attribute &settings,
                                   const std::filesystem::path &open,
                                   const std::filesystem::path &save) {
         uint16_t imgWidth = 0;
         uint16_t imgHeight = 0;
 
-        if (settings.videoSettings.dataSettings.isStatic) {
+        if (settings.video.dataAttribute.isStatic) {
             const RFFStaticMapBinary targetMap = RFFStaticMapBinary::readByID(open, 1);
             if (!targetMap.hasData()) {
                 MessageBox(nullptr, "Cannot create video. There is no samples in the directory", "Export failed",
@@ -163,9 +163,9 @@ namespace merutilm::rff2 {
                 window.scene.reloadSize(cw, ch, imgWidth, imgHeight);
                 window.scene.applyColor(settings);
 
-                const auto &[defaultZoomIncrement, isStatic] = settings.videoSettings.dataSettings;
-                const auto &[overZoom, showText, mps] = settings.videoSettings.animationSettings;
-                const auto &[fps, bitrate] = settings.videoSettings.exportSettings;
+                const auto &[defaultZoomIncrement, isStatic] = settings.video.dataAttribute;
+                const auto &[overZoom, showText, mps] = settings.video.animationAttribute;
+                const auto &[fps, bitrate] = settings.video.exportAttribute;
 
                 const auto frameInterval = mps / fps;
                 const uint32_t maxNumber = isStatic ? IOUtilities::fileNameCount(open, Constants::Extension::STATIC_MAP) : IOUtilities::fileNameCount(open, Constants::Extension::DYNAMIC_MAP);

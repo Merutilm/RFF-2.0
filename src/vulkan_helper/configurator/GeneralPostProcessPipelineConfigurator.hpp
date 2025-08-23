@@ -9,8 +9,8 @@
 namespace merutilm::vkh {
     class GeneralPostProcessPipelineConfigurator : public PipelineConfigurator {
         inline static bool initializedVertexIndex = false;
-        inline static std::unique_ptr<VertexBuffer> vertexBufferPP = nullptr;
-        inline static std::unique_ptr<IndexBuffer> indexBufferPP = nullptr;
+        inline static VertexBuffer vertexBufferPP = nullptr;
+        inline static IndexBuffer indexBufferPP = nullptr;
         static constexpr auto VERTEX_MODULE_PATH = "vk_post_process.vert";
 
     public:
@@ -41,9 +41,9 @@ namespace merutilm::vkh {
         }
 
     protected:
-        [[nodiscard]] VertexBuffer &getVertexBuffer() const override { return *vertexBufferPP; }
+        [[nodiscard]] VertexBufferRef getVertexBuffer() const override { return *vertexBufferPP; }
 
-        [[nodiscard]] IndexBuffer &getIndexBuffer() const override { return *indexBufferPP; }
+        [[nodiscard]] IndexBufferRef getIndexBuffer() const override { return *indexBufferPP; }
 
         void configureVertexBuffer(HostBufferObjectManagerRef som) override;
 

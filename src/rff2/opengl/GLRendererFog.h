@@ -4,11 +4,11 @@
 
 #pragma once
 #include "GLRendererGaussianBlur.h"
-#include "../settings/FogSettings.h"
+#include "../attr/ShdFogAttribute.h"
 
 namespace merutilm::rff2 {
     class GLRendererFog final : public GLRendererGaussianBlur {
-        const FogSettings *fogSettings = nullptr;
+        const ShdFogAttribute *fogSettings = nullptr;
 
     public:
         GLRendererFog();
@@ -24,7 +24,7 @@ namespace merutilm::rff2 {
         GLRendererFog &operator=(GLRendererFog &&) = delete;
 
 
-        void setFogSettings(const FogSettings &fogSettings);
+        void setFogSettings(const ShdFogAttribute &fogSettings);
 
         void update() override;
     };

@@ -8,17 +8,17 @@
 #include "../util/BufferImageUtils.hpp"
 
 namespace merutilm::vkh {
-    Swapchain::Swapchain(const Surface &surface, const PhysicalDevice &physicalDevice,
-                         const LogicalDevice &logicalDevice) : surface(surface), physicalDevice(physicalDevice),
+    SwapchainImpl::SwapchainImpl(SurfaceRef surface, PhysicalDeviceLoaderRef physicalDevice,
+                         LogicalDeviceRef logicalDevice) : surface(surface), physicalDevice(physicalDevice),
                                                                logicalDevice(logicalDevice) {
-        Swapchain::init();
+        SwapchainImpl::init();
     }
 
-    Swapchain::~Swapchain() {
-        Swapchain::destroy();
+    SwapchainImpl::~SwapchainImpl() {
+        SwapchainImpl::destroy();
     }
 
-    void Swapchain::matchViewportAndScissor(const VkCommandBuffer cbh) const {
+    void SwapchainImpl::matchViewportAndScissor(const VkCommandBuffer cbh) const {
         const auto [width, height] = populateSwapchainExtent();
         const VkViewport viewport = {
             .x = 0,
@@ -39,7 +39,7 @@ namespace merutilm::vkh {
     }
 
 
-    void Swapchain::recreate() {
+    void SwapchainImpl::recreate() {
         destroyImageViews();
         oldSwapchain = swapchain;
         createSwapchain(&swapchain, oldSwapchain);
@@ -48,7 +48,7 @@ namespace merutilm::vkh {
     }
 
 
-    VkExtent2D Swapchain::populateSwapchainExtent() const {
+    VkExtent2D SwapchainImpl::populateSwapchainExtent() const {
         const HWND window = surface.getTargetWindow().getWindowHandle();
         const auto capabilities = physicalDevice.populateSurfaceCapabilities();
 
@@ -69,12 +69,12 @@ namespace merutilm::vkh {
     }
 
 
-    void Swapchain::init() {
+    void SwapchainImpl::init() {
         createSwapchain(&swapchain, nullptr);
         setupSwapchainImages();
     }
 
-    void Swapchain::createSwapchain(VkSwapchainKHR *target, const VkSwapchainKHR old) const {
+    void SwapchainImpl::createSwapchain(VkSwapchainKHR *target, const VkSwapchainKHR old) const {
         const uint32_t maxFramesInFlight = physicalDevice.getMaxFramesInFlight();
         const auto &[graphicsFamily, presentFamily] = physicalDevice.getQueueFamilyIndices();
         std::array queueFamilyIndices = {graphicsFamily.value(), presentFamily.value()};
@@ -110,7 +110,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void Swapchain::setupSwapchainImages() {
+    void SwapchainImpl::setupSwapchainImages() {
         uint32_t maxFramesInFlight = physicalDevice.getMaxFramesInFlight();
         swapchainImages.resize(maxFramesInFlight);
         swapchainImageViews.resize(maxFramesInFlight);
@@ -124,12 +124,12 @@ namespace merutilm::vkh {
     }
 
 
-    void Swapchain::destroy() {
+    void SwapchainImpl::destroy() {
         destroyImageViews();
         vkDestroySwapchainKHR(logicalDevice.getLogicalDeviceHandle(), swapchain, nullptr);
     }
 
-    void Swapchain::destroyImageViews() const {
+    void SwapchainImpl::destroyImageViews() const {
         const uint32_t maxFramesInFlight = physicalDevice.getMaxFramesInFlight();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             vkDestroyImageView(logicalDevice.getLogicalDeviceHandle(), swapchainImageViews[i], nullptr);

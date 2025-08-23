@@ -8,7 +8,7 @@
 #include "MandelbrotReference.h"
 #include "../calc/fp_complex.h"
 #include "../parallel/ParallelRenderState.h"
-#include "../settings/CalculationSettings.h"
+#include "../attr/CalcAttribute.h"
 
 struct ArrayCompressionTool;
 
@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
                                  std::vector<uint64_t> &&period, fp_complex &&fpgReference, fp_complex &&fpgBn);
 
         static std::unique_ptr<DeepMandelbrotReference> createReference(const ParallelRenderState &state,
-                                                                         const CalculationSettings &calc, int exp10,
+                                                                         const CalcAttribute &calc, int exp10,
                                                                          uint64_t initialPeriod, dex dcMax, bool
                                                                          strictFPG,
                                                                          std::function<void(uint64_t)> &&

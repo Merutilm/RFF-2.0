@@ -16,7 +16,7 @@ namespace merutilm::vkh {
         VkRenderPass renderPass = VK_NULL_HANDLE;
 
     public:
-        explicit RenderPass(const Core &core, RenderPassManager &&manager);
+        explicit RenderPass(const CoreRef core, RenderPassManager &&manager);
 
         ~RenderPass() override;
 

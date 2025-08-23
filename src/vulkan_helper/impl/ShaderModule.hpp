@@ -20,7 +20,7 @@ namespace merutilm::vkh {
         const std::string filename;
 
     public:
-        explicit ShaderModule(const Core &core, const std::string &filename);
+        explicit ShaderModule(const CoreRef core, const std::string &filename);
 
         ~ShaderModule() override;
 

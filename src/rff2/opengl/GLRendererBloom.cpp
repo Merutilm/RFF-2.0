@@ -8,7 +8,7 @@ namespace merutilm::rff2 {
     GLRendererBloom::GLRendererBloom() : GLRendererGaussianBlur("bloom.frag", "gaussian_blur_for_bloom_single_pass.frag") {
     }
 
-    void GLRendererBloom::setBloomSettings(const BloomSettings &bloomSettings) {
+    void GLRendererBloom::setBloomSettings(const ShdBloomAttribute &bloomSettings) {
         this->bloomSettings = &bloomSettings;
         setAdditionalBlurParams([this](const GLShader &blurShader) {
                 blurShader.uploadTexture2D("original", GL_TEXTURE2, getPrevFBOTextureID());

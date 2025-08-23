@@ -7,12 +7,12 @@
 #include <windows.h>
 
 namespace merutilm::vkh {
-    GraphicsContextWindow::GraphicsContextWindow(const HWND window, const float framerate) : window(window),
+    GraphicsContextWindowImpl::GraphicsContextWindowImpl(const HWND window, const float framerate) : window(window),
         framerate(framerate) {
     }
 
 
-    void GraphicsContextWindow::start() const {
+    void GraphicsContextWindowImpl::start() const {
         MSG message;
         using namespace std::chrono;
         auto started = high_resolution_clock::now();
@@ -37,31 +37,5 @@ namespace merutilm::vkh {
                 }
             }
         }
-    }
-
-
-    LRESULT GraphicsContextWindow::GraphicsContextWindowProc(const HWND hwnd, const UINT message, const WPARAM wparam,
-                                                             const LPARAM lparam) {
-        const auto windowPtr = reinterpret_cast<GraphicsContextWindow *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-
-        if (windowPtr == nullptr) {
-            return DefWindowProcW(hwnd, message, wparam, lparam);
-        }
-
-        auto &window = *windowPtr;
-
-        if (message == WM_DESTROY) {
-            PostQuitMessage(0);
-        }
-
-        return window.runListeners(hwnd, message, wparam, lparam);
-    }
-
-    LRESULT GraphicsContextWindow::runListeners(const HWND hwnd, const UINT message, const WPARAM wparam,
-                                                const LPARAM lparam) {
-        if (listeners.contains(message)) {
-            return listeners[message](*this, hwnd, wparam, lparam);
-        }
-        return DefWindowProc(hwnd, message, wparam, lparam);
     }
 }

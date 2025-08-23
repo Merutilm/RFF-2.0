@@ -7,7 +7,7 @@
 
 #include "GLVideoRenderScene.h"
 #include "../parallel/BackgroundThreads.h"
-#include "../settings/Settings.h"
+#include "../attr/Attribute.h"
 
 namespace merutilm::rff2 {
 
@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
 
         static LRESULT CALLBACK videoWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-        static void createVideo(const Settings &settings, const std::filesystem::path &open, const std::filesystem::path &save);
+        static void createVideo(const Attribute &settings, const std::filesystem::path &open, const std::filesystem::path &save);
 
         static void messageLoop();
     };

@@ -11,12 +11,12 @@
 
 namespace merutilm::vkh {
     struct RenderContext final {
-        const Core &core;
+        CoreRef core;
         std::unique_ptr<RenderContextConfigurator> configurator = nullptr;
         std::unique_ptr<RenderPass> renderPass = nullptr;
         std::unique_ptr<Framebuffer> framebuffer = nullptr;
 
-        explicit RenderContext(const Core &core, const VkExtent2D &extent,
+        explicit RenderContext(CoreRef core, const VkExtent2D &extent,
                                std::unique_ptr<RenderContextConfigurator> &&renderPassConfigurator) : core(core) {
 
             auto renderPassManager = Factory::create<RenderPassManager>();

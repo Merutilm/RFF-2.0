@@ -25,26 +25,26 @@ add_executable(
         src/rff2/calc/fp_complex_calculator.cpp
         src/rff2/calc/fp_complex_calculator.h
         src/rff2/constants/Constants.hpp
-        src/rff2/settings/Settings.h
-        src/rff2/settings/CalculationSettings.h
-        src/rff2/settings/RenderSettings.h
-        src/rff2/settings/ShaderSettings.h
-        src/rff2/settings/SlopeSettings.h
-        src/rff2/settings/StripeSettings.h
-        src/rff2/settings/ColorSettings.h
-        src/rff2/settings/PaletteSettings.h
-        src/rff2/settings/FogSettings.h
-        src/rff2/settings/VideoSettings.h
-        src/rff2/settings/BloomSettings.h
-        src/rff2/settings/DataSettings.h
-        src/rff2/settings/ExportSettings.h
-        src/rff2/settings/MpaSettings.h
+        src/rff2/attr/Attribute.h
+        src/rff2/attr/CalcAttribute.h
+        src/rff2/attr/RenderAttribute.h
+        src/rff2/attr/ShaderAttribute.h
+        src/rff2/attr/ShdSlopeAttribute.h
+        src/rff2/attr/ShdStripeAttribute.h
+        src/rff2/attr/ShdColorAttribute.h
+        src/rff2/attr/ShdPaletteAttribute.h
+        src/rff2/attr/ShdFogAttribute.h
+        src/rff2/attr/VideoAttribute.h
+        src/rff2/attr/ShdBloomAttribute.h
+        src/rff2/attr/VidDataAttribute.h
+        src/rff2/attr/VidExportAttribute.h
+        src/rff2/attr/CalMPAAttribute.h
         src/rff2/calc/fp_complex.cpp
         src/rff2/calc/fp_complex.h
-        src/rff2/settings/DecimalizeIterationMethod.h
-        src/rff2/settings/ReferenceCompressionSettings.h
-        src/rff2/settings/ReuseReferenceMethod.h
-        src/rff2/settings/Selectable.h
+        src/rff2/attr/CalDecimalizeIterationMethod.h
+        src/rff2/attr/CalReferenceCompAttribute.h
+        src/rff2/attr/CalReuseReferenceMethod.h
+        src/rff2/attr/Selectable.h
         src/rff2/calc/fp_decimal_calculator.cpp
         src/rff2/calc/fp_decimal_calculator.h
         src/rff2/calc/fp_decimal.cpp
@@ -55,10 +55,10 @@ add_executable(
         src/rff2/io/RFFDynamicMapBinary.cpp
         src/rff2/io/RFFDynamicMapBinary.h
         src/rff2/data/Matrix.h
-        src/rff2/settings/ColorSmoothingSettings.h
+        src/rff2/attr/ColorSmoothingMethod.h
         src/rff2/data/NormalizedColor.h
-        src/rff2/settings/StripeType.h
-        src/rff2/settings/AnimationSettings.h
+        src/rff2/attr/StripeType.h
+        src/rff2/attr/VidAnimationAttribute.h
         src/rff2/opengl/GLTimeRenderer.h
         src/rff2/opengl/GLTimeProvider.h
         src/rff2/formula/LightMandelbrotReference.cpp
@@ -88,8 +88,6 @@ add_executable(
         src/rff2/ui/CallbackRender.hpp
         src/rff2/opengl/GLMultipassRenderer.cpp
         src/rff2/opengl/GLMultipassRenderer.h
-        src/rff2/opengl/GLRendererSlope.cpp
-        src/rff2/opengl/GLRendererSlope.h
         src/rff2/opengl/GLRendererColor.cpp
         src/rff2/opengl/GLRendererColor.h
         src/rff2/opengl/GLRendererBoxBlur.cpp
@@ -128,18 +126,18 @@ add_executable(
         src/rff2/mrthy/DeepPAGenerator.cpp
         src/rff2/mrthy/DeepPAGenerator.h
         src/rff2/data/ApproxTableCache.h
-        src/rff2/preset/shader/palette/PalettePresets.h
-        src/rff2/preset/shader/color/ColorPresets.h
-        src/rff2/preset/shader/bloom/BloomPresets.h
-        src/rff2/preset/shader/fog/FogPresets.h
-        src/rff2/preset/shader/slope/SlopePresets.h
-        src/rff2/preset/shader/stripe/StripePresets.h
-        src/rff2/preset/shader/palette/PalettePresets.cpp
-        src/rff2/preset/shader/fog/FogPresets.cpp
-        src/rff2/preset/shader/color/ColorPresets.cpp
-        src/rff2/preset/shader/slope/SlopePresets.cpp
-        src/rff2/preset/shader/stripe/StripePresets.cpp
-        src/rff2/preset/shader/bloom/BloomPresets.cpp
+        src/rff2/preset/shader/palette/ShdPalettePresets.h
+        src/rff2/preset/shader/color/ShdColorPresets.h
+        src/rff2/preset/shader/bloom/ShdBloomPresets.h
+        src/rff2/preset/shader/fog/ShdFogPresets.h
+        src/rff2/preset/shader/slope/ShdSlopePresets.h
+        src/rff2/preset/shader/stripe/ShdStripePresets.h
+        src/rff2/preset/shader/palette/ShdPalettePresets.cpp
+        src/rff2/preset/shader/fog/ShdFogPresets.cpp
+        src/rff2/preset/shader/color/ShdColorPresets.cpp
+        src/rff2/preset/shader/slope/ShdSlopePresets.cpp
+        src/rff2/preset/shader/stripe/ShdStripePresets.cpp
+        src/rff2/preset/shader/bloom/ShdBloomPresets.cpp
         src/rff2/preset/Presets.h
         src/rff2/opengl/GLRendererDisplayer.cpp
         src/rff2/opengl/GLRendererDisplayer.h
@@ -190,8 +188,8 @@ add_executable(
         src/vulkan_helper/impl/Instance.hpp
         src/vulkan_helper/impl/Surface.cpp
         src/vulkan_helper/impl/Surface.hpp
-        src/vulkan_helper/impl/PhysicalDevice.cpp
-        src/vulkan_helper/impl/PhysicalDevice.hpp
+        src/vulkan_helper/impl/PhysicalDeviceLoader.cpp
+        src/vulkan_helper/impl/PhysicalDeviceLoader.hpp
         src/vulkan_helper/struct/QueueFamilyIndices.hpp
         src/vulkan_helper/impl/LogicalDevice.cpp
         src/vulkan_helper/impl/LogicalDevice.hpp
@@ -319,6 +317,9 @@ add_executable(
         src/rff2/vulkan/BoxBlurPipelineConfigurator.cpp
         src/rff2/vulkan/BoxBlurPipelineConfigurator.hpp
         src/vulkan_helper/def/Factory.hpp
+        src/vulkan_helper/util/Debugger.hpp
+        src/vulkan_helper/util/PhysicalDeviceUtils.hpp
+        src/vulkan_helper/util/GraphicsContextWindowProc.hpp
 )
 
 

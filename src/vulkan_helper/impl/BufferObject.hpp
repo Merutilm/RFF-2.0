@@ -10,7 +10,7 @@
 #include "../struct/BufferLock.hpp"
 
 namespace merutilm::vkh {
-    class BufferObject : public CoreHandler {
+    class BufferObjectImpl : public CoreHandler {
         std::unique_ptr<HostBufferObject> hostBufferObject = nullptr;
         VkBufferUsageFlags bufferUsage;
         std::vector<VkBuffer> buffers = {};
@@ -20,20 +20,20 @@ namespace merutilm::vkh {
         bool locked = false;
 
     public:
-        explicit BufferObject(const Core &core, HostBufferObjectManager &&dataManager,
+        explicit BufferObjectImpl(const CoreRef core, HostBufferObjectManager &&dataManager,
                               VkBufferUsageFlags bufferUsage, BufferLock bufferLock);
 
-        ~BufferObject() override;
+        ~BufferObjectImpl() override;
 
         void reloadBuffer();
 
-        BufferObject(const BufferObject &) = delete;
+        BufferObjectImpl(const BufferObjectImpl &) = delete;
 
-        BufferObject &operator=(const BufferObject &) = delete;
+        BufferObjectImpl &operator=(const BufferObjectImpl &) = delete;
 
-        BufferObject(BufferObject &&) = delete;
+        BufferObjectImpl(BufferObjectImpl &&) = delete;
 
-        BufferObject &operator=(BufferObject &&) noexcept = delete;
+        BufferObjectImpl &operator=(BufferObjectImpl &&) noexcept = delete;
 
         void lock(const CommandPool &commandPool);
 
@@ -55,4 +55,8 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    using BufferObject = std::unique_ptr<BufferObjectImpl>;
+    using BufferObjectPtr = BufferObjectImpl *;
+    using BufferObjectRef = BufferObjectImpl &;
 }

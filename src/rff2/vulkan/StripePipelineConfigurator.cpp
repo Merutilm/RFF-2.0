@@ -8,7 +8,7 @@
 #include "../../vulkan_helper/util/ImageContextUtils.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "../../vulkan_helper/util/DescriptorUpdater.hpp"
-#include "../settings/StripeSettings.h"
+#include "../attr/ShdStripeAttribute.h"
 
 namespace merutilm::rff2 {
     void StripePipelineConfigurator::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex,
@@ -18,9 +18,6 @@ namespace merutilm::rff2 {
             RFFRenderContextConfigurator::PRIMARY_SUBPASS_RESULT_COLOR_IMAGE, imageIndex);
         auto &inputDesc = getDescriptor(SET_PREV_RESULT);
         auto &inputManager = inputDesc.getDescriptorManager();
-
-        inputManager.get<std::unique_ptr<vkh::CombinedImageSampler> >(BINDING_PREV_RESULT_SAMPLER)->
-                setImageContext(input);
         inputManager.get<vkh::ImageContext>(BINDING_PREV_RESULT_INPUT) = input;
         inputDesc.queue(queue, frameIndex);
     }
@@ -41,24 +38,24 @@ namespace merutilm::rff2 {
         appendDescriptor<DescTime>(SET_TIME, descriptors);
     }
 
-    void StripePipelineConfigurator::setStripeSettings(const StripeSettings &stripeSettings) const {
+    void StripePipelineConfigurator::setStripe(const ShdStripeAttribute &stripe) const {
         using namespace SharedDescriptorTemplate;
         auto &stripeDesc = getDescriptor(SET_STRIPE);
         auto &stripeManager = stripeDesc.getDescriptorManager();
-        const auto &stripeUBO = *stripeManager.get<std::unique_ptr<vkh::Uniform> >(
+        const auto &stripeUBO = *stripeManager.get<vkh::Uniform>(
             DescStripe::BINDING_UBO_STRIPE);
         auto &stripeUBOHost = stripeUBO.getHostObject();
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_TYPE, static_cast<uint32_t>(stripeSettings.stripeType));
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_TYPE, static_cast<uint32_t>(stripe.stripeType));
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_FIRST_INTERVAL,
-                          stripeSettings.firstInterval);
+                          stripe.firstInterval);
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_SECOND_INTERVAL,
-                          stripeSettings.secondInterval);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_OPACITY, stripeSettings.opacity);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_OFFSET, stripeSettings.offset);
+                          stripe.secondInterval);
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_OPACITY, stripe.opacity);
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_OFFSET, stripe.offset);
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_ANIMATION_SPEED,
-                          stripeSettings.animationSpeed);
+                          stripe.animationSpeed);
 
-        updateDescriptor([&stripeUBO, &stripeDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorForEachFrame([&stripeUBO, &stripeDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             stripeUBO.update(frameIndex);
             stripeDesc.queue(queue, frameIndex);
         });

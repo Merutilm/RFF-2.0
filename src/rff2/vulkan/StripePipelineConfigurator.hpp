@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
-#include "../settings/StripeSettings.h"
+#include "../attr/ShdStripeAttribute.h"
 
 namespace merutilm::rff2 {
     class StripePipelineConfigurator final : public vkh::GeneralPostProcessPipelineConfigurator {
@@ -38,7 +38,7 @@ namespace merutilm::rff2 {
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width,
                          uint32_t height) override;
 
-        void setStripeSettings(const StripeSettings &stripeSettings) const;
+        void setStripe(const ShdStripeAttribute &stripe) const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;

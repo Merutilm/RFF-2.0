@@ -9,9 +9,9 @@
 
 namespace merutilm::vkh {
     struct CoreHandler : Handler {
-        const Core &core;
+        const CoreRef core;
 
-        explicit CoreHandler(const Core &core) : core(core) {};
+        explicit CoreHandler(const CoreRef core) : core(core) {};
 
         ~CoreHandler() override = default;
 

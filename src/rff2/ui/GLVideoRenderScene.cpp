@@ -6,7 +6,7 @@
 
 #include "../opengl/GLRendererColIteration2Map.h"
 #include "../opengl/GLRendererShdIteration2Map.h"
-#include "../settings/Settings.h"
+#include "../attr/Attribute.h"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/core/hal/interface.h"
 
@@ -43,17 +43,17 @@ namespace merutilm::rff2 {
         }
     }
 
-    void GLVideoRenderScene::applyColor(const Settings &settings) const {
-        rendererShdIteration2Map->setVideoSettings(settings.videoSettings);
-        rendererColIteration2Map->setVideoSettings(settings.videoSettings);
-        rendererColIteration2Map->setPaletteSettings(settings.shaderSettings.paletteSettings);
-        rendererStatic2Image->setDataSettings(settings.videoSettings.dataSettings);
-        // rendererStripe->setStripeSettings(settings.shaderSettings.stripeSettings);
-        rendererSlope->setSlopeSettings(settings.shaderSettings.slopeSettings);
-        rendererColor->setColorSettings(settings.shaderSettings.colorSettings);
-        rendererFog->setFogSettings(settings.shaderSettings.fogSettings);
-        rendererBloom->setBloomSettings(settings.shaderSettings.bloomSettings);
-        rendererAntialiasing->setUse(settings.renderSettings.antialiasing);
+    void GLVideoRenderScene::applyColor(const Attribute &settings) const {
+        rendererShdIteration2Map->setVideoSettings(settings.video);
+        rendererColIteration2Map->setVideoSettings(settings.video);
+        rendererColIteration2Map->setPaletteSettings(settings.shader.palette);
+        rendererStatic2Image->setDataSettings(settings.video.dataAttribute);
+        // rendererStripe->setStripeSettings(attr.shader.stripe);
+        // rendererSlope->setSlopeSettings(settings.shader.slope);
+        rendererColor->setColorSettings(settings.shader.color);
+        rendererFog->setFogSettings(settings.shader.fog);
+        rendererBloom->setBloomSettings(settings.shader.bloom);
+        rendererAntialiasing->setUse(settings.render.antialiasing);
     }
 
     void GLVideoRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {
@@ -69,7 +69,7 @@ namespace merutilm::rff2 {
         rendererShdIteration2Map = std::make_unique<GLRendererShdIteration2Map>();
         rendererColIteration2Map = std::make_unique<GLRendererColIteration2Map>();
         // rendererStripe = std::make_unique<GLRendererStripe>();
-        rendererSlope = std::make_unique<GLRendererSlope>();
+        // rendererSlope = std::make_unique<GLRendererSlope>();
         rendererColor = std::make_unique<GLRendererColor>();
         rendererFog = std::make_unique<GLRendererFog>();
         rendererBloom = std::make_unique<GLRendererBloom>();
@@ -78,7 +78,7 @@ namespace merutilm::rff2 {
         renderer->add(*rendererShdIteration2Map);
         renderer->add(*rendererColIteration2Map);
         // renderer->add(*rendererStripe);
-        renderer->add(*rendererSlope);
+        // renderer->add(*rendererSlope);
         renderer->add(*rendererColor);
         renderer->add(*rendererFog);
         renderer->add(*rendererBloom);

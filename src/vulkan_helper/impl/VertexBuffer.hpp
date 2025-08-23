@@ -10,22 +10,22 @@
 #include "HostBufferObject.hpp"
 
 namespace merutilm::vkh {
-    class VertexBuffer final : public BufferObject {
+    class VertexBufferImpl final : public BufferObjectImpl {
         std::vector<VkVertexInputBindingDescription> bindingDescriptions = {};
         std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
 
     public:
-        explicit VertexBuffer(const Core &core, HostBufferObjectManager &&manager, BufferLock bufferLock);
+        explicit VertexBufferImpl(const CoreRef core, HostBufferObjectManager &&manager, BufferLock bufferLock);
 
-        ~VertexBuffer() override;
+        ~VertexBufferImpl() override;
 
-        VertexBuffer(const VertexBuffer &) = delete;
+        VertexBufferImpl(const VertexBufferImpl &) = delete;
 
-        VertexBuffer &operator=(const VertexBuffer &) = delete;
+        VertexBufferImpl &operator=(const VertexBufferImpl &) = delete;
 
-        VertexBuffer(VertexBuffer &&) = delete;
+        VertexBufferImpl(VertexBufferImpl &&) = delete;
 
-        VertexBuffer &operator=(VertexBuffer &&) = delete;
+        VertexBufferImpl &operator=(VertexBufferImpl &&) = delete;
 
         [[nodiscard]] const std::vector<VkVertexInputAttributeDescription> &getVertexInputAttributeDescriptions() const {
             return vertexInputAttributeDescriptions;
@@ -45,8 +45,12 @@ namespace merutilm::vkh {
         static VkFormat getFormat();
     };
 
+    using VertexBuffer = std::unique_ptr<VertexBufferImpl>;
+    using VertexBufferPtr = VertexBufferImpl *;
+    using VertexBufferRef = VertexBufferImpl &;
+
     template<typename T>
-    VkFormat VertexBuffer::getFormat() {
+    VkFormat VertexBufferImpl::getFormat() {
         if constexpr (std::is_same_v<T, float>) {
             return VK_FORMAT_R32_SFLOAT;
         }

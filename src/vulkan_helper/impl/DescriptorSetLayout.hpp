@@ -14,7 +14,7 @@ namespace merutilm::vkh {
         VkDescriptorSetLayout layout = nullptr;
 
     public:
-        explicit DescriptorSetLayout(const Core &core, const DescriptorSetLayoutBuilder &layoutBuilder);
+        explicit DescriptorSetLayout(const CoreRef core, const DescriptorSetLayoutBuilder &layoutBuilder);
 
         ~DescriptorSetLayout() override;
 

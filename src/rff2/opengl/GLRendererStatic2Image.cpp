@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include "../settings/DataSettings.h"
+#include "../attr/VidDataAttribute.h"
 #include "opencv2/core.hpp"
 #include "opencv2/core/mat.hpp"
 
@@ -28,7 +28,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void GLRendererStatic2Image::setDataSettings(const DataSettings &dataSettings) {
+    void GLRendererStatic2Image::setDataSettings(const VidDataAttribute &dataSettings) {
         this->dataSettings = &dataSettings;
     }
 

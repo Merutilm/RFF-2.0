@@ -11,7 +11,7 @@
 namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::REFERENCE = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &calc = scene.getSettings().calculationSettings;
+        auto &calc = scene.getSettings().calc;
         auto window = std::make_unique<SettingsWindow>(L"Reference");
 
         auto centerPtr = std::make_shared<std::array<std::string, 2> >();
@@ -46,11 +46,11 @@ namespace merutilm::rff2 {
                                          [zoomPtr, locationChanged] {
                                              *locationChanged = true;
                                          }, "Log zoom", "Sets the log scale of zoom.");
-        window->registerRadioButtonInput<ReuseReferenceMethod>("Reuse Reference", &calc.reuseReferenceMethod,
+        window->registerRadioButtonInput<CalReuseReferenceMethod>("Reuse Reference", &calc.reuseReferenceMethod,
                                                                Callback::NOTHING, "Reuse Reference method",
                                                                "Sets the reuse reference method.");
         window->registerTextInput<uint32_t>("Reference Compression Criteria",
-                                            &calc.referenceCompressionSettings.compressCriteria,
+                                            &calc.referenceCompAttribute.compressCriteria,
                                             Unparser::U_LONG, Parser::U_LONG,
                                             ValidCondition::ALL_U_LONG, Callback::NOTHING,
                                             "Reference Compression Criteria",
@@ -58,7 +58,7 @@ namespace merutilm::rff2 {
                                             "Reference compression slows down the calculation but frees up memory space.\n"
                                             "Not activate option is ZERO.");
         window->registerTextInput<uint8_t>("Reference Compression Threshold",
-                                           &calc.referenceCompressionSettings.compressionThresholdPower,
+                                           &calc.referenceCompAttribute.compressionThresholdPower,
                                            Unparser::U_CHAR, Parser::U_CHAR,
                                            ValidCondition::ALL_U_CHAR, Callback::NOTHING,
                                            "Reference Compression Threshold Power",
@@ -66,7 +66,7 @@ namespace merutilm::rff2 {
                                            "Reference compression slows down the calculation but frees up memory space.\n"
                                            "Not activate option is ZERO.");
         window->registerBoolInput("NO Compressor normalization",
-                                  &calc.referenceCompressionSettings.noCompressorNormalization, Callback::NOTHING,
+                                  &calc.referenceCompAttribute.noCompressorNormalization, Callback::NOTHING,
                                   "NO Compressor normalization",
                                   "Do not use normalization when compressing references. "
                                   "this will accelerates table creation, But may cause table creation to fail in the specific locations!!");
@@ -84,7 +84,7 @@ namespace merutilm::rff2 {
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::ITERATIONS = [
             ](SettingsMenu &settingsMenu, RenderScene  &scene) {
-        auto &calc = scene.getSettings().calculationSettings;
+        auto &calc = scene.getSettings().calc;
         auto window = std::make_unique<SettingsWindow>(L"Iterations");
 
 
@@ -105,7 +105,7 @@ namespace merutilm::rff2 {
                                          Parser::FLOAT, [](const float &v) { return v >= 2 && v <= 8; },
                                          Callback::NOTHING, "Set Bailout", "Sets The Bailout radius"
         );
-        window->registerRadioButtonInput<DecimalizeIterationMethod>("Decimalize iteration",
+        window->registerRadioButtonInput<CalDecimalizeIterationMethod>("Decimalize iteration",
                                                                     &calc.decimalizeIterationMethod,
                                                                     Callback::NOTHING, "Decimalize Iteration Method",
                                                                     "Sets the decimalization method of iterations.");
@@ -117,7 +117,7 @@ namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::MPA = [
             ](SettingsMenu &settingsMenu, RenderScene  &scene) {
         auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod, mpaCompressionMethod] =
-                scene.getSettings().calculationSettings.mpaSettings;
+                scene.getSettings().calc.mpaAttribute;
         auto window = std::make_unique<SettingsWindow>(L"MP-Approximation");
         window->registerTextInput<uint16_t>("Min Skip Reference", &minSkipReference, Unparser::U_SHORT,
                                             Parser::U_SHORT, [](const unsigned short &v) { return v >= 4; },
@@ -138,12 +138,12 @@ namespace merutilm::rff2 {
                                          "The fractal will be rendered glitch-less but slow,\n"
                                          "and is large, It will be fast, but maybe shown visible glitches."
         );
-        window->registerRadioButtonInput<MPASelectionMethod>("Selection Method", &mpaSelectionMethod,
+        window->registerRadioButtonInput<CalMPASelectionMethod>("Selection Method", &mpaSelectionMethod,
                                                              Callback::NOTHING, "Set the selection method of MPA.",
                                                              "The first target PA is always the front element."
         );
 
-        window->registerRadioButtonInput<MPACompressionMethod>("Compression Method", &mpaCompressionMethod,
+        window->registerRadioButtonInput<CalMPACompressionMethod>("Compression Method", &mpaCompressionMethod,
                                                                Callback::NOTHING, "Set the compression method of MPA.",
                                                                "\"Little Compression\" maybe slowing down for table creation, but allocates the memory efficiently.\n"
                                                                "\"Strongest\" works based on the Reference Compressor, so if it is disabled, it will behave the same as \"Little Compression\".\n "
@@ -157,11 +157,11 @@ namespace merutilm::rff2 {
 
     const std::function<bool*(RenderScene &)> CallbackFractal::AUTOMATIC_ITERATIONS = [
             ](RenderScene  &scene) {
-        return &scene.getSettings().calculationSettings.autoMaxIteration;
+        return &scene.getSettings().calc.autoMaxIteration;
     };
 
     const std::function<bool*(RenderScene &)> CallbackFractal::ABSOLUTE_ITERATION_MODE = [
             ](RenderScene  &scene) {
-        return &scene.getSettings().calculationSettings.absoluteIterationMode;
+        return &scene.getSettings().calc.absoluteIterationMode;
     };
 }

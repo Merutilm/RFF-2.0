@@ -7,7 +7,7 @@
 #include "../exception/exception.hpp"
 
 namespace merutilm::vkh {
-    DescriptorSetLayout::DescriptorSetLayout(const Core &core, const DescriptorSetLayoutBuilder &layoutBuilder) : CoreHandler(core), layoutBuilder(layoutBuilder) {
+    DescriptorSetLayout::DescriptorSetLayout(const CoreRef core, const DescriptorSetLayoutBuilder &layoutBuilder) : CoreHandler(core), layoutBuilder(layoutBuilder) {
         DescriptorSetLayout::init();
     }
 

@@ -132,7 +132,7 @@ namespace merutilm::rff2 {
     }
 
     void Application::createVulkanContext() {
-        auto core = vkh::Core::createCore();
+        auto core = vkh::Factory::create<vkh::Core>();
         core->createGraphicsContextForWindow(renderWindow, Constants::Win32::INIT_RENDER_SCENE_FPS,
                                              Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
         engine = std::make_unique<vkh::Engine>(std::move(core));
@@ -145,25 +145,25 @@ namespace merutilm::rff2 {
     void Application::setProcedure() {
         const HCURSOR hCursor = LoadCursor(nullptr, IDC_ARROW);
 
-        vkh::GraphicsContextWindow &window = *engine->getCore().getWindowContext(
+        vkh::GraphicsContextWindowImpl &window = *engine->getCore().getWindowContext(
             Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window;
 
         window.setListener(
-            WM_GETMINMAXINFO, [](const vkh::GraphicsContextWindow &, HWND, WPARAM, const LPARAM lparam) {
+            WM_GETMINMAXINFO, [](vkh::GraphicsContextWindowRef , HWND, WPARAM, const LPARAM lparam) {
                 const auto min = reinterpret_cast<LPMINMAXINFO>(lparam);
                 min->ptMinTrackSize.x = Constants::Win32::MIN_WINDOW_WIDTH;
                 min->ptMinTrackSize.y = Constants::Win32::MIN_WINDOW_HEIGHT;
                 return static_cast<LRESULT>(0);
             });
-        window.setListener(WM_MOUSEMOVE, [hCursor](const vkh::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
+        window.setListener(WM_MOUSEMOVE, [hCursor](vkh::GraphicsContextWindowRef , HWND, WPARAM, LPARAM) {
             SetCursor(hCursor);
             return static_cast<LRESULT>(true);
         });
-        window.setListener(WM_SIZING, [this](const vkh::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
+        window.setListener(WM_SIZING, [this](vkh::GraphicsContextWindowRef , HWND, WPARAM, LPARAM) {
             windowResizing = true;
             return static_cast<LRESULT>(0);
         });
-        window.setListener(WM_SIZE, [this](const vkh::GraphicsContextWindow &, HWND, const WPARAM wparam, LPARAM) {
+        window.setListener(WM_SIZE, [this](vkh::GraphicsContextWindowRef , HWND, const WPARAM wparam, LPARAM) {
             if (wparam == SIZE_MAXIMIZED) {
                 resolveWindowResizeEnd();
             }
@@ -173,7 +173,7 @@ namespace merutilm::rff2 {
             return static_cast<LRESULT>(0);
         });
 
-        window.setListener(WM_EXITSIZEMOVE, [this](const vkh::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
+        window.setListener(WM_EXITSIZEMOVE, [this](vkh::GraphicsContextWindowRef , HWND, WPARAM, LPARAM) {
             if (windowResizing) {
                 windowResizing = false;
                 resolveWindowResizeEnd();
@@ -181,11 +181,11 @@ namespace merutilm::rff2 {
             return static_cast<LRESULT>(0);
         });
         window.setListener(
-            WM_INITMENUPOPUP, [this](const vkh::GraphicsContextWindow &, HWND, const WPARAM wparam, LPARAM) {
+            WM_INITMENUPOPUP, [this](vkh::GraphicsContextWindowRef , HWND, const WPARAM wparam, LPARAM) {
                 const auto popup = reinterpret_cast<HMENU>(wparam);
                 const int count = GetMenuItemCount(popup);
                 for (int i = 0; i < count; ++i) {
-                    //synchronize current settings
+                    //synchronize current attr
                     MENUITEMINFO info = {};
                     info.cbSize = sizeof(MENUITEMINFO);
                     info.fMask = MIIM_ID;
@@ -201,7 +201,7 @@ namespace merutilm::rff2 {
                 }
                 return static_cast<LRESULT>(0);
             });
-        window.setListener(WM_COMMAND, [this](const vkh::GraphicsContextWindow &, HWND, const WPARAM wparam, LPARAM) {
+        window.setListener(WM_COMMAND, [this](vkh::GraphicsContextWindowRef , HWND, const WPARAM wparam, LPARAM) {
             const HMENU menu = GetMenu(masterWindow);
             if (const int menuID = LOWORD(wparam);
                 settingsMenu->hasCheckbox(menuID)
@@ -216,11 +216,11 @@ namespace merutilm::rff2 {
             }
             return static_cast<LRESULT>(0);
         });
-        window.setListener(WM_CLOSE, [this](const vkh::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
+        window.setListener(WM_CLOSE, [this](vkh::GraphicsContextWindowRef , HWND, WPARAM, LPARAM) {
             DestroyWindow(masterWindow);
             return static_cast<LRESULT>(0);
         });
-        window.setListener(WM_DESTROY, [](const vkh::GraphicsContextWindow &, HWND, WPARAM, LPARAM) {
+        window.setListener(WM_DESTROY, [](vkh::GraphicsContextWindowRef , HWND, WPARAM, LPARAM) {
             PostQuitMessage(0);
             return static_cast<LRESULT>(0);
         });
@@ -240,14 +240,14 @@ namespace merutilm::rff2 {
             scene->requestRecompute();
         }
 
-        vkh::Core &core = engine->getCore();
+        vkh::CoreRef core = engine->getCore();
         vkh::RenderContext &renderContext = engine->getRenderContext();
         if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
             return;
         }
         vkDeviceWaitIdle(core.getLogicalDevice().getLogicalDeviceHandle());
 
-        vkh::Swapchain &swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
+        vkh::SwapchainRef swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 swapchain;
         swapchain.recreate();
         renderContext.recreate(swapchain.populateSwapchainExtent());
@@ -255,13 +255,13 @@ namespace merutilm::rff2 {
     }
 
     void Application::drawFrame() {
-        vkh::Core &core = engine->getCore();
+        vkh::CoreRef core = engine->getCore();
         const vkh::RenderContext &renderContext = engine->getRenderContext();
         if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
             return;
         }
         changeFrameIndex();
-        const vkh::Swapchain &swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
+        const vkh::SwapchainRef swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 swapchain;
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const VkFence currentFence = engine->getSyncObject().getFence(currentFrame);
@@ -316,7 +316,7 @@ namespace merutilm::rff2 {
     }
 
     void Application::start() const {
-        const vkh::GraphicsContextWindow &window = *engine->getCore().getWindowContext(
+        vkh::GraphicsContextWindowRef window = *engine->getCore().getWindowContext(
                     Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 window;
         window.start();

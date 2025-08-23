@@ -20,7 +20,7 @@ namespace merutilm::vkh {
 
     public:
 
-        explicit Repositories(const Core &core) {
+        explicit Repositories(CoreRef core) {
             addRepository<DescriptorSetLayoutRepo>(core);
             addRepository<SharedDescriptorRepo>(core);
             addRepository<PipelineLayoutRepo>(core);
@@ -47,7 +47,7 @@ namespace merutilm::vkh {
         }
 
         template<typename RepoType> requires std::is_base_of_v<IRepo, RepoType>
-        void addRepository(const Core &engine) {
+        void addRepository(CoreRef engine) {
             if (getRepository<RepoType>() != nullptr) {
                 throw exception_invalid_args("Repository already exists");
             }

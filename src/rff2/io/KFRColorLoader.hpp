@@ -5,7 +5,7 @@
 #pragma once
 #include <memory>
 
-#include "../settings/PaletteSettings.h"
+#include "../attr/ShdPaletteAttribute.h"
 
 namespace merutilm::rff2 {
     struct KFRColorLoader {

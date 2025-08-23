@@ -11,7 +11,7 @@
 #include "LightPAGenerator.h"
 #include "MPAPeriod.h"
 #include "../data/ApproxTableCache.h"
-#include "../settings/MPACompressionMethod.h"
+#include "../attr/CalMPACompressionMethod.h"
 #include "../constants/Constants.hpp"
 #include <algorithm>
 
@@ -24,13 +24,13 @@ namespace merutilm::rff2 {
     struct MPATable {
         static constexpr int REQUIRED_PERTURBATION = 2;
 
-        const MPASettings mpaSettings;
+        const CalMPAAttribute mpaSettings;
         std::vector<ArrayCompressionTool> pulledMPACompressor = std::vector<ArrayCompressionTool>();
         std::unique_ptr<MPAPeriod> mpaPeriod = nullptr;
         ApproxTableCache &tableRef;
 
         explicit MPATable(const ParallelRenderState &state, const Ref &reference,
-                          const MPASettings *mpaSettings, const Num &dcMax,
+                          const CalMPAAttribute *mpaSettings, const Num &dcMax,
                           ApproxTableCache &tableRef,
                           std::function<void(uint64_t, double)> &&
                           actionPerCreatingTableIteration);
@@ -69,7 +69,7 @@ namespace merutilm::rff2 {
          * @param iteration The iteration to pull
          * @return The finally compressed index. if not found, returns @code UINT64_MAX@endcode
          */
-        static uint64_t iterationToCompTableIndex(const MPACompressionMethod &mpaCompressionMethod,
+        static uint64_t iterationToCompTableIndex(const CalMPACompressionMethod &mpaCompressionMethod,
                                                   const MPAPeriod &mpaPeriod,
                                                   const std::vector<ArrayCompressionTool> &pulledMPACompressor,
                                                   uint64_t iteration);
@@ -87,7 +87,7 @@ namespace merutilm::rff2 {
 
     template<typename Ref, typename Num>
     MPATable<Ref, Num>::MPATable(const ParallelRenderState &state, const Ref &reference,
-                                 const MPASettings *mpaSettings, const Num &dcMax,
+                                 const CalMPAAttribute *mpaSettings, const Num &dcMax,
                                  ApproxTableCache &tableRef,
                                  std::function<void(uint64_t, double)> &&
                                  actionPerCreatingTableIteration) : mpaSettings(*mpaSettings), tableRef(tableRef) {
@@ -111,9 +111,9 @@ namespace merutilm::rff2 {
             return;
         }
 
-        const MPACompressionMethod compressionMethod = mpaSettings.mpaCompressionMethod;
+        const CalMPACompressionMethod compressionMethod = mpaSettings.mpaCompressionMethod;
         this->mpaPeriod = MPAPeriod::create(referencePeriod, mpaSettings);
-        this->pulledMPACompressor = compressionMethod == MPACompressionMethod::STRONGEST
+        this->pulledMPACompressor = compressionMethod == CalMPACompressionMethod::STRONGEST
                                         ? createPulledMPACompressor(reference.compressor)
                                         : std::vector<ArrayCompressionTool>();
     }
@@ -421,12 +421,12 @@ namespace merutilm::rff2 {
 
 
     template<typename Ref, typename Num>
-    uint64_t MPATable<Ref, Num>::iterationToCompTableIndex(const MPACompressionMethod &mpaCompressionMethod,
+    uint64_t MPATable<Ref, Num>::iterationToCompTableIndex(const CalMPACompressionMethod &mpaCompressionMethod,
                                                            const MPAPeriod &mpaPeriod,
                                                            const std::vector<ArrayCompressionTool> &pulledMPACompressor,
                                                            const uint64_t iteration) {
         switch (mpaCompressionMethod) {
-                using enum MPACompressionMethod;
+                using enum CalMPACompressionMethod;
             case NO_COMPRESSION: return iteration;
             case LITTLE_COMPRESSION: return iterationToPulledTableIndex(mpaPeriod, iteration);
             case STRONGEST: {

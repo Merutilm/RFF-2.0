@@ -45,8 +45,10 @@ void main() {
     double iteration = getIteration(iterCoord);
 
     if (stripe_attr.type == NONE || iteration == 0) {
-        discard;
+        color = subpassLoad(canvas);
+        return;
     }
+
     double iterCurr = iteration - (stripe_attr.offset + stripe_attr.animationSpeed * time_attr.time);
     float black;
     float rat1 = float(mod(iterCurr, stripe_attr.firstInterval)) / stripe_attr.firstInterval;

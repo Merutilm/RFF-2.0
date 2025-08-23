@@ -10,11 +10,11 @@
 #include "LogicalDevice.hpp"
 
 namespace merutilm::vkh {
-    class Swapchain final : public Handler {
+    class SwapchainImpl final : public Handler {
 
-        const Surface &surface;
-        const PhysicalDevice &physicalDevice;
-        const LogicalDevice &logicalDevice;
+        SurfaceRef surface;
+        PhysicalDeviceLoaderRef physicalDevice;
+        LogicalDeviceRef logicalDevice;
 
         VkSwapchainKHR swapchain = nullptr;
         VkSwapchainKHR oldSwapchain = nullptr;
@@ -22,18 +22,18 @@ namespace merutilm::vkh {
         std::vector<VkImageView> swapchainImageViews = {};
 
     public:
-        explicit Swapchain(const Surface &surface, const PhysicalDevice &physicalDevice,
-                           const LogicalDevice &logicalDevice);
+        explicit SwapchainImpl(SurfaceRef surface, PhysicalDeviceLoaderRef physicalDevice,
+                           LogicalDeviceRef logicalDevice);
 
-        ~Swapchain() override;
+        ~SwapchainImpl() override;
 
-        Swapchain(const Swapchain &) = delete;
+        SwapchainImpl(const SwapchainImpl &) = delete;
 
-        Swapchain &operator=(const Swapchain &) = delete;
+        SwapchainImpl &operator=(const SwapchainImpl &) = delete;
 
-        Swapchain(Swapchain &&) = delete;
+        SwapchainImpl(SwapchainImpl &&) = delete;
 
-        Swapchain &operator=(Swapchain &&) = delete;
+        SwapchainImpl &operator=(SwapchainImpl &&) = delete;
 
         void matchViewportAndScissor(VkCommandBuffer cbh) const;
 
@@ -58,4 +58,8 @@ namespace merutilm::vkh {
 
         void destroyImageViews() const;
     };
+
+    using Swapchain = std::unique_ptr<SwapchainImpl>;
+    using SwapchainPtr = SwapchainImpl *;
+    using SwapchainRef = SwapchainImpl &;
 }

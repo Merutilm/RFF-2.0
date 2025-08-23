@@ -10,7 +10,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void GLRendererFog::setFogSettings(const FogSettings &fogSettings) {
+    void GLRendererFog::setFogSettings(const ShdFogAttribute &fogSettings) {
         this->fogSettings = &fogSettings;
         setAdditionalBlurParams([this](const GLShader &blurShader) {
             blurShader.uploadFloat("radius", this->fogSettings->radius);

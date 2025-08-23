@@ -4,11 +4,11 @@
 
 #pragma once
 #include "GLRendererGaussianBlur.h"
-#include "../settings/BloomSettings.h"
+#include "../attr/ShdBloomAttribute.h"
 
 namespace merutilm::rff2 {
     class GLRendererBloom final : public GLRendererGaussianBlur {
-        const BloomSettings *bloomSettings = nullptr;
+        const ShdBloomAttribute *bloomSettings = nullptr;
 
     public:
         explicit GLRendererBloom();
@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
 
         GLRendererBloom &operator=(GLRendererBloom &&) = delete;
 
-        void setBloomSettings(const BloomSettings &bloomSettings);
+        void setBloomSettings(const ShdBloomAttribute &bloomSettings);
 
         void update() override;
 

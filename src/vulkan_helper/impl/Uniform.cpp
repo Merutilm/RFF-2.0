@@ -5,19 +5,19 @@
 #include "Uniform.hpp"
 
 namespace merutilm::vkh {
-    Uniform::Uniform(const Core &core, HostBufferObjectManager &&manager, const BufferLock bufferLock) : BufferObject(core, std::move(manager), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, bufferLock){
-        Uniform::init();
+    UniformImpl::UniformImpl(const CoreRef core, HostBufferObjectManager &&manager, const BufferLock bufferLock) : BufferObjectImpl(core, std::move(manager), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, bufferLock){
+        UniformImpl::init();
     }
 
-    Uniform::~Uniform() {
-        Uniform::destroy();
+    UniformImpl::~UniformImpl() {
+        UniformImpl::destroy();
     }
 
-    void Uniform::init() {
+    void UniformImpl::init() {
         //nothing to do
     }
 
-    void Uniform::destroy() {
+    void UniformImpl::destroy() {
         //nothing to do
     }
 }

@@ -9,7 +9,7 @@
 
 namespace merutilm::vkh {
 
-    GeneralPostProcessPipelineConfigurator::GeneralPostProcessPipelineConfigurator(const Engine &engine, uint32_t subpassIndex, const std::string &fragName)  : PipelineConfigurator(
+    GeneralPostProcessPipelineConfigurator::GeneralPostProcessPipelineConfigurator(const Engine &engine, const uint32_t subpassIndex, const std::string &fragName)  : PipelineConfigurator(
             engine, subpassIndex, VERTEX_MODULE_PATH, fragName) {
         GeneralPostProcessPipelineConfigurator::init();
     }
@@ -68,8 +68,8 @@ namespace merutilm::vkh {
             configureVertexBuffer(*vertManager);
             configureIndexBuffer(*indexManager);
 
-            vertexBufferPP = std::make_unique<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_ONLY);
-            indexBufferPP = std::make_unique<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_ONLY);
+            vertexBufferPP = Factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_ONLY);
+            indexBufferPP = Factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_ONLY);
             for (int i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
                 vertexBufferPP->update(i);
                 indexBufferPP->update(i);

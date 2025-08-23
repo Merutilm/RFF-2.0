@@ -14,7 +14,7 @@ namespace merutilm::vkh {
         VkPipelineLayout layout = nullptr;
 
     public:
-        explicit PipelineLayout(const Core &core, PipelineLayoutManager &&pipelineLayoutManager);
+        explicit PipelineLayout(const CoreRef core, PipelineLayoutManager &&pipelineLayoutManager);
 
         ~PipelineLayout() override;
 
