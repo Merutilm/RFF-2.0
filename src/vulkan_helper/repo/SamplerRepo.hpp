@@ -4,18 +4,19 @@
 
 #pragma once
 #include "Repo.hpp"
+#include "../def/Factory.hpp"
 #include "../impl/Sampler.hpp"
 #include "../hash/SamplerCreateInfoEquals.hpp"
 #include "../hash/SamplerCreateInfoHasher.hpp"
 
 namespace merutilm::vkh {
 
-    struct SamplerRepo final : public Repo<VkSamplerCreateInfo, VkSamplerCreateInfo &&, Sampler, SamplerCreateInfoHasher, SamplerCreateInfoEquals>{
+    struct SamplerRepo final : public Repository<VkSamplerCreateInfo, VkSamplerCreateInfo &&, Sampler, SamplerRef, SamplerCreateInfoHasher, SamplerCreateInfoEquals>{
 
-        using Repo::Repo;
+        using Repository::Repository;
 
-        const Sampler &pick(VkSamplerCreateInfo && samplerCreateInfo) override {
-            return *repository.try_emplace(samplerCreateInfo, std::make_unique<Sampler>(core, std::move(samplerCreateInfo))).first->second;
+        const SamplerRef &pick(VkSamplerCreateInfo && samplerCreateInfo) override {
+            return *repository.try_emplace(samplerCreateInfo, Factory::create<Sampler>(core, std::move(samplerCreateInfo))).first->second;
         }
     };
 }

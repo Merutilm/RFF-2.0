@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "ColorSmoothingMethod.h"
+#include "ShdPalColorSmoothingMethod.h"
 #include "CalDecimalizeIterationMethod.h"
 #include "CalMPACompressionMethod.h"
 #include "CalMPASelectionMethod.h"
@@ -50,8 +50,8 @@ namespace merutilm::rff2 {
                     STRONGEST
                 };
             }
-            if constexpr (std::is_same_v<E, ColorSmoothingMethod>) {
-                using enum ColorSmoothingMethod;
+            if constexpr (std::is_same_v<E, ShdPalColorSmoothingMethod>) {
+                using enum ShdPalColorSmoothingMethod;
                 return {
                     NONE,
                     NORMAL,
@@ -113,9 +113,9 @@ namespace merutilm::rff2 {
                     default: break;
                 }
             }
-            if constexpr (std::is_same_v<E, ColorSmoothingMethod>) {
+            if constexpr (std::is_same_v<E, ShdPalColorSmoothingMethod>) {
                 switch (value) {
-                    using enum ColorSmoothingMethod;
+                    using enum ShdPalColorSmoothingMethod;
                     case NONE: return "None";
                     case NORMAL: return "Normal";
                     case REVERSED: return "Reversed";

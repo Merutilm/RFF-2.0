@@ -7,7 +7,7 @@
 #include <windows.h>
 #include <atomic>
 
-#include "../../vulkan_helper/configurator/PipelineConfigurator.hpp"
+#include "../../vulkan_helper/configurator/GraphicsPipelineConfigurator.hpp"
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
 #include "../data/ApproxTableCache.h"
 #include "../formula/MandelbrotPerturbator.h"
@@ -15,15 +15,14 @@
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
 #include "../attr/Attribute.h"
+#include "../vulkan/ColorPipelineConfigurator.hpp"
 #include "../vulkan/IterationPalettePipelineConfigurator.hpp"
 #include "../vulkan/SlopePipelineConfigurator.hpp"
 #include "../vulkan/StripePipelineConfigurator.hpp"
+#include "../vulkan/TempPresentPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
-
-    class RenderScene final {
-
-        vkh::Engine &engine;
+    class RenderScene final : vkh::EngineHandler {
         HWND window;
 
         ParallelRenderState state;
@@ -34,10 +33,13 @@ namespace merutilm::rff2 {
 
         uint64_t lastPeriod = 1;
 
+        static constexpr uint32_t BLUR_MAX_WIDTH = 300;
+
+
 
         std::atomic<bool> recomputeRequested = false;
         std::atomic<bool> resizeRequested = false;
-        std::atomic<bool> colorRequested = false;
+        std::atomic<bool> shaderRequested = false;
         std::atomic<bool> createImageRequested = false;
         std::string createImageRequestedFilename;
 
@@ -49,12 +51,16 @@ namespace merutilm::rff2 {
         std::unique_ptr<RFFDynamicMapBinary> currentMap = nullptr;
         std::unique_ptr<Matrix<double> > iterationMatrix = nullptr;
         std::unique_ptr<MandelbrotPerturbator> currentPerturbator = nullptr;
-        
-        std::vector<std::unique_ptr<vkh::PipelineConfigurator>> shaderPrograms = {};
-        IterationPalettePipelineConfigurator * rendererIteration;
-        StripePipelineConfigurator * rendererStripe;
-        SlopePipelineConfigurator * rendererSlope;
 
+
+        std::vector<std::unique_ptr<vkh::GraphicsPipelineConfigurator> > firstRenderPassShaderPrograms = {};
+
+
+        IterationPalettePipelineConfigurator *rendererIteration;
+        StripePipelineConfigurator *rendererStripe;
+        SlopePipelineConfigurator *rendererSlope;
+        ColorPipelineConfigurator *rendererColor;
+        TempPresentPipelineConfigurator *rendererTempPresent;
 
 
         uint16_t cwRequest = 0;
@@ -63,9 +69,10 @@ namespace merutilm::rff2 {
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
     public:
-        explicit RenderScene(vkh::Engine& engine, HWND window, std::array<std::string, Constants::Status::LENGTH> *statusMessageRef);
+        explicit RenderScene(vkh::EngineRef engine, HWND window,
+                             std::array<std::string, Constants::Status::LENGTH> *statusMessageRef);
 
-        ~RenderScene();
+        ~RenderScene() override;
 
         RenderScene(const RenderScene &) = delete;
 
@@ -77,11 +84,15 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] HWND getWindowHandle() const { return window; }
 
-        void render(VkCommandBuffer cbh, uint32_t frameIndex, const VkExtent2D &extent);
+        void resolveWindowResizeEnd() const;
+
+        void render(vkh::SwapchainRef swapchain, uint32_t frameIndex, uint32_t imageIndex);
+
+        void draw(vkh::SwapchainRef swapchain, uint32_t frameIndex, uint32_t imageIndex);
 
 
-        void requestColor() {
-            colorRequested = true;
+        void requestShader() {
+            shaderRequested = true;
         }
 
         void requestResize() {
@@ -96,6 +107,22 @@ namespace merutilm::rff2 {
             createImageRequested = true;
             createImageRequestedFilename = filename;
         };
+
+        VkExtent2D getInternalRenderContextExtent() const {
+            const auto &swapchain = *engine.getCore().getWindowContext(
+                Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+            const auto [width, height] = swapchain.populateSwapchainExtent();
+            const float multiplier = attr.render.clarityMultiplier;
+            return {
+                static_cast<uint32_t>(width * multiplier), static_cast<uint32_t>(height * multiplier)
+            };
+        }
+
+        VkExtent2D getExternalRenderContextExtent() const {
+            const auto &swapchain = *engine.getCore().getWindowContext(
+               Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+            return swapchain.populateSwapchainExtent();
+        }
 
 
         static Attribute defaultSettings();
@@ -116,7 +143,7 @@ namespace merutilm::rff2 {
 
         void applyCreateImage();
 
-        void applyColor(const Attribute &attr) const;
+        void applyShaderAttr(const Attribute &attr) const;
 
         void applyResize();
 
@@ -138,7 +165,7 @@ namespace merutilm::rff2 {
             (*statusMessageRef)[index] = std::string("  ").append(message);
         }
 
-        [[nodiscard]] Attribute &getSettings() {
+        [[nodiscard]] Attribute &getAttribute() {
             return attr;
         }
 
@@ -170,8 +197,10 @@ namespace merutilm::rff2 {
             currentMap = std::make_unique<RFFDynamicMapBinary>(map);
         }
 
-        [[nodiscard]] const std::vector<std::unique_ptr<vkh::PipelineConfigurator>> &getShaderPrograms() { return shaderPrograms; }
-        
+        [[nodiscard]] const std::vector<std::unique_ptr<vkh::GraphicsPipelineConfigurator> > &getShaderPrograms() {
+            return firstRenderPassShaderPrograms;
+        }
+
         [[nodiscard]] bool isRecomputeRequested() const {
             return recomputeRequested;
         }
@@ -185,7 +214,7 @@ namespace merutilm::rff2 {
         }
 
         [[nodiscard]] bool isColorRequested() const {
-            return colorRequested;
+            return shaderRequested;
         }
 
         [[nodiscard]] bool isIdleCompute() const {
@@ -208,18 +237,17 @@ namespace merutilm::rff2 {
 
         template<typename P> requires std::is_base_of_v<Preset, P>
         void changePreset(P &preset);
-        
-    private:
 
+    private:
         void runAction(UINT msg, WPARAM wparam, LPARAM lparam);
 
-        void init();
+        void init() override;
 
         void initRenderContext() const;
 
         void initShaderPrograms();
 
-        void destroy();
+        void destroy() override;
     };
 
 
@@ -259,8 +287,7 @@ namespace merutilm::rff2 {
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::BloomPreset, P>) {
                 attr.shader.bloom = preset.genBloom();
             }
-            requestColor();
+            requestShader();
         }
     }
-
 }

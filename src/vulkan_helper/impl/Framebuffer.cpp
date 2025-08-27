@@ -7,25 +7,25 @@
 #include "../util/BufferImageUtils.hpp"
 
 namespace merutilm::vkh {
-    Framebuffer::Framebuffer(const CoreRef core, const RenderPass &renderPass,
+    FramebufferImpl::FramebufferImpl(CoreRef core, RenderPassRef renderPass,
                              const VkExtent2D extent) : CoreHandler(core), renderPass(renderPass), extent(extent) {
-        Framebuffer::init();
+        FramebufferImpl::init();
     }
 
-    Framebuffer::~Framebuffer() {
-        Framebuffer::destroy();
+    FramebufferImpl::~FramebufferImpl() {
+        FramebufferImpl::destroy();
     }
 
-    void Framebuffer::init() {
+    void FramebufferImpl::init() {
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         const auto [width, height] = extent;
         framebuffer.resize(maxFramesInFlight);
         auto & attachments = renderPass.getManager().getAttachments();
 
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-            auto attachmentImageViews = std::vector<VkImageView>(attachments.size());
-            std::ranges::transform(attachments, attachmentImageViews.begin(), [i](const RenderPassAttachment &v) {
-                return v.imageContext[i].imageView;
+            auto attachmentWriteImageViews = std::vector<VkImageView>(attachments.size());
+            std::ranges::transform(attachments, attachmentWriteImageViews.begin(), [i](const RenderPassAttachment &v) {
+                return v.imageContext[i].writeImageView;
             });
 
 
@@ -35,8 +35,8 @@ namespace merutilm::vkh {
                 .pNext = nullptr,
                 .flags = 0,
                 .renderPass = renderPass.getRenderPassHandle(),
-                .attachmentCount = static_cast<uint32_t>(attachmentImageViews.size()),
-                .pAttachments = attachmentImageViews.data(),
+                .attachmentCount = static_cast<uint32_t>(attachmentWriteImageViews.size()),
+                .pAttachments = attachmentWriteImageViews.data(),
                 .width = width,
                 .height = height,
                 .layers = 1
@@ -50,7 +50,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void Framebuffer::destroy() {
+    void FramebufferImpl::destroy() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {

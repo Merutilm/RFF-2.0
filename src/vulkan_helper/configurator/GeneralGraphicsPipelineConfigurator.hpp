@@ -5,32 +5,34 @@
 #pragma once
 #include <string>
 
-#include "PipelineConfigurator.hpp"
+#include "GraphicsPipelineConfigurator.hpp"
 #include "../context/RenderContext.hpp"
 #include "../handle/EngineHandler.hpp"
-#include "../impl/Pipeline.hpp"
+#include "../impl/IndexBuffer.hpp"
+#include "../impl/VertexBuffer.hpp"
 
 
 namespace merutilm::vkh {
-    class GeneralPipelineConfigurator : public PipelineConfigurator {
+    class GeneralGraphicsPipelineConfigurator : public GraphicsPipelineConfigurator {
         VertexBuffer vertexBuffer = {};
         IndexBuffer indexBuffer = nullptr;
 
     public:
-        explicit GeneralPipelineConfigurator(const Engine &engine,
+        explicit GeneralGraphicsPipelineConfigurator(EngineRef engine,
+                                             uint32_t renderContextIndex,
                                              uint32_t subpassIndex,
                                              const std::string &vertName,
                                              const std::string &fragName);
 
-        ~GeneralPipelineConfigurator() override;
+        ~GeneralGraphicsPipelineConfigurator() override;
 
-        GeneralPipelineConfigurator(const GeneralPipelineConfigurator &) = delete;
+        GeneralGraphicsPipelineConfigurator(const GeneralGraphicsPipelineConfigurator &) = delete;
 
-        GeneralPipelineConfigurator(GeneralPipelineConfigurator &&) = delete;
+        GeneralGraphicsPipelineConfigurator(GeneralGraphicsPipelineConfigurator &&) = delete;
 
-        GeneralPipelineConfigurator &operator=(const GeneralPipelineConfigurator &) = delete;
+        GeneralGraphicsPipelineConfigurator &operator=(const GeneralGraphicsPipelineConfigurator &) = delete;
 
-        GeneralPipelineConfigurator &operator=(GeneralPipelineConfigurator &&) = delete;
+        GeneralGraphicsPipelineConfigurator &operator=(GeneralGraphicsPipelineConfigurator &&) = delete;
 
         void configure() override;
 

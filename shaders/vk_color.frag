@@ -1,16 +1,20 @@
 #version 450
 
-uniform sampler2D inputTex;
+layout (input_attachment_index = 0, set = 0, binding = 0) uniform subpassInput canvas;
 
-uniform float gamma;
-uniform float exposure;
-uniform float hue;
-uniform float saturation;
-uniform float brightness;
-uniform float contrast;
+layout (set = 1, binding = 0) uniform ColorUBO {
+    float gamma;
+    float exposure;
+    float hue;
+    float saturation;
+    float brightness;
+    float contrast;
+} color_attr;
 
-in vec4 fColor;
-out vec4 color;
+layout (location = 0) in vec3 fragColor;
+layout (location = 1) in vec2 fragTexcoord;
+
+layout (location = 0) out vec4 color;
 
 float grayScale(vec3 c) {
     return c.r * 0.3 + c.g * 0.59 + c.b * 0.11;
@@ -23,7 +27,7 @@ vec3 fixColor(vec3 col) {
 float getHue(vec3 col) {
     float high = max(max(col.r, col.g), col.b);
     float low = min(min(col.r, col.g), col.b);
-    if(high == low){
+    if (high == low) {
         return 0;
     }
 
@@ -116,14 +120,14 @@ vec3 addHue(vec3 col, float add) {
 
 void main() {
 
-    vec3 c = texelFetch(inputTex, ivec2(gl_FragCoord.xy), 0).rgb;
+    vec3 c = subpassLoad(canvas).rgb;
 
-    c = fixColor(pow(c, vec3(1 / gamma)));
-    c = fixColor(c * (1 + exposure) / (1 - exposure));
-    c = fixColor(addHue(c, hue));
+    c = fixColor(pow(c, vec3(1 / color_attr.gamma)));
+    c = fixColor(c * (1 + color_attr.exposure) / (1 - color_attr.exposure));
+    c = fixColor(addHue(c, color_attr.hue));
     float gray = grayScale(c);
-    c = fixColor(c + (c - vec3(gray, gray, gray)) * saturation);
-    c = fixColor(c + brightness);
-    c = fixColor((c - 0.5) / (1 - contrast) * (1 + contrast) + 0.5);
+    c = fixColor(c + (c - vec3(gray, gray, gray)) * color_attr.saturation);
+    c = fixColor(c + color_attr.brightness);
+    c = fixColor((c - 0.5) / (1 - color_attr.contrast) * (1 + color_attr.contrast) + 0.5);
     color = vec4(c, 1);
 }

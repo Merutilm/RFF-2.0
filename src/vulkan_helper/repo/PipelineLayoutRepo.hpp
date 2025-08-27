@@ -10,15 +10,15 @@
 #include "../impl/PipelineLayout.hpp"
 
 namespace merutilm::vkh {
-    struct PipelineLayoutRepo final : Repo<PipelineLayoutManagerPtr, PipelineLayoutManager &&, PipelineLayout, PipelineLayoutManagerPtrHasher, PointerDerefEquals>{
+    struct PipelineLayoutRepo final : Repository<PipelineLayoutManagerPtr, PipelineLayoutManager &&, PipelineLayout,
+                PipelineLayoutRef, PipelineLayoutManagerPtrHasher, PointerDerefEquals> {
+        using Repository::Repository;
 
-        using Repo::Repo;
-
-        const PipelineLayout &pick(PipelineLayoutManager &&layoutManager) override {
+        PipelineLayoutRef pick(PipelineLayoutManager &&layoutManager) override {
             const PipelineLayoutManagerPtr ptr = layoutManager.get();
-            return *repository.try_emplace(ptr, std::make_unique<PipelineLayout>(core, std::move(layoutManager))).first->
+            return *repository.try_emplace(ptr, Factory::create<PipelineLayout>(core, std::move(layoutManager))).
+                    first->
                     second;
         }
-
     };
 }

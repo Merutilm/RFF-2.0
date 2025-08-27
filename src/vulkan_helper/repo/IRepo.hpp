@@ -6,9 +6,13 @@
 
 namespace merutilm::vkh {
 
-    struct IRepo {
+    struct InterfaceRepoImpl {
 
-        virtual ~IRepo() = default;
+        virtual ~InterfaceRepoImpl() = default;
 
     };
+
+    using InterfaceRepo = std::unique_ptr<InterfaceRepoImpl>;
+    using InterfaceRepoPtr = InterfaceRepoImpl *;
+    using InterfaceRepoRef = InterfaceRepoImpl &;
 }

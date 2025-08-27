@@ -8,23 +8,23 @@
 #include "../manage/PipelineLayoutManager.hpp"
 
 namespace merutilm::vkh {
-    class PipelineLayout final : public CoreHandler {
+    class PipelineLayoutImpl final : public CoreHandler {
 
         PipelineLayoutManager pipelineLayoutManager = nullptr;
         VkPipelineLayout layout = nullptr;
 
     public:
-        explicit PipelineLayout(const CoreRef core, PipelineLayoutManager &&pipelineLayoutManager);
+        explicit PipelineLayoutImpl(const CoreRef core, PipelineLayoutManager &&pipelineLayoutManager);
 
-        ~PipelineLayout() override;
+        ~PipelineLayoutImpl() override;
 
-        PipelineLayout(const PipelineLayout &) = delete;
+        PipelineLayoutImpl(const PipelineLayoutImpl &) = delete;
 
-        PipelineLayout &operator=(const PipelineLayout &) = delete;
+        PipelineLayoutImpl &operator=(const PipelineLayoutImpl &) = delete;
 
-        PipelineLayout(PipelineLayout &&) = delete;
+        PipelineLayoutImpl(PipelineLayoutImpl &&) = delete;
 
-        PipelineLayout &operator=(PipelineLayout &&) = delete;
+        PipelineLayoutImpl &operator=(PipelineLayoutImpl &&) = delete;
 
         void push(VkCommandBuffer commandBuffer) const;
 
@@ -37,4 +37,9 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    
+    using PipelineLayout = std::unique_ptr<PipelineLayoutImpl>;
+    using PipelineLayoutPtr = PipelineLayoutImpl *;
+    using PipelineLayoutRef = PipelineLayoutImpl &;
 }

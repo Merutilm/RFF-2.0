@@ -1,43 +1,36 @@
 //
-// Created by Merutilm on 2025-07-11.
+// Created by Merutilm on 2025-08-27.
 //
 
-#include "Pipeline.hpp"
-
-#include <utility>
-
-#include "RenderPass.hpp"
+#include "GraphicsPipeline.hpp"
 
 namespace merutilm::vkh {
-    Pipeline::Pipeline(const Engine &engine, const PipelineLayout &pipelineLayout,
+    GraphicsPipelineImpl::GraphicsPipelineImpl(EngineRef engine, PipelineLayoutRef pipelineLayout,
                        VertexBufferRef vertexBuffer,
                        IndexBufferRef indexBuffer,
-                       const uint32_t subpassIndex,
-                       PipelineManager &&pipelineManager) : EngineHandler(engine),
-                                                                             pipelineLayout(pipelineLayout),
-                                                                             subpassIndex(subpassIndex),
-                                                                             vertexBuffer(vertexBuffer),
-                                                                             indexBuffer(indexBuffer),
-                                                                             pipelineManager(
-                                                                                 std::move(pipelineManager)) {
-        Pipeline::init();
+                       const uint32_t renderContextIndex,
+                       const uint32_t primarySubpassIndex,
+                       PipelineManager &&pipelineManager) : PipelineAbstract(engine, pipelineLayout, renderContextIndex, primarySubpassIndex, std::move(pipelineManager)),
+                                                            vertexBuffer(vertexBuffer),
+                                                            indexBuffer(indexBuffer) {
+        GraphicsPipelineImpl::init();
     }
 
-    Pipeline::~Pipeline() {
-        Pipeline::destroy();
+    GraphicsPipelineImpl::~GraphicsPipelineImpl() {
+        GraphicsPipelineImpl::destroy();
     }
 
-    void Pipeline::bind(const VkCommandBuffer cbh, const uint32_t frameIndex) const {
+    void GraphicsPipelineImpl::bind(const VkCommandBuffer cbh, const uint32_t frameIndex) const {
         const auto sets = pipelineManager->getDescriptorSets(frameIndex);
         vkCmdBindPipeline(cbh, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
         vkCmdBindDescriptorSets(cbh, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                 pipelineManager->getLayout().getLayoutHandle(), 0,
+                                pipelineManager->getLayout().getLayoutHandle(), 0,
                                 static_cast<uint32_t>(sets.size()), sets.data(), 0,
                                 nullptr);
     }
 
 
-    void Pipeline::init() {
+    void GraphicsPipelineImpl::init() {
         auto modules = pipelineManager->getShaderModules();
 
         std::vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos(modules.size());
@@ -178,20 +171,17 @@ namespace merutilm::vkh {
             .pColorBlendState = &colorBlendStateCreateInfo,
             .pDynamicState = &dynamicState,
             .layout = pipelineLayout.getLayoutHandle(),
-            .renderPass = engine.getRenderContext().renderPass->getRenderPassHandle(),
-            .subpass = subpassIndex,
+            .renderPass = engine.getRenderContext(renderContextIndex).getRenderPass()->getRenderPassHandle(),
+            .subpass = primarySubpassIndex,
             .basePipelineHandle = nullptr,
             .basePipelineIndex = -1
         };
+
 
         if (vkCreateGraphicsPipelines(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), nullptr, 1, &info,
                                       nullptr,
                                       &pipeline) != VK_SUCCESS) {
             throw exception_init("Failed to create graphics pipeline!");
         }
-    }
-
-    void Pipeline::destroy() {
-        vkDestroyPipeline(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), pipeline, nullptr);
     }
 }

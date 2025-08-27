@@ -163,7 +163,7 @@ namespace merutilm::rff2 {
 
         p.iterationInterval = 18000000.0f;
         p.offsetRatio = 0;
-        p.colorSmoothing = ColorSmoothingMethod::NORMAL;
+        p.colorSmoothing = ShdPalColorSmoothingMethod::NORMAL;
         return p;
     }
 
@@ -219,7 +219,7 @@ namespace merutilm::rff2 {
 
         p.iterationInterval = 2000000.0f;
         p.offsetRatio = 0.55f;
-        p.colorSmoothing = ColorSmoothingMethod::NORMAL;
+        p.colorSmoothing = ShdPalColorSmoothingMethod::NORMAL;
         return p;
     }
 
@@ -240,7 +240,7 @@ namespace merutilm::rff2 {
         p.colors.push_back(NormalizedColor{0.439215f, 0.211764f, 0.615686f, 1.000000f});
         p.iterationInterval = 300;
         p.offsetRatio = 0;
-        p.colorSmoothing = ColorSmoothingMethod::NORMAL;
+        p.colorSmoothing = ShdPalColorSmoothingMethod::NORMAL;
         return p;
     }
 }

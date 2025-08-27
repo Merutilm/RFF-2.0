@@ -18,7 +18,7 @@
 namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::DATA_SETTINGS = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[defaultZoomIncrement, isStatic] = scene.getSettings().video.dataAttribute;
+        auto &[defaultZoomIncrement, isStatic] = scene.getAttribute().video.dataAttribute;
         auto window = std::make_unique<SettingsWindow>(L"Data Settings");
 
         window->registerTextInput<float>("Default Zoom Increment", &defaultZoomIncrement,
@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
 
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::ANIMATION_SETTINGS = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[overZoom, showText, mps] = scene.getSettings().video.animationAttribute;
+        auto &[overZoom, showText, mps] = scene.getAttribute().video.animationAttribute;
         auto window = std::make_unique<SettingsWindow>(L"Animation Settings");
         window->registerTextInput<float>("Over Zoom", &overZoom, Unparser::FLOAT, Parser::FLOAT,
                                          ValidCondition::POSITIVE_FLOAT_ZERO, Callback::NOTHING, "Over Zoom",
@@ -58,7 +58,7 @@ namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::EXPORT_SETTINGS = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto window = std::make_unique<SettingsWindow>(L"Export Settings");
-        auto &[fps, bitrate] = scene.getSettings().video.exportAttribute;
+        auto &[fps, bitrate] = scene.getAttribute().video.exportAttribute;
         window->registerTextInput<float>("FPS", &fps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
                                          Callback::NOTHING, "Set video FPS", "Set the fps of the video to export.");
         window->registerTextInput<uint32_t>("Bitrate", &bitrate, Unparser::U_SHORT, Parser::U_SHORT,
@@ -77,7 +77,7 @@ namespace merutilm::rff2 {
                 const auto &state = scene.getState();
                 const auto dirPtr = IOUtilities::ioDirectoryDialog("Folder to generate keyframes");
 
-                float &logZoom = scene.getSettings().calc.logZoom;
+                float &logZoom = scene.getAttribute().calc.logZoom;
                 if (dirPtr == nullptr) {
                     return;
                 }
@@ -88,7 +88,7 @@ namespace merutilm::rff2 {
 
                 const auto &dir = *dirPtr;
                 bool nextFrame = false;
-                Attribute &settings = scene.getSettings();
+                Attribute &settings = scene.getAttribute();
                 const VideoAttribute &videoSettings = settings.video;
 
                 if (videoSettings.dataAttribute.isStatic) {
@@ -96,7 +96,7 @@ namespace merutilm::rff2 {
                     settings.shader.slope = ShdSlopePresets::Disabled().genSlope();
                     settings.shader.fog = ShdFogPresets::Disabled().genFog();
                     settings.shader.bloom = BloomPresets::Disabled().genBloom();
-                    scene.requestColor();
+                    scene.requestShader();
                     thread.waitUntil([&scene] { return !scene.isColorRequested(); });
                 }
                 const float increment = std::log10(videoSettings.dataAttribute.defaultZoomIncrement);
@@ -142,7 +142,7 @@ namespace merutilm::rff2 {
                 return;
             }
             const auto &save = *savePtr;
-            VideoWindow::createVideo(scene.getSettings(), open, save);
+            VideoWindow::createVideo(scene.getAttribute(), open, save);
         });
     };
 }

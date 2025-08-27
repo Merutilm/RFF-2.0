@@ -14,15 +14,21 @@ namespace merutilm::vkh {
     using MultiframeImageContext = std::vector<ImageContext>;
 
     struct ImageContext {
-        VkImage image;
-        VkDeviceMemory imageMemory;
-        VkImageView imageView;
-        VkImageLayout imageLayout;
+        VkImage image = VK_NULL_HANDLE;
+        VkDeviceMemory imageMemory = VK_NULL_HANDLE;
+        VkImageView writeImageView = VK_NULL_HANDLE;
+        VkImageView readImageView = VK_NULL_HANDLE;
+        std::vector<VkImageLayout> mipImageLayout = {};
+        VkExtent2D extent = {};
 
         static ImageContext createContext(CoreRef core, const ImageInitInfo &imageInitInfo) {
             ImageContext result = {};
             BufferImageUtils::initImage(core, imageInitInfo, &result.image, &result.imageMemory,
-                                        &result.imageView);
+                                        &result.writeImageView, &result.readImageView);
+            result.extent = {imageInitInfo.extent.width, imageInitInfo.extent.height};
+            const auto mipLevels = BufferImageUtils::genMipLevels(imageInitInfo);
+            result.mipImageLayout = std::vector<VkImageLayout>(mipLevels);
+            std::ranges::fill(result.mipImageLayout, VK_IMAGE_LAYOUT_UNDEFINED);
             return result;
         }
 
@@ -31,23 +37,25 @@ namespace merutilm::vkh {
             std::vector<ImageContext> result(maxFramesInFlight);
 
             for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-                BufferImageUtils::initImage(core, imageInitInfo, &result[i].image, &result[i].imageMemory,
-                                            &result[i].imageView);
+                result[i] = createContext(core, imageInitInfo);
             }
+
             return result;
         }
 
         static void destroyContext(CoreRef core, const ImageContext *const imgCtx) {
             const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-            vkDestroyImageView(device, imgCtx->imageView, nullptr);
+            vkDestroyImageView(device, imgCtx->writeImageView, nullptr);
+            vkDestroyImageView(device, imgCtx->readImageView, nullptr);
             vkDestroyImage(device, imgCtx->image, nullptr);
             vkFreeMemory(device, imgCtx->imageMemory, nullptr);
         }
 
         static void destroyContext(CoreRef core, const MultiframeImageContext *const imgCtx) {
             const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-            for (const auto &[image, imageMemory, imageView, imageLayout]: *imgCtx) {
-                vkDestroyImageView(device, imageView, nullptr);
+            for (const auto &[image, imageMemory, writeImageView, readImageView, imageLayout, extent]: *imgCtx) {
+                vkDestroyImageView(device, writeImageView, nullptr);
+                vkDestroyImageView(device, readImageView, nullptr);
                 vkDestroyImage(device, image, nullptr);
                 vkFreeMemory(device, imageMemory, nullptr);
             }
@@ -57,12 +65,17 @@ namespace merutilm::vkh {
             const auto images = swapchain.getSwapchainImages();
             const auto imageViews = swapchain.getSwapchainImageViews();
             const auto maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+            const auto extent = swapchain.populateSwapchainExtent();
+
             std::vector<ImageContext> result(maxFramesInFlight);
+
             for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
                 result[i].image = images[i];
                 result[i].imageMemory = VK_NULL_HANDLE;
-                result[i].imageView = imageViews[i];
-                result[i].imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                result[i].writeImageView = imageViews[i];
+                result[i].readImageView = imageViews[i];
+                result[i].extent = extent;
+                result[i].mipImageLayout = {VK_IMAGE_LAYOUT_UNDEFINED};
             }
             return result;
         }

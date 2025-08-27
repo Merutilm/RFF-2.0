@@ -2,29 +2,30 @@
 // Created by Merutilm on 2025-08-05.
 //
 
-#include "GeneralPostProcessPipelineConfigurator.hpp"
+#include "GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 #include "../def/Factory.hpp"
+#include "../impl/GraphicsPipeline.hpp"
 #include "../struct/Vertex.hpp"
 
 namespace merutilm::vkh {
 
-    GeneralPostProcessPipelineConfigurator::GeneralPostProcessPipelineConfigurator(const Engine &engine, const uint32_t subpassIndex, const std::string &fragName)  : PipelineConfigurator(
-            engine, subpassIndex, VERTEX_MODULE_PATH, fragName) {
-        GeneralPostProcessPipelineConfigurator::init();
+    GeneralPostProcessGraphicsPipelineConfigurator::GeneralPostProcessGraphicsPipelineConfigurator(EngineRef engine, const uint32_t renderContextIndex, const uint32_t primarySubpassIndex, const std::string &fragName) : GraphicsPipelineConfigurator(
+            engine, renderContextIndex, primarySubpassIndex, VERTEX_MODULE_PATH, fragName) {
+        GeneralPostProcessGraphicsPipelineConfigurator::init();
     }
-    GeneralPostProcessPipelineConfigurator::~GeneralPostProcessPipelineConfigurator() {
-        GeneralPostProcessPipelineConfigurator::destroy();
+    GeneralPostProcessGraphicsPipelineConfigurator::~GeneralPostProcessGraphicsPipelineConfigurator() {
+        GeneralPostProcessGraphicsPipelineConfigurator::destroy();
     }
 
 
-    void GeneralPostProcessPipelineConfigurator::render(const VkCommandBuffer cbh, const uint32_t frameIndex, uint32_t width, uint32_t height) {
+    void GeneralPostProcessGraphicsPipelineConfigurator::render(const VkCommandBuffer cbh, const uint32_t frameIndex) {
         pushAll(cbh);
         draw(cbh, frameIndex, 0);
     }
 
 
-    void GeneralPostProcessPipelineConfigurator::configureVertexBuffer(HostBufferObjectManagerRef som) {
+    void GeneralPostProcessGraphicsPipelineConfigurator::configureVertexBuffer(HostBufferObjectManagerRef som) {
         som.addArray(0, std::vector{
                     Vertex::generate({1, 1, 0}, {1, 1, 1}, {1, 1}),
                     Vertex::generate({1, -1, 0}, {1, 1, 1}, {1, 0}),
@@ -33,24 +34,24 @@ namespace merutilm::vkh {
                 });
     }
 
-    void GeneralPostProcessPipelineConfigurator::configureIndexBuffer(HostBufferObjectManagerRef som) {
+    void GeneralPostProcessGraphicsPipelineConfigurator::configureIndexBuffer(HostBufferObjectManagerRef som) {
         som.addArray(0, std::vector<uint32_t>{0, 1, 2, 2, 3, 0});
     }
 
-    void GeneralPostProcessPipelineConfigurator::configure() {
+    void GeneralPostProcessGraphicsPipelineConfigurator::configure() {
         auto pipelineLayoutManager = Factory::create<PipelineLayoutManager>();
         auto &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
 
-        std::vector<const Descriptor *> descriptors = {};
+        std::vector<DescriptorPtr> descriptors = {};
         configureDescriptors(descriptors);
 
         for (const auto descriptor: descriptors) {
-            const DescriptorSetLayout &layout = layoutRepo.pick(descriptor->getDescriptorManager().getLayoutBuilder());
+            DescriptorSetLayoutRef layout = layoutRepo.pick(descriptor->getDescriptorManager().getLayoutBuilder());
             pipelineLayoutManager->appendDescriptorSetLayout(&layout);
         }
 
         configurePushConstant(*pipelineLayoutManager);
-        const PipelineLayout &pipelineLayout = engine.getRepositories().getRepository<PipelineLayoutRepo>()->pick(
+        PipelineLayoutRef pipelineLayout = engine.getRepositories().getRepository<PipelineLayoutRepo>()->pick(
             std::move(pipelineLayoutManager));
 
 
@@ -80,17 +81,17 @@ namespace merutilm::vkh {
         }
 
         if (initializedVertexIndex) {
-            pipeline = std::make_unique<Pipeline>(engine, pipelineLayout, getVertexBuffer(), getIndexBuffer(),
-                                                  subpassIndex,
+            pipeline = Factory::create<GraphicsPipeline>(engine, pipelineLayout, getVertexBuffer(), getIndexBuffer(), renderContextIndex,
+                                                  primarySubpassIndex,
                                                   std::move(pipelineManager));
         }
     }
 
-    void GeneralPostProcessPipelineConfigurator::init() {
+    void GeneralPostProcessGraphicsPipelineConfigurator::init() {
         //no operation
     }
 
-    void GeneralPostProcessPipelineConfigurator::destroy() {
+    void GeneralPostProcessGraphicsPipelineConfigurator::destroy() {
         pipeline = nullptr;
     }
 }

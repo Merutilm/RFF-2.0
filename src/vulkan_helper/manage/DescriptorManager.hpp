@@ -13,6 +13,7 @@
 #include "../struct/DescriptorSetLayoutBuildType.hpp"
 #include "../struct/StringHasher.hpp"
 #include "../context/ImageContext.hpp"
+#include "../impl/CombinedMultiframeImageSampler.hpp"
 #include "../impl/ShaderStorage.hpp"
 
 namespace merutilm::vkh {
@@ -20,7 +21,7 @@ namespace merutilm::vkh {
     using DescriptorSetLayoutBuilderHasher = VectorHasher<DescriptorSetLayoutBuildType,
         DescriptorSetLayoutBuildTypeHasher>;
 
-    using DescriptorType = std::variant<Uniform, ShaderStorage, CombinedImageSampler, ImageContext>;
+    using DescriptorType = std::variant<Uniform, ShaderStorage, CombinedImageSampler, CombinedMultiframeImageSampler, MultiframeImageContext>;
 
 
     class DescriptorManagerImpl {
@@ -41,7 +42,7 @@ namespace merutilm::vkh {
         DescriptorManagerImpl &operator=(DescriptorManagerImpl &&) noexcept = delete;
 
         template<typename T>
-        uint32_t getElementCount() const {
+        [[nodiscard]] uint32_t getElementCount() const {
             uint32_t count = 0;
             for (auto &variant: data) {
                 if (std::holds_alternative<T>(variant)) ++count;
@@ -49,7 +50,7 @@ namespace merutilm::vkh {
             return count;
         }
 
-        uint32_t getElements() const {
+        [[nodiscard]] uint32_t getElements() const {
             return static_cast<uint32_t>(data.size());
         }
 
@@ -78,10 +79,18 @@ namespace merutilm::vkh {
             layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, useStage);
         }
 
+        void appendCombinedMultiframeImgSampler(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
+                                     CombinedMultiframeImageSampler &&sampler) {
+            SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()),
+                                              "Descriptor Multiframe Sampler add");
+            data.emplace_back(std::move(sampler));
+            layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, useStage);
+        }
+
         void appendInputAttachment(const uint32_t bindingExpected, const VkShaderStageFlags useStage) {
             SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()),
                                               "Descriptor Input Attachment add");
-            data.emplace_back(ImageContext{});
+            data.emplace_back(MultiframeImageContext{});
             layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, useStage);
         }
 

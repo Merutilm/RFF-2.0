@@ -55,7 +55,7 @@ add_executable(
         src/rff2/io/RFFDynamicMapBinary.cpp
         src/rff2/io/RFFDynamicMapBinary.h
         src/rff2/data/Matrix.h
-        src/rff2/attr/ColorSmoothingMethod.h
+        src/rff2/attr/ShdPalColorSmoothingMethod.h
         src/rff2/data/NormalizedColor.h
         src/rff2/attr/StripeType.h
         src/rff2/attr/VidAnimationAttribute.h
@@ -207,7 +207,6 @@ add_executable(
         src/vulkan_helper/impl/BufferObject.hpp
         src/vulkan_helper/util/BufferImageUtils.hpp
         src/vulkan_helper/manage/DescriptorManager.hpp
-        src/vulkan_helper/impl/Pipeline.cpp
         src/vulkan_helper/impl/Pipeline.hpp
         src/vulkan_helper/impl/RenderPass.cpp
         src/vulkan_helper/impl/RenderPass.hpp
@@ -231,8 +230,8 @@ add_executable(
         src/vulkan_helper/struct/ImageInitInfo.hpp
         src/vulkan_helper/impl/SyncObject.cpp
         src/vulkan_helper/impl/SyncObject.hpp
-        src/vulkan_helper/executor/RenderPassExecutor.cpp
-        src/vulkan_helper/executor/RenderPassExecutor.hpp
+        src/vulkan_helper/executor/RenderPassFullscreenExecutor.cpp
+        src/vulkan_helper/executor/RenderPassFullscreenExecutor.hpp
         src/vulkan_helper/struct/Vertex.hpp
         src/vulkan_helper/impl/VertexBuffer.cpp
         src/vulkan_helper/impl/VertexBuffer.hpp
@@ -255,8 +254,8 @@ add_executable(
         src/vulkan_helper/impl/IndexBuffer.hpp
         src/vulkan_helper/impl/CombinedImageSampler.cpp
         src/vulkan_helper/impl/CombinedImageSampler.hpp
-        src/vulkan_helper/configurator/GeneralPipelineConfigurator.cpp
-        src/vulkan_helper/configurator/GeneralPipelineConfigurator.hpp
+        src/vulkan_helper/configurator/GeneralGraphicsPipelineConfigurator.cpp
+        src/vulkan_helper/configurator/GeneralGraphicsPipelineConfigurator.hpp
         src/vulkan_helper/repo/SharedDescriptorRepo.hpp
         src/vulkan_helper/struct/DescriptorTemplateInfo.hpp
         src/rff2/vulkan/SharedDescriptorTemplate.hpp
@@ -266,7 +265,7 @@ add_executable(
         src/vulkan_helper/executor/ScopedCommandExecutor.hpp
         src/vulkan_helper/struct/PushConstantReserve.hpp
         src/vulkan_helper/configurator/RenderContextConfigurator.hpp
-        src/rff2/vulkan/RFFRenderContextConfigurator.hpp
+        src/rff2/vulkan/RFFFirstRenderContextConfigurator.hpp
         src/vulkan_helper/hash/DescriptorSetLayoutBuildTypeHasher.hpp
         src/vulkan_helper/context/ImageContext.hpp
         src/vulkan_helper/util/Presenter.hpp
@@ -275,8 +274,8 @@ add_executable(
         src/vulkan_helper/context/DescriptorUpdateContext.hpp
         src/vulkan_helper/util/SafeArrayChecker.hpp
         src/vulkan_helper/util/ImageContextUtils.hpp
-        src/vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.cpp
-        src/vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp
+        src/vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.cpp
+        src/vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp
         src/rff2/ui/RenderScene.cpp
         src/rff2/ui/RenderScene.hpp
         src/rff2/ui/Application.cpp
@@ -289,7 +288,7 @@ add_executable(
         src/rff2/constants/TextureFormatConstants.hpp
         src/rff2/constants/ExtensionConstants.hpp
         src/rff2/constants/StatusConstants.hpp
-        src/vulkan_helper/configurator/PipelineConfigurator.hpp
+        src/vulkan_helper/configurator/GraphicsPipelineConfigurator.hpp
         src/rff2/constants/VulkanWindowConstants.hpp
         src/vulkan_helper/struct/DescriptorTemplate.hpp
         src/vulkan_helper/impl/Sampler.cpp
@@ -314,12 +313,18 @@ add_executable(
         src/rff2/vulkan/FogPipelineConfigurator.hpp
         src/rff2/vulkan/BloomPipelineConfigurator.cpp
         src/rff2/vulkan/BloomPipelineConfigurator.hpp
-        src/rff2/vulkan/BoxBlurPipelineConfigurator.cpp
-        src/rff2/vulkan/BoxBlurPipelineConfigurator.hpp
         src/vulkan_helper/def/Factory.hpp
         src/vulkan_helper/util/Debugger.hpp
         src/vulkan_helper/util/PhysicalDeviceUtils.hpp
         src/vulkan_helper/util/GraphicsContextWindowProc.hpp
+        src/rff2/vulkan/TempPresentPipelineConfigurator.cpp
+        src/rff2/vulkan/TempPresentPipelineConfigurator.hpp
+        src/vulkan_helper/impl/CombinedMultiframeImageSampler.hpp
+        src/vulkan_helper/impl/CombinedMultiframeImageSampler.cpp
+        src/vulkan_helper/impl/ComputeShaderPipeline.cpp
+        src/vulkan_helper/impl/ComputeShaderPipeline.hpp
+        src/vulkan_helper/impl/GraphicsPipeline.cpp
+        src/vulkan_helper/impl/GraphicsPipeline.hpp
 )
 
 

@@ -20,8 +20,8 @@ namespace merutilm::rff2 {
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::RESET = [
             ](const SettingsMenu &, RenderScene &scene) {
-        scene.getSettings() = RenderScene::defaultSettings();
-        scene.requestColor();
+        scene.getAttribute() = RenderScene::defaultSettings();
+        scene.requestShader();
         scene.requestResize();
         scene.requestRecompute();
     };
@@ -39,13 +39,13 @@ namespace merutilm::rff2 {
         if (const std::unique_ptr<fp_complex> c = MandelbrotLocator::findCenter(perturbator); c == nullptr) {
             MessageBox(nullptr, "No center found!", "Caution", MB_OK | MB_ICONWARNING);
         } else {
-            scene.getSettings().calc.center = *c;
+            scene.getAttribute().calc.center = *c;
             scene.requestRecompute();
         }
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::LOCATE_MINIBROT = [
             ](const SettingsMenu &, RenderScene &scene) {
-        Attribute &settings = scene.getSettings();
+        Attribute &settings = scene.getAttribute();
 
         if (settings.calc.reuseReferenceMethod != CalReuseReferenceMethod::DISABLED) {
             MessageBox(nullptr, "Do not reuse reference!", "Caution", MB_OK | MB_ICONWARNING);

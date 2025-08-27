@@ -3,11 +3,12 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
+#include "RFFFirstRenderContextConfigurator.hpp"
+#include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "../attr/ShdPaletteAttribute.h"
 
 namespace merutilm::rff2 {
-    class IterationPalettePipelineConfigurator final : public vkh::GeneralPostProcessPipelineConfigurator {
+    class IterationPalettePipelineConfigurator final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
         static constexpr uint32_t SET_ITERATION = 0;
         static constexpr uint32_t SET_PALETTE = 1;
         static constexpr uint32_t SET_TIME = 2;
@@ -16,9 +17,11 @@ namespace merutilm::rff2 {
         uint32_t height = 0;
 
     public:
-        IterationPalettePipelineConfigurator(const vkh::Engine &engine,
-                                             const uint32_t subpassIndex): GeneralPostProcessPipelineConfigurator(
-            engine, subpassIndex, "vk_iteration_palette.frag") {
+        IterationPalettePipelineConfigurator(vkh::EngineRef engine,
+                                             const uint32_t
+                                             renderContextIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, renderContextIndex, RFFFirstRenderContextConfigurator::SUBPASS_ITERATION_INDEX,
+            "vk_iteration_palette.frag") {
         };
 
         ~IterationPalettePipelineConfigurator() override = default;
@@ -31,8 +34,7 @@ namespace merutilm::rff2 {
 
         IterationPalettePipelineConfigurator &operator=(IterationPalettePipelineConfigurator &&) = delete;
 
-        void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width,
-                         uint32_t height) override;
+        void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex) override;
 
         void reloadIterationBuffer(uint32_t width, uint32_t height);
 
@@ -49,6 +51,6 @@ namespace merutilm::rff2 {
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
 
-        void configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors) override;
+        void configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) override;
     };
 }

@@ -4,59 +4,67 @@
 
 #pragma once
 #include <ranges>
-
+#include "../context/ImageContext.hpp"
+#include "../impl/CommandPool.hpp"
 #include "../manage/RenderPassManager.hpp"
 
 namespace merutilm::vkh {
     /**
      * RenderPass Framebuffer Configurator
      */
-    struct RenderContextConfigurator {
+    struct RenderContextConfiguratorAbstract {
         CoreRef core;
-        SwapchainRef swapchain;
+        CommandPoolRef commandPool;
+        std::function<MultiframeImageContext()> swapchainImageContext;
         std::vector<MultiframeImageContext> contexts = {};
 
-        explicit RenderContextConfigurator(CoreRef core, SwapchainRef swapchain) : core(core), swapchain(swapchain) {
+        template<typename F> requires std::is_invocable_r_v<MultiframeImageContext, F>
+        explicit RenderContextConfiguratorAbstract(CoreRef core, CommandPoolRef commandPool, const F &swapchainImageContext) : core(core), commandPool(commandPool),
+            swapchainImageContext(swapchainImageContext) {
         }
 
-        virtual ~RenderContextConfigurator() {
+        virtual ~RenderContextConfiguratorAbstract() {
             cleanupContexts();
         }
 
-        RenderContextConfigurator(const RenderContextConfigurator &) = delete;
+        RenderContextConfiguratorAbstract(const RenderContextConfiguratorAbstract &) = delete;
 
-        RenderContextConfigurator &operator=(const RenderContextConfigurator &) = delete;
+        RenderContextConfiguratorAbstract &operator=(const RenderContextConfiguratorAbstract &) = delete;
 
-        RenderContextConfigurator(RenderContextConfigurator &&) = delete;
+        RenderContextConfiguratorAbstract(RenderContextConfiguratorAbstract &&) = delete;
 
-        RenderContextConfigurator &operator=(RenderContextConfigurator &&) = delete;
+        RenderContextConfiguratorAbstract &operator=(RenderContextConfiguratorAbstract &&) = delete;
 
-        void configure(const RenderPassManager &manager) {
-            configureImageContext();
+        void configure(const VkExtent2D &extent, RenderPassManagerRef manager) {
+            configureImageContext(extent);
             configureRenderContext(manager);
         }
 
-        virtual void configureImageContext() = 0;
+        virtual void configureImageContext(const VkExtent2D &extent) = 0;
 
-        virtual void configureRenderContext(const RenderPassManager &manager) = 0;
+        virtual void configureRenderContext(RenderPassManagerRef manager) = 0;
 
 
         void appendStoredImageContext(const uint32_t contextIndexExpected, MultiframeImageContext &&context) {
+            SafeArrayChecker::checkIndexEqual(contextIndexExpected, static_cast<uint32_t>(contexts.size()),
+                                              "Stored Image Context");
             contexts.emplace_back(std::move(context));
-            SafeArrayChecker::checkIndexEqual(contextIndexExpected, contexts.size() - 1, "Stored Image Context");
         }
 
-        const ImageContext &getImageContext(const uint32_t contextIndex, const uint32_t imageIndex) const {
-            return contexts.at(contextIndex)[imageIndex];
+        [[nodiscard]] const MultiframeImageContext &getImageContext(const uint32_t contextIndex) const {
+            return contexts.at(contextIndex);
         }
 
         void cleanupContexts() {
-            for (const auto &context : contexts) {
+            for (const auto &context: contexts) {
                 ImageContext::destroyContext(core, &context);
             }
             contexts.clear();
         }
-
-
     };
+
+
+    using RenderContextConfigurator = std::unique_ptr<RenderContextConfiguratorAbstract>;
+    using RenderContextConfiguratorPtr = RenderContextConfiguratorAbstract *;
+    using RenderContextConfiguratorRef = RenderContextConfiguratorAbstract &;
 }

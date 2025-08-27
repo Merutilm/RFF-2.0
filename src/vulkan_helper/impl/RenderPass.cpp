@@ -11,17 +11,17 @@
 #include "../manage/RenderPassManager.hpp"
 
 namespace merutilm::vkh {
-    RenderPass::RenderPass(const CoreRef core,
+    RenderPassImpl::RenderPassImpl(const CoreRef core,
                            RenderPassManager &&manager) : CoreHandler(core),
                                                                            manager(std::move(manager)) {
-        RenderPass::init();
+        RenderPassImpl::init();
     }
 
-    RenderPass::~RenderPass() {
-        RenderPass::destroy();
+    RenderPassImpl::~RenderPassImpl() {
+        RenderPassImpl::destroy();
     }
 
-    void RenderPass::init() {
+    void RenderPassImpl::init() {
         const uint32_t subpasses = manager->getSubpassCount();
         std::vector<VkSubpassDescription> subpassDescription(subpasses);
 
@@ -74,7 +74,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void RenderPass::destroy() {
+    void RenderPassImpl::destroy() {
         vkDestroyRenderPass(core.getLogicalDevice().getLogicalDeviceHandle(), renderPass, nullptr);
     }
 }

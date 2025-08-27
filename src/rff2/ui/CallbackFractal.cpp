@@ -11,7 +11,7 @@
 namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::REFERENCE = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &calc = scene.getSettings().calc;
+        auto &calc = scene.getAttribute().calc;
         auto window = std::make_unique<SettingsWindow>(L"Reference");
 
         auto centerPtr = std::make_shared<std::array<std::string, 2> >();
@@ -84,7 +84,7 @@ namespace merutilm::rff2 {
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::ITERATIONS = [
             ](SettingsMenu &settingsMenu, RenderScene  &scene) {
-        auto &calc = scene.getSettings().calc;
+        auto &calc = scene.getAttribute().calc;
         auto window = std::make_unique<SettingsWindow>(L"Iterations");
 
 
@@ -117,7 +117,7 @@ namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackFractal::MPA = [
             ](SettingsMenu &settingsMenu, RenderScene  &scene) {
         auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod, mpaCompressionMethod] =
-                scene.getSettings().calc.mpaAttribute;
+                scene.getAttribute().calc.mpaAttribute;
         auto window = std::make_unique<SettingsWindow>(L"MP-Approximation");
         window->registerTextInput<uint16_t>("Min Skip Reference", &minSkipReference, Unparser::U_SHORT,
                                             Parser::U_SHORT, [](const unsigned short &v) { return v >= 4; },
@@ -157,11 +157,11 @@ namespace merutilm::rff2 {
 
     const std::function<bool*(RenderScene &)> CallbackFractal::AUTOMATIC_ITERATIONS = [
             ](RenderScene  &scene) {
-        return &scene.getSettings().calc.autoMaxIteration;
+        return &scene.getAttribute().calc.autoMaxIteration;
     };
 
     const std::function<bool*(RenderScene &)> CallbackFractal::ABSOLUTE_ITERATION_MODE = [
             ](RenderScene  &scene) {
-        return &scene.getSettings().calc.absoluteIterationMode;
+        return &scene.getAttribute().calc.absoluteIterationMode;
     };
 }

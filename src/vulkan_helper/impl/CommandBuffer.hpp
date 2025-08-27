@@ -8,21 +8,21 @@
 #include "Core.hpp"
 
 namespace merutilm::vkh {
-    class CommandBuffer final : public CoreHandler {
+    class CommandBufferImpl final : public CoreHandler {
         std::vector<VkCommandBuffer> commandBuffers = {};
-        const CommandPool &commandPool;
+        CommandPoolRef commandPool;
     public:
-        explicit CommandBuffer(const CoreRef core, const CommandPool &commandPool);
+        explicit CommandBufferImpl(CoreRef core, CommandPoolRef commandPool);
 
-        ~CommandBuffer() override;
+        ~CommandBufferImpl() override;
 
-        CommandBuffer(const CommandBuffer &) = delete;
+        CommandBufferImpl(const CommandBufferImpl &) = delete;
 
-        CommandBuffer &operator=(const CommandBuffer &) = delete;
+        CommandBufferImpl &operator=(const CommandBufferImpl &) = delete;
 
-        CommandBuffer(CommandBuffer &&) = delete;
+        CommandBufferImpl(CommandBufferImpl &&) = delete;
 
-        CommandBuffer &operator=(CommandBuffer &&) = delete;
+        CommandBufferImpl &operator=(CommandBufferImpl &&) = delete;
 
         [[nodiscard]] VkCommandBuffer getCommandBufferHandle(const uint32_t frameIndex) const { return commandBuffers[frameIndex]; }
 
@@ -31,4 +31,7 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+    using CommandBuffer = std::unique_ptr<CommandBufferImpl>;
+    using CommandBufferPtr = CommandBufferImpl *;
+    using CommandBufferRef = CommandBufferImpl &;
 }

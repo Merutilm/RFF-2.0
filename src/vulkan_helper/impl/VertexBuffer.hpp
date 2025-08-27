@@ -10,7 +10,7 @@
 #include "HostBufferObject.hpp"
 
 namespace merutilm::vkh {
-    class VertexBufferImpl final : public BufferObjectImpl {
+    class VertexBufferImpl final : public BufferObjectAbstract {
         std::vector<VkVertexInputBindingDescription> bindingDescriptions = {};
         std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
 

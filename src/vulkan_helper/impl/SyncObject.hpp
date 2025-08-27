@@ -6,23 +6,23 @@
 #include "../handle/CoreHandler.hpp"
 
 namespace merutilm::vkh {
-    class SyncObject final : public CoreHandler {
+    class SyncObjectImpl final : public CoreHandler {
         std::vector<VkSemaphore> imageRenderedSemaphores;
         std::vector<VkSemaphore> renderFinishedSemaphores;
         std::vector<VkFence> fences;
 
     public:
-        explicit SyncObject(const CoreRef core);
+        explicit SyncObjectImpl(CoreRef core);
 
-        ~SyncObject() override;
+        ~SyncObjectImpl() override;
 
-        SyncObject(const SyncObject &) = delete;
+        SyncObjectImpl(const SyncObjectImpl &) = delete;
 
-        SyncObject &operator=(const SyncObject &) = delete;
+        SyncObjectImpl &operator=(const SyncObjectImpl &) = delete;
 
-        SyncObject(SyncObject &&) = delete;
+        SyncObjectImpl(SyncObjectImpl &&) = delete;
 
-        SyncObject &operator=(SyncObject &&) = delete;
+        SyncObjectImpl &operator=(SyncObjectImpl &&) = delete;
 
         [[nodiscard]] VkSemaphore getImageAvailableSemaphore(const uint32_t frameIndex) const {
             return imageRenderedSemaphores[frameIndex];
@@ -39,4 +39,7 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+    using SyncObject = std::unique_ptr<SyncObjectImpl>;
+    using SyncObjectPtr = SyncObjectImpl *;
+    using SyncObjectRef = SyncObjectImpl &;
 }

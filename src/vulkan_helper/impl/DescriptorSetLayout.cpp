@@ -7,15 +7,15 @@
 #include "../exception/exception.hpp"
 
 namespace merutilm::vkh {
-    DescriptorSetLayout::DescriptorSetLayout(const CoreRef core, const DescriptorSetLayoutBuilder &layoutBuilder) : CoreHandler(core), layoutBuilder(layoutBuilder) {
-        DescriptorSetLayout::init();
+    DescriptorSetLayoutImpl::DescriptorSetLayoutImpl(const CoreRef core, const DescriptorSetLayoutBuilder &layoutBuilder) : CoreHandler(core), layoutBuilder(layoutBuilder) {
+        DescriptorSetLayoutImpl::init();
     }
 
-    DescriptorSetLayout::~DescriptorSetLayout() {
-        DescriptorSetLayout::destroy();
+    DescriptorSetLayoutImpl::~DescriptorSetLayoutImpl() {
+        DescriptorSetLayoutImpl::destroy();
     }
 
-    void DescriptorSetLayout::init() {
+    void DescriptorSetLayoutImpl::init() {
         if (layout != nullptr) {
             throw exception_invalid_state("double-finish called");
         }
@@ -47,7 +47,7 @@ namespace merutilm::vkh {
 
 
 
-    void DescriptorSetLayout::destroy() {
+    void DescriptorSetLayoutImpl::destroy() {
         if (layout != nullptr) {
             vkDestroyDescriptorSetLayout(core.getLogicalDevice().getLogicalDeviceHandle(), layout, nullptr);
         }

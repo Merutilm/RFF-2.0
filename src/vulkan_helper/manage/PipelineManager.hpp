@@ -11,39 +11,39 @@
 
 namespace merutilm::vkh {
     class PipelineManagerImpl {
-        const PipelineLayout &layout;
-        std::vector<const Descriptor *> descriptors = {};
-        std::vector<const ShaderModule *> shaderModules;
+        PipelineLayoutRef layout;
+        std::vector<DescriptorPtr> descriptors = {};
+        std::vector<ShaderModulePtr> shaderModules;
 
     public:
-        explicit PipelineManagerImpl(const PipelineLayout &layout) : layout(layout) {
+        explicit PipelineManagerImpl(PipelineLayoutRef layout) : layout(layout) {
         }
 
 
-        void attachShader(const ShaderModule *shaderStage) {
+        void attachShader(ShaderModulePtr shaderStage) {
             shaderModules.emplace_back(shaderStage);
         }
 
-        void attachDescriptor(std::vector<const Descriptor *> &&descriptor) { descriptors = std::move(descriptor); }
+        void attachDescriptor(std::vector<DescriptorPtr> &&descriptor) { descriptors = std::move(descriptor); }
 
-        [[nodiscard]] const Descriptor &getDescriptor(const uint32_t setIndex) const {
+        [[nodiscard]] DescriptorRef getDescriptor(const uint32_t setIndex) const {
             return *descriptors[setIndex];
         }
 
-        [[nodiscard]] std::vector<const Descriptor *> &getDescriptors() { return descriptors; }
+        [[nodiscard]] std::vector<DescriptorPtr> &getDescriptors() { return descriptors; }
 
 
         std::vector<VkDescriptorSet> getDescriptorSets(uint32_t frameIndex) {
             std::vector<VkDescriptorSet> sets(descriptors.size());
-            std::ranges::transform(descriptors, sets.begin(), [frameIndex](const Descriptor *desc) {
+            std::ranges::transform(descriptors, sets.begin(), [frameIndex](const DescriptorPtr desc) {
                 return desc->getDescriptorSetHandle(frameIndex);
             });
             return sets;
         }
 
-        [[nodiscard]] const PipelineLayout &getLayout() const { return layout; }
+        [[nodiscard]] PipelineLayoutRef getLayout() const { return layout; }
 
-        [[nodiscard]] std::span<const ShaderModule * const> getShaderModules() const {
+        [[nodiscard]] std::span<const ShaderModulePtr> getShaderModules() const {
             return shaderModules;
         }
     };

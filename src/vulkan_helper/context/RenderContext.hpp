@@ -10,20 +10,21 @@
 #include "../impl/RenderPass.hpp"
 
 namespace merutilm::vkh {
-    struct RenderContext final {
+    class RenderContextImpl final {
         CoreRef core;
-        std::unique_ptr<RenderContextConfigurator> configurator = nullptr;
-        std::unique_ptr<RenderPass> renderPass = nullptr;
-        std::unique_ptr<Framebuffer> framebuffer = nullptr;
+        RenderContextConfigurator configurator = nullptr;
+        RenderPass renderPass = nullptr;
+        Framebuffer framebuffer = nullptr;
 
-        explicit RenderContext(CoreRef core, const VkExtent2D &extent,
-                               std::unique_ptr<RenderContextConfigurator> &&renderPassConfigurator) : core(core) {
+    public:
+        explicit RenderContextImpl(CoreRef core, const VkExtent2D &extent,
+                               RenderContextConfigurator &&renderPassConfigurator) : core(core) {
 
             auto renderPassManager = Factory::create<RenderPassManager>();
             configurator = std::move(renderPassConfigurator);
-            configurator->configure(renderPassManager);
-            renderPass = std::make_unique<RenderPass>(core, std::move(renderPassManager));
-            framebuffer = std::make_unique<Framebuffer>(core, *renderPass, extent);
+            configurator->configure(extent, *renderPassManager);
+            renderPass = Factory::create<RenderPass>(core, std::move(renderPassManager));
+            framebuffer = Factory::create<Framebuffer>(core, *renderPass, extent);
         }
 
         void recreate(const VkExtent2D &extent) {
@@ -32,9 +33,26 @@ namespace merutilm::vkh {
 
             auto renderPassManager = Factory::create<RenderPassManager>();
             configurator->cleanupContexts();
-            configurator->configure(renderPassManager);
-            renderPass = std::make_unique<RenderPass>(core, std::move(renderPassManager));
-            framebuffer = std::make_unique<Framebuffer>(core, *renderPass, extent);
+            configurator->configure(extent, *renderPassManager);
+            renderPass = Factory::create<RenderPass>(core, std::move(renderPassManager));
+            framebuffer = Factory::create<Framebuffer>(core, *renderPass, extent);
         }
+
+        RenderContextConfiguratorPtr getConfigurator() const {
+            return configurator.get();
+        }
+
+        RenderPassPtr getRenderPass() const {
+            return renderPass.get();
+        }
+
+        FramebufferPtr getFramebuffer() const {
+            return framebuffer.get();
+        }
+
     };
+
+    using RenderContext = std::unique_ptr<RenderContextImpl>;
+    using RenderContextPtr = RenderContextImpl *;
+    using RenderContextRef = RenderContextImpl &;
 }

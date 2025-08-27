@@ -118,8 +118,8 @@ namespace merutilm::vkh {
         vkGetSwapchainImagesKHR(logicalDevice.getLogicalDeviceHandle(), swapchain, &maxFramesInFlight,
                                 swapchainImages.data());
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-            BufferImageUtils::createImageView(logicalDevice.getLogicalDeviceHandle(), swapchainImages[i],
-                                         VK_IMAGE_VIEW_TYPE_2D, 1, VK_FORMAT_R8G8B8A8_SRGB, &swapchainImageViews[i]);
+            BufferImageUtils::createWriteImageView(logicalDevice.getLogicalDeviceHandle(), swapchainImages[i],
+                                         VK_IMAGE_VIEW_TYPE_2D, VK_FORMAT_R8G8B8A8_SRGB, &swapchainImageViews[i]);
         }
     }
 

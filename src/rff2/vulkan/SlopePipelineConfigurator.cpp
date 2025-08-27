@@ -4,41 +4,41 @@
 
 #include "SlopePipelineConfigurator.hpp"
 
-#include "RFFRenderContextConfigurator.hpp"
+#include "RFFFirstRenderContextConfigurator.hpp"
 #include "SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
     void SlopePipelineConfigurator::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex,
-                                                const uint32_t imageIndex, uint32_t width, uint32_t height) {
+                                                const uint32_t imageIndex) {
 
-        auto &input = getRenderContextConfigurator<RFFRenderContextConfigurator>().getImageContext(
-           RFFRenderContextConfigurator::SECONDARY_SUBPASS_RESULT_COLOR_IMAGE, imageIndex);
-        auto &inputDesc = getDescriptor(SET_PREV_RESULT);
+        auto &input = getRenderContextConfigurator<RFFFirstRenderContextConfigurator>().getImageContext(
+           RFFFirstRenderContextConfigurator::RESULT_IMAGE_CONTEXT);
+        const auto &inputDesc = getDescriptor(SET_PREV_RESULT);
         auto &inputManager = inputDesc.getDescriptorManager();
-        inputManager.get<vkh::ImageContext>(BINDING_PREV_RESULT_INPUT) = input;
-        inputDesc.queue(queue, frameIndex);
+        inputManager.get<vkh::MultiframeImageContext>(BINDING_PREV_RESULT_INPUT) = input;
+        inputDesc.queue(queue, frameIndex, imageIndex);
     }
 
-    void SlopePipelineConfigurator::setResolution(const glm::vec2 &swapchainExtent, const float clarityMultiplier) const {
+    void SlopePipelineConfigurator::setResolution(const glm::uvec2 &swapchainExtent, const float clarityMultiplier) const {
         using namespace SharedDescriptorTemplate;
         auto &resDesc = getDescriptor(SET_RESOLUTION);
         auto &resManager = resDesc.getDescriptorManager();
         auto &resUBO = resManager.get<vkh::Uniform>(DescResolution::BINDING_UBO_RESOLUTION);
         auto &resUBOHost = resUBO->getHostObject();
-        resUBOHost.set<glm::vec2>(DescResolution::TARGET_RESOLUTION_SWAPCHAIN_EXTENT, swapchainExtent);
+        resUBOHost.set<glm::uvec2>(DescResolution::TARGET_RESOLUTION_SWAPCHAIN_EXTENT, swapchainExtent);
         resUBOHost.set<float>(DescResolution::TARGET_RESOLUTION_CLARITY_MULTIPLIER, clarityMultiplier);
 
-        writeDescriptorForEachFrame([&resUBO, &resDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            resUBO->update(frameIndex);
-            resDesc.queue(queue, frameIndex);
+        writeDescriptorForEachFrame([&resUBO, &resDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t inFlightIndex) {
+            resUBO->update(inFlightIndex);
+            resDesc.queue(queue, inFlightIndex, inFlightIndex);
         });
     }
 
     void SlopePipelineConfigurator::setSlope(const ShdSlopeAttribute &slope) const {
         using namespace SharedDescriptorTemplate;
-        auto &slopeDesc = getDescriptor(SET_SLOPE);
+        const auto &slopeDesc = getDescriptor(SET_SLOPE);
         auto &slopeManager = slopeDesc.getDescriptorManager();
-        auto &slopeUBO = slopeManager.get<vkh::Uniform>(DescSlope::BINDING_UBO_SLOPE);
+        const auto &slopeUBO = slopeManager.get<vkh::Uniform>(DescSlope::BINDING_UBO_SLOPE);
         auto &slopeUBOHost = slopeUBO->getHostObject();
         slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_DEPTH, slope.depth);
         slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_REFLECTION_RATIO, slope.reflectionRatio);
@@ -46,9 +46,9 @@ namespace merutilm::rff2 {
         slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_ZENITH, slope.zenith);
         slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_AZIMUTH, slope.azimuth);
 
-        writeDescriptorForEachFrame([&slopeUBO, &slopeDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            slopeUBO->update(frameIndex);
-            slopeDesc.queue(queue, frameIndex);
+        writeDescriptorForEachFrame([&slopeUBO, &slopeDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t inFlightIndex) {
+            slopeUBO->update(inFlightIndex);
+            slopeDesc.queue(queue, inFlightIndex, inFlightIndex);
         });
     }
 
@@ -56,7 +56,7 @@ namespace merutilm::rff2 {
         //noop
     }
 
-    void SlopePipelineConfigurator::configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors) {
+    void SlopePipelineConfigurator::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
         using namespace SharedDescriptorTemplate;
         auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
         descManager->appendInputAttachment(BINDING_PREV_RESULT_INPUT, VK_SHADER_STAGE_FRAGMENT_BIT);

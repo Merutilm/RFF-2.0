@@ -11,7 +11,7 @@ namespace merutilm::vkh {
     struct Presenter {
         Presenter() = delete;
 
-        static void present(const Engine& engine, const VkSwapchainKHR target, const uint32_t frameIndex, uint32_t imageIndex) {
+        static void present(EngineRef engine, const VkSwapchainKHR target, const uint32_t frameIndex, uint32_t imageIndex) {
             VkSwapchainKHR swapchainHandle = target;
             VkSemaphore renderFinishedSemaphore = engine.getSyncObject().getRenderFinishedSemaphore(frameIndex);
             const VkPresentInfoKHR presentInfo = {

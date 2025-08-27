@@ -5,19 +5,22 @@
 #pragma once
 #include "../impl/Pipeline.hpp"
 #include "../handle/EngineHandler.hpp"
+#include "../impl/IndexBuffer.hpp"
+#include "../impl/VertexBuffer.hpp"
 #include "../struct/DescriptorTemplate.hpp"
 #include "../util/DescriptorUpdater.hpp"
 
 namespace merutilm::vkh {
-    struct PipelineConfigurator : public EngineHandler {
-        const uint32_t subpassIndex;
-        const ShaderModule &vertexShader;
-        const ShaderModule &fragmentShader;
-        std::unique_ptr<Pipeline> pipeline = nullptr;
-        std::vector<std::unique_ptr<Descriptor> > uniqueDescriptors = {};
+    struct GraphicsPipelineConfigurator : public EngineHandler {
+        const uint32_t renderContextIndex;
+        const uint32_t primarySubpassIndex;
+        ShaderModuleRef vertexShader;
+        ShaderModuleRef fragmentShader;
+        Pipeline pipeline = nullptr;
+        std::vector<Descriptor> uniqueDescriptors = {};
 
-        explicit PipelineConfigurator(const Engine &engine, const uint32_t subpassIndex, const std::string &vertName,
-                                      const std::string &fragName) : EngineHandler(engine), subpassIndex(subpassIndex),
+        explicit GraphicsPipelineConfigurator(EngineRef engine, const uint32_t renderContextIndex, const uint32_t primarySubpassIndex, const std::string &vertName,
+                                      const std::string &fragName) : EngineHandler(engine), renderContextIndex(renderContextIndex), primarySubpassIndex(primarySubpassIndex),
                                                                      vertexShader(
                                                                          engine.getRepositories().getRepository<
                                                                              ShaderModuleRepo>()->pick(vertName)),
@@ -26,31 +29,30 @@ namespace merutilm::vkh {
                                                                              ShaderModuleRepo>()->pick(fragName)) {
         }
 
-        ~PipelineConfigurator() override = default;
+        ~GraphicsPipelineConfigurator() override = default;
 
-        PipelineConfigurator(const PipelineConfigurator &) = delete;
+        GraphicsPipelineConfigurator(const GraphicsPipelineConfigurator &) = delete;
 
-        PipelineConfigurator(PipelineConfigurator &&) = delete;
+        GraphicsPipelineConfigurator(GraphicsPipelineConfigurator &&) = delete;
 
-        PipelineConfigurator &operator=(const PipelineConfigurator &) = delete;
+        GraphicsPipelineConfigurator &operator=(const GraphicsPipelineConfigurator &) = delete;
 
-        PipelineConfigurator &operator=(PipelineConfigurator &&) = delete;
+        GraphicsPipelineConfigurator &operator=(GraphicsPipelineConfigurator &&) = delete;
 
 
-        template<typename ProgramName> requires std::is_base_of_v<PipelineConfigurator, ProgramName>
-        static ProgramName *createShaderProgram(std::vector<std::unique_ptr<PipelineConfigurator> > &shaderPrograms,
-                                                const Engine &engine,
-                                                const uint32_t subpassIndex) {
-            auto shaderProgram = std::make_unique<ProgramName>(engine, subpassIndex);
+        template<typename ProgramName> requires std::is_base_of_v<GraphicsPipelineConfigurator, ProgramName>
+        static ProgramName *createShaderProgram(std::vector<std::unique_ptr<GraphicsPipelineConfigurator> > &shaderPrograms,
+                                                EngineRef engine,
+                                                const uint32_t renderContextIndex) {
+            auto shaderProgram = std::make_unique<ProgramName>(engine, renderContextIndex);
             shaderProgram->configure();
             shaderPrograms.emplace_back(std::move(shaderProgram));
             return dynamic_cast<ProgramName *>(shaderPrograms.back().get());
         }
 
-        virtual void render(VkCommandBuffer cbh, uint32_t frameIndex, uint32_t width, uint32_t height) = 0;
+        virtual void render(VkCommandBuffer cbh, uint32_t frameIndex) = 0;
 
-        virtual void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width,
-                                 uint32_t height) = 0;
+        virtual void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex) = 0;
 
     protected:
 
@@ -62,7 +64,7 @@ namespace merutilm::vkh {
 
         virtual void configurePushConstant(PipelineLayoutManagerRef pipelineLayoutManager) = 0;
 
-        virtual void configureDescriptors(std::vector<const Descriptor *> &descriptors) = 0;
+        virtual void configureDescriptors(std::vector<DescriptorPtr> &descriptors) = 0;
 
         [[nodiscard]] virtual VertexBufferRef getVertexBuffer() const = 0;
 
@@ -82,7 +84,7 @@ namespace merutilm::vkh {
         }
 
 
-        [[nodiscard]] const Descriptor &getDescriptor(const uint32_t setIndex) const {
+        [[nodiscard]] DescriptorRef getDescriptor(const uint32_t setIndex) const {
             return pipeline->getPipelineManager().getDescriptor(setIndex);
         }
 
@@ -90,9 +92,9 @@ namespace merutilm::vkh {
             return *pipeline->getPipelineManager().getLayout().getPipelineLayoutManager().getPCM(pushIndex);
         }
 
-        template<typename Expected> requires std::is_base_of_v<RenderContextConfigurator, Expected>
-        [[nodiscard]] const RenderContextConfigurator &getRenderContextConfigurator() const {
-            auto r = dynamic_cast<const Expected * const>(engine.getRenderContext().configurator.get());
+        template<typename Expected> requires std::is_base_of_v<RenderContextConfiguratorAbstract, Expected>
+        [[nodiscard]] RenderContextConfiguratorRef getRenderContextConfigurator() const {
+            auto r = dynamic_cast<Expected *>(engine.getRenderContext(renderContextIndex).getConfigurator());
             if (r == nullptr) {
                 throw exception_invalid_args("Current RenderContext mismatch");
             }
@@ -101,7 +103,7 @@ namespace merutilm::vkh {
 
         template<typename RepoType, typename Return, typename Key>
         [[nodiscard]] const Return &pickFromRepository(Key key) const {
-            return engine.getRepositories().getRepository<RepoType>()->pick(std::forward<Key>(key));
+            return engine.getRepositories().getRepository<RepoType>()->pick(key);
         }
 
 
@@ -115,7 +117,7 @@ namespace merutilm::vkh {
         }
 
         template<DescTemplateHasID D>
-        void appendDescriptor(const uint32_t setExpected, std::vector<const Descriptor *> &descriptors) {
+        void appendDescriptor(const uint32_t setExpected, std::vector<DescriptorPtr> &descriptors) {
 
             const auto context = engine.getRepositories().getDescriptorRequiresRepositoryContext();
             SharedDescriptorRepo &repo = *engine.getRepositories().getRepository<SharedDescriptorRepo>();
@@ -125,14 +127,14 @@ namespace merutilm::vkh {
             descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), context));
         }
 
-        void appendUniqueDescriptor(const uint32_t setExpected, std::vector<const Descriptor *> &descriptors,
+        void appendUniqueDescriptor(const uint32_t setExpected, std::vector<DescriptorPtr> &descriptors,
                                     DescriptorManager &&manager) {
 
             DescriptorSetLayoutRepo &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
 
             SafeArrayChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
                                           "Unique Descriptor Add");
-            auto desc = std::make_unique<Descriptor>(engine.getCore(), layoutRepo.pick(manager->getLayoutBuilder()),
+            auto desc = Factory::create<Descriptor>(engine.getCore(), layoutRepo.pick(manager->getLayoutBuilder()),
                                                      std::move(manager));
             uniqueDescriptors.push_back(std::move(desc));
             descriptors.push_back(uniqueDescriptors.back().get());

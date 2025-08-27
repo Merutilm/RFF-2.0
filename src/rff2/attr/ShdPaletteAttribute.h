@@ -1,13 +1,13 @@
 #pragma once
 #include <vector>
 
-#include "ColorSmoothingMethod.h"
+#include "ShdPalColorSmoothingMethod.h"
 #include "../data/NormalizedColor.h"
 
 namespace merutilm::rff2 {
     struct ShdPaletteAttribute {
         std::vector<NormalizedColor> colors;
-        ColorSmoothingMethod colorSmoothing;
+        ShdPalColorSmoothingMethod colorSmoothing;
         float iterationInterval;
         float offsetRatio;
         float animationSpeed;

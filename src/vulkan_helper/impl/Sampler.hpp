@@ -6,23 +6,23 @@
 #include "../handle/CoreHandler.hpp"
 
 namespace merutilm::vkh {
-    class Sampler final : public CoreHandler {
+    class SamplerImpl final : public CoreHandler {
 
         VkSampler sampler;
         VkSamplerCreateInfo samplerInfo;
 
     public:
-        explicit Sampler(const CoreRef core, VkSamplerCreateInfo &&samplerInfo);
+        explicit SamplerImpl(const CoreRef core, VkSamplerCreateInfo &&samplerInfo);
 
-        ~Sampler() override;
+        ~SamplerImpl() override;
 
-        Sampler(const Sampler &other) = delete;
+        SamplerImpl(const SamplerImpl &other) = delete;
 
-        Sampler &operator=(const Sampler &other) = delete;
+        SamplerImpl &operator=(const SamplerImpl &other) = delete;
 
-        Sampler(Sampler &&other) = delete;
+        SamplerImpl(SamplerImpl &&other) = delete;
 
-        Sampler &operator=(Sampler &&other) = delete;
+        SamplerImpl &operator=(SamplerImpl &&other) = delete;
 
         [[nodiscard]] VkSampler getSamplerHandle() const { return sampler; }
 
@@ -31,4 +31,9 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    
+    using Sampler = std::unique_ptr<SamplerImpl>;
+    using SamplerPtr = SamplerImpl *;
+    using SamplerRef = SamplerImpl &;
 }

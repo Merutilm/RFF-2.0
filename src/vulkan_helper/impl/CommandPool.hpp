@@ -6,21 +6,21 @@
 #include "../handle/CoreHandler.hpp"
 
 namespace merutilm::vkh {
-    class CommandPool final : public CoreHandler {
+    class CommandPoolImpl final : public CoreHandler {
         VkCommandPool commandPool = {};
 
     public:
-        explicit CommandPool(const CoreRef core);
+        explicit CommandPoolImpl(CoreRef core);
 
-        ~CommandPool() override;
+        ~CommandPoolImpl() override;
 
-        CommandPool(const CommandPool &) = delete;
+        CommandPoolImpl(const CommandPoolImpl &) = delete;
 
-        CommandPool &operator=(const CommandPool &) = delete;
+        CommandPoolImpl &operator=(const CommandPoolImpl &) = delete;
 
-        CommandPool(CommandPool &&) = delete;
+        CommandPoolImpl(CommandPoolImpl &&) = delete;
 
-        CommandPool &operator=(CommandPool &&) = delete;
+        CommandPoolImpl &operator=(CommandPoolImpl &&) = delete;
 
         [[nodiscard]] VkCommandPool getCommandPoolHandle() const {
             return commandPool;
@@ -31,4 +31,8 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    using CommandPool = std::unique_ptr<CommandPoolImpl>;
+    using CommandPoolPtr = CommandPoolImpl *;
+    using CommandPoolRef = CommandPoolImpl &;
 }

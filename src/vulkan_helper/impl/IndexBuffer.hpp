@@ -6,7 +6,7 @@
 #include "BufferObject.hpp"
 
 namespace merutilm::vkh {
-    class IndexBufferImpl final : public BufferObjectImpl {
+    class IndexBufferImpl final : public BufferObjectAbstract {
 
     public:
         explicit IndexBufferImpl(const CoreRef core, HostBufferObjectManager &&manager, BufferLock bufferLock);

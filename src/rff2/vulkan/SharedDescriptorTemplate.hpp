@@ -109,7 +109,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
             auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
 
-            const vkh::Sampler &sampler = context.samplerRepo.pick(VkSamplerCreateInfo{
+            vkh::SamplerRef sampler = context.samplerRepo.pick(VkSamplerCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
@@ -207,11 +207,41 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         vkh::DescriptorManager create(const vkh::CoreRef core,
                                       const vkh::DescriptorRequiresRepoContext &context) override {
             auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
-            bufferManager->reserve<glm::vec2>(TARGET_RESOLUTION_SWAPCHAIN_EXTENT);
+            bufferManager->reserve<glm::uvec2>(TARGET_RESOLUTION_SWAPCHAIN_EXTENT);
             bufferManager->reserve<float>(TARGET_RESOLUTION_CLARITY_MULTIPLIER);
             auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
             auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_RESOLUTION, STAGE, std::move(ubo));
+            return descManager;
+        }
+    };
+
+    struct DescColor final : public vkh::DescriptorTemplate {
+        static constexpr uint32_t ID = 7;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        static constexpr uint32_t BINDING_UBO_COLOR = 0;
+
+        static constexpr uint32_t TARGET_COLOR_GAMMA = 0;
+        static constexpr uint32_t TARGET_COLOR_EXPOSURE = 1;
+        static constexpr uint32_t TARGET_COLOR_HUE = 2;
+        static constexpr uint32_t TARGET_COLOR_SATURATION = 3;
+        static constexpr uint32_t TARGET_COLOR_BRIGHTNESS = 4;
+        static constexpr uint32_t TARGET_COLOR_CONTRAST = 5;
+
+
+        vkh::DescriptorManager create(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+            bufferManager->reserve<float>(TARGET_COLOR_GAMMA);
+            bufferManager->reserve<float>(TARGET_COLOR_EXPOSURE);
+            bufferManager->reserve<float>(TARGET_COLOR_HUE);
+            bufferManager->reserve<float>(TARGET_COLOR_SATURATION);
+            bufferManager->reserve<float>(TARGET_COLOR_BRIGHTNESS);
+            bufferManager->reserve<float>(TARGET_COLOR_CONTRAST);
+            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            descManager->appendUBO(BINDING_UBO_COLOR, STAGE, std::move(ubo));
             return descManager;
         }
     };

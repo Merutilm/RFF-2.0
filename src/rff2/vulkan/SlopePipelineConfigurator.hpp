@@ -3,14 +3,12 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
+#include "RFFFirstRenderContextConfigurator.hpp"
+#include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "../attr/ShdSlopeAttribute.h"
 
 namespace merutilm::rff2 {
-
-    class SlopePipelineConfigurator final : public vkh::GeneralPostProcessPipelineConfigurator{
-
-
+    class SlopePipelineConfigurator final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
         static constexpr uint32_t SET_PREV_RESULT = 0;
         static constexpr uint32_t BINDING_PREV_RESULT_INPUT = 0;
 
@@ -19,20 +17,21 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_RESOLUTION = 3;
 
     public:
-        explicit SlopePipelineConfigurator(const vkh::Engine &engine, const uint32_t subpassIndex) : GeneralPostProcessPipelineConfigurator(engine, subpassIndex, "vk_slope.frag") {
-
+        explicit
+        SlopePipelineConfigurator(vkh::EngineRef engine,
+                                  const uint32_t renderContextIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, renderContextIndex, RFFFirstRenderContextConfigurator::SUBPASS_SLOPE_INDEX, "vk_slope.frag") {
         }
 
-        void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width,
-            uint32_t height) override;
+        void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex) override;
 
-        void setResolution(const glm::vec2 &swapchainExtent, float clarityMultiplier) const;
+        void setResolution(const glm::uvec2 &swapchainExtent, float clarityMultiplier) const;
 
         void setSlope(const ShdSlopeAttribute &slope) const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
 
-        void configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors) override;
+        void configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) override;
     };
 }

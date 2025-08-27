@@ -14,13 +14,13 @@
 #include "../exception/exception.hpp"
 
 namespace merutilm::vkh {
-    class Repositories {
+    class RepositoriesImpl {
 
-        std::vector<std::unique_ptr<IRepo> > repositories = {};
+        std::vector<InterfaceRepo> repositories = {};
 
     public:
 
-        explicit Repositories(CoreRef core) {
+        explicit RepositoriesImpl(CoreRef core) {
             addRepository<DescriptorSetLayoutRepo>(core);
             addRepository<SharedDescriptorRepo>(core);
             addRepository<PipelineLayoutRepo>(core);
@@ -28,7 +28,7 @@ namespace merutilm::vkh {
             addRepository<SamplerRepo>(core);
         }
 
-        template<typename RepoType> requires std::is_base_of_v<IRepo, RepoType>
+        template<typename RepoType> requires std::is_base_of_v<InterfaceRepoImpl, RepoType>
         RepoType *getRepository() {
             for (const auto &repository : repositories) {
                 auto repo = dynamic_cast<RepoType *>(repository.get());
@@ -46,7 +46,7 @@ namespace merutilm::vkh {
             };
         }
 
-        template<typename RepoType> requires std::is_base_of_v<IRepo, RepoType>
+        template<typename RepoType> requires std::is_base_of_v<InterfaceRepoImpl, RepoType>
         void addRepository(CoreRef engine) {
             if (getRepository<RepoType>() != nullptr) {
                 throw exception_invalid_args("Repository already exists");
@@ -55,4 +55,8 @@ namespace merutilm::vkh {
         }
 
     };
+
+    using Repositories = std::unique_ptr<RepositoriesImpl>;
+    using RepositoriesPtr = RepositoriesImpl *;
+    using RepositoriesRef = RepositoriesImpl &;
 };

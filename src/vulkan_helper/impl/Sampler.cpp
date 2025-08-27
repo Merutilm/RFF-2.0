@@ -5,21 +5,21 @@
 #include "Sampler.hpp"
 
 namespace merutilm::vkh {
-    Sampler::Sampler(const CoreRef core, VkSamplerCreateInfo &&samplerInfo) : CoreHandler(core), samplerInfo(std::move(samplerInfo)) {
-        Sampler::init();
+    SamplerImpl::SamplerImpl(const CoreRef core, VkSamplerCreateInfo &&samplerInfo) : CoreHandler(core), samplerInfo(std::move(samplerInfo)) {
+        SamplerImpl::init();
     }
 
-    Sampler::~Sampler() {
-        Sampler::destroy();
+    SamplerImpl::~SamplerImpl() {
+        SamplerImpl::destroy();
     }
 
-    void Sampler::init() {
+    void SamplerImpl::init() {
         if (vkCreateSampler(core.getLogicalDevice().getLogicalDeviceHandle(), &samplerInfo, nullptr, &sampler)) {
             throw exception_init("Failed to create sampler!");
         }
     }
 
-    void Sampler::destroy() {
+    void SamplerImpl::destroy() {
         vkDestroySampler(core.getLogicalDevice().getLogicalDeviceHandle(), sampler, nullptr);
     }
 }

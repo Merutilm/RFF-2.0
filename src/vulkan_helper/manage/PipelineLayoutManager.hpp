@@ -12,7 +12,7 @@
 namespace merutilm::vkh {
     class PipelineLayoutManagerImpl {
 
-        std::vector<const DescriptorSetLayout *> descriptorSetLayouts = {};
+        std::vector<DescriptorSetLayoutPtr> descriptorSetLayouts = {};
         std::vector<PushConstantManager > pushConstantManagers = {};
 
     public:
@@ -30,7 +30,7 @@ namespace merutilm::vkh {
 
         bool operator==(const PipelineLayoutManagerImpl &) const = default;
 
-        void appendDescriptorSetLayout(const DescriptorSetLayout *descriptorSetLayout) {
+        void appendDescriptorSetLayout(DescriptorSetLayoutPtr descriptorSetLayout) {
             descriptorSetLayouts.emplace_back(descriptorSetLayout);
         }
 
@@ -45,7 +45,7 @@ namespace merutilm::vkh {
             pushConstantManagers.emplace_back(std::move(pcm));
         }
 
-        std::span<const DescriptorSetLayout * const> getDescriptorSetLayouts() const {
+        std::span<DescriptorSetLayoutPtr const> getDescriptorSetLayouts() const {
             return descriptorSetLayouts;
         }
 

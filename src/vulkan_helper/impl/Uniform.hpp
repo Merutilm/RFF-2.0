@@ -6,7 +6,7 @@
 #include "BufferObject.hpp"
 
 namespace merutilm::vkh {
-    class UniformImpl final : public BufferObjectImpl {
+    class UniformImpl final : public BufferObjectAbstract {
 
     public:
         explicit UniformImpl(const CoreRef core, HostBufferObjectManager &&manager, BufferLock bufferLock);

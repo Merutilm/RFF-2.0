@@ -14,25 +14,25 @@
 
 
 namespace merutilm::vkh {
-    class Descriptor final : public CoreHandler {
+    class DescriptorImpl final : public CoreHandler {
         std::vector<VkDescriptorPool> descriptorPools = {};
         std::vector<VkDescriptorSet> descriptorSets = {};
-        const DescriptorSetLayout &descriptorSetLayout;
+        DescriptorSetLayoutRef descriptorSetLayout;
         const DescriptorManager descriptorManager = nullptr;
 
     public:
-        explicit Descriptor(const CoreRef core, const DescriptorSetLayout &descriptorSetLayout,
+        explicit DescriptorImpl(CoreRef core, DescriptorSetLayoutRef descriptorSetLayout,
                             DescriptorManager &&descriptorManager);
 
-        ~Descriptor() override;
+        ~DescriptorImpl() override;
 
-        Descriptor(const Descriptor &) = delete;
+        DescriptorImpl(const DescriptorImpl &) = delete;
 
-        Descriptor &operator=(const Descriptor &) = delete;
+        DescriptorImpl &operator=(const DescriptorImpl &) = delete;
 
-        Descriptor(Descriptor &&) = delete;
+        DescriptorImpl(DescriptorImpl &&) = delete;
 
-        Descriptor &operator=(Descriptor &&) = delete;
+        DescriptorImpl &operator=(DescriptorImpl &&) = delete;
 
         [[nodiscard]] DescriptorManagerRef getDescriptorManager() const { return *descriptorManager; }
 
@@ -44,31 +44,21 @@ namespace merutilm::vkh {
             return descriptorPools[frameIndex];
         }
 
-        void queue(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex) const;
+        void queue(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t imageIndex) const;
 
-        void queue(DescriptorUpdateQueue &queue, uint32_t frameIndex, std::vector<uint32_t> &&bindings) const;
+        void queue(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t imageIndex, std::vector<uint32_t> &&bindings) const;
 
     private:
 
-        void updateIndices(DescriptorUpdateQueue &queue, uint32_t frameIndex, const std::vector<uint32_t> &indices) const;
+        void updateIndices(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t imageIndex, const std::vector<uint32_t> &indices) const;
 
         void init() override;
 
         void destroy() override;
     };
 
-
-    inline void Descriptor::queue(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex) const {
-        const uint32_t elementCount = descriptorManager->getElements();
-        std::vector<uint32_t> specifiedIndices(elementCount);
-        std::iota(specifiedIndices.begin(), specifiedIndices.end(), 0);
-        updateIndices(updateQueue, frameIndex, specifiedIndices);
-    }
-
-
-    inline void Descriptor::queue(DescriptorUpdateQueue &queue, const uint32_t frameIndex, std::vector<uint32_t> &&bindings) const {
-        auto bm = std::move(bindings);
-        std::ranges::sort(bm);
-        updateIndices(queue, frameIndex, bm);
-    }
+    
+    using Descriptor = std::unique_ptr<DescriptorImpl>;
+    using DescriptorPtr = DescriptorImpl *;
+    using DescriptorRef = DescriptorImpl &;
 }

@@ -10,7 +10,7 @@
 #include "../handle/CoreHandler.hpp"
 
 namespace merutilm::vkh {
-    class ShaderModule final : public CoreHandler {
+    class ShaderModuleImpl final : public CoreHandler {
 
         static constexpr auto SHADER_PATH_PREFIX = "../shaders/";
 
@@ -20,17 +20,17 @@ namespace merutilm::vkh {
         const std::string filename;
 
     public:
-        explicit ShaderModule(const CoreRef core, const std::string &filename);
+        explicit ShaderModuleImpl(const CoreRef core, const std::string &filename);
 
-        ~ShaderModule() override;
+        ~ShaderModuleImpl() override;
 
-        ShaderModule(const ShaderModule &) = delete;
+        ShaderModuleImpl(const ShaderModuleImpl &) = delete;
 
-        ShaderModule &operator=(const ShaderModule &) = delete;
+        ShaderModuleImpl &operator=(const ShaderModuleImpl &) = delete;
 
-        ShaderModule(ShaderModule &&) = delete;
+        ShaderModuleImpl(ShaderModuleImpl &&) = delete;
 
-        ShaderModule &operator=(ShaderModule &&) = delete;
+        ShaderModuleImpl &operator=(ShaderModuleImpl &&) = delete;
 
         [[nodiscard]] VkShaderStageFlagBits getShaderStage() const { return shaderStage; }
 
@@ -38,11 +38,16 @@ namespace merutilm::vkh {
 
         [[nodiscard]] const std::vector<char> &getCode() const { return code; }
 
+    private:
         [[nodiscard]] static VkShaderStageFlagBits getShaderStage(const std::string &filename);
 
-    private:
         void init() override;
 
         void destroy() override;
     };
+
+    
+    using ShaderModule = std::unique_ptr<ShaderModuleImpl>;
+    using ShaderModulePtr = ShaderModuleImpl *;
+    using ShaderModuleRef = ShaderModuleImpl &;
 }

@@ -13,44 +13,62 @@
 #include "../context/RenderContext.hpp"
 
 namespace merutilm::vkh {
-    class Engine final : public Handler {
+    class EngineImpl final : public Handler {
         Core core = nullptr;
-        std::unique_ptr<Repositories> repositories = nullptr;
-        std::unique_ptr<CommandPool> commandPool = nullptr;
-        std::unique_ptr<CommandBuffer> commandBuffer = nullptr;
-        std::unique_ptr<SyncObject> syncObject = nullptr;
-        std::unique_ptr<RenderContext> renderContext = nullptr;
+        Repositories repositories = nullptr;
+        CommandPool commandPool = nullptr;
+        CommandBuffer commandBuffer = nullptr;
+        SyncObject syncObject = nullptr;
+        std::vector<RenderContext> renderContext = {};
 
     public:
-        explicit Engine(Core &&core);
+        explicit EngineImpl(Core &&core);
 
-        ~Engine() override;
+        ~EngineImpl() override;
 
-        Engine(const Engine &) = delete;
+        EngineImpl(const EngineImpl &) = delete;
 
-        Engine &operator=(const Engine &) = delete;
+        EngineImpl &operator=(const EngineImpl &) = delete;
 
-        Engine(Engine &&) = delete;
+        EngineImpl(EngineImpl &&) = delete;
 
-        Engine &operator=(Engine &&) = delete;
+        EngineImpl &operator=(EngineImpl &&) = delete;
 
-        std::unique_ptr<RenderContext> attachRenderContext(std::unique_ptr<RenderContext> &&renderContext);
+        template<typename T, typename F> requires (
+            std::is_base_of_v<RenderContextConfiguratorAbstract, T> && std::is_invocable_r_v<MultiframeImageContext, F>)
+        void attachRenderContext(const VkExtent2D &extent,
+                                 const F &swapchainImageContext) {
+            SafeArrayChecker::checkIndexEqual(T::CONTEXT_INDEX, static_cast<uint32_t>(this->renderContext.size()),
+                                              "Render Context Index");
+            this->renderContext.emplace_back(
+                Factory::create<RenderContext>(*core, extent,
+                                               std::make_unique<T>(*core, *commandPool, swapchainImageContext)));
+        };
 
         [[nodiscard]] CoreRef getCore() const { return *core; }
 
-        [[nodiscard]] Repositories &getRepositories() const { return *repositories; }
+        [[nodiscard]] RepositoriesRef getRepositories() const { return *repositories; }
 
-        [[nodiscard]] CommandPool &getCommandPool() const { return *commandPool; }
+        [[nodiscard]] CommandPoolRef getCommandPool() const { return *commandPool; }
 
-        [[nodiscard]] CommandBuffer &getCommandBuffer() const { return *commandBuffer; }
+        [[nodiscard]] CommandBufferRef getCommandBuffer() const { return *commandBuffer; }
 
-        [[nodiscard]] SyncObject &getSyncObject() const { return *syncObject; }
+        [[nodiscard]] SyncObjectRef getSyncObject() const { return *syncObject; }
 
-        [[nodiscard]] RenderContext &getRenderContext() const { return *renderContext; }
+        [[nodiscard]] std::span<const RenderContext> getRenderContexts() const { return renderContext; }
+
+        [[nodiscard]] RenderContextRef getRenderContext(const uint32_t renderContextIndex) const {
+            return *renderContext[renderContextIndex];
+        }
 
     private:
         void init() override;
 
         void destroy() override;
     };
+
+
+    using Engine = std::unique_ptr<EngineImpl>;
+    using EnginePtr = EngineImpl *;
+    using EngineRef = EngineImpl &;
 }

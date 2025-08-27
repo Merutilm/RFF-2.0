@@ -7,7 +7,7 @@
 #include "../util/ImageContextUtils.hpp"
 
 namespace merutilm::vkh {
-    CombinedImageSamplerImpl::CombinedImageSamplerImpl(const CoreRef core, const Sampler &sampler) : CoreHandler(core), sampler(sampler) {
+    CombinedImageSamplerImpl::CombinedImageSamplerImpl(CoreRef core, SamplerRef sampler) : CoreHandler(core), sampler(sampler) {
         CombinedImageSamplerImpl::init();
     }
 
@@ -33,7 +33,7 @@ namespace merutilm::vkh {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
 
         if (isUnique) {
-            vkDestroyImageView(device, imageContext.imageView, nullptr);
+            vkDestroyImageView(device, imageContext.writeImageView, nullptr);
             vkDestroyImage(device, imageContext.image, nullptr);
             vkFreeMemory(device, imageContext.imageMemory, nullptr);
         }

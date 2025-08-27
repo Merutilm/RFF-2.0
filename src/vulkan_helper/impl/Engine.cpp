@@ -5,30 +5,25 @@
 #include "Engine.hpp"
 
 namespace merutilm::vkh {
-    Engine::Engine(Core &&core) : core(std::move(core)) {
-        Engine::init();
+    EngineImpl::EngineImpl(Core &&core) : core(std::move(core)) {
+        EngineImpl::init();
     }
 
-    Engine::~Engine() {
-        Engine::destroy();
+    EngineImpl::~EngineImpl() {
+        EngineImpl::destroy();
     }
 
-    void Engine::init() {
-        repositories = std::make_unique<Repositories>(*core);
-        commandPool = std::make_unique<CommandPool>(*core);
-        commandBuffer = std::make_unique<CommandBuffer>(*core, *commandPool);
-        syncObject = std::make_unique<SyncObject>(*core);
+    void EngineImpl::init() {
+        repositories = Factory::create<Repositories>(*core);
+        commandPool = Factory::create<CommandPool>(*core);
+        commandBuffer = Factory::create<CommandBuffer>(*core, *commandPool);
+        syncObject = Factory::create<SyncObject>(*core);
     }
 
 
-    std::unique_ptr<RenderContext> Engine::attachRenderContext(std::unique_ptr<RenderContext> &&renderContext) {
-        auto prev = std::move(this->renderContext);
-        this->renderContext = std::move(renderContext);
-        return prev;
-    }
 
-    void Engine::destroy() {
-        renderContext = nullptr;
+    void EngineImpl::destroy() {
+        renderContext.clear();
         syncObject = nullptr;
         commandBuffer = nullptr;
         commandPool = nullptr;

@@ -4,7 +4,7 @@
 
 #include "StripePipelineConfigurator.hpp"
 
-#include "RFFRenderContextConfigurator.hpp"
+#include "RFFFirstRenderContextConfigurator.hpp"
 #include "../../vulkan_helper/util/ImageContextUtils.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "../../vulkan_helper/util/DescriptorUpdater.hpp"
@@ -12,21 +12,20 @@
 
 namespace merutilm::rff2 {
     void StripePipelineConfigurator::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex,
-                                                 const uint32_t imageIndex, const uint32_t width,
-                                                 const uint32_t height) {
-        auto &input = getRenderContextConfigurator<RFFRenderContextConfigurator>().getImageContext(
-            RFFRenderContextConfigurator::PRIMARY_SUBPASS_RESULT_COLOR_IMAGE, imageIndex);
-        auto &inputDesc = getDescriptor(SET_PREV_RESULT);
+                                                 const uint32_t imageIndex) {
+        auto &input = getRenderContextConfigurator<RFFFirstRenderContextConfigurator>().getImageContext(
+            RFFFirstRenderContextConfigurator::TEMP_IMAGE_CONTEXT);
+        const auto &inputDesc = getDescriptor(SET_PREV_RESULT);
         auto &inputManager = inputDesc.getDescriptorManager();
-        inputManager.get<vkh::ImageContext>(BINDING_PREV_RESULT_INPUT) = input;
-        inputDesc.queue(queue, frameIndex);
+        inputManager.get<vkh::MultiframeImageContext>(BINDING_PREV_RESULT_INPUT) = input;
+        inputDesc.queue(queue, frameIndex, imageIndex);
     }
 
     void StripePipelineConfigurator::configurePushConstant(vkh::PipelineLayoutManagerRef  &pipelineLayoutManager) {
         //noop
     }
 
-    void StripePipelineConfigurator::configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors) {
+    void StripePipelineConfigurator::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
         using namespace SharedDescriptorTemplate;
 
         auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
@@ -40,7 +39,7 @@ namespace merutilm::rff2 {
 
     void StripePipelineConfigurator::setStripe(const ShdStripeAttribute &stripe) const {
         using namespace SharedDescriptorTemplate;
-        auto &stripeDesc = getDescriptor(SET_STRIPE);
+        const auto &stripeDesc = getDescriptor(SET_STRIPE);
         auto &stripeManager = stripeDesc.getDescriptorManager();
         const auto &stripeUBO = *stripeManager.get<vkh::Uniform>(
             DescStripe::BINDING_UBO_STRIPE);
@@ -55,9 +54,9 @@ namespace merutilm::rff2 {
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_ANIMATION_SPEED,
                           stripe.animationSpeed);
 
-        writeDescriptorForEachFrame([&stripeUBO, &stripeDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            stripeUBO.update(frameIndex);
-            stripeDesc.queue(queue, frameIndex);
+        writeDescriptorForEachFrame([&stripeUBO, &stripeDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t inFlightIndex) {
+            stripeUBO.update(inFlightIndex);
+            stripeDesc.queue(queue, inFlightIndex, inFlightIndex);
         });
     }
 }

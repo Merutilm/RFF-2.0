@@ -1,0 +1,49 @@
+//
+// Created by Merutilm on 2025-08-27.
+//
+
+#pragma once
+#include "IndexBuffer.hpp"
+#include "Pipeline.hpp"
+#include "VertexBuffer.hpp"
+
+namespace merutilm::vkh {
+ 
+    class GraphicsPipelineImpl final : public PipelineAbstract {
+
+        VertexBufferRef vertexBuffer;
+        IndexBufferRef indexBuffer;
+
+    public:
+        explicit GraphicsPipelineImpl(EngineRef engine, PipelineLayoutRef pipelineLayout,
+                          VertexBufferRef vertexBuffer,
+                          IndexBufferRef indexBuffer,
+                          uint32_t renderContextIndex,
+                          uint32_t primarySubpassIndex,
+                          PipelineManager &&pipelineManager);
+
+        ~GraphicsPipelineImpl() override;
+
+        GraphicsPipelineImpl(const GraphicsPipelineImpl &) = delete;
+
+        GraphicsPipelineImpl &operator=(const GraphicsPipelineImpl &) = delete;
+
+        GraphicsPipelineImpl(GraphicsPipelineImpl &&) = delete;
+
+        GraphicsPipelineImpl &operator=(GraphicsPipelineImpl &&) = delete;
+
+        void bind(VkCommandBuffer cbh, uint32_t frameIndex) const override;
+
+        [[nodiscard]] VertexBufferRef getVertexBuffer() const { return vertexBuffer; }
+
+        [[nodiscard]] IndexBufferRef getIndexBuffer() const { return indexBuffer; }
+
+    private:
+        void init() override;
+    };
+
+    using GraphicsPipeline = std::unique_ptr<GraphicsPipelineImpl>;
+    using GraphicsPipelinePtr = GraphicsPipelineImpl *;
+    using GraphicsPipelineRef = GraphicsPipelineImpl &;
+
+}

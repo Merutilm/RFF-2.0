@@ -10,7 +10,7 @@
 #include "../struct/BufferLock.hpp"
 
 namespace merutilm::vkh {
-    class BufferObjectImpl : public CoreHandler {
+    class BufferObjectAbstract : public CoreHandler {
         std::unique_ptr<HostBufferObject> hostBufferObject = nullptr;
         VkBufferUsageFlags bufferUsage;
         std::vector<VkBuffer> buffers = {};
@@ -20,24 +20,24 @@ namespace merutilm::vkh {
         bool locked = false;
 
     public:
-        explicit BufferObjectImpl(const CoreRef core, HostBufferObjectManager &&dataManager,
+        explicit BufferObjectAbstract(const CoreRef core, HostBufferObjectManager &&dataManager,
                               VkBufferUsageFlags bufferUsage, BufferLock bufferLock);
 
-        ~BufferObjectImpl() override;
+        ~BufferObjectAbstract() override;
 
         void reloadBuffer();
 
-        BufferObjectImpl(const BufferObjectImpl &) = delete;
+        BufferObjectAbstract(const BufferObjectAbstract &) = delete;
 
-        BufferObjectImpl &operator=(const BufferObjectImpl &) = delete;
+        BufferObjectAbstract &operator=(const BufferObjectAbstract &) = delete;
 
-        BufferObjectImpl(BufferObjectImpl &&) = delete;
+        BufferObjectAbstract(BufferObjectAbstract &&) = delete;
 
-        BufferObjectImpl &operator=(BufferObjectImpl &&) noexcept = delete;
+        BufferObjectAbstract &operator=(BufferObjectAbstract &&) noexcept = delete;
 
-        void lock(const CommandPool &commandPool);
+        void lock(CommandPoolRef commandPool);
 
-        void unlock(const CommandPool &commandPool);
+        void unlock(CommandPoolRef commandPool);
 
         [[nodiscard]] VkBuffer getBufferHandle(const uint32_t frameIndex) const { return buffers[frameIndex]; }
 
@@ -56,7 +56,7 @@ namespace merutilm::vkh {
         void destroy() override;
     };
 
-    using BufferObject = std::unique_ptr<BufferObjectImpl>;
-    using BufferObjectPtr = BufferObjectImpl *;
-    using BufferObjectRef = BufferObjectImpl &;
+    using BufferObject = std::unique_ptr<BufferObjectAbstract>;
+    using BufferObjectPtr = BufferObjectAbstract *;
+    using BufferObjectRef = BufferObjectAbstract &;
 }

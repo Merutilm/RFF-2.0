@@ -9,7 +9,7 @@
 #include "../util/BufferImageUtils.hpp"
 
 namespace merutilm::vkh {
-    VertexBufferImpl::VertexBufferImpl(const CoreRef core, HostBufferObjectManager &&manager, const BufferLock bufferLock) : BufferObjectImpl(
+    VertexBufferImpl::VertexBufferImpl(const CoreRef core, HostBufferObjectManager &&manager, const BufferLock bufferLock) : BufferObjectAbstract(
         core, std::move(manager), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, bufferLock) {
         VertexBufferImpl::init();
     }

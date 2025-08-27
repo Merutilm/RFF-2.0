@@ -3,11 +3,12 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
+#include "RFFFirstRenderContextConfigurator.hpp"
+#include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "../attr/ShdStripeAttribute.h"
 
 namespace merutilm::rff2 {
-    class StripePipelineConfigurator final : public vkh::GeneralPostProcessPipelineConfigurator {
+    class StripePipelineConfigurator final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
 
         static constexpr uint32_t SET_PREV_RESULT = 0;
         static constexpr uint32_t BINDING_PREV_RESULT_INPUT = 0;
@@ -17,9 +18,9 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_TIME = 3;
 
     public:
-        StripePipelineConfigurator(const vkh::Engine &engine,
-                                   const uint32_t subpassIndex) : GeneralPostProcessPipelineConfigurator(
-            engine, subpassIndex, "vk_stripe.frag") {
+        StripePipelineConfigurator(vkh::EngineRef engine,
+                                   const uint32_t renderContextIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, renderContextIndex, RFFFirstRenderContextConfigurator::SUBPASS_STRIPE_INDEX, "vk_stripe.frag") {
         }
 
         ~StripePipelineConfigurator() override = default;
@@ -35,14 +36,13 @@ namespace merutilm::rff2 {
 
 
 
-        void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex, uint32_t width,
-                         uint32_t height) override;
+        void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex) override;
 
         void setStripe(const ShdStripeAttribute &stripe) const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
 
-        void configureDescriptors(std::vector<const vkh::Descriptor *> &descriptors) override;
+        void configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) override;
     };
 }

@@ -10,12 +10,12 @@
 namespace merutilm::vkh {
     class CombinedImageSamplerImpl final : public CoreHandler {
         ImageContext imageContext = {};
-        const Sampler &sampler;
+        SamplerRef sampler;
         bool initialized = false;
         bool isUnique = false;
 
     public:
-        explicit CombinedImageSamplerImpl(const CoreRef core, const Sampler &sampler);
+        explicit CombinedImageSamplerImpl(CoreRef core, SamplerRef sampler);
 
         ~CombinedImageSamplerImpl() override;
 
@@ -36,20 +36,20 @@ namespace merutilm::vkh {
             this->imageContext = imageContext;
         }
 
-        void setUniqueImageContext(ImageContext &&imageContext) {
+        void setUniqueImageContext(const ImageContext &imageContext) {
             if (isUnique) {
                 ImageContext::destroyContext(core, &this->imageContext);
             }
             initialized = true;
             isUnique = true;
-            this->imageContext = std::move(imageContext);
+            this->imageContext = imageContext;
         }
 
         [[nodiscard]] const ImageContext &getImageContext() const;
 
         [[nodiscard]] bool isInitialized() const { return initialized; }
 
-        [[nodiscard]] const Sampler &getSampler() const { return sampler; }
+        [[nodiscard]] SamplerRef getSampler() const { return sampler; }
 
     private:
         void init() override;

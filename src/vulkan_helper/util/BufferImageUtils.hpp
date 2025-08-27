@@ -6,6 +6,7 @@
 #include "../exception/exception.hpp"
 #include "../impl/Core.hpp"
 #include "../struct/ImageInitInfo.hpp"
+#include <cmath>
 
 namespace merutilm::vkh {
     struct BufferImageUtils {
@@ -15,25 +16,31 @@ namespace merutilm::vkh {
         static void initImage(CoreRef core,
                               const ImageInitInfo &iii, VkImage *image,
                               VkDeviceMemory *imageMemory,
-                              VkImageView *imageView) {
+                              VkImageView *writeImageView, VkImageView *readImageView) {
             initImage(core.getLogicalDevice().getLogicalDeviceHandle(),
-                      core.getPhysicalDevice().getPhysicalDeviceMemoryProperties(), iii, image, imageMemory, imageView);
+                      core.getPhysicalDevice().getPhysicalDeviceMemoryProperties(), iii, image, imageMemory, writeImageView, readImageView);
         }
 
 
         static void initImage(const VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
                               const ImageInitInfo &iii, VkImage *image,
                               VkDeviceMemory *imageMemory,
-                              VkImageView *imageView) {
-            createImage(device, iii, image);
+                              VkImageView *writeImageView, VkImageView *readImageView) {
+            const uint32_t mipLevels = genMipLevels(iii);
+            createImage(device, iii, mipLevels, image);
             allocateImageMemory(device, memProperties, iii, *image,
                                 imageMemory);
             vkBindImageMemory(device, *image, *imageMemory, 0);
-            createImageView(device, *image, iii.imageViewType, iii.mipLevels, iii.imageFormat, imageView);
+            createWriteImageView(device, *image, iii.imageViewType, iii.imageFormat, writeImageView);
+            if (mipLevels == 1) {
+                *readImageView = *writeImageView;
+            }else {
+                createReadImageView(device, *image, iii.imageViewType, iii.imageFormat, mipLevels, readImageView);
+            }
         }
 
 
-        static void createImage(const VkDevice device, const ImageInitInfo &iii, VkImage *image) {
+        static void createImage(const VkDevice device, const ImageInitInfo &iii, const uint32_t mipLevels, VkImage *image) {
             const VkImageCreateInfo imageInfo = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
                 .pNext = nullptr,
@@ -41,7 +48,7 @@ namespace merutilm::vkh {
                 .imageType = iii.imageType,
                 .format = iii.imageFormat,
                 .extent = iii.extent,
-                .mipLevels = iii.mipLevels,
+                .mipLevels = mipLevels,
                 .arrayLayers = iii.arrayLayers,
                 .samples = iii.samples,
                 .tiling = iii.imageTiling,
@@ -55,6 +62,7 @@ namespace merutilm::vkh {
                 throw exception_init("Failed to create image!");
             }
         }
+
 
         static void allocateImageMemory(const VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
                                         const ImageInitInfo &iii,
@@ -73,9 +81,38 @@ namespace merutilm::vkh {
             }
         }
 
-        static void createImageView(const VkDevice device, const VkImage image,
-                                    const VkImageViewType imageViewType, const uint32_t mipLevels,
-                                    const VkFormat imageFormat, VkImageView *imageView) {
+        static void createWriteImageView(const VkDevice device, const VkImage image,
+                                    const VkImageViewType imageViewType,
+                                    const VkFormat imageFormat, VkImageView *writeImageView) {
+            const VkImageViewCreateInfo viewInfo = {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .image = image,
+                .viewType = imageViewType,
+                .format = imageFormat,
+                .components = {
+                    .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+                },
+                .subresourceRange = {
+                    .aspectMask = getAspectMask(imageFormat),
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1
+                }
+            };
+            if (vkCreateImageView(device, &viewInfo, nullptr, writeImageView)) {
+                throw exception_init("Failed to create image view!");
+            }
+        }
+
+        static void createReadImageView(const VkDevice device, const VkImage image,
+                                    const VkImageViewType imageViewType,
+                                    const VkFormat imageFormat, const uint32_t mipLevels, VkImageView *readImageView) {
             const VkImageViewCreateInfo viewInfo = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
                 .pNext = nullptr,
@@ -97,7 +134,7 @@ namespace merutilm::vkh {
                     .layerCount = 1
                 }
             };
-            if (vkCreateImageView(device, &viewInfo, nullptr, imageView)) {
+            if (vkCreateImageView(device, &viewInfo, nullptr, readImageView)) {
                 throw exception_init("Failed to create image view!");
             }
         }
@@ -182,5 +219,10 @@ namespace merutilm::vkh {
             throw exception_init("failed to find suitable memory type!");
         }
 
+        static uint32_t genMipLevels(const ImageInitInfo &iii) {
+            if (!iii.useMipmap) return 1;
+
+            return static_cast<uint32_t>(std::floor(std::log2(std::max(iii.extent.width, iii.extent.height))) + 1);
+        }
     };
 }

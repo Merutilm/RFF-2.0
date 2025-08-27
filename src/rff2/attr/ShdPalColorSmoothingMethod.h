@@ -1,7 +1,7 @@
 #pragma once
 
 namespace merutilm::rff2 {
-    enum class ColorSmoothingMethod {
+    enum class ShdPalColorSmoothingMethod {
         NONE,
         NORMAL,
         REVERSED

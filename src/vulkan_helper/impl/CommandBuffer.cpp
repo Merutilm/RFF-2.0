@@ -7,16 +7,16 @@
 #include "../exception/exception.hpp"
 
 namespace merutilm::vkh {
-    CommandBuffer::CommandBuffer(const CoreRef core, const CommandPool &commandPool) : CoreHandler(core), commandPool(commandPool) {
-        CommandBuffer::init();
+    CommandBufferImpl::CommandBufferImpl(CoreRef core, CommandPoolRef commandPool) : CoreHandler(core), commandPool(commandPool) {
+        CommandBufferImpl::init();
     }
 
-    CommandBuffer::~CommandBuffer() {
-        CommandBuffer::destroy();
+    CommandBufferImpl::~CommandBufferImpl() {
+        CommandBufferImpl::destroy();
     }
 
 
-    void CommandBuffer::init() {
+    void CommandBufferImpl::init() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         commandBuffers.resize(maxFramesInFlight);
@@ -34,7 +34,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void CommandBuffer::destroy() {
+    void CommandBufferImpl::destroy() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {

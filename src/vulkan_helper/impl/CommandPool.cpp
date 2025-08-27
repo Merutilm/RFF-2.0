@@ -7,16 +7,16 @@
 #include "../exception/exception.hpp"
 
 namespace merutilm::vkh {
-    CommandPool::CommandPool(const CoreRef core) : CoreHandler(core) {
-        CommandPool::init();
+    CommandPoolImpl::CommandPoolImpl(CoreRef core) : CoreHandler(core) {
+        CommandPoolImpl::init();
     }
 
-    CommandPool::~CommandPool() {
-        CommandPool::destroy();
+    CommandPoolImpl::~CommandPoolImpl() {
+        CommandPoolImpl::destroy();
     }
 
 
-    void CommandPool::init() {
+    void CommandPoolImpl::init() {
         const VkCommandPoolCreateInfo createInfo = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .pNext = nullptr,
@@ -30,7 +30,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void CommandPool::destroy() {
+    void CommandPoolImpl::destroy() {
         vkDestroyCommandPool(core.getLogicalDevice().getLogicalDeviceHandle(), commandPool, nullptr);
     }
 }

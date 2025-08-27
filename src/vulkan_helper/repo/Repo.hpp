@@ -8,20 +8,20 @@
 
 namespace merutilm::vkh {
 
-    template<typename Key, typename KeyInput, typename Type, typename KeyHasher, typename KeyPredicate, typename... Args>
-    struct Repo : IRepo{
+    template<typename Key, typename KeyInput, typename Type, typename Return, typename KeyHasher, typename KeyPredicate, typename... Args>
+    struct Repository : InterfaceRepoImpl{
 
         CoreRef core;
 
-        std::unordered_map<Key, std::unique_ptr<Type>, KeyHasher, KeyPredicate> repository = {};
+        std::unordered_map<Key, Type, KeyHasher, KeyPredicate> repository = {};
 
-        explicit Repo(CoreRef core) : core(core) {}
+        explicit Repository(CoreRef core) : core(core) {}
 
         void remove(Key key) {
             repository.erase(key);
         }
 
-        virtual const Type &pick(KeyInput keyInput, Args... args) = 0;
+        virtual Return pick(KeyInput keyInput, Args... args) = 0;
 
     };
 

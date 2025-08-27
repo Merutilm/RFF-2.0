@@ -7,34 +7,35 @@
 #include "../handle/CoreHandler.hpp"
 
 namespace merutilm::vkh {
-    class Framebuffer final : public CoreHandler {
+    class FramebufferImpl final : public CoreHandler {
         std::vector<VkFramebuffer> framebuffer = {};
-        const RenderPass &renderPass;
+        RenderPassRef renderPass;
         VkExtent2D extent;
 
     public:
-        explicit Framebuffer(const CoreRef core, const RenderPass &renderPass, VkExtent2D extent);
+        explicit FramebufferImpl(CoreRef core, RenderPassRef renderPass, VkExtent2D extent);
 
-        ~Framebuffer() override;
+        ~FramebufferImpl() override;
 
-        Framebuffer(const Framebuffer &) = delete;
+        FramebufferImpl(const FramebufferImpl &) = delete;
 
-        Framebuffer &operator=(const Framebuffer &) = delete;
+        FramebufferImpl &operator=(const FramebufferImpl &) = delete;
 
-        Framebuffer(Framebuffer &&) = delete;
+        FramebufferImpl(FramebufferImpl &&) = delete;
 
-        Framebuffer &operator=(Framebuffer &&) = delete;
+        FramebufferImpl &operator=(FramebufferImpl &&) = delete;
 
 
         [[nodiscard]] VkFramebuffer getFramebufferHandle(const uint32_t imageIndex) const { return framebuffer[imageIndex]; }
 
-        void setExtent(const VkExtent2D &extent) {
-            this->extent = extent;
-        }
+        [[nodiscard]] const VkExtent2D &getExtent() const { return extent; }
 
     private:
         void init() override;
 
         void destroy() override;
     };
+    using Framebuffer = std::unique_ptr<FramebufferImpl>;
+    using FramebufferPtr = FramebufferImpl *;
+    using FramebufferRef = FramebufferImpl &;
 }

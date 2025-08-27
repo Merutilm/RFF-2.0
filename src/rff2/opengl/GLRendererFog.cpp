@@ -6,7 +6,7 @@
 
 
 namespace merutilm::rff2 {
-    GLRendererFog::GLRendererFog() : GLRendererGaussianBlur("fog.frag", "gaussian_blur_single_pass.frag") {
+    GLRendererFog::GLRendererFog() : GLRendererGaussianBlur("fog.frag", "vk_box_blur.comp") {
     }
 
 

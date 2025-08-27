@@ -2,40 +2,43 @@
 // Created by Merutilm on 2025-07-18.
 //
 
-#include "GeneralPipelineConfigurator.hpp"
+#include "GeneralGraphicsPipelineConfigurator.hpp"
 
 #include <utility>
 
 #include "../def/Factory.hpp"
+#include "../impl/GraphicsPipeline.hpp"
 #include "../repo/SharedDescriptorRepo.hpp"
 #include "../repo/Repositories.hpp"
 
 namespace merutilm::vkh {
-    GeneralPipelineConfigurator::GeneralPipelineConfigurator(const Engine &engine,
+    GeneralGraphicsPipelineConfigurator::GeneralGraphicsPipelineConfigurator(EngineRef engine,
+                                                             const uint32_t renderContextIndex,
                                                              const uint32_t subpassIndex,
                                                              const std::string &vertName,
-                                                             const std::string &fragName) : PipelineConfigurator(engine, subpassIndex, vertName, fragName){
-        GeneralPipelineConfigurator::init();
+                                                             const std::string &fragName) : GraphicsPipelineConfigurator(
+        engine, renderContextIndex, subpassIndex, vertName, fragName) {
+        GeneralGraphicsPipelineConfigurator::init();
     }
 
-    GeneralPipelineConfigurator::~GeneralPipelineConfigurator() {
-        GeneralPipelineConfigurator::destroy();
+    GeneralGraphicsPipelineConfigurator::~GeneralGraphicsPipelineConfigurator() {
+        GeneralGraphicsPipelineConfigurator::destroy();
     }
 
-    void GeneralPipelineConfigurator::configure() {
+    void GeneralGraphicsPipelineConfigurator::configure() {
         auto pipelineLayoutManager = Factory::create<PipelineLayoutManager>();
         auto &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
 
-        std::vector<const Descriptor *> descriptors = {};
+        std::vector<DescriptorPtr> descriptors = {};
         configureDescriptors(descriptors);
 
         for (const auto descriptor: descriptors) {
-            const DescriptorSetLayout &layout = layoutRepo.pick(descriptor->getDescriptorManager().getLayoutBuilder());
+            DescriptorSetLayoutRef layout = layoutRepo.pick(descriptor->getDescriptorManager().getLayoutBuilder());
             pipelineLayoutManager->appendDescriptorSetLayout(&layout);
         }
 
         configurePushConstant(*pipelineLayoutManager);
-        const PipelineLayout &pipelineLayout = engine.getRepositories().getRepository<PipelineLayoutRepo>()->pick(
+        PipelineLayoutRef pipelineLayout = engine.getRepositories().getRepository<PipelineLayoutRepo>()->pick(
             std::move(pipelineLayoutManager));
 
 
@@ -55,16 +58,16 @@ namespace merutilm::vkh {
         vertexBuffer = Factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_UNLOCK);
         indexBuffer = Factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_UNLOCK);
 
-        pipeline = std::make_unique<Pipeline>(engine, pipelineLayout, *vertexBuffer, *indexBuffer, subpassIndex,
+        pipeline = Factory::create<GraphicsPipeline>(engine, pipelineLayout, *vertexBuffer, *indexBuffer, renderContextIndex, primarySubpassIndex,
                                               std::move(pipelineManager));
     }
 
 
-    void GeneralPipelineConfigurator::init() {
+    void GeneralGraphicsPipelineConfigurator::init() {
         //no operation
     }
 
-    void GeneralPipelineConfigurator::destroy() {
+    void GeneralGraphicsPipelineConfigurator::destroy() {
         pipeline = nullptr;
         indexBuffer = nullptr;
         vertexBuffer = nullptr;

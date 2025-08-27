@@ -4,9 +4,7 @@
 
 #include "Application.hpp"
 
-#include "../../vulkan_helper/configurator/GeneralPostProcessPipelineConfigurator.hpp"
-#include "../../vulkan_helper/executor/RenderPassExecutor.hpp"
-#include "../../vulkan_helper/util/DescriptorUpdater.hpp"
+#include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "../../vulkan_helper/util/Presenter.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 
@@ -135,7 +133,7 @@ namespace merutilm::rff2 {
         auto core = vkh::Factory::create<vkh::Core>();
         core->createGraphicsContextForWindow(renderWindow, Constants::Win32::INIT_RENDER_SCENE_FPS,
                                              Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
-        engine = std::make_unique<vkh::Engine>(std::move(core));
+        engine = vkh::Factory::create<vkh::Engine>(std::move(core));
     }
 
     void Application::createRenderScene() {
@@ -230,7 +228,7 @@ namespace merutilm::rff2 {
         });
     }
 
-    void Application::resolveWindowResizeEnd() {
+    void Application::resolveWindowResizeEnd() const {
         RECT rect;
         GetClientRect(masterWindow, &rect);
         rect.bottom -= statusHeight;
@@ -239,24 +237,11 @@ namespace merutilm::rff2 {
             scene->requestResize();
             scene->requestRecompute();
         }
-
-        vkh::CoreRef core = engine->getCore();
-        vkh::RenderContext &renderContext = engine->getRenderContext();
-        if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
-            return;
-        }
-        vkDeviceWaitIdle(core.getLogicalDevice().getLogicalDeviceHandle());
-
-        vkh::SwapchainRef swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
-                swapchain;
-        swapchain.recreate();
-        renderContext.recreate(swapchain.populateSwapchainExtent());
-        drawFrame();
+        scene->resolveWindowResizeEnd();
     }
 
     void Application::drawFrame() {
         vkh::CoreRef core = engine->getCore();
-        const vkh::RenderContext &renderContext = engine->getRenderContext();
         if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
             return;
         }
@@ -276,28 +261,11 @@ namespace merutilm::rff2 {
         vkAcquireNextImageKHR(device, swapchainHandle, UINT64_MAX, imageAvailableSemaphore,
                               nullptr, &imageIndex);
 
-        const auto extent = swapchain.populateSwapchainExtent();
 
-        vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
-
-        for (const auto &shaderPrograms = scene->getShaderPrograms();
-            const auto &shaderProgram: shaderPrograms) {
-            shaderProgram->updateQueue(queue, currentFrame, imageIndex, extent.width, extent.height);
-        }
-
-        vkh::DescriptorUpdater::write(device, queue);
-
-        //COMMAND SCOPE START
-        {
-            const auto renderPassExecutor = vkh::RenderPassExecutor(*engine, renderContext, extent,
-                                                                    currentFrame, imageIndex);
-
-            const VkCommandBuffer cbh = engine->getCommandBuffer().getCommandBufferHandle(currentFrame);
-            swapchain.matchViewportAndScissor(cbh);
-            scene->render(cbh, currentFrame, extent);
-        } // COMMAND SCOPE END
+        scene->render(swapchain, currentFrame, imageIndex);
 
         vkh::Presenter::present(*engine, swapchainHandle, currentFrame, imageIndex);
+        refreshStatusBar();
     }
 
     void Application::changeFrameIndex() {
@@ -325,7 +293,7 @@ namespace merutilm::rff2 {
     void Application::destroy() {
         vkDeviceWaitIdle(engine->getCore().getLogicalDevice().getLogicalDeviceHandle());
         scene = nullptr;
-        vkh::GeneralPostProcessPipelineConfigurator::cleanup();
+        vkh::GeneralPostProcessGraphicsPipelineConfigurator::cleanup();
         engine = nullptr;
         settingsMenu = nullptr;
     }

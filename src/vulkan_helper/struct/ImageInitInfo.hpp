@@ -11,7 +11,7 @@ namespace merutilm::vkh {
         VkImageViewType imageViewType;
         VkFormat imageFormat;
         VkExtent3D extent;
-        uint32_t mipLevels;
+        bool useMipmap;
         uint32_t arrayLayers;
         VkSampleCountFlagBits samples;
         VkImageTiling imageTiling;

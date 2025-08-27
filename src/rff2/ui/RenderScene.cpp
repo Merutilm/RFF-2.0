@@ -6,8 +6,9 @@
 
 #include "CallbackExplore.hpp"
 #include "IOUtilities.h"
+#include "../../vulkan_helper/executor/RenderPassFullscreenExecutor.hpp"
 #include "../constants/VulkanWindowConstants.hpp"
-#include "../vulkan/RFFRenderContextConfigurator.hpp"
+#include "../vulkan/RFFFirstRenderContextConfigurator.hpp"
 #include "../vulkan/IterationPalettePipelineConfigurator.hpp"
 #include "../calc/dex_exp.h"
 #include "../formula/DeepMandelbrotPerturbator.h"
@@ -27,8 +28,9 @@
 
 
 namespace merutilm::rff2 {
-    RenderScene::RenderScene(vkh::Engine &engine, const HWND window,
-                             std::array<std::string, Constants::Status::LENGTH> *statusMessageRef) : engine(engine),
+    RenderScene::RenderScene(vkh::EngineRef engine, const HWND window,
+                             std::array<std::string, Constants::Status::LENGTH> *statusMessageRef) : EngineHandler(
+            engine),
         window(window), attr(defaultSettings()), statusMessageRef(statusMessageRef) {
         init();
     }
@@ -42,33 +44,55 @@ namespace merutilm::rff2 {
         initShaderPrograms();
     }
 
-    void RenderScene::initRenderContext() const {
-        auto & swapchain = *engine.getCore().getWindowContext(
-            Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
-        auto configurator = std::make_unique<RFFRenderContextConfigurator>(engine.getCore(), swapchain);
 
-        engine.attachRenderContext(std::make_unique<vkh::RenderContext>(engine.getCore(),
-                                                                        swapchain.populateSwapchainExtent(),
-                                                                        std::move(configurator)));
+    void RenderScene::initRenderContext() const {
+
+        const auto swapchainImageContextGetter = [this] {
+            auto &swapchain = *engine.getCore().getWindowContext(
+                Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+            return vkh::ImageContext::fromSwapchain(engine.getCore(), swapchain);
+        };
+
+        engine.attachRenderContext<RFFFirstRenderContextConfigurator>(getInternalRenderContextExtent(), swapchainImageContextGetter);
     }
 
     void RenderScene::initShaderPrograms() {
-        rendererIteration = vkh::PipelineConfigurator::createShaderProgram<IterationPalettePipelineConfigurator>(
-            shaderPrograms, engine, RFFRenderContextConfigurator::SUBPASS_ITERATION_INDEX);
-        rendererStripe = vkh::PipelineConfigurator::createShaderProgram<StripePipelineConfigurator>(
-            shaderPrograms, engine, RFFRenderContextConfigurator::SUBPASS_STRIPE_INDEX);
-        rendererSlope = vkh::PipelineConfigurator::createShaderProgram<SlopePipelineConfigurator>(
-            shaderPrograms, engine, RFFRenderContextConfigurator::SUBPASS_SLOPE_INDEX);
+        rendererIteration = vkh::GraphicsPipelineConfigurator::createShaderProgram<IterationPalettePipelineConfigurator>(
+            firstRenderPassShaderPrograms, engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX);
+        rendererStripe = vkh::GraphicsPipelineConfigurator::createShaderProgram<StripePipelineConfigurator>(
+            firstRenderPassShaderPrograms, engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX);
+        rendererSlope = vkh::GraphicsPipelineConfigurator::createShaderProgram<SlopePipelineConfigurator>(
+            firstRenderPassShaderPrograms, engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX);
+        rendererColor = vkh::GraphicsPipelineConfigurator::createShaderProgram<ColorPipelineConfigurator>(
+            firstRenderPassShaderPrograms, engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX);
+        rendererTempPresent = vkh::GraphicsPipelineConfigurator::createShaderProgram<TempPresentPipelineConfigurator>(
+            firstRenderPassShaderPrograms, engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX);
 
         applyResize();
-        applyColor(attr);
+        applyShaderAttr(attr);
         requestRecompute();
     }
 
-    void RenderScene::render(const VkCommandBuffer cbh, const uint32_t frameIndex, const VkExtent2D &extent) {
-        if (colorRequested) {
-            applyColor(attr);
-            colorRequested.exchange(false);
+    void RenderScene::resolveWindowResizeEnd() const {
+        vkh::CoreRef core = engine.getCore();
+        if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
+            return;
+        }
+        vkDeviceWaitIdle(core.getLogicalDevice().getLogicalDeviceHandle());
+
+        vkh::SwapchainRef swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
+                swapchain;
+        swapchain.recreate();
+        engine.getRenderContext(RFFFirstRenderContextConfigurator::CONTEXT_INDEX).recreate(getInternalRenderContextExtent());
+        // engine.getRenderContext(FOG_RENDER_CONTEXT_INDEX).recreate(getInternalRenderContextExtent());
+        // engine.getRenderContext(BLOOM_RENDER_CONTEXT_INDEX).recreate(getInternalRenderContextExtent());
+    }
+
+
+    void RenderScene::render(vkh::SwapchainRef swapchain, const uint32_t frameIndex, const uint32_t imageIndex) {
+        if (shaderRequested) {
+            applyShaderAttr(attr);
+            shaderRequested.exchange(false);
             backgroundThreads.notifyAll();
         }
 
@@ -93,13 +117,36 @@ namespace merutilm::rff2 {
         }
 
 
-        for (int i = 0; i < shaderPrograms.size(); ++i) {
-            shaderPrograms[i]->pipeline->bind(cbh, frameIndex);
-            shaderPrograms[i]->render(cbh, frameIndex, extent.width, extent.height);
-            if (i < shaderPrograms.size() - 1) {
-                vkCmdNextSubpass(cbh, VK_SUBPASS_CONTENTS_INLINE);
+        draw(swapchain, frameIndex, imageIndex);
+    }
+
+    void RenderScene::draw(vkh::SwapchainRef swapchain, const uint32_t frameIndex, const uint32_t imageIndex) {
+        vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
+
+        for (const auto &shaderProgram: firstRenderPassShaderPrograms) {
+            shaderProgram->updateQueue(queue, frameIndex, imageIndex);
+        }
+
+        vkh::DescriptorUpdater::write(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), queue);
+
+        // First RenderPass begin
+        {
+            const auto renderPassExecutor = vkh::RenderPassFullscreenExecutor(
+                engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX, frameIndex, imageIndex);
+
+            const VkCommandBuffer cbh = engine.getCommandBuffer().getCommandBufferHandle(frameIndex);
+            swapchain.matchViewportAndScissor(cbh);
+            for (int i = 0; i < firstRenderPassShaderPrograms.size(); ++i) {
+                firstRenderPassShaderPrograms[i]->pipeline->bind(cbh, frameIndex);
+                firstRenderPassShaderPrograms[i]->render(cbh, frameIndex);
+                if (i < firstRenderPassShaderPrograms.size() - 1) {
+                    vkCmdNextSubpass(cbh, VK_SUBPASS_CONTENTS_INLINE);
+                }
             }
         }
+        //First RenderPass End
+
+
     }
 
     Attribute RenderScene::defaultSettings() {
@@ -203,7 +250,7 @@ namespace merutilm::rff2 {
                 constexpr float increment = Constants::Render::ZOOM_INTERVAL;
 
                 attr.calc.logZoom = std::max(Constants::Render::ZOOM_MIN,
-                                                                attr.calc.logZoom);
+                                             attr.calc.logZoom);
                 if (value == 1) {
                     const std::array<dex, 2> offset = offsetConversion(attr, getMouseXOnIterationBuffer(),
                                                                        getMouseYOnIterationBuffer());
@@ -297,11 +344,11 @@ namespace merutilm::rff2 {
         // GLRenderer::unbindFBO(fbo);
     }
 
-    void RenderScene::applyColor(const Attribute &attr) const {
+    void RenderScene::applyShaderAttr(const Attribute &attr) const {
         rendererIteration->setPalette(attr.shader.palette);
         rendererStripe->setStripe(attr.shader.stripe);
         rendererSlope->setSlope(attr.shader.slope);
-        // rendererColorFilter->setColorSettings(attr.shader.color);
+        rendererColor->setColor(attr.shader.color);
         // rendererFog->setFogSettings(attr.shader.fog);
         // rendererBloom->setBloomSettings(attr.shader.bloomAttribute);
         // rendererAntialiasing->setUse(attr.render.antialiasing);
@@ -353,9 +400,9 @@ namespace merutilm::rff2 {
 
     void RenderScene::beforeCompute(Attribute &settings) const {
         settings.calc.maxIteration = settings.calc.autoMaxIteration
-                                                        ? lastPeriod * settings.calc.
-                                                          autoIterationMultiplier
-                                                        : this->attr.calc.maxIteration;
+                                         ? lastPeriod * settings.calc.
+                                           autoIterationMultiplier
+                                         : this->attr.calc.maxIteration;
         rendererIteration->setMaxIteration(static_cast<double>(settings.calc.maxIteration));
     }
 
@@ -555,6 +602,6 @@ namespace merutilm::rff2 {
 
     void RenderScene::destroy() {
         state.cancel();
-        shaderPrograms.clear();
+        firstRenderPassShaderPrograms.clear();
     }
 }

@@ -9,22 +9,22 @@
 
 
 namespace merutilm::vkh {
-    class DescriptorSetLayout final : public CoreHandler {
+    class DescriptorSetLayoutImpl final : public CoreHandler {
         const DescriptorSetLayoutBuilder &layoutBuilder;
         VkDescriptorSetLayout layout = nullptr;
 
     public:
-        explicit DescriptorSetLayout(const CoreRef core, const DescriptorSetLayoutBuilder &layoutBuilder);
+        explicit DescriptorSetLayoutImpl(const CoreRef core, const DescriptorSetLayoutBuilder &layoutBuilder);
 
-        ~DescriptorSetLayout() override;
+        ~DescriptorSetLayoutImpl() override;
 
-        DescriptorSetLayout(const DescriptorSetLayout &) = delete;
+        DescriptorSetLayoutImpl(const DescriptorSetLayoutImpl &) = delete;
 
-        DescriptorSetLayout &operator=(const DescriptorSetLayout &) = delete;
+        DescriptorSetLayoutImpl &operator=(const DescriptorSetLayoutImpl &) = delete;
 
-        DescriptorSetLayout(DescriptorSetLayout &&) = delete;
+        DescriptorSetLayoutImpl(DescriptorSetLayoutImpl &&) = delete;
 
-        DescriptorSetLayout &operator=(DescriptorSetLayout &&) = delete;
+        DescriptorSetLayoutImpl &operator=(DescriptorSetLayoutImpl &&) = delete;
 
         [[nodiscard]] VkDescriptorSetLayout getLayoutHandle() const {return layout;}
 
@@ -33,4 +33,9 @@ namespace merutilm::vkh {
 
         void destroy() override;
     };
+
+    
+    using DescriptorSetLayout = std::unique_ptr<DescriptorSetLayoutImpl>;
+    using DescriptorSetLayoutPtr = DescriptorSetLayoutImpl *;
+    using DescriptorSetLayoutRef = DescriptorSetLayoutImpl &;
 }

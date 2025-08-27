@@ -7,15 +7,15 @@
 #include "../exception/exception.hpp"
 
 namespace merutilm::vkh {
-    SyncObject::SyncObject(const CoreRef core) : CoreHandler(core) {
-        SyncObject::init();
+    SyncObjectImpl::SyncObjectImpl(CoreRef core) : CoreHandler(core) {
+        SyncObjectImpl::init();
     }
 
-    SyncObject::~SyncObject() {
-        SyncObject::destroy();
+    SyncObjectImpl::~SyncObjectImpl() {
+        SyncObjectImpl::destroy();
     }
 
-    void SyncObject::init() {
+    void SyncObjectImpl::init() {
         
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
@@ -45,7 +45,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void SyncObject::destroy() {
+    void SyncObjectImpl::destroy() {
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {

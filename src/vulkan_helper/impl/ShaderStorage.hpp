@@ -6,7 +6,7 @@
 #include "BufferObject.hpp"
 
 namespace merutilm::vkh {
-    class ShaderStorageImpl final : public BufferObjectImpl {
+    class ShaderStorageImpl final : public BufferObjectAbstract {
     public:
         explicit ShaderStorageImpl(const CoreRef core, HostBufferObjectManager &&manager, BufferLock bufferLock);
 
