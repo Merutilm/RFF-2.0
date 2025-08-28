@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include <ranges>
 #include "../context/ImageContext.hpp"
 #include "../impl/CommandPool.hpp"
 #include "../manage/RenderPassManager.hpp"
@@ -15,12 +14,12 @@ namespace merutilm::vkh {
     struct RenderContextConfiguratorAbstract {
         CoreRef core;
         CommandPoolRef commandPool;
-        std::function<MultiframeImageContext()> swapchainImageContext;
+        std::function<MultiframeImageContext()> swapchainImageContextGetter;
         std::vector<MultiframeImageContext> contexts = {};
 
         template<typename F> requires std::is_invocable_r_v<MultiframeImageContext, F>
-        explicit RenderContextConfiguratorAbstract(CoreRef core, CommandPoolRef commandPool, const F &swapchainImageContext) : core(core), commandPool(commandPool),
-            swapchainImageContext(swapchainImageContext) {
+        explicit RenderContextConfiguratorAbstract(CoreRef core, CommandPoolRef commandPool, const F &swapchainImageContextGetter) : core(core), commandPool(commandPool),
+            swapchainImageContextGetter(swapchainImageContextGetter) {
         }
 
         virtual ~RenderContextConfiguratorAbstract() {
@@ -57,7 +56,7 @@ namespace merutilm::vkh {
 
         void cleanupContexts() {
             for (const auto &context: contexts) {
-                ImageContext::destroyContext(core, &context);
+                ImageContext::destroyContext(core, context);
             }
             contexts.clear();
         }

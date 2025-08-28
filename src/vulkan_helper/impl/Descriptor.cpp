@@ -5,7 +5,8 @@
 #include "Descriptor.hpp"
 
 #include <iostream>
-
+#include <numeric>
+#include <algorithm>
 #include "DescriptorSetLayout.hpp"
 #include "../context/DescriptorUpdateContext.hpp"
 #include "../exception/exception.hpp"
@@ -96,7 +97,7 @@ namespace merutilm::vkh {
                 updateQueue.push_back({
                     .imageInfo = VkDescriptorImageInfo{
                         .sampler = tex->getSampler().getSamplerHandle(),
-                        .imageView = tex->getImageContext().readImageView,
+                        .imageView = tex->getImageContext().mipmappedImageView,
                         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                     }
                 });
@@ -120,7 +121,7 @@ namespace merutilm::vkh {
                 updateQueue.push_back({
                     .imageInfo = VkDescriptorImageInfo{
                         .sampler = tex->getSampler().getSamplerHandle(),
-                        .imageView = tex->getImageContext()[imageIndex].readImageView,
+                        .imageView = tex->getImageContext()[imageIndex].mipmappedImageView,
                         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                     }
                 });
@@ -138,12 +139,12 @@ namespace merutilm::vkh {
                     .pTexelBufferView = nullptr,
                 };
             }
-            if (std::holds_alternative<MultiframeImageContext>(raw)) {
-                auto &input = std::get<MultiframeImageContext>(raw);
+            if (std::holds_alternative<InputAttachment>(raw)) {
+                const auto &[ctx] = std::get<InputAttachment>(raw);
                 updateQueue.push_back({
                     .imageInfo = VkDescriptorImageInfo{
                         .sampler = VK_NULL_HANDLE,
-                        .imageView = input[imageIndex].readImageView,
+                        .imageView = ctx[imageIndex].mipmappedImageView,
                         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
                     }
                 });
@@ -161,6 +162,29 @@ namespace merutilm::vkh {
                     .pTexelBufferView = nullptr,
                 };
             }
+            if (std::holds_alternative<StorageImage>(raw)) {
+                const auto &[ctx] = std::get<StorageImage>(raw);
+                updateQueue.push_back({
+                    .imageInfo = VkDescriptorImageInfo{
+                        .sampler = VK_NULL_HANDLE,
+                        .imageView = ctx[imageIndex].mipmappedImageView,
+                        .imageLayout = VK_IMAGE_LAYOUT_GENERAL
+                    }
+                });
+
+                updateQueue.back().writeSet = {
+                    .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                    .pNext = nullptr,
+                    .dstSet = descriptorSets[frameIndex],
+                    .dstBinding = index,
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+                    .pImageInfo = &updateQueue.back().imageInfo,
+                    .pBufferInfo = nullptr,
+                    .pTexelBufferView = nullptr,
+                };
+            }
         }
     }
 
@@ -171,7 +195,8 @@ namespace merutilm::vkh {
         const uint32_t ssbo = descriptorManager->getElementCount<ShaderStorage>();
         const uint32_t sampler = descriptorManager->getElementCount<CombinedImageSampler>();
         const uint32_t multiframeSampler = descriptorManager->getElementCount<CombinedMultiframeImageSampler>();
-        const uint32_t inputAttachment = descriptorManager->getElementCount<MultiframeImageContext>();
+        const uint32_t inputAttachment = descriptorManager->getElementCount<InputAttachment>();
+        const uint32_t storageImage = descriptorManager->getElementCount<StorageImage>();
         const uint32_t elements = descriptorManager->getElements();
 
         std::vector<VkDescriptorPoolSize> sizes = {};
@@ -199,6 +224,12 @@ namespace merutilm::vkh {
             sizes.push_back({
                 .type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
                 .descriptorCount = inputAttachment
+            });
+        }
+        if (storageImage > 0) {
+            sizes.push_back({
+                .type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+                .descriptorCount = storageImage
             });
         }
 

@@ -15,7 +15,7 @@ namespace merutilm::vkh {
         PipelineLayoutImpl::destroy();
     }
 
-    void PipelineLayoutImpl::push(const VkCommandBuffer commandBuffer) const {
+    void PipelineLayoutImpl::cmdPush(const VkCommandBuffer commandBuffer) const {
         uint32_t sizeSum = 0;
         for (auto &pushConstant: pipelineLayoutManager->getPushConstantManagers()) {
             const uint32_t size = pushConstant->getTotalSizeByte();

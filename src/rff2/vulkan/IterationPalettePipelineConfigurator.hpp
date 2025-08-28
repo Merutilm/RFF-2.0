@@ -18,9 +18,9 @@ namespace merutilm::rff2 {
 
     public:
         IterationPalettePipelineConfigurator(vkh::EngineRef engine,
-                                             const uint32_t
-                                             renderContextIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, renderContextIndex, RFFFirstRenderContextConfigurator::SUBPASS_ITERATION_INDEX,
+                                             const uint32_t renderContextIndex,
+                                             const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, renderContextIndex, primarySubpassIndex,
             "vk_iteration_palette.frag") {
         };
 

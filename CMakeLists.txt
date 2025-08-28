@@ -230,8 +230,8 @@ add_executable(
         src/vulkan_helper/struct/ImageInitInfo.hpp
         src/vulkan_helper/impl/SyncObject.cpp
         src/vulkan_helper/impl/SyncObject.hpp
-        src/vulkan_helper/executor/RenderPassFullscreenExecutor.cpp
-        src/vulkan_helper/executor/RenderPassFullscreenExecutor.hpp
+        src/vulkan_helper/executor/RenderPassFullscreenRecorder.cpp
+        src/vulkan_helper/executor/RenderPassFullscreenRecorder.hpp
         src/vulkan_helper/struct/Vertex.hpp
         src/vulkan_helper/impl/VertexBuffer.cpp
         src/vulkan_helper/impl/VertexBuffer.hpp
@@ -261,8 +261,8 @@ add_executable(
         src/rff2/vulkan/SharedDescriptorTemplate.hpp
         src/vulkan_helper/impl/Engine.cpp
         src/vulkan_helper/impl/Engine.hpp
-        src/vulkan_helper/executor/ScopedCommandExecutor.cpp
-        src/vulkan_helper/executor/ScopedCommandExecutor.hpp
+        src/vulkan_helper/executor/ScopedNewCommandBufferExecutor.cpp
+        src/vulkan_helper/executor/ScopedNewCommandBufferExecutor.hpp
         src/vulkan_helper/struct/PushConstantReserve.hpp
         src/vulkan_helper/configurator/RenderContextConfigurator.hpp
         src/rff2/vulkan/RFFFirstRenderContextConfigurator.hpp
@@ -317,14 +317,23 @@ add_executable(
         src/vulkan_helper/util/Debugger.hpp
         src/vulkan_helper/util/PhysicalDeviceUtils.hpp
         src/vulkan_helper/util/GraphicsContextWindowProc.hpp
-        src/rff2/vulkan/TempPresentPipelineConfigurator.cpp
-        src/rff2/vulkan/TempPresentPipelineConfigurator.hpp
+        src/rff2/vulkan/PresentPipelineConfigurator.cpp
+        src/rff2/vulkan/PresentPipelineConfigurator.hpp
         src/vulkan_helper/impl/CombinedMultiframeImageSampler.hpp
         src/vulkan_helper/impl/CombinedMultiframeImageSampler.cpp
         src/vulkan_helper/impl/ComputeShaderPipeline.cpp
         src/vulkan_helper/impl/ComputeShaderPipeline.hpp
         src/vulkan_helper/impl/GraphicsPipeline.cpp
         src/vulkan_helper/impl/GraphicsPipeline.hpp
+        src/vulkan_helper/configurator/PipelineConfigurator.hpp
+        src/vulkan_helper/executor/ScopedCommandBufferExecutor.cpp
+        src/vulkan_helper/executor/ScopedCommandBufferExecutor.hpp
+        src/vulkan_helper/configurator/ComputePipelineConfigurator.cpp
+        src/vulkan_helper/configurator/ComputePipelineConfigurator.hpp
+        src/vulkan_helper/struct/InputAttachment.hpp
+        src/rff2/vulkan/BoxBlurPipelineConfigurator.cpp
+        src/rff2/vulkan/BoxBlurPipelineConfigurator.hpp
+        src/rff2/vulkan/RFFPresentRenderContextConfigurator.hpp
 )
 
 

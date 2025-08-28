@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "../executor/ScopedCommandExecutor.hpp"
+#include "../executor/ScopedNewCommandBufferExecutor.hpp"
 #include "../context/ImageContext.hpp"
 #include <stb_image.h>
 #include "../impl/CommandPool.hpp"
@@ -49,7 +49,7 @@ namespace merutilm::vkh {
 
             //COMMAND START
             {
-                const auto sce = ScopedCommandExecutor(core, commandPool);
+                const auto sce = ScopedNewCommandBufferExecutor(core, commandPool);
                 const VkBufferImageCopy copyRegion = {
                     .bufferOffset = 0,
                     .bufferRowLength = 0,
@@ -104,16 +104,14 @@ namespace merutilm::vkh {
         }
 
         static void generateMipmaps(const VkCommandBuffer commandBuffer, ImageContext &imageContext) {
-
             uint32_t mipWidth = imageContext.extent.width;
             uint32_t mipHeight = imageContext.extent.height;
-            const auto mipLevels = static_cast<uint32_t>(imageContext.mipImageLayout.size());
+            const auto mipLevels = static_cast<uint32_t>(imageContext.mipLevelImageLayout.size());
 
             transformImageLayout(commandBuffer, imageContext, 0, VK_ACCESS_TRANSFER_WRITE_BIT,
                                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                  VK_PIPELINE_STAGE_TRANSFER_BIT);
             for (uint32_t i = 1; i < mipLevels; ++i) {
-
                 transformImageLayout(commandBuffer, imageContext, 0, VK_ACCESS_TRANSFER_WRITE_BIT,
                                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, i, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                      VK_PIPELINE_STAGE_TRANSFER_BIT);
@@ -133,7 +131,8 @@ namespace merutilm::vkh {
                 mipHeight = std::max(mipHeight / 2, static_cast<uint32_t>(1));
             }
             transformImageLayout(commandBuffer, imageContext, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels - 1, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels - 1,
+                                 VK_PIPELINE_STAGE_TRANSFER_BIT,
                                  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
         }
 
@@ -168,7 +167,19 @@ namespace merutilm::vkh {
 
             vkCmdBlitImage(commandBuffer, imageContext.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, imageContext.image,
                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
-            imageContext.mipImageLayout[mipLevel] = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            imageContext.mipLevelImageLayout[mipLevel] = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        }
+
+        static void transformImageLayout(const VkCommandBuffer commandBuffer, MultiframeImageContext &imageContext,
+                                         const VkAccessFlags srcAccessMask,
+                                         const VkAccessFlags dstAccessMask,
+                                         const VkImageLayout newLayout,
+                                         const uint32_t mipLevel,
+                                         const VkPipelineStageFlags srcStageMask,
+                                         const VkPipelineStageFlags dstStageMask) {
+            for (auto &context : imageContext) {
+                transformImageLayout(commandBuffer, imageContext, srcAccessMask, dstAccessMask, newLayout, mipLevel, srcStageMask, dstStageMask);
+            }
         }
 
         static void transformImageLayout(const VkCommandBuffer commandBuffer, ImageContext &imageContext,
@@ -183,7 +194,7 @@ namespace merutilm::vkh {
                 .pNext = nullptr,
                 .srcAccessMask = srcAccessMask,
                 .dstAccessMask = dstAccessMask,
-                .oldLayout = imageContext.mipImageLayout[mipLevel],
+                .oldLayout = imageContext.mipLevelImageLayout[mipLevel],
                 .newLayout = newLayout,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -201,7 +212,7 @@ namespace merutilm::vkh {
                                  0, nullptr,
                                  0, nullptr,
                                  1, &barrier);
-            imageContext.mipImageLayout[mipLevel] = newLayout;
+            imageContext.mipLevelImageLayout[mipLevel] = newLayout;
         }
     };
 }

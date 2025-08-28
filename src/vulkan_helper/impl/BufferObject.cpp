@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include "../executor/ScopedCommandExecutor.hpp"
+#include "../executor/ScopedNewCommandBufferExecutor.hpp"
 #include "../util/BufferImageUtils.hpp"
 #include "../util/logger.hpp"
 
@@ -105,7 +105,7 @@ namespace merutilm::vkh {
             .dstOffset = 0,
             .size = hostBufferObject->getTotalSizeByte(),
         }; {
-            const auto cex = ScopedCommandExecutor(core, commandPool);
+            const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
 
             for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
                 vkUnmapMemory(device, bufferMemory[i]);
@@ -172,7 +172,7 @@ namespace merutilm::vkh {
             .dstOffset = 0,
             .size = hostBufferObject->getTotalSizeByte(),
         }; {
-            const auto cex = ScopedCommandExecutor(core, commandPool);
+            const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
 
             for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
                 BufferImageUtils::initBuffer(core, hostBufferObject->getTotalSizeByte(),

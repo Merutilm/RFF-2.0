@@ -19,9 +19,10 @@ namespace merutilm::vkh {
     }
 
 
-    void GeneralPostProcessGraphicsPipelineConfigurator::render(const VkCommandBuffer cbh, const uint32_t frameIndex) {
-        pushAll(cbh);
-        draw(cbh, frameIndex, 0);
+    void GeneralPostProcessGraphicsPipelineConfigurator::cmdRender(const VkCommandBuffer cbh, const uint32_t frameIndex) {
+        pipeline->cmdBindAll(cbh, frameIndex);
+        cmdPushAll(cbh);
+        cmdDraw(cbh, frameIndex, 0);
     }
 
 

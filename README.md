@@ -1,5 +1,5 @@
 
-- ### ⚠️ The application is currently being rewritten from <u>OpenGL</u> to <u>Vulkan API</u>. Please use the latest release version. (25% Done)
+- ### ⚠️ The application is currently being rewritten from <u>OpenGL</u> to <u>Vulkan API</u>. Please use the latest release version. (35% Done)
 
 # RFF 2.0
 

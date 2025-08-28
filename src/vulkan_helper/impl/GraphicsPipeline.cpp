@@ -6,13 +6,15 @@
 
 namespace merutilm::vkh {
     GraphicsPipelineImpl::GraphicsPipelineImpl(EngineRef engine, PipelineLayoutRef pipelineLayout,
-                       VertexBufferRef vertexBuffer,
-                       IndexBufferRef indexBuffer,
-                       const uint32_t renderContextIndex,
-                       const uint32_t primarySubpassIndex,
-                       PipelineManager &&pipelineManager) : PipelineAbstract(engine, pipelineLayout, renderContextIndex, primarySubpassIndex, std::move(pipelineManager)),
-                                                            vertexBuffer(vertexBuffer),
-                                                            indexBuffer(indexBuffer) {
+                                               VertexBufferRef vertexBuffer,
+                                               IndexBufferRef indexBuffer,
+                                               const uint32_t renderContextIndex,
+                                               const uint32_t primarySubpassIndex,
+                                               PipelineManager &&pipelineManager) : PipelineAbstract(
+            engine, pipelineLayout, std::move(pipelineManager)), renderContextIndex(renderContextIndex),
+        primarySubpassIndex(primarySubpassIndex),
+        vertexBuffer(vertexBuffer),
+        indexBuffer(indexBuffer) {
         GraphicsPipelineImpl::init();
     }
 
@@ -20,7 +22,7 @@ namespace merutilm::vkh {
         GraphicsPipelineImpl::destroy();
     }
 
-    void GraphicsPipelineImpl::bind(const VkCommandBuffer cbh, const uint32_t frameIndex) const {
+    void GraphicsPipelineImpl::cmdBindAll(const VkCommandBuffer cbh, const uint32_t frameIndex) const {
         const auto sets = pipelineManager->getDescriptorSets(frameIndex);
         vkCmdBindPipeline(cbh, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
         vkCmdBindDescriptorSets(cbh, VK_PIPELINE_BIND_POINT_GRAPHICS,

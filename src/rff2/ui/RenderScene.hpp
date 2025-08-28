@@ -15,14 +15,15 @@
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
 #include "../attr/Attribute.h"
+#include "../vulkan/BoxBlurPipelineConfigurator.hpp"
 #include "../vulkan/ColorPipelineConfigurator.hpp"
 #include "../vulkan/IterationPalettePipelineConfigurator.hpp"
 #include "../vulkan/SlopePipelineConfigurator.hpp"
 #include "../vulkan/StripePipelineConfigurator.hpp"
-#include "../vulkan/TempPresentPipelineConfigurator.hpp"
+#include "../vulkan/PresentPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    class RenderScene final : vkh::EngineHandler {
+    class RenderScene final : public vkh::EngineHandler {
         HWND window;
 
         ParallelRenderState state;
@@ -34,7 +35,6 @@ namespace merutilm::rff2 {
         uint64_t lastPeriod = 1;
 
         static constexpr uint32_t BLUR_MAX_WIDTH = 300;
-
 
 
         std::atomic<bool> recomputeRequested = false;
@@ -53,14 +53,14 @@ namespace merutilm::rff2 {
         std::unique_ptr<MandelbrotPerturbator> currentPerturbator = nullptr;
 
 
-        std::vector<std::unique_ptr<vkh::GraphicsPipelineConfigurator> > firstRenderPassShaderPrograms = {};
-
+        std::vector<std::unique_ptr<vkh::PipelineConfigurator> > shaderPrograms = {};
 
         IterationPalettePipelineConfigurator *rendererIteration;
         StripePipelineConfigurator *rendererStripe;
         SlopePipelineConfigurator *rendererSlope;
         ColorPipelineConfigurator *rendererColor;
-        TempPresentPipelineConfigurator *rendererTempPresent;
+        BoxBlurPipelineConfigurator *rendererBoxBlur;
+        PresentPipelineConfigurator *rendererPresent;
 
 
         uint16_t cwRequest = 0;
@@ -84,11 +84,11 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] HWND getWindowHandle() const { return window; }
 
-        void resolveWindowResizeEnd() const;
+        void resolveWindowResizeEnd();
 
-        void render(vkh::SwapchainRef swapchain, uint32_t frameIndex, uint32_t imageIndex);
+        void render(uint32_t frameIndex, uint32_t imageIndex);
 
-        void draw(vkh::SwapchainRef swapchain, uint32_t frameIndex, uint32_t imageIndex);
+        void draw(uint32_t frameIndex, uint32_t imageIndex);
 
 
         void requestShader() {
@@ -108,19 +108,19 @@ namespace merutilm::rff2 {
             createImageRequestedFilename = filename;
         };
 
-        VkExtent2D getInternalRenderContextExtent() const {
+        [[nodiscard]] VkExtent2D getInternalRenderContextExtent() const {
             const auto &swapchain = *engine.getCore().getWindowContext(
                 Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
             const auto [width, height] = swapchain.populateSwapchainExtent();
             const float multiplier = attr.render.clarityMultiplier;
             return {
-                static_cast<uint32_t>(width * multiplier), static_cast<uint32_t>(height * multiplier)
+                static_cast<uint32_t>(static_cast<float>(width) * multiplier), static_cast<uint32_t>(static_cast<float>(height) * multiplier)
             };
         }
 
-        VkExtent2D getExternalRenderContextExtent() const {
+        [[nodiscard]] VkExtent2D getExternalRenderContextExtent() const {
             const auto &swapchain = *engine.getCore().getWindowContext(
-               Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+                Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
             return swapchain.populateSwapchainExtent();
         }
 
@@ -195,10 +195,6 @@ namespace merutilm::rff2 {
 
         void setCurrentMap(const RFFDynamicMapBinary &map) {
             currentMap = std::make_unique<RFFDynamicMapBinary>(map);
-        }
-
-        [[nodiscard]] const std::vector<std::unique_ptr<vkh::GraphicsPipelineConfigurator> > &getShaderPrograms() {
-            return firstRenderPassShaderPrograms;
         }
 
         [[nodiscard]] bool isRecomputeRequested() const {

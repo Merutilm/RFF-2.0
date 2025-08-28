@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
            RFFFirstRenderContextConfigurator::RESULT_IMAGE_CONTEXT);
         const auto &inputDesc = getDescriptor(SET_PREV_RESULT);
         auto &inputManager = inputDesc.getDescriptorManager();
-        inputManager.get<vkh::MultiframeImageContext>(BINDING_PREV_RESULT_INPUT) = input;
+        inputManager.get<vkh::InputAttachment>(BINDING_PREV_RESULT_INPUT).ctx = input;
         inputDesc.queue(queue, frameIndex, imageIndex);
     }
 

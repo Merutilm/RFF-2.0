@@ -34,15 +34,15 @@ namespace merutilm::vkh {
 
         EngineImpl &operator=(EngineImpl &&) = delete;
 
-        template<typename T, typename F> requires (
-            std::is_base_of_v<RenderContextConfiguratorAbstract, T> && std::is_invocable_r_v<MultiframeImageContext, F>)
-        void attachRenderContext(const VkExtent2D &extent,
-                                 const F &swapchainImageContext) {
+        template<typename T, typename ExtentImgGetter, typename SwapchainImgGetter> requires (
+            std::is_base_of_v<RenderContextConfiguratorAbstract, T> && std::is_invocable_r_v<VkExtent2D, ExtentImgGetter> && std::is_invocable_r_v<MultiframeImageContext, SwapchainImgGetter>)
+        void attachRenderContext(ExtentImgGetter &&extentGetter,
+                                 SwapchainImgGetter &&swapchainImageContext) {
             SafeArrayChecker::checkIndexEqual(T::CONTEXT_INDEX, static_cast<uint32_t>(this->renderContext.size()),
                                               "Render Context Index");
             this->renderContext.emplace_back(
-                Factory::create<RenderContext>(*core, extent,
-                                               std::make_unique<T>(*core, *commandPool, swapchainImageContext)));
+                Factory::create<RenderContext>(*core, std::forward<ExtentImgGetter>(extentGetter),
+                                               std::make_unique<T>(*core, *commandPool, std::forward<SwapchainImgGetter>(swapchainImageContext))));
         };
 
         [[nodiscard]] CoreRef getCore() const { return *core; }

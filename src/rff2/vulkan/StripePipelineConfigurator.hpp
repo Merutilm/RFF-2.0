@@ -19,8 +19,9 @@ namespace merutilm::rff2 {
 
     public:
         StripePipelineConfigurator(vkh::EngineRef engine,
-                                   const uint32_t renderContextIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, renderContextIndex, RFFFirstRenderContextConfigurator::SUBPASS_STRIPE_INDEX, "vk_stripe.frag") {
+                                   const uint32_t renderContextIndex,
+                                   const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, renderContextIndex, primarySubpassIndex, "vk_stripe.frag") {
         }
 
         ~StripePipelineConfigurator() override = default;

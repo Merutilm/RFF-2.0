@@ -1,0 +1,92 @@
+//
+// Created by Merutilm on 2025-08-28.
+//
+
+#pragma once
+#include "../handle/EngineHandler.hpp"
+#include "../impl/Pipeline.hpp"
+#include "../util/DescriptorUpdater.hpp"
+#include "../struct/DescriptorTemplate.hpp"
+
+namespace merutilm::vkh {
+    struct PipelineConfigurator : public EngineHandler {
+        Pipeline pipeline = nullptr;
+        std::vector<Descriptor> uniqueDescriptors = {};
+
+        explicit PipelineConfigurator(EngineRef engine) : EngineHandler(engine) {
+        }
+
+        template<typename ProgramName, typename... Args> requires std::is_base_of_v<PipelineConfigurator, ProgramName>
+        static ProgramName *createShaderProgram(
+            std::vector<std::unique_ptr<PipelineConfigurator> > &shaderPrograms,
+            EngineRef engine, Args&&... args) {
+            auto shaderProgram = std::make_unique<ProgramName>(engine, args...);
+            shaderProgram->configure();
+            shaderPrograms.emplace_back(std::move(shaderProgram));
+            return dynamic_cast<ProgramName *>(shaderPrograms.back().get());
+        }
+
+
+        [[nodiscard]] DescriptorRef getDescriptor(const uint32_t setIndex) const {
+            return pipeline->getPipelineManager().getDescriptor(setIndex);
+        }
+
+        [[nodiscard]] PushConstantManagerRef getPushConstantManager(const uint32_t pushIndex) const {
+            return *pipeline->getPipelineManager().getLayout().getPipelineLayoutManager().getPCM(pushIndex);
+        }
+
+        template<typename RepoType, typename Return, typename Key>
+        [[nodiscard]] Return pickFromRepository(Key &&key) const {
+            return engine.getRepositories().getRepository<RepoType>()->pick(std::forward<Key>(key));
+        }
+
+
+        template<typename F> requires std::is_invocable_r_v<void, F, DescriptorUpdateQueue &, uint32_t>
+        void writeDescriptorForEachFrame(F &&func) const {
+            auto queue = DescriptorUpdater::createQueue();
+            for (uint32_t i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
+                func(queue, i);
+            }
+            DescriptorUpdater::write(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), queue);
+        }
+
+        template<DescTemplateHasID D>
+        void appendDescriptor(const uint32_t setExpected, std::vector<DescriptorPtr> &descriptors) {
+            const auto context = engine.getRepositories().getDescriptorRequiresRepositoryContext();
+            SharedDescriptorRepo &repo = *engine.getRepositories().getRepository<SharedDescriptorRepo>();
+
+            SafeArrayChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
+                                              "Unique Descriptor Add");
+            descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), context));
+        }
+
+        void appendUniqueDescriptor(const uint32_t setExpected, std::vector<DescriptorPtr> &descriptors,
+                                    DescriptorManager &&manager) {
+            DescriptorSetLayoutRepo &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
+
+            SafeArrayChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
+                                              "Unique Descriptor Add");
+            auto desc = Factory::create<Descriptor>(engine.getCore(), layoutRepo.pick(manager->getLayoutBuilder()),
+                                                    std::move(manager));
+            uniqueDescriptors.push_back(std::move(desc));
+            descriptors.push_back(uniqueDescriptors.back().get());
+        }
+
+
+        virtual void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex) = 0;
+
+        virtual void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex) = 0;
+
+    protected:
+        virtual void configure() = 0;
+
+        virtual void configurePushConstant(PipelineLayoutManagerRef pipelineLayoutManager) = 0;
+
+        virtual void configureDescriptors(std::vector<DescriptorPtr> &descriptors) = 0;
+
+        void cmdPushAll(const VkCommandBuffer cbh) const {
+            pipeline->getPipelineManager().getLayout().cmdPush(cbh);
+        }
+
+    };
+}

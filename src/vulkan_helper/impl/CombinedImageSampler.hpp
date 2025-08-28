@@ -29,7 +29,7 @@ namespace merutilm::vkh {
 
         void setImageContext(const ImageContext &imageContext) {
             if (isUnique) {
-                ImageContext::destroyContext(core, &this->imageContext);
+                ImageContext::destroyContext(core, this->imageContext);
             }
             initialized = true;
             isUnique = false;
@@ -38,7 +38,7 @@ namespace merutilm::vkh {
 
         void setUniqueImageContext(const ImageContext &imageContext) {
             if (isUnique) {
-                ImageContext::destroyContext(core, &this->imageContext);
+                ImageContext::destroyContext(core, this->imageContext);
             }
             initialized = true;
             isUnique = true;

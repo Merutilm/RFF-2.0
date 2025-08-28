@@ -16,8 +16,9 @@ namespace merutilm::rff2 {
 
     public:
         explicit ColorPipelineConfigurator(vkh::EngineRef engine,
-                                           const uint32_t renderContextIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, renderContextIndex, RFFFirstRenderContextConfigurator::SUBPASS_COLOR_INDEX, "vk_color.frag") {
+                                           const uint32_t renderContextIndex,
+                                           const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, renderContextIndex, primarySubpassIndex, "vk_color.frag") {
         }
 
         ~ColorPipelineConfigurator() override = default;

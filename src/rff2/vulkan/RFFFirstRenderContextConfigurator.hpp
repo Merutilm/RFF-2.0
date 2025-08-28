@@ -14,12 +14,9 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SUBPASS_STRIPE_INDEX = 1;
         static constexpr uint32_t SUBPASS_SLOPE_INDEX = 2;
         static constexpr uint32_t SUBPASS_COLOR_INDEX = 3;
-        static constexpr uint32_t SUBPASS_TEMP_PRESENT_INDEX = 4;
-        //TODO : DELETE IT BECAUSE IT IS TEMP INDEX FOR DEBUGGING
 
         static constexpr uint32_t RESULT_COLOR_ATTACHMENT_INDEX = 0;
         static constexpr uint32_t TEMP_COLOR_ATTACHMENT_INDEX = 1;
-        static constexpr uint32_t TEMP_PRESENT_ATTACHMENT_INDEX = 2;
 
         static constexpr uint32_t RESULT_IMAGE_CONTEXT = 0;
         static constexpr uint32_t TEMP_IMAGE_CONTEXT = 1;
@@ -36,13 +33,12 @@ namespace merutilm::rff2 {
                                              .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
                                              .imageFormat = VK_FORMAT_R8G8B8A8_SRGB,
                                              .extent = {width, height, 1},
-                                             .useMipmap = true,
+                                             .useMipmap = false,
                                              .arrayLayers = 1,
                                              .samples = VK_SAMPLE_COUNT_1_BIT,
                                              .imageTiling = VK_IMAGE_TILING_OPTIMAL,
                                              .usage = VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
-                                                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                                                      VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                                                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                                              .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                              .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
                                          }));
@@ -53,22 +49,15 @@ namespace merutilm::rff2 {
                                              .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
                                              .imageFormat = VK_FORMAT_R8G8B8A8_SRGB,
                                              .extent = {width, height, 1},
-                                             .useMipmap = true,
+                                             .useMipmap = false,
                                              .arrayLayers = 1,
                                              .samples = VK_SAMPLE_COUNT_1_BIT,
                                              .imageTiling = VK_IMAGE_TILING_OPTIMAL,
                                              .usage = VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
-                                                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                                                      VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+                                                      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                                              .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                              .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
                                          })); {
-                const auto executor = vkh::ScopedCommandExecutor(core, commandPool);
-                for (auto &context: contexts) {
-                    for (int j = 0; j < core.getPhysicalDevice().getMaxFramesInFlight(); ++j) {
-                        vkh::ImageContextUtils::generateMipmaps(executor.getCommandBufferHandle(), context[j]);
-                    }
-                }
             }
         }
 
@@ -81,7 +70,7 @@ namespace merutilm::rff2 {
                                      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                                      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                                      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                     .initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                     .initialLayout = contexts[RESULT_IMAGE_CONTEXT][0].mipLevelImageLayout[0],
                                      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                  }, contexts[RESULT_IMAGE_CONTEXT]);
 
@@ -93,22 +82,10 @@ namespace merutilm::rff2 {
                                      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                                      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                                      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                     .initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                     .initialLayout = contexts[TEMP_IMAGE_CONTEXT][0].mipLevelImageLayout[0],
                                      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                  }, contexts[TEMP_IMAGE_CONTEXT]);
 
-
-            rpm.appendAttachment(TEMP_PRESENT_ATTACHMENT_INDEX, {
-                                     .flags = 0,
-                                     .format = VK_FORMAT_R8G8B8A8_SRGB,
-                                     .samples = VK_SAMPLE_COUNT_1_BIT,
-                                     .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                     .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-                                 }, swapchainImageContext());
 
 
             rpm.appendSubpass(SUBPASS_ITERATION_INDEX);
@@ -126,9 +103,6 @@ namespace merutilm::rff2 {
             rpm.appendReference(TEMP_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::INPUT);
             rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR);
 
-            rpm.appendSubpass(SUBPASS_TEMP_PRESENT_INDEX);
-            rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::INPUT);
-            rpm.appendReference(TEMP_PRESENT_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR);
 
 
             rpm.appendDependency({
@@ -169,15 +143,6 @@ namespace merutilm::rff2 {
             });
             rpm.appendDependency({
                 .srcSubpass = SUBPASS_COLOR_INDEX,
-                .dstSubpass = SUBPASS_TEMP_PRESENT_INDEX,
-                .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dstAccessMask = 0,
-                .dependencyFlags = 0
-            });
-            rpm.appendDependency({
-                .srcSubpass = SUBPASS_TEMP_PRESENT_INDEX,
                 .dstSubpass = VK_SUBPASS_EXTERNAL,
                 .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,

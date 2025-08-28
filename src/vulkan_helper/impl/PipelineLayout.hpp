@@ -26,7 +26,7 @@ namespace merutilm::vkh {
 
         PipelineLayoutImpl &operator=(PipelineLayoutImpl &&) = delete;
 
-        void push(VkCommandBuffer commandBuffer) const;
+        void cmdPush(VkCommandBuffer commandBuffer) const;
 
         [[nodiscard]] VkPipelineLayout getLayoutHandle() const { return layout; }
 

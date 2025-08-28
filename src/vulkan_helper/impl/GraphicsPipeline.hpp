@@ -11,6 +11,8 @@ namespace merutilm::vkh {
  
     class GraphicsPipelineImpl final : public PipelineAbstract {
 
+        const uint32_t renderContextIndex;
+        const uint32_t primarySubpassIndex;
         VertexBufferRef vertexBuffer;
         IndexBufferRef indexBuffer;
 
@@ -32,7 +34,7 @@ namespace merutilm::vkh {
 
         GraphicsPipelineImpl &operator=(GraphicsPipelineImpl &&) = delete;
 
-        void bind(VkCommandBuffer cbh, uint32_t frameIndex) const override;
+        void cmdBindAll(VkCommandBuffer cbh, uint32_t frameIndex) const override;
 
         [[nodiscard]] VertexBufferRef getVertexBuffer() const { return vertexBuffer; }
 

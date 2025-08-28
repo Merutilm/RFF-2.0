@@ -33,7 +33,7 @@ namespace merutilm::vkh {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
 
         if (isUnique) {
-            vkDestroyImageView(device, imageContext.writeImageView, nullptr);
+            vkDestroyImageView(device, imageContext.imageView, nullptr);
             vkDestroyImage(device, imageContext.image, nullptr);
             vkFreeMemory(device, imageContext.imageMemory, nullptr);
         }

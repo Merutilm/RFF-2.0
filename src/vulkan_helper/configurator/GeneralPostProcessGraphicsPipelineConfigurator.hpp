@@ -35,7 +35,7 @@ namespace merutilm::vkh {
 
         void configure() override;
 
-        void render(VkCommandBuffer cbh, uint32_t frameIndex) override;
+        void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex) override;
 
         static void cleanup() {
             vertexBufferPP = nullptr;

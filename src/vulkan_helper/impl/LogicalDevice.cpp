@@ -26,7 +26,7 @@ namespace merutilm::vkh {
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
-            .queueFamilyIndex = physicalDevice.getQueueFamilyIndices().graphicsFamily.value(),
+            .queueFamilyIndex = physicalDevice.getQueueFamilyIndices().graphicsAndComputeFamily.value(),
             .queueCount = 1,
             .pQueuePriorities = &queuePriority,
 
@@ -48,7 +48,7 @@ namespace merutilm::vkh {
            VK_SUCCESS) {
             throw exception_init("failed to create logical device!");
         }
-        vkGetDeviceQueue(logicalDevice, physicalDevice.getQueueFamilyIndices().graphicsFamily.value(), 0, &graphicsQueue);
+        vkGetDeviceQueue(logicalDevice, physicalDevice.getQueueFamilyIndices().graphicsAndComputeFamily.value(), 0, &graphicsQueue);
         vkGetDeviceQueue(logicalDevice, physicalDevice.getQueueFamilyIndices().presentFamily.value(), 0, &presentQueue);
     }
 

@@ -3,14 +3,11 @@
 //
 
 #pragma once
-#include "../impl/Engine.hpp"
 
 namespace merutilm::vkh {
     struct Executor {
-        const CoreRef core;
 
-        explicit Executor(const CoreRef core) : core(core) {
-        }
+        explicit Executor() = default;
 
         virtual ~Executor() = default;
 

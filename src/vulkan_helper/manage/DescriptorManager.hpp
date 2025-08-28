@@ -15,13 +15,15 @@
 #include "../context/ImageContext.hpp"
 #include "../impl/CombinedMultiframeImageSampler.hpp"
 #include "../impl/ShaderStorage.hpp"
+#include "../struct/InputAttachment.hpp"
+#include "../struct/StorageImage.hpp"
 
 namespace merutilm::vkh {
     using DescriptorSetLayoutBuilder = std::vector<DescriptorSetLayoutBuildType>;
     using DescriptorSetLayoutBuilderHasher = VectorHasher<DescriptorSetLayoutBuildType,
         DescriptorSetLayoutBuildTypeHasher>;
 
-    using DescriptorType = std::variant<Uniform, ShaderStorage, CombinedImageSampler, CombinedMultiframeImageSampler, MultiframeImageContext>;
+    using DescriptorType = std::variant<Uniform, ShaderStorage, CombinedImageSampler, CombinedMultiframeImageSampler, InputAttachment, StorageImage>;
 
 
     class DescriptorManagerImpl {
@@ -90,8 +92,15 @@ namespace merutilm::vkh {
         void appendInputAttachment(const uint32_t bindingExpected, const VkShaderStageFlags useStage) {
             SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()),
                                               "Descriptor Input Attachment add");
-            data.emplace_back(MultiframeImageContext{});
+            data.emplace_back(InputAttachment{});
             layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, useStage);
+        }
+
+        void appendStorageImage(const uint32_t bindingExpected, const VkShaderStageFlags useStage) {
+            SafeArrayChecker::checkIndexEqual(bindingExpected, static_cast<uint32_t>(data.size()),
+                                              "Descriptor Image2D add");
+            data.emplace_back(StorageImage{});
+            layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, useStage);
         }
 
 

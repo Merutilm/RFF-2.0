@@ -19,8 +19,9 @@ namespace merutilm::rff2 {
     public:
         explicit
         SlopePipelineConfigurator(vkh::EngineRef engine,
-                                  const uint32_t renderContextIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, renderContextIndex, RFFFirstRenderContextConfigurator::SUBPASS_SLOPE_INDEX, "vk_slope.frag") {
+                                  const uint32_t renderContextIndex,
+                                  const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, renderContextIndex, primarySubpassIndex, "vk_slope.frag") {
         }
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex) override;

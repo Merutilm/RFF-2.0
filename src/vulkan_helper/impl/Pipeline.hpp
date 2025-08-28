@@ -12,17 +12,11 @@ namespace merutilm::vkh {
     struct PipelineAbstract : public EngineHandler {
         VkPipeline pipeline = nullptr;
         PipelineLayoutRef pipelineLayout;
-        const uint32_t renderContextIndex;
-        const uint32_t primarySubpassIndex;
         const PipelineManager pipelineManager = nullptr;
 
         explicit PipelineAbstract(EngineRef engine, PipelineLayoutRef pipelineLayout,
-                                  const uint32_t renderContextIndex,
-                                  const uint32_t primarySubpassIndex,
                                   PipelineManager &&pipelineManager) : EngineHandler(engine),
                                                                        pipelineLayout(pipelineLayout),
-                                                                       renderContextIndex(renderContextIndex),
-                                                                       primarySubpassIndex(primarySubpassIndex),
                                                                        pipelineManager(std::move(pipelineManager)) {
         };
 
@@ -36,7 +30,7 @@ namespace merutilm::vkh {
 
         PipelineAbstract &operator=(PipelineAbstract &&) = delete;
 
-        virtual void bind(VkCommandBuffer cbh, uint32_t frameIndex) const = 0;
+        virtual void cmdBindAll(VkCommandBuffer cbh, uint32_t frameIndex) const = 0;
 
         [[nodiscard]] PipelineManagerRef getPipelineManager() const { return *pipelineManager; }
 

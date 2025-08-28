@@ -234,10 +234,9 @@ namespace merutilm::rff2 {
         rect.bottom -= statusHeight;
         if (rect.bottom - rect.top > 0 || rect.right - rect.left > 0) {
             adjustClient(rect);
-            scene->requestResize();
+            scene->resolveWindowResizeEnd();
             scene->requestRecompute();
         }
-        scene->resolveWindowResizeEnd();
     }
 
     void Application::drawFrame() {
@@ -262,7 +261,7 @@ namespace merutilm::rff2 {
                               nullptr, &imageIndex);
 
 
-        scene->render(swapchain, currentFrame, imageIndex);
+        scene->render(currentFrame, imageIndex);
 
         vkh::Presenter::present(*engine, swapchainHandle, currentFrame, imageIndex);
         refreshStatusBar();

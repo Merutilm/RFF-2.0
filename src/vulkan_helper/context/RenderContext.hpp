@@ -15,22 +15,24 @@ namespace merutilm::vkh {
         RenderContextConfigurator configurator = nullptr;
         RenderPass renderPass = nullptr;
         Framebuffer framebuffer = nullptr;
+        std::function<VkExtent2D()> extentGetter;
 
     public:
-        explicit RenderContextImpl(CoreRef core, const VkExtent2D &extent,
-                               RenderContextConfigurator &&renderPassConfigurator) : core(core) {
+        explicit RenderContextImpl(CoreRef core, std::function<VkExtent2D()> &&extentGetter,
+                               RenderContextConfigurator &&renderPassConfigurator) : core(core), extentGetter(std::move(extentGetter)) {
 
             auto renderPassManager = Factory::create<RenderPassManager>();
             configurator = std::move(renderPassConfigurator);
+            const VkExtent2D extent = this->extentGetter();
             configurator->configure(extent, *renderPassManager);
             renderPass = Factory::create<RenderPass>(core, std::move(renderPassManager));
             framebuffer = Factory::create<Framebuffer>(core, *renderPass, extent);
         }
 
-        void recreate(const VkExtent2D &extent) {
+        void recreate() {
             framebuffer = nullptr;
             renderPass = nullptr;
-
+            VkExtent2D extent = extentGetter();
             auto renderPassManager = Factory::create<RenderPassManager>();
             configurator->cleanupContexts();
             configurator->configure(extent, *renderPassManager);
@@ -38,15 +40,15 @@ namespace merutilm::vkh {
             framebuffer = Factory::create<Framebuffer>(core, *renderPass, extent);
         }
 
-        RenderContextConfiguratorPtr getConfigurator() const {
+        [[nodiscard]] RenderContextConfiguratorPtr getConfigurator() const {
             return configurator.get();
         }
 
-        RenderPassPtr getRenderPass() const {
+        [[nodiscard]] RenderPassPtr getRenderPass() const {
             return renderPass.get();
         }
 
-        FramebufferPtr getFramebuffer() const {
+        [[nodiscard]] FramebufferPtr getFramebuffer() const {
             return framebuffer.get();
         }
 

@@ -15,7 +15,7 @@ namespace merutilm::vkh {
 
         using Repository::Repository;
 
-        const SamplerRef &pick(VkSamplerCreateInfo && samplerCreateInfo) override {
+        SamplerRef pick(VkSamplerCreateInfo && samplerCreateInfo) override {
             return *repository.try_emplace(samplerCreateInfo, Factory::create<Sampler>(core, std::move(samplerCreateInfo))).first->second;
         }
     };

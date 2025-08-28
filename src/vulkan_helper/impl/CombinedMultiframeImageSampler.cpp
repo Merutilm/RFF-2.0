@@ -35,7 +35,7 @@ namespace merutilm::vkh {
 
         if (isUnique) {
             for (int i = 0; i < core.getPhysicalDevice().getMaxFramesInFlight(); ++i) {
-                vkDestroyImageView(device, imageContext[i].writeImageView, nullptr);
+                vkDestroyImageView(device, imageContext[i].imageView, nullptr);
                 vkDestroyImage(device, imageContext[i].image, nullptr);
                 vkFreeMemory(device, imageContext[i].imageMemory, nullptr);
             }

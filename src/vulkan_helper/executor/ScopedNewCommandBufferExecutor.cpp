@@ -2,20 +2,20 @@
 // Created by Merutilm on 2025-07-21.
 //
 
-#include "ScopedCommandExecutor.hpp"
+#include "ScopedNewCommandBufferExecutor.hpp"
 
-#include <iostream>
+#include "../util/logger.hpp"
 
 namespace merutilm::vkh {
-    ScopedCommandExecutor::ScopedCommandExecutor(CoreRef core, CommandPoolRef commandPool) : Executor(core), commandPool(commandPool) {
-        ScopedCommandExecutor::begin();
+    ScopedNewCommandBufferExecutor::ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool) : core(core), commandPool(commandPool) {
+        ScopedNewCommandBufferExecutor::begin();
     }
 
-    ScopedCommandExecutor::~ScopedCommandExecutor() {
-        ScopedCommandExecutor::end();
+    ScopedNewCommandBufferExecutor::~ScopedNewCommandBufferExecutor() {
+        ScopedNewCommandBufferExecutor::end();
     }
 
-    void ScopedCommandExecutor::begin() {
+    void ScopedNewCommandBufferExecutor::begin() {
         if (const VkCommandBufferAllocateInfo allocInfo = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
                 .pNext = nullptr,
@@ -39,7 +39,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void ScopedCommandExecutor::end() {
+    void ScopedNewCommandBufferExecutor::end() {
         vkEndCommandBuffer(commandBuffer);
 
         if (const VkSubmitInfo submitInfo = {
@@ -54,7 +54,7 @@ namespace merutilm::vkh {
                 .pSignalSemaphores = nullptr
             };
             vkQueueSubmit(core.getLogicalDevice().getGraphicsQueue(), 1, &submitInfo, nullptr) != VK_SUCCESS) {
-            std::cerr << "Failed to submit command buffer operation.\n" << std::flush;
+            logger::log_err_silent("Failed to submit command buffer operation.");
         }
         vkDeviceWaitIdle(core.getLogicalDevice().getLogicalDeviceHandle());
         vkFreeCommandBuffers(core.getLogicalDevice().getLogicalDeviceHandle(), commandPool.getCommandPoolHandle(), 1, &commandBuffer);

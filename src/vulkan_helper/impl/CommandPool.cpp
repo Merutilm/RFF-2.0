@@ -21,7 +21,7 @@ namespace merutilm::vkh {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .pNext = nullptr,
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-            .queueFamilyIndex = core.getPhysicalDevice().getQueueFamilyIndices().graphicsFamily.
+            .queueFamilyIndex = core.getPhysicalDevice().getQueueFamilyIndices().graphicsAndComputeFamily.
             value(),
         };
         if (vkCreateCommandPool(core.getLogicalDevice().getLogicalDeviceHandle(), &createInfo, nullptr, &commandPool)

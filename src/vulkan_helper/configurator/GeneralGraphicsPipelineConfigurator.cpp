@@ -8,7 +8,6 @@
 
 #include "../def/Factory.hpp"
 #include "../impl/GraphicsPipeline.hpp"
-#include "../repo/SharedDescriptorRepo.hpp"
 #include "../repo/Repositories.hpp"
 
 namespace merutilm::vkh {

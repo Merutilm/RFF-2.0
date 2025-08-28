@@ -25,7 +25,7 @@ namespace merutilm::vkh {
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             auto attachmentWriteImageViews = std::vector<VkImageView>(attachments.size());
             std::ranges::transform(attachments, attachmentWriteImageViews.begin(), [i](const RenderPassAttachment &v) {
-                return v.imageContext[i].writeImageView;
+                return v.imageContext[i].imageView;
             });
 
 

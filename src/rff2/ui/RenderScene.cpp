@@ -6,7 +6,8 @@
 
 #include "CallbackExplore.hpp"
 #include "IOUtilities.h"
-#include "../../vulkan_helper/executor/RenderPassFullscreenExecutor.hpp"
+#include "../../vulkan_helper/executor/RenderPassFullscreenRecorder.hpp"
+#include "../../vulkan_helper/executor/ScopedCommandBufferExecutor.hpp"
 #include "../constants/VulkanWindowConstants.hpp"
 #include "../vulkan/RFFFirstRenderContextConfigurator.hpp"
 #include "../vulkan/IterationPalettePipelineConfigurator.hpp"
@@ -24,6 +25,7 @@
 #include "../preset/shader/palette/ShdPalettePresets.h"
 #include "../preset/shader/slope/ShdSlopePresets.h"
 #include "../preset/shader/stripe/ShdStripePresets.h"
+#include "../vulkan/RFFPresentRenderContextConfigurator.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 
 
@@ -46,35 +48,57 @@ namespace merutilm::rff2 {
 
 
     void RenderScene::initRenderContext() const {
-
         const auto swapchainImageContextGetter = [this] {
             auto &swapchain = *engine.getCore().getWindowContext(
                 Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
             return vkh::ImageContext::fromSwapchain(engine.getCore(), swapchain);
         };
 
-        engine.attachRenderContext<RFFFirstRenderContextConfigurator>(getInternalRenderContextExtent(), swapchainImageContextGetter);
+        engine.attachRenderContext<RFFFirstRenderContextConfigurator>([this]{return getInternalRenderContextExtent();},
+                                                                      swapchainImageContextGetter);
+        engine.attachRenderContext<RFFPresentRenderContextConfigurator>([this]{return getExternalRenderContextExtent();},
+                                                                        swapchainImageContextGetter);
     }
 
     void RenderScene::initShaderPrograms() {
-        rendererIteration = vkh::GraphicsPipelineConfigurator::createShaderProgram<IterationPalettePipelineConfigurator>(
-            firstRenderPassShaderPrograms, engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX);
-        rendererStripe = vkh::GraphicsPipelineConfigurator::createShaderProgram<StripePipelineConfigurator>(
-            firstRenderPassShaderPrograms, engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX);
-        rendererSlope = vkh::GraphicsPipelineConfigurator::createShaderProgram<SlopePipelineConfigurator>(
-            firstRenderPassShaderPrograms, engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX);
-        rendererColor = vkh::GraphicsPipelineConfigurator::createShaderProgram<ColorPipelineConfigurator>(
-            firstRenderPassShaderPrograms, engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX);
-        rendererTempPresent = vkh::GraphicsPipelineConfigurator::createShaderProgram<TempPresentPipelineConfigurator>(
-            firstRenderPassShaderPrograms, engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX);
+        rendererIteration = vkh::PipelineConfigurator::createShaderProgram<
+            IterationPalettePipelineConfigurator>(
+            shaderPrograms, engine,
+            RFFFirstRenderContextConfigurator::CONTEXT_INDEX,
+            RFFFirstRenderContextConfigurator::SUBPASS_ITERATION_INDEX);
+
+        rendererStripe = vkh::PipelineConfigurator::createShaderProgram<StripePipelineConfigurator>(
+            shaderPrograms, engine,
+            RFFFirstRenderContextConfigurator::CONTEXT_INDEX,
+            RFFFirstRenderContextConfigurator::SUBPASS_STRIPE_INDEX);
+
+        rendererSlope = vkh::PipelineConfigurator::createShaderProgram<SlopePipelineConfigurator>(
+            shaderPrograms, engine,
+            RFFFirstRenderContextConfigurator::CONTEXT_INDEX,
+            RFFFirstRenderContextConfigurator::SUBPASS_SLOPE_INDEX);
+
+        rendererColor = vkh::PipelineConfigurator::createShaderProgram<ColorPipelineConfigurator>(
+            shaderPrograms, engine,
+            RFFFirstRenderContextConfigurator::CONTEXT_INDEX,
+            RFFFirstRenderContextConfigurator::SUBPASS_COLOR_INDEX);
+
+        rendererBoxBlur = vkh::PipelineConfigurator::createShaderProgram<BoxBlurPipelineConfigurator>(
+            shaderPrograms, engine
+        );
+
+        rendererPresent = vkh::PipelineConfigurator::createShaderProgram<PresentPipelineConfigurator>(
+            shaderPrograms, engine,
+            RFFPresentRenderContextConfigurator::CONTEXT_INDEX,
+            RFFPresentRenderContextConfigurator::SUBPASS_PRESENT_INDEX);
+
 
         applyResize();
         applyShaderAttr(attr);
         requestRecompute();
     }
 
-    void RenderScene::resolveWindowResizeEnd() const {
-        vkh::CoreRef core = engine.getCore();
+    void RenderScene::resolveWindowResizeEnd() {
+        const auto &core = engine.getCore();
         if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
             return;
         }
@@ -83,13 +107,11 @@ namespace merutilm::rff2 {
         vkh::SwapchainRef swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 swapchain;
         swapchain.recreate();
-        engine.getRenderContext(RFFFirstRenderContextConfigurator::CONTEXT_INDEX).recreate(getInternalRenderContextExtent());
-        // engine.getRenderContext(FOG_RENDER_CONTEXT_INDEX).recreate(getInternalRenderContextExtent());
-        // engine.getRenderContext(BLOOM_RENDER_CONTEXT_INDEX).recreate(getInternalRenderContextExtent());
+        applyResize();
     }
 
 
-    void RenderScene::render(vkh::SwapchainRef swapchain, const uint32_t frameIndex, const uint32_t imageIndex) {
+    void RenderScene::render(const uint32_t frameIndex, const uint32_t imageIndex) {
         if (shaderRequested) {
             applyShaderAttr(attr);
             shaderRequested.exchange(false);
@@ -117,37 +139,29 @@ namespace merutilm::rff2 {
         }
 
 
-        draw(swapchain, frameIndex, imageIndex);
+        draw(frameIndex, imageIndex);
     }
 
-    void RenderScene::draw(vkh::SwapchainRef swapchain, const uint32_t frameIndex, const uint32_t imageIndex) {
+    void RenderScene::draw(const uint32_t frameIndex, const uint32_t imageIndex) {
         vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
 
-        for (const auto &shaderProgram: firstRenderPassShaderPrograms) {
+        for (const auto &shaderProgram:shaderPrograms) {
             shaderProgram->updateQueue(queue, frameIndex, imageIndex);
         }
 
         vkh::DescriptorUpdater::write(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), queue);
 
-        // First RenderPass begin
-        {
-            const auto renderPassExecutor = vkh::RenderPassFullscreenExecutor(
-                engine, RFFFirstRenderContextConfigurator::CONTEXT_INDEX, frameIndex, imageIndex);
 
-            const VkCommandBuffer cbh = engine.getCommandBuffer().getCommandBufferHandle(frameIndex);
-            swapchain.matchViewportAndScissor(cbh);
-            for (int i = 0; i < firstRenderPassShaderPrograms.size(); ++i) {
-                firstRenderPassShaderPrograms[i]->pipeline->bind(cbh, frameIndex);
-                firstRenderPassShaderPrograms[i]->render(cbh, frameIndex);
-                if (i < firstRenderPassShaderPrograms.size() - 1) {
-                    vkCmdNextSubpass(cbh, VK_SUBPASS_CONTENTS_INLINE);
-                }
-            }
-        }
-        //First RenderPass End
+        vkh::ScopedCommandBufferExecutor executor(engine, frameIndex);
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenRenderPass<RFFFirstRenderContextConfigurator>(
+            engine, {rendererIteration, rendererStripe, rendererSlope, rendererColor}, frameIndex, imageIndex);
 
+
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenRenderPass<RFFPresentRenderContextConfigurator>(
+            engine, {rendererPresent}, frameIndex, imageIndex);
 
     }
+
 
     Attribute RenderScene::defaultSettings() {
         return Attribute{
@@ -324,6 +338,7 @@ namespace merutilm::rff2 {
     }
 
     void RenderScene::applyCreateImage() {
+        vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
         if (createImageRequestedFilename.empty()) {
             createImageRequestedFilename = IOUtilities::ioFileDialog("Save image", Constants::Extension::DESC_IMAGE,
                                                                      IOUtilities::SAVE_FILE,
@@ -345,6 +360,7 @@ namespace merutilm::rff2 {
     }
 
     void RenderScene::applyShaderAttr(const Attribute &attr) const {
+        vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
         rendererIteration->setPalette(attr.shader.palette);
         rendererStripe->setStripe(attr.shader.stripe);
         rendererSlope->setSlope(attr.shader.slope);
@@ -355,18 +371,22 @@ namespace merutilm::rff2 {
     }
 
     void RenderScene::applyResize() {
+        vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
         const uint16_t cw = getClientWidth();
         const uint16_t ch = getClientHeight();
         const uint16_t iw = getIterationBufferWidth(attr);
         const uint16_t ih = getIterationBufferHeight(attr);
-        // glViewport(0, 0, cw, ch);
+
         rendererSlope->setResolution({cw, ch}, attr.render.clarityMultiplier);
         rendererIteration->reloadIterationBuffer(iw, ih);
-        // renderer->reloadSize(cw, ch, iw, ih);
+        engine.getRenderContext(RFFFirstRenderContextConfigurator::CONTEXT_INDEX).recreate();
+        engine.getRenderContext(RFFPresentRenderContextConfigurator::CONTEXT_INDEX).recreate();
+
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
     }
 
     void RenderScene::overwriteMatrixFromMap() const {
+        vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
         // renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->getMatrix().getWidth(),
         //                      currentMap->getMatrix().getHeight());
         rendererIteration->setMaxIteration(static_cast<double>(currentMap->getMaxIteration()));
@@ -386,7 +406,7 @@ namespace merutilm::rff2 {
         GetCursorPos(&cursor);
         ScreenToClient(window, &cursor);
         const float multiplier = attr.render.clarityMultiplier;
-        return static_cast<uint16_t>(getIterationBufferHeight(attr) - static_cast<float>(cursor.y) * multiplier);
+        return static_cast<uint16_t>(static_cast<float>(getIterationBufferHeight(attr)) - static_cast<float>(cursor.y) * multiplier);
     }
 
     void RenderScene::recomputeThreaded() {
@@ -602,6 +622,6 @@ namespace merutilm::rff2 {
 
     void RenderScene::destroy() {
         state.cancel();
-        firstRenderPassShaderPrograms.clear();
+        shaderPrograms.clear();
     }
 }

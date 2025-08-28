@@ -11,8 +11,6 @@ namespace merutilm::vkh {
     class ComputeShaderPipelineImpl final : public PipelineAbstract {
     public:
         explicit ComputeShaderPipelineImpl(EngineRef engine, PipelineLayoutRef pipelineLayout,
-                                           uint32_t renderContextIndex,
-                                           uint32_t primarySubpassIndex,
                                            PipelineManager &&pipelineManager);
 
         ~ComputeShaderPipelineImpl() override;
@@ -25,7 +23,7 @@ namespace merutilm::vkh {
 
         ComputeShaderPipelineImpl &operator=(ComputeShaderPipelineImpl &&) = delete;
 
-        void bind(VkCommandBuffer cbh, uint32_t frameIndex) const override;
+        void cmdBindAll(VkCommandBuffer cbh, uint32_t frameIndex) const override;
 
         void init() override;
     };

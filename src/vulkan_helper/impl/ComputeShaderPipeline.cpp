@@ -6,10 +6,8 @@
 
 namespace merutilm::vkh {
     ComputeShaderPipelineImpl::ComputeShaderPipelineImpl(EngineRef engine, PipelineLayoutRef pipelineLayout,
-                                                         const uint32_t renderContextIndex,
-                                                         const uint32_t primarySubpassIndex,
                                                          PipelineManager &&pipelineManager) : PipelineAbstract(
-        engine, pipelineLayout, renderContextIndex, primarySubpassIndex, std::move(pipelineManager)) {
+        engine, pipelineLayout, std::move(pipelineManager)) {
         ComputeShaderPipelineImpl::init();
     }
 
@@ -18,7 +16,7 @@ namespace merutilm::vkh {
     }
 
 
-    void ComputeShaderPipelineImpl::bind(const VkCommandBuffer cbh, const uint32_t frameIndex) const {
+    void ComputeShaderPipelineImpl::cmdBindAll(const VkCommandBuffer cbh, const uint32_t frameIndex) const {
         const auto sets = pipelineManager->getDescriptorSets(frameIndex);
         vkCmdBindPipeline(cbh, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
         vkCmdBindDescriptorSets(cbh, VK_PIPELINE_BIND_POINT_COMPUTE,
