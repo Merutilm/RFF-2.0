@@ -16,11 +16,11 @@ layout (set = 1, binding = 0) buffer IterSSBO {
 
 layout (set = 2, binding = 0) uniform StripeUBO {
     uint type;
-    float firstInterval;
-    float secondInterval;
+    float first_interval;
+    float second_interval;
     float opacity;
     float offset;
-    float animationSpeed;
+    float animation_speed;
 } stripe_attr;
 
 layout (set = 3, binding = 0) uniform TimeUBO {
@@ -41,18 +41,18 @@ double getIteration(uvec2 iterCoord){
 
 void main() {
 
-    uvec2 iterCoord = uvec2(gl_FragCoord.xy);
-    double iteration = getIteration(iterCoord);
+    uvec2 iter_coord = uvec2(gl_FragCoord.xy);
+    double iteration = getIteration(iter_coord);
 
     if (stripe_attr.type == NONE || iteration == 0) {
         color = subpassLoad(canvas);
         return;
     }
 
-    double iterCurr = iteration - (stripe_attr.offset + stripe_attr.animationSpeed * time_attr.time);
+    double iter_curr = iteration - (stripe_attr.offset + stripe_attr.animation_speed * time_attr.time);
     float black;
-    float rat1 = float(mod(iterCurr, stripe_attr.firstInterval)) / stripe_attr.firstInterval;
-    float rat2 = float(mod(iterCurr, stripe_attr.secondInterval)) / stripe_attr.secondInterval;
+    float rat1 = float(mod(iter_curr, stripe_attr.first_interval)) / stripe_attr.first_interval;
+    float rat2 = float(mod(iter_curr, stripe_attr.second_interval)) / stripe_attr.second_interval;
 
     switch (stripe_attr.type) {
         case SINGLE_DIRECTION: {

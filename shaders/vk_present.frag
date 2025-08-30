@@ -4,7 +4,7 @@ layout (set = 0, binding = 0) uniform sampler2D canvas;
 
 layout (set = 1, binding = 0) uniform ResolutionUBO{
     uvec2 swapchain_extent;
-    float clarityMultiplier;
+    float clarity_multiplier;
 } resolution_attr;
 
 layout (location = 0) in vec3 fragColor;

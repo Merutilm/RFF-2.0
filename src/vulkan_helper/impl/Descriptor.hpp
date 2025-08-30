@@ -42,13 +42,13 @@ namespace merutilm::vkh {
             return descriptorPools[frameIndex];
         }
 
-        void queue(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t imageIndex) const;
+        void queue(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex) const;
 
-        void queue(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t imageIndex, std::vector<uint32_t> &&bindings) const;
+        void queue(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, std::vector<uint32_t> &&bindings) const;
 
     private:
 
-        void updateIndices(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t imageIndex, const std::vector<uint32_t> &indices) const;
+        void updateIndices(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, const std::vector<uint32_t> &indices) const;
 
         void init() override;
 

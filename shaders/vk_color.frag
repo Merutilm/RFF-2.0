@@ -31,9 +31,14 @@ float getHue(vec3 col) {
         return 0;
     }
 
-    float mid = col.r + col.g + col.b - high - low;
+    float mid = clamp(col.r + col.g + col.b - high - low, 0, 1);
     float range = high - low;
     float rat = (mid - low) / range;
+
+    if(mid - low < -0.00){
+        return 0;
+    }
+
     float offset;
     // hue detection, 0 = low, 1 = high
     // ---------------------------------
@@ -69,6 +74,7 @@ float getHue(vec3 col) {
             offset = 6 - rat;
         }
     }
+
     return offset / 6;
 }
 
@@ -76,7 +82,8 @@ vec3 addHue(vec3 col, float add) {
 
     float high = max(max(col.r, col.g), col.b);
     float low = min(min(col.r, col.g), col.b);
-    float off = mod(getHue(col) + add, 1) * 6;
+    float hue = getHue(col);
+    float off = mod(hue + add, 1) * 6;
     int ioff = int(off);
     float doff = mod(off, 1);
 
@@ -87,6 +94,7 @@ vec3 addHue(vec3 col, float add) {
     // g     | 0 ~ 1 1 1 1 1 ~ 0 0 0 0
     // b     | 0 0 0 0 0 ~ 1 1 1 1 1 ~
     // ---------------------------------
+
 
     vec3 result;
     switch (ioff) {

@@ -5,6 +5,9 @@
 #include "ShdPalettePresets.h"
 
 #include <algorithm>
+#include <glm/glm.hpp>
+
+#include "../../../data/ColorUtils.h"
 
 namespace merutilm::rff2 {
 #define PI static_cast<float>(M_PI)
@@ -69,8 +72,8 @@ namespace merutilm::rff2 {
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
             float v = 0.5f + 0.5f * std::sin(i);
-            NormalizedColor c{v, v, v, 1};
-            c = c.forEachExceptAlpha(NormalizedColor{1.000000f, 0.647058f, 0.000000f, 1.000000f},
+            glm::vec4 c{v, v, v, 1};
+            c = ColorUtils::forEachExceptAlpha(c, glm::vec4{1.000000f, 0.647058f, 0.000000f, 1.000000f},
                                      [v](const float e, const float ta) { return e * (1 - v * 0.3f) + ta * v * 0.3f; });
             p.colors.push_back(c);
         }
@@ -87,8 +90,8 @@ namespace merutilm::rff2 {
         ShdPaletteAttribute p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
-            NormalizedColor c = {0.75f, 0.5f, 0.25f, 1};
-            p.colors.emplace_back(NormalizedColor::lerp(c, NormalizedColor{1, 1, 1, 1}, -0.3f + 0.3f * std::cos(i)));
+            glm::vec4 c = {0.75f, 0.5f, 0.25f, 1};
+            p.colors.emplace_back(ColorUtils::lerp(c, glm::vec4{1, 1, 1, 1}, -0.3f + 0.3f * std::cos(i)));
         }
         p.iterationInterval = 250;
         p.offsetRatio = 0.7f;
@@ -123,7 +126,7 @@ namespace merutilm::rff2 {
         p.colors.reserve(64);
 
         for (int i = 0; i < 64; ++i) {
-            p.colors.push_back(NormalizedColor::random());
+            p.colors.push_back(ColorUtils::random());
         }
 
         p.iterationInterval = 1;
@@ -137,10 +140,10 @@ namespace merutilm::rff2 {
 
         for (uint64_t i = 0; i < p1.colors.size() * r1; i++) {
             const float irv = static_cast<float>(i) / static_cast<float>(r1);
-            const NormalizedColor c2 = p1.getMidColor(irv / static_cast<float>(p1.colors.size()));
-            const NormalizedColor cr = NormalizedColor::random();
+            const glm::vec4 c2 = p1.getMidColor(irv / static_cast<float>(p1.colors.size()));
+            const glm::vec4 cr = ColorUtils::random();
 
-            p.colors.push_back(c2.forEachExceptAlpha(cr, [](const float c, const float t) { return c + t / 6; }));
+            p.colors.push_back(ColorUtils::forEachExceptAlpha(c2, cr, [](const float c, const float t) { return c + t / 6; }));
         }
 
         const ShdPaletteAttribute p2 = p;
@@ -151,11 +154,11 @@ namespace merutilm::rff2 {
         for (uint64_t i = 0; i < p2.colors.size() * r2; i++) {
             const float irv = static_cast<float>(i) / static_cast<float>(r2);
 
-            NormalizedColor c2 = p2.getMidColor(irv / static_cast<float>(p2.colors.size()));
+            glm::vec4 c2 = p2.getMidColor(irv / static_cast<float>(p2.colors.size()));
             const float v = (c2.r + c2.g + c2.b) / 3;
             const float o = 0.5f + 0.5f * std::sin(std::fmod(irv, 1.0f) * 150.0f);
 
-            p.colors.push_back(c2.forEachExceptAlpha([v, o](const float c) {
+            p.colors.push_back(ColorUtils::forEachExceptAlpha(c2, [v, o](const float c) {
                 return std::lerp(c, v / (1 + rff_math::random_f() * 2.0f), o);
             }));
         }
@@ -174,13 +177,13 @@ namespace merutilm::rff2 {
     ShdPaletteAttribute ShdPalettePresets::LongRainbow7::genPalette() const {
         auto p = ShdPaletteAttribute();
         p.colors.reserve(7);
-        p.colors.push_back(NormalizedColor{0.909803f, 0.078431f, 0.086274f, 1.000000f});
-        p.colors.push_back(NormalizedColor{1.000000f, 0.647058f, 0.000000f, 1.000000f});
-        p.colors.push_back(NormalizedColor{0.980392f, 0.921568f, 0.211764f, 1.000000f});
-        p.colors.push_back(NormalizedColor{0.474509f, 0.764705f, 0.078431f, 1.000000f});
-        p.colors.push_back(NormalizedColor{0.282352f, 0.490196f, 0.905882f, 1.000000f});
-        p.colors.push_back(NormalizedColor{0.294117f, 0.211764f, 0.615686f, 1.000000f});
-        p.colors.push_back(NormalizedColor{0.439215f, 0.211764f, 0.615686f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.909803f, 0.078431f, 0.086274f, 1.000000f});
+        p.colors.push_back(glm::vec4{1.000000f, 0.647058f, 0.000000f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.980392f, 0.921568f, 0.211764f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.474509f, 0.764705f, 0.078431f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.282352f, 0.490196f, 0.905882f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.294117f, 0.211764f, 0.615686f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.439215f, 0.211764f, 0.615686f, 1.000000f});
 
         p.iterationInterval = 1;
 
@@ -193,10 +196,10 @@ namespace merutilm::rff2 {
 
         for (uint64_t i = 0; i < p1.colors.size() * r1; i++) {
             const float irv = static_cast<float>(i) / static_cast<float>(r1);
-            const NormalizedColor c2 = p1.getMidColor(irv / static_cast<float>(p1.colors.size()));
-            const NormalizedColor cr = NormalizedColor::random();
+            const glm::vec4 c2 = p1.getMidColor(irv / static_cast<float>(p1.colors.size()));
+            const glm::vec4 cr = ColorUtils::random();
 
-            p.colors.push_back(c2.forEachExceptAlpha(cr, [](const float c, const float t) { return c + t / 6; }));
+            p.colors.push_back(ColorUtils::forEachExceptAlpha(c2, cr, [](const float c, const float t) { return c + t / 6; }));
         }
 
         const ShdPaletteAttribute p2 = p;
@@ -207,11 +210,11 @@ namespace merutilm::rff2 {
         for (uint64_t i = 0; i < p2.colors.size() * r2; i++) {
             const float irv = static_cast<float>(i) / static_cast<float>(r2);
 
-            NormalizedColor c2 = p2.getMidColor(irv / static_cast<float>(p2.colors.size()));
+            glm::vec4 c2 = p2.getMidColor(irv / static_cast<float>(p2.colors.size()));
             const float v = (c2.r + c2.g + c2.b) / 3;
             const float o = 0.5f + 0.5f * std::sin(std::fmod(irv, 1.0f) * 150.0f);
 
-            p.colors.push_back(c2.forEachExceptAlpha([v, o](const float c) {
+            p.colors.push_back(ColorUtils::forEachExceptAlpha(c2, [v, o](const float c) {
                 return std::lerp(c, v / (1 + rff_math::random_f() * 2.0f), o);
             }));
         }
@@ -231,13 +234,13 @@ namespace merutilm::rff2 {
         auto p = ShdPaletteAttribute();
         p.colors.reserve(7);
 
-        p.colors.push_back(NormalizedColor{0.909803f, 0.078431f, 0.086274f, 1.000000f});
-        p.colors.push_back(NormalizedColor{1.000000f, 0.647058f, 0.000000f, 1.000000f});
-        p.colors.push_back(NormalizedColor{0.980392f, 0.921568f, 0.211764f, 1.000000f});
-        p.colors.push_back(NormalizedColor{0.474509f, 0.764705f, 0.078431f, 1.000000f});
-        p.colors.push_back(NormalizedColor{0.282352f, 0.490196f, 0.905882f, 1.000000f});
-        p.colors.push_back(NormalizedColor{0.294117f, 0.211764f, 0.615686f, 1.000000f});
-        p.colors.push_back(NormalizedColor{0.439215f, 0.211764f, 0.615686f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.909803f, 0.078431f, 0.086274f, 1.000000f});
+        p.colors.push_back(glm::vec4{1.000000f, 0.647058f, 0.000000f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.980392f, 0.921568f, 0.211764f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.474509f, 0.764705f, 0.078431f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.282352f, 0.490196f, 0.905882f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.294117f, 0.211764f, 0.615686f, 1.000000f});
+        p.colors.push_back(glm::vec4{0.439215f, 0.211764f, 0.615686f, 1.000000f});
         p.iterationInterval = 300;
         p.offsetRatio = 0;
         p.colorSmoothing = ShdPalColorSmoothingMethod::NORMAL;

@@ -19,7 +19,7 @@ namespace merutilm::vkh {
         template<typename ProgramName, typename... Args> requires std::is_base_of_v<PipelineConfigurator, ProgramName>
         static ProgramName *createShaderProgram(
             std::vector<std::unique_ptr<PipelineConfigurator> > &shaderPrograms,
-            EngineRef engine, Args&&... args) {
+            EngineRef engine, Args &&... args) {
             auto shaderProgram = std::make_unique<ProgramName>(engine, args...);
             shaderProgram->configure();
             shaderPrograms.emplace_back(std::move(shaderProgram));
@@ -41,6 +41,13 @@ namespace merutilm::vkh {
         }
 
 
+        template<typename F> requires std::is_invocable_r_v<void, F, DescriptorUpdateQueue &>
+        void writeDescriptor(F &&func) const {
+            auto queue = DescriptorUpdater::createQueue();
+            func(queue);
+            DescriptorUpdater::write(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), queue);
+        }
+
         template<typename F> requires std::is_invocable_r_v<void, F, DescriptorUpdateQueue &, uint32_t>
         void writeDescriptorForEachFrame(F &&func) const {
             auto queue = DescriptorUpdater::createQueue();
@@ -48,6 +55,12 @@ namespace merutilm::vkh {
                 func(queue, i);
             }
             DescriptorUpdater::write(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), queue);
+        }
+        template<typename F> requires std::is_invocable_r_v<void, F,  uint32_t>
+        void updateBufferForEachFrame(F &&func) const {
+            for (uint32_t i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
+                func(i);
+            }
         }
 
         template<DescTemplateHasID D>
@@ -75,7 +88,11 @@ namespace merutilm::vkh {
 
         virtual void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex) = 0;
 
-        virtual void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex, uint32_t imageIndex) = 0;
+        virtual void pipelineInitialized() = 0;
+
+        virtual void windowResized() = 0;
+
+        virtual void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex) = 0;
 
     protected:
         virtual void configure() = 0;
@@ -87,6 +104,5 @@ namespace merutilm::vkh {
         void cmdPushAll(const VkCommandBuffer cbh) const {
             pipeline->getPipelineManager().getLayout().cmdPush(cbh);
         }
-
     };
 }

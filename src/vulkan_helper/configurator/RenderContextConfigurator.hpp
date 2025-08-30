@@ -41,7 +41,7 @@ namespace merutilm::vkh {
 
         virtual void configureImageContext(const VkExtent2D &extent) = 0;
 
-        virtual void configureRenderContext(RenderPassManagerRef manager) = 0;
+        virtual void configureRenderContext(RenderPassManagerRef rpm) = 0;
 
 
         void appendStoredImageContext(const uint32_t contextIndexExpected, MultiframeImageContext &&context) {
@@ -50,7 +50,7 @@ namespace merutilm::vkh {
             contexts.emplace_back(std::move(context));
         }
 
-        [[nodiscard]] const MultiframeImageContext &getImageContext(const uint32_t contextIndex) const {
+        [[nodiscard]] MultiframeImageContext &getImageContext(const uint32_t contextIndex) {
             return contexts.at(contextIndex);
         }
 

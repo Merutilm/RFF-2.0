@@ -3,23 +3,14 @@
 //
 
 #pragma once
-#include "WGLScene.h"
 #include "../io/RFFDynamicMapBinary.h"
 #include "../io/RFFStaticMapBinary.h"
-#include "../opengl/GLMultipassRenderer.h"
-#include "../opengl/GLRendererAntialiasing.h"
-#include "../opengl/GLRendererBloom.h"
-#include "../opengl/GLRendererColIteration2Map.h"
-#include "../opengl/GLRendererColor.h"
-#include "../opengl/GLRendererFog.h"
-#include "../opengl/GLRendererShdIteration2Map.h"
-#include "../opengl/GLRendererStatic2Image.h"
 #include "../attr/Attribute.h"
 #include "opencv2/core/mat.hpp"
 
 
 namespace merutilm::rff2 {
-    class GLVideoRenderScene final : public WGLScene {
+    class GLVideoRenderScene final {
         RFFBinary *normal = nullptr;
         RFFBinary *zoomed = nullptr;
         bool isStatic = false;
@@ -27,18 +18,18 @@ namespace merutilm::rff2 {
         cv::Mat currentImage;
         float currentFrame = 0;
 
-        std::unique_ptr<GLMultipassRenderer> rendererStatic;
-        std::unique_ptr<GLRendererStatic2Image> rendererStatic2Image;
-
-        std::unique_ptr<GLMultipassRenderer> renderer;
-        std::unique_ptr<GLRendererShdIteration2Map> rendererShdIteration2Map;
-        std::unique_ptr<GLRendererColIteration2Map> rendererColIteration2Map;
+        // std::unique_ptr<GLMultipassRenderer> rendererStatic;
+        // std::unique_ptr<GLRendererStatic2Image> rendererStatic2Image;
+        //
+        // std::unique_ptr<GLMultipassRenderer> renderer;
+        // std::unique_ptr<GLRendererShdIteration2Map> rendererShdIteration2Map;
+        // std::unique_ptr<GLRendererColIteration2Map> rendererColIteration2Map;
         // std::unique_ptr<GLRendererStripe> rendererStripe;
         // std::unique_ptr<GLRendererSlope> rendererSlope;
-        std::unique_ptr<GLRendererColor> rendererColor;
-        std::unique_ptr<GLRendererFog> rendererFog;
-        std::unique_ptr<GLRendererBloom> rendererBloom;
-        std::unique_ptr<GLRendererAntialiasing> rendererAntialiasing;
+        // std::unique_ptr<GLRendererColor> rendererColor;
+        // std::unique_ptr<GLRendererFog> rendererFog;
+        // std::unique_ptr<GLRendererBloom> rendererBloom;
+        // std::unique_ptr<GLRendererAntialiasing> rendererAntialiasing;
 
     public:
         GLVideoRenderScene();
@@ -49,13 +40,13 @@ namespace merutilm::rff2 {
 
         void applyColor(const Attribute &settings) const;
 
-        void configure(HWND wnd, HDC hdc, HGLRC context) override;
+        // void configure(HWND wnd, HDC hdc, HGLRC context);
 
         float calculateZoom(double defaultZoomIncrement) const;
 
-        GLMultipassRenderer &getStaticRenderer() const;
-
-        GLMultipassRenderer &getDynamicRenderer() const;
+        // GLMultipassRenderer &getStaticRenderer() const;
+        //
+        // GLMultipassRenderer &getDynamicRenderer() const;
 
         void setCurrentFrame(float currentFrame);
 
@@ -69,7 +60,7 @@ namespace merutilm::rff2 {
 
         void reloadImageBuffer(uint16_t w, uint16_t h);
 
-        void renderGL() override;
+        // void renderGL() override;
 
         const cv::Mat &getCurrentImage() const;
     };

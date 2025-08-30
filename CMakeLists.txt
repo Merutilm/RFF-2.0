@@ -5,10 +5,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_SOURCE_DIR}/bin)
 
 add_compile_options(
-        -O0
-#        -Ofast
-#        -march=native
-#        -funroll-loops
+#        -O0
+        -Ofast
+        -march=native
+        -funroll-loops
 )
 
 
@@ -19,9 +19,6 @@ add_executable(
         extern/glad.c
         extern/glad_wgl.c
         src/rff2/ui/Main.cpp
-        src/rff2/opengl/GLShader.cpp
-        src/rff2/opengl/GLRenderer.cpp
-        src/rff2/opengl/GLRenderer.h
         src/rff2/calc/fp_complex_calculator.cpp
         src/rff2/calc/fp_complex_calculator.h
         src/rff2/constants/Constants.hpp
@@ -50,17 +47,13 @@ add_executable(
         src/rff2/calc/fp_decimal.cpp
         src/rff2/calc/fp_decimal.h
         src/rff2/formula/Perturbator.h
-        src/rff2/ui/WGLScene.h
-        src/rff2/ui/WGLScene.cpp
         src/rff2/io/RFFDynamicMapBinary.cpp
         src/rff2/io/RFFDynamicMapBinary.h
         src/rff2/data/Matrix.h
         src/rff2/attr/ShdPalColorSmoothingMethod.h
-        src/rff2/data/NormalizedColor.h
+        src/rff2/data/ColorUtils.h
         src/rff2/attr/StripeType.h
         src/rff2/attr/VidAnimationAttribute.h
-        src/rff2/opengl/GLTimeRenderer.h
-        src/rff2/opengl/GLTimeProvider.h
         src/rff2/formula/LightMandelbrotReference.cpp
         src/rff2/formula/LightMandelbrotReference.h
         src/rff2/parallel/ParallelRenderState.cpp
@@ -86,20 +79,6 @@ add_executable(
         src/rff2/ui/CallbackFractal.hpp
         src/rff2/ui/CallbackRender.cpp
         src/rff2/ui/CallbackRender.hpp
-        src/rff2/opengl/GLMultipassRenderer.cpp
-        src/rff2/opengl/GLMultipassRenderer.h
-        src/rff2/opengl/GLRendererColor.cpp
-        src/rff2/opengl/GLRendererColor.h
-        src/rff2/opengl/GLRendererBoxBlur.cpp
-        src/rff2/opengl/GLRendererBoxBlur.h
-        src/rff2/opengl/GLRendererGaussianBlur.cpp
-        src/rff2/opengl/GLRendererGaussianBlur.h
-        src/rff2/opengl/GLRendererBloom.cpp
-        src/rff2/opengl/GLRendererBloom.h
-        src/rff2/opengl/GLRendererFog.cpp
-        src/rff2/opengl/GLRendererFog.h
-        src/rff2/opengl/GLRendererAntialiasing.cpp
-        src/rff2/opengl/GLRendererAntialiasing.h
         src/rff2/ui/CallbackShader.cpp
         src/rff2/ui/CallbackShader.hpp
         src/rff2/locator/MandelbrotLocator.cpp
@@ -139,8 +118,6 @@ add_executable(
         src/rff2/preset/shader/stripe/ShdStripePresets.cpp
         src/rff2/preset/shader/bloom/ShdBloomPresets.cpp
         src/rff2/preset/Presets.h
-        src/rff2/opengl/GLRendererDisplayer.cpp
-        src/rff2/opengl/GLRendererDisplayer.h
         src/rff2/preset/resolution/ResolutionPresets.cpp
         src/rff2/preset/resolution/ResolutionPresets.h
         src/rff2/preset/render/RenderPresets.cpp
@@ -157,22 +134,12 @@ add_executable(
         src/rff2/ui/GLVideoWindow.h
         src/rff2/ui/GLVideoRenderScene.cpp
         src/rff2/ui/GLVideoRenderScene.h
-        src/rff2/opengl/GLRendererIteration2Map.cpp
-        src/rff2/opengl/GLRendererIteration2Map.h
-        src/rff2/opengl/GLShaderLoader.h
-        src/rff2/opengl/GLShaderLoader.cpp
-        src/rff2/opengl/GLShaderConfig.h
-        src/rff2/opengl/GLShaderConfig.cpp
         src/rff2/io/RFFStaticMapBinary.cpp
         src/rff2/io/RFFStaticMapBinary.h
         src/rff2/io/RFFBinary.cpp
         src/rff2/io/RFFBinary.h
-        src/rff2/opengl/GLRendererStatic2Image.cpp
-        src/rff2/opengl/GLRendererStatic2Image.h
         src/rff2/io/RFFLocationBinary.cpp
         src/rff2/io/RFFLocationBinary.h
-        src/rff2/opengl/GLRendererShdIteration2Map.h
-        src/rff2/opengl/GLRendererColIteration2Map.cpp
         src/rff2/io/KFRColorLoader.cpp
         src/rff2/io/KFRColorLoader.hpp
 
@@ -228,8 +195,8 @@ add_executable(
         src/vulkan_helper/impl/Framebuffer.hpp
         src/vulkan_helper/struct/RenderPassAttachment.hpp
         src/vulkan_helper/struct/ImageInitInfo.hpp
-        src/vulkan_helper/impl/SyncObject.cpp
-        src/vulkan_helper/impl/SyncObject.hpp
+        src/vulkan_helper/impl/FrameSyncObject.cpp
+        src/vulkan_helper/impl/FrameSyncObject.hpp
         src/vulkan_helper/executor/RenderPassFullscreenRecorder.cpp
         src/vulkan_helper/executor/RenderPassFullscreenRecorder.hpp
         src/vulkan_helper/struct/Vertex.hpp
@@ -265,12 +232,12 @@ add_executable(
         src/vulkan_helper/executor/ScopedNewCommandBufferExecutor.hpp
         src/vulkan_helper/struct/PushConstantReserve.hpp
         src/vulkan_helper/configurator/RenderContextConfigurator.hpp
-        src/rff2/vulkan/RFFFirstRenderContextConfigurator.hpp
+        src/rff2/vulkan/RCCFirst.hpp
         src/vulkan_helper/hash/DescriptorSetLayoutBuildTypeHasher.hpp
         src/vulkan_helper/context/ImageContext.hpp
-        src/vulkan_helper/util/Presenter.hpp
-        src/rff2/vulkan/IterationPalettePipelineConfigurator.cpp
-        src/rff2/vulkan/IterationPalettePipelineConfigurator.hpp
+        src/vulkan_helper/util/SwapchainPresenter.hpp
+        src/rff2/vulkan/GPCIterationPalette.cpp
+        src/rff2/vulkan/GPCIterationPalette.hpp
         src/vulkan_helper/context/DescriptorUpdateContext.hpp
         src/vulkan_helper/util/SafeArrayChecker.hpp
         src/vulkan_helper/util/ImageContextUtils.hpp
@@ -302,23 +269,24 @@ add_executable(
         src/vulkan_helper/struct/BufferLock.hpp
         src/vulkan_helper/util/Logger.hpp
         src/vulkan_helper/util/DescriptorUpdater.hpp
-        src/rff2/data/Color.hpp
-        src/rff2/vulkan/StripePipelineConfigurator.cpp
-        src/rff2/vulkan/StripePipelineConfigurator.hpp
-        src/rff2/vulkan/SlopePipelineConfigurator.cpp
-        src/rff2/vulkan/SlopePipelineConfigurator.hpp
-        src/rff2/vulkan/ColorPipelineConfigurator.cpp
-        src/rff2/vulkan/ColorPipelineConfigurator.hpp
-        src/rff2/vulkan/FogPipelineConfigurator.cpp
-        src/rff2/vulkan/FogPipelineConfigurator.hpp
-        src/rff2/vulkan/BloomPipelineConfigurator.cpp
-        src/rff2/vulkan/BloomPipelineConfigurator.hpp
+        src/rff2/vulkan/GPCStripe.cpp
+        src/rff2/vulkan/GPCStripe.hpp
+        src/rff2/vulkan/GPCSlope.cpp
+        src/rff2/vulkan/GPCSlope.hpp
+        src/rff2/vulkan/GPCColor.cpp
+        src/rff2/vulkan/GPCColor.hpp
+        src/rff2/vulkan/GPCFog.cpp
+        src/rff2/vulkan/GPCFog.hpp
+        src/rff2/vulkan/GPCResample.cpp
+        src/rff2/vulkan/GPCResample.hpp
+        src/rff2/vulkan/GPCBloomThreshold.cpp
+        src/rff2/vulkan/GPCBloomThreshold.hpp
         src/vulkan_helper/def/Factory.hpp
         src/vulkan_helper/util/Debugger.hpp
         src/vulkan_helper/util/PhysicalDeviceUtils.hpp
         src/vulkan_helper/util/GraphicsContextWindowProc.hpp
-        src/rff2/vulkan/PresentPipelineConfigurator.cpp
-        src/rff2/vulkan/PresentPipelineConfigurator.hpp
+        src/rff2/vulkan/GPCPresent.cpp
+        src/rff2/vulkan/GPCPresent.hpp
         src/vulkan_helper/impl/CombinedMultiframeImageSampler.hpp
         src/vulkan_helper/impl/CombinedMultiframeImageSampler.cpp
         src/vulkan_helper/impl/ComputeShaderPipeline.cpp
@@ -326,14 +294,26 @@ add_executable(
         src/vulkan_helper/impl/GraphicsPipeline.cpp
         src/vulkan_helper/impl/GraphicsPipeline.hpp
         src/vulkan_helper/configurator/PipelineConfigurator.hpp
-        src/vulkan_helper/executor/ScopedCommandBufferExecutor.cpp
-        src/vulkan_helper/executor/ScopedCommandBufferExecutor.hpp
+        src/vulkan_helper/executor/ScopedSyncedCommandBufferExecutorForRenderPass.cpp
+        src/vulkan_helper/executor/ScopedSyncedCommandBufferExecutorForRenderPass.hpp
         src/vulkan_helper/configurator/ComputePipelineConfigurator.cpp
         src/vulkan_helper/configurator/ComputePipelineConfigurator.hpp
         src/vulkan_helper/struct/InputAttachment.hpp
-        src/rff2/vulkan/BoxBlurPipelineConfigurator.cpp
-        src/rff2/vulkan/BoxBlurPipelineConfigurator.hpp
-        src/rff2/vulkan/RFFPresentRenderContextConfigurator.hpp
+        src/rff2/vulkan/CPCBoxBlur.cpp
+        src/rff2/vulkan/CPCBoxBlur.hpp
+        src/rff2/vulkan/RCCPresent.hpp
+        src/vulkan_helper/util/SwapchainUtils.hpp
+        src/vulkan_helper/impl/RenderPassSyncObject.cpp
+        src/vulkan_helper/impl/RenderPassSyncObject.hpp
+        src/vulkan_helper/struct/RenderPassProcess.hpp
+        src/rff2/vulkan/RCCDownsampleForBlur.hpp
+        src/rff2/vulkan/RCCFog.hpp
+        src/rff2/vulkan/GPCBloom.cpp
+        src/rff2/vulkan/GPCBloom.hpp
+        src/rff2/vulkan/RCCSecondary.hpp
+        src/rff2/vulkan/GPCLinearInterpolation.cpp
+        src/rff2/vulkan/GPCLinearInterpolation.hpp
+        src/rff2/vulkan/RCCLinearInterpolation.hpp
 )
 
 

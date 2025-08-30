@@ -87,41 +87,15 @@ namespace merutilm::vkh {
             ++subpassCount;
         }
 
+
         void appendReference(const uint32_t attachmentIndex,
-                             const RenderPassAttachmentType attachmentType) {
+                             const RenderPassAttachmentType attachmentType, const VkImageLayout layoutToUse) {
             using enum RenderPassAttachmentType;
-
             auto &ref = this->attachmentReferences.back()[attachmentType];
-            VkAttachmentReference attachmentReference = {};
-
-            switch (attachmentType) {
-                case INPUT: {
-                    attachmentReference = {
-                        .attachment = attachmentIndex,
-                        .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-                    };
-                    break;
-                }
-                case COLOR:
-                case RESOLVE: {
-                    attachmentReference = {
-                        .attachment = attachmentIndex,
-                        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                    };
-                    break;
-                }
-                case DEPTH_STENCIL: {
-                    if (!ref.empty()) {
-                        throw exception_invalid_args("Depth Stencil attachment has already been set");
-                    }
-                    attachmentReference = {
-                        .attachment = attachmentIndex,
-                        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-                    };
-                    break;
-                }
-            }
-            ref.emplace_back(attachmentReference);
+            ref.emplace_back(VkAttachmentReference{
+                .attachment = attachmentIndex,
+                .layout = layoutToUse,
+            });
         }
 
 

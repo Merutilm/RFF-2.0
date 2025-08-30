@@ -155,13 +155,13 @@ namespace merutilm::rff2 {
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
 
-    const std::function<bool*(RenderScene &)> CallbackFractal::AUTOMATIC_ITERATIONS = [
-            ](RenderScene  &scene) {
+    const std::function<bool*(RenderScene &, bool)> CallbackFractal::AUTOMATIC_ITERATIONS = [
+            ](RenderScene  &scene, bool) {
         return &scene.getAttribute().calc.autoMaxIteration;
     };
 
-    const std::function<bool*(RenderScene &)> CallbackFractal::ABSOLUTE_ITERATION_MODE = [
-            ](RenderScene  &scene) {
+    const std::function<bool*(RenderScene &, bool)> CallbackFractal::ABSOLUTE_ITERATION_MODE = [
+            ](RenderScene  &scene, bool) {
         return &scene.getAttribute().calc.absoluteIterationMode;
     };
 }

@@ -16,13 +16,19 @@ namespace merutilm::vkh {
         std::vector<std::byte> data = {};
         std::vector<uint32_t> elements = {};
         std::vector<uint32_t> sizes = {};
+        std::vector<uint32_t> paddingsPerElem = {};
         std::vector<uint32_t> offsets = {};
 
         explicit HostBufferObject(HostBufferObjectManager &&uploadManager) : data(std::move(
-                uploadManager->data)),
-            elements(std::move(uploadManager->elements)),
-            sizes(std::move(uploadManager->sizes)),
-            offsets(std::move(uploadManager->offsets)) {
+                                                                                 uploadManager->data)),
+                                                                             elements(
+                                                                                 std::move(uploadManager->elements)),
+                                                                             sizes(std::move(uploadManager->sizes)),
+                                                                             paddingsPerElem(
+                                                                                 std::move(
+                                                                                     uploadManager->paddingsPerElem)),
+                                                                             offsets(std::move(
+                                                                                 uploadManager->offsets)) {
         }
 
         ~HostBufferObject() = default;
@@ -46,7 +52,8 @@ namespace merutilm::vkh {
         const T &get(const uint32_t target, const uint32_t index) const {
             const uint32_t size = sizeof(T) * elements.size();
             SafeArrayChecker::checkSizeEqual(sizes[target], size, "Buffer Object Vector get");
-            auto view = std::span(data.begin() + offsets[target] + sizeof(T) * index, data.begin() + offsets[target] + sizeof(T) * (index + 1));
+            auto view = std::span(data.begin() + offsets[target] + sizeof(T) * index,
+                                  data.begin() + offsets[target] + sizeof(T) * (index + 1));
             return *reinterpret_cast<const T *>(view.data());
         }
 
@@ -96,7 +103,7 @@ namespace merutilm::vkh {
 
             for (uint32_t i = 0; i < static_cast<uint32_t>(sizes.size()); ++i) {
                 offsets[i] = sizeSum;
-                sizeSum += sizes[i];
+                sizeSum += sizes[i] + paddingsPerElem[i] * elements[i];
             }
         }
 

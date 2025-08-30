@@ -15,12 +15,17 @@
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
 #include "../attr/Attribute.h"
-#include "../vulkan/BoxBlurPipelineConfigurator.hpp"
-#include "../vulkan/ColorPipelineConfigurator.hpp"
-#include "../vulkan/IterationPalettePipelineConfigurator.hpp"
-#include "../vulkan/SlopePipelineConfigurator.hpp"
-#include "../vulkan/StripePipelineConfigurator.hpp"
-#include "../vulkan/PresentPipelineConfigurator.hpp"
+#include "../vulkan/GPCBloom.hpp"
+#include "../vulkan/GPCBloomThreshold.hpp"
+#include "../vulkan/CPCBoxBlur.hpp"
+#include "../vulkan/GPCColor.hpp"
+#include "../vulkan/GPCFog.hpp"
+#include "../vulkan/GPCIterationPalette.hpp"
+#include "../vulkan/GPCLinearInterpolation.hpp"
+#include "../vulkan/GPCSlope.hpp"
+#include "../vulkan/GPCStripe.hpp"
+#include "../vulkan/GPCPresent.hpp"
+#include "../vulkan/GPCResample.hpp"
 
 namespace merutilm::rff2 {
     class RenderScene final : public vkh::EngineHandler {
@@ -55,12 +60,17 @@ namespace merutilm::rff2 {
 
         std::vector<std::unique_ptr<vkh::PipelineConfigurator> > shaderPrograms = {};
 
-        IterationPalettePipelineConfigurator *rendererIteration;
-        StripePipelineConfigurator *rendererStripe;
-        SlopePipelineConfigurator *rendererSlope;
-        ColorPipelineConfigurator *rendererColor;
-        BoxBlurPipelineConfigurator *rendererBoxBlur;
-        PresentPipelineConfigurator *rendererPresent;
+        GPCIterationPalette *rendererIteration;
+        GPCStripe *rendererStripe;
+        GPCSlope *rendererSlope;
+        GPCColor *rendererColor;
+        GPCResample *rendererResampleForBlur;
+        CPCBoxBlur *rendererBoxBlur;
+        GPCFog *rendererFog;
+        GPCBloomThreshold *rendererBloomThreshold;
+        GPCBloom *rendererBloom;
+        GPCLinearInterpolation *rendererLinearInterpolation;
+        GPCPresent *rendererPresent;
 
 
         uint16_t cwRequest = 0;
@@ -84,11 +94,11 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] HWND getWindowHandle() const { return window; }
 
-        void resolveWindowResizeEnd();
+        void resolveWindowResizeEnd() const;
 
-        void render(uint32_t frameIndex, uint32_t imageIndex);
+        void render(uint32_t frameIndex, uint32_t swapchainImageIndex);
 
-        void draw(uint32_t frameIndex, uint32_t imageIndex);
+        void draw(uint32_t frameIndex, uint32_t swapchainImageIndex);
 
 
         void requestShader() {
@@ -114,11 +124,22 @@ namespace merutilm::rff2 {
             const auto [width, height] = swapchain.populateSwapchainExtent();
             const float multiplier = attr.render.clarityMultiplier;
             return {
-                static_cast<uint32_t>(static_cast<float>(width) * multiplier), static_cast<uint32_t>(static_cast<float>(height) * multiplier)
+                static_cast<uint32_t>(static_cast<float>(width) * multiplier),
+                static_cast<uint32_t>(static_cast<float>(height) * multiplier)
             };
         }
 
-        [[nodiscard]] VkExtent2D getExternalRenderContextExtent() const {
+        [[nodiscard]] VkExtent2D getBlurredRenderContextExtent() const {
+            const VkExtent2D internalExtent = getInternalRenderContextExtent();
+            if (const float rat = BLUR_MAX_WIDTH / static_cast<float>(internalExtent.width); rat < 1) {
+                return {BLUR_MAX_WIDTH, static_cast<uint32_t>(static_cast<float>(internalExtent.height) * rat)};
+            }
+
+            return internalExtent;
+
+        }
+
+        [[nodiscard]] VkExtent2D getSwapchainRenderContextExtent() const {
             const auto &swapchain = *engine.getCore().getWindowContext(
                 Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
             return swapchain.populateSwapchainExtent();

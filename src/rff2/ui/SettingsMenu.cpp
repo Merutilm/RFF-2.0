@@ -4,10 +4,8 @@
 
 #include "SettingsMenu.hpp"
 
-#include <assert.h>
 #include <functional>
 #include <vector>
-#include <string>
 #include <windows.h>
 
 #include "../constants/Constants.hpp"
@@ -63,7 +61,7 @@ namespace merutilm::rff2 {
 
         currentMenu = addChildMenu(menubar, "Render");
         addChildItem(currentMenu, "Clarity", CallbackRender::SET_CLARITY);
-        addChildCheckbox(currentMenu, "Anti-aliasing", CallbackRender::ANTIALIASING);
+        addChildCheckbox(currentMenu, "Linear Interpolation", CallbackRender::LINEAR_INTERPOLATION);
         currentMenu = addChildMenu(menubar, "Shader");
         addChildItem(currentMenu, "Palette", CallbackShader::PALETTE);
         addChildItem(currentMenu, "Stripe", CallbackShader::STRIPE);
@@ -169,7 +167,7 @@ namespace merutilm::rff2 {
     }
 
     HMENU SettingsMenu::addChildCheckbox(const HMENU target, const std::string_view child,
-                                            const std::function<bool*(RenderScene &)> &checkboxAction) {
+                                            const std::function<bool*(RenderScene &, bool)> &checkboxAction) {
         return add(target, child, [](SettingsMenu &, RenderScene &) {
                    }, false,
                    true, checkboxAction);
@@ -179,7 +177,7 @@ namespace merutilm::rff2 {
                                const std::function<void(SettingsMenu &, RenderScene &)> &
                                callback,
                                const bool hasChild, const bool hasCheckbox,
-                               const std::optional<std::function<bool*(RenderScene &)> > &checkboxAction) {
+                               const std::optional<std::function<bool*(RenderScene &, bool)> > &checkboxAction) {
         const HMENU hmenu = CreateMenu();
 
         if (hasChild) {
@@ -223,11 +221,11 @@ namespace merutilm::rff2 {
     }
 
 
-    bool *SettingsMenu::getBool(RenderScene &scene, const int menuID) const {
+    bool *SettingsMenu::getBool(RenderScene &scene, const int menuID, const bool executeMode) const {
         if (const auto id = getIndex(menuID);
             checkIndex(id)
         ) {
-            return checkboxActions[id] == std::nullopt ? nullptr : (*checkboxActions[id])(scene);
+            return checkboxActions[id] == std::nullopt ? nullptr : (*checkboxActions[id])(scene, executeMode);
         }
         return nullptr;
     }

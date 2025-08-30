@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
         std::vector<HMENU> childMenus = {};
         std::vector<std::function<void(SettingsMenu &, RenderScene &)> > callbacks = {};
         std::vector<bool> hasCheckboxes = {};
-        std::vector<std::optional<std::function<bool*(RenderScene &)> > > checkboxActions = {};
+        std::vector<std::optional<std::function<bool*(RenderScene &, bool)> > > checkboxActions = {};
         std::unique_ptr<SettingsWindow> currentActiveSettingsWindow = nullptr;
 
         explicit SettingsMenu(HMENU hMenubar);
@@ -43,7 +43,7 @@ namespace merutilm::rff2 {
                            const std::function<void(SettingsMenu &, RenderScene &)> &callback);
 
         HMENU addChildCheckbox(HMENU target, std::string_view child,
-                               const std::function<bool*(RenderScene &)>
+                               const std::function<bool*(RenderScene &, bool)>
                                &checkboxAction);
 
         template<typename P> requires std::is_base_of_v<Preset, P>
@@ -51,13 +51,13 @@ namespace merutilm::rff2 {
 
         HMENU add(HMENU target, std::string_view child,
                   const std::function<void(SettingsMenu &, RenderScene &)> &callback, bool
-                  hasChild, bool hasCheckbox, const std::optional<std::function<bool*(RenderScene &)> > &checkboxAction);
+                  hasChild, bool hasCheckbox, const std::optional<std::function<bool *(RenderScene &, bool)>> &checkboxAction);
 
         void executeAction(RenderScene &scene, int menuID);
 
         void setCurrentActiveSettingsWindow(std::unique_ptr<SettingsWindow> &&scene);
 
-        bool *getBool(RenderScene &scene, int menuID) const;
+        bool *getBool(RenderScene &scene, int menuID, bool executeMode) const;
 
         static int getIndex(int menuID);
 

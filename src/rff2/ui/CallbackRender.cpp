@@ -24,8 +24,10 @@ namespace merutilm::rff2 {
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<bool*(RenderScene&)> CallbackRender::ANTIALIASING = [](RenderScene& scene) {
-        scene.requestShader();
-        return &scene.getAttribute().render.antialiasing;
+    const std::function<bool*(RenderScene &, bool)> CallbackRender::LINEAR_INTERPOLATION = [](RenderScene& scene, bool executeMode) {
+        if (executeMode) {
+            scene.requestShader();
+        }
+        return &scene.getAttribute().render.linearInterpolation;
     };
 }

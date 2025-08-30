@@ -5,7 +5,7 @@
 #include "Application.hpp"
 
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
-#include "../../vulkan_helper/util/Presenter.hpp"
+#include "../../vulkan_helper/util/SwapchainPresenter.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
@@ -153,15 +153,15 @@ namespace merutilm::rff2 {
                 min->ptMinTrackSize.y = Constants::Win32::MIN_WINDOW_HEIGHT;
                 return static_cast<LRESULT>(0);
             });
-        window.setListener(WM_MOUSEMOVE, [hCursor](vkh::GraphicsContextWindowRef , HWND, WPARAM, LPARAM) {
+        window.setListener(WM_MOUSEMOVE, [hCursor](vkh::GraphicsContextWindowRef, HWND, WPARAM, LPARAM) {
             SetCursor(hCursor);
             return static_cast<LRESULT>(true);
         });
-        window.setListener(WM_SIZING, [this](vkh::GraphicsContextWindowRef , HWND, WPARAM, LPARAM) {
+        window.setListener(WM_SIZING, [this](vkh::GraphicsContextWindowRef, HWND, WPARAM, LPARAM) {
             windowResizing = true;
             return static_cast<LRESULT>(0);
         });
-        window.setListener(WM_SIZE, [this](vkh::GraphicsContextWindowRef , HWND, const WPARAM wparam, LPARAM) {
+        window.setListener(WM_SIZE, [this](vkh::GraphicsContextWindowRef, HWND, const WPARAM wparam, LPARAM) {
             if (wparam == SIZE_MAXIMIZED) {
                 resolveWindowResizeEnd();
             }
@@ -191,7 +191,7 @@ namespace merutilm::rff2 {
                         if (const UINT id = info.wID;
                             settingsMenu->hasCheckbox(id)
                         ) {
-                            const bool *ref = settingsMenu->getBool(*scene, id);
+                            const bool *ref = settingsMenu->getBool(*scene, id, false);
                             assert(ref != nullptr);
                             CheckMenuItem(popup, id, MF_BYCOMMAND | (*ref ? MF_CHECKED : MF_UNCHECKED));
                         }
@@ -204,7 +204,7 @@ namespace merutilm::rff2 {
             if (const int menuID = LOWORD(wparam);
                 settingsMenu->hasCheckbox(menuID)
             ) {
-                bool *ref = settingsMenu->getBool(*scene, menuID);
+                bool *ref = settingsMenu->getBool(*scene, menuID, true);
                 assert(ref != nullptr);
                 *ref = !*ref;
                 settingsMenu->executeAction(*scene, menuID);
@@ -224,6 +224,7 @@ namespace merutilm::rff2 {
         });
 
         window.appendRenderer([this] {
+            checkResizeRequest();
             drawFrame();
         });
     }
@@ -235,7 +236,15 @@ namespace merutilm::rff2 {
         if (rect.bottom - rect.top > 0 || rect.right - rect.left > 0) {
             adjustClient(rect);
             scene->resolveWindowResizeEnd();
+            scene->requestResize();
             scene->requestRecompute();
+        }
+    }
+
+    void Application::checkResizeRequest() const {
+        if (scene->getCWRequest() != 0) {
+            setClientSize(scene->getCWRequest(), scene->getCHRequest());
+            scene->clientResizeRequestSolved();
         }
     }
 
@@ -248,27 +257,25 @@ namespace merutilm::rff2 {
         const vkh::SwapchainRef swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 swapchain;
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        const VkFence currentFence = engine->getSyncObject().getFence(currentFrame);
-        const VkSemaphore imageAvailableSemaphore = engine->getSyncObject().getImageAvailableSemaphore(currentFrame);
+        const VkFence currentFence = engine->getSyncObjectBetweenFrame().getFence(frameIndex);
+        const VkSemaphore imageAvailableSemaphore = engine->getSyncObjectBetweenFrame().getImageAvailableSemaphore(frameIndex);
         const VkSwapchainKHR swapchainHandle = swapchain.getSwapchainHandle();
 
 
         vkWaitForFences(device, 1, &currentFence, VK_TRUE, UINT64_MAX);
         vkResetFences(device, 1, &currentFence);
 
-        uint32_t imageIndex = 0;
+        uint32_t swapchainImageIndex = 0;
         vkAcquireNextImageKHR(device, swapchainHandle, UINT64_MAX, imageAvailableSemaphore,
-                              nullptr, &imageIndex);
+                              nullptr, &swapchainImageIndex);
 
-
-        scene->render(currentFrame, imageIndex);
-
-        vkh::Presenter::present(*engine, swapchainHandle, currentFrame, imageIndex);
+        scene->render(frameIndex, swapchainImageIndex);
+        vkh::SwapchainPresenter::present(*engine, swapchainHandle, frameIndex, swapchainImageIndex);
         refreshStatusBar();
     }
 
     void Application::changeFrameIndex() {
-        ++currentFrame %= engine->getCore().getPhysicalDevice().getMaxFramesInFlight();
+        ++frameIndex %= engine->getCore().getPhysicalDevice().getMaxFramesInFlight();
     }
 
     void Application::prepareWindow() const {

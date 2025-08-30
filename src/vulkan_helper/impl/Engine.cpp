@@ -17,14 +17,16 @@ namespace merutilm::vkh {
         repositories = Factory::create<Repositories>(*core);
         commandPool = Factory::create<CommandPool>(*core);
         commandBuffer = Factory::create<CommandBuffer>(*core, *commandPool);
-        syncObject = Factory::create<SyncObject>(*core);
+        syncObjectBetweenFrame = Factory::create<FrameSyncObject>(*core);
+        syncObjectBetweenRenderPass = Factory::create<RenderPassSyncObject>(*core);
     }
 
 
 
     void EngineImpl::destroy() {
         renderContext.clear();
-        syncObject = nullptr;
+        syncObjectBetweenRenderPass = nullptr;
+        syncObjectBetweenFrame = nullptr;
         commandBuffer = nullptr;
         commandPool = nullptr;
         repositories = nullptr;

@@ -9,7 +9,8 @@
 #include "../repo/Repositories.hpp"
 #include "CommandPool.hpp"
 #include "CommandBuffer.hpp"
-#include "SyncObject.hpp"
+#include "FrameSyncObject.hpp"
+#include "RenderPassSyncObject.hpp"
 #include "../context/RenderContext.hpp"
 
 namespace merutilm::vkh {
@@ -18,7 +19,8 @@ namespace merutilm::vkh {
         Repositories repositories = nullptr;
         CommandPool commandPool = nullptr;
         CommandBuffer commandBuffer = nullptr;
-        SyncObject syncObject = nullptr;
+        FrameSyncObject syncObjectBetweenFrame = nullptr;
+        RenderPassSyncObject syncObjectBetweenRenderPass = nullptr;
         std::vector<RenderContext> renderContext = {};
 
     public:
@@ -53,12 +55,19 @@ namespace merutilm::vkh {
 
         [[nodiscard]] CommandBufferRef getCommandBuffer() const { return *commandBuffer; }
 
-        [[nodiscard]] SyncObjectRef getSyncObject() const { return *syncObject; }
+        [[nodiscard]] FrameSyncObjectRef getSyncObjectBetweenFrame() const { return *syncObjectBetweenFrame; }
+
+        [[nodiscard]] RenderPassSyncObjectRef getSyncObjectBetweenRenderPass() const { return *syncObjectBetweenRenderPass; }
 
         [[nodiscard]] std::span<const RenderContext> getRenderContexts() const { return renderContext; }
 
         [[nodiscard]] RenderContextRef getRenderContext(const uint32_t renderContextIndex) const {
             return *renderContext[renderContextIndex];
+        }
+
+        template<typename Configurator> requires std::is_base_of_v<RenderContextConfiguratorAbstract, Configurator>
+        [[nodiscard]] Configurator & getRenderContextConfigurator() {
+            return *dynamic_cast<Configurator *>(getRenderContext(Configurator::CONTEXT_INDEX).getConfigurator());
         }
 
     private:

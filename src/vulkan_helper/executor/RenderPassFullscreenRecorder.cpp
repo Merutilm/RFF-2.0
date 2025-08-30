@@ -12,9 +12,9 @@ namespace merutilm::vkh {
     RenderPassFullscreenRecorder::RenderPassFullscreenRecorder(EngineRef engine,
                                                                const uint32_t renderContextIndex,
                                                                const uint32_t frameIndex,
-                                                               const uint32_t imageIndex) : engine(engine),
+                                                               const uint32_t swapchainImageIndex) : engine(engine),
         renderContextIndex(renderContextIndex),
-        frameIndex(frameIndex), imageIndex(imageIndex) {
+        frameIndex(frameIndex), swapchainImageIndex(swapchainImageIndex) {
         RenderPassFullscreenRecorder::begin();
     }
 
@@ -67,7 +67,7 @@ namespace merutilm::vkh {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
             .pNext = nullptr,
             .renderPass = context.getRenderPass()->getRenderPassHandle(),
-            .framebuffer = context.getFramebuffer()->getFramebufferHandle(imageIndex),
+            .framebuffer = context.getFramebuffer()->getFramebufferHandle(swapchainImageIndex == UINT32_MAX ? frameIndex : swapchainImageIndex),
             .renderArea = {
                 .offset = {0, 0},
                 .extent = context.getFramebuffer()->getExtent()

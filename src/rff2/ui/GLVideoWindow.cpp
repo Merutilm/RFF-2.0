@@ -158,8 +158,8 @@ namespace merutilm::rff2 {
         std::jthread thread(
             [&window, &cw, &ch, &imgWidth, &imgHeight, &writer, &settings, &open, &save] {
                 // WGLContextLoader::createContext(window.hdc, &window.context);
-                window.scene.configure(window.renderWindow, window.hdc, window.context);
-                window.scene.makeContextCurrent();
+                // window.scene.configure(window.renderWindow, window.hdc, window.context);
+                // window.scene.makeContextCurrent();
                 window.scene.reloadSize(cw, ch, imgWidth, imgHeight);
                 window.scene.applyColor(settings);
 
@@ -249,8 +249,8 @@ namespace merutilm::rff2 {
                         }
                     }
                     const float zoom = window.scene.calculateZoom(defaultZoomIncrement);
-                    window.scene.getDynamicRenderer().setTime(currentSec);
-                    window.scene.renderGL();
+                    // window.scene.getDynamicRenderer().setTime(currentSec);
+                    // window.scene.renderGL();
                     img = window.scene.getCurrentImage();
 
                     if (showText) {

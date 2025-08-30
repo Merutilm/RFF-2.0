@@ -25,22 +25,21 @@ namespace merutilm::vkh {
 
 
 
-    void DescriptorImpl::queue(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex, const uint32_t imageIndex) const {
+    void DescriptorImpl::queue(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex) const {
         const uint32_t elementCount = descriptorManager->getElements();
         std::vector<uint32_t> specifiedIndices(elementCount);
         std::iota(specifiedIndices.begin(), specifiedIndices.end(), 0);
-        updateIndices(updateQueue, frameIndex, imageIndex, specifiedIndices);
+        updateIndices(updateQueue, frameIndex, specifiedIndices);
     }
 
 
-    void DescriptorImpl::queue(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex, const uint32_t imageIndex, std::vector<uint32_t> &&bindings) const {
+    void DescriptorImpl::queue(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex, std::vector<uint32_t> &&bindings) const {
         auto bm = std::move(bindings);
         std::ranges::sort(bm);
-        updateIndices(updateQueue, frameIndex, imageIndex, bm);
+        updateIndices(updateQueue, frameIndex,  bm);
     }
 
-    void DescriptorImpl::updateIndices(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex, const uint32_t imageIndex,
-                                   const std::vector<uint32_t> &indices) const {
+    void DescriptorImpl::updateIndices(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex, const std::vector<uint32_t> &indices) const {
         for (const uint32_t index: indices) {
             const auto &raw = descriptorManager->getRaw(index);
             if (std::holds_alternative<Uniform>(raw)) {
@@ -121,7 +120,7 @@ namespace merutilm::vkh {
                 updateQueue.push_back({
                     .imageInfo = VkDescriptorImageInfo{
                         .sampler = tex->getSampler().getSamplerHandle(),
-                        .imageView = tex->getImageContext()[imageIndex].mipmappedImageView,
+                        .imageView = tex->getImageContext()[frameIndex].mipmappedImageView,
                         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                     }
                 });
@@ -144,7 +143,7 @@ namespace merutilm::vkh {
                 updateQueue.push_back({
                     .imageInfo = VkDescriptorImageInfo{
                         .sampler = VK_NULL_HANDLE,
-                        .imageView = ctx[imageIndex].mipmappedImageView,
+                        .imageView = ctx[frameIndex].mipmappedImageView,
                         .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
                     }
                 });
@@ -167,7 +166,7 @@ namespace merutilm::vkh {
                 updateQueue.push_back({
                     .imageInfo = VkDescriptorImageInfo{
                         .sampler = VK_NULL_HANDLE,
-                        .imageView = ctx[imageIndex].mipmappedImageView,
+                        .imageView = ctx[frameIndex].mipmappedImageView,
                         .imageLayout = VK_IMAGE_LAYOUT_GENERAL
                     }
                 });

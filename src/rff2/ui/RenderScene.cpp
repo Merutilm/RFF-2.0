@@ -7,10 +7,10 @@
 #include "CallbackExplore.hpp"
 #include "IOUtilities.h"
 #include "../../vulkan_helper/executor/RenderPassFullscreenRecorder.hpp"
-#include "../../vulkan_helper/executor/ScopedCommandBufferExecutor.hpp"
+#include "../../vulkan_helper/executor/ScopedSyncedCommandBufferExecutorForRenderPass.hpp"
 #include "../constants/VulkanWindowConstants.hpp"
-#include "../vulkan/RFFFirstRenderContextConfigurator.hpp"
-#include "../vulkan/IterationPalettePipelineConfigurator.hpp"
+#include "../vulkan/RCCFirst.hpp"
+#include "../vulkan/GPCIterationPalette.hpp"
 #include "../calc/dex_exp.h"
 #include "../formula/DeepMandelbrotPerturbator.h"
 #include "../formula/LightMandelbrotPerturbator.h"
@@ -25,7 +25,11 @@
 #include "../preset/shader/palette/ShdPalettePresets.h"
 #include "../preset/shader/slope/ShdSlopePresets.h"
 #include "../preset/shader/stripe/ShdStripePresets.h"
-#include "../vulkan/RFFPresentRenderContextConfigurator.hpp"
+#include "../vulkan/RCCSecondary.hpp"
+#include "../vulkan/RCCDownsampleForBlur.hpp"
+#include "../vulkan/RCCFog.hpp"
+#include "../vulkan/RCCLinearInterpolation.hpp"
+#include "../vulkan/RCCPresent.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 
 
@@ -54,50 +58,99 @@ namespace merutilm::rff2 {
             return vkh::ImageContext::fromSwapchain(engine.getCore(), swapchain);
         };
 
-        engine.attachRenderContext<RFFFirstRenderContextConfigurator>([this]{return getInternalRenderContextExtent();},
-                                                                      swapchainImageContextGetter);
-        engine.attachRenderContext<RFFPresentRenderContextConfigurator>([this]{return getExternalRenderContextExtent();},
-                                                                        swapchainImageContextGetter);
+        engine.attachRenderContext<RCCFirst>(
+            [this] { return getInternalRenderContextExtent(); },
+            swapchainImageContextGetter);
+        engine.attachRenderContext<RCCDownsampleForBlur>(
+            [this] { return getBlurredRenderContextExtent(); },
+            swapchainImageContextGetter);
+        engine.attachRenderContext<RCCFog>(
+            [this] { return getInternalRenderContextExtent(); },
+            swapchainImageContextGetter);
+        engine.attachRenderContext<RCCSecondary>(
+            [this] { return getInternalRenderContextExtent(); },
+            swapchainImageContextGetter);
+        engine.attachRenderContext<RCCLinearInterpolation>(
+            [this] { return getInternalRenderContextExtent(); },
+            swapchainImageContextGetter);
+        engine.attachRenderContext<RCCPresent>(
+            [this] { return getSwapchainRenderContextExtent(); },
+            swapchainImageContextGetter);
     }
 
     void RenderScene::initShaderPrograms() {
         rendererIteration = vkh::PipelineConfigurator::createShaderProgram<
-            IterationPalettePipelineConfigurator>(
+            GPCIterationPalette>(
             shaderPrograms, engine,
-            RFFFirstRenderContextConfigurator::CONTEXT_INDEX,
-            RFFFirstRenderContextConfigurator::SUBPASS_ITERATION_INDEX);
+            RCCFirst::CONTEXT_INDEX,
+            RCCFirst::SUBPASS_ITERATION_INDEX);
 
-        rendererStripe = vkh::PipelineConfigurator::createShaderProgram<StripePipelineConfigurator>(
+        rendererStripe = vkh::PipelineConfigurator::createShaderProgram<GPCStripe>(
             shaderPrograms, engine,
-            RFFFirstRenderContextConfigurator::CONTEXT_INDEX,
-            RFFFirstRenderContextConfigurator::SUBPASS_STRIPE_INDEX);
+            RCCFirst::CONTEXT_INDEX,
+            RCCFirst::SUBPASS_STRIPE_INDEX);
 
-        rendererSlope = vkh::PipelineConfigurator::createShaderProgram<SlopePipelineConfigurator>(
+        rendererSlope = vkh::PipelineConfigurator::createShaderProgram<GPCSlope>(
             shaderPrograms, engine,
-            RFFFirstRenderContextConfigurator::CONTEXT_INDEX,
-            RFFFirstRenderContextConfigurator::SUBPASS_SLOPE_INDEX);
+            RCCFirst::CONTEXT_INDEX,
+            RCCFirst::SUBPASS_SLOPE_INDEX);
 
-        rendererColor = vkh::PipelineConfigurator::createShaderProgram<ColorPipelineConfigurator>(
+        rendererColor = vkh::PipelineConfigurator::createShaderProgram<GPCColor>(
             shaderPrograms, engine,
-            RFFFirstRenderContextConfigurator::CONTEXT_INDEX,
-            RFFFirstRenderContextConfigurator::SUBPASS_COLOR_INDEX);
+            RCCFirst::CONTEXT_INDEX,
+            RCCFirst::SUBPASS_COLOR_INDEX);
 
-        rendererBoxBlur = vkh::PipelineConfigurator::createShaderProgram<BoxBlurPipelineConfigurator>(
+
+        rendererResampleForBlur = vkh::PipelineConfigurator::createShaderProgram<GPCResample>(
+            shaderPrograms, engine,
+            RCCDownsampleForBlur::CONTEXT_INDEX,
+            RCCDownsampleForBlur::SUBPASS_DOWNSAMPLE_INDEX
+        );
+
+        rendererBoxBlur = vkh::PipelineConfigurator::createShaderProgram<CPCBoxBlur>(
             shaderPrograms, engine
         );
 
-        rendererPresent = vkh::PipelineConfigurator::createShaderProgram<PresentPipelineConfigurator>(
+        rendererFog = vkh::PipelineConfigurator::createShaderProgram<GPCFog>(
             shaderPrograms, engine,
-            RFFPresentRenderContextConfigurator::CONTEXT_INDEX,
-            RFFPresentRenderContextConfigurator::SUBPASS_PRESENT_INDEX);
+            RCCFog::CONTEXT_INDEX,
+            RCCFog::SUBPASS_FOG_INDEX
+        );
 
+        rendererBloomThreshold = vkh::PipelineConfigurator::createShaderProgram<GPCBloomThreshold>(
+            shaderPrograms, engine,
+            RCCFog::CONTEXT_INDEX,
+            RCCFog::SUBPASS_BLOOM_THRESHOLD_INDEX
+        );
+
+        rendererBloom = vkh::PipelineConfigurator::createShaderProgram<GPCBloom>(
+            shaderPrograms, engine,
+            RCCSecondary::CONTEXT_INDEX,
+            RCCSecondary::SUBPASS_BLOOM_INDEX
+        );
+
+        rendererLinearInterpolation = vkh::PipelineConfigurator::createShaderProgram<GPCLinearInterpolation>(
+            shaderPrograms, engine,
+            RCCLinearInterpolation::CONTEXT_INDEX,
+            RCCLinearInterpolation::SUBPASS_LINEAR_INTERPOLATION_INDEX
+        );
+
+        rendererPresent = vkh::PipelineConfigurator::createShaderProgram<GPCPresent>(
+            shaderPrograms, engine,
+            RCCPresent::CONTEXT_INDEX,
+            RCCPresent::SUBPASS_PRESENT_INDEX);
+
+
+        for (const auto &sp: shaderPrograms) {
+            sp->pipelineInitialized();
+        }
 
         applyResize();
         applyShaderAttr(attr);
         requestRecompute();
     }
 
-    void RenderScene::resolveWindowResizeEnd() {
+    void RenderScene::resolveWindowResizeEnd() const {
         const auto &core = engine.getCore();
         if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
             return;
@@ -107,11 +160,10 @@ namespace merutilm::rff2 {
         vkh::SwapchainRef swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 swapchain;
         swapchain.recreate();
-        applyResize();
     }
 
 
-    void RenderScene::render(const uint32_t frameIndex, const uint32_t imageIndex) {
+    void RenderScene::render(const uint32_t frameIndex, const uint32_t swapchainImageIndex) {
         if (shaderRequested) {
             applyShaderAttr(attr);
             shaderRequested.exchange(false);
@@ -139,27 +191,78 @@ namespace merutilm::rff2 {
         }
 
 
-        draw(frameIndex, imageIndex);
+        draw(frameIndex, swapchainImageIndex);
     }
 
-    void RenderScene::draw(const uint32_t frameIndex, const uint32_t imageIndex) {
+    void RenderScene::draw(const uint32_t frameIndex, const uint32_t swapchainImageIndex) {
+        using enum vkh::RenderPassProcessTypeFlagBits;
         vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
+        const VkDevice device = engine.getCore().getLogicalDevice().getLogicalDeviceHandle();
 
-        for (const auto &shaderProgram:shaderPrograms) {
-            shaderProgram->updateQueue(queue, frameIndex, imageIndex);
+        for (const auto &shaderProgram: shaderPrograms) {
+            shaderProgram->updateQueue(queue, frameIndex);
         }
 
-        vkh::DescriptorUpdater::write(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), queue);
+        vkh::DescriptorUpdater::write(device, queue);
+
+        auto &downsampleConfigurator = engine.getRenderContextConfigurator<
+            RCCDownsampleForBlur>();
+        const auto &srcImageDownsample = downsampleConfigurator.getImageContext(
+            RCCDownsampleForBlur::SRC_IMAGE_CONTEXT)[frameIndex];
+        const auto &dstImageDownsample = downsampleConfigurator.getImageContext(
+            RCCDownsampleForBlur::DST_IMAGE_CONTEXT)[frameIndex];
+        const auto &tmpImageDownsample = downsampleConfigurator.getImageContext(
+            RCCDownsampleForBlur::TMP_IMAGE_CONTEXT)[frameIndex];
+
+        const auto &fogDownSampleContext = engine.getRenderContextConfigurator<RCCFirst>().
+                getImageContext(RCCFirst::RESULT_IMAGE_CONTEXT);
+        rendererResampleForBlur->setTargetImageContext(fogDownSampleContext, frameIndex);
+        //FIRST RENDER PASS BEGIN
+        {
+            vkh::ScopedSyncedCommandBufferExecutorForRenderPass executor(engine, frameIndex, FIRST);
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCFirst>(
+                engine, {rendererIteration, rendererStripe, rendererSlope, rendererColor}, frameIndex);
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<
+                RCCDownsampleForBlur>(
+                engine, {rendererResampleForBlur}, frameIndex);
+        }
+
+        //GAUSSIAN BLUR FOR FOG
+        rendererBoxBlur->gaussianBlur(attr.shader.fog.radius, srcImageDownsample, dstImageDownsample,
+                                      tmpImageDownsample, frameIndex);
+        const auto &bloomDownSampleContext = engine.getRenderContextConfigurator<RCCFog>().
+                getImageContext(RCCFog::BLOOM_THRESHOLD_IMAGE_CONTEXT);
+        rendererResampleForBlur->setTargetImageContext(bloomDownSampleContext, frameIndex);
+
+        //FOG RENDER PASS BEGIN
+        {
+            vkh::ScopedSyncedCommandBufferExecutorForRenderPass executor(engine, frameIndex, MIDDLE);
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCFog>(
+                engine, {rendererFog, rendererBloomThreshold}, frameIndex);
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCDownsampleForBlur>(
+                engine, {rendererResampleForBlur}, frameIndex);
+        }
+        //FOG RENDER PASS END
+
+        //GAUSSIAN BLUR FOR BLOOM
+        rendererBoxBlur->gaussianBlur(attr.shader.bloom.radius, srcImageDownsample, dstImageDownsample,
+                                      tmpImageDownsample, frameIndex);
 
 
-        vkh::ScopedCommandBufferExecutor executor(engine, frameIndex);
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenRenderPass<RFFFirstRenderContextConfigurator>(
-            engine, {rendererIteration, rendererStripe, rendererSlope, rendererColor}, frameIndex, imageIndex);
+        //SECONDARY RENDER PASS BEGIN
+        {
+            vkh::ScopedSyncedCommandBufferExecutorForRenderPass executor(engine, frameIndex, MIDDLE);
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCSecondary>(
+                engine, {rendererBloom}, frameIndex);
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCLinearInterpolation>(
+               engine, {rendererLinearInterpolation}, frameIndex);
 
+        }
+        vkh::ScopedSyncedCommandBufferExecutorForRenderPass executor(engine, frameIndex, LAST);
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenPresentOnlyRenderPass<RCCPresent>(
+            engine, {rendererPresent}, frameIndex, swapchainImageIndex);
 
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenRenderPass<RFFPresentRenderContextConfigurator>(
-            engine, {rendererPresent}, frameIndex, imageIndex);
-
+        //LAST RENDER PASS END
     }
 
 
@@ -365,9 +468,9 @@ namespace merutilm::rff2 {
         rendererStripe->setStripe(attr.shader.stripe);
         rendererSlope->setSlope(attr.shader.slope);
         rendererColor->setColor(attr.shader.color);
-        // rendererFog->setFogSettings(attr.shader.fog);
-        // rendererBloom->setBloomSettings(attr.shader.bloomAttribute);
-        // rendererAntialiasing->setUse(attr.render.antialiasing);
+        rendererFog->setFog(attr.shader.fog);
+        rendererBloom->setBloom(attr.shader.bloom);
+        rendererLinearInterpolation->setLinearInterpolation(attr.render.linearInterpolation);
     }
 
     void RenderScene::applyResize() {
@@ -376,19 +479,23 @@ namespace merutilm::rff2 {
         const uint16_t ch = getClientHeight();
         const uint16_t iw = getIterationBufferWidth(attr);
         const uint16_t ih = getIterationBufferHeight(attr);
+        const auto [width, height] = getBlurredRenderContextExtent();
 
         rendererSlope->setResolution({cw, ch}, attr.render.clarityMultiplier);
-        rendererIteration->reloadIterationBuffer(iw, ih);
-        engine.getRenderContext(RFFFirstRenderContextConfigurator::CONTEXT_INDEX).recreate();
-        engine.getRenderContext(RFFPresentRenderContextConfigurator::CONTEXT_INDEX).recreate();
+        rendererIteration->resetIterationBuffer(iw, ih);
+        rendererResampleForBlur->setResolution({width, height});
 
+        for (auto &context: engine.getRenderContexts()) {
+            context->recreate();
+        }
+        for (const auto &sp: shaderPrograms) {
+            sp->windowResized();
+        }
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
     }
 
     void RenderScene::overwriteMatrixFromMap() const {
         vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
-        // renderer->reloadSize(getClientWidth(), getClientHeight(), currentMap->getMatrix().getWidth(),
-        //                      currentMap->getMatrix().getHeight());
         rendererIteration->setMaxIteration(static_cast<double>(currentMap->getMaxIteration()));
         rendererIteration->setAllIterations(currentMap->getMatrix().getCanvas());
     }
@@ -406,7 +513,8 @@ namespace merutilm::rff2 {
         GetCursorPos(&cursor);
         ScreenToClient(window, &cursor);
         const float multiplier = attr.render.clarityMultiplier;
-        return static_cast<uint16_t>(static_cast<float>(getIterationBufferHeight(attr)) - static_cast<float>(cursor.y) * multiplier);
+        return static_cast<uint16_t>(static_cast<float>(getIterationBufferHeight(attr)) - static_cast<float>(cursor.y) *
+                                     multiplier);
     }
 
     void RenderScene::recomputeThreaded() {

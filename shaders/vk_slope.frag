@@ -11,7 +11,7 @@ layout (set = 1, binding = 0) buffer IterSSBO {
 
 layout (set = 2, binding = 0) uniform SlopeUBO{
     float depth;
-    float reflectionRatio;
+    float reflection_ratio;
     float opacity;
     float zenith;
     float azimuth;
@@ -19,7 +19,7 @@ layout (set = 2, binding = 0) uniform SlopeUBO{
 
 layout (set = 3, binding = 0) uniform ResolutionUBO{
     uvec2 swapchain_extent;
-    float clarityMultiplier;
+    float clarity_multiplier;
 } resolution_attr;
 
 layout (location = 0) in vec3 fragColor;
@@ -35,32 +35,32 @@ double getIteration(uvec2 iterCoord, uvec2 offset){
 
 void main() {
 
-    uvec2 iterCoord = uvec2(gl_FragCoord.xy);
+    uvec2 iter_coord = uvec2(gl_FragCoord.xy);
 
-    color = subpassLoad(canvas);
-    if(slope_attr.reflectionRatio >= 1 || slope_attr.depth == 0){
-        return;
+
+    if(slope_attr.reflection_ratio >= 1 || slope_attr.depth == 0){
+        discard;
     }
 
 
     float aRad = radians(slope_attr.azimuth);
     float zRad = radians(slope_attr.zenith);
 
-    double ld = getIteration(iterCoord, uvec2(-1, -1));
-    double d = getIteration(iterCoord, uvec2(0, -1));
-    double rd = getIteration(iterCoord, uvec2(1, -1));
-    double l = getIteration(iterCoord, uvec2(-1, 0));
-    double r = getIteration(iterCoord, uvec2(1, 0));
-    double lu = getIteration(iterCoord, uvec2(-1, 1));
-    double u = getIteration(iterCoord, uvec2(0, 1));
-    double ru = getIteration(iterCoord, uvec2(1, 1));
+    double ld = getIteration(iter_coord, uvec2(-1, -1));
+    double d = getIteration(iter_coord, uvec2(0, -1));
+    double rd = getIteration(iter_coord, uvec2(1, -1));
+    double l = getIteration(iter_coord, uvec2(-1, 0));
+    double r = getIteration(iter_coord, uvec2(1, 0));
+    double lu = getIteration(iter_coord, uvec2(-1, 1));
+    double u = getIteration(iter_coord, uvec2(0, 1));
+    double ru = getIteration(iter_coord, uvec2(1, 1));
 
-    float dzDx = float((rd + 2 * r + ru) - (ld + 2 * l + lu)) * slope_attr.depth * resolution_attr.clarityMultiplier;
-    float dzDy = float((lu + 2 * u + ru) - (ld + 2 * d + rd)) * slope_attr.depth * resolution_attr.clarityMultiplier;
+    float dzDx = float((rd + 2 * r + ru) - (ld + 2 * l + lu)) * slope_attr.depth * resolution_attr.clarity_multiplier;
+    float dzDy = float((lu + 2 * u + ru) - (ld + 2 * d + rd)) * slope_attr.depth * resolution_attr.clarity_multiplier;
     float slope = atan(radians(length(vec2(dzDx, dzDy))), 1);
     float aspect = atan(dzDy, -dzDx);
-    float shade = max(slope_attr.reflectionRatio, cos(zRad) * cos(slope) + sin(zRad) * sin(slope) * cos(aRad + aspect));
+    float shade = max(slope_attr.reflection_ratio, cos(zRad) * cos(slope) + sin(zRad) * sin(slope) * cos(aRad + aspect));
     float fShade = 1 - slope_attr.opacity * (1 - shade);
 
-    color = vec4(color.rgb * fShade, 1);
+    color = vec4(subpassLoad(canvas).rgb * fShade, 1);
 }

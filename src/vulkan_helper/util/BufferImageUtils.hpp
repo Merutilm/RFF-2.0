@@ -31,7 +31,7 @@ namespace merutilm::vkh {
             allocateImageMemory(device, memProperties, iii, *image,
                                 imageMemory);
             vkBindImageMemory(device, *image, *imageMemory, 0);
-            createWriteImageView(device, *image, iii.imageViewType, iii.imageFormat, imageView);
+            createImageView(device, *image, iii.imageViewType, iii.imageFormat, imageView);
             if (mipLevels == 1) {
                 *mipmappedImageView = *imageView;
             }else {
@@ -81,7 +81,7 @@ namespace merutilm::vkh {
             }
         }
 
-        static void createWriteImageView(const VkDevice device, const VkImage image,
+        static void createImageView(const VkDevice device, const VkImage image,
                                     const VkImageViewType imageViewType,
                                     const VkFormat imageFormat, VkImageView *writeImageView) {
             const VkImageViewCreateInfo viewInfo = {

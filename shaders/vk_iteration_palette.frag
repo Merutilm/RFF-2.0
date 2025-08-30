@@ -9,14 +9,13 @@ layout (set = 0, binding = 0) buffer IterSSBO {
     double iterations[];
 } iteration_attr;
 
-layout (set = 1, binding = 0) uniform sampler2D palette;
-layout (set = 1, binding = 1) uniform PaletteUBO {
-    uvec2 extent;
+layout (set = 1, binding = 0) buffer PaletteSSBO {
     uint size;
     float interval;
     double offset;
     uint smoothing;
-    float animationSpeed;
+    float animation_speed;
+    vec4 palette[];
 } palette_attr;
 
 
@@ -45,17 +44,19 @@ vec4 getColor(double iteration) {
             break;
     }
 
-    float hSquare = palette_attr.extent.y - 1;
-    float hRemainder = (palette_attr.size - palette_attr.extent.x * hSquare) / palette_attr.extent.x;
-    float hLength = hSquare + hRemainder;
 
-    double timedOffsetRatio = palette_attr.offset - double(time_attr.time) * palette_attr.animationSpeed / palette_attr.interval;
-    double paletteOffset = mod(iteration / palette_attr.interval + timedOffsetRatio, 1) * hLength;
+    double timed_offset_ratio = palette_attr.offset - double(time_attr.time) * palette_attr.animation_speed / palette_attr.interval;
+    double palette_offset_ratio = mod(iteration / palette_attr.interval + timed_offset_ratio, 1);
+    double palette_offset = palette_offset_ratio * palette_attr.size;
+    float palette_offset_decimal = float(mod(palette_offset, 1));
 
-    float ox = float(mod(paletteOffset, 1));
-    float oy = float((floor(paletteOffset) + 0.5) / palette_attr.extent.y);
+    uint cpl = uint(palette_offset_ratio * palette_attr.size);
+    uint npl = (cpl + 1) % palette_attr.size;
 
-    return texture(palette, vec2(ox, oy));
+    vec4 cc = palette_attr.palette[cpl];
+    vec4 nc = palette_attr.palette[npl];
+
+    return cc * (1 - palette_offset_decimal) + nc * (palette_offset_decimal);
 }
 
 double getIteration(uvec2 iterCoord) {
@@ -65,15 +66,16 @@ double getIteration(uvec2 iterCoord) {
 
 void main() {
 
-    uvec2 iterCoord = uvec2(gl_FragCoord.xy);
+    uvec2 iter_coord = uvec2(gl_FragCoord.xy);
 
-    float x = iterCoord.x;
-    float y = iterCoord.y;
+    float x = iter_coord.x;
+    float y = iter_coord.y;
 
-    double iteration = getIteration(iterCoord);
+    double iteration = getIteration(iter_coord);
 
     if (iteration == 0) {
-        discard;
+        color = vec4(0, 0, 0, 1);
+        return;
     }
 
 

@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<RenderScene> scene = nullptr;
         std::unique_ptr<SettingsMenu> settingsMenu = nullptr;
         vkh::Engine engine = nullptr;
-        uint32_t currentFrame = 0;
+        uint32_t frameIndex = 0;
         bool windowResizing = false;
 
     public:
@@ -60,6 +60,8 @@ namespace merutilm::rff2 {
         void setProcedure();
 
         void resolveWindowResizeEnd() const;
+
+        void checkResizeRequest() const;
 
         void drawFrame();
 

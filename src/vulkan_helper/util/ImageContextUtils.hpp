@@ -11,7 +11,10 @@
 
 namespace merutilm::vkh {
     struct ImageContextUtils {
-        static ImageContext imageFromByteColorArray(CoreRef core, CommandPoolRef commandPool,
+        /**
+        * Creates image from byte color array. result layout is <b>VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.</b>
+        */
+        static ImageContext imageFromByteColorArray(CoreRef core, CommandPoolRef commandPool, const VkFormat format,
                                                     const uint32_t width, const uint32_t height,
                                                     const uint32_t texChannels, const bool useMipmap,
                                                     const std::byte *const data) {
@@ -34,7 +37,7 @@ namespace merutilm::vkh {
             const ImageInitInfo initInfo = {
                 .imageType = VK_IMAGE_TYPE_2D,
                 .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
-                .imageFormat = VK_FORMAT_R8G8B8A8_SRGB,
+                .imageFormat = format,
                 .extent = {width, height, 1},
                 .useMipmap = useMipmap,
                 .arrayLayers = 1,
@@ -45,7 +48,7 @@ namespace merutilm::vkh {
                 .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             };
 
-            ImageContext context = ImageContext::createContext(core, initInfo);
+            const ImageContext context = ImageContext::createContext(core, initInfo);
 
             //COMMAND START
             {
@@ -64,19 +67,28 @@ namespace merutilm::vkh {
                     .imageOffset = {0, 0, 0},
                     .imageExtent = {width, height, 1}
                 }; // copy original mip level
-                transformImageLayout(sce.getCommandBufferHandle(), context, VK_ACCESS_HOST_WRITE_BIT,
-                                     VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                     0, VK_PIPELINE_STAGE_HOST_BIT,
-                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
+                cmdTransformImageLayout(sce.getCommandBufferHandle(), context, VK_ACCESS_HOST_WRITE_BIT,
+                                        VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
+                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                        0, VK_PIPELINE_STAGE_HOST_BIT,
+                                        VK_PIPELINE_STAGE_TRANSFER_BIT);
 
                 vkCmdCopyBufferToImage(sce.getCommandBufferHandle(), stagingBuffer, context.image,
                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
-                transformImageLayout(sce.getCommandBufferHandle(), context, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                     VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                     0, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                     VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
                 if (useMipmap) {
-                    generateMipmaps(sce.getCommandBufferHandle(), context);
+                    cmdTransformImageLayout(sce.getCommandBufferHandle(), context, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                            VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                            0, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+                    cmdGenerateMipmaps(sce.getCommandBufferHandle(), context, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                } else {
+                    cmdTransformImageLayout(sce.getCommandBufferHandle(), context, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                            VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                            0, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
                 }
             }
             //COMMAND END
@@ -86,7 +98,11 @@ namespace merutilm::vkh {
             return context;
         }
 
-        static ImageContext imageFromPath(CoreRef core, CommandPoolRef commandPool, const bool useMipmap,
+        /**
+        * Creates image from file path. result layout is <b>VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL.</b>
+        */
+        static ImageContext imageFromPath(CoreRef core, CommandPoolRef commandPool, const VkFormat format,
+                                          const bool useMipmap,
                                           const std::string_view path) {
             stbi_uc *data = nullptr;
             int width = 0;
@@ -96,105 +112,152 @@ namespace merutilm::vkh {
             if (data == nullptr) {
                 throw exception_init("Failed to load texture");
             }
-            const ImageContext result = imageFromByteColorArray(core, commandPool, width, height, texChannels,
+            const ImageContext result = imageFromByteColorArray(core, commandPool, format, width, height, texChannels,
                                                                 useMipmap,
                                                                 reinterpret_cast<std::byte *>(data));
             stbi_image_free(data);
             return result;
         }
 
-        static void generateMipmaps(const VkCommandBuffer commandBuffer, ImageContext &imageContext) {
+        /**
+         * Generates the Mipmap. Input layout of image Context must be <b>VK_IMAGE_LAYOUT_TRANSFER_SRC_BIT</b>.
+         */
+        static void cmdGenerateMipmaps(const VkCommandBuffer commandBuffer, const ImageContext &imageContext,
+                                       const VkImageLayout dstLayout) {
             uint32_t mipWidth = imageContext.extent.width;
             uint32_t mipHeight = imageContext.extent.height;
-            const auto mipLevels = static_cast<uint32_t>(imageContext.mipLevelImageLayout.size());
+            const auto mipLevels = BufferImageUtils::getAvailableMipLevels(imageContext.extent);
 
-            transformImageLayout(commandBuffer, imageContext, 0, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                 VK_PIPELINE_STAGE_TRANSFER_BIT);
             for (uint32_t i = 1; i < mipLevels; ++i) {
-                transformImageLayout(commandBuffer, imageContext, 0, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, i, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
+                cmdTransformImageLayout(commandBuffer, imageContext, 0, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                        VK_IMAGE_LAYOUT_UNDEFINED,
+                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, i, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                        VK_PIPELINE_STAGE_TRANSFER_BIT);
 
-                blitImage(commandBuffer, imageContext, i, mipWidth, mipHeight);
+                cmdBlitImage(commandBuffer, imageContext, i - 1, i);
 
-                transformImageLayout(commandBuffer, imageContext, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                     VK_ACCESS_SHADER_READ_BIT,
-                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, i - 1, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                     VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+                cmdTransformImageLayout(commandBuffer, imageContext, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                        VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                                        dstLayout, i - 1, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
-                transformImageLayout(commandBuffer, imageContext, VK_ACCESS_TRANSFER_WRITE_BIT,
-                                     VK_ACCESS_TRANSFER_READ_BIT,
-                                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, i, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
+                if (i < mipLevels - 1) {
+                    cmdTransformImageLayout(commandBuffer, imageContext, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                            VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, i, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                            VK_PIPELINE_STAGE_TRANSFER_BIT);
+                }
+
                 mipWidth = std::max(mipWidth / 2, static_cast<uint32_t>(1));
                 mipHeight = std::max(mipHeight / 2, static_cast<uint32_t>(1));
             }
-            transformImageLayout(commandBuffer, imageContext, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
-                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels - 1,
-                                 VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            cmdTransformImageLayout(commandBuffer, imageContext, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                    VK_ACCESS_SHADER_READ_BIT,
+                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                    dstLayout, mipLevels - 1,
+                                    VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
         }
 
-
-        static void blitImage(const VkCommandBuffer commandBuffer, ImageContext &imageContext,
-                              const uint32_t mipLevel, const uint32_t mipWidth, const uint32_t mipHeight) {
-            const VkImageBlit blit = {
+        /**
+        * Copy source image to destination image. srcContext layout must be <b>VK_IMAGE_LAYOUT_TRANSFER_SRC_BIT,</b> and dstContext layout must be <b>VK_IMAGE_LAYOUT_TRANSFER_DST_BIT.</b>
+        */
+        static void cmdCopyEqualSizeImage(const VkCommandBuffer commandBuffer, const uint32_t mipLevel,
+                                          const ImageContext &srcContext, const ImageContext &dstContext) {
+            const VkImageCopy copyRegion = {
                 .srcSubresource = {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                    .mipLevel = mipLevel - 1,
+                    .mipLevel = mipLevel,
                     .baseArrayLayer = 0,
                     .layerCount = 1
                 },
-                .srcOffsets = {
-                    VkOffset3D{0, 0, 0},
-                    VkOffset3D{static_cast<int32_t>(mipWidth), static_cast<int32_t>(mipHeight), 1}
-                },
+                .srcOffset = {0, 0, 0},
                 .dstSubresource = {
                     .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
                     .mipLevel = mipLevel,
                     .baseArrayLayer = 0,
                     .layerCount = 1
                 },
-                .dstOffsets = {
-                    VkOffset3D{0, 0, 0},
-                    VkOffset3D{
-                        std::max(static_cast<int32_t>(mipWidth / 2), 1),
-                        std::max(static_cast<int32_t>(mipHeight / 2), 1), 1
-                    }
+                .dstOffset = {0, 0, 0},
+                .extent = {
+                    .width = srcContext.extent.width,
+                    .height = srcContext.extent.height,
+                    .depth = 1
                 },
             };
+            vkCmdCopyImage(commandBuffer, srcContext.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstContext.image,
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+        }
+
+        /**
+        * Blit image to destination image. srcMipLevel layout must be <b>VK_IMAGE_LAYOUT_TRANSFER_SRC_BIT,</b> and dstMipLevel layout must be <b>VK_IMAGE_LAYOUT_TRANSFER_DST_BIT.</b>
+        */
+        static void cmdBlitImage(const VkCommandBuffer commandBuffer, const ImageContext &imageContext,
+                                 const uint32_t srcMipLevel, const uint32_t dstMipLevel) {
+            const int32_t srcWidth = static_cast<int32_t>(imageContext.extent.width) >> srcMipLevel;
+            const int32_t srcHeight = static_cast<int32_t>(imageContext.extent.height) >> srcMipLevel;
+
+            const int32_t dstWidth = static_cast<int32_t>(imageContext.extent.width) >> dstMipLevel;
+            const int32_t dstHeight = static_cast<int32_t>(imageContext.extent.height) >> dstMipLevel;
+
+            const VkImageBlit blit = {
+                .srcSubresource = {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .mipLevel = srcMipLevel,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1
+                },
+                .srcOffsets = {
+                    VkOffset3D{0, 0, 0},
+                    VkOffset3D{srcWidth, srcHeight, 1}
+                },
+                .dstSubresource = {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .mipLevel = dstMipLevel,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1
+                },
+                .dstOffsets = {
+                    VkOffset3D{0, 0, 0},
+                    VkOffset3D{dstWidth, dstHeight, 1}
+                }
+            };
+
 
             vkCmdBlitImage(commandBuffer, imageContext.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, imageContext.image,
                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
-            imageContext.mipLevelImageLayout[mipLevel] = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         }
 
-        static void transformImageLayout(const VkCommandBuffer commandBuffer, MultiframeImageContext &imageContext,
-                                         const VkAccessFlags srcAccessMask,
-                                         const VkAccessFlags dstAccessMask,
-                                         const VkImageLayout newLayout,
-                                         const uint32_t mipLevel,
-                                         const VkPipelineStageFlags srcStageMask,
-                                         const VkPipelineStageFlags dstStageMask) {
-            for (auto &context : imageContext) {
-                transformImageLayout(commandBuffer, imageContext, srcAccessMask, dstAccessMask, newLayout, mipLevel, srcStageMask, dstStageMask);
+        static void cmdTransformImageLayout(const VkCommandBuffer commandBuffer,
+                                            const MultiframeImageContext &imageContext,
+                                            const VkAccessFlags srcAccessMask,
+                                            const VkAccessFlags dstAccessMask,
+                                            const VkImageLayout oldLayout,
+                                            const VkImageLayout newLayout,
+                                            const uint32_t mipLevel,
+                                            const VkPipelineStageFlags srcStageMask,
+                                            const VkPipelineStageFlags dstStageMask) {
+            for (auto &context: imageContext) {
+                cmdTransformImageLayout(commandBuffer, context, srcAccessMask, dstAccessMask, oldLayout, newLayout,
+                                        mipLevel,
+                                        srcStageMask, dstStageMask);
             }
         }
 
-        static void transformImageLayout(const VkCommandBuffer commandBuffer, ImageContext &imageContext,
-                                         const VkAccessFlags srcAccessMask,
-                                         const VkAccessFlags dstAccessMask,
-                                         const VkImageLayout newLayout,
-                                         const uint32_t mipLevel,
-                                         const VkPipelineStageFlags srcStageMask,
-                                         const VkPipelineStageFlags dstStageMask) {
+        static void cmdTransformImageLayout(const VkCommandBuffer commandBuffer, const ImageContext &imageContext,
+                                            const VkAccessFlags srcAccessMask,
+                                            const VkAccessFlags dstAccessMask,
+                                            const VkImageLayout oldLayout,
+                                            const VkImageLayout newLayout,
+                                            const uint32_t mipLevel,
+                                            const VkPipelineStageFlags srcStageMask,
+                                            const VkPipelineStageFlags dstStageMask) {
             const VkImageMemoryBarrier barrier = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                 .pNext = nullptr,
                 .srcAccessMask = srcAccessMask,
                 .dstAccessMask = dstAccessMask,
-                .oldLayout = imageContext.mipLevelImageLayout[mipLevel],
+                .oldLayout = oldLayout,
                 .newLayout = newLayout,
                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -212,7 +275,6 @@ namespace merutilm::vkh {
                                  0, nullptr,
                                  0, nullptr,
                                  1, &barrier);
-            imageContext.mipLevelImageLayout[mipLevel] = newLayout;
         }
     };
 }

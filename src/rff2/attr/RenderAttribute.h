@@ -4,7 +4,7 @@
 namespace merutilm::rff2 {
     struct RenderAttribute {
         float clarityMultiplier;
-        bool antialiasing;
+        bool linearInterpolation;
     };
 }
 

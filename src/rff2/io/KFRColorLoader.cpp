@@ -4,10 +4,11 @@
 
 #include "KFRColorLoader.hpp"
 #include <fstream>
+
 #include "../ui/IOUtilities.h"
 
 namespace merutilm::rff2 {
-    std::vector<NormalizedColor> KFRColorLoader::loadPaletteSettings() {
+    std::vector<glm::vec4> KFRColorLoader::loadPaletteSettings() {
         const auto pFile = IOUtilities::ioFileDialog("Open KFR Palette", Constants::Extension::DESC_KFR,
                                                      IOUtilities::OPEN_FILE, Constants::Extension::KFR);
         if (pFile == nullptr) {
@@ -36,9 +37,9 @@ namespace merutilm::rff2 {
                 std::erase(str, ' ');
                 return std::stof(str) / 255.0f;
             });
-            auto out = std::vector<NormalizedColor>();
+            auto out = std::vector<glm::vec4>();
             for (uint32_t i = 0; i < result.size(); i += 3) {
-                out.emplace_back(result[i + 2], result[i + 1], result[i + 0]);
+                out.emplace_back(result[i + 2], result[i + 1], result[i + 0], 1);
             }
             return out;
         }

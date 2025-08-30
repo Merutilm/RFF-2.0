@@ -15,7 +15,6 @@ namespace merutilm::vkh {
         SurfaceRef surface;
         PhysicalDeviceLoaderRef physicalDevice;
         LogicalDeviceRef logicalDevice;
-
         VkSwapchainKHR swapchain = nullptr;
         VkSwapchainKHR oldSwapchain = nullptr;
         std::vector<VkImage> swapchainImages = {};

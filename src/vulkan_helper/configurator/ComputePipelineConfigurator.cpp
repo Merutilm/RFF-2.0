@@ -3,7 +3,6 @@
 //
 
 #include "ComputePipelineConfigurator.hpp"
-
 #include "../impl/ComputeShaderPipeline.hpp"
 
 namespace merutilm::vkh {
@@ -11,6 +10,8 @@ namespace merutilm::vkh {
                                                              const std::string &compName) : PipelineConfigurator(engine),
         computeShader(pickFromRepository<ShaderModuleRepo, ShaderModuleRef>(compName)) {
     }
+
+
 
     void ComputePipelineConfigurator::cmdRender(const VkCommandBuffer cbh, const uint32_t frameIndex) {
         pipeline->cmdBindAll(cbh, frameIndex);

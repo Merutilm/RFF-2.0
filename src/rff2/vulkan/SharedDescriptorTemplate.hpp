@@ -86,52 +86,30 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t ID = 3;
         static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        static constexpr uint32_t BINDING_SAMPLER_PALETTE = 0;
-        static constexpr uint32_t BINDING_UBO_PALETTE = 1;
+        static constexpr uint32_t BINDING_SSBO_PALETTE = 0;
 
-        static constexpr uint32_t TARGET_PALETTE_EXTENT = 0;
-        static constexpr uint32_t TARGET_PALETTE_SIZE = 1;
-        static constexpr uint32_t TARGET_PALETTE_INTERVAL = 2;
-        static constexpr uint32_t TARGET_PALETTE_OFFSET = 3;
-        static constexpr uint32_t TARGET_PALETTE_SMOOTHING = 4;
-        static constexpr uint32_t TARGET_PALETTE_ANIMATION_SPEED = 5;
+        static constexpr uint32_t TARGET_PALETTE_SIZE = 0;
+        static constexpr uint32_t TARGET_PALETTE_INTERVAL = 1;
+        static constexpr uint32_t TARGET_PALETTE_OFFSET = 2;
+        static constexpr uint32_t TARGET_PALETTE_SMOOTHING = 3;
+        static constexpr uint32_t TARGET_PALETTE_ANIMATION_SPEED = 4;
+        static constexpr uint32_t TARGET_PALETTE_COLORS = 5;
 
         vkh::DescriptorManager create(const vkh::CoreRef core,
                                       const vkh::DescriptorRequiresRepoContext &context) override {
             auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
-            bufferManager->reserve<glm::uvec2>(TARGET_PALETTE_EXTENT);
             bufferManager->reserve<uint32_t>(TARGET_PALETTE_SIZE);
             bufferManager->reserve<float>(TARGET_PALETTE_INTERVAL);
             bufferManager->reserve<double>(TARGET_PALETTE_OFFSET);
             bufferManager->reserve<uint32_t>(TARGET_PALETTE_SMOOTHING);
-            bufferManager->reserve<float>(TARGET_PALETTE_ANIMATION_SPEED);
+            bufferManager->reserve<float>(TARGET_PALETTE_ANIMATION_SPEED, 8);
+            bufferManager->reserveArray<glm::vec4>(TARGET_PALETTE_COLORS, 0);
 
-            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto ssbo = vkh::Factory::create<vkh::ShaderStorage>(core, std::move(bufferManager),
+                                                                 vkh::BufferLock::LOCK_UNLOCK);
             auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
 
-            vkh::SamplerRef sampler = context.samplerRepo.pick(VkSamplerCreateInfo{
-                .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                .pNext = nullptr,
-                .flags = 0,
-                .magFilter = VK_FILTER_LINEAR,
-                .minFilter = VK_FILTER_LINEAR,
-                .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
-                .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-                .mipLodBias = 0,
-                .anisotropyEnable = VK_FALSE,
-                .maxAnisotropy = 0,
-                .compareEnable = VK_FALSE,
-                .compareOp = VK_COMPARE_OP_ALWAYS,
-                .minLod = 0,
-                .maxLod = 0,
-                .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
-                .unnormalizedCoordinates = VK_FALSE,
-            });
-            descManager->appendCombinedImgSampler(BINDING_SAMPLER_PALETTE, STAGE,
-                                                  vkh::Factory::create<vkh::CombinedImageSampler>(core, sampler));
-            descManager->appendUBO(BINDING_UBO_PALETTE, STAGE, std::move(ubo));
+            descManager->appendSSBO(BINDING_SSBO_PALETTE, STAGE, std::move(ssbo));
             return descManager;
         }
     };
@@ -242,6 +220,74 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
             auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_COLOR, STAGE, std::move(ubo));
+            return descManager;
+        }
+    };
+
+    struct DescFog final : public vkh::DescriptorTemplate {
+        static constexpr uint32_t ID = 8;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        static constexpr uint32_t BINDING_UBO_FOG = 0;
+
+        static constexpr uint32_t TARGET_FOG_RADIUS = 0;
+        static constexpr uint32_t TARGET_FOG_OPACITY = 1;
+
+        vkh::DescriptorManager create(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context) override {
+            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+
+            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+            bufferManager->reserve<float>(TARGET_FOG_RADIUS);
+            bufferManager->reserve<float>(TARGET_FOG_OPACITY);
+            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            descManager->appendUBO(BINDING_UBO_FOG, STAGE, std::move(ubo));
+            return descManager;
+        }
+    };
+
+    struct DescBloom final : public vkh::DescriptorTemplate {
+        static constexpr uint32_t ID = 9;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        static constexpr uint32_t BINDING_UBO_BLOOM = 0;
+
+        static constexpr uint32_t TARGET_BLOOM_THRESHOLD = 0;
+        static constexpr uint32_t TARGET_BLOOM_RADIUS = 1;
+        static constexpr uint32_t TARGET_BLOOM_SOFTNESS = 2;
+        static constexpr uint32_t TARGET_BLOOM_INTENSITY = 3;
+
+
+        vkh::DescriptorManager create(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+            bufferManager->reserve<float>(TARGET_BLOOM_THRESHOLD);
+            bufferManager->reserve<float>(TARGET_BLOOM_RADIUS);
+            bufferManager->reserve<float>(TARGET_BLOOM_SOFTNESS);
+            bufferManager->reserve<float>(TARGET_BLOOM_INTENSITY);
+            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            descManager->appendUBO(BINDING_UBO_BLOOM, STAGE, std::move(ubo));
+            return descManager;
+        }
+    };
+
+    struct DescLinearInterpolation final : public vkh::DescriptorTemplate {
+        static constexpr uint32_t ID = 10;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        static constexpr uint32_t BINDING_UBO_LINEAR_INTERPOLATION = 0;
+
+        static constexpr uint32_t TARGET_LINEAR_INTERPOLATION_USE = 0;
+
+
+        vkh::DescriptorManager create(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context) override {
+            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+            bufferManager->reserve<bool>(TARGET_LINEAR_INTERPOLATION_USE, 3);
+            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            descManager->appendUBO(BINDING_UBO_LINEAR_INTERPOLATION, STAGE, std::move(ubo));
             return descManager;
         }
     };

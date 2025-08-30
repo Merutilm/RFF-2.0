@@ -37,16 +37,6 @@ namespace merutilm::vkh {
         GraphicsPipelineConfigurator &operator=(GraphicsPipelineConfigurator &&) = delete;
 
 
-        template<typename Expected> requires std::is_base_of_v<RenderContextConfiguratorAbstract, Expected>
-        [[nodiscard]] RenderContextConfiguratorRef getRenderContextConfigurator() const {
-            auto r = dynamic_cast<Expected *>(engine.getRenderContext(renderContextIndex).getConfigurator());
-            if (r == nullptr) {
-                throw exception_invalid_args("Current RenderContext mismatch");
-            }
-            return *r;
-        }
-
-
     protected:
 
         virtual void configureVertexBuffer(HostBufferObjectManagerRef som) = 0;
