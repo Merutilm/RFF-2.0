@@ -3,10 +3,11 @@
 //
 
 #pragma once
+#include "SharedImageContextIndices.hpp"
 #include "../../vulkan_helper/configurator/RenderContextConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    struct RCCFog final : public vkh::RenderContextConfiguratorAbstract {
+    struct RCC2 final : public vkh::RenderContextConfiguratorAbstract {
         static constexpr uint32_t CONTEXT_INDEX = 2;
         static constexpr uint32_t SUBPASS_FOG_INDEX = 0;
         static constexpr uint32_t SUBPASS_BLOOM_THRESHOLD_INDEX = 1;
@@ -15,48 +16,14 @@ namespace merutilm::rff2 {
         static constexpr uint32_t RESULT_COLOR_ATTACHMENT_INDEX = 0;
         static constexpr uint32_t BLOOM_THRESHOLD_COLOR_ATTACHMENT_INDEX = 1;
 
-        static constexpr uint32_t RESULT_IMAGE_CONTEXT = 0;
-        static constexpr uint32_t BLOOM_THRESHOLD_IMAGE_CONTEXT = 1;
 
         using RenderContextConfiguratorAbstract::RenderContextConfiguratorAbstract;
 
-        void configureImageContext(const VkExtent2D &extent) override {
-            auto &[width, height] = extent;
-            appendStoredImageContext(RESULT_IMAGE_CONTEXT, vkh::ImageContext::createMultiframeContext(
-                                         core, vkh::ImageInitInfo{
-                                             .imageType = VK_IMAGE_TYPE_2D,
-                                             .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
-                                             .imageFormat = VK_FORMAT_R16G16B16A16_UNORM,
-                                             .extent = {width, height, 1},
-                                             .useMipmap = false,
-                                             .arrayLayers = 1,
-                                             .samples = VK_SAMPLE_COUNT_1_BIT,
-                                             .imageTiling = VK_IMAGE_TILING_OPTIMAL,
-                                             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                                                      VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                                             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                             .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-                                         }));
-            appendStoredImageContext(BLOOM_THRESHOLD_IMAGE_CONTEXT, vkh::ImageContext::createMultiframeContext(
-                                         core, vkh::ImageInitInfo{
-                                             .imageType = VK_IMAGE_TYPE_2D,
-                                             .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
-                                             .imageFormat = VK_FORMAT_R16G16B16A16_UNORM,
-                                             .extent = {width, height, 1},
-                                             .useMipmap = false,
-                                             .arrayLayers = 1,
-                                             .samples = VK_SAMPLE_COUNT_1_BIT,
-                                             .imageTiling = VK_IMAGE_TILING_OPTIMAL,
-                                             .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                                             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                             .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-                                         }));
-        }
-
-        void configureRenderContext(vkh::RenderPassManagerRef rpm) override {
+        void configure(vkh::RenderPassManagerRef rpm) override {
+            using namespace SharedImageContextIndices;
             rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,
-                                     .format = contexts[RESULT_IMAGE_CONTEXT][0].imageFormat,
+                                     .format = sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_SECONDARY)[0].imageFormat,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
                                      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                                      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -64,10 +31,10 @@ namespace merutilm::rff2 {
                                      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 }, contexts[RESULT_IMAGE_CONTEXT]);
+                                 }, sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_SECONDARY));
             rpm.appendAttachment(BLOOM_THRESHOLD_COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,
-                                     .format = contexts[BLOOM_THRESHOLD_IMAGE_CONTEXT][0].imageFormat,
+                                     .format = sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_PRIMARY)[0].imageFormat,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
                                      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                                      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -75,7 +42,7 @@ namespace merutilm::rff2 {
                                      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 }, contexts[BLOOM_THRESHOLD_IMAGE_CONTEXT]);
+                                 }, sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_PRIMARY));
 
             rpm.appendSubpass(SUBPASS_FOG_INDEX);
             rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);

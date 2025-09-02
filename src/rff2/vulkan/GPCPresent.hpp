@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "RCCFirst.hpp"
+#include "RCC1.hpp"
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {

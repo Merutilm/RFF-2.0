@@ -9,7 +9,7 @@
 #include "../../vulkan_helper/executor/RenderPassFullscreenRecorder.hpp"
 #include "../../vulkan_helper/executor/ScopedCommandBufferExecutor.hpp"
 #include "../constants/VulkanWindowConstants.hpp"
-#include "../vulkan/RCCFirst.hpp"
+#include "../vulkan/RCC1.hpp"
 #include "../vulkan/GPCIterationPalette.hpp"
 #include "../calc/dex_exp.h"
 #include "../formula/DeepMandelbrotPerturbator.h"
@@ -25,12 +25,13 @@
 #include "../preset/shader/palette/ShdPalettePresets.h"
 #include "../preset/shader/slope/ShdSlopePresets.h"
 #include "../preset/shader/stripe/ShdStripePresets.h"
-#include "../vulkan/RCCSecondary.hpp"
+#include "../vulkan/RCC3.hpp"
 #include "../vulkan/RCCDownsampleForBlur.hpp"
-#include "../vulkan/RCCFog.hpp"
-#include "../vulkan/RCCLinearInterpolation.hpp"
+#include "../vulkan/RCC2.hpp"
+#include "../vulkan/RCC4.hpp"
 #include "../vulkan/RCCPresent.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
+#include "../vulkan/SharedImageContextIndices.hpp"
 
 
 namespace merutilm::rff2 {
@@ -46,6 +47,7 @@ namespace merutilm::rff2 {
     }
 
     void RenderScene::init() {
+        refreshSharedImgContext();
         initRenderContext();
         initShaderPrograms();
     }
@@ -58,20 +60,20 @@ namespace merutilm::rff2 {
             return vkh::ImageContext::fromSwapchain(engine.getCore(), swapchain);
         };
 
-        engine.attachRenderContext<RCCFirst>(
-            [this] { return getInternalRenderContextExtent(); },
+        engine.attachRenderContext<RCC1>(
+            [this] { return getInternalImageExtent(); },
             swapchainImageContextGetter);
         engine.attachRenderContext<RCCDownsampleForBlur>(
-            [this] { return getBlurredRenderContextExtent(); },
+            [this] { return getBlurredImageExtent(); },
             swapchainImageContextGetter);
-        engine.attachRenderContext<RCCFog>(
-            [this] { return getInternalRenderContextExtent(); },
+        engine.attachRenderContext<RCC2>(
+            [this] { return getInternalImageExtent(); },
             swapchainImageContextGetter);
-        engine.attachRenderContext<RCCSecondary>(
-            [this] { return getInternalRenderContextExtent(); },
+        engine.attachRenderContext<RCC3>(
+            [this] { return getInternalImageExtent(); },
             swapchainImageContextGetter);
-        engine.attachRenderContext<RCCLinearInterpolation>(
-            [this] { return getInternalRenderContextExtent(); },
+        engine.attachRenderContext<RCC4>(
+            [this] { return getInternalImageExtent(); },
             swapchainImageContextGetter);
         engine.attachRenderContext<RCCPresent>(
             [this] { return getSwapchainRenderContextExtent(); },
@@ -79,63 +81,63 @@ namespace merutilm::rff2 {
     }
 
     void RenderScene::initShaderPrograms() {
-        rendererIteration = vkh::PipelineConfigurator::createShaderProgram<
+        rendererIteration = vkh::PipelineConfiguratorAbstract::createShaderProgram<
             GPCIterationPalette>(
             shaderPrograms, engine,
-            RCCFirst::CONTEXT_INDEX,
-            RCCFirst::SUBPASS_ITERATION_INDEX);
+            RCC1::CONTEXT_INDEX,
+            RCC1::SUBPASS_ITERATION_INDEX);
 
-        rendererStripe = vkh::PipelineConfigurator::createShaderProgram<GPCStripe>(
+        rendererStripe = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCStripe>(
             shaderPrograms, engine,
-            RCCFirst::CONTEXT_INDEX,
-            RCCFirst::SUBPASS_STRIPE_INDEX);
+            RCC1::CONTEXT_INDEX,
+            RCC1::SUBPASS_STRIPE_INDEX);
 
-        rendererSlope = vkh::PipelineConfigurator::createShaderProgram<GPCSlope>(
+        rendererSlope = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCSlope>(
             shaderPrograms, engine,
-            RCCFirst::CONTEXT_INDEX,
-            RCCFirst::SUBPASS_SLOPE_INDEX);
+            RCC1::CONTEXT_INDEX,
+            RCC1::SUBPASS_SLOPE_INDEX);
 
-        rendererColor = vkh::PipelineConfigurator::createShaderProgram<GPCColor>(
+        rendererColor = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCColor>(
             shaderPrograms, engine,
-            RCCFirst::CONTEXT_INDEX,
-            RCCFirst::SUBPASS_COLOR_INDEX);
+            RCC1::CONTEXT_INDEX,
+            RCC1::SUBPASS_COLOR_INDEX);
 
 
-        rendererResampleForBlur = vkh::PipelineConfigurator::createShaderProgram<GPCResample>(
+        rendererResampleForBlur = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCResample>(
             shaderPrograms, engine,
             RCCDownsampleForBlur::CONTEXT_INDEX,
             RCCDownsampleForBlur::SUBPASS_DOWNSAMPLE_INDEX
         );
 
-        rendererBoxBlur = vkh::PipelineConfigurator::createShaderProgram<CPCBoxBlur>(
+        rendererBoxBlur = vkh::PipelineConfiguratorAbstract::createShaderProgram<CPCBoxBlur>(
             shaderPrograms, engine
         );
 
-        rendererFog = vkh::PipelineConfigurator::createShaderProgram<GPCFog>(
+        rendererFog = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCFog>(
             shaderPrograms, engine,
-            RCCFog::CONTEXT_INDEX,
-            RCCFog::SUBPASS_FOG_INDEX
+            RCC2::CONTEXT_INDEX,
+            RCC2::SUBPASS_FOG_INDEX
         );
 
-        rendererBloomThreshold = vkh::PipelineConfigurator::createShaderProgram<GPCBloomThreshold>(
+        rendererBloomThreshold = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCBloomThreshold>(
             shaderPrograms, engine,
-            RCCFog::CONTEXT_INDEX,
-            RCCFog::SUBPASS_BLOOM_THRESHOLD_INDEX
+            RCC2::CONTEXT_INDEX,
+            RCC2::SUBPASS_BLOOM_THRESHOLD_INDEX
         );
 
-        rendererBloom = vkh::PipelineConfigurator::createShaderProgram<GPCBloom>(
+        rendererBloom = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCBloom>(
             shaderPrograms, engine,
-            RCCSecondary::CONTEXT_INDEX,
-            RCCSecondary::SUBPASS_BLOOM_INDEX
+            RCC3::CONTEXT_INDEX,
+            RCC3::SUBPASS_BLOOM_INDEX
         );
 
-        rendererLinearInterpolation = vkh::PipelineConfigurator::createShaderProgram<GPCLinearInterpolation>(
+        rendererLinearInterpolation = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCLinearInterpolation>(
             shaderPrograms, engine,
-            RCCLinearInterpolation::CONTEXT_INDEX,
-            RCCLinearInterpolation::SUBPASS_LINEAR_INTERPOLATION_INDEX
+            RCC4::CONTEXT_INDEX,
+            RCC4::SUBPASS_LINEAR_INTERPOLATION_INDEX
         );
 
-        rendererPresent = vkh::PipelineConfigurator::createShaderProgram<GPCPresent>(
+        rendererPresent = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCPresent>(
             shaderPrograms, engine,
             RCCPresent::CONTEXT_INDEX,
             RCCPresent::SUBPASS_PRESENT_INDEX);
@@ -211,21 +213,22 @@ namespace merutilm::rff2 {
         const VkSemaphore renderFinishedSemaphore = engine.getSyncObjectBetweenFrame().getSemaphore(frameIndex).
                 getSecond();
 
-        vkh::ScopedCommandBufferExecutor executor(engine, frameIndex, renderFence, imageAvailableSemaphore, renderFinishedSemaphore);
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCFirst>(
-            engine, frameIndex, {rendererIteration, rendererStripe, rendererSlope, rendererColor}, {{},{},{},{}});
+        vkh::ScopedCommandBufferExecutor executor(engine, frameIndex, renderFence, imageAvailableSemaphore,
+                                                  renderFinishedSemaphore);
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC1>(
+            engine, frameIndex, {rendererIteration, rendererStripe, rendererSlope, rendererColor}, {{}, {}, {}, {}});
         vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<
             RCCDownsampleForBlur>(
             engine, frameIndex, {rendererResampleForBlur}, {{0}});
         rendererBoxBlur->cmdGaussianBlur(frameIndex, 0);
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCFog>(
-            engine,  frameIndex, {rendererFog, rendererBloomThreshold}, {{}, {}});
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC2>(
+            engine, frameIndex, {rendererFog, rendererBloomThreshold}, {{}, {}});
         vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCDownsampleForBlur>(
             engine, frameIndex, {rendererResampleForBlur}, {{1}});
         rendererBoxBlur->cmdGaussianBlur(frameIndex, 1);
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCSecondary>(
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC3>(
             engine, frameIndex, {rendererBloom}, {{}});
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCLinearInterpolation>(
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC4>(
             engine, frameIndex, {rendererLinearInterpolation}, {{}});
         vkh::RenderPassFullscreenRecorder::cmdFullscreenPresentOnlyRenderPass<RCCPresent>(
             engine, frameIndex, swapchainImageIndex, {rendererPresent}, {{}});
@@ -438,15 +441,19 @@ namespace merutilm::rff2 {
         rendererFog->setFog(attr.shader.fog);
         rendererBloom->setBloom(attr.shader.bloom);
         rendererLinearInterpolation->setLinearInterpolation(attr.render.linearInterpolation);
+        rendererBoxBlur->setBlurSize(0, attr.shader.fog.radius);
+        rendererBoxBlur->setBlurSize(1, attr.shader.bloom.radius);
     }
 
     void RenderScene::applyResize() {
+        using namespace SharedImageContextIndices;
         vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
         const uint16_t cw = getClientWidth();
         const uint16_t ch = getClientHeight();
         const uint16_t iw = getIterationBufferWidth(attr);
         const uint16_t ih = getIterationBufferHeight(attr);
-        const auto [width, height] = getBlurredRenderContextExtent();
+
+        refreshSharedImgContext();
 
         for (auto &context: engine.getRenderContexts()) {
             context->recreate();
@@ -455,30 +462,59 @@ namespace merutilm::rff2 {
             sp->windowResized();
         }
 
-        auto &downsampleConfigurator = engine.getRenderContextConfigurator<
-            RCCDownsampleForBlur>();
-        const auto &srcImageDownsample = downsampleConfigurator.getImageContext(
-            RCCDownsampleForBlur::SRC_IMAGE_CONTEXT);
-        const auto &dstImageDownsample = downsampleConfigurator.getImageContext(
-            RCCDownsampleForBlur::DST_IMAGE_CONTEXT);
-        const auto &tmpImageDownsample = downsampleConfigurator.getImageContext(
-            RCCDownsampleForBlur::TMP_IMAGE_CONTEXT);
+        const auto &[width, height] = getBlurredImageExtent();
 
-        const auto &fogDownSampleContext = engine.getRenderContextConfigurator<RCCFirst>().
-                getImageContext(RCCFirst::RESULT_IMAGE_CONTEXT);
-        const auto &bloomDownSampleContext = engine.getRenderContextConfigurator<RCCFog>().
-                getImageContext(RCCFog::BLOOM_THRESHOLD_IMAGE_CONTEXT);
-
-        rendererResampleForBlur->setTargetImageContext(0, fogDownSampleContext);
         rendererResampleForBlur->setRescaledResolution(0, {width, height});
-        rendererResampleForBlur->setTargetImageContext(1, bloomDownSampleContext);
         rendererResampleForBlur->setRescaledResolution(1, {width, height});
-        rendererBoxBlur->setBlurSize(0, attr.shader.fog.radius);
-        rendererBoxBlur->setBlurSize(1, attr.shader.bloom.radius);
-        rendererBoxBlur->setGaussianBlur(srcImageDownsample, dstImageDownsample, tmpImageDownsample);
         rendererSlope->setResolution({cw, ch}, attr.render.clarityMultiplier);
         rendererIteration->resetIterationBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
+    }
+
+
+    void RenderScene::refreshSharedImgContext() const {
+        using namespace SharedImageContextIndices;
+        auto &sharedImg = engine.getSharedImageContext();
+        sharedImg.cleanupContexts();
+        auto iiiGetter = [](const VkExtent2D extent, const VkImageUsageFlags usage) {
+            return vkh::ImageInitInfo{
+                .imageType = VK_IMAGE_TYPE_2D,
+                .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
+                .imageFormat = VK_FORMAT_R16G16B16A16_UNORM,
+                .extent = {extent.width, extent.height, 1},
+                .useMipmap = VK_FALSE,
+                .arrayLayers = 1,
+                .samples = VK_SAMPLE_COUNT_1_BIT,
+                .imageTiling = VK_IMAGE_TILING_OPTIMAL,
+                .usage = usage,
+                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            };
+        };
+        const auto internalImageExtent = getInternalImageExtent();
+        const auto blurredImageExtent = getBlurredImageExtent();
+
+        sharedImg.appendMultiframeImageContext(MF_RENDER_IMAGE_PRIMARY,
+                                                  iiiGetter(internalImageExtent,
+                                                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                            VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
+                                                            VK_IMAGE_USAGE_SAMPLED_BIT));
+        sharedImg.appendMultiframeImageContext(MF_RENDER_IMAGE_SECONDARY,
+                                                  iiiGetter(internalImageExtent,
+                                                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                            VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
+                                                            VK_IMAGE_USAGE_SAMPLED_BIT));
+        sharedImg.appendMultiframeImageContext(MF_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
+                                                  iiiGetter(blurredImageExtent,
+                                                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                            VK_IMAGE_USAGE_SAMPLED_BIT |
+                                                            VK_IMAGE_USAGE_STORAGE_BIT));
+        sharedImg.appendMultiframeImageContext(MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY,
+                                                  iiiGetter(blurredImageExtent,
+                                                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                            VK_IMAGE_USAGE_SAMPLED_BIT |
+                                                            VK_IMAGE_USAGE_STORAGE_BIT));
+
     }
 
     void RenderScene::overwriteMatrixFromMap() const {

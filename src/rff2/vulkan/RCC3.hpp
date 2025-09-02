@@ -1,40 +1,47 @@
 //
-// Created by Merutilm on 2025-08-28.
+// Created by Merutilm on 2025-08-30.
 //
 
 #pragma once
+#include "SharedImageContextIndices.hpp"
 #include "../../vulkan_helper/configurator/RenderContextConfigurator.hpp"
 
+
 namespace merutilm::rff2 {
-    struct RCCPresent final : public vkh::RenderContextConfiguratorAbstract {
-        static constexpr uint32_t CONTEXT_INDEX = 5;
+    struct RCC3 final : public vkh::RenderContextConfiguratorAbstract {
+        static constexpr uint32_t CONTEXT_INDEX = 3;
 
-        static constexpr uint32_t SUBPASS_PRESENT_INDEX = 0;
+        static constexpr uint32_t SUBPASS_BLOOM_INDEX = 0;
 
-        static constexpr uint32_t PRESENT_ATTACHMENT_INDEX = 0;
+        static constexpr uint32_t RESULT_COLOR_ATTACHMENT_INDEX = 0;
+
 
         using RenderContextConfiguratorAbstract::RenderContextConfiguratorAbstract;
 
-        void configure(vkh::RenderPassManagerRef rpm) override {
 
-            rpm.appendAttachment(PRESENT_ATTACHMENT_INDEX, {
+        void configure(vkh::RenderPassManagerRef rpm) override {
+            using namespace SharedImageContextIndices;
+            rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,
-                                     .format = vkh::config::SWAPCHAIN_IMAGE_FORMAT,
+                                     .format = sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_SECONDARY)[0].
+                                     imageFormat,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
-                                     .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                                      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                                      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                                      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                     .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-                                 }, swapchainImageContextGetter());
+                                     .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                 }, sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_SECONDARY));
 
-            rpm.appendSubpass(SUBPASS_PRESENT_INDEX);
-            rpm.appendReference(PRESENT_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+            rpm.appendSubpass(SUBPASS_BLOOM_INDEX);
+            rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR,
+                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
 
             rpm.appendDependency({
                 .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = SUBPASS_PRESENT_INDEX,
+                .dstSubpass = SUBPASS_BLOOM_INDEX,
                 .srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                 .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .srcAccessMask = 0,
@@ -43,7 +50,7 @@ namespace merutilm::rff2 {
             });
 
             rpm.appendDependency({
-                .srcSubpass = SUBPASS_PRESENT_INDEX,
+                .srcSubpass = SUBPASS_BLOOM_INDEX,
                 .dstSubpass = VK_SUBPASS_EXTERNAL,
                 .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,

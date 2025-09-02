@@ -22,7 +22,7 @@ namespace merutilm::vkh {
                                                         uint32_t primarySubpassIndex,
                                                         const std::string &fragName);
 
-        ~GeneralPostProcessGraphicsPipelineConfigurator() override;
+        ~GeneralPostProcessGraphicsPipelineConfigurator() override = default;
 
         GeneralPostProcessGraphicsPipelineConfigurator(const GeneralPostProcessGraphicsPipelineConfigurator &) = delete;
 
@@ -52,8 +52,5 @@ namespace merutilm::vkh {
 
         void configureIndexBuffer(HostDataObjectManagerRef som) override;
 
-        void init() override;
-
-        void destroy() override;
     };
 }

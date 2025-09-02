@@ -39,37 +39,37 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 340,
+				"line" : 343,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 342,
+				"line" : 345,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 361,
+				"line" : 364,
 				"parent" : 0
 			},
 			{
 				"command" : 4,
 				"file" : 0,
-				"line" : 319,
+				"line" : 322,
 				"parent" : 0
 			},
 			{
 				"command" : 5,
 				"file" : 0,
-				"line" : 326,
+				"line" : 329,
 				"parent" : 0
 			},
 			{
 				"command" : 6,
 				"file" : 0,
-				"line" : 331,
+				"line" : 334,
 				"parent" : 0
 			}
 		]
@@ -699,7 +699,10 @@
 				299,
 				300,
 				301,
-				303
+				303,
+				304,
+				305,
+				306
 			]
 		}
 	],
@@ -1856,7 +1859,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/vulkan/RCCFirst.hpp",
+			"path" : "src/rff2/vulkan/RCC1.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2246,7 +2249,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/vulkan/RCCFog.hpp",
+			"path" : "src/rff2/vulkan/RCC2.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2262,7 +2265,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/vulkan/RCCSecondary.hpp",
+			"path" : "src/rff2/vulkan/RCC3.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2278,7 +2281,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/vulkan/RCCLinearInterpolation.hpp",
+			"path" : "src/rff2/vulkan/RCC4.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2315,6 +2318,21 @@
 		{
 			"backtrace" : 1,
 			"path" : "src/vulkan_helper/impl/Semaphore.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/vulkan_helper/context/SharedImageContext.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/rff2/vulkan/SharedImageContextIndices.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/vulkan_helper/util/BarrierUtils.hpp",
 			"sourceGroupIndex" : 1
 		}
 	],

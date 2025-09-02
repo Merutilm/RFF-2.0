@@ -39,8 +39,6 @@ namespace merutilm::rff2 {
 
         uint64_t lastPeriod = 1;
 
-        static constexpr uint32_t BLUR_MAX_WIDTH = 300;
-
 
         std::atomic<bool> recomputeRequested = false;
         std::atomic<bool> resizeRequested = false;
@@ -58,7 +56,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<MandelbrotPerturbator> currentPerturbator = nullptr;
 
 
-        std::vector<std::unique_ptr<vkh::PipelineConfigurator> > shaderPrograms = {};
+        std::vector<std::unique_ptr<vkh::PipelineConfiguratorAbstract> > shaderPrograms = {};
 
         GPCIterationPalette *rendererIteration;
         GPCStripe *rendererStripe;
@@ -118,7 +116,7 @@ namespace merutilm::rff2 {
             createImageRequestedFilename = filename;
         };
 
-        [[nodiscard]] VkExtent2D getInternalRenderContextExtent() const {
+        [[nodiscard]] VkExtent2D getInternalImageExtent() const {
             const auto &swapchain = *engine.getCore().getWindowContext(
                 Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
             const auto [width, height] = swapchain.populateSwapchainExtent();
@@ -129,10 +127,10 @@ namespace merutilm::rff2 {
             };
         }
 
-        [[nodiscard]] VkExtent2D getBlurredRenderContextExtent() const {
-            const VkExtent2D internalExtent = getInternalRenderContextExtent();
-            if (const float rat = BLUR_MAX_WIDTH / static_cast<float>(internalExtent.width); rat < 1) {
-                return {BLUR_MAX_WIDTH, static_cast<uint32_t>(static_cast<float>(internalExtent.height) * rat)};
+        [[nodiscard]] VkExtent2D getBlurredImageExtent() const {
+            const VkExtent2D internalExtent = getInternalImageExtent();
+            if (const float rat = Constants::Render::GAUSSIAN_MAX_WIDTH / static_cast<float>(internalExtent.width); rat < 1) {
+                return {Constants::Render::GAUSSIAN_MAX_WIDTH, static_cast<uint32_t>(static_cast<float>(internalExtent.height) * rat)};
             }
 
             return internalExtent;
@@ -167,6 +165,8 @@ namespace merutilm::rff2 {
         void applyShaderAttr(const Attribute &attr) const;
 
         void applyResize();
+
+        void refreshSharedImgContext() const;
 
         void overwriteMatrixFromMap() const;
 

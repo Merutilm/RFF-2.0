@@ -19,12 +19,13 @@ namespace merutilm::vkh {
         commandBuffer = factory::create<CommandBuffer>(*core, *commandPool);
         syncObjectBetweenFrame = factory::create<SyncObject>(*core);
         syncObjectBetweenRenderPass = factory::create<SyncObject>(*core);
+        sharedImageContext = factory::create<SharedImageContext>(*core);
     }
-
 
 
     void EngineImpl::destroy() {
         renderContext.clear();
+        sharedImageContext = nullptr;
         syncObjectBetweenRenderPass = nullptr;
         syncObjectBetweenFrame = nullptr;
         commandBuffer = nullptr;

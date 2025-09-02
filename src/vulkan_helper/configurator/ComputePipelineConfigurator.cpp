@@ -7,7 +7,7 @@
 
 namespace merutilm::vkh {
     ComputePipelineConfigurator::ComputePipelineConfigurator(EngineRef engine,
-                                                             const std::string &compName) : PipelineConfigurator(engine),
+                                                             const std::string &compName) : PipelineConfiguratorAbstract(engine),
         computeShader(pickFromRepository<ShaderModuleRepo, ShaderModuleRef>(compName)) {
     }
 
@@ -40,14 +40,5 @@ namespace merutilm::vkh {
 
         pipeline = factory::create<ComputeShaderPipeline>(engine, pipelineLayout, std::move(pipelineManager));
     }
-
-    void ComputePipelineConfigurator::init() {
-        //noop
-    }
-
-    void ComputePipelineConfigurator::destroy() {
-        pipeline = nullptr;
-    }
-
 
 }

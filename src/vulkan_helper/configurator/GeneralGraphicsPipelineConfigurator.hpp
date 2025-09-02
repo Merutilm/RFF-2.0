@@ -22,7 +22,7 @@ namespace merutilm::vkh {
                                              const std::string &vertName,
                                              const std::string &fragName);
 
-        ~GeneralGraphicsPipelineConfigurator() override;
+        ~GeneralGraphicsPipelineConfigurator() override = default;
 
         GeneralGraphicsPipelineConfigurator(const GeneralGraphicsPipelineConfigurator &) = delete;
 
@@ -38,9 +38,5 @@ namespace merutilm::vkh {
 
         [[nodiscard]] IndexBufferRef getIndexBuffer() const override { return *indexBuffer; }
 
-    private:
-        void init() override;
-
-        void destroy() override;
     };
 }

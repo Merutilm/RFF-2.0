@@ -8,10 +8,9 @@
 #include "../handle/EngineHandler.hpp"
 #include "../impl/IndexBuffer.hpp"
 #include "../impl/VertexBuffer.hpp"
-#include "../util/DescriptorUpdater.hpp"
 
 namespace merutilm::vkh {
-    struct GraphicsPipelineConfigurator : public PipelineConfigurator {
+    struct GraphicsPipelineConfigurator : public PipelineConfiguratorAbstract {
 
         const uint32_t renderContextIndex;
         const uint32_t primarySubpassIndex;
@@ -20,7 +19,7 @@ namespace merutilm::vkh {
 
         explicit GraphicsPipelineConfigurator(EngineRef engine, const uint32_t renderContextIndex,
                                               const uint32_t primarySubpassIndex, const std::string &vertName,
-                                              const std::string &fragName) : PipelineConfigurator(
+                                              const std::string &fragName) : PipelineConfiguratorAbstract(
                                                                                  engine), renderContextIndex(renderContextIndex), primarySubpassIndex(primarySubpassIndex),
                                                                              vertexShader(pickFromRepository<ShaderModuleRepo, ShaderModuleRef>(vertName)),
                                                                              fragmentShader(pickFromRepository<ShaderModuleRepo, ShaderModuleRef>(fragName)) {

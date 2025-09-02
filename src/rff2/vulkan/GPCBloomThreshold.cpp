@@ -4,7 +4,7 @@
 
 #include "GPCBloomThreshold.hpp"
 
-#include "RCCFog.hpp"
+#include "RCC2.hpp"
 #include "SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
@@ -19,8 +19,7 @@ namespace merutilm::rff2 {
 
     void GPCBloomThreshold::windowResized() {
 
-        const auto &input = engine.getRenderContextConfigurator<RCCFog>().getImageContext(
-                    RCCFog::RESULT_IMAGE_CONTEXT);
+        const auto &input = engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY);
         auto &inputDesc = getDescriptor(SET_BLOOM_THRESHOLD);
         inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;
 

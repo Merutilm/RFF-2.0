@@ -4,7 +4,7 @@
 
 #include "GPCPresent.hpp"
 
-#include "RCCLinearInterpolation.hpp"
+#include "RCC4.hpp"
 #include "SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
@@ -17,8 +17,7 @@ namespace merutilm::rff2 {
     }
 
     void GPCPresent::windowResized() {
-        const auto &context = engine.getRenderContextConfigurator<RCCLinearInterpolation>().
-                getImageContext(RCCLinearInterpolation::RESULT_IMAGE_CONTEXT);
+        const auto &context = engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY);
         auto &resultDesc = getDescriptor(SET_RESULT);
         resultDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_RESULT_SAMPLER)->setImageContext(context);
 

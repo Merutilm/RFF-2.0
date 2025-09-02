@@ -22,7 +22,7 @@ namespace merutilm::vkh {
     }
 
     void RenderPassFullscreenRecorder::execute(const uint32_t frameIndex,
-        const std::span<PipelineConfigurator * const> shaderPrograms, std::vector<DescIndexPicker> && descIndices) const {
+        const std::span<PipelineConfiguratorAbstract * const> shaderPrograms, std::vector<DescIndexPicker> && descIndices) const {
         safe_array::check_size_equal(shaderPrograms.size(), descIndices.size(), "Execution of the Render Pass Fullscreen Recorder");
         const auto cbh = engine.getCommandBuffer().getCommandBufferHandle(frameIndex);
         for (int i = 0; i < shaderPrograms.size(); ++i) {

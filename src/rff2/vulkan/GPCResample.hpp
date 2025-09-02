@@ -3,13 +3,14 @@
 //
 
 #pragma once
-#include "RCCFirst.hpp"
+#include "RCC1.hpp"
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
     class GPCResample final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
-
         static constexpr uint32_t RESAMPLE_IMAGES_COUNT_PER_FRAME = 2;
+        static constexpr uint32_t RESAMPLE_IMAGES_INDEX_FOG = 0;
+        static constexpr uint32_t RESAMPLE_IMAGES_INDEX_BLOOM = 1;
 
         static constexpr uint32_t SET_RESAMPLE = 0;
 
@@ -17,10 +18,11 @@ namespace merutilm::rff2 {
         static constexpr uint32_t BINDING_RESAMPLE_UBO = 1;
 
         static constexpr uint32_t TARGET_RESAMPLE_EXTENT = 0;
+
     public:
         explicit GPCResample(vkh::EngineRef engine,
-                                           const uint32_t renderContextIndex,
-                                           const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
+                             const uint32_t renderContextIndex,
+                             const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
             engine, renderContextIndex, primarySubpassIndex, "vk_resample.frag") {
         }
 
@@ -35,8 +37,6 @@ namespace merutilm::rff2 {
         GPCResample &operator=(GPCResample &&) = delete;
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
-
-        void setTargetImageContext(uint32_t descIndex, const vkh::MultiframeImageContext &context) const;
 
         void setRescaledResolution(uint32_t descIndex, const glm::uvec2 &newResolution) const;
 

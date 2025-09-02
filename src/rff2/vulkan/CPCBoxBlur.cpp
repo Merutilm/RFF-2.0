@@ -4,8 +4,9 @@
 
 #include "CPCBoxBlur.hpp"
 
+#include "SharedImageContextIndices.hpp"
 #include "../../vulkan_helper/executor/ScopedCommandBufferExecutor.hpp"
-#include "../../vulkan_helper/util/ImageContextUtils.hpp"
+#include "../../vulkan_helper/util/BarrierUtils.hpp"
 
 namespace merutilm::rff2 {
     CPCBoxBlur::CPCBoxBlur(vkh::EngineRef engine) : ComputePipelineConfigurator(
@@ -23,15 +24,13 @@ namespace merutilm::rff2 {
      * it can be used in fragment shader without any layout transition.
      * @param dstImage the destination of blurred image. previous image is discarded,
      * and the layout will be changed to <b>VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL</b>.
-     * @param tempImage the temporary image for ping-pong operation.
      */
     void CPCBoxBlur::setGaussianBlur(const vkh::MultiframeImageContext &srcImage,
-                                     const vkh::MultiframeImageContext &dstImage,
-                                     const vkh::MultiframeImageContext &tempImage) {
+                                     const vkh::MultiframeImageContext &dstImage) {
         setExtent(srcImage[0].extent);
         setImages(0, srcImage, dstImage);
-        setImages(1, dstImage, tempImage);
-        setImages(2, tempImage, dstImage);
+        setImages(1, dstImage, srcImage);
+        setImages(2, srcImage, dstImage);
     }
 
 
@@ -43,31 +42,27 @@ namespace merutilm::rff2 {
             return blurDesc.get<vkh::StorageImage>(descIndex, binding).ctx[frameIndex];
         };
         const auto src = ctxGetter(0, BINDING_BLUR_IMAGE_SRC);
-        const auto tmp = ctxGetter(2, BINDING_BLUR_IMAGE_SRC);
         const auto dst = ctxGetter(2, BINDING_BLUR_IMAGE_DST);
 
-        vkh::ImageContextUtils::cmdTransformImageLayout(cbh, tmp, 0,
-                                                        VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
-                                                        VK_IMAGE_LAYOUT_GENERAL, 0,
-                                                        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
-        vkh::ImageContextUtils::cmdTransformImageLayout(cbh, dst, 0,
+        vkh::BarrierUtils::cmdImageMemoryBarrier(cbh, dst.image, 0,
                                                         VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
                                                         VK_IMAGE_LAYOUT_GENERAL, 0,
                                                         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                                                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 
         cmdRender(cbh, frameIndex, {0u, blurSizeDescIndex});
+        vkh::BarrierUtils::cmdMemoryBarrier(cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
         cmdRender(cbh, frameIndex, {1u, blurSizeDescIndex});
+        vkh::BarrierUtils::cmdMemoryBarrier(cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
         cmdRender(cbh, frameIndex, {2u, blurSizeDescIndex});
-        vkh::ImageContextUtils::cmdTransformImageLayout(cbh, src,
-                                                        VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+        vkh::BarrierUtils::cmdImageMemoryBarrier(cbh, src.image,
+                                                        VK_ACCESS_SHADER_READ_BIT,
                                                         VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
                                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0,
                                                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-        vkh::ImageContextUtils::cmdTransformImageLayout(cbh, dst,
-                                                        VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+        vkh::BarrierUtils::cmdImageMemoryBarrier(cbh, dst.image,
+                                                        VK_ACCESS_SHADER_WRITE_BIT,
                                                         VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
                                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0,
                                                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -119,6 +114,9 @@ namespace merutilm::rff2 {
     }
 
     void CPCBoxBlur::windowResized() {
+        using namespace SharedImageContextIndices;
+        setGaussianBlur(engine.getSharedImageContext().getMultiframeContext(MF_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
+                        engine.getSharedImageContext().getMultiframeContext(MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
         //no operation
     }
 

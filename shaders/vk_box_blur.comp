@@ -7,6 +7,7 @@ layout (set = 1, binding = 0) uniform BlurUBO {
     float blur_size;
 } blur_attr;
 
+
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 void main() {

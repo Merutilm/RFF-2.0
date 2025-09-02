@@ -4,7 +4,7 @@
 
 #include "GPCColor.hpp"
 
-#include "RCCFirst.hpp"
+#include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "../attr/ShdColorAttribute.h"
 
@@ -38,8 +38,7 @@ namespace merutilm::rff2 {
     }
 
     void GPCColor::windowResized() {
-        const auto &input = engine.getRenderContextConfigurator<RCCFirst>().getImageContext(
-           RCCFirst::TEMP_IMAGE_CONTEXT);
+        const auto &input =  engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY);
         auto &inputDesc = getDescriptor(SET_PREV_RESULT);
         inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;
         writeDescriptorForEachFrame([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {

@@ -14,12 +14,8 @@ namespace merutilm::vkh {
                                                              const std::string &vertName,
                                                              const std::string &fragName) : GraphicsPipelineConfigurator(
         engine, renderContextIndex, subpassIndex, vertName, fragName) {
-        GeneralGraphicsPipelineConfigurator::init();
     }
 
-    GeneralGraphicsPipelineConfigurator::~GeneralGraphicsPipelineConfigurator() {
-        GeneralGraphicsPipelineConfigurator::destroy();
-    }
 
     void GeneralGraphicsPipelineConfigurator::configure() {
         auto pipelineLayoutManager = factory::create<PipelineLayoutManager>();
@@ -56,14 +52,4 @@ namespace merutilm::vkh {
                                               std::move(pipelineManager));
     }
 
-
-    void GeneralGraphicsPipelineConfigurator::init() {
-        //no operation
-    }
-
-    void GeneralGraphicsPipelineConfigurator::destroy() {
-        pipeline = nullptr;
-        indexBuffer = nullptr;
-        vertexBuffer = nullptr;
-    }
 }

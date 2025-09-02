@@ -6,7 +6,7 @@
 #include "PipelineConfigurator.hpp"
 
 namespace merutilm::vkh {
-    class ComputePipelineConfigurator : public PipelineConfigurator {
+    class ComputePipelineConfigurator : public PipelineConfiguratorAbstract {
         ShaderModuleRef computeShader;
         VkExtent2D extent = {};
         static constexpr uint32_t WORK_GROUP_SIZE = 16;
@@ -37,9 +37,5 @@ namespace merutilm::vkh {
             const auto [width, height] = extent;
             vkCmdDispatch(cbh, (width + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE, (height + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE, 1);
         }
-
-        void init() override;
-
-        void destroy() override;
     };
 }

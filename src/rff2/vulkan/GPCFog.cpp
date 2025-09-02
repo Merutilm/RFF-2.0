@@ -5,7 +5,7 @@
 #include "GPCFog.hpp"
 
 #include "RCCDownsampleForBlur.hpp"
-#include "RCCFirst.hpp"
+#include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
@@ -38,11 +38,9 @@ namespace merutilm::rff2 {
         using namespace SharedDescriptorTemplate;
         auto &fogDesc = getDescriptor(SET_FOG_CANVAS);
         fogDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL)->setImageContext(
-            engine.getRenderContextConfigurator<RCCFirst>().getImageContext(
-                RCCFirst::RESULT_IMAGE_CONTEXT));
+           engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
         fogDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_FOG_CANVAS_BLURRED)->setImageContext(
-            engine.getRenderContextConfigurator<RCCDownsampleForBlur>().getImageContext(
-                RCCDownsampleForBlur::DST_IMAGE_CONTEXT));
+            engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
 
         writeDescriptorForEachFrame([&fogDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             fogDesc.queue(queue, frameIndex, {}, {BINDING_FOG_CANVAS_ORIGINAL, BINDING_FOG_CANVAS_BLURRED});

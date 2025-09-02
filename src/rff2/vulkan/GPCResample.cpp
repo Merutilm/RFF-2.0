@@ -7,20 +7,11 @@
 #include "SharedDescriptorTemplate.hpp"
 
 
-
 namespace merutilm::rff2 {
     void GPCResample::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
         //no operation
     }
 
-    void GPCResample::setTargetImageContext(const uint32_t descIndex, const vkh::MultiframeImageContext &context) const {
-        auto &resultDesc = getDescriptor(SET_RESAMPLE);
-        resultDesc.get<vkh::CombinedMultiframeImageSampler>(descIndex, BINDING_RESAMPLE_SAMPLER)->setImageContext(context);
-
-        writeDescriptorForEachFrame([&resultDesc, &descIndex](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            resultDesc.queue(queue, frameIndex, {descIndex}, {BINDING_RESAMPLE_SAMPLER});
-        });
-    }
 
     void GPCResample::setRescaledResolution(const uint32_t descIndex, const glm::uvec2 &newResolution) const {
         auto &resDesc = getDescriptor(SET_RESAMPLE);
@@ -39,7 +30,20 @@ namespace merutilm::rff2 {
     }
 
     void GPCResample::windowResized() {
-        //no operation
+        auto &resampleDesc = getDescriptor(SET_RESAMPLE);
+
+        resampleDesc.get<vkh::CombinedMultiframeImageSampler>(RESAMPLE_IMAGES_INDEX_FOG, BINDING_RESAMPLE_SAMPLER)->
+                setImageContext(
+                    engine.getSharedImageContext().getMultiframeContext(
+                        SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
+        resampleDesc.get<vkh::CombinedMultiframeImageSampler>(RESAMPLE_IMAGES_INDEX_BLOOM, BINDING_RESAMPLE_SAMPLER)->
+                setImageContext(
+                    engine.getSharedImageContext().getMultiframeContext(
+                        SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
+
+        writeDescriptorForEachFrame([&resampleDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            resampleDesc.queue(queue, frameIndex, {}, {BINDING_RESAMPLE_SAMPLER});
+        });
     }
 
 

@@ -4,7 +4,7 @@
 
 #include "GPCSlope.hpp"
 
-#include "RCCFirst.hpp"
+#include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
@@ -51,8 +51,7 @@ namespace merutilm::rff2 {
     }
 
     void GPCSlope::windowResized() {
-        const auto &input = engine.getRenderContextConfigurator<RCCFirst>().getImageContext(
-           RCCFirst::RESULT_IMAGE_CONTEXT);
+        const auto &input =  engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY);
         auto &inputDesc = getDescriptor(SET_PREV_RESULT);
         inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;
 

@@ -5,7 +5,7 @@
 #include "GPCBloom.hpp"
 
 #include "RCCDownsampleForBlur.hpp"
-#include "RCCFog.hpp"
+#include "RCC2.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "GPCSlope.hpp"
 
@@ -48,11 +48,11 @@ namespace merutilm::rff2 {
         using namespace SharedDescriptorTemplate;
         auto &bloomDesc = getDescriptor(SET_BLOOM_CANVAS);
         bloomDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_BLOOM_CANVAS_ORIGINAL)->setImageContext(
-            engine.getRenderContextConfigurator<RCCFog>().getImageContext(
-                RCCFog::RESULT_IMAGE_CONTEXT));
+            engine.getSharedImageContext().getMultiframeContext(
+                SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
         bloomDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_BLOOM_CANVAS_BLURRED)->setImageContext(
-            engine.getRenderContextConfigurator<RCCDownsampleForBlur>().getImageContext(
-                RCCDownsampleForBlur::DST_IMAGE_CONTEXT)
+            engine.getSharedImageContext().getMultiframeContext(
+                SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY)
         );
 
         writeDescriptorForEachFrame([&bloomDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {

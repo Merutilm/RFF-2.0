@@ -224,7 +224,7 @@ add_executable(
         src/vulkan_helper/executor/ScopedNewCommandBufferExecutor.hpp
         src/vulkan_helper/struct/PushConstantReserve.hpp
         src/vulkan_helper/configurator/RenderContextConfigurator.hpp
-        src/rff2/vulkan/RCCFirst.hpp
+        src/rff2/vulkan/RCC1.hpp
         src/vulkan_helper/hash/DescriptorSetLayoutBuildTypeHasher.hpp
         src/vulkan_helper/context/ImageContext.hpp
         src/vulkan_helper/util/SwapchainPresenter.hpp
@@ -298,13 +298,13 @@ add_executable(
         src/vulkan_helper/impl/Fence.cpp
         src/vulkan_helper/impl/Fence.hpp
         src/rff2/vulkan/RCCDownsampleForBlur.hpp
-        src/rff2/vulkan/RCCFog.hpp
+        src/rff2/vulkan/RCC2.hpp
         src/rff2/vulkan/GPCBloom.cpp
         src/rff2/vulkan/GPCBloom.hpp
-        src/rff2/vulkan/RCCSecondary.hpp
+        src/rff2/vulkan/RCC3.hpp
         src/rff2/vulkan/GPCLinearInterpolation.cpp
         src/rff2/vulkan/GPCLinearInterpolation.hpp
-        src/rff2/vulkan/RCCLinearInterpolation.hpp
+        src/rff2/vulkan/RCC4.hpp
         src/vulkan_helper/core/vkh_base.hpp
         src/vulkan_helper/core/vkh.hpp
         src/vulkan_helper/core/vkh_core.hpp
@@ -312,6 +312,9 @@ add_executable(
         src/vulkan_helper/hash/VariantHasher.hpp
         src/vulkan_helper/impl/Semaphore.cpp
         src/vulkan_helper/impl/Semaphore.hpp
+        src/vulkan_helper/context/SharedImageContext.hpp
+        src/rff2/vulkan/SharedImageContextIndices.hpp
+        src/vulkan_helper/util/BarrierUtils.hpp
 )
 
 find_package(Vulkan REQUIRED)

@@ -37,8 +37,7 @@ namespace merutilm::rff2 {
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
         void setGaussianBlur(
-            const vkh::MultiframeImageContext &srcImage, const vkh::MultiframeImageContext &dstImage, const vkh::
-            MultiframeImageContext &tempImage) ;
+            const vkh::MultiframeImageContext &srcImage, const vkh::MultiframeImageContext &dstImage) ;
 
         void cmdGaussianBlur(
             uint32_t frameIndex, uint32_t blurSizeDescIndex);

@@ -12,10 +12,6 @@ namespace merutilm::vkh {
 
     GeneralPostProcessGraphicsPipelineConfigurator::GeneralPostProcessGraphicsPipelineConfigurator(EngineRef engine, const uint32_t renderContextIndex, const uint32_t primarySubpassIndex, const std::string &fragName) : GraphicsPipelineConfigurator(
             engine, renderContextIndex, primarySubpassIndex, VERTEX_MODULE_PATH, fragName) {
-        GeneralPostProcessGraphicsPipelineConfigurator::init();
-    }
-    GeneralPostProcessGraphicsPipelineConfigurator::~GeneralPostProcessGraphicsPipelineConfigurator() {
-        GeneralPostProcessGraphicsPipelineConfigurator::destroy();
     }
 
 
@@ -86,11 +82,4 @@ namespace merutilm::vkh {
         }
     }
 
-    void GeneralPostProcessGraphicsPipelineConfigurator::init() {
-        //no operation
-    }
-
-    void GeneralPostProcessGraphicsPipelineConfigurator::destroy() {
-        pipeline = nullptr;
-    }
 }

@@ -10,7 +10,6 @@
 #include "CommandPool.hpp"
 #include "CommandBuffer.hpp"
 #include "SyncObject.hpp"
-#include "Fence.hpp"
 #include "../context/RenderContext.hpp"
 
 namespace merutilm::vkh {
@@ -21,6 +20,7 @@ namespace merutilm::vkh {
         CommandBuffer commandBuffer = nullptr;
         SyncObject syncObjectBetweenFrame = nullptr;
         SyncObject syncObjectBetweenRenderPass = nullptr;
+        SharedImageContext sharedImageContext = nullptr;
         std::vector<RenderContext> renderContext = {};
 
     public:
@@ -44,7 +44,7 @@ namespace merutilm::vkh {
                                               "Render Context Index");
             this->renderContext.emplace_back(
                 factory::create<RenderContext>(*core, std::forward<ExtentImgGetter>(extentGetter),
-                                               std::make_unique<T>(*core, *commandPool, std::forward<SwapchainImgGetter>(swapchainImageContext))));
+                                               std::make_unique<T>(*core, *sharedImageContext, std::forward<SwapchainImgGetter>(swapchainImageContext))));
         };
 
         [[nodiscard]] CoreRef getCore() const { return *core; }
@@ -68,6 +68,10 @@ namespace merutilm::vkh {
         template<typename Configurator> requires std::is_base_of_v<RenderContextConfiguratorAbstract, Configurator>
         [[nodiscard]] Configurator & getRenderContextConfigurator() {
             return *dynamic_cast<Configurator *>(getRenderContext(Configurator::CONTEXT_INDEX).getConfigurator());
+        }
+
+        SharedImageContextRef getSharedImageContext() const {
+            return *sharedImageContext;
         }
 
     private:

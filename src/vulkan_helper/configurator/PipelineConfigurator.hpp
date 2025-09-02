@@ -10,16 +10,28 @@
 #include "../struct/DescriptorTemplate.hpp"
 
 namespace merutilm::vkh {
-    struct PipelineConfigurator : public EngineHandler {
+    struct PipelineConfiguratorAbstract {
+        EngineRef engine;
         Pipeline pipeline = nullptr;
         std::vector<Descriptor> uniqueDescriptors = {};
 
-        explicit PipelineConfigurator(EngineRef engine) : EngineHandler(engine) {
+        explicit PipelineConfiguratorAbstract(EngineRef engine) : engine(engine) {
         }
 
-        template<typename ProgramName, typename... Args> requires std::is_base_of_v<PipelineConfigurator, ProgramName>
+        virtual ~PipelineConfiguratorAbstract() = default;
+
+        PipelineConfiguratorAbstract(const PipelineConfiguratorAbstract &) = delete;
+
+        PipelineConfiguratorAbstract(PipelineConfiguratorAbstract &&) = delete;
+
+        PipelineConfiguratorAbstract &operator=(const PipelineConfiguratorAbstract &) = delete;
+
+        PipelineConfiguratorAbstract &operator=(PipelineConfiguratorAbstract &&) = delete;
+
+        template<typename ProgramName, typename... Args> requires std::is_base_of_v<PipelineConfiguratorAbstract,
+            ProgramName>
         static ProgramName *createShaderProgram(
-            std::vector<std::unique_ptr<PipelineConfigurator> > &shaderPrograms,
+            std::vector<std::unique_ptr<PipelineConfiguratorAbstract> > &shaderPrograms,
             EngineRef engine, Args &&... args) {
             auto shaderProgram = std::make_unique<ProgramName>(engine, args...);
             shaderProgram->configure();
@@ -57,7 +69,8 @@ namespace merutilm::vkh {
             }
             DescriptorUpdater::write(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), queue);
         }
-        template<typename F> requires std::is_invocable_r_v<void, F,  uint32_t>
+
+        template<typename F> requires std::is_invocable_r_v<void, F, uint32_t>
         void updateBufferForEachFrame(F &&func) const {
             for (uint32_t i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
                 func(i);
@@ -70,12 +83,12 @@ namespace merutilm::vkh {
             SharedDescriptorRepo &repo = *engine.getRepositories().getRepository<SharedDescriptorRepo>();
 
             safe_array::check_index_equal(setExpected, static_cast<uint32_t>(descriptors.size()),
-                                              "Unique Descriptor Add");
+                                          "Unique Descriptor Add");
             descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), context));
         }
 
         void appendUniqueDescriptor(const uint32_t setExpected, std::vector<DescriptorPtr> &descriptors,
-                                           DescriptorManager &&manager) {
+                                    DescriptorManager &&manager) {
             std::vector<DescriptorManager> managers(1);
             managers[0] = std::move(manager);
             appendUniqueDescriptor(setExpected, descriptors, std::move(managers));
@@ -89,7 +102,7 @@ namespace merutilm::vkh {
             DescriptorSetLayoutRepo &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
 
             safe_array::check_index_equal(setExpected, static_cast<uint32_t>(descriptors.size()),
-                                              "Unique Descriptor Add");
+                                          "Unique Descriptor Add");
             auto desc = factory::create<Descriptor>(engine.getCore(), layoutRepo.pick(manager[0]->layoutBuilder),
                                                     std::move(manager));
             uniqueDescriptors.push_back(std::move(desc));
@@ -116,4 +129,8 @@ namespace merutilm::vkh {
             pipeline->getLayout().cmdPush(cbh);
         }
     };
+
+    using PipelineConfigurator = std::unique_ptr<PipelineConfiguratorAbstract>;
+    using PipelineConfiguratorPtr = PipelineConfiguratorAbstract *;
+    using PipelineConfiguratorRef = PipelineConfiguratorAbstract &;
 }
