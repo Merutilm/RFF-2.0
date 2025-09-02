@@ -3,10 +3,7 @@
 //
 
 #pragma once
-#include <string>
-#include <vector>
-#include <vulkan/vulkan_core.h>
-
+#include "../core/vkh_base.hpp"
 #include "../handle/CoreHandler.hpp"
 
 namespace merutilm::vkh {
@@ -20,7 +17,7 @@ namespace merutilm::vkh {
         const std::string filename;
 
     public:
-        explicit ShaderModuleImpl(const CoreRef core, const std::string &filename);
+        explicit ShaderModuleImpl(CoreRef core, const std::string &filename);
 
         ~ShaderModuleImpl() override;
 

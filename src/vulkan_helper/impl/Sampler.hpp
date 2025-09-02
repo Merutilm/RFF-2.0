@@ -8,11 +8,11 @@
 namespace merutilm::vkh {
     class SamplerImpl final : public CoreHandler {
 
-        VkSampler sampler;
-        VkSamplerCreateInfo samplerInfo;
+        VkSampler sampler = VK_NULL_HANDLE;
+        const VkSamplerCreateInfo samplerInfo;
 
     public:
-        explicit SamplerImpl(const CoreRef core, VkSamplerCreateInfo &&samplerInfo);
+        explicit SamplerImpl(const CoreRef core, const VkSamplerCreateInfo &samplerInfo);
 
         ~SamplerImpl() override;
 

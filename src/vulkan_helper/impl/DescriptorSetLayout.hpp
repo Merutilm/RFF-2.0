@@ -10,7 +10,7 @@
 
 namespace merutilm::vkh {
     class DescriptorSetLayoutImpl final : public CoreHandler {
-        const DescriptorSetLayoutBuilder &layoutBuilder;
+        DescriptorSetLayoutBuilder layoutBuilder;
         VkDescriptorSetLayout layout = nullptr;
 
     public:
@@ -27,6 +27,8 @@ namespace merutilm::vkh {
         DescriptorSetLayoutImpl &operator=(DescriptorSetLayoutImpl &&) = delete;
 
         [[nodiscard]] VkDescriptorSetLayout getLayoutHandle() const {return layout;}
+
+        [[nodiscard]] const DescriptorSetLayoutBuilder &getBuilder() const {return layoutBuilder;}
 
     private:
         void init() override;

@@ -35,7 +35,7 @@ namespace merutilm::vkh {
 
         void configure() override;
 
-        void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex) override;
+        void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices) override;
 
         static void cleanup() {
             vertexBufferPP = nullptr;
@@ -48,9 +48,9 @@ namespace merutilm::vkh {
 
         [[nodiscard]] IndexBufferRef getIndexBuffer() const override { return *indexBufferPP; }
 
-        void configureVertexBuffer(HostBufferObjectManagerRef som) override;
+        void configureVertexBuffer(HostDataObjectManagerRef som) override;
 
-        void configureIndexBuffer(HostBufferObjectManagerRef som) override;
+        void configureIndexBuffer(HostDataObjectManagerRef som) override;
 
         void init() override;
 

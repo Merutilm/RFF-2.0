@@ -2,14 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 project(RFF)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_SOURCE_DIR}/bin)
-
-add_compile_options(
-#        -O0
-        -Ofast
-        -march=native
-        -funroll-loops
-)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 
 
@@ -142,7 +135,6 @@ add_executable(
         src/rff2/io/RFFLocationBinary.h
         src/rff2/io/KFRColorLoader.cpp
         src/rff2/io/KFRColorLoader.hpp
-
         extern/stb_image.c
         extern/stb_image.h
         src/vulkan_helper/handle/Handler.hpp
@@ -150,7 +142,7 @@ add_executable(
         src/vulkan_helper/impl/GraphicsContextWindow.hpp
         src/vulkan_helper/impl/ValidationLayer.cpp
         src/vulkan_helper/impl/ValidationLayer.hpp
-        src/vulkan_helper/exception/exception.hpp
+        src/vulkan_helper/core/exception.hpp
         src/vulkan_helper/impl/Instance.cpp
         src/vulkan_helper/impl/Instance.hpp
         src/vulkan_helper/impl/Surface.cpp
@@ -169,7 +161,7 @@ add_executable(
         src/vulkan_helper/impl/CommandBuffer.hpp
         src/vulkan_helper/impl/Descriptor.cpp
         src/vulkan_helper/impl/Descriptor.hpp
-        src/vulkan_helper/manage/HostBufferObjectManager.hpp
+        src/vulkan_helper/manage/HostDataObjectManager.hpp
         src/vulkan_helper/impl/BufferObject.cpp
         src/vulkan_helper/impl/BufferObject.hpp
         src/vulkan_helper/util/BufferImageUtils.hpp
@@ -183,7 +175,7 @@ add_executable(
         src/vulkan_helper/impl/PipelineLayout.hpp
         src/vulkan_helper/impl/DescriptorSetLayout.cpp
         src/vulkan_helper/impl/PipelineLayout.cpp
-        src/vulkan_helper/manage/PushConstantManager.hpp
+        src/vulkan_helper/impl/PushConstant.hpp
         src/vulkan_helper/impl/ShaderModule.hpp
         src/vulkan_helper/impl/ShaderModule.cpp
         src/vulkan_helper/manage/RenderPassManager.hpp
@@ -195,14 +187,14 @@ add_executable(
         src/vulkan_helper/impl/Framebuffer.hpp
         src/vulkan_helper/struct/RenderPassAttachment.hpp
         src/vulkan_helper/struct/ImageInitInfo.hpp
-        src/vulkan_helper/impl/FrameSyncObject.cpp
-        src/vulkan_helper/impl/FrameSyncObject.hpp
+        src/vulkan_helper/impl/SyncObject.cpp
+        src/vulkan_helper/impl/SyncObject.hpp
         src/vulkan_helper/executor/RenderPassFullscreenRecorder.cpp
         src/vulkan_helper/executor/RenderPassFullscreenRecorder.hpp
         src/vulkan_helper/struct/Vertex.hpp
         src/vulkan_helper/impl/VertexBuffer.cpp
         src/vulkan_helper/impl/VertexBuffer.hpp
-        src/vulkan_helper/impl/HostBufferObject.hpp
+        src/vulkan_helper/impl/HostDataObject.hpp
         src/vulkan_helper/impl/Uniform.cpp
         src/vulkan_helper/impl/Uniform.hpp
         src/vulkan_helper/executor/Executor.hpp
@@ -211,9 +203,9 @@ add_executable(
         src/vulkan_helper/context/RenderContext.hpp
         src/vulkan_helper/hash/VectorHasher.hpp
         src/vulkan_helper/hash/PointerDerefEquals.hpp
-        src/vulkan_helper/repo/Repo.hpp
+        src/vulkan_helper/repo/Repository.hpp
         src/vulkan_helper/repo/Repositories.hpp
-        src/vulkan_helper/repo/IRepo.hpp
+        src/vulkan_helper/repo/RepoAbstract.hpp
         src/vulkan_helper/manage/PipelineLayoutManager.hpp
         src/vulkan_helper/hash/BoostHasher.hpp
         src/vulkan_helper/repo/PipelineLayoutRepo.hpp
@@ -239,7 +231,7 @@ add_executable(
         src/rff2/vulkan/GPCIterationPalette.cpp
         src/rff2/vulkan/GPCIterationPalette.hpp
         src/vulkan_helper/context/DescriptorUpdateContext.hpp
-        src/vulkan_helper/util/SafeArrayChecker.hpp
+        src/vulkan_helper/core/safe_array.hpp
         src/vulkan_helper/util/ImageContextUtils.hpp
         src/vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.cpp
         src/vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp
@@ -267,7 +259,7 @@ add_executable(
         src/vulkan_helper/impl/ShaderStorage.cpp
         src/vulkan_helper/impl/ShaderStorage.hpp
         src/vulkan_helper/struct/BufferLock.hpp
-        src/vulkan_helper/util/Logger.hpp
+        src/vulkan_helper/core/logger.hpp
         src/vulkan_helper/util/DescriptorUpdater.hpp
         src/rff2/vulkan/GPCStripe.cpp
         src/rff2/vulkan/GPCStripe.hpp
@@ -281,7 +273,7 @@ add_executable(
         src/rff2/vulkan/GPCResample.hpp
         src/rff2/vulkan/GPCBloomThreshold.cpp
         src/rff2/vulkan/GPCBloomThreshold.hpp
-        src/vulkan_helper/def/Factory.hpp
+        src/vulkan_helper/core/Factory.hpp
         src/vulkan_helper/util/Debugger.hpp
         src/vulkan_helper/util/PhysicalDeviceUtils.hpp
         src/vulkan_helper/util/GraphicsContextWindowProc.hpp
@@ -294,18 +286,17 @@ add_executable(
         src/vulkan_helper/impl/GraphicsPipeline.cpp
         src/vulkan_helper/impl/GraphicsPipeline.hpp
         src/vulkan_helper/configurator/PipelineConfigurator.hpp
-        src/vulkan_helper/executor/ScopedSyncedCommandBufferExecutorForRenderPass.cpp
-        src/vulkan_helper/executor/ScopedSyncedCommandBufferExecutorForRenderPass.hpp
+        src/vulkan_helper/executor/ScopedCommandBufferExecutor.cpp
+        src/vulkan_helper/executor/ScopedCommandBufferExecutor.hpp
         src/vulkan_helper/configurator/ComputePipelineConfigurator.cpp
         src/vulkan_helper/configurator/ComputePipelineConfigurator.hpp
         src/vulkan_helper/struct/InputAttachment.hpp
         src/rff2/vulkan/CPCBoxBlur.cpp
         src/rff2/vulkan/CPCBoxBlur.hpp
         src/rff2/vulkan/RCCPresent.hpp
-        src/vulkan_helper/util/SwapchainUtils.hpp
-        src/vulkan_helper/impl/RenderPassSyncObject.cpp
-        src/vulkan_helper/impl/RenderPassSyncObject.hpp
-        src/vulkan_helper/struct/RenderPassProcess.hpp
+        src/vulkan_helper/core/Config.hpp
+        src/vulkan_helper/impl/Fence.cpp
+        src/vulkan_helper/impl/Fence.hpp
         src/rff2/vulkan/RCCDownsampleForBlur.hpp
         src/rff2/vulkan/RCCFog.hpp
         src/rff2/vulkan/GPCBloom.cpp
@@ -314,10 +305,23 @@ add_executable(
         src/rff2/vulkan/GPCLinearInterpolation.cpp
         src/rff2/vulkan/GPCLinearInterpolation.hpp
         src/rff2/vulkan/RCCLinearInterpolation.hpp
+        src/vulkan_helper/core/vkh_base.hpp
+        src/vulkan_helper/core/vkh.hpp
+        src/vulkan_helper/core/vkh_core.hpp
+        src/vulkan_helper/hash/PipelineLayoutManagerEquals.hpp
+        src/vulkan_helper/hash/VariantHasher.hpp
+        src/vulkan_helper/impl/Semaphore.cpp
+        src/vulkan_helper/impl/Semaphore.hpp
 )
 
-
 find_package(Vulkan REQUIRED)
+
+target_compile_options(RFF PRIVATE
+        #Debug options
+        $<$<CONFIG:Debug>:-O0>
+        #Release options
+        $<$<CONFIG:Release>:-Ofast -funroll-loops -march=native>
+)
 
 target_compile_definitions(RFF
         PRIVATE

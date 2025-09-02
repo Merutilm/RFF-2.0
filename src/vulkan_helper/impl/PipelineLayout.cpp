@@ -5,9 +5,9 @@
 #include "PipelineLayout.hpp"
 
 namespace merutilm::vkh {
-    PipelineLayoutImpl::PipelineLayoutImpl(const CoreRef core,
+    PipelineLayoutImpl::PipelineLayoutImpl(CoreRef core,
                                    PipelineLayoutManager &&pipelineLayoutManager) : CoreHandler(
-        core), pipelineLayoutManager(std::move(pipelineLayoutManager)) {
+        core), builders(std::move(pipelineLayoutManager->builders)), descriptorSetLayoutCount(std::move(pipelineLayoutManager->descriptorSetLayoutCount)) {
         PipelineLayoutImpl::init();
     }
 
@@ -17,11 +17,11 @@ namespace merutilm::vkh {
 
     void PipelineLayoutImpl::cmdPush(const VkCommandBuffer commandBuffer) const {
         uint32_t sizeSum = 0;
-        for (auto &pushConstant: pipelineLayoutManager->getPushConstantManagers()) {
-            const uint32_t size = pushConstant->getTotalSizeByte();
+        for (auto &pushConstant : getPushConstants()) {
+            const uint32_t size = pushConstant->getHostObject().getTotalSizeByte();
             vkCmdPushConstants(commandBuffer, layout, pushConstant->getUseStage(),
                              sizeSum, size,
-                             pushConstant->getData().data());
+                             pushConstant->getHostObject().getData().data());
             sizeSum += size;
         }
     }
@@ -30,14 +30,14 @@ namespace merutilm::vkh {
     void PipelineLayoutImpl::init() {
         uint32_t sizeSum = 0;
         std::vector<VkPushConstantRange> pushConstantRanges = {};
-        for (const auto &pushConstantManager: pipelineLayoutManager->getPushConstantManagers()) {
-            const uint32_t size = pushConstantManager->getTotalSizeByte();
+        for (const auto &pushConstantManager: getPushConstants()) {
+            const uint32_t size = pushConstantManager->getHostObject().getTotalSizeByte();
             pushConstantRanges.emplace_back(pushConstantManager->getUseStage(), sizeSum, size);
             sizeSum += size;
         }
 
         std::vector<VkDescriptorSetLayout> layouts = {};
-        for (const auto &layout: pipelineLayoutManager->getDescriptorSetLayouts()){
+        for (const auto &layout: getDescriptorSetLayouts()){
             layouts.push_back(layout->getLayoutHandle());
         }
 

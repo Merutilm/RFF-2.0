@@ -2,6 +2,9 @@
 // Created by Merutilm on 2025-05-19.
 //
 #pragma once
+#include <codecvt>
+#include <locale>
+#include <windows.h>
 #include <string>
 
 namespace merutilm::rff2 {
@@ -61,36 +64,50 @@ namespace merutilm::rff2 {
     }
 
     namespace Parser {
-        constexpr auto STRING = [](const std::string &s) { return s; };
-        constexpr auto CHAR = [](const std::string &s) { return static_cast<char>(std::stoi(s) & 0xFF); };
-        constexpr auto U_CHAR = [](const std::string &s) { return static_cast<unsigned char>(std::stoul(s) & 0xFF); };
-        constexpr auto SHORT = [](const std::string &s) { return static_cast<short>(std::stoi(s) & 0xFFFF); };
-        constexpr auto U_SHORT = [](const std::string &s) {
+        constexpr auto STRING = [](const std::wstring &s) {
+            const int size = WideCharToMultiByte(CP_UTF8, 0, s.data(), -1, nullptr, 0, nullptr, nullptr);
+            std::string str(size, 0);
+            WideCharToMultiByte(CP_UTF8, 0, s.data(), -1, &str[0], size, nullptr, nullptr);
+            str.pop_back();
+            return str;
+        };
+        constexpr auto WSTRING = [](const std::wstring &s) { return s; };
+        constexpr auto CHAR = [](const std::wstring &s) { return static_cast<char>(std::stoi(s) & 0xFF); };
+        constexpr auto U_CHAR = [](const std::wstring &s) { return static_cast<unsigned char>(std::stoul(s) & 0xFF); };
+        constexpr auto SHORT = [](const std::wstring &s) { return static_cast<short>(std::stoi(s) & 0xFFFF); };
+        constexpr auto U_SHORT = [](const std::wstring &s) {
             return static_cast<unsigned short>(std::stoul(s) & 0xFFFF);
         };
-        constexpr auto INT = [](const std::string &s) { return std::stoi(s); };
-        constexpr auto LONG = [](const std::string &s) { return std::stol(s); };
-        constexpr auto LONG_LONG = [](const std::string &s) { return std::stoll(s); };
-        constexpr auto U_LONG = [](const std::string &s) { return std::stoul(s); };
-        constexpr auto U_LONG_LONG = [](const std::string &s) { return std::stoull(s); };
-        constexpr auto FLOAT = [](const std::string &s) { return std::stof(s); };
-        constexpr auto DOUBLE = [](const std::string &s) { return std::stod(s); };
-        constexpr auto LONG_DOUBLE = [](const std::string &s) { return std::stold(s); };
+        constexpr auto INT = [](const std::wstring &s) { return std::stoi(s); };
+        constexpr auto LONG = [](const std::wstring &s) { return std::stol(s); };
+        constexpr auto LONG_LONG = [](const std::wstring &s) { return std::stoll(s); };
+        constexpr auto U_LONG = [](const std::wstring &s) { return std::stoul(s); };
+        constexpr auto U_LONG_LONG = [](const std::wstring &s) { return std::stoull(s); };
+        constexpr auto FLOAT = [](const std::wstring &s) { return std::stof(s); };
+        constexpr auto DOUBLE = [](const std::wstring &s) { return std::stod(s); };
+        constexpr auto LONG_DOUBLE = [](const std::wstring &s) { return std::stold(s); };
     }
 
     namespace Unparser {
-        constexpr auto STRING = [](const std::string &s) { return s; };
-        constexpr auto CHAR = [](const char &s) { return std::to_string(s); };
-        constexpr auto U_CHAR = [](const unsigned char &s) { return std::to_string(s); };
-        constexpr auto SHORT = [](const short &s) { return std::to_string(s); };
-        constexpr auto U_SHORT = [](const unsigned short &s) { return std::to_string(s); };
-        constexpr auto INT = [](const int &s) { return std::to_string(s); };
-        constexpr auto LONG = [](const long &s) { return std::to_string(s); };
-        constexpr auto LONG_LONG = [](const long long &s) { return std::to_string(s); };
-        constexpr auto U_LONG = [](const unsigned long &s) { return std::to_string(s); };
-        constexpr auto U_LONG_LONG = [](const unsigned long long &s) { return std::to_string(s); };
-        constexpr auto FLOAT = [](const float &s) { return std::to_string(s); };
-        constexpr auto DOUBLE = [](const double &s) { return std::to_string(s); };
-        constexpr auto LONG_DOUBLE = [](const long double &s) { return std::to_string(s); };
+        constexpr auto STRING = [](const std::string &s) {
+            const int size = MultiByteToWideChar(CP_UTF8, 0, s.data(), -1, nullptr, 0);
+            std::wstring str(size, 0);
+            MultiByteToWideChar(CP_UTF8, 0, s.data(), -1, &str[0], size);
+            str.pop_back();
+            return str;
+        };
+        constexpr auto WSTRING = [](const std::wstring &s) { return s; };
+        constexpr auto CHAR = [](const char &s) { return std::to_wstring(s); };
+        constexpr auto U_CHAR = [](const unsigned char &s) { return std::to_wstring(s); };
+        constexpr auto SHORT = [](const short &s) { return std::to_wstring(s); };
+        constexpr auto U_SHORT = [](const unsigned short &s) { return std::to_wstring(s); };
+        constexpr auto INT = [](const int &s) { return std::to_wstring(s); };
+        constexpr auto LONG = [](const long &s) { return std::to_wstring(s); };
+        constexpr auto LONG_LONG = [](const long long &s) { return std::to_wstring(s); };
+        constexpr auto U_LONG = [](const unsigned long &s) { return std::to_wstring(s); };
+        constexpr auto U_LONG_LONG = [](const unsigned long long &s) { return std::to_wstring(s); };
+        constexpr auto FLOAT = [](const float &s) { return std::to_wstring(s); };
+        constexpr auto DOUBLE = [](const double &s) { return std::to_wstring(s); };
+        constexpr auto LONG_DOUBLE = [](const long double &s) { return std::to_wstring(s); };
     }
 }

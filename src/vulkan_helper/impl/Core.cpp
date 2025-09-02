@@ -4,8 +4,8 @@
 
 #include "Core.hpp"
 
-#include "../def/Factory.hpp"
-#include "../exception/exception.hpp"
+#include "../core/factory.hpp"
+#include "../core/exception.hpp"
 #include "../util/PhysicalDeviceUtils.hpp"
 
 namespace merutilm::vkh {
@@ -26,7 +26,7 @@ namespace merutilm::vkh {
 
 
     void CoreImpl::init() {
-        instance = Factory::create<Instance>(true);
+        instance = factory::create<Instance>();
         startTime = std::chrono::high_resolution_clock::now();
     }
 
@@ -35,17 +35,17 @@ namespace merutilm::vkh {
             throw exception_init(std::format("Window index expected : {} but provided {}", windowContexts.size(), graphicsWindowIndexExpected));
         }
 
-        auto window = Factory::create<GraphicsContextWindow>(hwnd, framerate);
-        auto surface = Factory::create<Surface>(*instance, *window);
+        auto window = factory::create<GraphicsContextWindow>(hwnd, framerate);
+        auto surface = factory::create<Surface>(*instance, *window);
 
         if (physicalDevice == nullptr) {
-            physicalDevice = Factory::create<PhysicalDeviceLoader>(*instance, *surface);
-            logicalDevice = Factory::create<LogicalDevice>(*instance, *physicalDevice);
+            physicalDevice = factory::create<PhysicalDeviceLoader>(*instance, *surface);
+            logicalDevice = factory::create<LogicalDevice>(*instance, *physicalDevice);
         }else if (!PhysicalDeviceUtils::isDeviceSuitable(physicalDevice->getPhysicalDeviceHandle(), surface->getSurfaceHandle())){
             throw exception_invalid_args("Invalid window provided");
         }
 
-        auto swapchain = Factory::create<Swapchain>(*surface, *physicalDevice, *logicalDevice);
+        auto swapchain = factory::create<Swapchain>(*surface, *physicalDevice, *logicalDevice);
         windowContexts.push_back(WindowContext{std::move(window), std::move(surface), std::move(swapchain)});
 
     }

@@ -4,7 +4,7 @@
 
 #include "GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
-#include "../def/Factory.hpp"
+#include "../core/vkh_core.hpp"
 #include "../impl/GraphicsPipeline.hpp"
 #include "../struct/Vertex.hpp"
 
@@ -19,36 +19,34 @@ namespace merutilm::vkh {
     }
 
 
-    void GeneralPostProcessGraphicsPipelineConfigurator::cmdRender(const VkCommandBuffer cbh, const uint32_t frameIndex) {
-        pipeline->cmdBindAll(cbh, frameIndex);
+    void GeneralPostProcessGraphicsPipelineConfigurator::cmdRender(const VkCommandBuffer cbh, const uint32_t frameIndex, DescIndexPicker &&descIndices) {
+        pipeline->cmdBindAll(cbh, frameIndex, std::move(descIndices));
         cmdPushAll(cbh);
         cmdDraw(cbh, frameIndex, 0);
     }
 
 
-    void GeneralPostProcessGraphicsPipelineConfigurator::configureVertexBuffer(HostBufferObjectManagerRef som) {
+    void GeneralPostProcessGraphicsPipelineConfigurator::configureVertexBuffer(HostDataObjectManagerRef som) {
         som.addArray(0, std::vector{
                     Vertex::generate({1, 1, 0}, {1, 1, 1}, {1, 1}),
                     Vertex::generate({1, -1, 0}, {1, 1, 1}, {1, 0}),
                     Vertex::generate({-1, -1, 0}, {1, 1, 1}, {0, 0}),
-                    Vertex::generate({-1, 1, 0}, {1, 1, 1}, {0, 1}),
+            Vertex::generate({-1, 1, 0}, {1, 1, 1}, {0, 1}),
                 });
     }
 
-    void GeneralPostProcessGraphicsPipelineConfigurator::configureIndexBuffer(HostBufferObjectManagerRef som) {
+    void GeneralPostProcessGraphicsPipelineConfigurator::configureIndexBuffer(HostDataObjectManagerRef som) {
         som.addArray(0, std::vector<uint32_t>{0, 1, 2, 2, 3, 0});
     }
 
     void GeneralPostProcessGraphicsPipelineConfigurator::configure() {
-        auto pipelineLayoutManager = Factory::create<PipelineLayoutManager>();
-        auto &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
+        auto pipelineLayoutManager = factory::create<PipelineLayoutManager>();
 
         std::vector<DescriptorPtr> descriptors = {};
         configureDescriptors(descriptors);
 
-        for (const auto descriptor: descriptors) {
-            DescriptorSetLayoutRef layout = layoutRepo.pick(descriptor->getDescriptorManager().getLayoutBuilder());
-            pipelineLayoutManager->appendDescriptorSetLayout(&layout);
+        for (const auto descriptor : descriptors) {
+            pipelineLayoutManager->appendDescriptorSetLayout(&descriptor->getLayout());
         }
 
         configurePushConstant(*pipelineLayoutManager);
@@ -56,7 +54,7 @@ namespace merutilm::vkh {
             std::move(pipelineLayoutManager));
 
 
-        auto pipelineManager = Factory::create<PipelineManager>(pipelineLayout);
+        auto pipelineManager = factory::create<PipelineManager>(pipelineLayout);
 
         pipelineManager->attachDescriptor(std::move(descriptors));
         pipelineManager->attachShader(&vertexShader);
@@ -64,14 +62,14 @@ namespace merutilm::vkh {
 
 
         if (!initializedVertexIndex) {
-            auto vertManager = Factory::create<HostBufferObjectManager>();;
-            auto indexManager = Factory::create<HostBufferObjectManager>();;
+            auto vertManager = factory::create<HostDataObjectManager>();;
+            auto indexManager = factory::create<HostDataObjectManager>();;
 
             configureVertexBuffer(*vertManager);
             configureIndexBuffer(*indexManager);
 
-            vertexBufferPP = Factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_ONLY);
-            indexBufferPP = Factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_ONLY);
+            vertexBufferPP = factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_ONLY);
+            indexBufferPP = factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_ONLY);
             for (int i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
                 vertexBufferPP->update(i);
                 indexBufferPP->update(i);
@@ -82,7 +80,7 @@ namespace merutilm::vkh {
         }
 
         if (initializedVertexIndex) {
-            pipeline = Factory::create<GraphicsPipeline>(engine, pipelineLayout, getVertexBuffer(), getIndexBuffer(), renderContextIndex,
+            pipeline = factory::create<GraphicsPipeline>(engine, pipelineLayout, getVertexBuffer(), getIndexBuffer(), renderContextIndex,
                                                   primarySubpassIndex,
                                                   std::move(pipelineManager));
         }

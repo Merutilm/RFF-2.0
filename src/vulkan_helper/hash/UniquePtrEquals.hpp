@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include <memory>
+#include "../core/vkh_base.hpp"
 
 namespace merutilm::vkh {
     struct UniquePtrEquals {

@@ -8,6 +8,9 @@
 
 namespace merutilm::rff2 {
     class GPCResample final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
+
+        static constexpr uint32_t RESAMPLE_IMAGES_COUNT_PER_FRAME = 2;
+
         static constexpr uint32_t SET_RESAMPLE = 0;
 
         static constexpr uint32_t BINDING_RESAMPLE_SAMPLER = 0;
@@ -33,9 +36,9 @@ namespace merutilm::rff2 {
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
-        void setTargetImageContext(const vkh::MultiframeImageContext &context, uint32_t frameIndex) const;
+        void setTargetImageContext(uint32_t descIndex, const vkh::MultiframeImageContext &context) const;
 
-        void setResolution(const glm::uvec2 & newResolution) const;
+        void setRescaledResolution(uint32_t descIndex, const glm::uvec2 &newResolution) const;
 
         void pipelineInitialized() override;
 

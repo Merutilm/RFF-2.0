@@ -73,13 +73,13 @@ namespace merutilm::rff2 {
                Constants::Win32::GAP_SETTINGS_INPUT;
     }
 
-    void SettingsWindow::createLabel(const std::string_view &settingsName, const std::string_view descriptionTitle,
-                                     const std::string_view descriptionDetail, const int nw) {
-        const HWND text = CreateWindowEx(0, WC_STATIC, settingsName.data(),
+    void SettingsWindow::createLabel(const std::wstring_view &settingsName, const std::wstring_view descriptionTitle,
+                                     const std::wstring_view descriptionDetail, const int nw) {
+        const HWND text = CreateWindowExW(0, WC_STATICW, settingsName.data(),
                                          Constants::Win32::STYLE_LABEL, 0,
                                          getYOffset(), nw,
                                          Constants::Win32::SETTINGS_INPUT_HEIGHT, window, nullptr, nullptr, nullptr);
-        const HWND tooltip = CreateWindowEx(Constants::Win32::STYLE_EX_TOOLTIP, TOOLTIPS_CLASS, "",
+        const HWND tooltip = CreateWindowExW(Constants::Win32::STYLE_EX_TOOLTIP, TOOLTIPS_CLASSW, L"",
                                             Constants::Win32::STYLE_TOOLTIP,
                                             CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, window, nullptr,
                                             nullptr, nullptr);
@@ -184,12 +184,12 @@ namespace merutilm::rff2 {
                 wnd.edited[index] = true;
             }
             if (wParam == VK_ESCAPE && wnd.checkIndex(index)) {
-                SetWindowText(window, (*wnd.unparsers[index])(wnd.references[index]).data());
+                SetWindowTextW(window, (*wnd.unparsers[index])(wnd.references[index]).data());
             }
             if (wParam == VK_RETURN && wnd.checkIndex(index)) {
                 const int length = GetWindowTextLength(window) + 1; //include NULL character
-                std::string buf(length, '\0');
-                GetWindowText(window, buf.data(), length);
+                std::wstring buf(length, '\0');
+                GetWindowTextW(window, buf.data(), length);
 
                 const HDC hdc = GetDC(window);
                 try {
@@ -206,7 +206,7 @@ namespace merutilm::rff2 {
                 } catch (std::invalid_argument &) {
                     wnd.callError(index);
                 }
-                SetWindowText(window, wnd.currValueToString(index).data());
+                SetWindowTextW(window, wnd.currValueToString(index).data());
                 ReleaseDC(window, hdc);
             }
         }
@@ -221,7 +221,7 @@ namespace merutilm::rff2 {
     }
 
 
-    std::string SettingsWindow::currValueToString(const int index) const {
+    std::wstring SettingsWindow::currValueToString(const int index) const {
         return (*unparsers[index])(references[index]);
     }
 

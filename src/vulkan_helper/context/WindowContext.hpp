@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include <memory>
+#include "../core/vkh_base.hpp"
 
 #include "../impl/GraphicsContextWindow.hpp"
 #include "../impl/Surface.hpp"

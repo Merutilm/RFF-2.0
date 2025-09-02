@@ -16,11 +16,11 @@ namespace merutilm::vkh {
     }
 
 
-    void ComputeShaderPipelineImpl::cmdBindAll(const VkCommandBuffer cbh, const uint32_t frameIndex) const {
-        const auto sets = pipelineManager->getDescriptorSets(frameIndex);
+    void ComputeShaderPipelineImpl::cmdBindAll(const VkCommandBuffer cbh, const uint32_t frameIndex, DescIndexPicker &&descIndices) const {
+        const auto sets = enumerateDescriptorSets(frameIndex, std::move(descIndices));
         vkCmdBindPipeline(cbh, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
         vkCmdBindDescriptorSets(cbh, VK_PIPELINE_BIND_POINT_COMPUTE,
-                                pipelineManager->getLayout().getLayoutHandle(), 0,
+                                getLayout().getLayoutHandle(), 0,
                                 static_cast<uint32_t>(sets.size()), sets.data(), 0,
                                 nullptr);
     }
@@ -36,7 +36,7 @@ namespace merutilm::vkh {
                 .pNext = nullptr,
                 .flags = 0,
                 .stage = VK_SHADER_STAGE_COMPUTE_BIT,
-                .module = pipelineManager->getShaderModules()[0]->getShaderModuleHandle(),
+                .module = getShaderModules()[0]->getShaderModuleHandle(),
                 .pName = "main",
                 .pSpecializationInfo = nullptr
             },

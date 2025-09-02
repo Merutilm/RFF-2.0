@@ -9,7 +9,7 @@ namespace merutilm::vkh {
     class UniformImpl final : public BufferObjectAbstract {
 
     public:
-        explicit UniformImpl(const CoreRef core, HostBufferObjectManager &&manager, BufferLock bufferLock);
+        explicit UniformImpl(const CoreRef core, HostDataObjectManager &&manager, BufferLock bufferLock);
 
         ~UniformImpl() override;
 

@@ -7,13 +7,19 @@
 #include <format>
 #include <utility>
 
-#include "../exception/exception.hpp"
+#include "../core/exception.hpp"
 #include "../manage/RenderPassManager.hpp"
 
 namespace merutilm::vkh {
-    RenderPassImpl::RenderPassImpl(const CoreRef core,
-                           RenderPassManager &&manager) : CoreHandler(core),
-                                                                           manager(std::move(manager)) {
+    RenderPassImpl::RenderPassImpl(CoreRef core,
+                                   RenderPassManager &&manager) : CoreHandler(core),
+                                                                  attachments(std::move(manager->attachments)),
+                                                                  preserveIndices(std::move(manager->preserveIndices)),
+                                                                  attachmentReferences(
+                                                                      std::move(manager->attachmentReferences)),
+                                                                  subpassDependencies(
+                                                                      std::move(manager->subpassDependencies)),
+                                                                  subpassCount(manager->subpassCount) {
         RenderPassImpl::init();
     }
 
@@ -22,17 +28,17 @@ namespace merutilm::vkh {
     }
 
     void RenderPassImpl::init() {
-        const uint32_t subpasses = manager->getSubpassCount();
+        const uint32_t subpasses = getSubpassCount();
         std::vector<VkSubpassDescription> subpassDescription(subpasses);
 
-        auto &dependencies = manager->getSubpassDependencies();
+        auto &dependencies = getSubpassDependencies();
 
         using enum RenderPassAttachmentType;
         for (uint32_t i = 0; i < subpasses; i++) {
-            auto &inputRef = manager->getAttachmentReferences(i, INPUT);
-            auto &colorRef = manager->getAttachmentReferences(i, COLOR);
-            auto &resolveRef = manager->getAttachmentReferences(i, RESOLVE);
-            auto &depthStencilRef = manager->getAttachmentReferences(i, DEPTH_STENCIL);
+            auto &inputRef = getAttachmentReferences(i, INPUT);
+            auto &colorRef = getAttachmentReferences(i, COLOR);
+            auto &resolveRef = getAttachmentReferences(i, RESOLVE);
+            auto &depthStencilRef = getAttachmentReferences(i, DEPTH_STENCIL);
 
 
             if (!resolveRef.empty() && colorRef.size() != resolveRef.size()) {
@@ -48,11 +54,11 @@ namespace merutilm::vkh {
                 .pColorAttachments = colorRef.data(),
                 .pResolveAttachments = resolveRef.data(),
                 .pDepthStencilAttachment = depthStencilRef.data(),
-                .preserveAttachmentCount = manager->getPreserveIndicesCount(i),
-                .pPreserveAttachments = manager->getPreserveIndices(i),
+                .preserveAttachmentCount = getPreserveIndicesCount(i),
+                .pPreserveAttachments = getPreserveIndices(i),
             };
         }
-        auto &attachments = manager->getAttachments();
+        auto &attachments = getAttachments();
         auto attachmentDesc = std::vector<VkAttachmentDescription>(attachments.size());
         std::ranges::transform(attachments, attachmentDesc.begin(),
                                [](const RenderPassAttachment &v) { return v.attachment; });

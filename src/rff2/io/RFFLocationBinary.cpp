@@ -6,7 +6,7 @@
 
 #include <utility>
 
-#include "../../vulkan_helper/util/logger.hpp"
+#include "../../vulkan_helper/core/logger.hpp"
 #include "../ui/IOUtilities.h"
 
 namespace merutilm::rff2 {
@@ -71,7 +71,7 @@ namespace merutilm::rff2 {
             IOUtilities::encodeAndWrite(out, imag.data(), imag.length());
             out.close();
         } else {
-            vkh::logger::log("ERROR : Cannot save file");
+            vkh::logger::w_log(L"ERROR : Cannot save file");
         }
     }
 

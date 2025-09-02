@@ -31,13 +31,9 @@ float getHue(vec3 col) {
         return 0;
     }
 
-    float mid = clamp(col.r + col.g + col.b - high - low, 0, 1);
     float range = high - low;
-    float rat = (mid - low) / range;
-
-    if(mid - low < -0.00){
-        return 0;
-    }
+    float mid = clamp(col.r + col.g + col.b - high - low, 0, 1);
+    float rat = max(mid - low, 0) / range;
 
     float offset;
     // hue detection, 0 = low, 1 = high

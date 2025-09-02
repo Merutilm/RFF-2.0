@@ -54,7 +54,9 @@ namespace merutilm::rff2 {
 
         scene.getState().cancel();
         const MandelbrotPerturbator *perturbator = scene.getCurrentPerturbator();
-        assert(perturbator != nullptr);
+        if(perturbator == nullptr) {
+            throw vkh::exception_invalid_state("Perturbator cannot be null");
+        }
 
         scene.getState().createThread(
             [&scene, logZoom = settings.calc.logZoom, perturbator, &settings](
@@ -70,7 +72,7 @@ namespace merutilm::rff2 {
                 );
 
                 if (locator == nullptr) {
-                    vkh::logger::log("Locate Minibrot Cancelled.");
+                    vkh::logger::w_log(L"Locate Minibrot Cancelled.");
                     return;
                 }
                 const CalcAttribute &locatorCalc = locator->perturbator->getCalculationSettings();
@@ -88,7 +90,7 @@ namespace merutilm::rff2 {
         return [&scene, logZoom, longestPeriod](const uint64_t p, int i) {
             if (p % Utilities::getRefreshInterval(logZoom) == 0) {
                 scene.setStatusMessage(Constants::Status::RENDER_STATUS,
-                                       std::format("L : {:.3f}%[{}]",
+                                       std::format(L"L : {:.3f}%[{}]",
                                                    static_cast<float>(100 * p) / static_cast<float>(
                                                        longestPeriod),
                                                    i));
@@ -101,7 +103,7 @@ namespace merutilm::rff2 {
         return [&scene, logZoom](const uint64_t p, const float i) {
             if (p % Utilities::getRefreshInterval(logZoom) == 0) {
                 scene.setStatusMessage(Constants::Status::RENDER_STATUS,
-                                       std::format("A : {:.3f}%", i * 100));
+                                       std::format(L"A : {:.3f}%", i * 100));
             }
         };
     }
@@ -110,7 +112,7 @@ namespace merutilm::rff2 {
     std::function<void(float)> CallbackExplore::getActionWhileFindingZoom(const RenderScene &scene) {
         return [&scene](float zoom) {
             scene.setStatusMessage(Constants::Status::RENDER_STATUS,
-                                   std::format("Z : 10^{}", zoom));
+                                   std::format(L"Z : 10^{}", zoom));
         };
     }
 }

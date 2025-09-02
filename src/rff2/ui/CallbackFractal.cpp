@@ -21,7 +21,7 @@ namespace merutilm::rff2 {
         auto locationChanged = std::make_shared<bool>(false);
 
 
-        window->registerTextInput<std::string>("Real", &(*centerPtr)[0],
+        window->registerTextInput<std::string>(L"Real", &(*centerPtr)[0],
                                                Unparser::STRING,
                                                Parser::STRING, [](const std::string &v) {
                                                    mpf_t t;
@@ -30,8 +30,8 @@ namespace merutilm::rff2 {
                                                    return valid;
                                                }, [centerPtr, locationChanged] {
                                                    *locationChanged = true;
-                                               }, "Real", "Sets the real part of center.");
-        window->registerTextInput<std::string>("Imag", &(*centerPtr)[1],
+                                               }, L"Real", L"Sets the real part of center.");
+        window->registerTextInput<std::string>(L"Imag", &(*centerPtr)[1],
                                                Unparser::STRING,
                                                Parser::STRING, [](const std::string &v) {
                                                    mpf_t t;
@@ -40,36 +40,36 @@ namespace merutilm::rff2 {
                                                    return valid;
                                                }, [centerPtr, locationChanged] {
                                                    *locationChanged = true;
-                                               }, "Imag", "Sets the imaginary part of center.");
-        window->registerTextInput<float>("Log Zoom", zoomPtr.get(), Unparser::FLOAT,
+                                               }, L"Imag", L"Sets the imaginary part of center.");
+        window->registerTextInput<float>(L"Log Zoom", zoomPtr.get(), Unparser::FLOAT,
                                          Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
                                          [zoomPtr, locationChanged] {
                                              *locationChanged = true;
-                                         }, "Log zoom", "Sets the log scale of zoom.");
-        window->registerRadioButtonInput<CalReuseReferenceMethod>("Reuse Reference", &calc.reuseReferenceMethod,
-                                                               Callback::NOTHING, "Reuse Reference method",
-                                                               "Sets the reuse reference method.");
-        window->registerTextInput<uint32_t>("Reference Compression Criteria",
+                                         }, L"Log zoom", L"Sets the log scale of zoom.");
+        window->registerRadioButtonInput<CalReuseReferenceMethod>(L"Reuse Reference", &calc.reuseReferenceMethod,
+                                                               Callback::NOTHING, L"Reuse Reference method",
+                                                               L"Sets the reuse reference method.");
+        window->registerTextInput<uint32_t>(L"Reference Compression Criteria",
                                             &calc.referenceCompAttribute.compressCriteria,
                                             Unparser::U_LONG, Parser::U_LONG,
                                             ValidCondition::ALL_U_LONG, Callback::NOTHING,
-                                            "Reference Compression Criteria",
-                                            "When compressing references, sets the minimum amount of references to compress at one time.\n"
-                                            "Reference compression slows down the calculation but frees up memory space.\n"
-                                            "Not activate option is ZERO.");
-        window->registerTextInput<uint8_t>("Reference Compression Threshold",
+                                            L"Reference Compression Criteria",
+                                            L"When compressing references, sets the minimum amount of references to compress at one time.\n"
+                                            L"Reference compression slows down the calculation but frees up memory space.\n"
+                                            L"Not activate option is ZERO.");
+        window->registerTextInput<uint8_t>(L"Reference Compression Threshold",
                                            &calc.referenceCompAttribute.compressionThresholdPower,
                                            Unparser::U_CHAR, Parser::U_CHAR,
                                            ValidCondition::ALL_U_CHAR, Callback::NOTHING,
-                                           "Reference Compression Threshold Power",
-                                           "When compressing references, sets the negative exponents of ten of minimum error to be considered equal.\n"
-                                           "Reference compression slows down the calculation but frees up memory space.\n"
-                                           "Not activate option is ZERO.");
-        window->registerBoolInput("NO Compressor normalization",
+                                           L"Reference Compression Threshold Power",
+                                           L"When compressing references, sets the negative exponents of ten of minimum error to be considered equal.\n"
+                                           L"Reference compression slows down the calculation but frees up memory space.\n"
+                                           L"Not activate option is ZERO.");
+        window->registerBoolInput(L"NO Compressor normalization",
                                   &calc.referenceCompAttribute.noCompressorNormalization, Callback::NOTHING,
-                                  "NO Compressor normalization",
-                                  "Do not use normalization when compressing references. "
-                                  "this will accelerates table creation, But may cause table creation to fail in the specific locations!!");
+                                  L"NO Compressor normalization",
+                                  L"Do not use normalization when compressing references. L"
+                                  L"this will accelerates table creation, But may cause table creation to fail in the specific locations!!");
         window->setWindowCloseFunction(
             [centerPtr, zoomPtr, locationChanged, &settingsMenu, &scene, &calc] {
                 const int exp10 = Perturbator::logZoomToExp10(*zoomPtr);
@@ -88,27 +88,27 @@ namespace merutilm::rff2 {
         auto window = std::make_unique<SettingsWindow>(L"Iterations");
 
 
-        window->registerTextInput<uint64_t>("Max Iteration", &calc.maxIteration,
+        window->registerTextInput<uint64_t>(L"Max Iteration", &calc.maxIteration,
                                                 Unparser::U_LONG_LONG,
                                                 Parser::U_LONG_LONG,
                                                 ValidCondition::ALL_U_LONG_LONG,
-                                                Callback::NOTHING, "Set Max Iteration",
-                                                "Set maximum iteration. It is disabled when Auto iteration is enabled.");
-        window->registerTextInput<uint16_t>("Auto Iteration Multiplier", &calc.autoIterationMultiplier,
+                                                Callback::NOTHING, L"Set Max Iteration",
+                                                L"Set maximum iteration. It is disabled when Auto iteration is enabled.");
+        window->registerTextInput<uint16_t>(L"Auto Iteration Multiplier", &calc.autoIterationMultiplier,
                                                         Unparser::U_SHORT,
                                                         Parser::U_SHORT,
                                                         ValidCondition::ALL_U_SHORT,
-                                                        Callback::NOTHING, "Set Auto Iteration Multiplier",
-                                                        "Set auto iteration multiplier. It is disabled when Auto iteration is disabled.");
+                                                        Callback::NOTHING, L"Set Auto Iteration Multiplier",
+                                                        L"Set auto iteration multiplier. It is disabled when Auto iteration is disabled.");
 
-        window->registerTextInput<float>("Bailout", &calc.bailout, Unparser::FLOAT,
+        window->registerTextInput<float>(L"Bailout", &calc.bailout, Unparser::FLOAT,
                                          Parser::FLOAT, [](const float &v) { return v >= 2 && v <= 8; },
-                                         Callback::NOTHING, "Set Bailout", "Sets The Bailout radius"
+                                         Callback::NOTHING, L"Set Bailout", L"Sets The Bailout radius"
         );
-        window->registerRadioButtonInput<CalDecimalizeIterationMethod>("Decimalize iteration",
+        window->registerRadioButtonInput<CalDecimalizeIterationMethod>(L"Decimalize iteration",
                                                                     &calc.decimalizeIterationMethod,
-                                                                    Callback::NOTHING, "Decimalize Iteration Method",
-                                                                    "Sets the decimalization method of iterations.");
+                                                                    Callback::NOTHING, L"Decimalize Iteration Method",
+                                                                    L"Sets the decimalization method of iterations.");
         window->setWindowCloseFunction([&settingsMenu] {
             settingsMenu.setCurrentActiveSettingsWindow(nullptr);
         });
@@ -119,35 +119,35 @@ namespace merutilm::rff2 {
         auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod, mpaCompressionMethod] =
                 scene.getAttribute().calc.mpaAttribute;
         auto window = std::make_unique<SettingsWindow>(L"MP-Approximation");
-        window->registerTextInput<uint16_t>("Min Skip Reference", &minSkipReference, Unparser::U_SHORT,
+        window->registerTextInput<uint16_t>(L"Min Skip Reference", &minSkipReference, Unparser::U_SHORT,
                                             Parser::U_SHORT, [](const unsigned short &v) { return v >= 4; },
-                                            Callback::NOTHING, "Min Skip Reference",
-                                            "Set minimum skipping reference iteration when creating a table.");
-        window->registerTextInput<uint8_t>("Max Multiplier Between Level", &maxMultiplierBetweenLevel,
+                                            Callback::NOTHING, L"Min Skip Reference",
+                                            L"Set minimum skipping reference iteration when creating a table.");
+        window->registerTextInput<uint8_t>(L"Max Multiplier Between Level", &maxMultiplierBetweenLevel,
                                            Unparser::U_CHAR, Parser::U_CHAR,
                                            ValidCondition::POSITIVE_U_CHAR, Callback::NOTHING,
-                                           "Set maximum multiplier between adjacent skipping levels.",
-                                           "This means the maximum multiplier of two adjacent periods for the new period that inserts between them,\n"
-                                           "So the multiplier between the two periods may in the worst case be the square of this."
+                                           L"Set maximum multiplier between adjacent skipping levels.",
+                                           L"This means the maximum multiplier of two adjacent periods for the new period that inserts between them,\n"
+                                           L"So the multiplier between the two periods may in the worst case be the square of this."
         );
-        window->registerTextInput<float>("Epsilon Power", &epsilonPower, Unparser::FLOAT,
+        window->registerTextInput<float>(L"Epsilon Power", &epsilonPower, Unparser::FLOAT,
                                          Parser::FLOAT, ValidCondition::NEGATIVE_FLOAT,
                                          Callback::NOTHING,
-                                         "Set Epsilon power of ten.",
-                                         "Useful for glitch reduction. if this value is small,\n"
-                                         "The fractal will be rendered glitch-less but slow,\n"
-                                         "and is large, It will be fast, but maybe shown visible glitches."
+                                         L"Set Epsilon power of ten.",
+                                         L"Useful for glitch reduction. if this value is small,\n"
+                                         L"The fractal will be rendered glitch-less but slow,\n"
+                                         L"and is large, It will be fast, but maybe shown visible glitches."
         );
-        window->registerRadioButtonInput<CalMPASelectionMethod>("Selection Method", &mpaSelectionMethod,
-                                                             Callback::NOTHING, "Set the selection method of MPA.",
-                                                             "The first target PA is always the front element."
+        window->registerRadioButtonInput<CalMPASelectionMethod>(L"Selection Method", &mpaSelectionMethod,
+                                                             Callback::NOTHING, L"Set the selection method of MPA.",
+                                                             L"The first target PA is always the front element."
         );
 
-        window->registerRadioButtonInput<CalMPACompressionMethod>("Compression Method", &mpaCompressionMethod,
-                                                               Callback::NOTHING, "Set the compression method of MPA.",
-                                                               "\"Little Compression\" maybe slowing down for table creation, but allocates the memory efficiently.\n"
-                                                               "\"Strongest\" works based on the Reference Compressor, so if it is disabled, it will behave the same as \"Little Compression\".\n "
-                                                               "It uses acceleration when possible, and can accelerate table creation by 10x~100x of times."
+        window->registerRadioButtonInput<CalMPACompressionMethod>(L"Compression Method", &mpaCompressionMethod,
+                                                               Callback::NOTHING, L"Set the compression method of MPA.",
+                                                               L"\"Little Compression\" maybe slowing down for table creation, but allocates the memory efficiently.\n"
+                                                               L"\"Strongest\" works based on the Reference Compressor, so if it is disabled, it will behave the same as \"Little Compression\".\n L"
+                                                               L"It uses acceleration when possible, and can accelerate table creation by 10x~100x of times."
         );
         window->setWindowCloseFunction([&settingsMenu] {
             settingsMenu.setCurrentActiveSettingsWindow(nullptr);

@@ -9,7 +9,7 @@ namespace merutilm::vkh {
     class IndexBufferImpl final : public BufferObjectAbstract {
 
     public:
-        explicit IndexBufferImpl(const CoreRef core, HostBufferObjectManager &&manager, BufferLock bufferLock);
+        explicit IndexBufferImpl(CoreRef core, HostDataObjectManager &&manager, BufferLock bufferLock);
 
         ~IndexBufferImpl() override;
 

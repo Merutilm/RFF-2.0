@@ -3,22 +3,23 @@
 //
 
 #pragma once
-#include <memory>
-#include <string>
-#include <unordered_map>
-
+#include "../core/vkh_base.hpp"
 #include "../impl/ShaderModule.hpp"
 #include "../struct/StringHasher.hpp"
 
 namespace merutilm::vkh {
-    struct ShaderModuleRepo final : Repository<std::string, const std::string&, ShaderModule, ShaderModuleRef, StringHasher, std::equal_to<>>{
-
+    struct ShaderModuleRepo final : Repository<std::string, const std::string &, ShaderModule, ShaderModuleRef,
+                StringHasher, std::equal_to<> > {
         using Repository::Repository;
 
 
         ShaderModuleRef pick(const std::string &filename) override {
-            return *repository.try_emplace(filename, Factory::create<ShaderModule>(core, filename)).first->second;
+            auto it = repository.find(filename);
+            if (it == repository.end()) {
+                auto [newIt, _] = repository.try_emplace(filename, factory::create<ShaderModule>(core, filename));
+                it = newIt;
+            }
+            return *it->second;
         }
-
     };
 }

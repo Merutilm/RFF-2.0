@@ -4,8 +4,6 @@
 
 #include "Framebuffer.hpp"
 
-#include "../util/BufferImageUtils.hpp"
-
 namespace merutilm::vkh {
     FramebufferImpl::FramebufferImpl(CoreRef core, RenderPassRef renderPass,
                              const VkExtent2D extent) : CoreHandler(core), renderPass(renderPass), extent(extent) {
@@ -20,7 +18,7 @@ namespace merutilm::vkh {
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         const auto [width, height] = extent;
         framebuffer.resize(maxFramesInFlight);
-        auto & attachments = renderPass.getManager().getAttachments();
+        auto & attachments = renderPass.getAttachments();
 
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             auto attachmentWriteImageViews = std::vector<VkImageView>(attachments.size());

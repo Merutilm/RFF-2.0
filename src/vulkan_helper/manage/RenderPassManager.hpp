@@ -3,17 +3,12 @@
 //
 
 #pragma once
-#include <vector>
-#include <algorithm>
-#include <unordered_map>
-
-#include "../exception/exception.hpp"
+#include "../core/vkh_core.hpp"
 #include "../struct/RenderPassAttachment.hpp"
 #include "../struct/RenderPassAttachmentType.hpp"
-#include "../util/SafeArrayChecker.hpp"
 
 namespace merutilm::vkh {
-    class RenderPassManagerImpl {
+    struct RenderPassManagerImpl {
         std::vector<RenderPassAttachment> attachments = {};
         std::vector<std::vector<uint32_t> > preserveIndices = {};
         std::vector<std::unordered_map<RenderPassAttachmentType, std::vector<VkAttachmentReference> > >
@@ -21,7 +16,6 @@ namespace merutilm::vkh {
         std::vector<VkSubpassDependency> subpassDependencies = {};
         uint32_t subpassCount = 0;
 
-    public:
         explicit RenderPassManagerImpl() = default;
 
         ~RenderPassManagerImpl() = default;
@@ -33,31 +27,6 @@ namespace merutilm::vkh {
         RenderPassManagerImpl(RenderPassManagerImpl &&) = delete;
 
         RenderPassManagerImpl &operator=(RenderPassManagerImpl &&) = delete;
-
-        [[nodiscard]] uint32_t getPreserveIndicesCount(const uint32_t subpassIndex) const {
-            return static_cast<uint32_t>(preserveIndices[subpassIndex].size());
-        };
-
-        [[nodiscard]] uint32_t *getPreserveIndices(const uint32_t subpassIndex) {
-            return preserveIndices[subpassIndex].data();
-        }
-
-        [[nodiscard]] const std::vector<RenderPassAttachment> &getAttachments() const {
-            return attachments;
-        }
-
-
-        [[nodiscard]] uint32_t getSubpassCount() const { return subpassCount; }
-
-
-        [[nodiscard]] const std::vector<VkAttachmentReference> &getAttachmentReferences(
-            const uint32_t subpassIndex, const RenderPassAttachmentType attachmentType) const {
-            return attachmentReferences[subpassIndex].at(attachmentType);
-        }
-
-        [[nodiscard]] const std::vector<VkSubpassDependency> &getSubpassDependencies() const {
-            return subpassDependencies;
-        }
 
 
         void setPreserved(const uint32_t attachmentIndex) {
@@ -83,7 +52,7 @@ namespace merutilm::vkh {
             attachmentReferences.back()[RESOLVE];
             attachmentReferences.back()[DEPTH_STENCIL];
             preserveIndices.emplace_back();
-            SafeArrayChecker::checkIndexEqual(subpassIndexExpected, subpassCount, "Subpass Index");
+            safe_array::check_index_equal(subpassIndexExpected, subpassCount, "Subpass Index");
             ++subpassCount;
         }
 
@@ -98,12 +67,11 @@ namespace merutilm::vkh {
             });
         }
 
-
         void appendAttachment(const uint32_t attachmentIndexExpected,
                               const VkAttachmentDescription &attachmentDescription,
                               const MultiframeImageContext &imageContext) {
             attachments.emplace_back(attachmentDescription, imageContext);
-            SafeArrayChecker::checkIndexEqual(attachmentIndexExpected, static_cast<uint32_t>(attachments.size() - 1),
+            safe_array::check_index_equal(attachmentIndexExpected, static_cast<uint32_t>(attachments.size() - 1),
                                               "Attachment Index");
         }
 

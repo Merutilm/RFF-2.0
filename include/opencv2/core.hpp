@@ -1601,7 +1601,7 @@ CV_EXPORTS_W void exp(InputArray src, OutputArray dst);
 
 /** @brief Calculates the natural logarithm of every array element.
 
-The function cv::log calculates the natural logarithm of every element of the input array:
+The function cv::w_log calculates the natural logarithm of every element of the input array:
 \f[\texttt{dst} (I) =  \log (\texttt{src}(I)) \f]
 
 Output on zero, negative and special (NaN, Inf) values is undefined.

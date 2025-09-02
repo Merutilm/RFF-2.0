@@ -3,10 +3,8 @@
 //
 
 #pragma once
-#include "../exception/exception.hpp"
-#include "../impl/Core.hpp"
 #include "../struct/ImageInitInfo.hpp"
-#include <cmath>
+#include "../impl/Core.hpp"
 
 namespace merutilm::vkh {
     struct BufferImageUtils {

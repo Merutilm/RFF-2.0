@@ -24,7 +24,7 @@ namespace merutilm::rff2 {
                                          core, vkh::ImageInitInfo{
                                              .imageType = VK_IMAGE_TYPE_2D,
                                              .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
-                                             .imageFormat = VK_FORMAT_R8G8B8A8_UNORM,
+                                             .imageFormat = VK_FORMAT_R16G16B16A16_UNORM,
                                              .extent = {width, height, 1},
                                              .useMipmap = false,
                                              .arrayLayers = 1,

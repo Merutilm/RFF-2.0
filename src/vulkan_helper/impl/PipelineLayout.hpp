@@ -10,11 +10,12 @@
 namespace merutilm::vkh {
     class PipelineLayoutImpl final : public CoreHandler {
 
-        PipelineLayoutManager pipelineLayoutManager = nullptr;
         VkPipelineLayout layout = nullptr;
+        PipelineLayoutBuilder builders;
+        uint32_t descriptorSetLayoutCount;
 
     public:
-        explicit PipelineLayoutImpl(const CoreRef core, PipelineLayoutManager &&pipelineLayoutManager);
+        explicit PipelineLayoutImpl(CoreRef core, PipelineLayoutManager &&pipelineLayoutManager);
 
         ~PipelineLayoutImpl() override;
 
@@ -30,7 +31,25 @@ namespace merutilm::vkh {
 
         [[nodiscard]] VkPipelineLayout getLayoutHandle() const { return layout; }
 
-        [[nodiscard]] PipelineLayoutManagerRef getPipelineLayoutManager() const { return *pipelineLayoutManager; }
+        [[nodiscard]] std::vector<DescriptorSetLayoutPtr> getDescriptorSetLayouts() const {
+            std::vector<DescriptorSetLayoutPtr> v(descriptorSetLayoutCount, nullptr);
+            std::transform(builders.begin(), builders.begin() + descriptorSetLayoutCount, v.begin(), [] (const PipelineLayoutBuildType &type){
+                return std::get<DescriptorSetLayoutPtr>(type);
+            });
+            return v;
+        }
+
+        [[nodiscard]] std::vector<PushConstantPtr> getPushConstants() const {
+            std::vector<PushConstantPtr> v(builders.size() - descriptorSetLayoutCount, nullptr);
+            std::transform(builders.begin() + descriptorSetLayoutCount, builders.end(), v.begin(), [] (const PipelineLayoutBuildType &type){
+                return std::get<PushConstantPtr>(type);
+            });
+            return v;
+        }
+
+        [[nodiscard]] PushConstantPtr getPushConstant(const uint32_t pushIndex) const {
+            return std::get<PushConstantPtr>(builders[pushIndex - descriptorSetLayoutCount]);
+        }
 
     private:
         void init() override;

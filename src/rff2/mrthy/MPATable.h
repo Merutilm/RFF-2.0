@@ -16,7 +16,7 @@
 #include <algorithm>
 
 #include "../../vulkan_helper/util/BufferImageUtils.hpp"
-#include "../../vulkan_helper/util/logger.hpp"
+#include "../../vulkan_helper/core/logger.hpp"
 #include "../ui/Utilities.h"
 
 namespace merutilm::rff2 {
@@ -253,15 +253,15 @@ namespace merutilm::rff2 {
 
                 for (uint64_t i = level + 1; i < levels; ++i) {
                     if (i <= level && periodCount[i] != 0) {
-                        vkh::logger::log_err(
-                            "WARNING : Failed to compress!! \n what : the table period count {} is not zero.",
+                        vkh::logger::w_log_err(
+                            L"WARNING : Failed to compress!! \n what : the table period count {} is not zero.",
                             periodCount[i]);
                         valid = false;
                         break;
                     }
                     if (periodCount[i] + skip > tablePeriod[i] - REQUIRED_PERTURBATION) {
-                        vkh::logger::log_err(
-                            "WARNING : Failed to compress!! \n what : the table period count {} + skip {} exceeds its period {}.",
+                        vkh::logger::w_log_err(
+                            L"WARNING : Failed to compress!! \n what : the table period count {} + skip {} exceeds its period {}.",
                             periodCount[i], skip, tablePeriod[i]);
                         valid = false;
                         break;
@@ -332,8 +332,8 @@ namespace merutilm::rff2 {
 
 
                         if (compTableIndex == UINT64_MAX) {
-                            vkh::logger::log_err(
-                                "FATAL : FAILED TO CREATING TABLE!!\n what : iteration {} is not pullable. aborting the table creation...",
+                            vkh::logger::w_log_err(
+                                L"FATAL : FAILED TO CREATING TABLE!!\n what : iteration {} is not pullable. aborting the table creation...",
                                 currentLevel->getStart());
                             return;
                         }

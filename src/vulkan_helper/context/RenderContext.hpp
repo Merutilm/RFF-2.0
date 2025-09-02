@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include <memory>
 
 #include "../configurator/RenderContextConfigurator.hpp"
 #include "../impl/Framebuffer.hpp"
@@ -21,23 +20,23 @@ namespace merutilm::vkh {
         explicit RenderContextImpl(CoreRef core, std::function<VkExtent2D()> &&extentGetter,
                                RenderContextConfigurator &&renderPassConfigurator) : core(core), extentGetter(std::move(extentGetter)) {
 
-            auto renderPassManager = Factory::create<RenderPassManager>();
+            auto renderPassManager = factory::create<RenderPassManager>();
             configurator = std::move(renderPassConfigurator);
             const VkExtent2D extent = this->extentGetter();
             configurator->configure(extent, *renderPassManager);
-            renderPass = Factory::create<RenderPass>(core, std::move(renderPassManager));
-            framebuffer = Factory::create<Framebuffer>(core, *renderPass, extent);
+            renderPass = factory::create<RenderPass>(core, std::move(renderPassManager));
+            framebuffer = factory::create<Framebuffer>(core, *renderPass, extent);
         }
 
         void recreate() {
             framebuffer = nullptr;
             renderPass = nullptr;
             VkExtent2D extent = extentGetter();
-            auto renderPassManager = Factory::create<RenderPassManager>();
+            auto renderPassManager = factory::create<RenderPassManager>();
             configurator->cleanupContexts();
             configurator->configure(extent, *renderPassManager);
-            renderPass = Factory::create<RenderPass>(core, std::move(renderPassManager));
-            framebuffer = Factory::create<Framebuffer>(core, *renderPass, extent);
+            renderPass = factory::create<RenderPass>(core, std::move(renderPassManager));
+            framebuffer = factory::create<Framebuffer>(core, *renderPass, extent);
         }
 
         [[nodiscard]] RenderContextConfiguratorPtr getConfigurator() const {

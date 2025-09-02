@@ -3,11 +3,9 @@
 //
 
 #pragma once
-#include <glm/glm.hpp>
-
+#include "../core/vkh_base.hpp"
 #include "BufferObject.hpp"
 #include "../handle/CoreHandler.hpp"
-#include "HostBufferObject.hpp"
 
 namespace merutilm::vkh {
     class VertexBufferImpl final : public BufferObjectAbstract {
@@ -15,7 +13,7 @@ namespace merutilm::vkh {
         std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
 
     public:
-        explicit VertexBufferImpl(const CoreRef core, HostBufferObjectManager &&manager, BufferLock bufferLock);
+        explicit VertexBufferImpl(CoreRef core, HostDataObjectManager &&manager, BufferLock bufferLock);
 
         ~VertexBufferImpl() override;
 

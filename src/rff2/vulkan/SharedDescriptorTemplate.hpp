@@ -6,7 +6,7 @@
 #include <memory>
 #include <glm/glm.hpp>
 
-#include "../../vulkan_helper/def/Factory.hpp"
+#include "../../vulkan_helper/core/factory.hpp"
 #include "../../vulkan_helper/manage/DescriptorManager.hpp"
 #include "../../vulkan_helper/struct/DescriptorTemplate.hpp"
 
@@ -21,19 +21,19 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_CAMERA_VIEW = 1;
         static constexpr uint32_t TARGET_CAMERA_PROJ = 2;
 
-        vkh::DescriptorManager create(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+        void configure(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
+            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
 
             bufferManager->reserve<glm::mat4>(TARGET_CAMERA_MODEL);
             bufferManager->reserve<glm::mat4>(TARGET_CAMERA_VIEW);
             bufferManager->reserve<glm::mat4>(TARGET_CAMERA_PROJ);
 
-            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager),
+            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager),
                                                           vkh::BufferLock::ALWAYS_MUTABLE);
-            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_CAMERA, STAGE, std::move(ubo));
-            return descManager;
+            managers.emplace_back(std::move(descManager));
         }
     };
 
@@ -45,15 +45,15 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
         static constexpr uint32_t TARGET_TIME_CURRENT = 0;
 
-        vkh::DescriptorManager create(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+        void configure(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
+            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<float>(TARGET_TIME_CURRENT);
-            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager),
+            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager),
                                                           vkh::BufferLock::ALWAYS_MUTABLE);
-            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_TIME, STAGE, std::move(ubo));
-            return descManager;
+            managers.emplace_back(std::move(descManager));
         }
     };
 
@@ -67,17 +67,17 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_ITERATION_MAX = 1;
         static constexpr uint32_t TARGET_ITERATION_BUFFER = 2;
 
-        vkh::DescriptorManager create(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+        void configure(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
+            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<glm::uvec2>(TARGET_ITERATION_EXTENT);
             bufferManager->reserve<double>(TARGET_ITERATION_MAX);
             bufferManager->reserveArray<double>(TARGET_ITERATION_BUFFER, 0);
-            auto ssbo = vkh::Factory::create<vkh::ShaderStorage>(core, std::move(bufferManager),
+            auto ssbo = vkh::factory::create<vkh::ShaderStorage>(core, std::move(bufferManager),
                                                                  vkh::BufferLock::LOCK_UNLOCK);
-            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             descManager->appendSSBO(BINDING_SSBO_ITERATION, STAGE, std::move(ssbo));
-            return descManager;
+            managers.emplace_back(std::move(descManager));
         }
     };
 
@@ -95,9 +95,9 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_PALETTE_ANIMATION_SPEED = 4;
         static constexpr uint32_t TARGET_PALETTE_COLORS = 5;
 
-        vkh::DescriptorManager create(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+        void configure(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
+            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<uint32_t>(TARGET_PALETTE_SIZE);
             bufferManager->reserve<float>(TARGET_PALETTE_INTERVAL);
             bufferManager->reserve<double>(TARGET_PALETTE_OFFSET);
@@ -105,12 +105,12 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager->reserve<float>(TARGET_PALETTE_ANIMATION_SPEED, 8);
             bufferManager->reserveArray<glm::vec4>(TARGET_PALETTE_COLORS, 0);
 
-            auto ssbo = vkh::Factory::create<vkh::ShaderStorage>(core, std::move(bufferManager),
+            auto ssbo = vkh::factory::create<vkh::ShaderStorage>(core, std::move(bufferManager),
                                                                  vkh::BufferLock::LOCK_UNLOCK);
-            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
 
             descManager->appendSSBO(BINDING_SSBO_PALETTE, STAGE, std::move(ssbo));
-            return descManager;
+            managers.emplace_back(std::move(descManager));
         }
     };
 
@@ -128,19 +128,19 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_STRIPE_ANIMATION_SPEED = 5;
 
 
-        vkh::DescriptorManager create(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+        void configure(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
+            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<uint32_t>(TARGET_STRIPE_TYPE);
             bufferManager->reserve<float>(TARGET_STRIPE_FIRST_INTERVAL);
             bufferManager->reserve<float>(TARGET_STRIPE_SECOND_INTERVAL);
             bufferManager->reserve<float>(TARGET_STRIPE_OPACITY);
             bufferManager->reserve<float>(TARGET_STRIPE_OFFSET);
             bufferManager->reserve<float>(TARGET_STRIPE_ANIMATION_SPEED);
-            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
-            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_STRIPE, STAGE, std::move(ubo));
-            return descManager;
+            managers.emplace_back(std::move(descManager));
         }
     };
 
@@ -157,18 +157,18 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_SLOPE_AZIMUTH = 4;
 
 
-        vkh::DescriptorManager create(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+        void configure(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
+            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<float>(TARGET_SLOPE_DEPTH);
             bufferManager->reserve<float>(TARGET_SLOPE_REFLECTION_RATIO);
             bufferManager->reserve<float>(TARGET_SLOPE_OPACITY);
             bufferManager->reserve<float>(TARGET_SLOPE_ZENITH);
             bufferManager->reserve<float>(TARGET_SLOPE_AZIMUTH);
-            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
-            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_SLOPE, STAGE, std::move(ubo));
-            return descManager;
+            managers.emplace_back(std::move(descManager));
         }
     };
 
@@ -182,15 +182,15 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_RESOLUTION_CLARITY_MULTIPLIER = 1;
 
 
-        vkh::DescriptorManager create(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+        void configure(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
+            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<glm::uvec2>(TARGET_RESOLUTION_SWAPCHAIN_EXTENT);
             bufferManager->reserve<float>(TARGET_RESOLUTION_CLARITY_MULTIPLIER);
-            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
-            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_RESOLUTION, STAGE, std::move(ubo));
-            return descManager;
+            managers.emplace_back(std::move(descManager));
         }
     };
 
@@ -208,19 +208,19 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_COLOR_CONTRAST = 5;
 
 
-        vkh::DescriptorManager create(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+        void configure(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
+            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<float>(TARGET_COLOR_GAMMA);
             bufferManager->reserve<float>(TARGET_COLOR_EXPOSURE);
             bufferManager->reserve<float>(TARGET_COLOR_HUE);
             bufferManager->reserve<float>(TARGET_COLOR_SATURATION);
             bufferManager->reserve<float>(TARGET_COLOR_BRIGHTNESS);
             bufferManager->reserve<float>(TARGET_COLOR_CONTRAST);
-            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
-            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_COLOR, STAGE, std::move(ubo));
-            return descManager;
+            managers.emplace_back(std::move(descManager));
         }
     };
 
@@ -233,16 +233,16 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_FOG_RADIUS = 0;
         static constexpr uint32_t TARGET_FOG_OPACITY = 1;
 
-        vkh::DescriptorManager create(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context) override {
-            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+        void configure(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
 
-            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<float>(TARGET_FOG_RADIUS);
             bufferManager->reserve<float>(TARGET_FOG_OPACITY);
-            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
             descManager->appendUBO(BINDING_UBO_FOG, STAGE, std::move(ubo));
-            return descManager;
+            managers.emplace_back(std::move(descManager));
         }
     };
 
@@ -258,17 +258,17 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_BLOOM_INTENSITY = 3;
 
 
-        vkh::DescriptorManager create(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+        void configure(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
+            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<float>(TARGET_BLOOM_THRESHOLD);
             bufferManager->reserve<float>(TARGET_BLOOM_RADIUS);
             bufferManager->reserve<float>(TARGET_BLOOM_SOFTNESS);
             bufferManager->reserve<float>(TARGET_BLOOM_INTENSITY);
-            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
-            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_BLOOM, STAGE, std::move(ubo));
-            return descManager;
+            managers.emplace_back(std::move(descManager));
         }
     };
 
@@ -281,14 +281,14 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_LINEAR_INTERPOLATION_USE = 0;
 
 
-        vkh::DescriptorManager create(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context) override {
-            auto bufferManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
+        void configure(const vkh::CoreRef core,
+                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
+            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<bool>(TARGET_LINEAR_INTERPOLATION_USE, 3);
-            auto ubo = vkh::Factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
-            auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_LINEAR_INTERPOLATION, STAGE, std::move(ubo));
-            return descManager;
+            managers.emplace_back(std::move(descManager));
         }
     };
 }

@@ -45,7 +45,7 @@ namespace merutilm::vkh {
 
 
         void appendStoredImageContext(const uint32_t contextIndexExpected, MultiframeImageContext &&context) {
-            SafeArrayChecker::checkIndexEqual(contextIndexExpected, static_cast<uint32_t>(contexts.size()),
+            safe_array::check_index_equal(contextIndexExpected, static_cast<uint32_t>(contexts.size()),
                                               "Stored Image Context");
             contexts.emplace_back(std::move(context));
         }

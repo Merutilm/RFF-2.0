@@ -3,19 +3,11 @@
 //
 
 #include "ValidationLayer.hpp"
-
-#include <iostream>
-#include <algorithm>
-#include <cstring>
-#include <vector>
-#include <vulkan/vulkan_core.h>
-
-#include "../exception/exception.hpp"
+#include "../core/vkh_core.hpp"
 #include "../util/Debugger.hpp"
 
 namespace merutilm::vkh {
-    ValidationLayerImpl::ValidationLayerImpl(const VkInstance instance, const bool enabled) : instance(instance),
-        enabled(enabled) {
+    ValidationLayerImpl::ValidationLayerImpl(const VkInstance instance) : instance(instance) {
         ValidationLayerImpl::init();
     }
 
@@ -23,8 +15,11 @@ namespace merutilm::vkh {
         ValidationLayerImpl::destroy();
     }
 
-
-    void ValidationLayerImpl::checkValidationLayerSupport() const {
+    void ValidationLayerImpl::init() {
+        checkValidationLayerSupport();
+        setupDebugMessenger();
+    }
+    void ValidationLayerImpl::checkValidationLayerSupport() {
         uint32_t layerCount;
         vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
         std::vector<VkLayerProperties> availableLayers(layerCount);
@@ -33,21 +28,12 @@ namespace merutilm::vkh {
         const bool support = std::ranges::any_of(availableLayers, [](const VkLayerProperties &layerProperties) {
             return strcmp(Debugger::VALIDATION_LAYER, layerProperties.layerName) == 0;
         });
-        if (enabled && !support) {
+        if (!support) {
             throw exception_init("No validation layers available");
         }
     }
 
-
-    void ValidationLayerImpl::init() {
-        checkValidationLayerSupport();
-        setupDebugMessenger();
-    }
-
     void ValidationLayerImpl::setupDebugMessenger() {
-        if (!enabled) {
-            return;
-        }
 
         if (const VkDebugUtilsMessengerCreateInfoEXT createInfo = Debugger::populateDebugMessengerCreateInfo();
             createDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {

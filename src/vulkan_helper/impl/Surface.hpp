@@ -3,8 +3,7 @@
 //
 
 #pragma once
-#include <vulkan/vulkan_core.h>
-
+#include "../core/vkh_base.hpp"
 #include "Instance.hpp"
 #include "GraphicsContextWindow.hpp"
 #include "../handle/Handler.hpp"

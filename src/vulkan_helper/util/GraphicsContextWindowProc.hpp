@@ -3,8 +3,6 @@
 //
 
 #pragma once
-#include <windows.h>
-
 #include "../impl/GraphicsContextWindow.hpp"
 
 namespace merutilm::vkh {

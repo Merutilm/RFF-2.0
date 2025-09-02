@@ -5,7 +5,6 @@
 #include "GPCStripe.hpp"
 
 #include "RCCFirst.hpp"
-#include "../../vulkan_helper/util/ImageContextUtils.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "../../vulkan_helper/util/DescriptorUpdater.hpp"
 #include "../attr/ShdStripeAttribute.h"
@@ -17,10 +16,8 @@ namespace merutilm::rff2 {
 
     void GPCStripe::setStripe(const ShdStripeAttribute &stripe) const {
         using namespace SharedDescriptorTemplate;
-        const auto &stripeDesc = getDescriptor(SET_STRIPE);
-        auto &stripeManager = stripeDesc.getDescriptorManager();
-        const auto &stripeUBO = *stripeManager.get<vkh::Uniform>(
-            DescStripe::BINDING_UBO_STRIPE);
+        auto &stripeDesc = getDescriptor(SET_STRIPE);
+        const auto &stripeUBO = *stripeDesc.get<vkh::Uniform>(0, DescStripe::BINDING_UBO_STRIPE);
         auto &stripeUBOHost = stripeUBO.getHostObject();
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_TYPE, static_cast<uint32_t>(stripe.stripeType));
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_FIRST_INTERVAL,
@@ -40,18 +37,17 @@ namespace merutilm::rff2 {
     void GPCStripe::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
         writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_STRIPE).queue(queue, frameIndex);
+            getDescriptor(SET_STRIPE).queue(queue, frameIndex, {}, {DescStripe::TARGET_STRIPE_TYPE});
         });
     }
 
     void GPCStripe::windowResized() {
         const auto &input = engine.getRenderContextConfigurator<RCCFirst>().getImageContext(
             RCCFirst::TEMP_IMAGE_CONTEXT);
-        const auto &inputDesc = getDescriptor(SET_PREV_RESULT);
-        auto &inputManager = inputDesc.getDescriptorManager();
-        inputManager.get<vkh::InputAttachment>(BINDING_PREV_RESULT_INPUT).ctx = input;
+        auto &inputDesc = getDescriptor(SET_PREV_RESULT);
+        inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;
         writeDescriptorForEachFrame([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            inputDesc.queue(queue, frameIndex);
+            inputDesc.queue(queue, frameIndex, {}, {BINDING_PREV_RESULT_INPUT});
         });
     }
 
@@ -62,7 +58,7 @@ namespace merutilm::rff2 {
     void GPCStripe::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
         using namespace SharedDescriptorTemplate;
 
-        auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+        auto descManager = vkh::factory::create<vkh::DescriptorManager>();
         descManager->appendInputAttachment(BINDING_PREV_RESULT_INPUT, VK_SHADER_STAGE_FRAGMENT_BIT);
 
         appendUniqueDescriptor(SET_PREV_RESULT, descriptors, std::move(descManager));

@@ -3,8 +3,7 @@
 //
 
 #pragma once
-#include <string>
-
+#include "../core/vkh_base.hpp"
 
 namespace merutilm::vkh {
 

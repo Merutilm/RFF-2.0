@@ -62,5 +62,6 @@ void main() {
     float shade = max(slope_attr.reflection_ratio, cos(zRad) * cos(slope) + sin(zRad) * sin(slope) * cos(aRad + aspect));
     float fShade = 1 - slope_attr.opacity * (1 - shade);
 
+
     color = vec4(subpassLoad(canvas).rgb * fShade, 1);
 }

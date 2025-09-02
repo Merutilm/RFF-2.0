@@ -3,20 +3,26 @@
 //
 
 #pragma once
-#include "Repo.hpp"
-#include "../def/Factory.hpp"
+#include "../core/vkh_core.hpp"
+#include "Repository.hpp"
+
 #include "../impl/Sampler.hpp"
 #include "../hash/SamplerCreateInfoEquals.hpp"
 #include "../hash/SamplerCreateInfoHasher.hpp"
 
 namespace merutilm::vkh {
 
-    struct SamplerRepo final : public Repository<VkSamplerCreateInfo, VkSamplerCreateInfo &&, Sampler, SamplerRef, SamplerCreateInfoHasher, SamplerCreateInfoEquals>{
+    struct SamplerRepo final : public Repository<VkSamplerCreateInfo, const VkSamplerCreateInfo &, Sampler, SamplerRef, SamplerCreateInfoHasher, SamplerCreateInfoEquals>{
 
         using Repository::Repository;
 
-        SamplerRef pick(VkSamplerCreateInfo && samplerCreateInfo) override {
-            return *repository.try_emplace(samplerCreateInfo, Factory::create<Sampler>(core, std::move(samplerCreateInfo))).first->second;
+        SamplerRef pick(const VkSamplerCreateInfo & samplerCreateInfo) override {
+            auto it = repository.find(samplerCreateInfo);
+            if (it == repository.end()) {
+                auto[newIt, _] = repository.try_emplace(samplerCreateInfo, factory::create<Sampler>(core, samplerCreateInfo));
+                it = newIt;
+            }
+            return *it->second;
         }
     };
 }

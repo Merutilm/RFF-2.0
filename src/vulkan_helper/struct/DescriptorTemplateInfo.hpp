@@ -3,12 +3,11 @@
 //
 
 #pragma once
-
 #include "../manage/DescriptorManager.hpp"
 
 namespace merutilm::vkh {
     struct DescriptorTemplateInfo {
         uint32_t id;
-        std::function<DescriptorManager(CoreRef, const DescriptorRequiresRepoContext &)> descriptorGenerator;
+        std::function<std::vector<DescriptorManager>(CoreRef, const DescriptorRequiresRepoContext &)> descriptorGenerator;
     };
 }

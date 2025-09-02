@@ -4,20 +4,17 @@
 
 #pragma once
 
-#include <memory>
-#include <vulkan/vulkan_core.h>
-
+#include "../core/vkh_base.hpp"
 #include "../handle/Handler.hpp"
 
 namespace merutilm::vkh {
     class ValidationLayerImpl final : public Handler {
         VkInstance instance = nullptr;
         VkDebugUtilsMessengerEXT debugMessenger = nullptr;
-        bool enabled;
 
     public:
 
-        explicit ValidationLayerImpl(VkInstance instance, bool enabled);
+        explicit ValidationLayerImpl(VkInstance instance);
 
         ~ValidationLayerImpl() override;
 
@@ -29,11 +26,9 @@ namespace merutilm::vkh {
 
         ValidationLayerImpl &operator=(ValidationLayerImpl &&) = delete;
 
-        [[nodiscard]] bool isEnabled() const { return enabled; }
-
 
     private:
-        void checkValidationLayerSupport() const;
+        static void checkValidationLayerSupport();
 
         void init() override;
 

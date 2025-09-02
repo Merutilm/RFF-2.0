@@ -3,8 +3,6 @@
 //
 
 #pragma once
-#include <vulkan/vulkan_core.h>
-
 #include "Instance.hpp"
 #include "PhysicalDeviceLoader.hpp"
 #include "../handle/Handler.hpp"

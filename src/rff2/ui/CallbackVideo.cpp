@@ -21,15 +21,15 @@ namespace merutilm::rff2 {
         auto &[defaultZoomIncrement, isStatic] = scene.getAttribute().video.dataAttribute;
         auto window = std::make_unique<SettingsWindow>(L"Data Settings");
 
-        window->registerTextInput<float>("Default Zoom Increment", &defaultZoomIncrement,
+        window->registerTextInput<float>(L"Default Zoom Increment", &defaultZoomIncrement,
                                          Unparser::FLOAT,
                                          Parser::FLOAT,
                                          [](const float &v) { return v > 1; },
-                                         Callback::NOTHING, "Set Default Zoom increment",
-                                         "Set the log-Zoom interval between two adjacent video data.");
+                                         Callback::NOTHING, L"Set Default Zoom increment",
+                                         L"Set the w_log-Zoom interval between two adjacent video data.");
 
-        window->registerBoolInput("Static data", &isStatic, Callback::NOTHING, "Use static video data",
-                                  "Generates using .png image instead of data file. all shaders will be disabled when trying to generate video data.");
+        window->registerBoolInput(L"Static data", &isStatic, Callback::NOTHING, L"Use static video data",
+                                  L"Generates using .png image instead of data file. all shaders will be disabled when trying to generate video data.");
 
         window->setWindowCloseFunction([&settingsMenu] {
             settingsMenu.setCurrentActiveSettingsWindow(nullptr);
@@ -41,13 +41,13 @@ namespace merutilm::rff2 {
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[overZoom, showText, mps] = scene.getAttribute().video.animationAttribute;
         auto window = std::make_unique<SettingsWindow>(L"Animation Settings");
-        window->registerTextInput<float>("Over Zoom", &overZoom, Unparser::FLOAT, Parser::FLOAT,
-                                         ValidCondition::POSITIVE_FLOAT_ZERO, Callback::NOTHING, "Over Zoom",
-                                         "Zoom the final video data.");
-        window->registerBoolInput("Show Text", &showText, Callback::NOTHING, "Show Text", "Show the text on video.");
-        window->registerTextInput<float>("MPS", &mps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
-                                         Callback::NOTHING, "MPS",
-                                         "Map per second, Number of video data used per second in video");
+        window->registerTextInput<float>(L"Over Zoom", &overZoom, Unparser::FLOAT, Parser::FLOAT,
+                                         ValidCondition::POSITIVE_FLOAT_ZERO, Callback::NOTHING, L"Over Zoom",
+                                         L"Zoom the final video data.");
+        window->registerBoolInput(L"Show Text", &showText, Callback::NOTHING, L"Show Text", L"Show the text on video.");
+        window->registerTextInput<float>(L"MPS", &mps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
+                                         Callback::NOTHING, L"MPS",
+                                         L"Map per second, Number of video data used per second in video");
 
 
         window->setWindowCloseFunction([&settingsMenu] {
@@ -59,11 +59,11 @@ namespace merutilm::rff2 {
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto window = std::make_unique<SettingsWindow>(L"Export Settings");
         auto &[fps, bitrate] = scene.getAttribute().video.exportAttribute;
-        window->registerTextInput<float>("FPS", &fps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
-                                         Callback::NOTHING, "Set video FPS", "Set the fps of the video to export.");
-        window->registerTextInput<uint32_t>("Bitrate", &bitrate, Unparser::U_SHORT, Parser::U_SHORT,
-                                            ValidCondition::POSITIVE_U_SHORT, Callback::NOTHING, "Set the bitrate",
-                                            "Sets the bitrate of the video to export.");
+        window->registerTextInput<float>(L"FPS", &fps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
+                                         Callback::NOTHING, L"Set video FPS", L"Set the fps of the video to export.");
+        window->registerTextInput<uint32_t>(L"Bitrate", &bitrate, Unparser::U_SHORT, Parser::U_SHORT,
+                                            ValidCondition::POSITIVE_U_SHORT, Callback::NOTHING, L"Set the bitrate",
+                                            L"Sets the bitrate of the video to export.");
 
         window->setWindowCloseFunction([&settingsMenu] {
             settingsMenu.setCurrentActiveSettingsWindow(nullptr);
@@ -75,14 +75,14 @@ namespace merutilm::rff2 {
         scene.getBackgroundThreads().createThread(
             [&scene](BackgroundThread &thread) {
                 const auto &state = scene.getState();
-                const auto dirPtr = IOUtilities::ioDirectoryDialog("Folder to generate keyframes");
+                const auto dirPtr = IOUtilities::ioDirectoryDialog(L"Folder to generate keyframes");
 
                 float &logZoom = scene.getAttribute().calc.logZoom;
                 if (dirPtr == nullptr) {
                     return;
                 }
                 if (!IsWindow(scene.getWindowHandle()) || !IsWindowVisible(scene.getWindowHandle())) {
-                    MessageBox(nullptr, "Target Window already been destroyed", "FATAL", MB_OK | MB_ICONERROR);
+                    MessageBoxW(nullptr, L"Target Window already been destroyed", L"FATAL", MB_OK | MB_ICONERROR);
                     return;
                 }
 
@@ -123,20 +123,20 @@ namespace merutilm::rff2 {
                 }
 
                 if (state.interruptRequested()) {
-                    vkh::logger::log("Keyframe generation cancelled.");
+                    vkh::logger::w_log(L"Keyframe generation cancelled.");
                 }
             });
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::EXPORT_ZOOM_VID = [
             ](const SettingsMenu &, RenderScene &scene) {
         scene.getBackgroundThreads().createThread([&scene](const BackgroundThread &) {
-            const auto openPtr = IOUtilities::ioDirectoryDialog("Select Sample Keyframe folder");
+            const auto openPtr = IOUtilities::ioDirectoryDialog(L"Select Sample Keyframe folder");
 
             if (openPtr == nullptr) {
                 return;
             }
             const auto &open = *openPtr;
-            const auto savePtr = IOUtilities::ioFileDialog("Save Video Location", Constants::Extension::DESC_VIDEO, IOUtilities::SAVE_FILE,
+            const auto savePtr = IOUtilities::ioFileDialog(L"Save Video Location", Constants::Extension::DESC_VIDEO, IOUtilities::SAVE_FILE,
                                                            Constants::Extension::VIDEO);
             if (savePtr == nullptr) {
                 return;

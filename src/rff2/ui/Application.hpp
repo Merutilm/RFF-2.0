@@ -11,7 +11,7 @@ namespace merutilm::rff2 {
 
     class Application final : public vkh::Handler {
         int statusHeight = 0;
-        std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
+        std::array<std::wstring, Constants::Status::LENGTH> statusMessages = {};
         HWND masterWindow = nullptr;
         HWND renderWindow = nullptr;
         HWND statusBar = nullptr;

@@ -3,10 +3,7 @@
 //
 
 #include "GeneralGraphicsPipelineConfigurator.hpp"
-
-#include <utility>
-
-#include "../def/Factory.hpp"
+#include "../core/vkh_core.hpp"
 #include "../impl/GraphicsPipeline.hpp"
 #include "../repo/Repositories.hpp"
 
@@ -25,15 +22,13 @@ namespace merutilm::vkh {
     }
 
     void GeneralGraphicsPipelineConfigurator::configure() {
-        auto pipelineLayoutManager = Factory::create<PipelineLayoutManager>();
-        auto &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
+        auto pipelineLayoutManager = factory::create<PipelineLayoutManager>();
 
         std::vector<DescriptorPtr> descriptors = {};
         configureDescriptors(descriptors);
 
         for (const auto descriptor: descriptors) {
-            DescriptorSetLayoutRef layout = layoutRepo.pick(descriptor->getDescriptorManager().getLayoutBuilder());
-            pipelineLayoutManager->appendDescriptorSetLayout(&layout);
+            pipelineLayoutManager->appendDescriptorSetLayout(&descriptor->getLayout());
         }
 
         configurePushConstant(*pipelineLayoutManager);
@@ -41,23 +36,23 @@ namespace merutilm::vkh {
             std::move(pipelineLayoutManager));
 
 
-        auto pipelineManager = Factory::create<PipelineManager>(pipelineLayout);
+        auto pipelineManager = factory::create<PipelineManager>(pipelineLayout);
 
 
         pipelineManager->attachDescriptor(std::move(descriptors));
         pipelineManager->attachShader(&vertexShader);
         pipelineManager->attachShader(&fragmentShader);
 
-        auto vertManager = Factory::create<HostBufferObjectManager>();
-        auto indexManager = Factory::create<HostBufferObjectManager>();
+        auto vertManager = factory::create<HostDataObjectManager>();
+        auto indexManager = factory::create<HostDataObjectManager>();
 
         configureVertexBuffer(*vertManager);
         configureIndexBuffer(*indexManager);
 
-        vertexBuffer = Factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_UNLOCK);
-        indexBuffer = Factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_UNLOCK);
+        vertexBuffer = factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_UNLOCK);
+        indexBuffer = factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_UNLOCK);
 
-        pipeline = Factory::create<GraphicsPipeline>(engine, pipelineLayout, *vertexBuffer, *indexBuffer, renderContextIndex, primarySubpassIndex,
+        pipeline = factory::create<GraphicsPipeline>(engine, pipelineLayout, *vertexBuffer, *indexBuffer, renderContextIndex, primarySubpassIndex,
                                               std::move(pipelineManager));
     }
 

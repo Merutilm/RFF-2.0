@@ -2,9 +2,7 @@
 // Created by Merutilm on 2025-08-24.
 //
 #pragma once
-#include <vulkan/vulkan.h>
-
-#include "logger.hpp"
+#include "../core/vkh_core.hpp"
 
 namespace merutilm::vkh {
     struct Debugger {

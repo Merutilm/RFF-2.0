@@ -3,9 +3,7 @@
 //
 
 #pragma once
-#include <vulkan/vulkan.h>
-
-#include <vector>
+#include "../context/ImageContext.hpp"
 
 namespace merutilm::vkh {
     struct RenderPassAttachment {

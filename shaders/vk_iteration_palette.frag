@@ -78,6 +78,5 @@ void main() {
         return;
     }
 
-
     color = getColor(iteration);
 }

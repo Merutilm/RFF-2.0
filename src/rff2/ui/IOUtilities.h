@@ -22,16 +22,16 @@ namespace merutilm::rff2 {
         static constexpr char OPEN_FILE = 0;
         static constexpr char SAVE_FILE = 1;
 
-        static std::unique_ptr<std::filesystem::path> ioFileDialog(std::string_view title, std::string_view desc,
-                                                                   char type, std::string_view extension);
+        static std::unique_ptr<std::filesystem::path> ioFileDialog(std::wstring_view title, std::wstring_view desc,
+                                                                   char type, std::wstring_view extension);
 
-        static std::unique_ptr<std::filesystem::path> ioDirectoryDialog(std::string_view title);
+        static std::unique_ptr<std::filesystem::path> ioDirectoryDialog(std::wstring_view title);
 
-        static std::string fileNameFormat(unsigned int n, std::string_view extension);
+        static std::wstring fileNameFormat(unsigned int n, std::wstring_view extension);
 
-        static std::filesystem::path generateFileName(const std::filesystem::path &dir, std::string_view extension);
+        static std::filesystem::path generateFileName(const std::filesystem::path &dir, std::wstring_view extension);
 
-        static uint32_t fileNameCount(const std::filesystem::path &dir, std::string_view extension);
+        static uint32_t fileNameCount(const std::filesystem::path &dir, std::wstring_view extension);
 
         template<typename T> requires std::is_arithmetic_v<T>
         static void encodeAndWrite(std::ofstream &out, const T &t);

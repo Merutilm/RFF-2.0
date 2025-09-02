@@ -1,9 +1,9 @@
 #version 450
 
-layout (set = 0, binding = 0, rgba8) uniform readonly image2D srcImage;
-layout (set = 0, binding = 1, rgba8) uniform writeonly image2D dstImage;
+layout (set = 0, binding = 0, rgba16) uniform readonly image2D srcImage;
+layout (set = 0, binding = 1, rgba16) uniform writeonly image2D dstImage;
 
-layout (set = 0, binding = 2) uniform BlurUBO {
+layout (set = 1, binding = 0) uniform BlurUBO {
     float blur_size;
 } blur_attr;
 
@@ -15,28 +15,26 @@ void main() {
     if (gid.x >= size.x || gid.y >= size.y) {
         return;
     }
+    vec3 v = imageLoad(srcImage, gid).rgb;
     int blur_radius = int(size.y * blur_attr.blur_size);
     if (blur_radius <= 0) {
-        imageStore(dstImage, gid, imageLoad(srcImage, gid));
+        imageStore(dstImage, gid, vec4(v, 1));
         return;
     }
 
 
-    vec3 sum = vec3(0,0,0);
-    int count = 0;
-    //duplicate center pixel
+    int count = 1;
 
     for (int i = max(0, gid.x - blur_radius); i <= min(size.x - 1, gid.x + blur_radius); i++) {
-        sum += imageLoad(srcImage, ivec2(i, gid.y)).rgb;
+        if (i == gid.x) continue;
+        v += imageLoad(srcImage, ivec2(i, gid.y)).rgb;
         count++;
     }
     for (int i = max(0, gid.y - blur_radius); i <= min(size.y - 1, gid.y + blur_radius); i++) {
-        if(i == gid.y){
-            continue;
-        }
-        sum += imageLoad(srcImage, ivec2(gid.x, i)).rgb;
+        if (i == gid.y) continue;
+        v += imageLoad(srcImage, ivec2(gid.x, i)).rgb;
         count++;
     }
-    vec4 color = vec4(sum / count, 1);
+    vec4 color = vec4(v / count, 1);
     imageStore(dstImage, gid, color);
 }

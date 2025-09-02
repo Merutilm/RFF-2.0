@@ -5,7 +5,6 @@
 #pragma once
 #include "../executor/ScopedNewCommandBufferExecutor.hpp"
 #include "../context/ImageContext.hpp"
-#include <stb_image.h>
 #include "../impl/CommandPool.hpp"
 #include "BufferImageUtils.hpp"
 

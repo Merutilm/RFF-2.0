@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
 
             rpm.appendAttachment(PRESENT_ATTACHMENT_INDEX, {
                                      .flags = 0,
-                                     .format = vkh::SwapchainUtils::SWAPCHAIN_IMAGE_FORMAT,
+                                     .format = vkh::config::SWAPCHAIN_IMAGE_FORMAT,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
                                      .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                                      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,

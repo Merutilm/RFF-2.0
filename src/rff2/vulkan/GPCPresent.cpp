@@ -5,7 +5,6 @@
 #include "GPCPresent.hpp"
 
 #include "RCCLinearInterpolation.hpp"
-#include "RCCSecondary.hpp"
 #include "SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
@@ -20,13 +19,12 @@ namespace merutilm::rff2 {
     void GPCPresent::windowResized() {
         const auto &context = engine.getRenderContextConfigurator<RCCLinearInterpolation>().
                 getImageContext(RCCLinearInterpolation::RESULT_IMAGE_CONTEXT);
-        const auto &resultDesc = getDescriptor(SET_RESULT);
-        auto &resultManager = resultDesc.getDescriptorManager();
-        resultManager.get<vkh::CombinedMultiframeImageSampler>(BINDING_RESULT_SAMPLER)->setImageContext(context);
+        auto &resultDesc = getDescriptor(SET_RESULT);
+        resultDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_RESULT_SAMPLER)->setImageContext(context);
 
         writeDescriptorForEachFrame(
             [&resultDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-                resultDesc.queue(queue, frameIndex);
+                resultDesc.queue(queue, frameIndex, {}, std::vector{BINDING_RESULT_SAMPLER});
             });
     }
 
@@ -37,8 +35,8 @@ namespace merutilm::rff2 {
 
     void GPCPresent::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
         using namespace SharedDescriptorTemplate;
-        auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
-        vkh::SamplerRef sampler = pickFromRepository<vkh::SamplerRepo, vkh::SamplerRef, VkSamplerCreateInfo &&>(
+        auto descManager = vkh::factory::create<vkh::DescriptorManager>();
+        vkh::SamplerRef sampler = pickFromRepository<vkh::SamplerRepo, vkh::SamplerRef>(
             VkSamplerCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,
@@ -59,7 +57,7 @@ namespace merutilm::rff2 {
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
                 .unnormalizedCoordinates = VK_FALSE
             });
-        auto combinedSampler = vkh::Factory::create<vkh::CombinedMultiframeImageSampler>(engine.getCore(), sampler);
+        auto combinedSampler = vkh::factory::create<vkh::CombinedMultiframeImageSampler>(engine.getCore(), sampler);
         descManager->appendCombinedMultiframeImgSampler(BINDING_RESULT_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT,
                                                         std::move(combinedSampler));
         appendUniqueDescriptor(SET_RESULT, descriptors, std::move(descManager));

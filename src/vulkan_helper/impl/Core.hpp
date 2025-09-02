@@ -3,11 +3,7 @@
 //
 
 #pragma once
-#include <chrono>
-#include <memory>
-
 #include "../context/WindowContext.hpp"
-#include "../exception/exception.hpp"
 #include "Instance.hpp"
 #include "LogicalDevice.hpp"
 #include "PhysicalDeviceLoader.hpp"

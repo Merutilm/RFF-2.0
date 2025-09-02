@@ -3,11 +3,10 @@
 //
 
 #pragma once
-#include <vector>
+#include "../core/vkh_core.hpp"
 #include "../impl/Swapchain.hpp"
 #include "../struct/ImageInitInfo.hpp"
 #include "../util/BufferImageUtils.hpp"
-#include "../util/SwapchainUtils.hpp"
 
 namespace merutilm::vkh {
     struct ImageContext;
@@ -74,7 +73,7 @@ namespace merutilm::vkh {
 
             for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
                 result[i].image = images[i];
-                result[i].imageFormat = SwapchainUtils::SWAPCHAIN_IMAGE_FORMAT,
+                result[i].imageFormat = config::SWAPCHAIN_IMAGE_FORMAT,
                 result[i].imageMemory = VK_NULL_HANDLE;
                 result[i].imageView = imageViews[i];
                 result[i].mipmappedImageView = imageViews[i];

@@ -65,7 +65,7 @@ namespace merutilm::rff2 {
 
     inline double dex_exp::log10(const dex &v) {
         // log10(v)
-        // = log(v) / log(10)
+        // = w_log(v) / w_log(10)
         if (v.sgn() == -1) {
             return NAN;
         }
@@ -76,10 +76,10 @@ namespace merutilm::rff2 {
     }
 
     inline double dex_exp::log(const dex &v) {
-        // log(v)
-        // = log(m * 2^n)
-        // = (log(m) + log(2^n))
-        // = (log(m) + n * log(2))
+        // w_log(v)
+        // = w_log(m * 2^n)
+        // = (w_log(m) + w_log(2^n))
+        // = (w_log(m) + n * w_log(2))
         if (v.sgn() == -1) {
             return NAN;
         }

@@ -14,11 +14,11 @@ namespace merutilm::rff2 {
     struct Utilities {
         Utilities() = delete;
 
-        static std::string elapsed_time(const std::chrono::time_point<std::chrono::system_clock> start) {
+        static std::wstring elapsed_time(const std::chrono::time_point<std::chrono::system_clock> start) {
             const auto current = std::chrono::system_clock::now();
             const auto elapsed = std::chrono::milliseconds((current - start).count() / 1000000);
             const auto hms = std::chrono::hh_mm_ss(elapsed);
-            return std::format("T : {:02d}:{:02d}:{:02d}:{:03d}", hms.hours().count(),
+            return std::format(L"T : {:02d}:{:02d}:{:02d}:{:03d}", hms.hours().count(),
                                          hms.minutes().count(), hms.seconds().count(), hms.subseconds().count());
         }
 
@@ -29,17 +29,17 @@ namespace merutilm::rff2 {
 
 
         static std::filesystem::path getDefaultPath() {
-            std::array<char, MAX_PATH> buffer;
-            GetModuleFileName(nullptr, buffer.data(), buffer.size());
+            std::array<wchar_t, MAX_PATH> buffer;
+            GetModuleFileNameW(nullptr, buffer.data(), buffer.size());
             return std::filesystem::path(buffer.data()).parent_path().parent_path();
         }
 
-        static bool endsWith(const std::string &str, const std::string &suffix) {
+        static bool endsWith(const std::wstring &str, const std::wstring &suffix) {
             return str.size() >= suffix.size() && std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
         }
 
-        static std::string joinString(const std::string &delimiter, const std::vector<std::string> &arr) {
-            std::ostringstream v;
+        static std::wstring joinString(const std::wstring &delimiter, const std::vector<std::wstring> &arr) {
+            std::wostringstream v;
             for (int i = 0; i < arr.size(); ++i) {
                 if (i > 0) {
                     v << delimiter;
@@ -49,10 +49,10 @@ namespace merutilm::rff2 {
             return v.str();
         }
 
-        static std::vector<std::string> split(const std::string &input, const char delimiter) {
-            std::vector<std::string> split;
-            std::stringstream ss(input);
-            std::string val;
+        static std::vector<std::wstring> split(const std::wstring &input, const wchar_t delimiter) {
+            std::vector<std::wstring> split;
+            std::wstringstream ss(input);
+            std::wstring val;
 
             while (getline(ss, val, delimiter)) {
                 split.push_back(val);

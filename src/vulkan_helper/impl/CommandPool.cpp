@@ -4,7 +4,7 @@
 
 #include "CommandPool.hpp"
 
-#include "../exception/exception.hpp"
+#include "../core/exception.hpp"
 
 namespace merutilm::vkh {
     CommandPoolImpl::CommandPoolImpl(CoreRef core) : CoreHandler(core) {

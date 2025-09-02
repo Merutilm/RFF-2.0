@@ -6,13 +6,15 @@
 
 #include <queue>
 
-#include "../exception/exception.hpp"
+#include "../core/exception.hpp"
+#include "../core/config.hpp"
 #include "../util/Debugger.hpp"
 #include "../util/PhysicalDeviceUtils.hpp"
 
 namespace merutilm::vkh {
-
-    LogicalDeviceImpl::LogicalDeviceImpl(InstanceRef instance, PhysicalDeviceLoaderRef physicalDevice) :  instance(instance), physicalDevice(physicalDevice) {
+    LogicalDeviceImpl::LogicalDeviceImpl(InstanceRef instance,
+                                         PhysicalDeviceLoaderRef physicalDevice) : instance(instance),
+        physicalDevice(physicalDevice) {
         LogicalDeviceImpl::init();
     }
 
@@ -31,7 +33,6 @@ namespace merutilm::vkh {
             .pQueuePriorities = &queuePriority,
 
         };
-        const ValidationLayerRef validationLayer = instance.getValidationLayer();
 
         if (const VkDeviceCreateInfo createInfo = {
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -39,8 +40,8 @@ namespace merutilm::vkh {
             .flags = 0,
             .queueCreateInfoCount = 1,
             .pQueueCreateInfos = &queueCreateInfo,
-            .enabledLayerCount = validationLayer.isEnabled() ? static_cast<uint32_t>(1) : 0,
-            .ppEnabledLayerNames = validationLayer.isEnabled() ? &Debugger::VALIDATION_LAYER : nullptr,
+            .enabledLayerCount = config::ENABLE_VALIDATION ? 1 : 0,
+            .ppEnabledLayerNames = config::ENABLE_VALIDATION ? &Debugger::VALIDATION_LAYER : nullptr,
             .enabledExtensionCount = static_cast<uint32_t>(PhysicalDeviceUtils::PHYSICAL_DEVICE_EXTENSIONS.size()),
             .ppEnabledExtensionNames = PhysicalDeviceUtils::PHYSICAL_DEVICE_EXTENSIONS.data(),
             .pEnabledFeatures = &physicalDevice.getPhysicalDeviceFeatures()
@@ -48,7 +49,8 @@ namespace merutilm::vkh {
            VK_SUCCESS) {
             throw exception_init("failed to create logical device!");
         }
-        vkGetDeviceQueue(logicalDevice, physicalDevice.getQueueFamilyIndices().graphicsAndComputeFamily.value(), 0, &graphicsQueue);
+        vkGetDeviceQueue(logicalDevice, physicalDevice.getQueueFamilyIndices().graphicsAndComputeFamily.value(), 0,
+                         &graphicsQueue);
         vkGetDeviceQueue(logicalDevice, physicalDevice.getQueueFamilyIndices().presentFamily.value(), 0, &presentQueue);
     }
 

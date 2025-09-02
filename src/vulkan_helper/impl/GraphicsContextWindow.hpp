@@ -3,9 +3,7 @@
 //
 
 #pragma once
-#include <functional>
-#include <memory>
-#include <windows.h>
+#include "../core/vkh_base.hpp"
 
 namespace merutilm::vkh {
 

@@ -3,14 +3,14 @@
 //
 
 #pragma once
-#include <memory>
+#include "../core/vkh_base.hpp"
 
 #include "Core.hpp"
 #include "../repo/Repositories.hpp"
 #include "CommandPool.hpp"
 #include "CommandBuffer.hpp"
-#include "FrameSyncObject.hpp"
-#include "RenderPassSyncObject.hpp"
+#include "SyncObject.hpp"
+#include "Fence.hpp"
 #include "../context/RenderContext.hpp"
 
 namespace merutilm::vkh {
@@ -19,8 +19,8 @@ namespace merutilm::vkh {
         Repositories repositories = nullptr;
         CommandPool commandPool = nullptr;
         CommandBuffer commandBuffer = nullptr;
-        FrameSyncObject syncObjectBetweenFrame = nullptr;
-        RenderPassSyncObject syncObjectBetweenRenderPass = nullptr;
+        SyncObject syncObjectBetweenFrame = nullptr;
+        SyncObject syncObjectBetweenRenderPass = nullptr;
         std::vector<RenderContext> renderContext = {};
 
     public:
@@ -40,10 +40,10 @@ namespace merutilm::vkh {
             std::is_base_of_v<RenderContextConfiguratorAbstract, T> && std::is_invocable_r_v<VkExtent2D, ExtentImgGetter> && std::is_invocable_r_v<MultiframeImageContext, SwapchainImgGetter>)
         void attachRenderContext(ExtentImgGetter &&extentGetter,
                                  SwapchainImgGetter &&swapchainImageContext) {
-            SafeArrayChecker::checkIndexEqual(T::CONTEXT_INDEX, static_cast<uint32_t>(this->renderContext.size()),
+            safe_array::check_index_equal(T::CONTEXT_INDEX, static_cast<uint32_t>(this->renderContext.size()),
                                               "Render Context Index");
             this->renderContext.emplace_back(
-                Factory::create<RenderContext>(*core, std::forward<ExtentImgGetter>(extentGetter),
+                factory::create<RenderContext>(*core, std::forward<ExtentImgGetter>(extentGetter),
                                                std::make_unique<T>(*core, *commandPool, std::forward<SwapchainImgGetter>(swapchainImageContext))));
         };
 
@@ -55,9 +55,9 @@ namespace merutilm::vkh {
 
         [[nodiscard]] CommandBufferRef getCommandBuffer() const { return *commandBuffer; }
 
-        [[nodiscard]] FrameSyncObjectRef getSyncObjectBetweenFrame() const { return *syncObjectBetweenFrame; }
+        [[nodiscard]] SyncObjectRef getSyncObjectBetweenFrame() const { return *syncObjectBetweenFrame; }
 
-        [[nodiscard]] RenderPassSyncObjectRef getSyncObjectBetweenRenderPass() const { return *syncObjectBetweenRenderPass; }
+        [[nodiscard]] SyncObjectRef getSyncObjectBetweenRenderPass() const { return *syncObjectBetweenRenderPass; }
 
         [[nodiscard]] std::span<const RenderContext> getRenderContexts() const { return renderContext; }
 

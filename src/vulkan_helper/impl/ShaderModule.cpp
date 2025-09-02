@@ -6,11 +6,11 @@
 
 #include <algorithm>
 
-#include "../exception/exception.hpp"
+#include "../core/exception.hpp"
 #include <fstream>
 
 namespace merutilm::vkh {
-    ShaderModuleImpl::ShaderModuleImpl(const CoreRef core, const std::string &filename) : CoreHandler(core), shaderStage(getShaderStage(filename)),
+    ShaderModuleImpl::ShaderModuleImpl(CoreRef core, const std::string &filename) : CoreHandler(core), shaderStage(getShaderStage(filename)),
                                                          filename(SHADER_PATH_PREFIX + filename + ".spv") {
         ShaderModuleImpl::init();
     }

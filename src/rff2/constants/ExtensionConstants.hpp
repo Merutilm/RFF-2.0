@@ -4,16 +4,16 @@
 
 #pragma once
 namespace merutilm::rff2::Constants::Extension {
-    constexpr auto DYNAMIC_MAP = "rfm";
-    constexpr auto STATIC_MAP = "rfsm";
-    constexpr auto LOCATION = "rfl";
-    constexpr auto IMAGE = "png";
-    constexpr auto VIDEO = "mp4";
-    constexpr auto KFR = "kfr";
-    constexpr auto DESC_DYNAMIC_MAP = "RFF dynamic map binary";
-    constexpr auto DESC_STATIC_MAP = "RFF static map binary";
-    constexpr auto DESC_LOCATION = "RFF location binary";
-    constexpr auto DESC_IMAGE = "Image file";
-    constexpr auto DESC_VIDEO = "Video file";
-    constexpr auto DESC_KFR = "Kalle's Fraktaler file";
+    constexpr auto DYNAMIC_MAP = L"rfm";
+    constexpr auto STATIC_MAP = L"rfsm";
+    constexpr auto LOCATION = L"rfl";
+    constexpr auto IMAGE = L"png";
+    constexpr auto VIDEO = L"mp4";
+    constexpr auto KFR = L"kfr";
+    constexpr auto DESC_DYNAMIC_MAP = L"RFF dynamic map binary";
+    constexpr auto DESC_STATIC_MAP = L"RFF static map binary";
+    constexpr auto DESC_LOCATION = L"RFF location binary";
+    constexpr auto DESC_IMAGE = L"Image file";
+    constexpr auto DESC_VIDEO = L"Video file";
+    constexpr auto DESC_KFR = L"Kalle's Fraktaler file";
 }

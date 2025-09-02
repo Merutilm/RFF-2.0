@@ -3,11 +3,8 @@
 //
 
 #pragma once
-#include <memory>
-#include <unordered_map>
-
-#include "Repo.hpp"
-#include "../def/Factory.hpp"
+#include "../core/vkh_core.hpp"
+#include "Repository.hpp"
 #include "../impl/DescriptorSetLayout.hpp"
 
 namespace merutilm::vkh {
@@ -17,8 +14,12 @@ namespace merutilm::vkh {
         using Repository::Repository;
 
         DescriptorSetLayoutRef pick(const DescriptorSetLayoutBuilder &layoutBuilder) override {
-            return *repository.try_emplace(layoutBuilder, Factory::create<DescriptorSetLayout>(core, layoutBuilder)).
-                    first->second;
+            auto it = repository.find(layoutBuilder);
+            if (it == repository.end()) {
+                auto[newIt, _] = repository.try_emplace(layoutBuilder, factory::create<DescriptorSetLayout>(core, layoutBuilder));
+                it = newIt;
+            }
+            return *it->second;
         }
     };
 }

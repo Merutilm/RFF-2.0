@@ -4,7 +4,7 @@
 
 #include "CommandBuffer.hpp"
 
-#include "../exception/exception.hpp"
+#include "../core/exception.hpp"
 
 namespace merutilm::vkh {
     CommandBufferImpl::CommandBufferImpl(CoreRef core, CommandPoolRef commandPool) : CoreHandler(core), commandPool(commandPool) {

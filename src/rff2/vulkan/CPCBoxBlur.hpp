@@ -7,11 +7,18 @@
 
 namespace merutilm::rff2 {
     class CPCBoxBlur final : public vkh::ComputePipelineConfigurator {
-        static constexpr uint32_t SET_BLUR = 0;
-        static constexpr uint32_t BINDING_BLUR_SRC = 0;
-        static constexpr uint32_t BINDING_BLUR_DST = 1;
-        static constexpr uint32_t BINDING_BLUR_UBO = 2;
+        static constexpr uint32_t SET_BLUR_IMAGE = 0;
+
+        static constexpr uint32_t BINDING_BLUR_IMAGE_SRC = 0;
+        static constexpr uint32_t BINDING_BLUR_IMAGE_DST = 1;
+
+        static constexpr uint32_t SET_BLUR_RADIUS = 1;
+        static constexpr uint32_t BINDING_BLUR_RADIUS_UBO = 0;
+
         static constexpr uint32_t TARGET_BLUR_UBO_BLUR_SIZE = 0;
+
+        static constexpr uint32_t BLUR_TARGET_COUNT_PER_FRAME = 2;
+        static constexpr uint32_t BOX_BLUR_COUNT = 3;
 
     public:
         explicit CPCBoxBlur(vkh::EngineRef engine);
@@ -29,13 +36,16 @@ namespace merutilm::rff2 {
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
-        void gaussianBlur(float blurSize, const vkh::ImageContext &srcImage, const vkh::ImageContext &dstImage,
-                          const vkh::ImageContext &
-                          tempImage, uint32_t frameIndex);
+        void setGaussianBlur(
+            const vkh::MultiframeImageContext &srcImage, const vkh::MultiframeImageContext &dstImage, const vkh::
+            MultiframeImageContext &tempImage) ;
 
-        void setImages(uint32_t frameIndex, const vkh::ImageContext &srcImage, const vkh::ImageContext &dstImage) const;
+        void cmdGaussianBlur(
+            uint32_t frameIndex, uint32_t blurSizeDescIndex);
 
-        void setBlurSize(uint32_t frameIndex, float blurSize) const;
+        void setImages(uint32_t descIndex, const vkh::MultiframeImageContext &srcImage, const vkh::MultiframeImageContext &dstImage) const;
+
+        void setBlurSize(uint32_t blurSizeDescIndex, float blurSize) const;
 
         void configure() override {
             ComputePipelineConfigurator::configure();

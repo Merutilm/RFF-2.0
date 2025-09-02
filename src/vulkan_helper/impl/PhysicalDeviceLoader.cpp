@@ -4,7 +4,7 @@
 
 #include "PhysicalDeviceLoader.hpp"
 
-#include "../exception/exception.hpp"
+#include "../core/exception.hpp"
 #include "../util/PhysicalDeviceUtils.hpp"
 
 namespace merutilm::vkh {

@@ -11,14 +11,14 @@
 
 namespace merutilm::rff2 {
     void GPCIterationPalette::updateQueue(vkh::DescriptorUpdateQueue &queue,
-                                                           const uint32_t frameIndex) {
+                                          const uint32_t frameIndex) {
         using namespace SharedDescriptorTemplate;
-        const auto &iterDesc = getDescriptor(SET_ITERATION);
-        const auto &iterSSBO = *iterDesc.getDescriptorManager().get<vkh::ShaderStorage>(
-            DescIteration::BINDING_SSBO_ITERATION);
+        auto &iterDesc = getDescriptor(SET_ITERATION);
+        const auto &iterSSBO = *iterDesc.get<vkh::ShaderStorage>(0,
+                                                                 DescIteration::BINDING_SSBO_ITERATION);
 
-        const auto &timeDesc = getDescriptor(SET_TIME);
-        const auto &timeBinding = *timeDesc.getDescriptorManager().get<vkh::Uniform>(DescTime::BINDING_UBO_TIME);
+        auto &timeDesc = getDescriptor(SET_TIME);
+        const auto &timeBinding = *timeDesc.get<vkh::Uniform>(0, DescTime::BINDING_UBO_TIME);
 
         iterSSBO.update(frameIndex);
         timeBinding.getHostObject().set(DescTime::TARGET_TIME_CURRENT, Utilities::getCurrentTime());
@@ -27,42 +27,41 @@ namespace merutilm::rff2 {
 
     void GPCIterationPalette::resetIterationBuffer(const uint32_t width, const uint32_t height) {
         using namespace SharedDescriptorTemplate;
-        const auto &iterDesc = getDescriptor(SET_ITERATION);
-        auto &iterSSBO = *iterDesc.getDescriptorManager().get<vkh::ShaderStorage>(
-            DescIteration::BINDING_SSBO_ITERATION);
+        auto &iterDesc = getDescriptor(SET_ITERATION);
+        auto &iterSSBO = *iterDesc.get<vkh::ShaderStorage>(0, DescIteration::BINDING_SSBO_ITERATION);
         auto &iterSSBOHost = iterSSBO.getHostObject();
 
         this->iterWidth = width;
         this->iterHeight = height;
         iterSSBOHost.set<glm::uvec2>(DescIteration::TARGET_ITERATION_EXTENT, {width, height});
-        iterSSBOHost.resize<double>(DescIteration::TARGET_ITERATION_BUFFER, width * height);
+        iterSSBOHost.resizeArray<double>(DescIteration::TARGET_ITERATION_BUFFER, width * height);
         iterSSBO.reloadBuffer();
 
         writeDescriptorForEachFrame(
             [&iterDesc, &iterSSBO](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
                 iterSSBO.update(frameIndex, DescIteration::TARGET_ITERATION_EXTENT);
-                iterDesc.queue(queue, frameIndex, {DescIteration::BINDING_SSBO_ITERATION});
+                iterDesc.queue(queue, frameIndex, {}, {DescIteration::BINDING_SSBO_ITERATION});
             });
     }
 
     void GPCIterationPalette::resetIterationBuffer() const {
         using namespace SharedDescriptorTemplate;
-        const auto &iterSSBO = *getDescriptor(SET_ITERATION).getDescriptorManager().get<vkh::ShaderStorage>(
+        const auto &iterSSBO = *getDescriptor(SET_ITERATION).get<vkh::ShaderStorage>(0,
             DescIteration::BINDING_SSBO_ITERATION);
         iterSSBO.getHostObject().reset(DescIteration::TARGET_ITERATION_BUFFER);
     }
 
     void GPCIterationPalette::setIteration(const uint32_t x, const uint32_t y,
-                                                            double iteration) const {
+                                           double iteration) const {
         using namespace SharedDescriptorTemplate;
-        const auto &iterSSBO = *getDescriptor(SET_ITERATION).getDescriptorManager().get<vkh::ShaderStorage>(
+        const auto &iterSSBO = *getDescriptor(SET_ITERATION).get<vkh::ShaderStorage>(0,
             DescIteration::BINDING_SSBO_ITERATION);
         iterSSBO.getHostObject().set<double>(DescIteration::TARGET_ITERATION_BUFFER, y * iterWidth + x, iteration);
     }
 
     void GPCIterationPalette::setAllIterations(const std::vector<double> &iterations) const {
         using namespace SharedDescriptorTemplate;
-        const auto &iterSSBO = *getDescriptor(SET_ITERATION).getDescriptorManager().get<vkh::ShaderStorage>(
+        const auto &iterSSBO = *getDescriptor(SET_ITERATION).get<vkh::ShaderStorage>(0,
             DescIteration::BINDING_SSBO_ITERATION);
 
         iterSSBO.getHostObject().set<double>(DescIteration::TARGET_ITERATION_MAX, iterations);
@@ -70,7 +69,7 @@ namespace merutilm::rff2 {
 
     void GPCIterationPalette::setMaxIteration(const double maxIteration) const {
         using namespace SharedDescriptorTemplate;
-        const auto &iterSSBO = *getDescriptor(SET_ITERATION).getDescriptorManager().get<vkh::ShaderStorage>(
+        const auto &iterSSBO = *getDescriptor(SET_ITERATION).get<vkh::ShaderStorage>(0,
             DescIteration::BINDING_SSBO_ITERATION);
 
         iterSSBO.getHostObject().set<double>(DescIteration::TARGET_ITERATION_MAX, maxIteration);
@@ -78,10 +77,9 @@ namespace merutilm::rff2 {
 
     void GPCIterationPalette::setPalette(const ShdPaletteAttribute &palette) const {
         using namespace SharedDescriptorTemplate;
-        const auto &paletteDesc = getDescriptor(SET_PALETTE);
-        auto &paletteManager = paletteDesc.getDescriptorManager();
-        auto &paletteSSBO = *paletteManager.get<vkh::ShaderStorage>(
-            DescPalette::BINDING_SSBO_PALETTE);
+        auto &paletteDesc = getDescriptor(SET_PALETTE);
+        auto &paletteSSBO = *paletteDesc.get<vkh::ShaderStorage>(0,
+                                                                 DescPalette::BINDING_SSBO_PALETTE);
         auto &paletteSSBOHost = paletteSSBO.getHostObject();
 
         const auto paletteLength = static_cast<uint32_t>(palette.colors.size());
@@ -92,14 +90,14 @@ namespace merutilm::rff2 {
         paletteSSBOHost.set<uint32_t>(DescPalette::TARGET_PALETTE_SMOOTHING,
                                       static_cast<uint32_t>(palette.colorSmoothing));
         paletteSSBOHost.set<float>(DescPalette::TARGET_PALETTE_ANIMATION_SPEED, palette.animationSpeed);
-        paletteSSBOHost.resize<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, paletteLength);
+        paletteSSBOHost.resizeArray<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, paletteLength);
         paletteSSBOHost.set<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, palette.colors);
         paletteSSBO.reloadBuffer();
 
         writeDescriptorForEachFrame(
             [&paletteSSBO, &paletteDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
                 paletteSSBO.update(frameIndex);
-                paletteDesc.queue(queue, frameIndex, {DescPalette::BINDING_SSBO_PALETTE});
+                paletteDesc.queue(queue, frameIndex, {}, {DescPalette::BINDING_SSBO_PALETTE});
             });
     }
 
@@ -109,7 +107,7 @@ namespace merutilm::rff2 {
 
         writeDescriptorForEachFrame(
             [&timeDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-                timeDesc.queue(queue, frameIndex);
+                timeDesc.queue(queue, frameIndex, {}, {DescTime::BINDING_UBO_TIME});
             });
     }
 

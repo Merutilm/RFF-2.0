@@ -16,9 +16,8 @@ namespace merutilm::rff2 {
 
     void GPCFog::setFog(const ShdFogAttribute &fog) const {
         using namespace SharedDescriptorTemplate;
-        const auto &fogDesc = getDescriptor(SET_FOG);
-        auto &fogManager = fogDesc.getDescriptorManager();
-        const auto &fogUBO = *fogManager.get<vkh::Uniform>(DescFog::BINDING_UBO_FOG);
+        auto &fogDesc = getDescriptor(SET_FOG);
+        const auto &fogUBO = *fogDesc.get<vkh::Uniform>(0, DescFog::BINDING_UBO_FOG);
         auto &fogUBOHost = fogUBO.getHostObject();
         fogUBOHost.set<float>(DescFog::TARGET_FOG_RADIUS, fog.radius);
         fogUBOHost.set<float>(DescFog::TARGET_FOG_OPACITY, fog.opacity);
@@ -31,23 +30,22 @@ namespace merutilm::rff2 {
     void GPCFog::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
         writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_FOG).queue(queue, frameIndex, {DescFog::BINDING_UBO_FOG});
+            getDescriptor(SET_FOG).queue(queue, frameIndex, {}, {DescFog::BINDING_UBO_FOG});
         });
     }
 
     void GPCFog::windowResized() {
         using namespace SharedDescriptorTemplate;
-        const auto &fogDesc = getDescriptor(SET_FOG_CANVAS);
-        auto &fogManager = fogDesc.getDescriptorManager();
-        fogManager.get<vkh::CombinedMultiframeImageSampler>(BINDING_FOG_CANVAS_ORIGINAL)->setImageContext(
+        auto &fogDesc = getDescriptor(SET_FOG_CANVAS);
+        fogDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL)->setImageContext(
             engine.getRenderContextConfigurator<RCCFirst>().getImageContext(
                 RCCFirst::RESULT_IMAGE_CONTEXT));
-        fogManager.get<vkh::CombinedMultiframeImageSampler>(BINDING_FOG_CANVAS_BLURRED)->setImageContext(
+        fogDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_FOG_CANVAS_BLURRED)->setImageContext(
             engine.getRenderContextConfigurator<RCCDownsampleForBlur>().getImageContext(
                 RCCDownsampleForBlur::DST_IMAGE_CONTEXT));
 
         writeDescriptorForEachFrame([&fogDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            fogDesc.queue(queue, frameIndex, {BINDING_FOG_CANVAS_ORIGINAL, BINDING_FOG_CANVAS_BLURRED});
+            fogDesc.queue(queue, frameIndex, {}, {BINDING_FOG_CANVAS_ORIGINAL, BINDING_FOG_CANVAS_BLURRED});
         });
     }
 
@@ -59,7 +57,7 @@ namespace merutilm::rff2 {
     void GPCFog::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
         using namespace SharedDescriptorTemplate;
 
-        vkh::SamplerRef sampler = pickFromRepository<vkh::SamplerRepo, vkh::SamplerRef, VkSamplerCreateInfo &&>(
+        vkh::SamplerRef sampler = pickFromRepository<vkh::SamplerRepo, vkh::SamplerRef>(
             VkSamplerCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,
@@ -80,15 +78,15 @@ namespace merutilm::rff2 {
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
                 .unnormalizedCoordinates = VK_FALSE,
             });
-        auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+        auto descManager = vkh::factory::create<vkh::DescriptorManager>();
 
         descManager->appendCombinedMultiframeImgSampler(BINDING_FOG_CANVAS_ORIGINAL,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::Factory::create<vkh::CombinedMultiframeImageSampler>(
+                                                        vkh::factory::create<vkh::CombinedMultiframeImageSampler>(
                                                             engine.getCore(), sampler));
         descManager->appendCombinedMultiframeImgSampler(BINDING_FOG_CANVAS_BLURRED,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::Factory::create<vkh::CombinedMultiframeImageSampler>(
+                                                        vkh::factory::create<vkh::CombinedMultiframeImageSampler>(
                                                             engine.getCore(), sampler));
         appendUniqueDescriptor(SET_FOG_CANVAS, descriptors, std::move(descManager));
         appendDescriptor<DescFog>(SET_FOG, descriptors);

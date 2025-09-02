@@ -34,7 +34,7 @@ namespace merutilm::vkh {
 
         GraphicsPipelineImpl &operator=(GraphicsPipelineImpl &&) = delete;
 
-        void cmdBindAll(VkCommandBuffer cbh, uint32_t frameIndex) const override;
+        void cmdBindAll(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices) const override;
 
         [[nodiscard]] VertexBufferRef getVertexBuffer() const { return vertexBuffer; }
 

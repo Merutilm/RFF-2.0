@@ -4,14 +4,15 @@
 
 #pragma once
 #include "CommandPool.hpp"
+#include "Fence.hpp"
 #include "../handle/CoreHandler.hpp"
-#include "HostBufferObject.hpp"
-#include "../manage/HostBufferObjectManager.hpp"
+#include "HostDataObject.hpp"
+#include "../manage/HostDataObjectManager.hpp"
 #include "../struct/BufferLock.hpp"
 
 namespace merutilm::vkh {
     class BufferObjectAbstract : public CoreHandler {
-        std::unique_ptr<HostBufferObject> hostBufferObject = nullptr;
+        HostDataObject hostDataObject = nullptr;
         VkBufferUsageFlags bufferUsage;
         std::vector<VkBuffer> buffers = {};
         std::vector<VkDeviceMemory> bufferMemory = {};
@@ -20,7 +21,7 @@ namespace merutilm::vkh {
         bool locked = false;
 
     public:
-        explicit BufferObjectAbstract(const CoreRef core, HostBufferObjectManager &&dataManager,
+        explicit BufferObjectAbstract(CoreRef core, HostDataObjectManager &&dataManager,
                               VkBufferUsageFlags bufferUsage, BufferLock bufferLock);
 
         ~BufferObjectAbstract() override;
@@ -41,14 +42,15 @@ namespace merutilm::vkh {
 
         [[nodiscard]] VkBuffer getBufferHandle(const uint32_t frameIndex) const { return buffers[frameIndex]; }
 
-
         void update(uint32_t frameIndex) const;
 
         void update(uint32_t frameIndex, uint32_t target) const;
 
         void checkFinalizedBeforeUpdate() const;
 
-        HostBufferObject &getHostObject() const { return *hostBufferObject; }
+        [[nodiscard]] HostDataObjectRef getHostObject() const { return *hostDataObject; }
+
+        [[nodiscard]] bool isLocked() const { return locked; }
 
     protected:
         void init() override;

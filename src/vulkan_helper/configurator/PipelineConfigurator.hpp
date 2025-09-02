@@ -5,6 +5,7 @@
 #pragma once
 #include "../handle/EngineHandler.hpp"
 #include "../impl/Pipeline.hpp"
+#include "../impl/PushConstant.hpp"
 #include "../util/DescriptorUpdater.hpp"
 #include "../struct/DescriptorTemplate.hpp"
 
@@ -28,11 +29,11 @@ namespace merutilm::vkh {
 
 
         [[nodiscard]] DescriptorRef getDescriptor(const uint32_t setIndex) const {
-            return pipeline->getPipelineManager().getDescriptor(setIndex);
+            return pipeline->getDescriptor(setIndex);
         }
 
-        [[nodiscard]] PushConstantManagerRef getPushConstantManager(const uint32_t pushIndex) const {
-            return *pipeline->getPipelineManager().getLayout().getPipelineLayoutManager().getPCM(pushIndex);
+        [[nodiscard]] PushConstantRef getPushConstant(const uint32_t pushIndex) const {
+            return *pipeline->getLayout().getPushConstant(pushIndex);
         }
 
         template<typename RepoType, typename Return, typename Key>
@@ -68,25 +69,35 @@ namespace merutilm::vkh {
             const auto context = engine.getRepositories().getDescriptorRequiresRepositoryContext();
             SharedDescriptorRepo &repo = *engine.getRepositories().getRepository<SharedDescriptorRepo>();
 
-            SafeArrayChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
+            safe_array::check_index_equal(setExpected, static_cast<uint32_t>(descriptors.size()),
                                               "Unique Descriptor Add");
             descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), context));
         }
 
         void appendUniqueDescriptor(const uint32_t setExpected, std::vector<DescriptorPtr> &descriptors,
-                                    DescriptorManager &&manager) {
+                                           DescriptorManager &&manager) {
+            std::vector<DescriptorManager> managers(1);
+            managers[0] = std::move(manager);
+            appendUniqueDescriptor(setExpected, descriptors, std::move(managers));
+        }
+
+        void appendUniqueDescriptor(const uint32_t setExpected, std::vector<DescriptorPtr> &descriptors,
+                                    std::vector<DescriptorManager> &&manager) {
+            if (manager.empty()) {
+                throw exception_invalid_args("Descriptor manager is empty");
+            }
             DescriptorSetLayoutRepo &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
 
-            SafeArrayChecker::checkIndexEqual(setExpected, static_cast<uint32_t>(descriptors.size()),
+            safe_array::check_index_equal(setExpected, static_cast<uint32_t>(descriptors.size()),
                                               "Unique Descriptor Add");
-            auto desc = Factory::create<Descriptor>(engine.getCore(), layoutRepo.pick(manager->getLayoutBuilder()),
+            auto desc = factory::create<Descriptor>(engine.getCore(), layoutRepo.pick(manager[0]->layoutBuilder),
                                                     std::move(manager));
             uniqueDescriptors.push_back(std::move(desc));
             descriptors.push_back(uniqueDescriptors.back().get());
         }
 
 
-        virtual void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex) = 0;
+        virtual void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices) = 0;
 
         virtual void pipelineInitialized() = 0;
 
@@ -102,7 +113,7 @@ namespace merutilm::vkh {
         virtual void configureDescriptors(std::vector<DescriptorPtr> &descriptors) = 0;
 
         void cmdPushAll(const VkCommandBuffer cbh) const {
-            pipeline->getPipelineManager().getLayout().cmdPush(cbh);
+            pipeline->getLayout().cmdPush(cbh);
         }
     };
 }

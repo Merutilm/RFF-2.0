@@ -22,18 +22,18 @@ namespace merutilm::vkh {
         GraphicsPipelineImpl::destroy();
     }
 
-    void GraphicsPipelineImpl::cmdBindAll(const VkCommandBuffer cbh, const uint32_t frameIndex) const {
-        const auto sets = pipelineManager->getDescriptorSets(frameIndex);
+    void GraphicsPipelineImpl::cmdBindAll(const VkCommandBuffer cbh, const uint32_t frameIndex, DescIndexPicker &&descIndices) const {
+        const auto sets = enumerateDescriptorSets(frameIndex, std::move(descIndices));
         vkCmdBindPipeline(cbh, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
         vkCmdBindDescriptorSets(cbh, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                pipelineManager->getLayout().getLayoutHandle(), 0,
+                                getLayout().getLayoutHandle(), 0,
                                 static_cast<uint32_t>(sets.size()), sets.data(), 0,
                                 nullptr);
     }
 
 
     void GraphicsPipelineImpl::init() {
-        auto modules = pipelineManager->getShaderModules();
+        auto modules = getShaderModules();
 
         std::vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos(modules.size());
         for (size_t i = 0; i < modules.size(); ++i) {

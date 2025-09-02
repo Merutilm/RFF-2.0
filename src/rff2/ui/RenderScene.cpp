@@ -7,7 +7,7 @@
 #include "CallbackExplore.hpp"
 #include "IOUtilities.h"
 #include "../../vulkan_helper/executor/RenderPassFullscreenRecorder.hpp"
-#include "../../vulkan_helper/executor/ScopedSyncedCommandBufferExecutorForRenderPass.hpp"
+#include "../../vulkan_helper/executor/ScopedCommandBufferExecutor.hpp"
 #include "../constants/VulkanWindowConstants.hpp"
 #include "../vulkan/RCCFirst.hpp"
 #include "../vulkan/GPCIterationPalette.hpp"
@@ -35,7 +35,7 @@
 
 namespace merutilm::rff2 {
     RenderScene::RenderScene(vkh::EngineRef engine, const HWND window,
-                             std::array<std::string, Constants::Status::LENGTH> *statusMessageRef) : EngineHandler(
+                             std::array<std::wstring, Constants::Status::LENGTH> *statusMessageRef) : EngineHandler(
             engine),
         window(window), attr(defaultSettings()), statusMessageRef(statusMessageRef) {
         init();
@@ -195,7 +195,6 @@ namespace merutilm::rff2 {
     }
 
     void RenderScene::draw(const uint32_t frameIndex, const uint32_t swapchainImageIndex) {
-        using enum vkh::RenderPassProcessTypeFlagBits;
         vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
         const VkDevice device = engine.getCore().getLogicalDevice().getLogicalDeviceHandle();
 
@@ -205,64 +204,31 @@ namespace merutilm::rff2 {
 
         vkh::DescriptorUpdater::write(device, queue);
 
-        auto &downsampleConfigurator = engine.getRenderContextConfigurator<
-            RCCDownsampleForBlur>();
-        const auto &srcImageDownsample = downsampleConfigurator.getImageContext(
-            RCCDownsampleForBlur::SRC_IMAGE_CONTEXT)[frameIndex];
-        const auto &dstImageDownsample = downsampleConfigurator.getImageContext(
-            RCCDownsampleForBlur::DST_IMAGE_CONTEXT)[frameIndex];
-        const auto &tmpImageDownsample = downsampleConfigurator.getImageContext(
-            RCCDownsampleForBlur::TMP_IMAGE_CONTEXT)[frameIndex];
 
-        const auto &fogDownSampleContext = engine.getRenderContextConfigurator<RCCFirst>().
-                getImageContext(RCCFirst::RESULT_IMAGE_CONTEXT);
-        rendererResampleForBlur->setTargetImageContext(fogDownSampleContext, frameIndex);
-        //FIRST RENDER PASS BEGIN
-        {
-            vkh::ScopedSyncedCommandBufferExecutorForRenderPass executor(engine, frameIndex, FIRST);
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCFirst>(
-                engine, {rendererIteration, rendererStripe, rendererSlope, rendererColor}, frameIndex);
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<
-                RCCDownsampleForBlur>(
-                engine, {rendererResampleForBlur}, frameIndex);
-        }
+        const VkFence renderFence = engine.getSyncObjectBetweenFrame().getFence(frameIndex).getFenceHandle();
+        const VkSemaphore imageAvailableSemaphore = engine.getSyncObjectBetweenFrame().getSemaphore(frameIndex).
+                getFirst();
+        const VkSemaphore renderFinishedSemaphore = engine.getSyncObjectBetweenFrame().getSemaphore(frameIndex).
+                getSecond();
 
-        //GAUSSIAN BLUR FOR FOG
-        rendererBoxBlur->gaussianBlur(attr.shader.fog.radius, srcImageDownsample, dstImageDownsample,
-                                      tmpImageDownsample, frameIndex);
-        const auto &bloomDownSampleContext = engine.getRenderContextConfigurator<RCCFog>().
-                getImageContext(RCCFog::BLOOM_THRESHOLD_IMAGE_CONTEXT);
-        rendererResampleForBlur->setTargetImageContext(bloomDownSampleContext, frameIndex);
-
-        //FOG RENDER PASS BEGIN
-        {
-            vkh::ScopedSyncedCommandBufferExecutorForRenderPass executor(engine, frameIndex, MIDDLE);
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCFog>(
-                engine, {rendererFog, rendererBloomThreshold}, frameIndex);
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCDownsampleForBlur>(
-                engine, {rendererResampleForBlur}, frameIndex);
-        }
-        //FOG RENDER PASS END
-
-        //GAUSSIAN BLUR FOR BLOOM
-        rendererBoxBlur->gaussianBlur(attr.shader.bloom.radius, srcImageDownsample, dstImageDownsample,
-                                      tmpImageDownsample, frameIndex);
-
-
-        //SECONDARY RENDER PASS BEGIN
-        {
-            vkh::ScopedSyncedCommandBufferExecutorForRenderPass executor(engine, frameIndex, MIDDLE);
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCSecondary>(
-                engine, {rendererBloom}, frameIndex);
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCLinearInterpolation>(
-               engine, {rendererLinearInterpolation}, frameIndex);
-
-        }
-        vkh::ScopedSyncedCommandBufferExecutorForRenderPass executor(engine, frameIndex, LAST);
+        vkh::ScopedCommandBufferExecutor executor(engine, frameIndex, renderFence, imageAvailableSemaphore, renderFinishedSemaphore);
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCFirst>(
+            engine, frameIndex, {rendererIteration, rendererStripe, rendererSlope, rendererColor}, {{},{},{},{}});
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<
+            RCCDownsampleForBlur>(
+            engine, frameIndex, {rendererResampleForBlur}, {{0}});
+        rendererBoxBlur->cmdGaussianBlur(frameIndex, 0);
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCFog>(
+            engine,  frameIndex, {rendererFog, rendererBloomThreshold}, {{}, {}});
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCDownsampleForBlur>(
+            engine, frameIndex, {rendererResampleForBlur}, {{1}});
+        rendererBoxBlur->cmdGaussianBlur(frameIndex, 1);
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCSecondary>(
+            engine, frameIndex, {rendererBloom}, {{}});
+        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCLinearInterpolation>(
+            engine, frameIndex, {rendererLinearInterpolation}, {{}});
         vkh::RenderPassFullscreenRecorder::cmdFullscreenPresentOnlyRenderPass<RCCPresent>(
-            engine, {rendererPresent}, frameIndex, swapchainImageIndex);
-
-        //LAST RENDER PASS END
+            engine, frameIndex, swapchainImageIndex, {rendererPresent}, {{}});
     }
 
 
@@ -357,7 +323,8 @@ namespace merutilm::rff2 {
 
 
                     if (auto it = static_cast<uint64_t>((*iterationMatrix)(x, y)); it != 0) {
-                        setStatusMessage(Constants::Status::ITERATION_STATUS, std::format("I : {} ({}, {})", it, x, y));
+                        setStatusMessage(Constants::Status::ITERATION_STATUS,
+                                         std::format(L"I : {} ({}, {})", it, x, y));
                     }
                 }
                 break;
@@ -443,7 +410,7 @@ namespace merutilm::rff2 {
     void RenderScene::applyCreateImage() {
         vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
         if (createImageRequestedFilename.empty()) {
-            createImageRequestedFilename = IOUtilities::ioFileDialog("Save image", Constants::Extension::DESC_IMAGE,
+            createImageRequestedFilename = IOUtilities::ioFileDialog(L"Save image", Constants::Extension::DESC_IMAGE,
                                                                      IOUtilities::SAVE_FILE,
                                                                      Constants::Extension::IMAGE)->string();
         }
@@ -481,16 +448,36 @@ namespace merutilm::rff2 {
         const uint16_t ih = getIterationBufferHeight(attr);
         const auto [width, height] = getBlurredRenderContextExtent();
 
-        rendererSlope->setResolution({cw, ch}, attr.render.clarityMultiplier);
-        rendererIteration->resetIterationBuffer(iw, ih);
-        rendererResampleForBlur->setResolution({width, height});
-
         for (auto &context: engine.getRenderContexts()) {
             context->recreate();
         }
         for (const auto &sp: shaderPrograms) {
             sp->windowResized();
         }
+
+        auto &downsampleConfigurator = engine.getRenderContextConfigurator<
+            RCCDownsampleForBlur>();
+        const auto &srcImageDownsample = downsampleConfigurator.getImageContext(
+            RCCDownsampleForBlur::SRC_IMAGE_CONTEXT);
+        const auto &dstImageDownsample = downsampleConfigurator.getImageContext(
+            RCCDownsampleForBlur::DST_IMAGE_CONTEXT);
+        const auto &tmpImageDownsample = downsampleConfigurator.getImageContext(
+            RCCDownsampleForBlur::TMP_IMAGE_CONTEXT);
+
+        const auto &fogDownSampleContext = engine.getRenderContextConfigurator<RCCFirst>().
+                getImageContext(RCCFirst::RESULT_IMAGE_CONTEXT);
+        const auto &bloomDownSampleContext = engine.getRenderContextConfigurator<RCCFog>().
+                getImageContext(RCCFog::BLOOM_THRESHOLD_IMAGE_CONTEXT);
+
+        rendererResampleForBlur->setTargetImageContext(0, fogDownSampleContext);
+        rendererResampleForBlur->setRescaledResolution(0, {width, height});
+        rendererResampleForBlur->setTargetImageContext(1, bloomDownSampleContext);
+        rendererResampleForBlur->setRescaledResolution(1, {width, height});
+        rendererBoxBlur->setBlurSize(0, attr.shader.fog.radius);
+        rendererBoxBlur->setBlurSize(1, attr.shader.bloom.radius);
+        rendererBoxBlur->setGaussianBlur(srcImageDownsample, dstImageDownsample, tmpImageDownsample);
+        rendererSlope->setResolution({cw, ch}, attr.render.clarityMultiplier);
+        rendererIteration->resetIterationBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
     }
 
@@ -549,7 +536,7 @@ namespace merutilm::rff2 {
         if (state.interruptRequested()) return false;
 
         setStatusMessage(Constants::Status::ZOOM_STATUS,
-                         std::format("Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
+                         std::format(L"Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
         const std::array<dex, 2> offset = offsetConversion(settings, 0, 0);
         dex dcMax = dex::ZERO;
@@ -557,14 +544,14 @@ namespace merutilm::rff2 {
         const auto refreshInterval = Utilities::getRefreshInterval(logZoom);
         std::function actionPerRefCalcIteration = [refreshInterval, this, &start](const uint64_t p) {
             if (p % refreshInterval == 0) {
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "P : {:L}", p));
+                setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), L"P : {:L}", p));
                 setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(start));
             }
         };
         std::function actionPerCreatingTableIteration = [refreshInterval, this, &start
                 ](const uint64_t p, const double i) {
             if (p % refreshInterval == 0) {
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("A : {:.3f}%", i * 100));
+                setStatusMessage(Constants::Status::RENDER_STATUS, std::format(L"A : {:.3f}%", i * 100));
                 setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(start));
             }
         };
@@ -651,7 +638,7 @@ namespace merutilm::rff2 {
         }
 
         setStatusMessage(Constants::Status::PERIOD_STATUS,
-                         std::format("P : {:L} ({:L}, {:L})", lastPeriod, refLength, mpaLen));
+                         std::format(L"P : {:L} ({:L}, {:L})", lastPeriod, refLength, mpaLen));
         if (state.interruptRequested()) return false;
 
 
@@ -686,7 +673,7 @@ namespace merutilm::rff2 {
             while (!stop.stop_requested()) {
                 float ratio = static_cast<float>(renderPixelsCount.load()) / static_cast<float>(len) * 100;
                 setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(start));
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("C : {:.3f}%", ratio));
+                setStatusMessage(Constants::Status::RENDER_STATUS, std::format(L"C : {:.3f}%", ratio));
 
                 Sleep(Constants::Status::SET_PROCESS_INTERVAL_MS);
             }
@@ -711,7 +698,7 @@ namespace merutilm::rff2 {
 
         currentMap = std::make_unique<RFFDynamicMapBinary>(calc.logZoom, lastPeriod, calc.maxIteration,
                                                            *iterationMatrix);
-        setStatusMessage(Constants::Status::RENDER_STATUS, std::string("Done"));
+        setStatusMessage(Constants::Status::RENDER_STATUS, L"Done");
 
         return true;
     }

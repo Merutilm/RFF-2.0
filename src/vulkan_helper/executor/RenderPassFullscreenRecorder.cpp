@@ -6,7 +6,6 @@
 
 
 #include "../context/RenderContext.hpp"
-#include "../util/logger.hpp"
 
 namespace merutilm::vkh {
     RenderPassFullscreenRecorder::RenderPassFullscreenRecorder(EngineRef engine,
@@ -22,11 +21,12 @@ namespace merutilm::vkh {
         RenderPassFullscreenRecorder::end();
     }
 
-    void RenderPassFullscreenRecorder::execute(
-        const std::span<PipelineConfigurator * const> shaderPrograms, const uint32_t frameIndex) const {
+    void RenderPassFullscreenRecorder::execute(const uint32_t frameIndex,
+        const std::span<PipelineConfigurator * const> shaderPrograms, std::vector<DescIndexPicker> && descIndices) const {
+        safe_array::check_size_equal(shaderPrograms.size(), descIndices.size(), "Execution of the Render Pass Fullscreen Recorder");
         const auto cbh = engine.getCommandBuffer().getCommandBufferHandle(frameIndex);
         for (int i = 0; i < shaderPrograms.size(); ++i) {
-            shaderPrograms[i]->cmdRender(cbh, frameIndex);
+            shaderPrograms[i]->cmdRender(cbh, frameIndex, std::move(descIndices[i]));
             if (i < shaderPrograms.size() - 1) {
                 vkCmdNextSubpass(cbh, VK_SUBPASS_CONTENTS_INLINE);
             }

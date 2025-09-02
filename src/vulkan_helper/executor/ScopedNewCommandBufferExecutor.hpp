@@ -9,11 +9,12 @@
 namespace merutilm::vkh {
     class ScopedNewCommandBufferExecutor final : public Executor {
         CoreRef core;
+        VkFence fenceHandle;
         CommandPoolRef commandPool;
-        VkCommandBuffer commandBuffer = nullptr;
+        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 
     public:
-        explicit ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool);
+        explicit ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool, VkFence fenceHandle = VK_NULL_HANDLE);
 
         ~ScopedNewCommandBufferExecutor() override;
 

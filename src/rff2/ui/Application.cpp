@@ -25,7 +25,6 @@ namespace merutilm::rff2 {
 
     void Application::initWindow() {
         SetProcessDPIAware();
-
         const HMENU hMenubar = initMenu();
         createMasterWindow(hMenubar);
         createRenderWindow();
@@ -67,12 +66,12 @@ namespace merutilm::rff2 {
             rightEdge += statusBarWidth;
         }
 
-        SendMessage(statusBar, SB_SETPARTS, Constants::Status::LENGTH, (LPARAM) rightEdges.data());
+        SendMessageW(statusBar, SB_SETPARTS, Constants::Status::LENGTH, (LPARAM) rightEdges.data());
     }
 
     void Application::refreshStatusBar() const {
         for (int i = 0; i < Constants::Status::LENGTH; ++i) {
-            SendMessage(statusBar, SB_SETTEXT, i, (LPARAM) TEXT(statusMessages[i].data()));
+            SendMessageW(statusBar, SB_SETTEXTW, i, reinterpret_cast<LPARAM>(statusMessages[i].data()));
         }
     }
 
@@ -110,9 +109,9 @@ namespace merutilm::rff2 {
     }
 
     void Application::createStatusBar() {
-        statusBar = CreateWindowEx(
+        statusBar = CreateWindowExW(
             0,
-            STATUSCLASSNAME,
+            STATUSCLASSNAMEW,
             nullptr,
             WS_CHILD | WS_VISIBLE | SBARS_SIZEGRIP | WS_CLIPCHILDREN,
             0, 0, 0, 0,
@@ -130,10 +129,10 @@ namespace merutilm::rff2 {
     }
 
     void Application::createVulkanContext() {
-        auto core = vkh::Factory::create<vkh::Core>();
+        auto core = vkh::factory::create<vkh::Core>();
         core->createGraphicsContextForWindow(renderWindow, Constants::Win32::INIT_RENDER_SCENE_FPS,
                                              Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
-        engine = vkh::Factory::create<vkh::Engine>(std::move(core));
+        engine = vkh::factory::create<vkh::Engine>(std::move(core));
     }
 
     void Application::createRenderScene() {
@@ -147,7 +146,7 @@ namespace merutilm::rff2 {
             Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window;
 
         window.setListener(
-            WM_GETMINMAXINFO, [](vkh::GraphicsContextWindowRef , HWND, WPARAM, const LPARAM lparam) {
+            WM_GETMINMAXINFO, [](vkh::GraphicsContextWindowRef, HWND, WPARAM, const LPARAM lparam) {
                 const auto min = reinterpret_cast<LPMINMAXINFO>(lparam);
                 min->ptMinTrackSize.x = Constants::Win32::MIN_WINDOW_WIDTH;
                 min->ptMinTrackSize.y = Constants::Win32::MIN_WINDOW_HEIGHT;
@@ -171,7 +170,7 @@ namespace merutilm::rff2 {
             return static_cast<LRESULT>(0);
         });
 
-        window.setListener(WM_EXITSIZEMOVE, [this](vkh::GraphicsContextWindowRef , HWND, WPARAM, LPARAM) {
+        window.setListener(WM_EXITSIZEMOVE, [this](vkh::GraphicsContextWindowRef, HWND, WPARAM, LPARAM) {
             if (windowResizing) {
                 windowResizing = false;
                 resolveWindowResizeEnd();
@@ -179,7 +178,7 @@ namespace merutilm::rff2 {
             return static_cast<LRESULT>(0);
         });
         window.setListener(
-            WM_INITMENUPOPUP, [this](vkh::GraphicsContextWindowRef , HWND, const WPARAM wparam, LPARAM) {
+            WM_INITMENUPOPUP, [this](vkh::GraphicsContextWindowRef, HWND, const WPARAM wparam, LPARAM) {
                 const auto popup = reinterpret_cast<HMENU>(wparam);
                 const int count = GetMenuItemCount(popup);
                 for (int i = 0; i < count; ++i) {
@@ -192,20 +191,24 @@ namespace merutilm::rff2 {
                             settingsMenu->hasCheckbox(id)
                         ) {
                             const bool *ref = settingsMenu->getBool(*scene, id, false);
-                            assert(ref != nullptr);
+                            if (ref == nullptr) {
+                                throw vkh::exception_invalid_state("checkbox bool cannot be null");
+                            }
                             CheckMenuItem(popup, id, MF_BYCOMMAND | (*ref ? MF_CHECKED : MF_UNCHECKED));
                         }
                     }
                 }
                 return static_cast<LRESULT>(0);
             });
-        window.setListener(WM_COMMAND, [this](vkh::GraphicsContextWindowRef , HWND, const WPARAM wparam, LPARAM) {
+        window.setListener(WM_COMMAND, [this](vkh::GraphicsContextWindowRef, HWND, const WPARAM wparam, LPARAM) {
             const HMENU menu = GetMenu(masterWindow);
             if (const int menuID = LOWORD(wparam);
                 settingsMenu->hasCheckbox(menuID)
             ) {
                 bool *ref = settingsMenu->getBool(*scene, menuID, true);
-                assert(ref != nullptr);
+                if (ref == nullptr) {
+                    throw vkh::exception_invalid_state("checkbox bool cannot be null");
+                }
                 *ref = !*ref;
                 settingsMenu->executeAction(*scene, menuID);
                 CheckMenuItem(menu, menuID, *ref ? MF_CHECKED : MF_UNCHECKED);
@@ -214,11 +217,11 @@ namespace merutilm::rff2 {
             }
             return static_cast<LRESULT>(0);
         });
-        window.setListener(WM_CLOSE, [this](vkh::GraphicsContextWindowRef , HWND, WPARAM, LPARAM) {
+        window.setListener(WM_CLOSE, [this](vkh::GraphicsContextWindowRef, HWND, WPARAM, LPARAM) {
             DestroyWindow(masterWindow);
             return static_cast<LRESULT>(0);
         });
-        window.setListener(WM_DESTROY, [](vkh::GraphicsContextWindowRef , HWND, WPARAM, LPARAM) {
+        window.setListener(WM_DESTROY, [](vkh::GraphicsContextWindowRef, HWND, WPARAM, LPARAM) {
             PostQuitMessage(0);
             return static_cast<LRESULT>(0);
         });
@@ -254,11 +257,13 @@ namespace merutilm::rff2 {
             return;
         }
         changeFrameIndex();
-        const vkh::SwapchainRef swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
+        const vkh::SwapchainRef swapchain = *core.getWindowContext(
+                    Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 swapchain;
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        const VkFence currentFence = engine->getSyncObjectBetweenFrame().getFence(frameIndex);
-        const VkSemaphore imageAvailableSemaphore = engine->getSyncObjectBetweenFrame().getImageAvailableSemaphore(frameIndex);
+        const VkFence currentFence = engine->getSyncObjectBetweenFrame().getFence(frameIndex).getFenceHandle();
+        const VkSemaphore imageAvailableSemaphore = engine->getSyncObjectBetweenFrame().
+                getSemaphore(frameIndex).getFirst();
         const VkSwapchainKHR swapchainHandle = swapchain.getSwapchainHandle();
 
 

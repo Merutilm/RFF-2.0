@@ -1,7 +1,7 @@
 #version 450
 
-layout (set = 0, binding = 0) uniform sampler2D canvas;
-layout (set = 0, binding = 1) uniform sampler2D blurred;
+layout (set = 0, binding = 0) uniform sampler2D bloom_canvas;
+layout (set = 0, binding = 1) uniform sampler2D bloom_blurred;
 layout (set = 1, binding = 0) uniform BloomUBO {
     float threshold;
     float radius;
@@ -36,9 +36,9 @@ void main() {
         discard;
     }
 
-    vec4 c = texture(canvas, coord);
-    vec3 blur = texture(blurred, coord).rgb;
-    vec3 add = blur - (blur - c.rgb) * bloom_attr.softness;
-    color = c + vec4(add * bloom_attr.intensity, 1);
+    color = texture(bloom_canvas, coord);
+    vec3 blur = texture(bloom_blurred, coord).rgb;
+    vec3 add = blur - (blur - color.rgb) * bloom_attr.softness;
+    color = color + vec4(add * bloom_attr.intensity, 1);
 
 }

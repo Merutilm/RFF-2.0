@@ -14,9 +14,8 @@ namespace merutilm::rff2 {
 
     void GPCLinearInterpolation::setLinearInterpolation(const bool use) const {
         using namespace SharedDescriptorTemplate;
-        const auto &interDesc = getDescriptor(SET_LINEAR_INTERPOLATION);
-        auto &interManager = interDesc.getDescriptorManager();
-        const auto &interUBO = *interManager.get<vkh::Uniform>(DescLinearInterpolation::BINDING_UBO_LINEAR_INTERPOLATION);
+        auto &interDesc = getDescriptor(SET_LINEAR_INTERPOLATION);
+        const auto &interUBO = *interDesc.get<vkh::Uniform>(0, DescLinearInterpolation::BINDING_UBO_LINEAR_INTERPOLATION);
         auto &interUBOHost = interUBO.getHostObject();
         interUBOHost.set<bool>(DescLinearInterpolation::TARGET_LINEAR_INTERPOLATION_USE, use);
 
@@ -28,19 +27,18 @@ namespace merutilm::rff2 {
     void GPCLinearInterpolation::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
         writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_LINEAR_INTERPOLATION).queue(queue, frameIndex, {DescBloom::BINDING_UBO_BLOOM});
+            getDescriptor(SET_LINEAR_INTERPOLATION).queue(queue, frameIndex, {}, {DescBloom::BINDING_UBO_BLOOM});
         });
     }
 
     void GPCLinearInterpolation::windowResized() {
         const auto &sample = engine.getRenderContextConfigurator<RCCSecondary>().getImageContext(
            RCCSecondary::RESULT_IMAGE_CONTEXT);
-        const auto &samplerDesc = getDescriptor(SET_PREV_RESULT);
-        auto &samplerManager = samplerDesc.getDescriptorManager();
-        samplerManager.get<vkh::CombinedMultiframeImageSampler>(BINDING_PREV_RESULT_SAMPLER)->setImageContext(sample);
+        auto &samplerDesc = getDescriptor(SET_PREV_RESULT);
+        samplerDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->setImageContext(sample);
 
         writeDescriptorForEachFrame([&samplerDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            samplerDesc.queue(queue, frameIndex);
+            samplerDesc.queue(queue, frameIndex, {}, {BINDING_PREV_RESULT_SAMPLER});
         });
     }
 
@@ -51,7 +49,7 @@ namespace merutilm::rff2 {
 
     void GPCLinearInterpolation::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
         using namespace SharedDescriptorTemplate;
-        vkh::SamplerRef sampler = pickFromRepository<vkh::SamplerRepo, vkh::SamplerRef, VkSamplerCreateInfo &&>(
+        vkh::SamplerRef sampler = pickFromRepository<vkh::SamplerRepo, vkh::SamplerRef>(
             VkSamplerCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,
@@ -72,11 +70,11 @@ namespace merutilm::rff2 {
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
                 .unnormalizedCoordinates = VK_FALSE,
             });
-        auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+        auto descManager = vkh::factory::create<vkh::DescriptorManager>();
 
         descManager->appendCombinedMultiframeImgSampler(BINDING_PREV_RESULT_SAMPLER,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::Factory::create<vkh::CombinedMultiframeImageSampler>(
+                                                        vkh::factory::create<vkh::CombinedMultiframeImageSampler>(
                                                             engine.getCore(), sampler));
         appendUniqueDescriptor(SET_PREV_RESULT, descriptors, std::move(descManager));
         appendDescriptor<DescLinearInterpolation>(SET_LINEAR_INTERPOLATION, descriptors);

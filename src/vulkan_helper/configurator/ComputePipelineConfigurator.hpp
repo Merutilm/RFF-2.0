@@ -24,7 +24,7 @@ namespace merutilm::vkh {
 
         ComputePipelineConfigurator &operator=(ComputePipelineConfigurator &&) = delete;
 
-        void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex) override;
+        void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices) override;
 
         void setExtent(const VkExtent2D &extent) {
             this->extent = extent;

@@ -4,9 +4,9 @@
 
 #include "Swapchain.hpp"
 
-#include "../exception/exception.hpp"
+#include "../core/exception.hpp"
 #include "../util/BufferImageUtils.hpp"
-#include "../util/SwapchainUtils.hpp"
+#include "../core/config.hpp"
 
 namespace merutilm::vkh {
     SwapchainImpl::SwapchainImpl(SurfaceRef surface, PhysicalDeviceLoaderRef physicalDevice,
@@ -68,7 +68,7 @@ namespace merutilm::vkh {
             .flags = 0,
             .surface = surface.getSurfaceHandle(),
             .minImageCount = maxFramesInFlight,
-            .imageFormat = SwapchainUtils::SWAPCHAIN_IMAGE_FORMAT,
+            .imageFormat = config::SWAPCHAIN_IMAGE_FORMAT,
             .imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
             .imageExtent = populateSwapchainExtent(),
             .imageArrayLayers = 1,
@@ -100,7 +100,7 @@ namespace merutilm::vkh {
                                 swapchainImages.data());
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             BufferImageUtils::createImageView(logicalDevice.getLogicalDeviceHandle(), swapchainImages[i],
-                                         VK_IMAGE_VIEW_TYPE_2D, SwapchainUtils::SWAPCHAIN_IMAGE_FORMAT, &swapchainImageViews[i]);
+                                         VK_IMAGE_VIEW_TYPE_2D, config::SWAPCHAIN_IMAGE_FORMAT, &swapchainImageViews[i]);
         }
     }
 

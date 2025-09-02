@@ -3,10 +3,8 @@
 //
 
 #pragma once
-#include <string>
-
+#include "../core/vkh_base.hpp"
 #include "GraphicsPipelineConfigurator.hpp"
-#include "../context/RenderContext.hpp"
 #include "../handle/EngineHandler.hpp"
 #include "../impl/IndexBuffer.hpp"
 #include "../impl/VertexBuffer.hpp"

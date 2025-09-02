@@ -3,8 +3,7 @@
 //
 
 #pragma once
-#include <list>
-#include <vulkan/vulkan.h>
+#include "../core/vkh_base.hpp"
 
 namespace merutilm::vkh {
     struct DescriptorUpdateContext {

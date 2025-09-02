@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include <vector>
+#include "../core/vkh_base.hpp"
 
 #include "BoostHasher.hpp"
 

@@ -74,13 +74,13 @@ namespace merutilm::rff2 {
         }
 
         template<typename E> requires std::is_enum_v<E> || std::is_same_v<E, bool>
-        static std::string toString(const E &value) {
+        static std::wstring toString(const E &value) {
             if constexpr (std::is_same_v<E, CalReuseReferenceMethod>) {
                 switch (value) {
                     using enum CalReuseReferenceMethod;
-                    case CURRENT_REFERENCE: return "Current";
-                    case CENTERED_REFERENCE: return "Centered";
-                    case DISABLED: return "Disabled";
+                    case CURRENT_REFERENCE: return L"Current";
+                    case CENTERED_REFERENCE: return L"Centered";
+                    case DISABLED: return L"Disabled";
                     default: break;
                 }
 
@@ -88,55 +88,55 @@ namespace merutilm::rff2 {
             if constexpr (std::is_same_v<E, CalDecimalizeIterationMethod>) {
                 switch (value) {
                     using enum CalDecimalizeIterationMethod;
-                    case NONE: return "None";
-                    case LINEAR: return "Linear";
-                    case SQUARE_ROOT: return "Square root";
-                    case LOG: return "Log";
-                    case LOG_LOG: return "LogLog";
+                    case NONE: return L"None";
+                    case LINEAR: return L"Linear";
+                    case SQUARE_ROOT: return L"Square root";
+                    case LOG: return L"Log";
+                    case LOG_LOG: return L"LogLog";
                     default: break;
                 }
             }
             if constexpr (std::is_same_v<E, CalMPASelectionMethod>) {
                 switch (value) {
                     using enum CalMPASelectionMethod;
-                    case LOWEST: return "Lowest";
-                    case HIGHEST: return "Highest";
+                    case LOWEST: return L"Lowest";
+                    case HIGHEST: return L"Highest";
                     default: break;
                 }
             }
             if constexpr (std::is_same_v<E, CalMPACompressionMethod>) {
                 switch (value) {
                     using enum CalMPACompressionMethod;
-                    case NO_COMPRESSION: return "No compression";
-                    case LITTLE_COMPRESSION: return "Little compression";
-                    case STRONGEST: return "Strongest";
+                    case NO_COMPRESSION: return L"No compression";
+                    case LITTLE_COMPRESSION: return L"Little compression";
+                    case STRONGEST: return L"Strongest";
                     default: break;
                 }
             }
             if constexpr (std::is_same_v<E, ShdPalColorSmoothingMethod>) {
                 switch (value) {
                     using enum ShdPalColorSmoothingMethod;
-                    case NONE: return "None";
-                    case NORMAL: return "Normal";
-                    case REVERSED: return "Reversed";
+                    case NONE: return L"None";
+                    case NORMAL: return L"Normal";
+                    case REVERSED: return L"Reversed";
                     default: break;
                 }
             }
             if constexpr (std::is_same_v<E, StripeType>) {
                 switch (value) {
                     using enum StripeType;
-                    case NONE: return "None";
-                    case SINGLE_DIRECTION: return "Single Direction";
-                    case SMOOTH: return "Smooth";
-                    case SQUARED: return "Squared";
+                    case NONE: return L"None";
+                    case SINGLE_DIRECTION: return L"Single Direction";
+                    case SMOOTH: return L"Smooth";
+                    case SQUARED: return L"Squared";
                     default: break;
                 }
             }
             if constexpr (std::is_same_v<E, bool>)  {
-                return value ? "O" : "X";
+                return value ? L"O" : L"X";
             }
 
-            return "Unknown Symbol";
+            return L"Unknown Symbol";
         }
     };
 }

@@ -39,9 +39,9 @@ namespace merutilm::vkh {
 
     protected:
 
-        virtual void configureVertexBuffer(HostBufferObjectManagerRef som) = 0;
+        virtual void configureVertexBuffer(HostDataObjectManagerRef som) = 0;
 
-        virtual void configureIndexBuffer(HostBufferObjectManagerRef som) = 0;
+        virtual void configureIndexBuffer(HostDataObjectManagerRef som) = 0;
 
         [[nodiscard]] virtual VertexBufferRef getVertexBuffer() const = 0;
 

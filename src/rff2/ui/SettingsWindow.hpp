@@ -22,8 +22,8 @@ namespace merutilm::rff2 {
         int count = 0;
         int elements = 0;
         std::vector<std::any> references;
-        std::vector<std::unique_ptr<std::function<std::any(std::string &)> > > parsers;
-        std::vector<std::unique_ptr<std::function<std::string(const std::any &)> > > unparsers;
+        std::vector<std::unique_ptr<std::function<std::any(std::wstring &)> > > parsers;
+        std::vector<std::unique_ptr<std::function<std::wstring(const std::any &)> > > unparsers;
         std::vector<std::unique_ptr<std::function<bool(const std::any &)> > > validConditions;
         std::vector<std::unique_ptr<std::function<void(std::any &)> > > callbacks;
         std::vector<std::unique_ptr<std::vector<std::any> > > enumValues;
@@ -51,26 +51,26 @@ namespace merutilm::rff2 {
         void setWindowCloseFunction(std::function<void()> &&function);
 
         template<typename T>
-        HWND registerTextInput(const std::string_view &settingsName, T *ptr,
-                               std::function<std::string(const T &)> &&unparser,
-                               std::function<T(std::string &)> &&parser, std::function<bool(const T &)> &&validCondition,
-                               std::function<void()> &&callback, std::string_view descriptionTitle,
-                               std::string_view descriptionDetail);
+        HWND registerTextInput(const std::wstring_view &settingsName, T *ptr,
+                               std::function<std::wstring(const T &)> &&unparser,
+                               std::function<T(std::wstring &)> &&parser, std::function<bool(const T &)> &&validCondition,
+                               std::function<void()> &&callback, std::wstring_view descriptionTitle,
+                               std::wstring_view descriptionDetail);
 
 
         template<typename T> requires std::is_enum_v<T>
-        HWND registerSelectionInput(const std::string_view &settingsName, T *ptr, std::function<void()> &&callback,
-                                    std::string_view descriptionTitle, std::string_view descriptionDetail);
+        HWND registerSelectionInput(const std::wstring_view &settingsName, T *ptr, std::function<void()> &&callback,
+                                    std::wstring_view descriptionTitle, std::wstring_view descriptionDetail);
 
 
         template<typename T> requires std::is_enum_v<T> || std::is_same_v<T, bool>
-        std::vector<HWND> registerRadioButtonInput(const std::string_view &settingsName, T *defaultValue,
-                                                   std::function<void()> &&callback, std::string_view descriptionTitle,
-                                                   std::string_view descriptionDetail);
+        std::vector<HWND> registerRadioButtonInput(const std::wstring_view &settingsName, T *defaultValue,
+                                                   std::function<void()> &&callback, std::wstring_view descriptionTitle,
+                                                   std::wstring_view descriptionDetail);
 
-        std::vector<HWND> registerBoolInput(const std::string_view &settingsName, bool *defaultValue,
-                                            std::function<void()> &&callback, std::string_view descriptionTitle,
-                                            std::string_view descriptionDetail);
+        std::vector<HWND> registerBoolInput(const std::wstring_view &settingsName, bool *defaultValue,
+                                            std::function<void()> &&callback, std::wstring_view descriptionTitle,
+                                            std::wstring_view descriptionDetail);
 
 
         HWND getWindow() const;
@@ -92,19 +92,19 @@ namespace merutilm::rff2 {
 
         int getYOffset() const;
 
-        void createLabel(const std::string_view &settingsName, std::string_view descriptionTitle,
-                         std::string_view descriptionDetail, int nw);
+        void createLabel(const std::wstring_view &settingsName, std::wstring_view descriptionTitle,
+                         std::wstring_view descriptionDetail, int nw);
 
         template<typename T>
         void registerActions(T *defaultValuePtr,
-                             const std::function<std::string(const T &)> &unparser,
-                             const std::optional<std::function<T(std::string &)> > &parser,
+                             const std::function<std::wstring(const T &)> &unparser,
+                             const std::optional<std::function<T(std::wstring &)> > &parser,
                              const std::optional<std::function<bool(const T &)> > &validCondition,
                              const std::function<void()> &callback,
                              std::optional<std::vector<T> > values);
 
 
-        std::string currValueToString(int index) const;
+        std::wstring currValueToString(int index) const;
 
         int getFixedNameWidth() const;
 
@@ -125,19 +125,19 @@ namespace merutilm::rff2 {
 
 
     template<typename T>
-    HWND SettingsWindow::registerTextInput(const std::string_view &settingsName, T *ptr,
-                                              std::function<std::string(const T &)> &&unparser,
-                                              std::function<T(std::string &)> &&parser,
+    HWND SettingsWindow::registerTextInput(const std::wstring_view &settingsName, T *ptr,
+                                              std::function<std::wstring(const T &)> &&unparser,
+                                              std::function<T(std::wstring &)> &&parser,
                                               std::function<bool(const T &)> &&validCondition,
                                               std::function<void()> &&callback,
-                                              const std::string_view descriptionTitle,
-                                              const std::string_view descriptionDetail) {
+                                              const std::wstring_view descriptionTitle,
+                                              const std::wstring_view descriptionDetail) {
         const int nw = getFixedNameWidth();
         const int vw = getFixedValueWidth();
 
 
         createLabel(settingsName, descriptionTitle, descriptionDetail, nw);
-        const HWND text = CreateWindowEx(0, WC_EDIT, unparser(*ptr).data(),
+        const HWND text = CreateWindowExW(0, WC_EDITW, unparser(*ptr).data(),
                                          Constants::Win32::STYLE_TEXT_FIELD, nw,
                                          getYOffset(), vw,
                                          Constants::Win32::SETTINGS_INPUT_HEIGHT, window,
@@ -160,15 +160,15 @@ namespace merutilm::rff2 {
     }
 
     template<typename T> requires std::is_enum_v<T>
-    HWND SettingsWindow::registerSelectionInput(const std::string_view &settingsName, T *ptr,
+    HWND SettingsWindow::registerSelectionInput(const std::wstring_view &settingsName, T *ptr,
                                                    std::function<void()> &&callback,
-                                                   const std::string_view descriptionTitle,
-                                                   const std::string_view descriptionDetail) {
+                                                   const std::wstring_view descriptionTitle,
+                                                   const std::wstring_view descriptionDetail) {
         const int nw = getFixedNameWidth();
         const int vw = getFixedValueWidth();
         createLabel(settingsName, descriptionTitle, descriptionDetail, nw);
-        const HWND combobox = CreateWindowEx(0, WC_COMBOBOX,
-                                             "",
+        const HWND combobox = CreateWindowExW(0, WC_COMBOBOXW,
+                                             L"",
                                              Constants::Win32::STYLE_COMBOBOX, nw,
                                              getYOffset(), vw,
                                              Constants::Win32::SETTINGS_INPUT_HEIGHT * Constants::Win32::MAX_AMOUNT_COMBOBOX,
@@ -180,14 +180,14 @@ namespace merutilm::rff2 {
         int defaultValueIndex = 0;
 
         for (int i = 0; i < values.size(); ++i) {
-            SendMessage(combobox, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(Selectable::toString(values[i]).data()));
-            SendMessage(combobox, WM_SETFONT, font, TRUE);
+            SendMessageW(combobox, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>(Selectable::toString(values[i]).data()));
+            SendMessageW(combobox, WM_SETFONT, font, TRUE);
             if (values[i] == *ptr) {
                 defaultValueIndex = i;
             }
         }
 
-        SendMessage(combobox, CB_SETCURSEL, defaultValueIndex, 0);
+        SendMessageW(combobox, CB_SETCURSEL, defaultValueIndex, 0);
         auto unparser = [](T v) { return Selectable::toString(v); };
         createdChildWindows.push_back(combobox);
         ++elements;
@@ -197,10 +197,10 @@ namespace merutilm::rff2 {
     }
 
     template<typename T> requires std::is_enum_v<T> || std::is_same_v<T, bool>
-    std::vector<HWND> SettingsWindow::registerRadioButtonInput(const std::string_view &settingsName, T *defaultValue,
+    std::vector<HWND> SettingsWindow::registerRadioButtonInput(const std::wstring_view &settingsName, T *defaultValue,
                                                                   std::function<void()> &&callback,
-                                                                  const std::string_view descriptionTitle,
-                                                                  const std::string_view descriptionDetail) {
+                                                                  const std::wstring_view descriptionTitle,
+                                                                  const std::wstring_view descriptionDetail) {
         const int nw = getFixedNameWidth();
         const int vw = getFixedValueWidth();
         createLabel(settingsName, descriptionTitle, descriptionDetail, nw);
@@ -210,7 +210,7 @@ namespace merutilm::rff2 {
         createdItem.reserve(values.size());
 
         for (int i = 0; i < values.size(); ++i) {
-            const HWND item = CreateWindowEx(0, WC_BUTTON,
+            const HWND item = CreateWindowExW(0, WC_BUTTONW,
                                              Selectable::toString(values[i]).data(),
                                              Constants::Win32::STYLE_RADIOBUTTON | (i == 0 ? WS_GROUP : 0), nw,
                                              getYOffset(), vw,
@@ -238,10 +238,10 @@ namespace merutilm::rff2 {
     }
 
 
-    inline std::vector<HWND> SettingsWindow::registerBoolInput(const std::string_view &settingsName, bool *defaultValue,
+    inline std::vector<HWND> SettingsWindow::registerBoolInput(const std::wstring_view &settingsName, bool *defaultValue,
                                                                   std::function<void()> &&callback,
-                                                                  const std::string_view descriptionTitle,
-                                                                  const std::string_view descriptionDetail) {
+                                                                  const std::wstring_view descriptionTitle,
+                                                                  const std::wstring_view descriptionDetail) {
         return registerRadioButtonInput(settingsName, defaultValue, std::move(callback), descriptionTitle,
                                         descriptionDetail);
     }
@@ -252,14 +252,14 @@ namespace merutilm::rff2 {
     }
 
     template<typename T>
-    void SettingsWindow::registerActions(T *defaultValuePtr, const std::function<std::string(const T &)> &unparser,
-                                            const std::optional<std::function<T(std::string &)> > &parser,
+    void SettingsWindow::registerActions(T *defaultValuePtr, const std::function<std::wstring(const T &)> &unparser,
+                                            const std::optional<std::function<T(std::wstring &)> > &parser,
                                             const std::optional<std::function<bool(const T &)> > &validCondition,
                                             const std::function<void()> &callback,
                                             const std::optional<std::vector<T> > values) {
         const std::any defaultValue = *defaultValuePtr;
         references.emplace_back(defaultValue);
-        unparsers.emplace_back(std::make_unique<std::function<std::string(const std::any &)> >(
+        unparsers.emplace_back(std::make_unique<std::function<std::wstring(const std::any &)> >(
             [unparser](const std::any &value) {
                 return unparser(std::any_cast<T>(value));
             }
@@ -267,8 +267,8 @@ namespace merutilm::rff2 {
 
         parsers.emplace_back(parser == std::nullopt
                                  ? nullptr
-                                 : std::make_unique<std::function<std::any(std::string &)> >(
-                                     [parser](std::string &value) {
+                                 : std::make_unique<std::function<std::any(std::wstring &)> >(
+                                     [parser](std::wstring &value) {
                                          auto f = *parser;
                                          std::any result = f(value);
                                          return result;

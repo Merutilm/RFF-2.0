@@ -52,7 +52,7 @@ namespace merutilm::rff2 {
 
         ApproxTableCache approxTableCache = ApproxTableCache();
 
-        std::array<std::string, Constants::Status::LENGTH> *statusMessageRef = nullptr;
+        std::array<std::wstring, Constants::Status::LENGTH> *statusMessageRef = nullptr;
         std::unique_ptr<RFFDynamicMapBinary> currentMap = nullptr;
         std::unique_ptr<Matrix<double> > iterationMatrix = nullptr;
         std::unique_ptr<MandelbrotPerturbator> currentPerturbator = nullptr;
@@ -80,7 +80,7 @@ namespace merutilm::rff2 {
 
     public:
         explicit RenderScene(vkh::EngineRef engine, HWND window,
-                             std::array<std::string, Constants::Status::LENGTH> *statusMessageRef);
+                             std::array<std::wstring, Constants::Status::LENGTH> *statusMessageRef);
 
         ~RenderScene() override;
 
@@ -182,8 +182,8 @@ namespace merutilm::rff2 {
 
         void afterCompute(bool success);
 
-        void setStatusMessage(const int index, const std::string_view &message) const {
-            (*statusMessageRef)[index] = std::string("  ").append(message);
+        void setStatusMessage(const int index, const std::wstring_view &message) const {
+            (*statusMessageRef)[index] = std::wstring(L"  ").append(message);
         }
 
         [[nodiscard]] Attribute &getAttribute() {

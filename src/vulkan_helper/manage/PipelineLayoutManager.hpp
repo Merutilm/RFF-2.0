@@ -3,19 +3,18 @@
 //
 
 #pragma once
-#include <vector>
-#include "PushConstantManager.hpp"
-#include "../def/Factory.hpp"
+#include "../impl/PushConstant.hpp"
 #include "../impl/DescriptorSetLayout.hpp"
-#include "../struct/PushConstantReserve.hpp"
 
 namespace merutilm::vkh {
-    class PipelineLayoutManagerImpl {
 
-        std::vector<DescriptorSetLayoutPtr> descriptorSetLayouts = {};
-        std::vector<PushConstantManager > pushConstantManagers = {};
+    using PipelineLayoutBuildType = std::variant<DescriptorSetLayoutPtr, PushConstantPtr>;
+    using PipelineLayoutBuilder = std::vector<PipelineLayoutBuildType>;
 
-    public:
+    struct PipelineLayoutManagerImpl {
+        PipelineLayoutBuilder builders;
+        uint32_t descriptorSetLayoutCount;
+
         PipelineLayoutManagerImpl() = default;
 
         ~PipelineLayoutManagerImpl() = default;
@@ -31,35 +30,16 @@ namespace merutilm::vkh {
         bool operator==(const PipelineLayoutManagerImpl &) const = default;
 
         void appendDescriptorSetLayout(DescriptorSetLayoutPtr descriptorSetLayout) {
-            descriptorSetLayouts.emplace_back(descriptorSetLayout);
+            builders.emplace_back(descriptorSetLayout);
+            ++descriptorSetLayoutCount;
         }
 
-        template<typename... T>
-        void appendPushConstantManager(const uint32_t pushIndexExpected, VkShaderStageFlags useStage, PushConstantReserve<T>&&...pushConstantReservesExpected) {
-
-
-            SafeArrayChecker::checkIndexEqual(pushIndexExpected, pushConstantManagers.size(), "Push Index");
-            auto som = Factory::create<HostBufferObjectManager>();
-            (som->reserve<T>(pushConstantReservesExpected.binding), ...);
-            auto pcm = Factory::create<PushConstantManager>(useStage, std::move(som));
-            pushConstantManagers.emplace_back(std::move(pcm));
-        }
-
-        std::span<DescriptorSetLayoutPtr const> getDescriptorSetLayouts() const {
-            return descriptorSetLayouts;
-        }
-
-        std::span<const PushConstantManager> getPushConstantManagers() const {
-            return pushConstantManagers;
-        }
-
-        const PushConstantManager &getPCM(const uint32_t pushIndex) const {
-            return pushConstantManagers[pushIndex];
+        void appendPushConstantManager(PushConstantPtr pushConstant) {
+            builders.emplace_back(std::move(pushConstant));
         }
     };
 
     using PipelineLayoutManager = std::unique_ptr<PipelineLayoutManagerImpl>;
     using PipelineLayoutManagerPtr = PipelineLayoutManagerImpl *;
     using PipelineLayoutManagerRef = PipelineLayoutManagerImpl &;
-
 }

@@ -8,15 +8,14 @@
 #include "SharedDescriptorRepo.hpp"
 #include "DescriptorSetLayoutRepo.hpp"
 #include "PipelineLayoutRepo.hpp"
-#include "Repo.hpp"
+#include "Repository.hpp"
 #include "SamplerRepo.hpp"
 #include "ShaderModuleRepo.hpp"
-#include "../exception/exception.hpp"
 
 namespace merutilm::vkh {
     class RepositoriesImpl {
 
-        std::vector<InterfaceRepo> repositories = {};
+        std::vector<Repo> repositories = {};
 
     public:
 
@@ -28,7 +27,7 @@ namespace merutilm::vkh {
             addRepository<SamplerRepo>(core);
         }
 
-        template<typename RepoType> requires std::is_base_of_v<InterfaceRepoImpl, RepoType>
+        template<typename RepoType> requires std::is_base_of_v<RepoAbstract, RepoType>
         RepoType *getRepository() {
             for (const auto &repository : repositories) {
                 auto repo = dynamic_cast<RepoType *>(repository.get());
@@ -46,7 +45,7 @@ namespace merutilm::vkh {
             };
         }
 
-        template<typename RepoType> requires std::is_base_of_v<InterfaceRepoImpl, RepoType>
+        template<typename RepoType> requires std::is_base_of_v<RepoAbstract, RepoType>
         void addRepository(CoreRef engine) {
             if (getRepository<RepoType>() != nullptr) {
                 throw exception_invalid_args("Repository already exists");

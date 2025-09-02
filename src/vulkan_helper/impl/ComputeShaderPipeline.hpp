@@ -23,7 +23,7 @@ namespace merutilm::vkh {
 
         ComputeShaderPipelineImpl &operator=(ComputeShaderPipelineImpl &&) = delete;
 
-        void cmdBindAll(VkCommandBuffer cbh, uint32_t frameIndex) const override;
+        void cmdBindAll(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices) const override;
 
         void init() override;
     };

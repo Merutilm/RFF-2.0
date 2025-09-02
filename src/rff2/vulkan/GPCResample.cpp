@@ -7,27 +7,24 @@
 #include "SharedDescriptorTemplate.hpp"
 
 
+
 namespace merutilm::rff2 {
     void GPCResample::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
         //no operation
     }
 
-    void GPCResample::setTargetImageContext(const vkh::MultiframeImageContext &context,
-                                                             const uint32_t frameIndex) const {
-        const auto &resultDesc = getDescriptor(SET_RESAMPLE);
-        auto &resultManager = resultDesc.getDescriptorManager();
-        resultManager.get<vkh::CombinedMultiframeImageSampler>(BINDING_RESAMPLE_SAMPLER)->setImageContext(context);
+    void GPCResample::setTargetImageContext(const uint32_t descIndex, const vkh::MultiframeImageContext &context) const {
+        auto &resultDesc = getDescriptor(SET_RESAMPLE);
+        resultDesc.get<vkh::CombinedMultiframeImageSampler>(descIndex, BINDING_RESAMPLE_SAMPLER)->setImageContext(context);
 
-        writeDescriptor([&resultDesc, &frameIndex](vkh::DescriptorUpdateQueue &queue) {
-            resultDesc.queue(queue, frameIndex);
+        writeDescriptorForEachFrame([&resultDesc, &descIndex](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            resultDesc.queue(queue, frameIndex, {descIndex}, {BINDING_RESAMPLE_SAMPLER});
         });
-
     }
 
-    void GPCResample::setResolution(const glm::uvec2 &newResolution) const {
-        const auto &resDesc = getDescriptor(SET_RESAMPLE);
-        auto &resManager = resDesc.getDescriptorManager();
-        auto &resUBO = *resManager.get<vkh::Uniform>(BINDING_RESAMPLE_UBO);
+    void GPCResample::setRescaledResolution(const uint32_t descIndex, const glm::uvec2 &newResolution) const {
+        auto &resDesc = getDescriptor(SET_RESAMPLE);
+        auto &resUBO = *resDesc.get<vkh::Uniform>(descIndex, BINDING_RESAMPLE_UBO);
         auto &resUBOHost = resUBO.getHostObject();
         resUBOHost.set<glm::uvec2>(TARGET_RESAMPLE_EXTENT, newResolution);
         updateBufferForEachFrame([&resUBO](const uint32_t frameIndex) {
@@ -37,7 +34,7 @@ namespace merutilm::rff2 {
 
     void GPCResample::pipelineInitialized() {
         writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_RESAMPLE).queue(queue, frameIndex, {BINDING_RESAMPLE_UBO});
+            getDescriptor(SET_RESAMPLE).queue(queue, frameIndex, {}, {BINDING_RESAMPLE_UBO});
         });
     }
 
@@ -51,8 +48,7 @@ namespace merutilm::rff2 {
     }
 
     void GPCResample::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
-        auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
-        vkh::SamplerRef sampler = pickFromRepository<vkh::SamplerRepo, vkh::SamplerRef, VkSamplerCreateInfo &&>(
+        vkh::SamplerRef sampler = pickFromRepository<vkh::SamplerRepo, vkh::SamplerRef>(
             VkSamplerCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,
@@ -73,14 +69,20 @@ namespace merutilm::rff2 {
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
                 .unnormalizedCoordinates = VK_FALSE
             });
-        auto combinedSampler = vkh::Factory::create<vkh::CombinedMultiframeImageSampler>(engine.getCore(), sampler);
-        descManager->appendCombinedMultiframeImgSampler(BINDING_RESAMPLE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        std::move(combinedSampler));
-        auto uboManager = vkh::Factory::create<vkh::HostBufferObjectManager>();
-        uboManager->reserve<glm::uvec2>(TARGET_RESAMPLE_EXTENT);
-        descManager->appendUBO(BINDING_RESAMPLE_UBO, VK_SHADER_STAGE_FRAGMENT_BIT,
-                               vkh::Factory::create<vkh::Uniform>(engine.getCore(), std::move(uboManager),
-                                                                  vkh::BufferLock::LOCK_UNLOCK));
-        appendUniqueDescriptor(SET_RESAMPLE, descriptors, std::move(descManager));
+        auto descManagers = std::vector<vkh::DescriptorManager>(RESAMPLE_IMAGES_COUNT_PER_FRAME);
+        for (uint32_t i = 0; i < RESAMPLE_IMAGES_COUNT_PER_FRAME; ++i) {
+            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
+            auto combinedSampler = vkh::factory::create<vkh::CombinedMultiframeImageSampler>(engine.getCore(), sampler);
+            descManager->appendCombinedMultiframeImgSampler(BINDING_RESAMPLE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT,
+                                                            std::move(combinedSampler));
+
+            auto uboManager = vkh::factory::create<vkh::HostDataObjectManager>();
+            uboManager->reserve<glm::uvec2>(TARGET_RESAMPLE_EXTENT);
+            descManager->appendUBO(BINDING_RESAMPLE_UBO, VK_SHADER_STAGE_FRAGMENT_BIT,
+                                   vkh::factory::create<vkh::Uniform>(engine.getCore(), std::move(uboManager),
+                                                                      vkh::BufferLock::LOCK_UNLOCK));
+            descManagers[i] = std::move(descManager);
+        }
+        appendUniqueDescriptor(SET_RESAMPLE, descriptors, std::move(descManagers));
     }
 }

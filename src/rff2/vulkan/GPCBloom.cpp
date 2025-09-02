@@ -16,10 +16,14 @@ namespace merutilm::rff2 {
 
     void GPCBloom::setBloom(const ShdBloomAttribute &bloom) const {
         using namespace SharedDescriptorTemplate;
-        const auto &bloomDesc = getDescriptor(SET_BLOOM);
-        auto &bloomManager = bloomDesc.getDescriptorManager();
-        const auto &bloomUBO = *bloomManager.get<vkh::Uniform>(DescBloom::BINDING_UBO_BLOOM);
+        auto &bloomDesc = getDescriptor(SET_BLOOM);
+        auto &bloomUBO = *bloomDesc.get<vkh::Uniform>(0, DescBloom::BINDING_UBO_BLOOM);
         auto &bloomUBOHost = bloomUBO.getHostObject();
+
+        if (bloomUBO.isLocked()) {
+            bloomUBO.unlock(engine.getCommandPool());
+        }
+
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_THRESHOLD, bloom.threshold);
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_RADIUS, bloom.radius);
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_SOFTNESS, bloom.softness);
@@ -28,29 +32,31 @@ namespace merutilm::rff2 {
         updateBufferForEachFrame([&bloomUBO](const uint32_t frameIndex) {
             bloomUBO.update(frameIndex);
         });
+
+        bloomUBO.lock(engine.getCommandPool());
+
+        writeDescriptorForEachFrame([&bloomDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            bloomDesc.queue(queue, frameIndex, {}, {DescBloom::BINDING_UBO_BLOOM});
+        });
     }
 
     void GPCBloom::pipelineInitialized() {
-        using namespace SharedDescriptorTemplate;
-        writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_BLOOM).queue(queue, frameIndex, {DescBloom::BINDING_UBO_BLOOM});
-        });
+        //noop
     }
 
     void GPCBloom::windowResized() {
         using namespace SharedDescriptorTemplate;
-        const auto &fogDesc = getDescriptor(SET_BLOOM_CANVAS);
-        auto &fogManager = fogDesc.getDescriptorManager();
-        fogManager.get<vkh::CombinedMultiframeImageSampler>(BINDING_BLOOM_CANVAS_ORIGINAL)->setImageContext(
+        auto &bloomDesc = getDescriptor(SET_BLOOM_CANVAS);
+        bloomDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_BLOOM_CANVAS_ORIGINAL)->setImageContext(
             engine.getRenderContextConfigurator<RCCFog>().getImageContext(
                 RCCFog::RESULT_IMAGE_CONTEXT));
-        fogManager.get<vkh::CombinedMultiframeImageSampler>(BINDING_BLOOM_CANVAS_BLURRED)->setImageContext(
+        bloomDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_BLOOM_CANVAS_BLURRED)->setImageContext(
             engine.getRenderContextConfigurator<RCCDownsampleForBlur>().getImageContext(
                 RCCDownsampleForBlur::DST_IMAGE_CONTEXT)
         );
 
-        writeDescriptorForEachFrame([&fogDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            fogDesc.queue(queue, frameIndex, {BINDING_BLOOM_CANVAS_ORIGINAL, BINDING_BLOOM_CANVAS_BLURRED});
+        writeDescriptorForEachFrame([&bloomDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            bloomDesc.queue(queue, frameIndex, {}, {BINDING_BLOOM_CANVAS_ORIGINAL, BINDING_BLOOM_CANVAS_BLURRED});
         });
     }
 
@@ -62,7 +68,7 @@ namespace merutilm::rff2 {
     void GPCBloom::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
         using namespace SharedDescriptorTemplate;
 
-        vkh::SamplerRef sampler = pickFromRepository<vkh::SamplerRepo, vkh::SamplerRef, VkSamplerCreateInfo &&>(
+        vkh::SamplerRef sampler = pickFromRepository<vkh::SamplerRepo, vkh::SamplerRef>(
             VkSamplerCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,
@@ -83,15 +89,15 @@ namespace merutilm::rff2 {
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
                 .unnormalizedCoordinates = VK_FALSE,
             });
-        auto descManager = vkh::Factory::create<vkh::DescriptorManager>();
+        auto descManager = vkh::factory::create<vkh::DescriptorManager>();
 
         descManager->appendCombinedMultiframeImgSampler(BINDING_BLOOM_CANVAS_ORIGINAL,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::Factory::create<vkh::CombinedMultiframeImageSampler>(
+                                                        vkh::factory::create<vkh::CombinedMultiframeImageSampler>(
                                                             engine.getCore(), sampler));
         descManager->appendCombinedMultiframeImgSampler(BINDING_BLOOM_CANVAS_BLURRED,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::Factory::create<vkh::CombinedMultiframeImageSampler>(
+                                                        vkh::factory::create<vkh::CombinedMultiframeImageSampler>(
                                                             engine.getCore(), sampler));
         appendUniqueDescriptor(SET_BLOOM_CANVAS, descriptors, std::move(descManager));
         appendDescriptor<DescBloom>(SET_BLOOM, descriptors);

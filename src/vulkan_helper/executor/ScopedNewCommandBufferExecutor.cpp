@@ -4,10 +4,10 @@
 
 #include "ScopedNewCommandBufferExecutor.hpp"
 
-#include "../util/logger.hpp"
+#include "../core/logger.hpp"
 
 namespace merutilm::vkh {
-    ScopedNewCommandBufferExecutor::ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool) : core(core), commandPool(commandPool) {
+    ScopedNewCommandBufferExecutor::ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool, const VkFence fenceHandle) : core(core), fenceHandle(fenceHandle), commandPool(commandPool) {
         ScopedNewCommandBufferExecutor::begin();
     }
 
@@ -41,6 +41,7 @@ namespace merutilm::vkh {
 
     void ScopedNewCommandBufferExecutor::end() {
         vkEndCommandBuffer(commandBuffer);
+        const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
 
         if (const VkSubmitInfo submitInfo = {
                 .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -53,10 +54,15 @@ namespace merutilm::vkh {
                 .signalSemaphoreCount = 0,
                 .pSignalSemaphores = nullptr
             };
-            vkQueueSubmit(core.getLogicalDevice().getGraphicsQueue(), 1, &submitInfo, nullptr) != VK_SUCCESS) {
+            vkQueueSubmit(core.getLogicalDevice().getGraphicsQueue(), 1, &submitInfo, fenceHandle) != VK_SUCCESS) {
             logger::log_err_silent("Failed to submit command buffer operation.");
         }
-        vkDeviceWaitIdle(core.getLogicalDevice().getLogicalDeviceHandle());
-        vkFreeCommandBuffers(core.getLogicalDevice().getLogicalDeviceHandle(), commandPool.getCommandPoolHandle(), 1, &commandBuffer);
+        if (fenceHandle == VK_NULL_HANDLE) {
+            vkDeviceWaitIdle(core.getLogicalDevice().getLogicalDeviceHandle());
+        }else{
+            vkWaitForFences(device, 1, &fenceHandle, VK_FALSE, UINT64_MAX);
+        }
+        vkFreeCommandBuffers(device, commandPool.getCommandPoolHandle(), 1, &commandBuffer);
+
     }
 }

@@ -3,9 +3,6 @@
 //
 
 #pragma once
-#include <unordered_set>
-#include <vulkan/vulkan.h>
-
 #include "../struct/QueueFamilyIndices.hpp"
 #include "../struct/StringHasher.hpp"
 

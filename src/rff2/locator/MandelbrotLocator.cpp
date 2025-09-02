@@ -54,7 +54,7 @@ namespace merutilm::rff2 {
         // check 'dcMax' iterate and check its iteration is max iteration
         // if true, zoom out. otherwise, zoom in.
         // it can approximate zoom when repeats until zoom increment is lower than
-        // specific small number. O(log N)
+        // specific small number. O(w_log N)
 
 
         std::unique_ptr<MandelbrotPerturbator> result = findAccurateCenterPerturbator(

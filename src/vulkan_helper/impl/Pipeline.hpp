@@ -5,19 +5,23 @@
 #pragma once
 
 #include "../manage/PipelineManager.hpp"
-
 #include "../handle/EngineHandler.hpp"
 
 namespace merutilm::vkh {
     struct PipelineAbstract : public EngineHandler {
         VkPipeline pipeline = nullptr;
         PipelineLayoutRef pipelineLayout;
-        const PipelineManager pipelineManager = nullptr;
+        const std::vector<DescriptorPtr> descriptors;
+        const std::vector<ShaderModulePtr> shaderModules;
 
         explicit PipelineAbstract(EngineRef engine, PipelineLayoutRef pipelineLayout,
                                   PipelineManager &&pipelineManager) : EngineHandler(engine),
                                                                        pipelineLayout(pipelineLayout),
-                                                                       pipelineManager(std::move(pipelineManager)) {
+                                                                       descriptors(
+                                                                           std::move(pipelineManager->descriptors)),
+                                                                       shaderModules(
+                                                                           std::move(
+                                                                               pipelineManager->shaderModules)) {
         };
 
         ~PipelineAbstract() override = default;
@@ -30,11 +34,38 @@ namespace merutilm::vkh {
 
         PipelineAbstract &operator=(PipelineAbstract &&) = delete;
 
-        virtual void cmdBindAll(VkCommandBuffer cbh, uint32_t frameIndex) const = 0;
+        virtual void cmdBindAll(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices = {}) const = 0;
 
-        [[nodiscard]] PipelineManagerRef getPipelineManager() const { return *pipelineManager; }
 
         [[nodiscard]] VkPipeline getPipelineHandle() const { return pipeline; }
+
+        [[nodiscard]] DescriptorRef getDescriptor(const uint32_t setIndex) const {
+            return *descriptors[setIndex];
+        }
+
+        [[nodiscard]] PipelineLayoutRef getLayout() const { return pipelineLayout; }
+
+        [[nodiscard]] std::span<const DescriptorPtr> getDescriptors() const { return descriptors; }
+
+        [[nodiscard]] std::span<const ShaderModulePtr> getShaderModules() const {
+            return shaderModules;
+        }
+
+
+        [[nodiscard]] std::vector<VkDescriptorSet> enumerateDescriptorSets(const uint32_t frameIndex, DescIndexPicker &&descIndices = {}) const {
+            std::vector<VkDescriptorSet> sets(descriptors.size());
+
+            if (!descIndices.empty()) {
+                safe_array::check_size_equal(descriptors.size(), descIndices.size(), "Descriptor Index");
+            }else {
+                descIndices = std::vector<uint32_t>(descriptors.size(), 0);
+            }
+
+            for (uint32_t i = 0; i < descriptors.size(); i++) {
+                sets[i] = descriptors[i]->getDescriptorSetHandle(frameIndex, descIndices[i]);
+            }
+            return sets;
+        }
 
     protected:
         void destroy() override {

@@ -7,7 +7,7 @@
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_win32.h>
 
-#include "../exception/exception.hpp"
+#include "../core/exception.hpp"
 
 namespace merutilm::vkh {
     SurfaceImpl::SurfaceImpl(InstanceRef instance, GraphicsContextWindowRef window) : instance(instance), window(window) {

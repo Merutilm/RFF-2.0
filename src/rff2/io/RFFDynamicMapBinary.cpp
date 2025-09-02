@@ -8,11 +8,9 @@
 #include <fstream>
 
 #include "../../vulkan_helper/util/BufferImageUtils.hpp"
-#include "../../vulkan_helper/util/logger.hpp"
+#include "../../vulkan_helper/core/logger.hpp"
 #include "../ui/IOUtilities.h"
 #include "../constants/Constants.hpp"
-#include "../ui/Utilities.h"
-#include "opencv2/imgcodecs.hpp"
 
 namespace merutilm::rff2 {
 
@@ -73,7 +71,7 @@ namespace merutilm::rff2 {
             IOUtilities::encodeAndWrite(out, iterations.getCanvas());
             out.close();
         } else {
-            vkh::logger::log("ERROR : Cannot save file");
+            vkh::logger::w_log(L"ERROR : Cannot save file");
         }
     }
 
