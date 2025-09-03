@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include "../context/WindowContext.hpp"
 #include "Instance.hpp"
 #include "LogicalDevice.hpp"
 #include "PhysicalDeviceLoader.hpp"
@@ -13,8 +12,6 @@ namespace merutilm::vkh {
         Instance instance = nullptr;
         PhysicalDeviceLoader physicalDevice = nullptr;
         LogicalDevice logicalDevice = nullptr;
-
-        std::vector<WindowContext> windowContexts = {};
 
         std::chrono::high_resolution_clock::time_point startTime;
 
@@ -31,17 +28,12 @@ namespace merutilm::vkh {
 
         CoreImpl &operator=(CoreImpl &&) = delete;
 
-        void createGraphicsContextForWindow(HWND hwnd, float framerate, uint32_t graphicsWindowIndexExpected);
-
         [[nodiscard]] InstanceRef getInstance() const { return *instance; }
 
         [[nodiscard]] PhysicalDeviceLoaderRef getPhysicalDevice() const { return *physicalDevice; }
 
         [[nodiscard]] LogicalDeviceRef getLogicalDevice() const { return *logicalDevice; }
 
-        [[nodiscard]] const WindowContext &getWindowContext(const uint32_t windowIndex) const {
-            return windowContexts.at(windowIndex);
-        }
 
         [[nodiscard]] float getTime() const;
 

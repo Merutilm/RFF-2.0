@@ -11,6 +11,7 @@
 #include "CommandBuffer.hpp"
 #include "SyncObject.hpp"
 #include "../context/RenderContext.hpp"
+#include "../context/WindowContext.hpp"
 
 namespace merutilm::vkh {
     class EngineImpl final : public Handler {
@@ -18,9 +19,9 @@ namespace merutilm::vkh {
         Repositories repositories = nullptr;
         CommandPool commandPool = nullptr;
         CommandBuffer commandBuffer = nullptr;
-        SyncObject syncObjectBetweenFrame = nullptr;
-        SyncObject syncObjectBetweenRenderPass = nullptr;
+        SyncObject syncObject = nullptr;
         SharedImageContext sharedImageContext = nullptr;
+        std::vector<WindowContext> windowContexts = {};
         std::vector<RenderContext> renderContext = {};
 
     public:
@@ -35,6 +36,9 @@ namespace merutilm::vkh {
         EngineImpl(EngineImpl &&) = delete;
 
         EngineImpl &operator=(EngineImpl &&) = delete;
+
+
+        void createGraphicsContextForWindow(HWND hwnd, float framerate, uint32_t graphicsWindowIndexExpected);
 
         template<typename T, typename ExtentImgGetter, typename SwapchainImgGetter> requires (
             std::is_base_of_v<RenderContextConfiguratorAbstract, T> && std::is_invocable_r_v<VkExtent2D, ExtentImgGetter> && std::is_invocable_r_v<MultiframeImageContext, SwapchainImgGetter>)
@@ -55,11 +59,13 @@ namespace merutilm::vkh {
 
         [[nodiscard]] CommandBufferRef getCommandBuffer() const { return *commandBuffer; }
 
-        [[nodiscard]] SyncObjectRef getSyncObjectBetweenFrame() const { return *syncObjectBetweenFrame; }
-
-        [[nodiscard]] SyncObjectRef getSyncObjectBetweenRenderPass() const { return *syncObjectBetweenRenderPass; }
+        [[nodiscard]] SyncObjectRef getSyncObject() const { return *syncObject; }
 
         [[nodiscard]] std::span<const RenderContext> getRenderContexts() const { return renderContext; }
+
+        [[nodiscard]] const WindowContext &getWindowContext(const uint32_t windowIndex) const {
+            return windowContexts.at(windowIndex);
+        }
 
         [[nodiscard]] RenderContextRef getRenderContext(const uint32_t renderContextIndex) const {
             return *renderContext[renderContextIndex];

@@ -130,9 +130,9 @@ namespace merutilm::rff2 {
 
     void Application::createVulkanContext() {
         auto core = vkh::factory::create<vkh::Core>();
-        core->createGraphicsContextForWindow(renderWindow, Constants::Win32::INIT_RENDER_SCENE_FPS,
-                                             Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
         engine = vkh::factory::create<vkh::Engine>(std::move(core));
+        engine->createGraphicsContextForWindow(renderWindow, Constants::Win32::INIT_RENDER_SCENE_FPS,
+                                             Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
     }
 
     void Application::createRenderScene() {
@@ -142,7 +142,7 @@ namespace merutilm::rff2 {
     void Application::setProcedure() {
         const HCURSOR hCursor = LoadCursor(nullptr, IDC_ARROW);
 
-        vkh::GraphicsContextWindowImpl &window = *engine->getCore().getWindowContext(
+        vkh::GraphicsContextWindowImpl &window = *engine->getWindowContext(
             Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window;
 
         window.setListener(
@@ -253,16 +253,16 @@ namespace merutilm::rff2 {
 
     void Application::drawFrame() {
         vkh::CoreRef core = engine->getCore();
-        if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
+        if (engine->getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
             return;
         }
         changeFrameIndex();
-        const vkh::SwapchainRef swapchain = *core.getWindowContext(
+        const vkh::SwapchainRef swapchain = *engine->getWindowContext(
                     Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 swapchain;
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        const VkFence currentFence = engine->getSyncObjectBetweenFrame().getFence(frameIndex).getFenceHandle();
-        const VkSemaphore imageAvailableSemaphore = engine->getSyncObjectBetweenFrame().
+        const VkFence currentFence = engine->getSyncObject().getFence(frameIndex).getFenceHandle();
+        const VkSemaphore imageAvailableSemaphore = engine->getSyncObject().
                 getSemaphore(frameIndex).getFirst();
         const VkSwapchainKHR swapchainHandle = swapchain.getSwapchainHandle();
 
@@ -287,7 +287,7 @@ namespace merutilm::rff2 {
         ShowWindow(masterWindow, SW_SHOW);
         UpdateWindow(masterWindow);
         SetWindowLongPtr(masterWindow, GWLP_USERDATA,
-                         reinterpret_cast<LONG_PTR>(engine->getCore().getWindowContext(
+                         reinterpret_cast<LONG_PTR>(engine->getWindowContext(
                                  Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                              window.get()));
         SetWindowLongPtr(renderWindow, GWLP_USERDATA,
@@ -295,7 +295,7 @@ namespace merutilm::rff2 {
     }
 
     void Application::start() const {
-        vkh::GraphicsContextWindowRef window = *engine->getCore().getWindowContext(
+        vkh::GraphicsContextWindowRef window = *engine->getWindowContext(
                     Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 window;
         window.start();

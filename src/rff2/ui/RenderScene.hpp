@@ -7,7 +7,6 @@
 #include <windows.h>
 #include <atomic>
 
-#include "../../vulkan_helper/configurator/GraphicsPipelineConfigurator.hpp"
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
 #include "../data/ApproxTableCache.h"
 #include "../formula/MandelbrotPerturbator.h"
@@ -117,7 +116,7 @@ namespace merutilm::rff2 {
         };
 
         [[nodiscard]] VkExtent2D getInternalImageExtent() const {
-            const auto &swapchain = *engine.getCore().getWindowContext(
+            const auto &swapchain = *engine.getWindowContext(
                 Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
             const auto [width, height] = swapchain.populateSwapchainExtent();
             const float multiplier = attr.render.clarityMultiplier;
@@ -138,7 +137,7 @@ namespace merutilm::rff2 {
         }
 
         [[nodiscard]] VkExtent2D getSwapchainRenderContextExtent() const {
-            const auto &swapchain = *engine.getCore().getWindowContext(
+            const auto &swapchain = *engine.getWindowContext(
                 Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
             return swapchain.populateSwapchainExtent();
         }
@@ -163,6 +162,8 @@ namespace merutilm::rff2 {
         void applyCreateImage();
 
         void applyShaderAttr(const Attribute &attr) const;
+
+        void applyResizeParams();
 
         void applyResize();
 

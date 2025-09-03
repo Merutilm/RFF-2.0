@@ -4,24 +4,19 @@
 
 #pragma once
 #include "../core/vkh_base.hpp"
-#include "../handle/Handler.hpp"
-
-#include "LogicalDevice.hpp"
+#include "../handle/CoreHandler.hpp"
 
 namespace merutilm::vkh {
-    class SwapchainImpl final : public Handler {
+    class SwapchainImpl final : public CoreHandler {
 
         SurfaceRef surface;
-        PhysicalDeviceLoaderRef physicalDevice;
-        LogicalDeviceRef logicalDevice;
         VkSwapchainKHR swapchain = nullptr;
         VkSwapchainKHR oldSwapchain = nullptr;
         std::vector<VkImage> swapchainImages = {};
         std::vector<VkImageView> swapchainImageViews = {};
 
     public:
-        explicit SwapchainImpl(SurfaceRef surface, PhysicalDeviceLoaderRef physicalDevice,
-                           LogicalDeviceRef logicalDevice);
+        explicit SwapchainImpl(CoreRef core, SurfaceRef surface);
 
         ~SwapchainImpl() override;
 

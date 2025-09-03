@@ -13,7 +13,6 @@ namespace merutilm::vkh {
     class PhysicalDeviceLoaderImpl final : public Handler {
 
         InstanceRef instance;
-        SurfaceRef surface;
 
         VkPhysicalDevice physicalDevice = nullptr;
         VkPhysicalDeviceProperties physicalDeviceProperties = {};
@@ -24,7 +23,7 @@ namespace merutilm::vkh {
 
     public:
 
-        explicit PhysicalDeviceLoaderImpl(InstanceRef instance, SurfaceRef surface);
+        explicit PhysicalDeviceLoaderImpl(InstanceRef instance);
 
         ~PhysicalDeviceLoaderImpl() override;
 
@@ -50,14 +49,19 @@ namespace merutilm::vkh {
             return physicalDeviceFeatures;
         }
 
-        [[nodiscard]] VkSurfaceCapabilitiesKHR populateSurfaceCapabilities() const;
+        [[nodiscard]] VkSurfaceCapabilitiesKHR populateSurfaceCapabilities(VkSurfaceKHR surface) const;
+
+        static HWND createDummyWindow();
+
 
         [[nodiscard]] const QueueFamilyIndices &getQueueFamilyIndices() const { return queueFamilyIndices; }
-
 
         uint32_t getMaxFramesInFlight() const {return maxFramesInFlight;}
 
     private:
+
+        VkSurfaceKHR createDummySurface(HWND dummyWindow) const;
+
         void init() override;
 
         void destroy() override;

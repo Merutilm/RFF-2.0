@@ -9,9 +9,7 @@
 #include "../core/config.hpp"
 
 namespace merutilm::vkh {
-    SwapchainImpl::SwapchainImpl(SurfaceRef surface, PhysicalDeviceLoaderRef physicalDevice,
-                         LogicalDeviceRef logicalDevice) : surface(surface), physicalDevice(physicalDevice),
-                                                               logicalDevice(logicalDevice) {
+    SwapchainImpl::SwapchainImpl(CoreRef core, SurfaceRef surface) : CoreHandler(core), surface(surface) {
         SwapchainImpl::init();
     }
 
@@ -24,14 +22,14 @@ namespace merutilm::vkh {
         destroyImageViews();
         oldSwapchain = swapchain;
         createSwapchain(&swapchain, oldSwapchain);
-        vkDestroySwapchainKHR(logicalDevice.getLogicalDeviceHandle(), oldSwapchain, nullptr);
+        vkDestroySwapchainKHR(core.getLogicalDevice().getLogicalDeviceHandle(), oldSwapchain, nullptr);
         setupSwapchainImages();
     }
 
 
     VkExtent2D SwapchainImpl::populateSwapchainExtent() const {
         const HWND window = surface.getTargetWindow().getWindowHandle();
-        const auto capabilities = physicalDevice.populateSurfaceCapabilities();
+        const auto capabilities = core.getPhysicalDevice().populateSurfaceCapabilities(surface.getSurfaceHandle());
 
         if (capabilities.currentExtent.width == UINT32_MAX) {
             return capabilities.currentExtent;
@@ -56,11 +54,11 @@ namespace merutilm::vkh {
     }
 
     void SwapchainImpl::createSwapchain(VkSwapchainKHR *target, const VkSwapchainKHR old) const {
-        const uint32_t maxFramesInFlight = physicalDevice.getMaxFramesInFlight();
-        const auto &[graphicsFamily, presentFamily] = physicalDevice.getQueueFamilyIndices();
+        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+        const auto &[graphicsFamily, presentFamily] = core.getPhysicalDevice().getQueueFamilyIndices();
         std::array queueFamilyIndices = {graphicsFamily.value(), presentFamily.value()};
 
-        const VkSurfaceCapabilitiesKHR capabilities = physicalDevice.populateSurfaceCapabilities();
+        const VkSurfaceCapabilitiesKHR capabilities = core.getPhysicalDevice().populateSurfaceCapabilities(surface.getSurfaceHandle());
 
         if (const VkSwapchainCreateInfoKHR createInfo = {
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -85,21 +83,21 @@ namespace merutilm::vkh {
             .presentMode = VK_PRESENT_MODE_MAILBOX_KHR,
             .clipped = VK_TRUE,
             .oldSwapchain = old
-        }; vkCreateSwapchainKHR(logicalDevice.getLogicalDeviceHandle(), &createInfo, nullptr, target) !=
+        }; vkCreateSwapchainKHR(core.getLogicalDevice().getLogicalDeviceHandle(), &createInfo, nullptr, target) !=
            VK_SUCCESS) {
             throw exception_init("Failed to create swapchain!");
         }
     }
 
     void SwapchainImpl::setupSwapchainImages() {
-        uint32_t maxFramesInFlight = physicalDevice.getMaxFramesInFlight();
+        uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         swapchainImages.resize(maxFramesInFlight);
         swapchainImageViews.resize(maxFramesInFlight);
 
-        vkGetSwapchainImagesKHR(logicalDevice.getLogicalDeviceHandle(), swapchain, &maxFramesInFlight,
+        vkGetSwapchainImagesKHR(core.getLogicalDevice().getLogicalDeviceHandle(), swapchain, &maxFramesInFlight,
                                 swapchainImages.data());
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-            BufferImageUtils::createImageView(logicalDevice.getLogicalDeviceHandle(), swapchainImages[i],
+            BufferImageUtils::createImageView(core.getLogicalDevice().getLogicalDeviceHandle(), swapchainImages[i],
                                          VK_IMAGE_VIEW_TYPE_2D, config::SWAPCHAIN_IMAGE_FORMAT, &swapchainImageViews[i]);
         }
     }
@@ -107,13 +105,13 @@ namespace merutilm::vkh {
 
     void SwapchainImpl::destroy() {
         destroyImageViews();
-        vkDestroySwapchainKHR(logicalDevice.getLogicalDeviceHandle(), swapchain, nullptr);
+        vkDestroySwapchainKHR(core.getLogicalDevice().getLogicalDeviceHandle(), swapchain, nullptr);
     }
 
     void SwapchainImpl::destroyImageViews() const {
-        const uint32_t maxFramesInFlight = physicalDevice.getMaxFramesInFlight();
+        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-            vkDestroyImageView(logicalDevice.getLogicalDeviceHandle(), swapchainImageViews[i], nullptr);
+            vkDestroyImageView(core.getLogicalDevice().getLogicalDeviceHandle(), swapchainImageViews[i], nullptr);
         }
     }
 }

@@ -55,7 +55,7 @@ namespace merutilm::rff2 {
 
     void RenderScene::initRenderContext() const {
         const auto swapchainImageContextGetter = [this] {
-            auto &swapchain = *engine.getCore().getWindowContext(
+            auto &swapchain = *engine.getWindowContext(
                 Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
             return vkh::ImageContext::fromSwapchain(engine.getCore(), swapchain);
         };
@@ -147,19 +147,18 @@ namespace merutilm::rff2 {
             sp->pipelineInitialized();
         }
 
-        applyResize();
+        applyResizeParams();
         applyShaderAttr(attr);
         requestRecompute();
     }
 
     void RenderScene::resolveWindowResizeEnd() const {
-        const auto &core = engine.getCore();
-        if (core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
+        if (engine.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
             return;
         }
-        vkDeviceWaitIdle(core.getLogicalDevice().getLogicalDeviceHandle());
+        vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
 
-        vkh::SwapchainRef swapchain = *core.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
+        vkh::SwapchainRef swapchain = *engine.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
                 swapchain;
         swapchain.recreate();
     }
@@ -207,10 +206,10 @@ namespace merutilm::rff2 {
         vkh::DescriptorUpdater::write(device, queue);
 
 
-        const VkFence renderFence = engine.getSyncObjectBetweenFrame().getFence(frameIndex).getFenceHandle();
-        const VkSemaphore imageAvailableSemaphore = engine.getSyncObjectBetweenFrame().getSemaphore(frameIndex).
+        const VkFence renderFence = engine.getSyncObject().getFence(frameIndex).getFenceHandle();
+        const VkSemaphore imageAvailableSemaphore = engine.getSyncObject().getSemaphore(frameIndex).
                 getFirst();
-        const VkSemaphore renderFinishedSemaphore = engine.getSyncObjectBetweenFrame().getSemaphore(frameIndex).
+        const VkSemaphore renderFinishedSemaphore = engine.getSyncObject().getSemaphore(frameIndex).
                 getSecond();
 
         vkh::ScopedCommandBufferExecutor executor(engine, frameIndex, renderFence, imageAvailableSemaphore,
@@ -445,30 +444,34 @@ namespace merutilm::rff2 {
         rendererBoxBlur->setBlurSize(1, attr.shader.bloom.radius);
     }
 
-    void RenderScene::applyResize() {
-        using namespace SharedImageContextIndices;
-        vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
+    void RenderScene::applyResizeParams() {
         const uint16_t cw = getClientWidth();
         const uint16_t ch = getClientHeight();
         const uint16_t iw = getIterationBufferWidth(attr);
         const uint16_t ih = getIterationBufferHeight(attr);
+        const auto &[width, height] = getBlurredImageExtent();
 
-        refreshSharedImgContext();
-
-        for (auto &context: engine.getRenderContexts()) {
-            context->recreate();
-        }
         for (const auto &sp: shaderPrograms) {
             sp->windowResized();
         }
-
-        const auto &[width, height] = getBlurredImageExtent();
 
         rendererResampleForBlur->setRescaledResolution(0, {width, height});
         rendererResampleForBlur->setRescaledResolution(1, {width, height});
         rendererSlope->setResolution({cw, ch}, attr.render.clarityMultiplier);
         rendererIteration->resetIterationBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
+    }
+
+    void RenderScene::applyResize() {
+        using namespace SharedImageContextIndices;
+        vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
+
+        refreshSharedImgContext();
+
+        for (auto &context: engine.getRenderContexts()) {
+            context->recreate();
+        }
+        applyResizeParams();
     }
 
 
