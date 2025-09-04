@@ -32,6 +32,7 @@
 #include "../vulkan/RCCPresent.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 #include "../vulkan/SharedImageContextIndices.hpp"
+#include "opencv2/opencv.hpp"
 
 
 namespace merutilm::rff2 {
@@ -208,9 +209,9 @@ namespace merutilm::rff2 {
 
         const VkFence renderFence = engine.getSyncObject().getFence(frameIndex).getFenceHandle();
         const VkSemaphore imageAvailableSemaphore = engine.getSyncObject().getSemaphore(frameIndex).
-                getFirst();
+                getImageAvailable();
         const VkSemaphore renderFinishedSemaphore = engine.getSyncObject().getSemaphore(frameIndex).
-                getSecond();
+                getRenderFinished();
 
         vkh::ScopedCommandBufferExecutor executor(engine, frameIndex, renderFence, imageAvailableSemaphore,
                                                   renderFinishedSemaphore);
@@ -416,19 +417,34 @@ namespace merutilm::rff2 {
                                                                      IOUtilities::SAVE_FILE,
                                                                      Constants::Extension::IMAGE)->string();
         }
-        // const GLuint fbo = renderer->getRenderedFBO();
-        // const GLuint fboID = renderer->getRenderedFBOTexID();
-        // const int width = renderer->getWidth();
-        // const int height = renderer->getHeight();
-        // GLRenderer::bindFBO(fbo, fboID);
-        // std::vector<char> pixels(width * height * 4);
-        // glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
-        //
-        // auto img = cv::Mat(height, width, CV_8UC4, pixels.data());
-        // cv::flip(img, img, 0);
-        // cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
-        // cv::imwrite(createImageRequestedFilename, img);
-        // GLRenderer::unbindFBO(fbo);
+        const auto &imgCtx = engine.getSharedImageContext().getMultiframeContext(
+            SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY)[0];
+
+        vkh::BufferContext bufCtx = vkh::BufferContext::createContext(engine.getCore(), {
+                                                                          .size = imgCtx.capacity,
+                                                                          .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                                          .properties =
+                                                                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                                                      });
+        vkh::BufferContext::mapMemory(engine.getCore(), bufCtx);
+        //NEW COMMAND BUFFER
+        {
+            const auto executor = vkh::ScopedNewCommandBufferExecutor(engine.getCore(), engine.getCommandPool());
+            vkh::BarrierUtils::cmdImageMemoryBarrier(executor.getCommandBufferHandle(), imgCtx.image,
+                                                     VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0,
+                                                     VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
+            vkh::BufferImageContextUtils::cmdCopyImageToBuffer(executor.getCommandBufferHandle(), imgCtx, bufCtx);
+
+        }
+        vkh::BufferContext::unmapMemory(engine.getCore(), bufCtx);
+        auto img = cv::Mat(imgCtx.extent.height, imgCtx.extent.width, CV_16UC4, bufCtx.mappedMemory);
+        cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
+        cv::imwrite(createImageRequestedFilename, img);
+        vkh::BufferContext::destroyContext(engine.getCore(), bufCtx);
     }
 
     void RenderScene::applyShaderAttr(const Attribute &attr) const {
@@ -498,26 +514,26 @@ namespace merutilm::rff2 {
         const auto blurredImageExtent = getBlurredImageExtent();
 
         sharedImg.appendMultiframeImageContext(MF_RENDER_IMAGE_PRIMARY,
-                                                  iiiGetter(internalImageExtent,
-                                                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                                                            VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
-                                                            VK_IMAGE_USAGE_SAMPLED_BIT));
+                                               iiiGetter(internalImageExtent,
+                                                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT));
         sharedImg.appendMultiframeImageContext(MF_RENDER_IMAGE_SECONDARY,
-                                                  iiiGetter(internalImageExtent,
-                                                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                                                            VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
-                                                            VK_IMAGE_USAGE_SAMPLED_BIT));
+                                               iiiGetter(internalImageExtent,
+                                                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT));
         sharedImg.appendMultiframeImageContext(MF_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
-                                                  iiiGetter(blurredImageExtent,
-                                                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                                                            VK_IMAGE_USAGE_SAMPLED_BIT |
-                                                            VK_IMAGE_USAGE_STORAGE_BIT));
+                                               iiiGetter(blurredImageExtent,
+                                                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT |
+                                                         VK_IMAGE_USAGE_STORAGE_BIT));
         sharedImg.appendMultiframeImageContext(MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY,
-                                                  iiiGetter(blurredImageExtent,
-                                                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-                                                            VK_IMAGE_USAGE_SAMPLED_BIT |
-                                                            VK_IMAGE_USAGE_STORAGE_BIT));
-
+                                               iiiGetter(blurredImageExtent,
+                                                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT |
+                                                         VK_IMAGE_USAGE_STORAGE_BIT));
     }
 
     void RenderScene::overwriteMatrixFromMap() const {

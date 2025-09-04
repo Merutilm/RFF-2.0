@@ -232,7 +232,7 @@ add_executable(
         src/rff2/vulkan/GPCIterationPalette.hpp
         src/vulkan_helper/context/DescriptorUpdateContext.hpp
         src/vulkan_helper/core/safe_array.hpp
-        src/vulkan_helper/util/ImageContextUtils.hpp
+        src/vulkan_helper/util/BufferImageContextUtils.hpp
         src/vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.cpp
         src/vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp
         src/rff2/ui/RenderScene.cpp
@@ -315,6 +315,8 @@ add_executable(
         src/vulkan_helper/context/SharedImageContext.hpp
         src/rff2/vulkan/SharedImageContextIndices.hpp
         src/vulkan_helper/util/BarrierUtils.hpp
+        src/vulkan_helper/context/BufferContext.hpp
+        src/vulkan_helper/struct/BufferInitInfo.hpp
 )
 
 find_package(Vulkan REQUIRED)

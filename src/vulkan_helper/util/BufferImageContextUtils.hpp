@@ -8,14 +8,13 @@
 #include "../impl/CommandPool.hpp"
 #include "BufferImageUtils.hpp"
 #include "BarrierUtils.hpp"
+#include "../context/BufferContext.hpp"
 
 namespace merutilm::vkh {
-    struct ImageContextUtils {
-
-
-        static std::vector<VkImage> enumerateImages(const MultiframeImageContext& context) {
+    struct BufferImageContextUtils {
+        static std::vector<VkImage> enumerateImages(const MultiframeImageContext &context) {
             std::vector<VkImage> images(context.size());
-            std::ranges::transform(context, images.begin(), [](const ImageContext& image) {return image.image;});
+            std::ranges::transform(context, images.begin(), [](const ImageContext &image) { return image.image; });
             return images;
         }
 
@@ -33,9 +32,12 @@ namespace merutilm::vkh {
                                           uint64_t>(
                                           texChannels);
 
-            BufferImageUtils::initBuffer(core, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                         &stagingBuffer, &stagingMemory);
+            BufferImageUtils::initBuffer(core, {
+                                             .size = size,
+                                             .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                             .properties =
+                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                         }, &stagingBuffer, &stagingMemory);
             void *mapped = nullptr;
             vkMapMemory(device, stagingMemory, 0, size, 0, &mapped);
             memcpy(mapped, data, size);
@@ -75,7 +77,8 @@ namespace merutilm::vkh {
                     .imageOffset = {0, 0, 0},
                     .imageExtent = {width, height, 1}
                 }; // copy original mip level
-                BarrierUtils::cmdImageMemoryBarrier(sce.getCommandBufferHandle(), context.image, VK_ACCESS_HOST_WRITE_BIT,
+                BarrierUtils::cmdImageMemoryBarrier(sce.getCommandBufferHandle(), context.image,
+                                                    VK_ACCESS_HOST_WRITE_BIT,
                                                     VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
                                                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                                     0, VK_PIPELINE_STAGE_HOST_BIT,
@@ -127,6 +130,31 @@ namespace merutilm::vkh {
                                                                 reinterpret_cast<std::byte *>(data));
             stbi_image_free(data);
             return result;
+        }
+
+        /**
+         * Copies whole image to buffer.
+         * @param commandBuffer The command buffer to record
+         * @param image The source image to copy. its layout must be <b>VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL</b>
+         * @param buffer The destination buffer to copy.
+         */
+        static void cmdCopyImageToBuffer(const VkCommandBuffer commandBuffer, const ImageContext &image,
+                                         const BufferContext &buffer) {
+            const VkBufferImageCopy copyRegion = {
+                .bufferOffset = 0,
+                .bufferRowLength = 0,
+                .bufferImageHeight = 0,
+                .imageSubresource = {
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                    .mipLevel = 0,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1
+                },
+                .imageOffset = {0, 0, 0},
+                .imageExtent = {image.extent.width, image.extent.height, 1}
+            };
+            vkCmdCopyImageToBuffer(commandBuffer, image.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer.buffer, 1,
+                                   &copyRegion);
         }
 
         /**

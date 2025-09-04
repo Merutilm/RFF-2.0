@@ -48,7 +48,7 @@ namespace merutilm::vkh {
 
 
         void cmdDraw(const VkCommandBuffer cbh, const uint32_t frameIndex, const uint32_t indexVarBinding) const {
-            const VkBuffer vertexBufferHandle = getVertexBuffer().getBufferHandle(frameIndex);
+            const VkBuffer vertexBufferHandle = getVertexBuffer().getBufferContext(frameIndex).buffer;
             constexpr VkDeviceSize vertexBufferOffset = 0;
             vkCmdBindVertexBuffers(cbh, 0, 1, &vertexBufferHandle, &vertexBufferOffset);
             getIndexBuffer().bind(cbh, frameIndex, indexVarBinding);

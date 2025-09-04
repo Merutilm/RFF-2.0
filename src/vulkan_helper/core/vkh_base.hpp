@@ -15,6 +15,7 @@
 
 #include <utility>
 #include <memory>
+#include <cstddef>
 #include <algorithm>
 
 #include <optional>

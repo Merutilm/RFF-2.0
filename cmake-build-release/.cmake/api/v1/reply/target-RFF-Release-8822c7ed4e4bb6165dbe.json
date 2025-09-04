@@ -39,37 +39,37 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 343,
+				"line" : 345,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 345,
+				"line" : 347,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 364,
+				"line" : 366,
 				"parent" : 0
 			},
 			{
 				"command" : 4,
 				"file" : 0,
-				"line" : 322,
+				"line" : 324,
 				"parent" : 0
 			},
 			{
 				"command" : 5,
 				"file" : 0,
-				"line" : 329,
+				"line" : 331,
 				"parent" : 0
 			},
 			{
 				"command" : 6,
 				"file" : 0,
-				"line" : 334,
+				"line" : 336,
 				"parent" : 0
 			}
 		]
@@ -702,7 +702,9 @@
 				303,
 				304,
 				305,
-				306
+				306,
+				307,
+				308
 			]
 		}
 	],
@@ -1900,7 +1902,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/vulkan_helper/util/ImageContextUtils.hpp",
+			"path" : "src/vulkan_helper/util/BufferImageContextUtils.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2333,6 +2335,16 @@
 		{
 			"backtrace" : 1,
 			"path" : "src/vulkan_helper/util/BarrierUtils.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/vulkan_helper/context/BufferContext.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/vulkan_helper/struct/BufferInitInfo.hpp",
 			"sourceGroupIndex" : 1
 		}
 	],

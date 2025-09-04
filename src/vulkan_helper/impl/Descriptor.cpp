@@ -63,7 +63,7 @@ namespace merutilm::vkh {
 
                     updateQueue.push_back({
                         .bufferInfo = VkDescriptorBufferInfo{
-                            .buffer = ubo->getBufferHandle(frameIndex),
+                            .buffer = ubo->getBufferContext(frameIndex).buffer,
                             .offset = 0,
                             .range = ubo->getHostObject().getTotalSizeByte()
                         },
@@ -87,7 +87,7 @@ namespace merutilm::vkh {
 
                     updateQueue.push_back({
                         .bufferInfo = VkDescriptorBufferInfo{
-                            .buffer = ssbo->getBufferHandle(frameIndex),
+                            .buffer = ssbo->getBufferContext(frameIndex).buffer,
                             .offset = 0,
                             .range = ssbo->getHostObject().getTotalSizeByte()
                         },

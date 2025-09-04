@@ -20,11 +20,12 @@ namespace merutilm::vkh {
         VkImageView imageView = VK_NULL_HANDLE;
         VkImageView mipmappedImageView = VK_NULL_HANDLE;
         VkExtent2D extent = {};
+        VkDeviceSize capacity = 0;
 
         static ImageContext createContext(CoreRef core, const ImageInitInfo &imageInitInfo) {
             ImageContext result = {};
             BufferImageUtils::initImage(core, imageInitInfo, &result.image, &result.imageMemory,
-                                        &result.imageView, &result.mipmappedImageView);
+                                        &result.imageView, &result.mipmappedImageView, &result.capacity);
             result.imageFormat = imageInitInfo.imageFormat;
             result.extent = {imageInitInfo.extent.width, imageInitInfo.extent.height};
             return result;
@@ -53,7 +54,7 @@ namespace merutilm::vkh {
 
         static void destroyContext(CoreRef core, const MultiframeImageContext & imgCtx) {
             const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-            for (const auto &[image, imageFormat, imageMemory, imageView, mipmappedImageView, extent]: imgCtx) {
+            for (const auto &[image, imageFormat, imageMemory, imageView, mipmappedImageView, extent, capacity]: imgCtx) {
                 vkDestroyImageView(device, imageView, nullptr);
                 if (mipmappedImageView != imageView) {
                     vkDestroyImageView(device, mipmappedImageView, nullptr);
@@ -78,6 +79,7 @@ namespace merutilm::vkh {
                 result[i].imageView = imageViews[i];
                 result[i].mipmappedImageView = imageViews[i];
                 result[i].extent = extent;
+                result[i].capacity = 0;
             }
             return result;
         }

@@ -7,12 +7,18 @@
 #include "../executor/ScopedNewCommandBufferExecutor.hpp"
 #include "../util/BufferImageUtils.hpp"
 #include "../core/logger.hpp"
+#include "../util/BarrierUtils.hpp"
+#include "../util/BufferImageContextUtils.hpp"
 
 namespace merutilm::vkh {
     BufferObjectAbstract::BufferObjectAbstract(CoreRef core, HostDataObjectManager &&dataManager,
-                               const VkBufferUsageFlags bufferUsage, const BufferLock bufferLock) : CoreHandler(core),
-        hostDataObject(factory::create<HostDataObject>(std::move(dataManager))),
-        bufferUsage(bufferUsage), bufferLock(bufferLock) {
+                                               const VkBufferUsageFlags bufferUsage,
+                                               const BufferLock bufferLock) : CoreHandler(core),
+                                                                              hostDataObject(
+                                                                                  factory::create<HostDataObject>(
+                                                                                      std::move(dataManager))),
+                                                                              bufferUsage(bufferUsage),
+                                                                              bufferLock(bufferLock) {
         BufferObjectAbstract::init();
     }
 
@@ -28,14 +34,14 @@ namespace merutilm::vkh {
 
     void BufferObjectAbstract::update(const uint32_t frameIndex) const {
         checkFinalizedBeforeUpdate();
-        memcpy(bufferMapped[frameIndex], hostDataObject->data.data(), hostDataObject->getTotalSizeByte());
+        memcpy(bufferContext[frameIndex].mappedMemory, hostDataObject->data.data(), hostDataObject->getTotalSizeByte());
     }
 
     void BufferObjectAbstract::update(const uint32_t frameIndex, const uint32_t target) const {
         checkFinalizedBeforeUpdate();
         const uint32_t offset = hostDataObject->getOffset(target);
         const uint32_t size = hostDataObject->getSizeByte(target);
-        memcpy(static_cast<std::byte *>(bufferMapped[frameIndex]) + offset, hostDataObject->data.data() + offset, size);
+        memcpy(bufferContext[frameIndex].mappedMemory + offset, hostDataObject->data.data() + offset, size);
     }
 
     void BufferObjectAbstract::checkFinalizedBeforeUpdate() const {
@@ -48,10 +54,6 @@ namespace merutilm::vkh {
 
     void BufferObjectAbstract::init() {
         const uint32_t size = hostDataObject->getTotalSizeByte();
-        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
-        buffers.resize(maxFramesInFlight);
-        bufferMemory.resize(maxFramesInFlight);
-        bufferMapped.resize(maxFramesInFlight);
 
         VkBufferUsageFlags lockFlags = 0;
 
@@ -64,16 +66,17 @@ namespace merutilm::vkh {
                 break;
         }
 
-        for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-            BufferImageUtils::initBuffer(core, size, bufferUsage | lockFlags,
-                                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                         &buffers[i], &bufferMemory[i]);
-            vkMapMemory(core.getLogicalDevice().getLogicalDeviceHandle(), bufferMemory[i], 0, size, 0,
-                        &bufferMapped[i]);
-        }
+        bufferContext = BufferContext::createMultiframeContext(core, {
+                                                             .size = size,
+                                                             .usage = bufferUsage | lockFlags,
+                                                             .properties =
+                                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                                         });
+        BufferContext::mapMemory(core, bufferContext);
     }
 
-    void BufferObjectAbstract::lock(CommandPoolRef commandPool) {
+    void BufferObjectAbstract::lock(CommandPoolRef commandPool, const VkFence fence) {
         if (locked) {
             logger::log_err_silent("Double-call of BufferObjectAbstract::lock()");
             return;
@@ -88,14 +91,14 @@ namespace merutilm::vkh {
             case LOCK_ONLY: lockFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
                 break;
             case ALWAYS_MUTABLE: {
-                logger::log_err_silent("Cannot lock object because the given BufferLock is {}", static_cast<uint32_t>(bufferLock));
+                logger::log_err_silent("Cannot lock object because the given BufferLock is {}",
+                                       static_cast<uint32_t>(bufferLock));
                 return;
             }
         }
 
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
-        std::vector<VkBuffer> lockedBuffer(maxFramesInFlight);
-        std::vector<VkDeviceMemory> lockedMemory(maxFramesInFlight);
+
 
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const VkBufferCopy copyRegion = {
@@ -103,49 +106,40 @@ namespace merutilm::vkh {
             .dstOffset = 0,
             .size = hostDataObject->getTotalSizeByte(),
         };
+        BufferContext::unmapMemory(core, bufferContext);
+        MultiframeBufferContext lockedBuffer = BufferContext::createMultiframeContext(
+            core, {
+                .size = hostDataObject->getTotalSizeByte(),
+                .usage = bufferUsage | lockFlags,
+                .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+            }
+        );
         //NEW COMMAND BUFFER
         {
             const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
 
             for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-                vkUnmapMemory(device, bufferMemory[i]);
-                BufferImageUtils::initBuffer(core, hostDataObject->getTotalSizeByte(), bufferUsage | lockFlags,
-                                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                                             &lockedBuffer[i], &lockedMemory[i]);
-                VkBufferMemoryBarrier barrier = {
-                    .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
-                    .srcAccessMask = VK_ACCESS_HOST_WRITE_BIT,
-                    .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-                    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                    .buffer = buffers[i],
-                    .offset = 0,
-                    .size = hostDataObject->getTotalSizeByte(),
-                };
-
-                vkCmdPipelineBarrier(cex.getCommandBufferHandle(),
-                                     VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-                                     0, nullptr,
-                                     1, &barrier,
-                                     0, nullptr
-                );
-                vkCmdCopyBuffer(cex.getCommandBufferHandle(), buffers[i], lockedBuffer[i], 1, &copyRegion);
+                BarrierUtils::cmdBufferMemoryBarrier(cex.getCommandBufferHandle(), VK_ACCESS_HOST_WRITE_BIT,
+                                                     VK_ACCESS_TRANSFER_READ_BIT, bufferContext[i].buffer, 0,
+                                                     hostDataObject->getTotalSizeByte(), VK_PIPELINE_STAGE_HOST_BIT,
+                                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
+                vkCmdCopyBuffer(cex.getCommandBufferHandle(), bufferContext[i].buffer, lockedBuffer[i].buffer, 1,
+                                &copyRegion);
             }
         }
-        vkDeviceWaitIdle(device);
-
-        for (int i = 0; i < maxFramesInFlight; ++i) {
-            vkFreeMemory(device, bufferMemory[i], nullptr);
-            vkDestroyBuffer(device, buffers[i], nullptr);
-            buffers[i] = lockedBuffer[i];
-            bufferMemory[i] = lockedMemory[i];
+        if (fence == VK_NULL_HANDLE) {
+            vkDeviceWaitIdle(device);
+        } else {
+            vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
         }
 
+        BufferContext::destroyContext(core, bufferContext);
+        bufferContext = std::move(lockedBuffer);
         locked = true;
     }
 
 
-    void BufferObjectAbstract::unlock(CommandPoolRef commandPool) {
+    void BufferObjectAbstract::unlock(CommandPoolRef commandPool, const VkFence fence) {
         if (!locked) {
             logger::w_log_err_silent(L"Double-call of BufferObjectAbstract::unlock()");
             return;
@@ -165,8 +159,14 @@ namespace merutilm::vkh {
 
 
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
-        std::vector<VkBuffer> unlockedBuffer(maxFramesInFlight);
-        std::vector<VkDeviceMemory> unlockedMemory(maxFramesInFlight);
+
+        MultiframeBufferContext unlockedBuffer = BufferContext::createMultiframeContext(
+            core, {
+                .size = hostDataObject->getTotalSizeByte(),
+                .usage = bufferUsage | lockFlags,
+                .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            }
+        );
 
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const VkBufferCopy copyRegion = {
@@ -179,53 +179,28 @@ namespace merutilm::vkh {
             const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
 
             for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-                BufferImageUtils::initBuffer(core, hostDataObject->getTotalSizeByte(),
-                                             bufferUsage | lockFlags,
-                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                             &unlockedBuffer[i], &unlockedMemory[i]);
-
-                VkBufferMemoryBarrier barrier = {
-                    .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
-                    .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-                    .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
-                    .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                    .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                    .buffer = buffers[i],
-                    .offset = 0,
-                    .size = hostDataObject->getTotalSizeByte(),
-                };
-
-                vkCmdPipelineBarrier(cex.getCommandBufferHandle(),
-                                     VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-                                     0, nullptr,
-                                     1, &barrier,
-                                     0, nullptr
-                );
-                vkCmdCopyBuffer(cex.getCommandBufferHandle(), buffers[i], unlockedBuffer[i], 1, &copyRegion);
+                BarrierUtils::cmdBufferMemoryBarrier(cex.getCommandBufferHandle(), VK_ACCESS_SHADER_WRITE_BIT,
+                                                     VK_ACCESS_TRANSFER_READ_BIT, bufferContext[i].buffer, 0,
+                                                     hostDataObject->getTotalSizeByte(),
+                                                     VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
+                vkCmdCopyBuffer(cex.getCommandBufferHandle(), bufferContext[i].buffer, unlockedBuffer[i].buffer, 1,
+                                &copyRegion);
             }
         }
-
-        for (int i = 0; i < maxFramesInFlight; ++i) {
-            vkFreeMemory(device, bufferMemory[i], nullptr);
-            vkDestroyBuffer(device, buffers[i], nullptr);
-            buffers[i] = unlockedBuffer[i];
-            bufferMemory[i] = unlockedMemory[i];
-            vkMapMemory(device, bufferMemory[i], 0, hostDataObject->getTotalSizeByte(), 0, &bufferMapped[i]);
+        if (fence == VK_NULL_HANDLE) {
+            vkDeviceWaitIdle(device);
+        } else {
+            vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
         }
 
+        BufferContext::destroyContext(core, bufferContext);
+        bufferContext = std::move(unlockedBuffer);
         locked = false;
     }
 
 
     void BufferObjectAbstract::destroy() {
-        const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
-        for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-            if (!locked) {
-                vkUnmapMemory(device, bufferMemory[i]);
-            }
-            vkFreeMemory(device, bufferMemory[i], nullptr);
-            vkDestroyBuffer(device, buffers[i], nullptr);
-        }
+        BufferContext::destroyContext(core, bufferContext);
     }
 }

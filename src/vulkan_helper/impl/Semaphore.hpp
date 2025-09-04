@@ -7,9 +7,8 @@
 
 namespace merutilm::vkh {
     class SemaphoreImpl final : public CoreHandler {
-        VkSemaphore first = VK_NULL_HANDLE;
-        VkSemaphore second = VK_NULL_HANDLE;
-        VkSemaphore temp = VK_NULL_HANDLE;
+        VkSemaphore imageAvailable = VK_NULL_HANDLE;
+        VkSemaphore renderFinished = VK_NULL_HANDLE;
 
     public:
         explicit SemaphoreImpl(CoreRef core);
@@ -24,11 +23,9 @@ namespace merutilm::vkh {
 
         SemaphoreImpl &operator=(SemaphoreImpl &&) = delete;
 
-        VkSemaphore getFirst() const { return first; }
+        VkSemaphore getImageAvailable() const { return imageAvailable; }
 
-        VkSemaphore getSecond() const { return second; }
-
-        VkSemaphore getTemp() const { return temp; }
+        VkSemaphore getRenderFinished() const { return renderFinished; }
 
     private:
         void init() override;

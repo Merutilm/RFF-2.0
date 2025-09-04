@@ -14,7 +14,7 @@ namespace merutilm::vkh {
     }
 
     void SemaphoreImpl::init() {
-        ;
+
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
 
         constexpr VkSemaphoreCreateInfo semaphoreInfo = {
@@ -24,17 +24,15 @@ namespace merutilm::vkh {
         };
 
 
-        if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &first) != VK_SUCCESS ||
-            vkCreateSemaphore(device, &semaphoreInfo, nullptr, &second) != VK_SUCCESS ||
-            vkCreateSemaphore(device, &semaphoreInfo, nullptr, &temp) != VK_SUCCESS) {
+        if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailable) != VK_SUCCESS ||
+            vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinished) != VK_SUCCESS) {
             throw exception_init("Failed to create sync objects!");
         }
     }
 
     void SemaphoreImpl::destroy() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        vkDestroySemaphore(device, first, nullptr);
-        vkDestroySemaphore(device, second, nullptr);
-        vkDestroySemaphore(device, temp, nullptr);
+        vkDestroySemaphore(device, imageAvailable, nullptr);
+        vkDestroySemaphore(device, renderFinished, nullptr);
     }
 }

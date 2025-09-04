@@ -263,7 +263,7 @@ namespace merutilm::rff2 {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const VkFence currentFence = engine->getSyncObject().getFence(frameIndex).getFenceHandle();
         const VkSemaphore imageAvailableSemaphore = engine->getSyncObject().
-                getSemaphore(frameIndex).getFirst();
+                getSemaphore(frameIndex).getImageAvailable();
         const VkSwapchainKHR swapchainHandle = swapchain.getSwapchainHandle();
 
 

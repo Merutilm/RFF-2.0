@@ -5,6 +5,7 @@
 #pragma once
 #include "../struct/ImageInitInfo.hpp"
 #include "../impl/Core.hpp"
+#include "../struct/BufferInitInfo.hpp"
 
 namespace merutilm::vkh {
     struct BufferImageUtils {
@@ -14,20 +15,20 @@ namespace merutilm::vkh {
         static void initImage(CoreRef core,
                               const ImageInitInfo &iii, VkImage *image,
                               VkDeviceMemory *imageMemory,
-                              VkImageView *imageView, VkImageView *mipmappedImageView) {
+                              VkImageView *imageView, VkImageView *mipmappedImageView, VkDeviceSize *capacity) {
             initImage(core.getLogicalDevice().getLogicalDeviceHandle(),
-                      core.getPhysicalDevice().getPhysicalDeviceMemoryProperties(), iii, image, imageMemory, imageView, mipmappedImageView);
+                      core.getPhysicalDevice().getPhysicalDeviceMemoryProperties(), iii, image, imageMemory, imageView, mipmappedImageView, capacity);
         }
 
 
         static void initImage(const VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
                               const ImageInitInfo &iii, VkImage *image,
                               VkDeviceMemory *imageMemory,
-                              VkImageView *imageView, VkImageView *mipmappedImageView) {
+                              VkImageView *imageView, VkImageView *mipmappedImageView, VkDeviceSize *capacity) {
             const uint32_t mipLevels = genMipLevels(iii);
             createImage(device, iii, mipLevels, image);
             allocateImageMemory(device, memProperties, iii, *image,
-                                imageMemory);
+                                imageMemory, capacity);
             vkBindImageMemory(device, *image, *imageMemory, 0);
             createImageView(device, *image, iii.imageViewType, iii.imageFormat, imageView);
             if (mipLevels == 1) {
@@ -64,7 +65,7 @@ namespace merutilm::vkh {
 
         static void allocateImageMemory(const VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
                                         const ImageInitInfo &iii,
-                                        const VkImage image, VkDeviceMemory *imageMemory) {
+                                        const VkImage image, VkDeviceMemory *imageMemory, VkDeviceSize *capacity) {
             VkMemoryRequirements memRequirements;
             vkGetImageMemoryRequirements(device, image, &memRequirements);
             const VkMemoryAllocateInfo allocInfo = {
@@ -73,6 +74,7 @@ namespace merutilm::vkh {
                 .allocationSize = memRequirements.size,
                 .memoryTypeIndex = findMemoryTypeIndex(memProperties, memRequirements.memoryTypeBits, iii.properties),
             };
+            *capacity = memRequirements.size;
             if (vkAllocateMemory(device, &allocInfo, nullptr,
                                  imageMemory)) {
                 throw exception_init("Failed to allocate memory!");
@@ -148,18 +150,15 @@ namespace merutilm::vkh {
             return VK_IMAGE_ASPECT_COLOR_BIT;
         }
 
-        static void initBuffer(CoreRef core, const VkDeviceSize size, const VkBufferUsageFlags usage,
-                               const VkMemoryPropertyFlags properties, VkBuffer *buffer, VkDeviceMemory *bufferMemory) {
+        static void initBuffer(CoreRef core, const BufferInitInfo &bii, VkBuffer *buffer, VkDeviceMemory *bufferMemory) {
             initBuffer(core.getLogicalDevice().getLogicalDeviceHandle(),
-                       core.getPhysicalDevice().getPhysicalDeviceMemoryProperties(), size, usage,
-                       properties, buffer, bufferMemory);
+                       core.getPhysicalDevice().getPhysicalDeviceMemoryProperties(), bii, buffer, bufferMemory);
         }
 
         static void initBuffer(const VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
-                               const VkDeviceSize size, const VkBufferUsageFlags usage,
-                               const VkMemoryPropertyFlags properties, VkBuffer *buffer, VkDeviceMemory *bufferMemory) {
-            createBuffer(device, size, usage, buffer);
-            allocateBufferMemory(device, memProperties, properties, *buffer,
+                               const BufferInitInfo &bii, VkBuffer *buffer, VkDeviceMemory *bufferMemory) {
+            createBuffer(device, bii.size, bii.usage, buffer);
+            allocateBufferMemory(device, memProperties, bii.properties, *buffer,
                                  bufferMemory);
             vkBindBufferMemory(device, *buffer, *bufferMemory, 0);
         }
@@ -212,7 +211,6 @@ namespace merutilm::vkh {
                     return i;
                 }
             }
-
 
             throw exception_init("failed to find suitable memory type!");
         }

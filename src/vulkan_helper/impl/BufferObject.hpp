@@ -7,6 +7,7 @@
 #include "Fence.hpp"
 #include "../handle/CoreHandler.hpp"
 #include "HostDataObject.hpp"
+#include "../context/BufferContext.hpp"
 #include "../manage/HostDataObjectManager.hpp"
 #include "../struct/BufferLock.hpp"
 
@@ -14,9 +15,7 @@ namespace merutilm::vkh {
     class BufferObjectAbstract : public CoreHandler {
         HostDataObject hostDataObject = nullptr;
         VkBufferUsageFlags bufferUsage;
-        std::vector<VkBuffer> buffers = {};
-        std::vector<VkDeviceMemory> bufferMemory = {};
-        std::vector<void *> bufferMapped = {};
+        MultiframeBufferContext bufferContext = {};
         BufferLock bufferLock;
         bool locked = false;
 
@@ -36,11 +35,11 @@ namespace merutilm::vkh {
 
         BufferObjectAbstract &operator=(BufferObjectAbstract &&) noexcept = delete;
 
-        void lock(CommandPoolRef commandPool);
+        void lock(CommandPoolRef commandPool, VkFence fence = VK_NULL_HANDLE);
 
-        void unlock(CommandPoolRef commandPool);
+        void unlock(CommandPoolRef commandPool, VkFence fence = VK_NULL_HANDLE);
 
-        [[nodiscard]] VkBuffer getBufferHandle(const uint32_t frameIndex) const { return buffers[frameIndex]; }
+        [[nodiscard]] const BufferContext &getBufferContext(const uint32_t frameIndex) const { return bufferContext[frameIndex]; }
 
         void update(uint32_t frameIndex) const;
 

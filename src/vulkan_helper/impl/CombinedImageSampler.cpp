@@ -4,7 +4,7 @@
 
 #include "CombinedImageSampler.hpp"
 
-#include "../util/ImageContextUtils.hpp"
+#include "../util/BufferImageContextUtils.hpp"
 
 namespace merutilm::vkh {
     CombinedImageSamplerImpl::CombinedImageSamplerImpl(CoreRef core, SamplerRef sampler) : CoreHandler(core), sampler(sampler) {
