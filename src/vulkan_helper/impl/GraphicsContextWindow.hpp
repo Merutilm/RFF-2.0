@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "../core/config.hpp"
 #include "../core/vkh_base.hpp"
 
 namespace merutilm::vkh {
@@ -16,12 +17,13 @@ namespace merutilm::vkh {
     class GraphicsContextWindowImpl final {
         using Listeners = std::unordered_map<UINT, std::function<LRESULT(GraphicsContextWindowRef, HWND, WPARAM, LPARAM)> > ;
         HWND window = nullptr;
-        const float framerate;
+        float framerate = config::INITIAL_FPS;
         Listeners listeners = {};
         std::vector<std::function<void()> > renderers = {};
 
     public:
-        explicit GraphicsContextWindowImpl(HWND window, float framerate);
+        explicit GraphicsContextWindowImpl(HWND window);
+
 
         ~GraphicsContextWindowImpl() = default;
 
@@ -34,6 +36,10 @@ namespace merutilm::vkh {
         GraphicsContextWindowImpl &operator=(GraphicsContextWindowImpl &&) = delete;
 
         HWND getWindowHandle() const { return window; }
+
+        void setFramerate(const float framerate) { this->framerate = framerate; }
+
+        void renderOnce() const;
 
         [[nodiscard]] bool isUnrenderable() const {
             RECT rect;

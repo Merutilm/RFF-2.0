@@ -15,13 +15,13 @@ namespace merutilm::vkh {
         EngineImpl::destroy();
     }
 
-    void EngineImpl::createGraphicsContextForWindow(HWND hwnd, float framerate, uint32_t graphicsWindowIndexExpected) {
+    void EngineImpl::createGraphicsContextForWindow(HWND hwnd, uint32_t graphicsWindowIndexExpected) {
         if (graphicsWindowIndexExpected != windowContexts.size()) {
             throw exception_init(std::format("Window index expected : {} but provided {}", windowContexts.size(),
                                              graphicsWindowIndexExpected));
         }
 
-        auto window = factory::create<GraphicsContextWindow>(hwnd, framerate);
+        auto window = factory::create<GraphicsContextWindow>(hwnd);
         auto surface = factory::create<Surface>(core->getInstance(), *window);
 
         if (!PhysicalDeviceUtils::isDeviceSuitable(core->getPhysicalDevice().getPhysicalDeviceHandle(),

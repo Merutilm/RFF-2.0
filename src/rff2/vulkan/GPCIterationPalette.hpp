@@ -3,12 +3,11 @@
 //
 
 #pragma once
-#include "RCC1.hpp"
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "../attr/ShdPaletteAttribute.h"
 
 namespace merutilm::rff2 {
-    class GPCIterationPalette final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
+    struct GPCIterationPalette final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
         static constexpr uint32_t SET_ITERATION = 0;
         static constexpr uint32_t SET_PALETTE = 1;
         static constexpr uint32_t SET_TIME = 2;
@@ -16,7 +15,6 @@ namespace merutilm::rff2 {
         uint32_t iterWidth = 0;
         uint32_t iterHeight = 0;
 
-    public:
         GPCIterationPalette(vkh::EngineRef engine,
                                              const uint32_t renderContextIndex,
                                              const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(

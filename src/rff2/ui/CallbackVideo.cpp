@@ -96,15 +96,15 @@ namespace merutilm::rff2 {
                     settings.shader.slope = ShdSlopePresets::Disabled().genSlope();
                     settings.shader.fog = ShdFogPresets::Disabled().genFog();
                     settings.shader.bloom = BloomPresets::Disabled().genBloom();
-                    scene.requestShader();
-                    thread.waitUntil([&scene] { return !scene.isColorRequested(); });
+                    scene.getRequests().requestShader();
+                    thread.waitUntil([&scene] { return !scene.getRequests().shaderRequested; });
                 }
                 const float increment = std::log10(videoSettings.dataAttribute.defaultZoomIncrement);
                 while (logZoom > Constants::Render::ZOOM_MIN) {
                     if (state.interruptRequested() || nextFrame) {
                         //incomplete frame
-                        scene.requestRecompute();
-                        thread.waitUntil([&scene] { return !scene.isRecomputeRequested() && scene.isIdleCompute(); });
+                        scene.getRequests().requestRecompute();
+                        thread.waitUntil([&scene] { return !scene.getRequests().recomputeRequested && scene.isIdleCompute(); });
                     }
                     if (state.interruptRequested()) {
                         return;
@@ -112,8 +112,8 @@ namespace merutilm::rff2 {
                     if (videoSettings.dataAttribute.isStatic) {
                         const std::string &path = IOUtilities::generateFileName(dir, Constants::Extension::IMAGE).
                                 string();
-                        scene.requestCreateImage(path);
-                        thread.waitUntil([&scene] { return !scene.isCreateImageRequested(); });
+                        scene.getRequests().requestCreateImage(path);
+                        thread.waitUntil([&scene] { return !scene.getRequests().createImageRequested; });
                         RFFStaticMapBinary(logZoom, scene.getIterationBufferWidth(settings), scene.getIterationBufferHeight(settings)).exportAsKeyframe(dir);
                     } else {
                         scene.getCurrentMap().exportAsKeyframe(dir);
@@ -142,7 +142,7 @@ namespace merutilm::rff2 {
                 return;
             }
             const auto &save = *savePtr;
-            VideoWindow::createVideo(scene.getAttribute(), open, save);
+            GLVideoWindow::createVideo(scene.getAttribute(), open, save);
         });
     };
 }

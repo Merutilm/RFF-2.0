@@ -172,30 +172,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         }
     };
 
-    struct DescResolution final : public vkh::DescriptorTemplate {
-        static constexpr uint32_t ID = 6;
-        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-        static constexpr uint32_t BINDING_UBO_RESOLUTION = 0;
-
-        static constexpr uint32_t TARGET_RESOLUTION_SWAPCHAIN_EXTENT = 0;
-        static constexpr uint32_t TARGET_RESOLUTION_CLARITY_MULTIPLIER = 1;
-
-
-        void configure(const vkh::CoreRef core,
-                                      const vkh::DescriptorRequiresRepoContext &context, std::vector<vkh::DescriptorManager> &managers) override {
-            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
-            bufferManager->reserve<glm::uvec2>(TARGET_RESOLUTION_SWAPCHAIN_EXTENT);
-            bufferManager->reserve<float>(TARGET_RESOLUTION_CLARITY_MULTIPLIER);
-            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK);
-            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
-            descManager->appendUBO(BINDING_UBO_RESOLUTION, STAGE, std::move(ubo));
-            managers.emplace_back(std::move(descManager));
-        }
-    };
-
     struct DescColor final : public vkh::DescriptorTemplate {
-        static constexpr uint32_t ID = 7;
+        static constexpr uint32_t ID = 6;
         static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
 
         static constexpr uint32_t BINDING_UBO_COLOR = 0;
@@ -225,7 +203,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
     };
 
     struct DescFog final : public vkh::DescriptorTemplate {
-        static constexpr uint32_t ID = 8;
+        static constexpr uint32_t ID = 7;
         static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
 
         static constexpr uint32_t BINDING_UBO_FOG = 0;
@@ -247,7 +225,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
     };
 
     struct DescBloom final : public vkh::DescriptorTemplate {
-        static constexpr uint32_t ID = 9;
+        static constexpr uint32_t ID = 8;
         static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
 
         static constexpr uint32_t BINDING_UBO_BLOOM = 0;
@@ -273,7 +251,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
     };
 
     struct DescLinearInterpolation final : public vkh::DescriptorTemplate {
-        static constexpr uint32_t ID = 10;
+        static constexpr uint32_t ID = 9;
         static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
 
         static constexpr uint32_t BINDING_UBO_LINEAR_INTERPOLATION = 0;

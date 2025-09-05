@@ -17,7 +17,7 @@
 #include "opencv2/imgproc.hpp"
 
 namespace merutilm::rff2 {
-    VideoWindow::VideoWindow(const uint16_t width, const uint16_t height) : scene(GLVideoRenderScene()) {
+    GLVideoWindow::GLVideoWindow(const uint16_t width, const uint16_t height) : scene(GLVideoRenderScene()) {
         videoWindow = CreateWindowExW(0,
                                      Constants::Win32::CLASS_VIDEO_WINDOW,
                                      L"Preview video",
@@ -46,7 +46,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void VideoWindow::setClientSize(const int width, const int height) const {
+    void GLVideoWindow::setClientSize(const int width, const int height) const {
         const RECT rect = {0, 0, width, height};
         RECT adjusted = rect;
         AdjustWindowRect(&adjusted, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, false);
@@ -60,9 +60,9 @@ namespace merutilm::rff2 {
                      SWP_NOZORDER);
     }
 
-    LRESULT VideoWindow::videoWindowProc(const HWND hwnd, const UINT message, const WPARAM wParam,
+    LRESULT GLVideoWindow::videoWindowProc(const HWND hwnd, const UINT message, const WPARAM wParam,
                                          const LPARAM lParam) {
-        const auto &window = *reinterpret_cast<VideoWindow *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+        const auto &window = *reinterpret_cast<GLVideoWindow *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
         switch (message) {
             case WM_DESTROY: {
                 MessageBox(hwnd, "Render Finished!", "Done", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
@@ -118,7 +118,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void VideoWindow::createVideo(const Attribute &settings,
+    void GLVideoWindow::createVideo(const Attribute &settings,
                                   const std::filesystem::path &open,
                                   const std::filesystem::path &save) {
         uint16_t imgWidth = 0;
@@ -154,7 +154,7 @@ namespace merutilm::rff2 {
         auto ch = static_cast<uint16_t>(static_cast<uint32_t>(cw) * imgHeight / imgWidth);
 
 
-        auto window = VideoWindow(cw, ch);
+        auto window = GLVideoWindow(cw, ch);
         std::jthread thread(
             [&window, &cw, &ch, &imgWidth, &imgHeight, &writer, &settings, &open, &save] {
                 // WGLContextLoader::createContext(window.hdc, &window.context);
@@ -291,7 +291,7 @@ namespace merutilm::rff2 {
         window.messageLoop();
     }
 
-    void VideoWindow::messageLoop() {
+    void GLVideoWindow::messageLoop() {
         MSG msg;
 
         while (GetMessage(&msg, nullptr, 0, 0) != 0) {

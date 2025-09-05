@@ -7,10 +7,14 @@
 #include <windows.h>
 
 namespace merutilm::vkh {
-    GraphicsContextWindowImpl::GraphicsContextWindowImpl(const HWND window, const float framerate) : window(window),
-        framerate(framerate) {
+    GraphicsContextWindowImpl::GraphicsContextWindowImpl(const HWND window) : window(window) {
     }
 
+    void GraphicsContextWindowImpl::renderOnce() const {
+        for (const auto &renderer: renderers) {
+            renderer();
+        }
+    }
 
     void GraphicsContextWindowImpl::start() const {
         MSG message;

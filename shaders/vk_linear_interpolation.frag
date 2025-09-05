@@ -10,9 +10,6 @@ layout(location = 1) in vec2 fragTexcoord;
 
 layout(location = 0) out vec4 color;
 
-#define INV_SQRT_OF_2PI 0.39894228040143267793994605993439
-#define INV_PI 0.31830988618379067153776752674503
-
 void main() {
 
     ivec2 coord = ivec2(gl_FragCoord.xy);

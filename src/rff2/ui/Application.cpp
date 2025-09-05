@@ -131,8 +131,7 @@ namespace merutilm::rff2 {
     void Application::createVulkanContext() {
         auto core = vkh::factory::create<vkh::Core>();
         engine = vkh::factory::create<vkh::Engine>(std::move(core));
-        engine->createGraphicsContextForWindow(renderWindow, Constants::Win32::INIT_RENDER_SCENE_FPS,
-                                             Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
+        engine->createGraphicsContextForWindow(renderWindow, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
     }
 
     void Application::createRenderScene() {
@@ -142,7 +141,7 @@ namespace merutilm::rff2 {
     void Application::setProcedure() {
         const HCURSOR hCursor = LoadCursor(nullptr, IDC_ARROW);
 
-        vkh::GraphicsContextWindowImpl &window = *engine->getWindowContext(
+        vkh::GraphicsContextWindowRef window = *engine->getWindowContext(
             Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window;
 
         window.setListener(
@@ -227,7 +226,7 @@ namespace merutilm::rff2 {
         });
 
         window.appendRenderer([this] {
-            checkResizeRequest();
+            resolveWNDRequest();
             drawFrame();
         });
     }
@@ -239,15 +238,19 @@ namespace merutilm::rff2 {
         if (rect.bottom - rect.top > 0 || rect.right - rect.left > 0) {
             adjustClient(rect);
             scene->resolveWindowResizeEnd();
-            scene->requestResize();
-            scene->requestRecompute();
+            scene->getRequests().requestResize();
+            scene->getRequests().requestRecompute();
         }
     }
 
-    void Application::checkResizeRequest() const {
-        if (scene->getCWRequest() != 0) {
-            setClientSize(scene->getCWRequest(), scene->getCHRequest());
-            scene->clientResizeRequestSolved();
+    void Application::resolveWNDRequest() const {
+        if (scene->getWndCWRequest() != 0) {
+            setClientSize(scene->getWndCWRequest(), scene->getWndCHRequest());
+            scene->wndClientSizeRequestSolved();
+        }
+        if (scene->isFPSRequested() != 0) {
+            engine->getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->setFramerate(scene->getAttribute().render.fps);
+            scene->wndFPSRequestSolved();
         }
     }
 

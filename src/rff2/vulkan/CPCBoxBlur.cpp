@@ -20,10 +20,8 @@ namespace merutilm::rff2 {
     /**
      * Set Gaussian blur using 3x box blur.
      * @param srcImage the source image to blur. when the gaussian blur starts, its layout must be <b>VK_IMAGE_LAYOUT_GENERAL</b>.
-     * after the operation, the layout will be changed to <b>VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL</b>.
      * it can be used in fragment shader without any layout transition.
-     * @param dstImage the destination of blurred image. previous image is discarded,
-     * and the layout will be changed to <b>VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL</b>.
+     * @param dstImage the destination of blurred image. previous image is discarded.
      */
     void CPCBoxBlur::setGaussianBlur(const vkh::MultiframeImageContext &srcImage,
                                      const vkh::MultiframeImageContext &dstImage) {
@@ -41,32 +39,24 @@ namespace merutilm::rff2 {
         auto ctxGetter = [&blurDesc, &frameIndex](const uint32_t descIndex, const uint32_t binding) {
             return blurDesc.get<vkh::StorageImage>(descIndex, binding).ctx[frameIndex];
         };
-        const auto src = ctxGetter(0, BINDING_BLUR_IMAGE_SRC);
+
         const auto dst = ctxGetter(2, BINDING_BLUR_IMAGE_DST);
 
         vkh::BarrierUtils::cmdImageMemoryBarrier(cbh, dst.image, 0,
-                                                        VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
-                                                        VK_IMAGE_LAYOUT_GENERAL, 0,
-                                                        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+                                                 VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
+                                                 VK_IMAGE_LAYOUT_GENERAL, 0, 1,
+                                                 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                                 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 
         cmdRender(cbh, frameIndex, {0u, blurSizeDescIndex});
-        vkh::BarrierUtils::cmdMemoryBarrier(cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh, dst.image, VK_IMAGE_LAYOUT_GENERAL, 0, 1,
+                                                          VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                                          VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
         cmdRender(cbh, frameIndex, {1u, blurSizeDescIndex});
-        vkh::BarrierUtils::cmdMemoryBarrier(cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh, dst.image, VK_IMAGE_LAYOUT_GENERAL, 0, 1,
+                                                          VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                                          VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
         cmdRender(cbh, frameIndex, {2u, blurSizeDescIndex});
-        vkh::BarrierUtils::cmdImageMemoryBarrier(cbh, src.image,
-                                                        VK_ACCESS_SHADER_READ_BIT,
-                                                        VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
-                                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0,
-                                                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-        vkh::BarrierUtils::cmdImageMemoryBarrier(cbh, dst.image,
-                                                        VK_ACCESS_SHADER_WRITE_BIT,
-                                                        VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
-                                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0,
-                                                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
     }
 
 
@@ -98,7 +88,7 @@ namespace merutilm::rff2 {
     void CPCBoxBlur::setBlurSize(uint32_t blurSizeDescIndex, const float blurSize) const {
         auto &desc = getDescriptor(SET_BLUR_RADIUS);
 
-        for (uint32_t i = 0; i < BLUR_TARGET_COUNT_PER_FRAME; ++i) {
+        for (uint32_t i = 0; i < DESC_COUNT_BLUR_TARGET; ++i) {
             const auto &ubo = *desc.get<vkh::Uniform>(i, BINDING_BLUR_RADIUS_UBO);
             ubo.getHostObject().set<float>(TARGET_BLUR_UBO_BLUR_SIZE, blurSize);
             writeDescriptorForEachFrame(
@@ -134,8 +124,8 @@ namespace merutilm::rff2 {
             imgDesc[i] = std::move(descManager);
         }
 
-        auto radDesc = std::vector<vkh::DescriptorManager>(BLUR_TARGET_COUNT_PER_FRAME);
-        for (uint32_t i = 0; i < BLUR_TARGET_COUNT_PER_FRAME; ++i) {
+        auto radDesc = std::vector<vkh::DescriptorManager>(DESC_COUNT_BLUR_TARGET);
+        for (uint32_t i = 0; i < DESC_COUNT_BLUR_TARGET; ++i) {
             auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<float>(TARGET_BLUR_UBO_BLUR_SIZE);

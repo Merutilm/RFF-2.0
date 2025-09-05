@@ -11,7 +11,7 @@ namespace merutilm::rff2 {
     }
 
     RenderAttribute RenderPresets::Potato::genRender() const {
-        return RenderAttribute{0.1f, true};
+        return RenderAttribute{0.1f, 60, true};
     }
 
 
@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
     }
 
     RenderAttribute RenderPresets::Low::genRender() const {
-        return RenderAttribute{0.3f, true};
+        return RenderAttribute{0.3f, 60, true};
     }
 
     std::string RenderPresets::Medium::getName() const {
@@ -28,7 +28,7 @@ namespace merutilm::rff2 {
     }
 
     RenderAttribute RenderPresets::Medium::genRender() const {
-        return RenderAttribute{0.5f, true};
+        return RenderAttribute{0.5f, 60, true};
     }
 
     std::string RenderPresets::High::getName() const {
@@ -36,7 +36,7 @@ namespace merutilm::rff2 {
     }
 
     RenderAttribute RenderPresets::High::genRender() const {
-        return RenderAttribute{1.0f, true};
+        return RenderAttribute{1.0f, 60, true};
     }
 
     std::string RenderPresets::Ultra::getName() const {
@@ -44,14 +44,14 @@ namespace merutilm::rff2 {
     }
 
     RenderAttribute RenderPresets::Ultra::genRender() const {
-        return RenderAttribute{2.0f, true};
+        return RenderAttribute{2.0f, 60, true};
     }
 
     std::string RenderPresets::Extreme::getName() const {
-        return "Extreme";
+        return "Extreme (DANGER)";
     }
 
     RenderAttribute RenderPresets::Extreme::genRender() const {
-        return RenderAttribute{4.0f, true};
+        return RenderAttribute{4.0f, 60, true};
     }
 }

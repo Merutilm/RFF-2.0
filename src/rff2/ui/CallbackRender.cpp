@@ -9,24 +9,32 @@
 
 
 namespace merutilm::rff2 {
-    const std::function<void(SettingsMenu&, RenderScene&)> CallbackRender::SET_CLARITY = [](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto window = std::make_unique<SettingsWindow>(L"Set clarity");
-        auto &[clarityMultiplier, antialiasing] = scene.getAttribute().render;
-        window->registerTextInput<float>(L"Clarity", &clarityMultiplier, Unparser::FLOAT, Parser::FLOAT, [](const float &v) {
-            return v > 0.05 && v <= 4;
-        }, [&scene] {
-                                             scene.requestResize();
-                                             scene.requestRecompute();
-        }, L"Clarity Multiplier", L"Sets the clarity.");
+    const std::function<void(SettingsMenu &, RenderScene &)> CallbackRender::SET_CLARITY = [
+            ](SettingsMenu &settingsMenu, RenderScene &scene) {
+        auto window = std::make_unique<SettingsWindow>(L"Set Render Properties");
+        auto &[clarityMultiplier, fps, linearInterpolation] = scene.getAttribute().render;
+        window->registerTextInput<float>(L"Clarity", &clarityMultiplier, Unparser::FLOAT, Parser::FLOAT,
+                                         [](const float &v) {
+                                             return v > 0.05 && v <= 4;
+                                         }, [&scene] {
+                                             scene.getRequests().requestResize();
+                                             scene.getRequests().requestRecompute();
+                                         }, L"Clarity Multiplier", L"Sets the clarity multiplier.");
 
-        window->setWindowCloseFunction([&settingsMenu]{
+        window->registerTextInput<float>(L"Framerate", &fps, Unparser::FLOAT, Parser::FLOAT,
+                                         ValidCondition::POSITIVE_FLOAT, [&scene] {
+                                             scene.wndRequestFPS();
+                                         }, L"Framerate per second",
+                                         L"Sets the Framerate.");
+        window->setWindowCloseFunction([&settingsMenu] {
             settingsMenu.setCurrentActiveSettingsWindow(nullptr);
         });
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
-    const std::function<bool*(RenderScene &, bool)> CallbackRender::LINEAR_INTERPOLATION = [](RenderScene& scene, bool executeMode) {
+    const std::function<bool*(RenderScene &, bool)> CallbackRender::LINEAR_INTERPOLATION = [
+            ](RenderScene &scene, bool executeMode) {
         if (executeMode) {
-            scene.requestShader();
+            scene.getRequests().requestShader();
         }
         return &scene.getAttribute().render.linearInterpolation;
     };

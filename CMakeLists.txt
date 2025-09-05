@@ -269,16 +269,14 @@ add_executable(
         src/rff2/vulkan/GPCColor.hpp
         src/rff2/vulkan/GPCFog.cpp
         src/rff2/vulkan/GPCFog.hpp
-        src/rff2/vulkan/GPCResample.cpp
-        src/rff2/vulkan/GPCResample.hpp
+        src/rff2/vulkan/GPCDownsampleForBlur.cpp
+        src/rff2/vulkan/GPCDownsampleForBlur.hpp
         src/rff2/vulkan/GPCBloomThreshold.cpp
         src/rff2/vulkan/GPCBloomThreshold.hpp
         src/vulkan_helper/core/Factory.hpp
         src/vulkan_helper/util/Debugger.hpp
         src/vulkan_helper/util/PhysicalDeviceUtils.hpp
         src/vulkan_helper/util/GraphicsContextWindowProc.hpp
-        src/rff2/vulkan/GPCPresent.cpp
-        src/rff2/vulkan/GPCPresent.hpp
         src/vulkan_helper/impl/CombinedMultiframeImageSampler.hpp
         src/vulkan_helper/impl/CombinedMultiframeImageSampler.cpp
         src/vulkan_helper/impl/ComputeShaderPipeline.cpp
@@ -317,6 +315,10 @@ add_executable(
         src/vulkan_helper/util/BarrierUtils.hpp
         src/vulkan_helper/context/BufferContext.hpp
         src/vulkan_helper/struct/BufferInitInfo.hpp
+        src/rff2/ui/RenderSceneRequests.hpp
+        src/rff2/ui/RenderSceneShaderPrograms.hpp
+        src/rff2/vulkan/GPCPresent.cpp
+        src/rff2/vulkan/GPCPresent.hpp
 )
 
 find_package(Vulkan REQUIRED)

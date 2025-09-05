@@ -88,6 +88,5 @@ namespace merutilm::rff2 {
                                                             engine.getCore(), sampler));
         appendUniqueDescriptor(SET_FOG_CANVAS, descriptors, std::move(descManager));
         appendDescriptor<DescFog>(SET_FOG, descriptors);
-        appendDescriptor<DescResolution>(SET_RESOLUTION, descriptors);
     }
 }

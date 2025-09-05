@@ -7,15 +7,13 @@
 #include "../attr/ShdBloomAttribute.h"
 
 namespace merutilm::rff2 {
-    class GPCBloom final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
+    struct GPCBloom final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
         static constexpr uint32_t SET_BLOOM_CANVAS = 0;
         static constexpr uint32_t BINDING_BLOOM_CANVAS_ORIGINAL = 0;
         static constexpr uint32_t BINDING_BLOOM_CANVAS_BLURRED = 1;
 
         static constexpr uint32_t SET_BLOOM = 1;
-        static constexpr uint32_t SET_RESOLUTION = 2;
 
-    public:
         explicit GPCBloom(vkh::EngineRef engine, const uint32_t renderContextIndex,
                                            const uint32_t
                                            subpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(

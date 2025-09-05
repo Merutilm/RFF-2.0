@@ -19,7 +19,7 @@ namespace merutilm::rff2 {
         scene.getCurrentMap().exportFile(*path);
     };
     const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::SAVE_IMAGE = [](const SettingsMenu&, RenderScene& scene) {
-        scene.requestCreateImage();
+        scene.getRequests().requestCreateImage();
     };
     const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::SAVE_LOCATION = [](const SettingsMenu&, RenderScene& scene) {
         const auto path = IOUtilities::ioFileDialog(L"Save Location", Constants::Extension::DESC_LOCATION, IOUtilities::SAVE_FILE, Constants::Extension::LOCATION);
@@ -48,6 +48,6 @@ namespace merutilm::rff2 {
         scene.getAttribute().calc.center = fp_complex(location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
         scene.getAttribute().calc.logZoom = location.getLogZoom();
         scene.getAttribute().calc.maxIteration = location.getMaxIteration();
-        scene.requestRecompute();
+        scene.getRequests().requestRecompute();
     };
 }

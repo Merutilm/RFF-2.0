@@ -38,7 +38,7 @@ namespace merutilm::vkh {
         EngineImpl &operator=(EngineImpl &&) = delete;
 
 
-        void createGraphicsContextForWindow(HWND hwnd, float framerate, uint32_t graphicsWindowIndexExpected);
+        void createGraphicsContextForWindow(HWND hwnd, uint32_t graphicsWindowIndexExpected);
 
         template<typename T, typename ExtentImgGetter, typename SwapchainImgGetter> requires (
             std::is_base_of_v<RenderContextConfiguratorAbstract, T> && std::is_invocable_r_v<VkExtent2D, ExtentImgGetter> && std::is_invocable_r_v<MultiframeImageContext, SwapchainImgGetter>)
@@ -76,7 +76,7 @@ namespace merutilm::vkh {
             return *dynamic_cast<Configurator *>(getRenderContext(Configurator::CONTEXT_INDEX).getConfigurator());
         }
 
-        SharedImageContextRef getSharedImageContext() const {
+        [[nodiscard]] SharedImageContextRef getSharedImageContext() const {
             return *sharedImageContext;
         }
 

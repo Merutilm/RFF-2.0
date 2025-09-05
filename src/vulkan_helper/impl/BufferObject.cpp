@@ -197,6 +197,7 @@ namespace merutilm::vkh {
         BufferContext::destroyContext(core, bufferContext);
         bufferContext = std::move(unlockedBuffer);
         locked = false;
+        BufferContext::mapMemory(core, bufferContext);
     }
 
 

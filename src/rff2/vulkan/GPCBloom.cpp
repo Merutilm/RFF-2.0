@@ -49,7 +49,7 @@ namespace merutilm::rff2 {
         auto &bloomDesc = getDescriptor(SET_BLOOM_CANVAS);
         bloomDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_BLOOM_CANVAS_ORIGINAL)->setImageContext(
             engine.getSharedImageContext().getMultiframeContext(
-                SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
+                SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY));
         bloomDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_BLOOM_CANVAS_BLURRED)->setImageContext(
             engine.getSharedImageContext().getMultiframeContext(
                 SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY)
@@ -101,6 +101,5 @@ namespace merutilm::rff2 {
                                                             engine.getCore(), sampler));
         appendUniqueDescriptor(SET_BLOOM_CANVAS, descriptors, std::move(descManager));
         appendDescriptor<DescBloom>(SET_BLOOM, descriptors);
-        appendDescriptor<DescResolution>(SET_RESOLUTION, descriptors);
     }
 }

@@ -81,7 +81,7 @@ namespace merutilm::vkh {
                                                     VK_ACCESS_HOST_WRITE_BIT,
                                                     VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
                                                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                                    0, VK_PIPELINE_STAGE_HOST_BIT,
+                                                    0, 1, VK_PIPELINE_STAGE_HOST_BIT,
                                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
 
                 vkCmdCopyBufferToImage(sce.getCommandBufferHandle(), stagingBuffer, context.image,
@@ -92,7 +92,7 @@ namespace merutilm::vkh {
                                                         VK_ACCESS_TRANSFER_WRITE_BIT,
                                                         VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                                         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                                                        0, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                                        0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
                     cmdGenerateMipmaps(sce.getCommandBufferHandle(), context, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
                 } else {
@@ -100,7 +100,7 @@ namespace merutilm::vkh {
                                                         VK_ACCESS_TRANSFER_WRITE_BIT,
                                                         VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                        0, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                                        0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
                 }
             }
@@ -169,7 +169,7 @@ namespace merutilm::vkh {
             for (uint32_t i = 1; i < mipLevels; ++i) {
                 BarrierUtils::cmdImageMemoryBarrier(commandBuffer, imageContext.image, 0, VK_ACCESS_TRANSFER_WRITE_BIT,
                                                     VK_IMAGE_LAYOUT_UNDEFINED,
-                                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, i,
+                                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, i, 1,
                                                     VK_PIPELINE_STAGE_TRANSFER_BIT,
                                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
 
@@ -177,14 +177,14 @@ namespace merutilm::vkh {
 
                 BarrierUtils::cmdImageMemoryBarrier(commandBuffer, imageContext.image, VK_ACCESS_TRANSFER_WRITE_BIT,
                                                     VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                                                    dstLayout, i - 1, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                                    dstLayout, i - 1,  1, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                                     VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
                 if (i < mipLevels - 1) {
                     BarrierUtils::cmdImageMemoryBarrier(commandBuffer, imageContext.image, VK_ACCESS_TRANSFER_WRITE_BIT,
                                                         VK_ACCESS_TRANSFER_READ_BIT,
                                                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                                        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, i,
+                                                        VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, i,  1,
                                                         VK_PIPELINE_STAGE_TRANSFER_BIT,
                                                         VK_PIPELINE_STAGE_TRANSFER_BIT);
                 }
@@ -195,7 +195,7 @@ namespace merutilm::vkh {
             BarrierUtils::cmdImageMemoryBarrier(commandBuffer, imageContext.image, VK_ACCESS_TRANSFER_WRITE_BIT,
                                                 VK_ACCESS_SHADER_READ_BIT,
                                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                                dstLayout, mipLevels - 1,
+                                                dstLayout, mipLevels - 1, 1,
                                                 VK_PIPELINE_STAGE_TRANSFER_BIT,
                                                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
         }

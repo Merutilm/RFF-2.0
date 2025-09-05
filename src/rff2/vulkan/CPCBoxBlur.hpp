@@ -6,7 +6,7 @@
 #include "../../vulkan_helper/configurator/ComputePipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    class CPCBoxBlur final : public vkh::ComputePipelineConfigurator {
+    struct CPCBoxBlur final : public vkh::ComputePipelineConfigurator {
         static constexpr uint32_t SET_BLUR_IMAGE = 0;
 
         static constexpr uint32_t BINDING_BLUR_IMAGE_SRC = 0;
@@ -17,10 +17,12 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t TARGET_BLUR_UBO_BLUR_SIZE = 0;
 
-        static constexpr uint32_t BLUR_TARGET_COUNT_PER_FRAME = 2;
+        static constexpr uint32_t DESC_COUNT_BLUR_TARGET = 2;
+        static constexpr uint32_t DESC_INDEX_BLUR_TARGET_FOG = 0;
+        static constexpr uint32_t DESC_INDEX_BLUR_TARGET_BLOOM = 0;
+
         static constexpr uint32_t BOX_BLUR_COUNT = 3;
 
-    public:
         explicit CPCBoxBlur(vkh::EngineRef engine);
 
         ~CPCBoxBlur() override = default;

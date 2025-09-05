@@ -49,13 +49,13 @@ namespace merutilm::vkh {
             vkMapMemory(core.getLogicalDevice().getLogicalDeviceHandle(), context.bufferMemory, 0, context.bufferSize, 0, reinterpret_cast<void **>(&context.mappedMemory));
         }
 
-        static void unmapMemory(CoreRef core, MultiframeBufferContext &context) {
+        static void unmapMemory(CoreRef core, const MultiframeBufferContext &context) {
             for (auto &ctx : context) {
                 unmapMemory(core, ctx);
             }
         }
 
-        static void unmapMemory(CoreRef core, BufferContext &context) {
+        static void unmapMemory(CoreRef core, const BufferContext &context) {
             vkUnmapMemory(core.getLogicalDevice().getLogicalDeviceHandle(), context.bufferMemory);
         }
 

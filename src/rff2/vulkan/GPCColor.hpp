@@ -3,18 +3,16 @@
 //
 
 #pragma once
-#include "RCC1.hpp"
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "../attr/ShdColorAttribute.h"
 
 namespace merutilm::rff2 {
-    class GPCColor final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
+    struct GPCColor final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
         static constexpr uint32_t SET_PREV_RESULT = 0;
         static constexpr uint32_t BINDING_PREV_RESULT_INPUT = 0;
 
         static constexpr uint32_t SET_COLOR = 1;
 
-    public:
         explicit GPCColor(vkh::EngineRef engine,
                                            const uint32_t renderContextIndex,
                                            const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(

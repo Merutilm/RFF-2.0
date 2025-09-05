@@ -10,7 +10,7 @@
 
 namespace merutilm::rff2 {
     void GPCColor::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-       //no operation
+        //no operation
     }
 
     void GPCColor::setColor(const ShdColorAttribute &color) const {

@@ -32,7 +32,7 @@ namespace merutilm::rff2 {
     }
 
     void GPCLinearInterpolation::windowResized() {
-        const auto &sample = engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY);
+        const auto &sample = engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY);
         auto &samplerDesc = getDescriptor(SET_PREV_RESULT);
         samplerDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->setImageContext(sample);
 

@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
     RenderScene::RenderScene(vkh::EngineRef engine, const HWND window,
                              std::array<std::wstring, Constants::Status::LENGTH> *statusMessageRef) : EngineHandler(
             engine),
-        window(window), attr(defaultSettings()), statusMessageRef(statusMessageRef) {
+        window(window), attr(genDefaultAttr()), statusMessageRef(statusMessageRef) {
         init();
     }
 
@@ -51,6 +51,7 @@ namespace merutilm::rff2 {
         refreshSharedImgContext();
         initRenderContext();
         initShaderPrograms();
+        wndRequestFPS();
     }
 
 
@@ -82,75 +83,15 @@ namespace merutilm::rff2 {
     }
 
     void RenderScene::initShaderPrograms() {
-        rendererIteration = vkh::PipelineConfiguratorAbstract::createShaderProgram<
-            GPCIterationPalette>(
-            shaderPrograms, engine,
-            RCC1::CONTEXT_INDEX,
-            RCC1::SUBPASS_ITERATION_INDEX);
+        shaderPrograms = std::make_unique<RenderSceneShaderPrograms>(engine);
 
-        rendererStripe = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCStripe>(
-            shaderPrograms, engine,
-            RCC1::CONTEXT_INDEX,
-            RCC1::SUBPASS_STRIPE_INDEX);
-
-        rendererSlope = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCSlope>(
-            shaderPrograms, engine,
-            RCC1::CONTEXT_INDEX,
-            RCC1::SUBPASS_SLOPE_INDEX);
-
-        rendererColor = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCColor>(
-            shaderPrograms, engine,
-            RCC1::CONTEXT_INDEX,
-            RCC1::SUBPASS_COLOR_INDEX);
-
-
-        rendererResampleForBlur = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCResample>(
-            shaderPrograms, engine,
-            RCCDownsampleForBlur::CONTEXT_INDEX,
-            RCCDownsampleForBlur::SUBPASS_DOWNSAMPLE_INDEX
-        );
-
-        rendererBoxBlur = vkh::PipelineConfiguratorAbstract::createShaderProgram<CPCBoxBlur>(
-            shaderPrograms, engine
-        );
-
-        rendererFog = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCFog>(
-            shaderPrograms, engine,
-            RCC2::CONTEXT_INDEX,
-            RCC2::SUBPASS_FOG_INDEX
-        );
-
-        rendererBloomThreshold = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCBloomThreshold>(
-            shaderPrograms, engine,
-            RCC2::CONTEXT_INDEX,
-            RCC2::SUBPASS_BLOOM_THRESHOLD_INDEX
-        );
-
-        rendererBloom = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCBloom>(
-            shaderPrograms, engine,
-            RCC3::CONTEXT_INDEX,
-            RCC3::SUBPASS_BLOOM_INDEX
-        );
-
-        rendererLinearInterpolation = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCLinearInterpolation>(
-            shaderPrograms, engine,
-            RCC4::CONTEXT_INDEX,
-            RCC4::SUBPASS_LINEAR_INTERPOLATION_INDEX
-        );
-
-        rendererPresent = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCPresent>(
-            shaderPrograms, engine,
-            RCCPresent::CONTEXT_INDEX,
-            RCCPresent::SUBPASS_PRESENT_INDEX);
-
-
-        for (const auto &sp: shaderPrograms) {
+        for (const auto &sp: shaderPrograms->configurator) {
             sp->pipelineInitialized();
         }
 
         applyResizeParams();
         applyShaderAttr(attr);
-        requestRecompute();
+        requests.requestRecompute();
     }
 
     void RenderScene::resolveWindowResizeEnd() const {
@@ -166,29 +107,34 @@ namespace merutilm::rff2 {
 
 
     void RenderScene::render(const uint32_t frameIndex, const uint32_t swapchainImageIndex) {
-        if (shaderRequested) {
+        if (requests.defaultSettingsRequested) {
+            applyDefaultSettings();
+            requests.defaultSettingsRequested.exchange(false);
+            backgroundThreads.notifyAll();
+        }
+        if (requests.shaderRequested) {
             applyShaderAttr(attr);
-            shaderRequested.exchange(false);
+            requests.shaderRequested.exchange(false);
             backgroundThreads.notifyAll();
         }
 
-        if (resizeRequested) {
+        if (requests.resizeRequested) {
             state.cancel();
             applyResize();
-            resizeRequested.exchange(false);
+            requests.resizeRequested.exchange(false);
             backgroundThreads.notifyAll();
         }
 
-        if (recomputeRequested) {
+        if (requests.recomputeRequested) {
             idleCompute = false;
-            recomputeRequested.exchange(false);
+            requests.recomputeRequested.exchange(false);
             recomputeThreaded();
             //it is threaded, not idle
         }
 
-        if (createImageRequested) {
+        if (requests.createImageRequested) {
             applyCreateImage();
-            createImageRequested.exchange(false);
+            requests.createImageRequested.exchange(false);
             backgroundThreads.notifyAll();
         }
 
@@ -196,11 +142,11 @@ namespace merutilm::rff2 {
         draw(frameIndex, swapchainImageIndex);
     }
 
-    void RenderScene::draw(const uint32_t frameIndex, const uint32_t swapchainImageIndex) {
+    void RenderScene::draw(const uint32_t frameIndex, const uint32_t swapchainImageIndex) const {
         vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
         const VkDevice device = engine.getCore().getLogicalDevice().getLogicalDeviceHandle();
 
-        for (const auto &shaderProgram: shaderPrograms) {
+        for (const auto &shaderProgram: shaderPrograms->configurator) {
             shaderProgram->updateQueue(queue, frameIndex);
         }
 
@@ -212,30 +158,159 @@ namespace merutilm::rff2 {
                 getImageAvailable();
         const VkSemaphore renderFinishedSemaphore = engine.getSyncObject().getSemaphore(frameIndex).
                 getRenderFinished();
+        const VkCommandBuffer cbh = engine.getCommandBuffer().getCommandBufferHandle(frameIndex);
+        const auto mfg = [this, &frameIndex](const uint32_t index) {
+            return engine.getSharedImageContext().getMultiframeContext(index)[frameIndex].image;
+        };
 
         vkh::ScopedCommandBufferExecutor executor(engine, frameIndex, renderFence, imageAvailableSemaphore,
                                                   renderFinishedSemaphore);
         vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC1>(
-            engine, frameIndex, {rendererIteration, rendererStripe, rendererSlope, rendererColor}, {{}, {}, {}, {}});
+            engine, frameIndex, {
+                shaderPrograms->rendererIteration, shaderPrograms->rendererStripe, shaderPrograms->rendererSlope,
+                shaderPrograms->rendererColor
+            }, {{}, {}, {}, {}});
+
+        // [IN] EXTERNAL
+        // [SUBPASS OUT] SECONDARY (iteration)
+        // [SUBPASS IN] SECONDARY
+        // [SUBPASS OUT] PRIMARY (stripe)
+        // [SUBPASS IN] PRIMARY
+        // [SUBPASS OUT] SECONDARY (slope)
+        // [SUBPASS IN] SECONDARY
+        // [OUT] PRIMARY (color)
+
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
+                                                 mfg(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                                 0, 1,
+                                                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+        // [BARRIER] PRIMARY
+
         vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<
             RCCDownsampleForBlur>(
-            engine, frameIndex, {rendererResampleForBlur}, {{0}});
-        rendererBoxBlur->cmdGaussianBlur(frameIndex, 0);
+            engine, frameIndex, {shaderPrograms->rendererDownsampleForBlur}, {
+                {GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG}
+            });
+
+        // [IN] PRIMARY
+        // [OUT] DOWNSAMPLED_PRIMARY
+
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
+                                                 mfg(SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_PRIMARY), VK_IMAGE_LAYOUT_GENERAL,
+                                                 0, 1,
+                                                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
+        // [BARRIER] DOWNSAMPLED_PRIMARY
+
+        shaderPrograms->rendererBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG);
+
+        // [IN] DOWNSAMPLED_PRIMARY
+        // [OUT] DOWNSAMPLED_SECONDARY
+
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
+                                                         mfg(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                                         0, 1,
+                                                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+        vkh::BarrierUtils::cmdImageMemoryBarrier(cbh, mfg(SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
+                                                        VK_ACCESS_SHADER_WRITE_BIT,
+                                                        VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
+                                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1,
+                                                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+        // [BARRIER] PRIMARY
+        // [BARRIER] DOWNSAMPLED_SECONDARY
+
         vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC2>(
-            engine, frameIndex, {rendererFog, rendererBloomThreshold}, {{}, {}});
+            engine, frameIndex, {shaderPrograms->rendererFog, shaderPrograms->rendererBloomThreshold}, {{}, {}});
+
+        // [IN] PRIMARY
+        // [IN] DOWNSAMPLED_SECONDARY
+        // [PRESERVED SUBPASS OUT] SECONDARY
+        // [SUBPASS IN] SECONDARY
+        // [OUT] PRIMARY (Threshold Masked)
+
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
+                                                 mfg(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                                 0, 1,
+                                                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+        // [BARRIER] PRIMARY
+
         vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCDownsampleForBlur>(
-            engine, frameIndex, {rendererResampleForBlur}, {{1}});
-        rendererBoxBlur->cmdGaussianBlur(frameIndex, 1);
+            engine, frameIndex, {shaderPrograms->rendererDownsampleForBlur}, {
+                {GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM}
+            });
+        // [IN] PRIMARY
+        // [OUT] DOWNSAMPLED_PRIMARY
+
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
+                                                 mfg(SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_PRIMARY), VK_IMAGE_LAYOUT_GENERAL,
+                                                 0, 1,
+                                                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+        // [BARRIER] DOWNSAMPLED_PRIMARY
+
+        shaderPrograms->rendererBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM);
+
+        // [IN] DOWNSAMPLED_PRIMARY
+        // [OUT] DOWNSAMPLED_SECONDARY
+
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
+                                                mfg(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                                0, 1,
+                                                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+        vkh::BarrierUtils::cmdImageMemoryBarrier(cbh, mfg(SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
+                                                        VK_ACCESS_SHADER_WRITE_BIT,
+                                                        VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
+                                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1,
+                                                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+        // [BARRIER] SECONDARY
+        // [BARRIER] DOWNSAMPLED_SECONDARY
+
+
         vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC3>(
-            engine, frameIndex, {rendererBloom}, {{}});
+            engine, frameIndex, {shaderPrograms->rendererBloom}, {{}});
+
+        // [IN] SECONDARY
+        // [IN] DOWNSAMPLED_SECONDARY
+        // [OUT] PRIMARY
+
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
+                                                mfg(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                                0, 1,
+                                                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
         vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC4>(
-            engine, frameIndex, {rendererLinearInterpolation}, {{}});
+            engine, frameIndex, {shaderPrograms->rendererLinearInterpolation}, {{}});
+
+        // [IN] PRIMARY
+        // [OUT] SECONDARY
+
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
+                                                mfg(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                                0, 1,
+                                                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+        // [BARRIER] SECONDARY
+
         vkh::RenderPassFullscreenRecorder::cmdFullscreenPresentOnlyRenderPass<RCCPresent>(
-            engine, frameIndex, swapchainImageIndex, {rendererPresent}, {{}});
+            engine, frameIndex, swapchainImageIndex, {shaderPrograms->rendererPresent}, {{}});
+
+        // [IN] SECONDARY
+        // [OUT] EXTERNAL
     }
 
 
-    Attribute RenderScene::defaultSettings() {
+    Attribute RenderScene::genDefaultAttr() {
         return Attribute{
             .calc = CalcAttribute{
                 .center = fp_complex("-0.85",
@@ -317,7 +392,7 @@ namespace merutilm::rff2 {
                                                     Perturbator::logZoomToExp10(logZoom));
                     interactedMX = x;
                     interactedMY = y;
-                    requestRecompute();
+                    requests.requestRecompute();
                 } else {
                     SetCursor(LoadCursor(nullptr, IDC_CROSS));
                     if (currentMap == nullptr) {
@@ -362,7 +437,7 @@ namespace merutilm::rff2 {
                 }
 
 
-                requestRecompute();
+                requests.requestRecompute();
                 break;
             }
             default: {
@@ -410,15 +485,22 @@ namespace merutilm::rff2 {
         return static_cast<uint16_t>(static_cast<float>(getClientHeight()) * multiplier);
     }
 
+    void RenderScene::applyDefaultSettings() {
+        vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
+        attr = genDefaultAttr();
+    }
+
+
     void RenderScene::applyCreateImage() {
         vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
-        if (createImageRequestedFilename.empty()) {
-            createImageRequestedFilename = IOUtilities::ioFileDialog(L"Save image", Constants::Extension::DESC_IMAGE,
-                                                                     IOUtilities::SAVE_FILE,
-                                                                     Constants::Extension::IMAGE)->string();
+        if (requests.createImageRequestedFilename.empty()) {
+            requests.createImageRequestedFilename = IOUtilities::ioFileDialog(
+                L"Save image", Constants::Extension::DESC_IMAGE,
+                IOUtilities::SAVE_FILE,
+                Constants::Extension::IMAGE)->string();
         }
         const auto &imgCtx = engine.getSharedImageContext().getMultiframeContext(
-            SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY)[0];
+            SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY)[0];
 
         vkh::BufferContext bufCtx = vkh::BufferContext::createContext(engine.getCore(), {
                                                                           .size = imgCtx.capacity,
@@ -434,47 +516,46 @@ namespace merutilm::rff2 {
             vkh::BarrierUtils::cmdImageMemoryBarrier(executor.getCommandBufferHandle(), imgCtx.image,
                                                      VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
                                                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0,
+                                                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0, 1,
                                                      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                                                      VK_PIPELINE_STAGE_TRANSFER_BIT);
             vkh::BufferImageContextUtils::cmdCopyImageToBuffer(executor.getCommandBufferHandle(), imgCtx, bufCtx);
-
         }
         vkh::BufferContext::unmapMemory(engine.getCore(), bufCtx);
         auto img = cv::Mat(imgCtx.extent.height, imgCtx.extent.width, CV_16UC4, bufCtx.mappedMemory);
         cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
-        cv::imwrite(createImageRequestedFilename, img);
+        cv::imwrite(requests.createImageRequestedFilename, img);
         vkh::BufferContext::destroyContext(engine.getCore(), bufCtx);
     }
 
     void RenderScene::applyShaderAttr(const Attribute &attr) const {
         vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
-        rendererIteration->setPalette(attr.shader.palette);
-        rendererStripe->setStripe(attr.shader.stripe);
-        rendererSlope->setSlope(attr.shader.slope);
-        rendererColor->setColor(attr.shader.color);
-        rendererFog->setFog(attr.shader.fog);
-        rendererBloom->setBloom(attr.shader.bloom);
-        rendererLinearInterpolation->setLinearInterpolation(attr.render.linearInterpolation);
-        rendererBoxBlur->setBlurSize(0, attr.shader.fog.radius);
-        rendererBoxBlur->setBlurSize(1, attr.shader.bloom.radius);
+        shaderPrograms->rendererIteration->setPalette(attr.shader.palette);
+        shaderPrograms->rendererStripe->setStripe(attr.shader.stripe);
+        shaderPrograms->rendererSlope->setSlope(attr.shader.slope);
+        shaderPrograms->rendererColor->setColor(attr.shader.color);
+        shaderPrograms->rendererFog->setFog(attr.shader.fog);
+        shaderPrograms->rendererBloom->setBloom(attr.shader.bloom);
+        shaderPrograms->rendererLinearInterpolation->setLinearInterpolation(attr.render.linearInterpolation);
+        shaderPrograms->rendererBoxBlur->setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, attr.shader.fog.radius);
+        shaderPrograms->rendererBoxBlur->
+                setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, attr.shader.bloom.radius);
     }
 
     void RenderScene::applyResizeParams() {
-        const uint16_t cw = getClientWidth();
-        const uint16_t ch = getClientHeight();
         const uint16_t iw = getIterationBufferWidth(attr);
         const uint16_t ih = getIterationBufferHeight(attr);
-        const auto &[width, height] = getBlurredImageExtent();
+        const auto &[dWidth, dHeight] = getBlurredImageExtent();
+        const auto &[sWidth, sHeight] = getSwapchainRenderContextExtent();
 
-        for (const auto &sp: shaderPrograms) {
+        for (const auto &sp: shaderPrograms->configurator) {
             sp->windowResized();
         }
+        shaderPrograms->rendererDownsampleForBlur->setRescaledResolution(0, {dWidth, dHeight});
+        shaderPrograms->rendererDownsampleForBlur->setRescaledResolution(1, {dWidth, dHeight});
+        shaderPrograms->rendererPresent->setRescaledResolution({sWidth, sHeight});
 
-        rendererResampleForBlur->setRescaledResolution(0, {width, height});
-        rendererResampleForBlur->setRescaledResolution(1, {width, height});
-        rendererSlope->setResolution({cw, ch}, attr.render.clarityMultiplier);
-        rendererIteration->resetIterationBuffer(iw, ih);
+        shaderPrograms->rendererIteration->resetIterationBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
     }
 
@@ -495,11 +576,11 @@ namespace merutilm::rff2 {
         using namespace SharedImageContextIndices;
         auto &sharedImg = engine.getSharedImageContext();
         sharedImg.cleanupContexts();
-        auto iiiGetter = [](const VkExtent2D extent, const VkImageUsageFlags usage) {
+        auto iiiGetter = [](const VkExtent2D extent, const VkFormat format, const VkImageUsageFlags usage) {
             return vkh::ImageInitInfo{
                 .imageType = VK_IMAGE_TYPE_2D,
                 .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
-                .imageFormat = VK_FORMAT_R16G16B16A16_UNORM,
+                .imageFormat = format,
                 .extent = {extent.width, extent.height, 1},
                 .useMipmap = VK_FALSE,
                 .arrayLayers = 1,
@@ -510,27 +591,28 @@ namespace merutilm::rff2 {
                 .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             };
         };
+
         const auto internalImageExtent = getInternalImageExtent();
         const auto blurredImageExtent = getBlurredImageExtent();
 
         sharedImg.appendMultiframeImageContext(MF_RENDER_IMAGE_PRIMARY,
-                                               iiiGetter(internalImageExtent,
+                                               iiiGetter(internalImageExtent, VK_FORMAT_R16G16B16A16_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT));
         sharedImg.appendMultiframeImageContext(MF_RENDER_IMAGE_SECONDARY,
-                                               iiiGetter(internalImageExtent,
+                                               iiiGetter(internalImageExtent, VK_FORMAT_R16G16B16A16_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT));
         sharedImg.appendMultiframeImageContext(MF_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
-                                               iiiGetter(blurredImageExtent,
+                                               iiiGetter(blurredImageExtent, VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT |
                                                          VK_IMAGE_USAGE_STORAGE_BIT));
         sharedImg.appendMultiframeImageContext(MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY,
-                                               iiiGetter(blurredImageExtent,
+                                               iiiGetter(blurredImageExtent, VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT |
                                                          VK_IMAGE_USAGE_STORAGE_BIT));
@@ -538,8 +620,8 @@ namespace merutilm::rff2 {
 
     void RenderScene::overwriteMatrixFromMap() const {
         vkDeviceWaitIdle(engine.getCore().getLogicalDevice().getLogicalDeviceHandle());
-        rendererIteration->setMaxIteration(static_cast<double>(currentMap->getMaxIteration()));
-        rendererIteration->setAllIterations(currentMap->getMatrix().getCanvas());
+        shaderPrograms->rendererIteration->setMaxIteration(static_cast<double>(currentMap->getMaxIteration()));
+        shaderPrograms->rendererIteration->setAllIterations(currentMap->getMatrix().getCanvas());
     }
 
     uint16_t RenderScene::getMouseXOnIterationBuffer() const {
@@ -573,7 +655,7 @@ namespace merutilm::rff2 {
                                          ? lastPeriod * settings.calc.
                                            autoIterationMultiplier
                                          : this->attr.calc.maxIteration;
-        rendererIteration->setMaxIteration(static_cast<double>(settings.calc.maxIteration));
+        shaderPrograms->rendererIteration->setMaxIteration(static_cast<double>(settings.calc.maxIteration));
     }
 
     bool RenderScene::compute(const Attribute &settings) {
@@ -710,11 +792,11 @@ namespace merutilm::rff2 {
                 rendered[i] = true;
                 const auto dc = offsetConversion(settings, x, y);
                 const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
-                rendererIteration->setIteration(x, y, iteration);
+                shaderPrograms->rendererIteration->setIteration(x, y, iteration);
 
                 auto my = static_cast<int16_t>(y - 1);
                 while (my >= 0 && !rendered[my * xRes + x]) {
-                    rendererIteration->setIteration(x, my, iteration);
+                    shaderPrograms->rendererIteration->setIteration(x, my, iteration);
                     --my;
                 }
 
@@ -722,7 +804,7 @@ namespace merutilm::rff2 {
                 return iteration;
             });
 
-        rendererIteration->resetIterationBuffer();
+        shaderPrograms->rendererIteration->resetIterationBuffer();
 
         auto statusThread = std::jthread([&renderPixelsCount, len, this, &start](const std::stop_token &stop) {
             while (!stop.stop_requested()) {
@@ -744,7 +826,7 @@ namespace merutilm::rff2 {
         const auto syncer = ParallelDispatcher(
             state, w, h,
             [this](const uint16_t x, const uint16_t y, uint16_t, uint16_t, float, float, uint32_t) {
-                rendererIteration->setIteration(x, y, (*iterationMatrix)(x, y));
+                shaderPrograms->rendererIteration->setIteration(x, y, (*iterationMatrix)(x, y));
             });
 
         syncer.dispatch();
@@ -772,6 +854,6 @@ namespace merutilm::rff2 {
 
     void RenderScene::destroy() {
         state.cancel();
-        shaderPrograms.clear();
+        shaderPrograms = nullptr;
     }
 }

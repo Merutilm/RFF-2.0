@@ -39,37 +39,37 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 345,
+				"line" : 347,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 347,
+				"line" : 349,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 366,
+				"line" : 368,
 				"parent" : 0
 			},
 			{
 				"command" : 4,
 				"file" : 0,
-				"line" : 324,
+				"line" : 326,
 				"parent" : 0
 			},
 			{
 				"command" : 5,
 				"file" : 0,
-				"line" : 331,
+				"line" : 333,
 				"parent" : 0
 			},
 			{
 				"command" : 6,
 				"file" : 0,
-				"line" : 336,
+				"line" : 338,
 				"parent" : 0
 			}
 		]
@@ -286,17 +286,17 @@
 				259,
 				261,
 				263,
-				269,
-				272,
+				270,
+				271,
 				273,
-				275,
+				276,
 				278,
-				280,
-				283,
-				287,
-				291,
-				294,
-				302
+				281,
+				285,
+				289,
+				292,
+				300,
+				309
 			]
 		}
 	],
@@ -471,17 +471,17 @@
 				259,
 				261,
 				263,
-				269,
-				272,
+				270,
+				271,
 				273,
-				275,
+				276,
 				278,
-				280,
-				283,
-				287,
-				291,
-				294,
-				302
+				281,
+				285,
+				289,
+				292,
+				300,
+				309
 			]
 		},
 		{
@@ -676,35 +676,37 @@
 				266,
 				267,
 				268,
-				270,
-				271,
+				269,
+				272,
 				274,
-				276,
+				275,
 				277,
 				279,
-				281,
+				280,
 				282,
+				283,
 				284,
-				285,
 				286,
+				287,
 				288,
-				289,
 				290,
-				292,
+				291,
 				293,
+				294,
 				295,
 				296,
 				297,
 				298,
 				299,
-				300,
 				301,
+				302,
 				303,
 				304,
 				305,
 				306,
 				307,
-				308
+				308,
+				310
 			]
 		}
 	],
@@ -2097,12 +2099,12 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 2,
-			"path" : "src/rff2/vulkan/GPCResample.cpp",
+			"path" : "src/rff2/vulkan/GPCDownsampleForBlur.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/vulkan/GPCResample.hpp",
+			"path" : "src/rff2/vulkan/GPCDownsampleForBlur.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2134,17 +2136,6 @@
 		{
 			"backtrace" : 1,
 			"path" : "src/vulkan_helper/util/GraphicsContextWindowProc.hpp",
-			"sourceGroupIndex" : 1
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 2,
-			"path" : "src/rff2/vulkan/GPCPresent.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"path" : "src/rff2/vulkan/GPCPresent.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2345,6 +2336,27 @@
 		{
 			"backtrace" : 1,
 			"path" : "src/vulkan_helper/struct/BufferInitInfo.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/rff2/ui/RenderSceneRequests.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/rff2/ui/RenderSceneShaderPrograms.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 2,
+			"path" : "src/rff2/vulkan/GPCPresent.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/rff2/vulkan/GPCPresent.hpp",
 			"sourceGroupIndex" : 1
 		}
 	],

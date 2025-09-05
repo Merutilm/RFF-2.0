@@ -8,10 +8,6 @@ layout (set = 1, binding = 0) uniform FogUBO {
     float opacity;
 } fog_attr;
 
-layout (set = 2, binding = 0) uniform ResolutionUBO {
-    uvec2 swapchain_extent;
-    float clarity_multiplier;
-} resolution_attr;
 
 layout (location = 0) in vec3 fragColor;
 layout (location = 1) in vec2 fragTexcoord;
@@ -24,7 +20,7 @@ float grayScale(vec3 c) {
 
 void main() {
 
-    vec2 coord = gl_FragCoord.xy / resolution_attr.swapchain_extent / resolution_attr.clarity_multiplier;
+    vec2 coord = gl_FragCoord.xy / textureSize(fog_canvas, 0);
 
     float x = coord.x;
     float y = coord.y;

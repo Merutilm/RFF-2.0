@@ -6,13 +6,12 @@
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    class GPCLinearInterpolation final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
+    struct GPCLinearInterpolation final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
         static constexpr uint32_t SET_PREV_RESULT = 0;
         static constexpr uint32_t BINDING_PREV_RESULT_SAMPLER = 0;
 
         static constexpr uint32_t SET_LINEAR_INTERPOLATION = 1;
 
-    public:
         explicit GPCLinearInterpolation(vkh::EngineRef engine, const uint32_t renderContextIndex,
                                                          const uint32_t
                                                          subpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(

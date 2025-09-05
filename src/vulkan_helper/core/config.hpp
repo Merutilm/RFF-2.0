@@ -14,4 +14,5 @@ namespace merutilm::vkh::config {
 
     static constexpr VkFormat SWAPCHAIN_IMAGE_FORMAT = VK_FORMAT_R8G8B8A8_UNORM;
     static constexpr auto DUMMY_WINDOW_CLASS = L"VulkanDummyWindowContext";
+    static constexpr float INITIAL_FPS = 60.0f;
 }

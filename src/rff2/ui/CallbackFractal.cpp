@@ -76,7 +76,7 @@ namespace merutilm::rff2 {
                 if (*locationChanged) {
                     calc.center = fp_complex((*centerPtr)[0], (*centerPtr)[1], exp10);
                     calc.logZoom = *zoomPtr;
-                    scene.requestRecompute();
+                    scene.getRequests().requestRecompute();
                 }
                 settingsMenu.setCurrentActiveSettingsWindow(nullptr);
             });

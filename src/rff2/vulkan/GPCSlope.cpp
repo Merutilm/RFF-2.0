@@ -13,18 +13,6 @@ namespace merutilm::rff2 {
         //no operation
     }
 
-    void GPCSlope::setResolution(const glm::uvec2 &swapchainExtent, const float clarityMultiplier) const {
-        using namespace SharedDescriptorTemplate;
-        auto &resDesc = getDescriptor(SET_RESOLUTION);
-        auto &resUBO = resDesc.get<vkh::Uniform>(0, DescResolution::BINDING_UBO_RESOLUTION);
-        auto &resUBOHost = resUBO->getHostObject();
-        resUBOHost.set<glm::uvec2>(DescResolution::TARGET_RESOLUTION_SWAPCHAIN_EXTENT, swapchainExtent);
-        resUBOHost.set<float>(DescResolution::TARGET_RESOLUTION_CLARITY_MULTIPLIER, clarityMultiplier);
-
-        updateBufferForEachFrame([&resUBO](const uint32_t frameIndex) {
-            resUBO->update(frameIndex);
-        });
-    }
 
     void GPCSlope::setSlope(const ShdSlopeAttribute &slope) const {
         using namespace SharedDescriptorTemplate;
@@ -45,7 +33,6 @@ namespace merutilm::rff2 {
     void GPCSlope::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
         writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_RESOLUTION).queue(queue, frameIndex, {}, {DescResolution::BINDING_UBO_RESOLUTION});
             getDescriptor(SET_SLOPE).queue(queue, frameIndex, {}, {DescSlope::BINDING_UBO_SLOPE});
         });
     }
@@ -73,6 +60,5 @@ namespace merutilm::rff2 {
         appendUniqueDescriptor(SET_PREV_RESULT, descriptors, std::move(descManager));
         appendDescriptor<DescIteration>(SET_ITERATION, descriptors);
         appendDescriptor<DescSlope>(SET_SLOPE, descriptors);
-        appendDescriptor<DescResolution>(SET_RESOLUTION, descriptors);
     }
 }

@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
             using namespace SharedImageContextIndices;
             rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,
-                                     .format = sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_SECONDARY)[0].
+                                     .format = sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_PRIMARY)[0].
                                      imageFormat,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
                                      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -32,7 +32,7 @@ namespace merutilm::rff2 {
                                      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 }, sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_SECONDARY));
+                                 }, sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_PRIMARY));
 
             rpm.appendSubpass(SUBPASS_BLOOM_INDEX);
             rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR,

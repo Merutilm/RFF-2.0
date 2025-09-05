@@ -16,14 +16,14 @@
 namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::RECOMPUTE = [
             ](const SettingsMenu &, RenderScene &scene) {
-        scene.requestRecompute();
+        scene.getRequests().requestRecompute();
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::RESET = [
             ](const SettingsMenu &, RenderScene &scene) {
-        scene.getAttribute() = RenderScene::defaultSettings();
-        scene.requestShader();
-        scene.requestResize();
-        scene.requestRecompute();
+        scene.getRequests().requestDefaultSettings();
+        scene.getRequests().requestShader();
+        scene.getRequests().requestResize();
+        scene.getRequests().requestRecompute();
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::CANCEL_RENDER = [
             ](const SettingsMenu &, RenderScene &scene) {
@@ -40,7 +40,7 @@ namespace merutilm::rff2 {
             MessageBox(nullptr, "No center found!", "Caution", MB_OK | MB_ICONWARNING);
         } else {
             scene.getAttribute().calc.center = *c;
-            scene.requestRecompute();
+            scene.getRequests().requestRecompute();
         }
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::LOCATE_MINIBROT = [
@@ -78,7 +78,7 @@ namespace merutilm::rff2 {
                 const CalcAttribute &locatorCalc = locator->perturbator->getCalculationSettings();
                 settings.calc.center = locatorCalc.center;
                 settings.calc.logZoom = locatorCalc.logZoom - MandelbrotLocator::MINIBROT_LOG_ZOOM_OFFSET;
-                scene.requestRecompute();
+                scene.getRequests().requestRecompute();
             }
         );
     };

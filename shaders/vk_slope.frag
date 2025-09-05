@@ -17,11 +17,6 @@ layout (set = 2, binding = 0) uniform SlopeUBO{
     float azimuth;
 } slope_attr;
 
-layout (set = 3, binding = 0) uniform ResolutionUBO{
-    uvec2 swapchain_extent;
-    float clarity_multiplier;
-} resolution_attr;
-
 layout (location = 0) in vec3 fragColor;
 layout (location = 1) in vec2 fragTexcoord;
 
@@ -42,6 +37,7 @@ void main() {
         discard;
     }
 
+    float multiplier = float(iteration_attr.extent.x) / 1280;
 
     float aRad = radians(slope_attr.azimuth);
     float zRad = radians(slope_attr.zenith);
@@ -55,8 +51,8 @@ void main() {
     double u = getIteration(iter_coord, uvec2(0, 1));
     double ru = getIteration(iter_coord, uvec2(1, 1));
 
-    float dzDx = float((rd + 2 * r + ru) - (ld + 2 * l + lu)) * slope_attr.depth * resolution_attr.clarity_multiplier;
-    float dzDy = float((lu + 2 * u + ru) - (ld + 2 * d + rd)) * slope_attr.depth * resolution_attr.clarity_multiplier;
+    float dzDx = float((rd + 2 * r + ru) - (ld + 2 * l + lu)) * slope_attr.depth * multiplier;
+    float dzDy = float((lu + 2 * u + ru) - (ld + 2 * d + rd)) * slope_attr.depth * multiplier;
     float slope = atan(radians(length(vec2(dzDx, dzDy))), 1);
     float aspect = atan(dzDy, -dzDx);
     float shade = max(slope_attr.reflection_ratio, cos(zRad) * cos(slope) + sin(zRad) * sin(slope) * cos(aRad + aspect));

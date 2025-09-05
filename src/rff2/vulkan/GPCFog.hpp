@@ -7,15 +7,13 @@
 #include "../attr/ShdFogAttribute.h"
 
 namespace merutilm::rff2 {
-    class GPCFog final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
+    struct GPCFog final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
         static constexpr uint32_t SET_FOG_CANVAS = 0;
         static constexpr uint32_t BINDING_FOG_CANVAS_ORIGINAL = 0;
         static constexpr uint32_t BINDING_FOG_CANVAS_BLURRED = 1;
 
         static constexpr uint32_t SET_FOG = 1;
-        static constexpr uint32_t SET_RESOLUTION = 2;
 
-    public:
         explicit GPCFog(vkh::EngineRef engine, const uint32_t renderContextIndex,
                                          const uint32_t subpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
             engine, renderContextIndex, subpassIndex, "vk_fog.frag") {

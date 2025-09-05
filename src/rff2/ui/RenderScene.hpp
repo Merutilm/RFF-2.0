@@ -7,6 +7,8 @@
 #include <windows.h>
 #include <atomic>
 
+#include "RenderSceneRequests.hpp"
+#include "RenderSceneShaderPrograms.hpp"
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
 #include "../data/ApproxTableCache.h"
 #include "../formula/MandelbrotPerturbator.h"
@@ -14,17 +16,6 @@
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
 #include "../attr/Attribute.h"
-#include "../vulkan/GPCBloom.hpp"
-#include "../vulkan/GPCBloomThreshold.hpp"
-#include "../vulkan/CPCBoxBlur.hpp"
-#include "../vulkan/GPCColor.hpp"
-#include "../vulkan/GPCFog.hpp"
-#include "../vulkan/GPCIterationPalette.hpp"
-#include "../vulkan/GPCLinearInterpolation.hpp"
-#include "../vulkan/GPCSlope.hpp"
-#include "../vulkan/GPCStripe.hpp"
-#include "../vulkan/GPCPresent.hpp"
-#include "../vulkan/GPCResample.hpp"
 
 namespace merutilm::rff2 {
     class RenderScene final : public vkh::EngineHandler {
@@ -38,12 +29,10 @@ namespace merutilm::rff2 {
 
         uint64_t lastPeriod = 1;
 
+        RenderSceneRequests requests;
 
-        std::atomic<bool> recomputeRequested = false;
-        std::atomic<bool> resizeRequested = false;
-        std::atomic<bool> shaderRequested = false;
-        std::atomic<bool> createImageRequested = false;
-        std::string createImageRequestedFilename;
+        friend RenderSceneRequests;
+
 
         std::atomic<bool> idleCompute = true;
 
@@ -54,24 +43,11 @@ namespace merutilm::rff2 {
         std::unique_ptr<Matrix<double> > iterationMatrix = nullptr;
         std::unique_ptr<MandelbrotPerturbator> currentPerturbator = nullptr;
 
+        std::unique_ptr<RenderSceneShaderPrograms> shaderPrograms = nullptr;
 
-        std::vector<std::unique_ptr<vkh::PipelineConfiguratorAbstract> > shaderPrograms = {};
-
-        GPCIterationPalette *rendererIteration;
-        GPCStripe *rendererStripe;
-        GPCSlope *rendererSlope;
-        GPCColor *rendererColor;
-        GPCResample *rendererResampleForBlur;
-        CPCBoxBlur *rendererBoxBlur;
-        GPCFog *rendererFog;
-        GPCBloomThreshold *rendererBloomThreshold;
-        GPCBloom *rendererBloom;
-        GPCLinearInterpolation *rendererLinearInterpolation;
-        GPCPresent *rendererPresent;
-
-
-        uint16_t cwRequest = 0;
-        uint16_t chRequest = 0;
+        bool wndFPSRequest = false;
+        uint16_t wndCWRequest = 0;
+        uint16_t wndCHRequest = 0;
 
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
@@ -95,25 +71,9 @@ namespace merutilm::rff2 {
 
         void render(uint32_t frameIndex, uint32_t swapchainImageIndex);
 
-        void draw(uint32_t frameIndex, uint32_t swapchainImageIndex);
+        void draw(uint32_t frameIndex, uint32_t swapchainImageIndex) const;
 
 
-        void requestShader() {
-            shaderRequested = true;
-        }
-
-        void requestResize() {
-            resizeRequested = true;
-        }
-
-        void requestRecompute() {
-            recomputeRequested = true;
-        }
-
-        void requestCreateImage(const std::string_view filename = "") {
-            createImageRequested = true;
-            createImageRequestedFilename = filename;
-        };
 
         [[nodiscard]] VkExtent2D getInternalImageExtent() const {
             const auto &swapchain = *engine.getWindowContext(
@@ -143,7 +103,7 @@ namespace merutilm::rff2 {
         }
 
 
-        static Attribute defaultSettings();
+        static Attribute genDefaultAttr();
 
         static LRESULT CALLBACK renderSceneProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
@@ -158,6 +118,8 @@ namespace merutilm::rff2 {
         [[nodiscard]] uint16_t getIterationBufferWidth(const Attribute &settings) const;
 
         [[nodiscard]] uint16_t getIterationBufferHeight(const Attribute &settings) const;
+
+        void applyDefaultSettings();
 
         void applyCreateImage();
 
@@ -219,37 +181,43 @@ namespace merutilm::rff2 {
             currentMap = std::make_unique<RFFDynamicMapBinary>(map);
         }
 
-        [[nodiscard]] bool isRecomputeRequested() const {
-            return recomputeRequested;
+        [[nodiscard]] RenderSceneRequests &getRequests() {
+            return requests;
         }
 
-        [[nodiscard]] bool isCreateImageRequested() const {
-            return createImageRequested;
-        }
-
-        [[nodiscard]] bool isResizeRequested() const {
-            return resizeRequested;
-        }
-
-        [[nodiscard]] bool isColorRequested() const {
-            return shaderRequested;
+        [[nodiscard]] bool isFPSRequested() const {
+            return wndFPSRequest;
         }
 
         [[nodiscard]] bool isIdleCompute() const {
             return idleCompute;
         }
 
-        [[nodiscard]] int getCWRequest() const {
-            return cwRequest;
+
+        [[nodiscard]] int getWndCWRequest() const {
+            return wndCWRequest;
         }
 
-        [[nodiscard]] int getCHRequest() const {
-            return chRequest;
+        [[nodiscard]] int getWndCHRequest() const {
+            return wndCHRequest;
         }
 
-        void clientResizeRequestSolved() {
-            cwRequest = 0;
-            chRequest = 0;
+        void wndRequestFPS() {
+            wndFPSRequest = true;
+        }
+
+        void wndRequestClientSize(const uint16_t width, const uint16_t height) {
+            wndCWRequest = width;
+            wndCHRequest = height;
+        }
+
+        void wndClientSizeRequestSolved() {
+            wndCWRequest = 0;
+            wndCHRequest = 0;
+        }
+
+        void wndFPSRequestSolved() {
+            wndFPSRequest = false;
         }
 
 
@@ -269,22 +237,23 @@ namespace merutilm::rff2 {
     };
 
 
+
+
     template<typename P> requires std::is_base_of_v<Preset, P>
     void RenderScene::changePreset(P &preset) {
         if constexpr (std::is_base_of_v<Presets::CalculationPresets, P>) {
             attr.calc.mpaAttribute = preset.genMPA();
             attr.calc.referenceCompAttribute = preset.genReferenceCompression();
-            requestRecompute();
+            requests.requestRecompute();
         }
         if constexpr (std::is_base_of_v<Presets::RenderPresets, P>) {
             attr.render = preset.genRender();
-            requestResize();
-            requestRecompute();
+            requests.requestResize();
+            requests.requestRecompute();
         }
         if constexpr (std::is_base_of_v<Presets::ResolutionPresets, P>) {
             auto r = preset.genResolution();
-            cwRequest = r[0];
-            chRequest = r[1];
+            wndRequestClientSize(r[0], r[1]);
         }
         if constexpr (std::is_base_of_v<Presets::ShaderPreset, P>) {
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::PalettePreset, P>) {
@@ -305,7 +274,7 @@ namespace merutilm::rff2 {
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::BloomPreset, P>) {
                 attr.shader.bloom = preset.genBloom();
             }
-            requestShader();
+            requests.requestShader();
         }
     }
 }

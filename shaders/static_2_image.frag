@@ -1,11 +1,13 @@
 #version 450
 
+
 uniform ivec2 resolution;
 
 uniform sampler2D normal;
 uniform sampler2D zoomed;
 uniform float defaultZoomIncrement;
 uniform float currentFrame;
+
 
 out vec4 color;
 

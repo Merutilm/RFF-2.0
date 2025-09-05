@@ -61,7 +61,7 @@ namespace merutilm::rff2 {
 
         void resolveWindowResizeEnd() const;
 
-        void checkResizeRequest() const;
+        void resolveWNDRequest() const;
 
         void drawFrame();
 

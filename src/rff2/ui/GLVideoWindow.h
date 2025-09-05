@@ -11,7 +11,7 @@
 
 namespace merutilm::rff2 {
 
-    class VideoWindow {
+    class GLVideoWindow {
 
         HWND videoWindow;
         HWND renderWindow;
@@ -23,17 +23,17 @@ namespace merutilm::rff2 {
         GLVideoRenderScene scene;
 
     public:
-        VideoWindow(uint16_t width, uint16_t height);
+        GLVideoWindow(uint16_t width, uint16_t height);
 
-        ~VideoWindow() = default;
+        ~GLVideoWindow() = default;
 
-        VideoWindow(const VideoWindow&) = delete;
+        GLVideoWindow(const GLVideoWindow&) = delete;
 
-        VideoWindow& operator=(const VideoWindow&) = delete;
+        GLVideoWindow& operator=(const GLVideoWindow&) = delete;
 
-        VideoWindow(VideoWindow&&) = delete;
+        GLVideoWindow(GLVideoWindow&&) = delete;
 
-        VideoWindow& operator=(VideoWindow&&) = delete;
+        GLVideoWindow& operator=(GLVideoWindow&&) = delete;
 
         void setClientSize(int width, int height) const;
 

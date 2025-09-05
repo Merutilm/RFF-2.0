@@ -41,6 +41,5 @@ namespace merutilm::rff2 {
 
         appendUniqueDescriptor(SET_BLOOM_THRESHOLD, descriptors, std::move(descManager));
         appendDescriptor<DescBloom>(SET_BLOOM, descriptors);
-        appendDescriptor<DescResolution>(SET_RESOLUTION, descriptors);
     }
 }

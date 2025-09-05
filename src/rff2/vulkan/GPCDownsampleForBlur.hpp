@@ -3,38 +3,36 @@
 //
 
 #pragma once
-#include "RCC1.hpp"
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    class GPCResample final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
-        static constexpr uint32_t RESAMPLE_IMAGES_COUNT_PER_FRAME = 2;
-        static constexpr uint32_t RESAMPLE_IMAGES_INDEX_FOG = 0;
-        static constexpr uint32_t RESAMPLE_IMAGES_INDEX_BLOOM = 1;
+    struct GPCDownsampleForBlur final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
 
         static constexpr uint32_t SET_RESAMPLE = 0;
-
         static constexpr uint32_t BINDING_RESAMPLE_SAMPLER = 0;
+
+        static constexpr uint32_t DESC_COUNT_RESAMPLE_IMAGE = 2;
+        static constexpr uint32_t DESC_INDEX_RESAMPLE_IMAGE_FOG = 0;
+        static constexpr uint32_t DESC_INDEX_RESAMPLE_IMAGE_BLOOM = 1;
+
         static constexpr uint32_t BINDING_RESAMPLE_UBO = 1;
+        static constexpr uint32_t TARGET_RESAMPLE_UBO_EXTENT = 0;
 
-        static constexpr uint32_t TARGET_RESAMPLE_EXTENT = 0;
-
-    public:
-        explicit GPCResample(vkh::EngineRef engine,
+        explicit GPCDownsampleForBlur(vkh::EngineRef engine,
                              const uint32_t renderContextIndex,
                              const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
             engine, renderContextIndex, primarySubpassIndex, "vk_resample.frag") {
         }
 
-        ~GPCResample() override = default;
+        ~GPCDownsampleForBlur() override = default;
 
-        GPCResample(const GPCResample &) = delete;
+        GPCDownsampleForBlur(const GPCDownsampleForBlur &) = delete;
 
-        GPCResample(GPCResample &&) = delete;
+        GPCDownsampleForBlur(GPCDownsampleForBlur &&) = delete;
 
-        GPCResample &operator=(const GPCResample &) = delete;
+        GPCDownsampleForBlur &operator=(const GPCDownsampleForBlur &) = delete;
 
-        GPCResample &operator=(GPCResample &&) = delete;
+        GPCDownsampleForBlur &operator=(GPCDownsampleForBlur &&) = delete;
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 

@@ -3,12 +3,11 @@
 //
 
 #pragma once
-#include "RCC1.hpp"
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "../attr/ShdStripeAttribute.h"
 
 namespace merutilm::rff2 {
-    class GPCStripe final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
+    struct GPCStripe final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
 
         static constexpr uint32_t SET_PREV_RESULT = 0;
         static constexpr uint32_t BINDING_PREV_RESULT_INPUT = 0;
@@ -17,8 +16,7 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_STRIPE = 2;
         static constexpr uint32_t SET_TIME = 3;
 
-    public:
-        GPCStripe(vkh::EngineRef engine,
+        explicit GPCStripe(vkh::EngineRef engine,
                                    const uint32_t renderContextIndex,
                                    const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
             engine, renderContextIndex, primarySubpassIndex, "vk_stripe.frag") {
