@@ -6,6 +6,7 @@
 
 #include "RCC3.hpp"
 #include "SharedDescriptorTemplate.hpp"
+#include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
     void GPCLinearInterpolation::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
@@ -15,7 +16,8 @@ namespace merutilm::rff2 {
     void GPCLinearInterpolation::setLinearInterpolation(const bool use) const {
         using namespace SharedDescriptorTemplate;
         auto &interDesc = getDescriptor(SET_LINEAR_INTERPOLATION);
-        const auto &interUBO = *interDesc.get<vkh::Uniform>(0, DescLinearInterpolation::BINDING_UBO_LINEAR_INTERPOLATION);
+        const auto &interUBO = *interDesc.get<vkh::Uniform>(
+            0, DescLinearInterpolation::BINDING_UBO_LINEAR_INTERPOLATION);
         auto &interUBOHost = interUBO.getHostObject();
         interUBOHost.set<bool>(DescLinearInterpolation::TARGET_LINEAR_INTERPOLATION_USE, use);
 
@@ -31,10 +33,25 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCLinearInterpolation::windowResized() {
-        const auto &sample = engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY);
+    void GPCLinearInterpolation::windowResized(const uint32_t windowAttachmentIndex) {
+        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &samplerDesc = getDescriptor(SET_PREV_RESULT);
-        samplerDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->setImageContext(sample);
+        switch (windowAttachmentIndex) {
+            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
+                const auto &sample = sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY);
+                samplerDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->
+                        setImageContext(sample);
+                break;
+            }
+            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
+                //TODO : Video window
+                break;
+            }
+            default: {
+                //noop
+            }
+        }
+
 
         writeDescriptorForEachFrame([&samplerDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             samplerDesc.queue(queue, frameIndex, {}, {BINDING_PREV_RESULT_SAMPLER});

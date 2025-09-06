@@ -114,7 +114,7 @@ namespace merutilm::vkh {
 
         virtual void pipelineInitialized() = 0;
 
-        virtual void windowResized() = 0;
+        virtual void windowResized(uint32_t windowAttachmentIndex) = 0;
 
         virtual void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex) = 0;
 

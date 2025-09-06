@@ -1,27 +1,22 @@
 //
-// Created by Merutilm on 2025-06-12.
+// Created by Merutilm on 2025-09-06.
 //
 
-#include "GLVideoRenderScene.h"
-
-#include "../attr/Attribute.h"
-#include "opencv2/imgproc.hpp"
-#include "opencv2/core/hal/interface.h"
-
+#include "VideoRenderScene.hpp"
 
 namespace merutilm::rff2 {
-    GLVideoRenderScene::GLVideoRenderScene() {
+    VideoRenderScene::VideoRenderScene() {
     }
 
 
-    void GLVideoRenderScene::applyCurrentFrame() const {
+    void VideoRenderScene::applyCurrentFrame() const {
         // rendererShdIteration2Map->setCurrentFrame(currentFrame);
         // rendererColIteration2Map->setCurrentFrame(currentFrame);
         // rendererStatic2Image->setCurrentFrame(currentFrame);
     }
 
-    void GLVideoRenderScene::applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed) const {
-
+    void VideoRenderScene::applyCurrentDynamicMap(const RFFDynamicMapBinary &normal,
+                                                  const RFFDynamicMapBinary &zoomed) const {
         auto &normalI = normal.getMatrix();
 
         if (currentFrame < 1) {
@@ -41,7 +36,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    void GLVideoRenderScene::applyColor(const Attribute &settings) const {
+    void VideoRenderScene::applyColor(const Attribute &settings) const {
         // rendererShdIteration2Map->setVideoSettings(settings.video);
         // rendererColIteration2Map->setVideoSettings(settings.video);
         // rendererColIteration2Map->setPaletteSettings(settings.shader.palette);
@@ -54,7 +49,7 @@ namespace merutilm::rff2 {
         // rendererAntialiasing->setUse(settings.render.linearInterpolation);
     }
 
-    // void GLVideoRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {
+    // void VideoRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {
     //     // WGLScene::configure(wnd, hdc, context);
     //     // makeContextCurrent();
     //
@@ -83,7 +78,7 @@ namespace merutilm::rff2 {
     //     // renderer->add(*rendererAntialiasing);
     // }
 
-    float GLVideoRenderScene::calculateZoom(const double defaultZoomIncrement) const {
+    float VideoRenderScene::calculateZoom(const double defaultZoomIncrement) const {
         if (currentFrame < 1) {
             const float r = 1 - currentFrame;
 
@@ -108,32 +103,32 @@ namespace merutilm::rff2 {
         return std::lerp(z2, z1, r);
     }
 
-    // GLMultipassRenderer &GLVideoRenderScene::getStaticRenderer() const {
+    // GLMultipassRenderer &VideoRenderScene::getStaticRenderer() const {
     //     return *rendererStatic;
     // }
     //
-    // GLMultipassRenderer &GLVideoRenderScene::getDynamicRenderer() const {
+    // GLMultipassRenderer &VideoRenderScene::getDynamicRenderer() const {
     //     return *renderer;
     // }
 
-    void GLVideoRenderScene::setCurrentFrame(const float currentFrame) {
+    void VideoRenderScene::setCurrentFrame(const float currentFrame) {
         this->currentFrame = currentFrame;
     }
 
-    void GLVideoRenderScene::setStatic(const bool isStatic){
+    void VideoRenderScene::setStatic(const bool isStatic) {
         this->isStatic = isStatic;
     }
 
-    void GLVideoRenderScene::setMap(RFFBinary *normal, RFFBinary *zoomed) {
+    void VideoRenderScene::setMap(RFFBinary *normal, RFFBinary *zoomed) {
         this->normal = normal;
         this->zoomed = zoomed;
     }
 
-    void GLVideoRenderScene::applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const {
+    void VideoRenderScene::applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const {
         // rendererStatic2Image->setImageBuffer(normal, zoomed);
     }
 
-    void GLVideoRenderScene::reloadSize(const uint16_t cw, const uint16_t ch, const uint16_t iw, const uint16_t ih) {
+    void VideoRenderScene::reloadSize(const uint16_t cw, const uint16_t ch, const uint16_t iw, const uint16_t ih) {
         // rendererShdIteration2Map->reloadIterationBuffer(iw, ih);
         // rendererColIteration2Map->reloadIterationBuffer(iw, ih);
         // renderer->reloadSize(cw, ch, iw, ih);
@@ -142,13 +137,13 @@ namespace merutilm::rff2 {
     }
 
 
-    void GLVideoRenderScene::reloadImageBuffer(const uint16_t w, const uint16_t h) {
+    void VideoRenderScene::reloadImageBuffer(const uint16_t w, const uint16_t h) {
         pixels = std::vector<char>(static_cast<uint32_t>(w) * h * 3);
         currentImage = cv::Mat(h, w, CV_8UC3, pixels.data());
     }
 
 
-    // void GLVideoRenderScene::renderGL() {
+    // void VideoRenderScene::renderGL() {
     //     glClear(GL_COLOR_BUFFER_BIT);
     //     //
     //     // GLMultipassRenderer *targetRenderer;
@@ -173,8 +168,12 @@ namespace merutilm::rff2 {
     //     // GLRenderer::unbindFBO(fbo);
     // }
 
+    void VideoRenderScene::renderOnce() {
 
-    const cv::Mat &GLVideoRenderScene::getCurrentImage() const {
+    }
+
+
+    const cv::Mat &VideoRenderScene::getCurrentImage() const {
         return currentImage;
     }
 }

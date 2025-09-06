@@ -16,15 +16,15 @@ layout (location = 1) in vec2 fragTexcoord;
 
 layout (location = 0) out vec4 color;
 
-float grayScale(vec3 c) {
+float grayscale(vec3 c) {
     return c.r * 0.3 + c.g * 0.59 + c.b * 0.11;
 }
 
-vec3 fixColor(vec3 col) {
+vec3 fix_color(vec3 col) {
     return clamp(col, vec3(0, 0, 0), vec3(1, 1, 1));
 }
 
-float getHue(vec3 col) {
+float get_hue(vec3 col) {
     float high = max(max(col.r, col.g), col.b);
     float low = min(min(col.r, col.g), col.b);
     if (high == low) {
@@ -74,11 +74,11 @@ float getHue(vec3 col) {
     return offset / 6;
 }
 
-vec3 addHue(vec3 col, float add) {
+vec3 add_hue(vec3 col, float add) {
 
     float high = max(max(col.r, col.g), col.b);
     float low = min(min(col.r, col.g), col.b);
-    float hue = getHue(col);
+    float hue = get_hue(col);
     float off = mod(hue + add, 1) * 6;
     int ioff = int(off);
     float doff = mod(off, 1);
@@ -126,12 +126,12 @@ void main() {
 
     vec3 c = subpassLoad(canvas).rgb;
 
-    c = fixColor(pow(c, vec3(1 / color_attr.gamma)));
-    c = fixColor(c * (1 + color_attr.exposure) / (1 - color_attr.exposure));
-    c = fixColor(addHue(c, color_attr.hue));
-    float gray = grayScale(c);
-    c = fixColor(c + (c - vec3(gray, gray, gray)) * color_attr.saturation);
-    c = fixColor(c + color_attr.brightness);
-    c = fixColor((c - 0.5) / (1 - color_attr.contrast) * (1 + color_attr.contrast) + 0.5);
+    c = fix_color(pow(c, vec3(1 / color_attr.gamma)));
+    c = fix_color(c * (1 + color_attr.exposure) / (1 - color_attr.exposure));
+    c = fix_color(add_hue(c, color_attr.hue));
+    float gray = grayscale(c);
+    c = fix_color(c + (c - vec3(gray, gray, gray)) * color_attr.saturation);
+    c = fix_color(c + color_attr.brightness);
+    c = fix_color((c - 0.5) / (1 - color_attr.contrast) * (1 + color_attr.contrast) + 0.5);
     color = vec4(c, 1);
 }

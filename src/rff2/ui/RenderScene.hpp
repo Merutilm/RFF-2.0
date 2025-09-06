@@ -31,9 +31,6 @@ namespace merutilm::rff2 {
 
         RenderSceneRequests requests;
 
-        friend RenderSceneRequests;
-
-
         std::atomic<bool> idleCompute = true;
 
         ApproxTableCache approxTableCache = ApproxTableCache();
@@ -176,6 +173,11 @@ namespace merutilm::rff2 {
         [[nodiscard]] RFFDynamicMapBinary &getCurrentMap() const {
             return *currentMap;
         }
+
+        [[nodiscard]] const vkh::WindowContext &getTargetWindowContext() const {
+            return engine.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
+        }
+
 
         void setCurrentMap(const RFFDynamicMapBinary &map) {
             currentMap = std::make_unique<RFFDynamicMapBinary>(map);

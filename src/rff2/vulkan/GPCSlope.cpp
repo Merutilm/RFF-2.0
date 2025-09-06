@@ -6,6 +6,7 @@
 
 #include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
+#include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
     void GPCSlope::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
@@ -37,10 +38,24 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCSlope::windowResized() {
-        const auto &input =  engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY);
+    void GPCSlope::windowResized(const uint32_t windowAttachmentIndex) {
+        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &inputDesc = getDescriptor(SET_PREV_RESULT);
-        inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;
+
+        switch (windowAttachmentIndex) {
+            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
+                const auto &input = sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY);
+                inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;
+                break;
+            }
+            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
+                //TODO : Video window
+                break;
+            }
+            default: {
+                //noop
+            }
+        }
 
         writeDescriptorForEachFrame([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             inputDesc.queue(queue, frameIndex, {}, {BINDING_PREV_RESULT_INPUT});

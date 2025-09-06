@@ -7,7 +7,7 @@
 #include "../constants/Constants.hpp"
 #include "IOUtilities.h"
 #include "Callback.hpp"
-#include "GLVideoWindow.h"
+#include "VideoWindow.hpp"
 #include "../io/RFFStaticMapBinary.h"
 #include "../preset/shader/bloom/ShdBloomPresets.h"
 #include "../preset/shader/fog/ShdFogPresets.h"
@@ -48,7 +48,6 @@ namespace merutilm::rff2 {
         window->registerTextInput<float>(L"MPS", &mps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
                                          Callback::NOTHING, L"MPS",
                                          L"Map per second, Number of video data used per second in video");
-
 
         window->setWindowCloseFunction([&settingsMenu] {
             settingsMenu.setCurrentActiveSettingsWindow(nullptr);
@@ -142,7 +141,7 @@ namespace merutilm::rff2 {
                 return;
             }
             const auto &save = *savePtr;
-            GLVideoWindow::createVideo(scene.getAttribute(), open, save);
+            VideoWindow::createVideo(scene.getAttribute(), open, save);
         });
     };
 }

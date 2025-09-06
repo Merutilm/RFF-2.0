@@ -20,7 +20,6 @@ namespace merutilm::vkh {
         CommandPool commandPool = nullptr;
         CommandBuffer commandBuffer = nullptr;
         SyncObject syncObject = nullptr;
-        SharedImageContext sharedImageContext = nullptr;
         std::vector<WindowContext> windowContexts = {};
         std::vector<RenderContext> renderContext = {};
 
@@ -37,19 +36,18 @@ namespace merutilm::vkh {
 
         EngineImpl &operator=(EngineImpl &&) = delete;
 
-
         void createGraphicsContextForWindow(HWND hwnd, uint32_t graphicsWindowIndexExpected);
 
         template<typename T, typename ExtentImgGetter, typename SwapchainImgGetter> requires (
             std::is_base_of_v<RenderContextConfiguratorAbstract, T> && std::is_invocable_r_v<VkExtent2D, ExtentImgGetter> && std::is_invocable_r_v<MultiframeImageContext, SwapchainImgGetter>)
-        void attachRenderContext(ExtentImgGetter &&extentGetter,
+        void attachRenderContext(const uint32_t windowContextIndex, ExtentImgGetter &&extentGetter,
                                  SwapchainImgGetter &&swapchainImageContext) {
             safe_array::check_index_equal(T::CONTEXT_INDEX, static_cast<uint32_t>(this->renderContext.size()),
                                               "Render Context Index");
             this->renderContext.emplace_back(
                 factory::create<RenderContext>(*core, std::forward<ExtentImgGetter>(extentGetter),
-                                               std::make_unique<T>(*core, *sharedImageContext, std::forward<SwapchainImgGetter>(swapchainImageContext))));
-        };
+                                               std::make_unique<T>(*core, *getWindowContext(windowContextIndex).sharedImageContext, std::forward<SwapchainImgGetter>(swapchainImageContext))));
+        }
 
         [[nodiscard]] CoreRef getCore() const { return *core; }
 
@@ -63,8 +61,8 @@ namespace merutilm::vkh {
 
         [[nodiscard]] std::span<const RenderContext> getRenderContexts() const { return renderContext; }
 
-        [[nodiscard]] const WindowContext &getWindowContext(const uint32_t windowIndex) const {
-            return windowContexts.at(windowIndex);
+        [[nodiscard]] const WindowContext &getWindowContext(const uint32_t windowContextIndex) const {
+            return windowContexts.at(windowContextIndex);
         }
 
         [[nodiscard]] RenderContextRef getRenderContext(const uint32_t renderContextIndex) const {
@@ -74,10 +72,6 @@ namespace merutilm::vkh {
         template<typename Configurator> requires std::is_base_of_v<RenderContextConfiguratorAbstract, Configurator>
         [[nodiscard]] Configurator & getRenderContextConfigurator() {
             return *dynamic_cast<Configurator *>(getRenderContext(Configurator::CONTEXT_INDEX).getConfigurator());
-        }
-
-        [[nodiscard]] SharedImageContextRef getSharedImageContext() const {
-            return *sharedImageContext;
         }
 
     private:

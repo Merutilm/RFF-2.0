@@ -5,6 +5,7 @@
 #include "GPCPresent.hpp"
 
 #include "SharedImageContextIndices.hpp"
+#include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
     void GPCPresent::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
@@ -29,13 +30,25 @@ namespace merutilm::rff2 {
     }
 
 
-    void GPCPresent::windowResized() {
+    void GPCPresent::windowResized(const uint32_t windowAttachmentIndex) {
+        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &resampleDesc = getDescriptor(SET_RESAMPLE);
 
-        resampleDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_RESAMPLE_SAMPLER)->
-                setImageContext(
-                    engine.getSharedImageContext().getMultiframeContext(
-                        SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY));
+        switch (windowAttachmentIndex) {
+            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
+                resampleDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_RESAMPLE_SAMPLER)->
+                        setImageContext(sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY));
+                break;
+            }
+            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
+                //TODO : Video window
+                break;
+            }
+            default: {
+                //noop
+            }
+        }
+
         writeDescriptorForEachFrame([&resampleDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             resampleDesc.queue(queue, frameIndex, {}, {BINDING_RESAMPLE_SAMPLER});
         });

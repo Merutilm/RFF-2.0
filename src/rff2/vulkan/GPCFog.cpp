@@ -7,6 +7,7 @@
 #include "RCCDownsampleForBlur.hpp"
 #include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
+#include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
     void GPCFog::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
@@ -34,13 +35,28 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCFog::windowResized() {
-        using namespace SharedDescriptorTemplate;
+    void GPCFog::windowResized(const uint32_t windowAttachmentIndex) {
+        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &fogDesc = getDescriptor(SET_FOG_CANVAS);
-        fogDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL)->setImageContext(
-           engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
-        fogDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_FOG_CANVAS_BLURRED)->setImageContext(
-            engine.getSharedImageContext().getMultiframeContext(SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
+
+        switch (windowAttachmentIndex) {
+            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
+                fogDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL)->setImageContext(
+                          sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
+                fogDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_FOG_CANVAS_BLURRED)->setImageContext(
+                    sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
+
+                break;
+            }
+            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
+                //TODO : Video window
+                break;
+            }
+            default: {
+                //noop
+            }
+        }
+
 
         writeDescriptorForEachFrame([&fogDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             fogDesc.queue(queue, frameIndex, {}, {BINDING_FOG_CANVAS_ORIGINAL, BINDING_FOG_CANVAS_BLURRED});

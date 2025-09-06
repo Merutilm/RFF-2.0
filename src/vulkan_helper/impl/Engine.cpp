@@ -23,6 +23,7 @@ namespace merutilm::vkh {
 
         auto window = factory::create<GraphicsContextWindow>(hwnd);
         auto surface = factory::create<Surface>(core->getInstance(), *window);
+        auto sharedImageContext = factory::create<SharedImageContext>(*core);
 
         if (!PhysicalDeviceUtils::isDeviceSuitable(core->getPhysicalDevice().getPhysicalDeviceHandle(),
                                                           surface->getSurfaceHandle())) {
@@ -30,7 +31,7 @@ namespace merutilm::vkh {
         }
 
         auto swapchain = factory::create<Swapchain>(*core, *surface);
-        windowContexts.push_back(WindowContext{std::move(window), std::move(surface), std::move(swapchain)});
+        windowContexts.push_back(WindowContext{std::move(window), std::move(surface), std::move(swapchain), std::move(sharedImageContext)});
     }
 
 
@@ -39,14 +40,12 @@ namespace merutilm::vkh {
         commandPool = factory::create<CommandPool>(*core);
         commandBuffer = factory::create<CommandBuffer>(*core, *commandPool);
         syncObject = factory::create<SyncObject>(*core);
-        sharedImageContext = factory::create<SharedImageContext>(*core);
     }
 
 
     void EngineImpl::destroy() {
         renderContext.clear();
         windowContexts.clear();
-        sharedImageContext = nullptr;
         syncObject = nullptr;
         commandBuffer = nullptr;
         commandPool = nullptr;

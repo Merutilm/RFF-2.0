@@ -1,16 +1,14 @@
 //
-// Created by Merutilm on 2025-06-12.
+// Created by Merutilm on 2025-09-06.
 //
 
 #pragma once
-#include "../io/RFFDynamicMapBinary.h"
-#include "../io/RFFStaticMapBinary.h"
 #include "../attr/Attribute.h"
-#include "opencv2/core/mat.hpp"
-
+#include "../io/RFFDynamicMapBinary.h"
 
 namespace merutilm::rff2 {
-    class GLVideoRenderScene final {
+
+    class VideoRenderScene {
         RFFBinary *normal = nullptr;
         RFFBinary *zoomed = nullptr;
         bool isStatic = false;
@@ -32,20 +30,20 @@ namespace merutilm::rff2 {
         // std::unique_ptr<GLRendererAntialiasing> rendererAntialiasing;
 
     public:
-        GLVideoRenderScene();
+        VideoRenderScene();
 
         void applyCurrentFrame() const;
 
         void applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed) const;
 
-        void applyColor(const Attribute &settings) const;
+        void applyColor(const Attribute &attr) const;
 
         // void configure(HWND wnd, HDC hdc, HGLRC context);
 
         float calculateZoom(double defaultZoomIncrement) const;
 
         // GLMultipassRenderer &getStaticRenderer() const;
-        //
+
         // GLMultipassRenderer &getDynamicRenderer() const;
 
         void setCurrentFrame(float currentFrame);
@@ -60,7 +58,7 @@ namespace merutilm::rff2 {
 
         void reloadImageBuffer(uint16_t w, uint16_t h);
 
-        // void renderGL() override;
+        void renderOnce();
 
         const cv::Mat &getCurrentImage() const;
     };

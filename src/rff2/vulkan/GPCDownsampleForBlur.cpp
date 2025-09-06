@@ -6,6 +6,7 @@
 
 #include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
+#include "../constants/VulkanWindowConstants.hpp"
 
 
 namespace merutilm::rff2 {
@@ -29,17 +30,29 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCDownsampleForBlur::windowResized() {
+    void GPCDownsampleForBlur::windowResized(const uint32_t windowAttachmentIndex) {
+        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &resampleDesc = getDescriptor(SET_RESAMPLE);
 
-        resampleDesc.get<vkh::CombinedMultiframeImageSampler>(DESC_INDEX_RESAMPLE_IMAGE_FOG, BINDING_RESAMPLE_SAMPLER)->
-                setImageContext(
-                    engine.getSharedImageContext().getMultiframeContext(
-                        SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
-        resampleDesc.get<vkh::CombinedMultiframeImageSampler>(DESC_INDEX_RESAMPLE_IMAGE_BLOOM, BINDING_RESAMPLE_SAMPLER)->
-                setImageContext(
-                    engine.getSharedImageContext().getMultiframeContext(
-                        SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
+        switch (windowAttachmentIndex) {
+            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
+                resampleDesc.get<vkh::CombinedMultiframeImageSampler>(DESC_INDEX_RESAMPLE_IMAGE_FOG,
+                                                                      BINDING_RESAMPLE_SAMPLER)->
+                        setImageContext(sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
+                resampleDesc.get<vkh::CombinedMultiframeImageSampler>(DESC_INDEX_RESAMPLE_IMAGE_BLOOM,
+                                                                      BINDING_RESAMPLE_SAMPLER)->
+                        setImageContext(sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
+
+                break;
+            }
+            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
+                //TODO : Video window
+                break;
+            }
+            default: {
+                //noop
+            }
+        }
 
         writeDescriptorForEachFrame([&resampleDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             resampleDesc.queue(queue, frameIndex, {}, {BINDING_RESAMPLE_SAMPLER});

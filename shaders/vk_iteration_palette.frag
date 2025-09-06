@@ -28,7 +28,7 @@ layout (location = 1) in vec2 fragTexcoord;
 
 layout (location = 0) out vec4 color;
 
-vec4 getColor(double iteration) {
+vec4 get_color(double iteration) {
 
     if (iteration == 0 || iteration >= iteration_attr.max_value) {
         return vec4(0, 0, 0, 1);
@@ -59,7 +59,7 @@ vec4 getColor(double iteration) {
     return cc * (1 - palette_offset_decimal) + nc * (palette_offset_decimal);
 }
 
-double getIteration(uvec2 iterCoord) {
+double get_iteration(uvec2 iterCoord) {
     iterCoord.y = iteration_attr.extent.y - iterCoord.y;
     return iteration_attr.iterations[iterCoord.y * iteration_attr.extent.x + iterCoord.x];
 }
@@ -71,12 +71,12 @@ void main() {
     float x = iter_coord.x;
     float y = iter_coord.y;
 
-    double iteration = getIteration(iter_coord);
+    double iteration = get_iteration(iter_coord);
 
     if (iteration == 0) {
         color = vec4(0, 0, 0, 1);
         return;
     }
 
-    color = getColor(iteration);
+    color = get_color(iteration);
 }

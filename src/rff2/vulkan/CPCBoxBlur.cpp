@@ -7,6 +7,8 @@
 #include "SharedImageContextIndices.hpp"
 #include "../../vulkan_helper/executor/ScopedCommandBufferExecutor.hpp"
 #include "../../vulkan_helper/util/BarrierUtils.hpp"
+#include "../constants/ExtensionConstants.hpp"
+#include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
     CPCBoxBlur::CPCBoxBlur(vkh::EngineRef engine) : ComputePipelineConfigurator(
@@ -43,19 +45,15 @@ namespace merutilm::rff2 {
         const auto dst = ctxGetter(2, BINDING_BLUR_IMAGE_DST);
 
         vkh::BarrierUtils::cmdImageMemoryBarrier(cbh, dst.image, 0,
-                                                 VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
-                                                 VK_IMAGE_LAYOUT_GENERAL, 0, 1,
-                                                 VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                                 VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+                                                        VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
+                                                        VK_IMAGE_LAYOUT_GENERAL, 0, 1,
+                                                        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 
         cmdRender(cbh, frameIndex, {0u, blurSizeDescIndex});
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh, dst.image, VK_IMAGE_LAYOUT_GENERAL, 0, 1,
-                                                          VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                                          VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh, dst.image, VK_IMAGE_LAYOUT_GENERAL, 0, 1, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
         cmdRender(cbh, frameIndex, {1u, blurSizeDescIndex});
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh, dst.image, VK_IMAGE_LAYOUT_GENERAL, 0, 1,
-                                                          VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                                          VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
         cmdRender(cbh, frameIndex, {2u, blurSizeDescIndex});
     }
 
@@ -103,11 +101,23 @@ namespace merutilm::rff2 {
         //no operation
     }
 
-    void CPCBoxBlur::windowResized() {
+    void CPCBoxBlur::windowResized(const uint32_t windowAttachmentIndex) {
         using namespace SharedImageContextIndices;
-        setGaussianBlur(engine.getSharedImageContext().getMultiframeContext(MF_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
-                        engine.getSharedImageContext().getMultiframeContext(MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
-        //no operation
+        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
+        switch (windowAttachmentIndex) {
+            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
+                setGaussianBlur(sic.getMultiframeContext(MF_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
+                                sic.getMultiframeContext(MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
+                break;
+            }
+            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
+                //TODO : video window
+                break;
+            }
+            default: {
+                //noop
+            }
+        }
     }
 
 

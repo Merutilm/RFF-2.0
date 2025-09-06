@@ -1,0 +1,87 @@
+#version 450
+
+
+layout (set = 0, binding = 0) buffer Iteration2MapNormalSSBO {
+    double iterations[];
+} it2map_normal_attr;
+
+layout (set = 0, binding = 1) buffer Iteration2MapZoomedSSBO {
+    double iterations[];
+} it2map_zoomed_attr;
+
+layout (set = 0, binding = 2) uniform Iteration2MapUBO {
+    uvec2 extent;
+    double max_value;
+    float time;
+} it2map_attr;
+
+layout (set = 1, binding = 0) uniform VideoUBO {
+    float default_zoom_increment;
+    float current_frame;
+} video_attr;
+
+layout (set = 2, binding = 0) writeonly buffer OutputIterationSSBO {
+    double[] iterations;
+} iteration_output;
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+
+double get_iteration_normal(uvec2 iter_coord, uvec2 offset){
+    iter_coord.y = it2map_attr.extent.y - iter_coord.y;
+    iter_coord += offset;
+    return it2map_normal_attr.iterations[iter_coord.y * it2map_attr.extent.x + iter_coord.x];
+}
+
+
+double get_iteration_zoomed(uvec2 iter_coord, uvec2 offset){
+    iter_coord.y = it2map_attr.extent.y - iter_coord.y;
+    iter_coord += offset;
+    return it2map_zoomed_attr.iterations[iter_coord.y * it2map_attr.extent.x + iter_coord.x];
+}
+
+double set_iteration_output(uvec2 iter_coord, double value){
+    iter_coord.y = it2map_attr.extent.y - iter_coord.y;
+    return iteration_output.iterations[iter_coord.y * it2map_attr.extent.x + iter_coord.x] = value;
+}
+
+void main(){
+
+    vec2 center = vec2(it2map_attr.extent) / 2.0;
+    vec2 coord = vec2(gl_GlobalInvocationID.xy) - center;
+    float r = int(max(0, video_attr.current_frame)) - video_attr.current_frame;
+
+    float nsr = pow(video_attr.default_zoom_increment, r + 1);// r = 0 ~ 1
+    float zsr = pow(video_attr.default_zoom_increment, r);// r = -1 ~ 0
+
+    vec2 ntx = coord / nsr + center;
+    vec2 ztx = coord / zsr + center;
+
+    vec2 nrt = mod(ntx, 1);
+    vec2 zrt = mod(ztx, 1);
+
+    double nMain = get_iteration_normal(uvec2(ntx), uvec2(0, 0));
+    double zMain = get_iteration_zoomed(uvec2(ztx), uvec2(0, 0));
+
+    if (ztx.x >= it2map_attr.extent.x - 1 || ztx.y >= it2map_attr.extent.y - 1 || ztx.x < 0 || ztx.y < 0 || zMain == 0){
+        double i2 = get_iteration_normal(uvec2(ntx), uvec2(1, 0));
+        double i3 = get_iteration_normal(uvec2(ntx), uvec2(0, 1));
+        double i4 = get_iteration_normal(uvec2(ntx), uvec2(1, 1));
+
+        double i5 = nMain - (nMain - i2) * nrt.x;
+        double i6 = i3 - (i3 - i4) * nrt.x;
+        double i7 = i5 - (i5 - i6) * nrt.y;
+
+        set_iteration_output(gl_GlobalInvocationID.xy, i7);
+    } else {
+        double i2 = get_iteration_zoomed(uvec2(ztx), uvec2(1, 0));
+        double i3 = get_iteration_zoomed(uvec2(ztx), uvec2(0, 1));
+        double i4 = get_iteration_zoomed(uvec2(ztx), uvec2(1, 1));
+
+        double i5 = zMain - (zMain - i2) * zrt.x;
+        double i6 = i3 - (i3 - i4) * zrt.x;
+        double i7 = i5 - (i5 - i6) * zrt.y;
+        set_iteration_output(gl_GlobalInvocationID.xy, i7);
+    }
+
+}

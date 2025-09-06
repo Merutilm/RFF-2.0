@@ -14,5 +14,6 @@ namespace merutilm::vkh {
         GraphicsContextWindow window = nullptr;
         Surface surface = nullptr;
         Swapchain swapchain = nullptr;
+        SharedImageContext sharedImageContext = nullptr;
     };
 }

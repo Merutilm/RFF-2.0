@@ -1,23 +1,17 @@
 //
-// Created by Merutilm on 2025-06-12.
+// Created by Merutilm on 2025-09-06.
 //
 
-
-#include "GLVideoWindow.h"
+#include "VideoWindow.hpp"
 
 #include "IOUtilities.h"
 #include "../io/RFFDynamicMapBinary.h"
-#include "opencv2/videoio.hpp"
-#include <commctrl.h>
-
-#include "../constants/Constants.hpp"
 #include "../io/RFFStaticMapBinary.h"
-#include "../parallel/BackgroundThreads.h"
-#include "opencv2/highgui.hpp"
-#include "opencv2/imgproc.hpp"
+#include "opencv2/opencv.hpp"
 
 namespace merutilm::rff2 {
-    GLVideoWindow::GLVideoWindow(const uint16_t width, const uint16_t height) : scene(GLVideoRenderScene()) {
+
+    VideoWindow::VideoWindow(const uint16_t width, const uint16_t height) : scene(VideoRenderScene()) {
         videoWindow = CreateWindowExW(0,
                                      Constants::Win32::CLASS_VIDEO_WINDOW,
                                      L"Preview video",
@@ -31,7 +25,7 @@ namespace merutilm::rff2 {
                                       CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr,
                                       nullptr);
 
-        bar = CreateWindowEx(0, WC_STATIC, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS,
+        bar = CreateWindowExW(0, WC_STATICW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS,
                              CW_USEDEFAULT,
                              CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr, nullptr);
 
@@ -42,11 +36,10 @@ namespace merutilm::rff2 {
         setClientSize(width, height);
         UpdateWindow(videoWindow);
         ShowWindow(videoWindow, SW_SHOW);
-        hdc = GetDC(renderWindow);
     }
 
 
-    void GLVideoWindow::setClientSize(const int width, const int height) const {
+    void VideoWindow::setClientSize(const int width, const int height) const {
         const RECT rect = {0, 0, width, height};
         RECT adjusted = rect;
         AdjustWindowRect(&adjusted, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, false);
@@ -60,13 +53,12 @@ namespace merutilm::rff2 {
                      SWP_NOZORDER);
     }
 
-    LRESULT GLVideoWindow::videoWindowProc(const HWND hwnd, const UINT message, const WPARAM wParam,
+    LRESULT VideoWindow::videoWindowProc(const HWND hwnd, const UINT message, const WPARAM wParam,
                                          const LPARAM lParam) {
-        const auto &window = *reinterpret_cast<GLVideoWindow *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+        const auto &window = *reinterpret_cast<VideoWindow *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
         switch (message) {
             case WM_DESTROY: {
                 MessageBox(hwnd, "Render Finished!", "Done", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
-                ReleaseDC(window.renderWindow, window.hdc);
                 PostQuitMessage(0);
                 return 0;
             }
@@ -99,13 +91,13 @@ namespace merutilm::rff2 {
                 IntersectClipRect(hdcBar, prc.left, prc.top, prc.right, prc.bottom);
 
                 SetTextColor(hdcBar, Constants::Win32::COLOR_PROGRESS_TEXT_PROG);
-                DrawText(hdcBar, window.barText.data(), -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                DrawTextW(hdcBar, window.barText.data(), -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
                 SelectClipRgn(hdcBar, tempRgn);
                 IntersectClipRect(hdcBar, brc.left, brc.top, brc.right, brc.bottom);
 
                 SetTextColor(hdcBar, Constants::Win32::COLOR_PROGRESS_TEXT_BACK);
-                DrawText(hdcBar, window.barText.data(), -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                DrawTextW(hdcBar, window.barText.data(), -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 
                 EndPaint(window.bar, &ps);
                 SelectClipRgn(hdcBar, nullptr);
@@ -118,13 +110,13 @@ namespace merutilm::rff2 {
     }
 
 
-    void GLVideoWindow::createVideo(const Attribute &settings,
+    void VideoWindow::createVideo(const Attribute &attr,
                                   const std::filesystem::path &open,
                                   const std::filesystem::path &save) {
         uint16_t imgWidth = 0;
         uint16_t imgHeight = 0;
 
-        if (settings.video.dataAttribute.isStatic) {
+        if (attr.video.dataAttribute.isStatic) {
             const RFFStaticMapBinary targetMap = RFFStaticMapBinary::readByID(open, 1);
             if (!targetMap.hasData()) {
                 MessageBox(nullptr, "Cannot create video. There is no samples in the directory", "Export failed",
@@ -154,18 +146,18 @@ namespace merutilm::rff2 {
         auto ch = static_cast<uint16_t>(static_cast<uint32_t>(cw) * imgHeight / imgWidth);
 
 
-        auto window = GLVideoWindow(cw, ch);
+        auto window = VideoWindow(cw, ch);
         std::jthread thread(
-            [&window, &cw, &ch, &imgWidth, &imgHeight, &writer, &settings, &open, &save] {
+            [&window, &cw, &ch, &imgWidth, &imgHeight, &writer, &attr, &open, &save] {
+
                 // WGLContextLoader::createContext(window.hdc, &window.context);
                 // window.scene.configure(window.renderWindow, window.hdc, window.context);
-                // window.scene.makeContextCurrent();
                 window.scene.reloadSize(cw, ch, imgWidth, imgHeight);
-                window.scene.applyColor(settings);
+                window.scene.applyColor(attr);
 
-                const auto &[defaultZoomIncrement, isStatic] = settings.video.dataAttribute;
-                const auto &[overZoom, showText, mps] = settings.video.animationAttribute;
-                const auto &[fps, bitrate] = settings.video.exportAttribute;
+                const auto &[defaultZoomIncrement, isStatic] = attr.video.dataAttribute;
+                const auto &[overZoom, showText, mps] = attr.video.animationAttribute;
+                const auto &[fps, bitrate] = attr.video.exportAttribute;
 
                 const auto frameInterval = mps / fps;
                 const uint32_t maxNumber = isStatic ? IOUtilities::fileNameCount(open, Constants::Extension::STATIC_MAP) : IOUtilities::fileNameCount(open, Constants::Extension::DYNAMIC_MAP);
@@ -280,7 +272,7 @@ namespace merutilm::rff2 {
                     auto hms = std::chrono::hh_mm_ss(remainedTime);
 
                     window.barRatio = progressRatio;
-                    window.barText = std::format("Processing... {:2f}% [{:%H:%M:%S}]", progressRatio * 100, hms);
+                    window.barText = std::format(L"Processing... {:2f}% [{:%H:%M:%S}]", progressRatio * 100, hms);
                     InvalidateRect(window.videoWindow, nullptr, FALSE);
                 }
                 writer.release();
@@ -291,7 +283,7 @@ namespace merutilm::rff2 {
         window.messageLoop();
     }
 
-    void GLVideoWindow::messageLoop() {
+    void VideoWindow::messageLoop() {
         MSG msg;
 
         while (GetMessage(&msg, nullptr, 0, 0) != 0) {

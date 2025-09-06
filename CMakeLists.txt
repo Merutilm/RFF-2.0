@@ -123,10 +123,6 @@ add_executable(
         src/rff2/ui/IOUtilities.h
         src/rff2/parallel/BackgroundThreads.h
         src/rff2/parallel/BackgroundThread.h
-        src/rff2/ui/GLVideoWindow.cpp
-        src/rff2/ui/GLVideoWindow.h
-        src/rff2/ui/GLVideoRenderScene.cpp
-        src/rff2/ui/GLVideoRenderScene.h
         src/rff2/io/RFFStaticMapBinary.cpp
         src/rff2/io/RFFStaticMapBinary.h
         src/rff2/io/RFFBinary.cpp
@@ -319,6 +315,10 @@ add_executable(
         src/rff2/ui/RenderSceneShaderPrograms.hpp
         src/rff2/vulkan/GPCPresent.cpp
         src/rff2/vulkan/GPCPresent.hpp
+        src/rff2/ui/VideoWindow.cpp
+        src/rff2/ui/VideoWindow.hpp
+        src/rff2/ui/VideoRenderScene.cpp
+        src/rff2/ui/VideoRenderScene.hpp
 )
 
 find_package(Vulkan REQUIRED)

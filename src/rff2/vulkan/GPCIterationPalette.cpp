@@ -111,7 +111,7 @@ namespace merutilm::rff2 {
             });
     }
 
-    void GPCIterationPalette::windowResized() {
+    void GPCIterationPalette::windowResized(const uint32_t windowAttachmentIndex) {
         //no operation
     }
 
