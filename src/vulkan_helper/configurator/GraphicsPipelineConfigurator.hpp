@@ -17,10 +17,10 @@ namespace merutilm::vkh {
         ShaderModuleRef vertexShader;
         ShaderModuleRef fragmentShader;
 
-        explicit GraphicsPipelineConfigurator(EngineRef engine, const uint32_t renderContextIndex,
+        explicit GraphicsPipelineConfigurator(EngineRef engine, const uint32_t windowAttachmentIndex, const uint32_t renderContextIndex,
                                               const uint32_t primarySubpassIndex, const std::string &vertName,
                                               const std::string &fragName) : PipelineConfiguratorAbstract(
-                                                                                 engine), renderContextIndex(renderContextIndex), primarySubpassIndex(primarySubpassIndex),
+                                                                                 engine, windowAttachmentIndex), renderContextIndex(renderContextIndex), primarySubpassIndex(primarySubpassIndex),
                                                                              vertexShader(pickFromRepository<ShaderModuleRepo, ShaderModuleRef>(vertName)),
                                                                              fragmentShader(pickFromRepository<ShaderModuleRepo, ShaderModuleRef>(fragName)) {
         }
@@ -48,10 +48,11 @@ namespace merutilm::vkh {
 
 
         void cmdDraw(const VkCommandBuffer cbh, const uint32_t frameIndex, const uint32_t indexVarBinding) const {
-            const VkBuffer vertexBufferHandle = getVertexBuffer().getBufferContext(frameIndex).buffer;
+            const VkBuffer vertexBufferHandle = getVertexBuffer().isMultiframe() ? getVertexBuffer().getBufferContextMF(frameIndex).buffer : getVertexBuffer().getBufferContext().buffer;
+            const VkBuffer indexBufferHandle = getIndexBuffer().isMultiframe() ? getIndexBuffer().getBufferContextMF(frameIndex).buffer : getIndexBuffer().getBufferContext().buffer;
             constexpr VkDeviceSize vertexBufferOffset = 0;
             vkCmdBindVertexBuffers(cbh, 0, 1, &vertexBufferHandle, &vertexBufferOffset);
-            getIndexBuffer().bind(cbh, frameIndex, indexVarBinding);
+            vkCmdBindIndexBuffer(cbh, indexBufferHandle, getIndexBuffer().getHostObject().getOffset(indexVarBinding), VK_INDEX_TYPE_UINT32);
             vkCmdDrawIndexed(cbh, getIndexBuffer().getHostObject().getElementCount(indexVarBinding), 1, 0, 0, 0);
         }
     };

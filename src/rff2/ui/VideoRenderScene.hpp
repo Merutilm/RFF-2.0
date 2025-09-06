@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "VideoRenderSceneShaderPrograms.hpp"
 #include "../attr/Attribute.h"
 #include "../io/RFFDynamicMapBinary.h"
 
@@ -15,6 +16,8 @@ namespace merutilm::rff2 {
         std::vector<char> pixels = std::vector<char>();
         cv::Mat currentImage;
         float currentFrame = 0;
+
+        std::unique_ptr<VideoRenderSceneShaderPrograms> shaderPrograms = nullptr;
 
         // std::unique_ptr<GLMultipassRenderer> rendererStatic;
         // std::unique_ptr<GLRendererStatic2Image> rendererStatic2Image;
@@ -38,13 +41,7 @@ namespace merutilm::rff2 {
 
         void applyColor(const Attribute &attr) const;
 
-        // void configure(HWND wnd, HDC hdc, HGLRC context);
-
         float calculateZoom(double defaultZoomIncrement) const;
-
-        // GLMultipassRenderer &getStaticRenderer() const;
-
-        // GLMultipassRenderer &getDynamicRenderer() const;
 
         void setCurrentFrame(float currentFrame);
 
@@ -60,6 +57,6 @@ namespace merutilm::rff2 {
 
         void renderOnce();
 
-        const cv::Mat &getCurrentImage() const;
+        [[nodiscard]] const cv::Mat &getCurrentImage() const;
     };
 }

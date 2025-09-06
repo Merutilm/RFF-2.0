@@ -9,13 +9,8 @@
 #include "../struct/Vertex.hpp"
 
 namespace merutilm::vkh {
-
-    GeneralPostProcessGraphicsPipelineConfigurator::GeneralPostProcessGraphicsPipelineConfigurator(EngineRef engine, const uint32_t renderContextIndex, const uint32_t primarySubpassIndex, const std::string &fragName) : GraphicsPipelineConfigurator(
-            engine, renderContextIndex, primarySubpassIndex, VERTEX_MODULE_PATH, fragName) {
-    }
-
-
-    void GeneralPostProcessGraphicsPipelineConfigurator::cmdRender(const VkCommandBuffer cbh, const uint32_t frameIndex, DescIndexPicker &&descIndices) {
+    void GeneralPostProcessGraphicsPipelineConfigurator::cmdRender(const VkCommandBuffer cbh, const uint32_t frameIndex,
+                                                                   DescIndexPicker &&descIndices) {
         pipeline->cmdBindAll(cbh, frameIndex, std::move(descIndices));
         cmdPushAll(cbh);
         cmdDraw(cbh, frameIndex, 0);
@@ -24,11 +19,11 @@ namespace merutilm::vkh {
 
     void GeneralPostProcessGraphicsPipelineConfigurator::configureVertexBuffer(HostDataObjectManagerRef som) {
         som.addArray(0, std::vector{
-                    Vertex::generate({1, 1, 0}, {1, 1, 1}, {1, 1}),
-                    Vertex::generate({1, -1, 0}, {1, 1, 1}, {1, 0}),
-                    Vertex::generate({-1, -1, 0}, {1, 1, 1}, {0, 0}),
-            Vertex::generate({-1, 1, 0}, {1, 1, 1}, {0, 1}),
-                });
+                         Vertex::generate({1, 1, 0}, {1, 1, 1}, {1, 1}),
+                         Vertex::generate({1, -1, 0}, {1, 1, 1}, {1, 0}),
+                         Vertex::generate({-1, -1, 0}, {1, 1, 1}, {0, 0}),
+                         Vertex::generate({-1, 1, 0}, {1, 1, 1}, {0, 1}),
+                     });
     }
 
     void GeneralPostProcessGraphicsPipelineConfigurator::configureIndexBuffer(HostDataObjectManagerRef som) {
@@ -41,7 +36,7 @@ namespace merutilm::vkh {
         std::vector<DescriptorPtr> descriptors = {};
         configureDescriptors(descriptors);
 
-        for (const auto descriptor : descriptors) {
+        for (const auto descriptor: descriptors) {
             pipelineLayoutManager->appendDescriptorSetLayout(&descriptor->getLayout());
         }
 
@@ -64,22 +59,22 @@ namespace merutilm::vkh {
             configureVertexBuffer(*vertManager);
             configureIndexBuffer(*indexManager);
 
-            vertexBufferPP = factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_ONLY);
-            indexBufferPP = factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_ONLY);
-            for (int i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
-                vertexBufferPP->update(i);
-                indexBufferPP->update(i);
-            }
+            vertexBufferPP = factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager),
+                                                           BufferLock::LOCK_ONLY, false);
+            indexBufferPP = factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager),
+                                                         BufferLock::LOCK_ONLY, false);
+            vertexBufferPP->update();
+            indexBufferPP->update();
             vertexBufferPP->lock(engine.getCommandPool());
             indexBufferPP->lock(engine.getCommandPool());
             initializedVertexIndex = true;
         }
 
         if (initializedVertexIndex) {
-            pipeline = factory::create<GraphicsPipeline>(engine, pipelineLayout, getVertexBuffer(), getIndexBuffer(), renderContextIndex,
-                                                  primarySubpassIndex,
-                                                  std::move(pipelineManager));
+            pipeline = factory::create<GraphicsPipeline>(engine, pipelineLayout, getVertexBuffer(), getIndexBuffer(),
+                                                         renderContextIndex,
+                                                         primarySubpassIndex,
+                                                         std::move(pipelineManager));
         }
     }
-
 }

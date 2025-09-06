@@ -8,7 +8,7 @@
 namespace merutilm::vkh {
     class ShaderStorageImpl final : public BufferObjectAbstract {
     public:
-        explicit ShaderStorageImpl(const CoreRef core, HostDataObjectManager &&manager, BufferLock bufferLock);
+        explicit ShaderStorageImpl(const CoreRef core, HostDataObjectManager &&manager, BufferLock bufferLock, bool multiframeEnabled);
 
         ~ShaderStorageImpl() override;
 

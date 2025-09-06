@@ -786,7 +786,7 @@ public:
     Ptr<TrackerMIL> create(const Params &parameters = Params());
 
     //void init(InputArray image, const Rect& boundingBox) CV_OVERRIDE;
-    //bool update(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
+    //bool updateMF(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
 };
 
 
@@ -827,7 +827,7 @@ public:
     Ptr<TrackerGOTURN> create(const Params& parameters = Params());
 
     //void init(InputArray image, const Rect& boundingBox) CV_OVERRIDE;
-    //bool update(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
+    //bool updateMF(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
 };
 
 class CV_EXPORTS_W TrackerDaSiamRPN : public Tracker
@@ -858,7 +858,7 @@ public:
     CV_WRAP virtual float getTrackingScore() = 0;
 
     //void init(InputArray image, const Rect& boundingBox) CV_OVERRIDE;
-    //bool update(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
+    //bool updateMF(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
 };
 
 /** @brief the Nano tracker is a super lightweight dnn-based general object tracking.
@@ -896,7 +896,7 @@ public:
     CV_WRAP virtual float getTrackingScore() = 0;
 
     //void init(InputArray image, const Rect& boundingBox) CV_OVERRIDE;
-    //bool update(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
+    //bool updateMF(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
 };
 
 /** @brief the VIT tracker is a super lightweight dnn-based general object tracking.
@@ -934,7 +934,7 @@ public:
     CV_WRAP virtual float getTrackingScore() = 0;
 
     // void init(InputArray image, const Rect& boundingBox) CV_OVERRIDE;
-    // bool update(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
+    // bool updateMF(InputArray image, CV_OUT Rect& boundingBox) CV_OVERRIDE;
 };
 
 //! @} video_track

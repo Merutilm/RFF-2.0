@@ -5,7 +5,7 @@
 #include "Uniform.hpp"
 
 namespace merutilm::vkh {
-    UniformImpl::UniformImpl(const CoreRef core, HostDataObjectManager &&manager, const BufferLock bufferLock) : BufferObjectAbstract(core, std::move(manager), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, bufferLock){
+    UniformImpl::UniformImpl(const CoreRef core, HostDataObjectManager &&manager, const BufferLock bufferLock, const bool multiframeEnabled) : BufferObjectAbstract(core, std::move(manager), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, bufferLock, multiframeEnabled){
         UniformImpl::init();
     }
 

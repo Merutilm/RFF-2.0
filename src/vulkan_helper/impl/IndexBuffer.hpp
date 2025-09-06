@@ -9,7 +9,7 @@ namespace merutilm::vkh {
     class IndexBufferImpl final : public BufferObjectAbstract {
 
     public:
-        explicit IndexBufferImpl(CoreRef core, HostDataObjectManager &&manager, BufferLock bufferLock);
+        explicit IndexBufferImpl(CoreRef core, HostDataObjectManager &&manager, BufferLock bufferLock, bool multiframeEnabled);
 
         ~IndexBufferImpl() override;
 
@@ -20,8 +20,6 @@ namespace merutilm::vkh {
         IndexBufferImpl(IndexBufferImpl &&) = delete;
 
         IndexBufferImpl &operator=(IndexBufferImpl &&) = delete;
-
-        void bind(VkCommandBuffer cbh, uint32_t frameIndex, uint32_t binding) const;
 
     private:
 

@@ -22,29 +22,26 @@ namespace merutilm::rff2 {
         auto &fogUBOHost = fogUBO.getHostObject();
         fogUBOHost.set<float>(DescFog::TARGET_FOG_RADIUS, fog.radius);
         fogUBOHost.set<float>(DescFog::TARGET_FOG_OPACITY, fog.opacity);
-
-        updateBufferForEachFrame([&fogUBO](const uint32_t frameIndex) {
-            fogUBO.update(frameIndex);
-        });
+        fogUBO.update();
     }
 
     void GPCFog::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
-        writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             getDescriptor(SET_FOG).queue(queue, frameIndex, {}, {DescFog::BINDING_UBO_FOG});
         });
     }
 
-    void GPCFog::windowResized(const uint32_t windowAttachmentIndex) {
+    void GPCFog::windowResized() {
         auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &fogDesc = getDescriptor(SET_FOG_CANVAS);
 
         switch (windowAttachmentIndex) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                fogDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL)->setImageContext(
-                          sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY));
-                fogDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_FOG_CANVAS_BLURRED)->setImageContext(
-                    sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
+                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL)->setImageContextMF(
+                          sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY));
+                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_BLURRED)->setImageContextMF(
+                    sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
 
                 break;
             }
@@ -58,7 +55,7 @@ namespace merutilm::rff2 {
         }
 
 
-        writeDescriptorForEachFrame([&fogDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([&fogDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             fogDesc.queue(queue, frameIndex, {}, {BINDING_FOG_CANVAS_ORIGINAL, BINDING_FOG_CANVAS_BLURRED});
         });
     }
@@ -94,14 +91,14 @@ namespace merutilm::rff2 {
             });
         auto descManager = vkh::factory::create<vkh::DescriptorManager>();
 
-        descManager->appendCombinedMultiframeImgSampler(BINDING_FOG_CANVAS_ORIGINAL,
+        descManager->appendCombinedImgSampler(BINDING_FOG_CANVAS_ORIGINAL,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::factory::create<vkh::CombinedMultiframeImageSampler>(
-                                                            engine.getCore(), sampler));
-        descManager->appendCombinedMultiframeImgSampler(BINDING_FOG_CANVAS_BLURRED,
+                                                        vkh::factory::create<vkh::CombinedImageSampler>(
+                                                            engine.getCore(), sampler, true));
+        descManager->appendCombinedImgSampler(BINDING_FOG_CANVAS_BLURRED,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::factory::create<vkh::CombinedMultiframeImageSampler>(
-                                                            engine.getCore(), sampler));
+                                                        vkh::factory::create<vkh::CombinedImageSampler>(
+                                                            engine.getCore(), sampler, true));
         appendUniqueDescriptor(SET_FOG_CANVAS, descriptors, std::move(descManager));
         appendDescriptor<DescFog>(SET_FOG, descriptors);
     }

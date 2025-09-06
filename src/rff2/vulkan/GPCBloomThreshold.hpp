@@ -12,10 +12,10 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t SET_BLOOM = 1;
 
-        explicit GPCBloomThreshold(vkh::EngineRef engine, const uint32_t renderContextIndex,
+        explicit GPCBloomThreshold(vkh::EngineRef engine, const uint32_t windowContextIndex, const uint32_t renderContextIndex,
                                                     const uint32_t
                                                     subpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, renderContextIndex, subpassIndex, "vk_bloom_threshold.frag") {
+            engine, windowContextIndex, renderContextIndex, subpassIndex, "vk_bloom_threshold.frag") {
         }
 
         ~GPCBloomThreshold() override = default;
@@ -32,7 +32,7 @@ namespace merutilm::rff2 {
 
         void pipelineInitialized() override;
 
-        void windowResized(uint32_t windowAttachmentIndex) override;
+        void windowResized() override;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;

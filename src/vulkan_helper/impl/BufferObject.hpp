@@ -15,13 +15,14 @@ namespace merutilm::vkh {
     class BufferObjectAbstract : public CoreHandler {
         HostDataObject hostDataObject = nullptr;
         VkBufferUsageFlags bufferUsage;
-        MultiframeBufferContext bufferContext = {};
+        std::variant<BufferContext, MultiframeBufferContext> bufferContext = {};
         BufferLock bufferLock;
         bool locked = false;
+        const bool multiframeEnabled;
 
     public:
         explicit BufferObjectAbstract(CoreRef core, HostDataObjectManager &&dataManager,
-                              VkBufferUsageFlags bufferUsage, BufferLock bufferLock);
+                              VkBufferUsageFlags bufferUsage, BufferLock bufferLock, bool multiframeEnabled);
 
         ~BufferObjectAbstract() override;
 
@@ -39,17 +40,45 @@ namespace merutilm::vkh {
 
         void unlock(CommandPoolRef commandPool, VkFence fence = VK_NULL_HANDLE);
 
-        [[nodiscard]] const BufferContext &getBufferContext(const uint32_t frameIndex) const { return bufferContext[frameIndex]; }
+        [[nodiscard]] MultiframeBufferContext &getBufferContextMF() {
+            if (multiframeEnabled) return std::get<MultiframeBufferContext>(bufferContext);
+            throw exception_invalid_state("current object is not multiframed");
+        }
 
-        void update(uint32_t frameIndex) const;
+        [[nodiscard]] const MultiframeBufferContext &getBufferContextMF() const {
+            if (multiframeEnabled) return std::get<MultiframeBufferContext>(bufferContext);
+            throw exception_invalid_state("current object is not multiframed (const)");
+        }
 
-        void update(uint32_t frameIndex, uint32_t target) const;
+        [[nodiscard]] const BufferContext &getBufferContextMF(const uint32_t frameIndex) const {
+            if (multiframeEnabled) return std::get<MultiframeBufferContext>(bufferContext)[frameIndex];
+            throw exception_invalid_state("current object is not multiframed");
+        }
+        [[nodiscard]] BufferContext &getBufferContext() {
+            if (!multiframeEnabled) return std::get<BufferContext>(bufferContext);
+            throw exception_invalid_state("current object is multiframed");
+        }
+
+        [[nodiscard]] const BufferContext &getBufferContext() const {
+            if (!multiframeEnabled) return std::get<BufferContext>(bufferContext);
+            throw exception_invalid_state("current object is multiframed (const)");
+        }
+
+        void update() const;
+
+        void update(uint32_t target) const;
+
+        void updateMF(uint32_t frameIndex) const;
+
+        void updateMF(uint32_t frameIndex, uint32_t target) const;
 
         void checkFinalizedBeforeUpdate() const;
 
         [[nodiscard]] HostDataObjectRef getHostObject() const { return *hostDataObject; }
 
         [[nodiscard]] bool isLocked() const { return locked; }
+
+        [[nodiscard]] bool isMultiframe() const { return multiframeEnabled; }
 
     protected:
         void init() override;

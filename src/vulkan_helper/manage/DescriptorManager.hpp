@@ -10,7 +10,6 @@
 #include "../hash/DescriptorSetLayoutBuildTypeHasher.hpp"
 #include "../hash/VectorHasher.hpp"
 #include "../struct/DescriptorSetLayoutBuildType.hpp"
-#include "../impl/CombinedMultiframeImageSampler.hpp"
 #include "../impl/ShaderStorage.hpp"
 #include "../struct/InputAttachment.hpp"
 #include "../struct/StorageImage.hpp"
@@ -20,7 +19,7 @@ namespace merutilm::vkh {
     using DescriptorSetLayoutBuilderHasher = VectorHasher<DescriptorSetLayoutBuildType,
         DescriptorSetLayoutBuildTypeHasher>;
 
-    using DescriptorType = std::variant<Uniform, ShaderStorage, CombinedImageSampler, CombinedMultiframeImageSampler, InputAttachment, StorageImage>;
+    using DescriptorType = std::variant<Uniform, ShaderStorage, CombinedImageSampler, InputAttachment, StorageImage>;
 
 
     struct DescriptorManagerImpl {
@@ -60,14 +59,6 @@ namespace merutilm::vkh {
                                       CombinedImageSampler &&sampler) {
             safe_array::check_index_equal(bindingExpected, static_cast<uint32_t>(data.size()),
                                               "Descriptor Sampler add");
-            data.emplace_back(std::move(sampler));
-            layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, useStage);
-        }
-
-        void appendCombinedMultiframeImgSampler(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
-                                     CombinedMultiframeImageSampler &&sampler) {
-            safe_array::check_index_equal(bindingExpected, static_cast<uint32_t>(data.size()),
-                                              "Descriptor Multiframe Sampler add");
             data.emplace_back(std::move(sampler));
             layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, useStage);
         }

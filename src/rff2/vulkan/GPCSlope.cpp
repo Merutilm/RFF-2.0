@@ -25,26 +25,23 @@ namespace merutilm::rff2 {
         slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_OPACITY, slope.opacity);
         slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_ZENITH, slope.zenith);
         slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_AZIMUTH, slope.azimuth);
-
-        updateBufferForEachFrame([&slopeUBO](const uint32_t frameIndex) {
-            slopeUBO->update(frameIndex);
-        });
+        slopeUBO->update();
     }
 
     void GPCSlope::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
-        writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             getDescriptor(SET_SLOPE).queue(queue, frameIndex, {}, {DescSlope::BINDING_UBO_SLOPE});
         });
     }
 
-    void GPCSlope::windowResized(const uint32_t windowAttachmentIndex) {
+    void GPCSlope::windowResized() {
         auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &inputDesc = getDescriptor(SET_PREV_RESULT);
 
         switch (windowAttachmentIndex) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                const auto &input = sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY);
+                const auto &input = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY);
                 inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;
                 break;
             }
@@ -57,7 +54,7 @@ namespace merutilm::rff2 {
             }
         }
 
-        writeDescriptorForEachFrame([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             inputDesc.queue(queue, frameIndex, {}, {BINDING_PREV_RESULT_INPUT});
         });
 

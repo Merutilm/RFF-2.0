@@ -20,27 +20,24 @@ namespace merutilm::rff2 {
             0, DescLinearInterpolation::BINDING_UBO_LINEAR_INTERPOLATION);
         auto &interUBOHost = interUBO.getHostObject();
         interUBOHost.set<bool>(DescLinearInterpolation::TARGET_LINEAR_INTERPOLATION_USE, use);
-
-        updateBufferForEachFrame([&interUBO](const uint32_t frameIndex) {
-            interUBO.update(frameIndex);
-        });
+        interUBO.update();
     }
 
     void GPCLinearInterpolation::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
-        writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             getDescriptor(SET_LINEAR_INTERPOLATION).queue(queue, frameIndex, {}, {DescBloom::BINDING_UBO_BLOOM});
         });
     }
 
-    void GPCLinearInterpolation::windowResized(const uint32_t windowAttachmentIndex) {
+    void GPCLinearInterpolation::windowResized() {
         auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &samplerDesc = getDescriptor(SET_PREV_RESULT);
         switch (windowAttachmentIndex) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                const auto &sample = sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY);
-                samplerDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->
-                        setImageContext(sample);
+                const auto &sample = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY);
+                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->
+                        setImageContextMF(sample);
                 break;
             }
             case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
@@ -53,7 +50,7 @@ namespace merutilm::rff2 {
         }
 
 
-        writeDescriptorForEachFrame([&samplerDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([&samplerDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             samplerDesc.queue(queue, frameIndex, {}, {BINDING_PREV_RESULT_SAMPLER});
         });
     }
@@ -88,10 +85,10 @@ namespace merutilm::rff2 {
             });
         auto descManager = vkh::factory::create<vkh::DescriptorManager>();
 
-        descManager->appendCombinedMultiframeImgSampler(BINDING_PREV_RESULT_SAMPLER,
+        descManager->appendCombinedImgSampler(BINDING_PREV_RESULT_SAMPLER,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::factory::create<vkh::CombinedMultiframeImageSampler>(
-                                                            engine.getCore(), sampler));
+                                                        vkh::factory::create<vkh::CombinedImageSampler>(
+                                                            engine.getCore(), sampler, true));
         appendUniqueDescriptor(SET_PREV_RESULT, descriptors, std::move(descManager));
         appendDescriptor<DescLinearInterpolation>(SET_LINEAR_INTERPOLATION, descriptors);
     }

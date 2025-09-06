@@ -23,7 +23,9 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t BOX_BLUR_COUNT = 3;
 
-        explicit CPCBoxBlur(vkh::EngineRef engine);
+        explicit CPCBoxBlur(vkh::EngineRef engine, const uint32_t windowContextIndex) : ComputePipelineConfigurator(
+            engine, windowContextIndex, "vk_box_blur.comp") {
+        }
 
         ~CPCBoxBlur() override = default;
 
@@ -39,12 +41,13 @@ namespace merutilm::rff2 {
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
         void setGaussianBlur(
-            const vkh::MultiframeImageContext &srcImage, const vkh::MultiframeImageContext &dstImage) ;
+            const vkh::MultiframeImageContext &srcImage, const vkh::MultiframeImageContext &dstImage);
 
         void cmdGaussianBlur(
             uint32_t frameIndex, uint32_t blurSizeDescIndex);
 
-        void setImages(uint32_t descIndex, const vkh::MultiframeImageContext &srcImage, const vkh::MultiframeImageContext &dstImage) const;
+        void setImages(uint32_t descIndex, const vkh::MultiframeImageContext &srcImage,
+                       const vkh::MultiframeImageContext &dstImage) const;
 
         void setBlurSize(uint32_t blurSizeDescIndex, float blurSize) const;
 
@@ -55,7 +58,7 @@ namespace merutilm::rff2 {
 
         void pipelineInitialized() override;
 
-        void windowResized(uint32_t windowAttachmentIndex) override;
+        void windowResized() override;
 
     protected:
         void initSize() const;

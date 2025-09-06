@@ -301,7 +301,7 @@ namespace cv {
 #define CV_CPU_AVX512_CLX       261
 #define CV_CPU_AVX512_ICL       262
 
-// when adding to this list remember to update the following enum
+// when adding to this list remember to updateMF the following enum
 #define CV_HARDWARE_MAX_FEATURE 512
 
 /** @brief Available CPU features.

@@ -26,26 +26,23 @@ namespace merutilm::rff2 {
         colorUBOHost.set<float>(DescColor::TARGET_COLOR_SATURATION, color.saturation);
         colorUBOHost.set<float>(DescColor::TARGET_COLOR_BRIGHTNESS, color.brightness);
         colorUBOHost.set<float>(DescColor::TARGET_COLOR_CONTRAST, color.contrast);
-
-        updateBufferForEachFrame([&colorUBO](const uint32_t frameIndex) {
-            colorUBO.update(frameIndex);
-        });
+        colorUBO.update();
     }
 
     void GPCColor::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
-        writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             getDescriptor(SET_COLOR).queue(queue, frameIndex, {}, {DescColor::BINDING_UBO_COLOR});
         });
     }
 
-    void GPCColor::windowResized(const uint32_t windowAttachmentIndex) {
+    void GPCColor::windowResized() {
         auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &inputDesc = getDescriptor(SET_PREV_RESULT);
 
         switch (windowAttachmentIndex) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                const auto &input =  sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY);
+                const auto &input =  sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY);
                 inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;
                 break;
             }
@@ -57,7 +54,7 @@ namespace merutilm::rff2 {
                 //noop
             }
         }
-        writeDescriptorForEachFrame([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             inputDesc.queue(queue, frameIndex, {}, {BINDING_PREV_RESULT_INPUT});
         });
     }

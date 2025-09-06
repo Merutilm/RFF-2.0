@@ -14,30 +14,28 @@ namespace merutilm::rff2 {
 
 
     void GPCPresent::setRescaledResolution(const glm::uvec2 &newResolution) const {
-        auto &resDesc = getDescriptor(SET_RESAMPLE);
-        auto &resUBO = *resDesc.get<vkh::Uniform>(0, BINDING_RESAMPLE_UBO);
+        auto &resDesc = getDescriptor(SET_PRESENT);
+        auto &resUBO = *resDesc.get<vkh::Uniform>(0, BINDING_PRESENT_UBO);
         auto &resUBOHost = resUBO.getHostObject();
-        resUBOHost.set<glm::uvec2>(TARGET_RESAMPLE_UBO_EXTENT, newResolution);
-        updateBufferForEachFrame([&resUBO](const uint32_t frameIndex) {
-            resUBO.update(frameIndex);
-        });
+        resUBOHost.set<glm::uvec2>(TARGET_PRESENT_UBO_EXTENT, newResolution);
+        resUBO.update();
     }
 
     void GPCPresent::pipelineInitialized() {
-        writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_RESAMPLE).queue(queue, frameIndex, {}, {BINDING_RESAMPLE_UBO});
+        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            getDescriptor(SET_PRESENT).queue(queue, frameIndex, {}, {BINDING_PRESENT_UBO});
         });
     }
 
 
-    void GPCPresent::windowResized(const uint32_t windowAttachmentIndex) {
+    void GPCPresent::windowResized() {
         auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
-        auto &resampleDesc = getDescriptor(SET_RESAMPLE);
+        auto &resampleDesc = getDescriptor(SET_PRESENT);
 
         switch (windowAttachmentIndex) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                resampleDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_RESAMPLE_SAMPLER)->
-                        setImageContext(sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY));
+                resampleDesc.get<vkh::CombinedImageSampler>(0, BINDING_PRESENT_SAMPLER)->
+                        setImageContextMF(sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY));
                 break;
             }
             case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
@@ -49,8 +47,8 @@ namespace merutilm::rff2 {
             }
         }
 
-        writeDescriptorForEachFrame([&resampleDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            resampleDesc.queue(queue, frameIndex, {}, {BINDING_RESAMPLE_SAMPLER});
+        writeDescriptorMF([&resampleDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            resampleDesc.queue(queue, frameIndex, {}, {BINDING_PRESENT_SAMPLER});
         });
     }
 
@@ -82,15 +80,15 @@ namespace merutilm::rff2 {
                 .unnormalizedCoordinates = VK_FALSE
             });
         auto descManager = vkh::factory::create<vkh::DescriptorManager>();
-        auto combinedSampler = vkh::factory::create<vkh::CombinedMultiframeImageSampler>(engine.getCore(), sampler);
-        descManager->appendCombinedMultiframeImgSampler(BINDING_RESAMPLE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT,
+        auto combinedSampler = vkh::factory::create<vkh::CombinedImageSampler>(engine.getCore(), sampler, true);
+        descManager->appendCombinedImgSampler(BINDING_PRESENT_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT,
                                                         std::move(combinedSampler));
         auto uboManager = vkh::factory::create<vkh::HostDataObjectManager>();
-        uboManager->reserve<glm::uvec2>(TARGET_RESAMPLE_UBO_EXTENT);
-        descManager->appendUBO(BINDING_RESAMPLE_UBO, VK_SHADER_STAGE_FRAGMENT_BIT,
+        uboManager->reserve<glm::uvec2>(TARGET_PRESENT_UBO_EXTENT);
+        descManager->appendUBO(BINDING_PRESENT_UBO, VK_SHADER_STAGE_FRAGMENT_BIT,
                                vkh::factory::create<vkh::Uniform>(engine.getCore(), std::move(uboManager),
-                                                                  vkh::BufferLock::LOCK_UNLOCK));
+                                                                  vkh::BufferLock::LOCK_UNLOCK, false));
 
-        appendUniqueDescriptor(SET_RESAMPLE, descriptors, std::move(descManager));
+        appendUniqueDescriptor(SET_PRESENT, descriptors, std::move(descManager));
     }
 }

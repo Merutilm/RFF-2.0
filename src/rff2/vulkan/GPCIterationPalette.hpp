@@ -15,10 +15,10 @@ namespace merutilm::rff2 {
         uint32_t iterWidth = 0;
         uint32_t iterHeight = 0;
 
-        GPCIterationPalette(vkh::EngineRef engine,
+        GPCIterationPalette(vkh::EngineRef engine, const uint32_t windowContextIndex,
                                              const uint32_t renderContextIndex,
                                              const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, renderContextIndex, primarySubpassIndex,
+            engine, windowContextIndex, renderContextIndex, primarySubpassIndex,
             "vk_iteration_palette.frag") {
         };
 
@@ -48,7 +48,7 @@ namespace merutilm::rff2 {
 
         void pipelineInitialized() override;
 
-        void windowResized(uint32_t windowAttachmentIndex) override;
+        void windowResized() override;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;

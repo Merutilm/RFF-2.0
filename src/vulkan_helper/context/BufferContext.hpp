@@ -61,9 +61,9 @@ namespace merutilm::vkh {
 
 
 
-        static void destroyContext(CoreRef core, const MultiframeBufferContext & imgCtx) {
+        static void destroyContext(CoreRef core, const MultiframeBufferContext & bufCtx) {
             const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-            for (const auto &[buffer, bufferMemory, bufferSize, mappedMemory]: imgCtx) {
+            for (const auto &[buffer, bufferMemory, bufferSize, mappedMemory]: bufCtx) {
                 vkDestroyBuffer(device, buffer, nullptr);
                 vkFreeMemory(device, bufferMemory, nullptr);
             }

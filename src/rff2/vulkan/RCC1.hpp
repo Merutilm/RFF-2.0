@@ -27,7 +27,7 @@ namespace merutilm::rff2 {
             using namespace SharedImageContextIndices;
             rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,
-                                     .format = sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_PRIMARY)[0].imageFormat,
+                                     .format = sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY)[0].imageFormat,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
                                      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                                      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -35,11 +35,11 @@ namespace merutilm::rff2 {
                                      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 }, sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_PRIMARY));
+                                 }, sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY));
 
             rpm.appendAttachment(TEMP_COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,
-                                     .format = sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_SECONDARY)[0].imageFormat,
+                                     .format = sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY)[0].imageFormat,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
                                      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                                      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -47,7 +47,7 @@ namespace merutilm::rff2 {
                                      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 }, sharedImageContext.getMultiframeContext(MF_RENDER_IMAGE_SECONDARY));
+                                 }, sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY));
 
 
 

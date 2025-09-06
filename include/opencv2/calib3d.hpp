@@ -4116,7 +4116,7 @@ public:
     void init( int nparams, int nerrs, CvTermCriteria criteria=
               cvTermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER,30,DBL_EPSILON),
               bool completeSymmFlag=false );
-    bool update( const CvMat*& param, CvMat*& J, CvMat*& err );
+    bool updateMF( const CvMat*& param, CvMat*& J, CvMat*& err );
     bool updateAlt( const CvMat*& param, CvMat*& JtJ, CvMat*& JtErr, double*& errNorm );
 
     void clear();

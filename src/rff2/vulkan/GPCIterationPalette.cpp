@@ -20,9 +20,9 @@ namespace merutilm::rff2 {
         auto &timeDesc = getDescriptor(SET_TIME);
         const auto &timeBinding = *timeDesc.get<vkh::Uniform>(0, DescTime::BINDING_UBO_TIME);
 
-        iterSSBO.update(frameIndex);
+        iterSSBO.update();
         timeBinding.getHostObject().set(DescTime::TARGET_TIME_CURRENT, Utilities::getCurrentTime());
-        timeBinding.update(frameIndex);
+        timeBinding.updateMF(frameIndex);
     }
 
     void GPCIterationPalette::resetIterationBuffer(const uint32_t width, const uint32_t height) {
@@ -36,10 +36,9 @@ namespace merutilm::rff2 {
         iterSSBOHost.set<glm::uvec2>(DescIteration::TARGET_ITERATION_EXTENT, {width, height});
         iterSSBOHost.resizeArray<double>(DescIteration::TARGET_ITERATION_BUFFER, width * height);
         iterSSBO.reloadBuffer();
-
-        writeDescriptorForEachFrame(
-            [&iterDesc, &iterSSBO](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-                iterSSBO.update(frameIndex, DescIteration::TARGET_ITERATION_EXTENT);
+        iterSSBO.update(DescIteration::TARGET_ITERATION_EXTENT);
+        writeDescriptorMF(
+            [&iterDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
                 iterDesc.queue(queue, frameIndex, {}, {DescIteration::BINDING_SSBO_ITERATION});
             });
     }
@@ -93,10 +92,9 @@ namespace merutilm::rff2 {
         paletteSSBOHost.resizeArray<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, paletteLength);
         paletteSSBOHost.set<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, palette.colors);
         paletteSSBO.reloadBuffer();
-
-        writeDescriptorForEachFrame(
-            [&paletteSSBO, &paletteDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-                paletteSSBO.update(frameIndex);
+        paletteSSBO.update();
+        writeDescriptorMF(
+            [&paletteDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
                 paletteDesc.queue(queue, frameIndex, {}, {DescPalette::BINDING_SSBO_PALETTE});
             });
     }
@@ -105,13 +103,13 @@ namespace merutilm::rff2 {
         using namespace SharedDescriptorTemplate;
         const auto &timeDesc = getDescriptor(SET_TIME);
 
-        writeDescriptorForEachFrame(
+        writeDescriptorMF(
             [&timeDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
                 timeDesc.queue(queue, frameIndex, {}, {DescTime::BINDING_UBO_TIME});
             });
     }
 
-    void GPCIterationPalette::windowResized(const uint32_t windowAttachmentIndex) {
+    void GPCIterationPalette::windowResized() {
         //no operation
     }
 

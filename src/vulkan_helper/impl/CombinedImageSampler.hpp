@@ -9,13 +9,14 @@
 
 namespace merutilm::vkh {
     class CombinedImageSamplerImpl final : public CoreHandler {
-        ImageContext imageContext = {};
+        std::variant<MultiframeImageContext, ImageContext> imageContext = {};
         SamplerRef sampler;
+        bool multiframeEnabled = false;
         bool initialized = false;
         bool isUnique = false;
 
     public:
-        explicit CombinedImageSamplerImpl(CoreRef core, SamplerRef sampler);
+        explicit CombinedImageSamplerImpl(CoreRef core, SamplerRef sampler, bool multiframeEnabled);
 
         ~CombinedImageSamplerImpl() override;
 
@@ -27,25 +28,23 @@ namespace merutilm::vkh {
 
         CombinedImageSamplerImpl &operator=(CombinedImageSamplerImpl &&) = delete;
 
-        void setImageContext(const ImageContext &imageContext) {
-            if (isUnique) {
-                ImageContext::destroyContext(core, this->imageContext);
-            }
-            initialized = true;
-            isUnique = false;
-            this->imageContext = imageContext;
-        }
+        void setImageContext(const ImageContext &imageContext);
 
-        void setUniqueImageContext(const ImageContext &imageContext) {
-            if (isUnique) {
-                ImageContext::destroyContext(core, this->imageContext);
-            }
-            initialized = true;
-            isUnique = true;
-            this->imageContext = imageContext;
-        }
+        void setUniqueImageContext(const ImageContext &imageContext);
+
+        void setImageContextMF(const MultiframeImageContext &imageContext);
+
+        void setUniqueImageContextMF(const MultiframeImageContext &imageContext);
 
         [[nodiscard]] const ImageContext &getImageContext() const;
+
+        [[nodiscard]] const MultiframeImageContext &getImageContextMF() const;
+
+        [[nodiscard]] ImageContext &getImageContext();
+
+        [[nodiscard]] MultiframeImageContext &getImageContextMF();
+
+        [[nodiscard]] bool isMultiframe() const {return multiframeEnabled;}
 
         [[nodiscard]] bool isInitialized() const { return initialized; }
 

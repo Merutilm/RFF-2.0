@@ -16,10 +16,10 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_STRIPE = 2;
         static constexpr uint32_t SET_TIME = 3;
 
-        explicit GPCStripe(vkh::EngineRef engine,
+        explicit GPCStripe(vkh::EngineRef engine, const uint32_t windowContextIndex,
                                    const uint32_t renderContextIndex,
                                    const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, renderContextIndex, primarySubpassIndex, "vk_stripe.frag") {
+            engine, windowContextIndex, renderContextIndex, primarySubpassIndex, "vk_stripe.frag") {
         }
 
         ~GPCStripe() override = default;
@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
 
         void pipelineInitialized() override;
 
-        void windowResized(uint32_t windowAttachmentIndex) override;
+        void windowResized() override;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;

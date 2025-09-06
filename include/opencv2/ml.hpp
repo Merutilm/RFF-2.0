@@ -1493,7 +1493,7 @@ public:
     /** @copybrief getBackpropMomentumScale @see getBackpropMomentumScale */
     CV_WRAP virtual void setBackpropMomentumScale(double val) = 0;
 
-    /** RPROP: Initial value \f$\Delta_0\f$ of update-values \f$\Delta_{ij}\f$.
+    /** RPROP: Initial value \f$\Delta_0\f$ of updateMF-values \f$\Delta_{ij}\f$.
     Default value is 0.1.*/
     /** @see setRpropDW0 */
     CV_WRAP virtual double getRpropDW0() const = 0;

@@ -1,5 +1,5 @@
 //
-// Created by Merutilm on 2025-08-30.
+// Created by Merutilm on 2025-09-07.
 //
 
 #pragma once
@@ -7,23 +7,21 @@
 #include "../../vulkan_helper/configurator/RenderContextConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    struct RCC2 final : public vkh::RenderContextConfiguratorAbstract {
-        static constexpr uint32_t CONTEXT_INDEX = 2;
-        static constexpr uint32_t SUBPASS_FOG_INDEX = 0;
-        static constexpr uint32_t SUBPASS_BLOOM_THRESHOLD_INDEX = 1;
-
+    struct RCC1Vid final : public vkh::RenderContextConfiguratorAbstract {
+        static constexpr uint32_t CONTEXT_INDEX = 0;
+        static constexpr uint32_t SUBPASS_STRIPE_INDEX = 0;
+        static constexpr uint32_t SUBPASS_SLOPE_INDEX = 1;
+        static constexpr uint32_t SUBPASS_COLOR_INDEX = 2;
 
         static constexpr uint32_t RESULT_COLOR_ATTACHMENT_INDEX = 0;
-        static constexpr uint32_t BLOOM_THRESHOLD_COLOR_ATTACHMENT_INDEX = 1;
-
+        static constexpr uint32_t TEMP_COLOR_ATTACHMENT_INDEX = 1;
 
         using RenderContextConfiguratorAbstract::RenderContextConfiguratorAbstract;
-
         void configure(vkh::RenderPassManagerRef rpm) override {
-            using namespace SharedImageContextIndices;
+ using namespace SharedImageContextIndices;
             rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,
-                                     .format = sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY)[0].imageFormat,
+                                     .format = sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_PRIMARY)[0].imageFormat,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
                                      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                                      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -31,30 +29,36 @@ namespace merutilm::rff2 {
                                      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                                      .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 }, sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY));
-            rpm.appendAttachment(BLOOM_THRESHOLD_COLOR_ATTACHMENT_INDEX, {
-                                     .flags = 0,
-                                     .format = sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY)[0].imageFormat,
-                                     .samples = VK_SAMPLE_COUNT_1_BIT,
-                                     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                     .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 }, sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY));
+                                 }, sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_PRIMARY));
 
-            rpm.appendSubpass(SUBPASS_FOG_INDEX);
+            rpm.appendAttachment(TEMP_COLOR_ATTACHMENT_INDEX, {
+                                     .flags = 0,
+                                     .format = sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_SECONDARY)[0].imageFormat,
+                                     .samples = VK_SAMPLE_COUNT_1_BIT,
+                                     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                                     .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                 }, sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_SECONDARY));
+
+
+            rpm.appendSubpass(SUBPASS_STRIPE_INDEX);
             rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-            rpm.appendSubpass(SUBPASS_BLOOM_THRESHOLD_INDEX);
+            rpm.appendSubpass(SUBPASS_SLOPE_INDEX);
             rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::INPUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-            rpm.appendReference(BLOOM_THRESHOLD_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+            rpm.appendReference(TEMP_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+            rpm.appendSubpass(SUBPASS_COLOR_INDEX);
+            rpm.appendReference(TEMP_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::INPUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
 
             rpm.appendDependency({
                 .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = SUBPASS_FOG_INDEX,
+                .dstSubpass = SUBPASS_STRIPE_INDEX,
                 .srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                 .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .srcAccessMask = 0,
@@ -62,8 +66,8 @@ namespace merutilm::rff2 {
                 .dependencyFlags = 0
             });
             rpm.appendDependency({
-                .srcSubpass = SUBPASS_FOG_INDEX,
-                .dstSubpass = SUBPASS_BLOOM_THRESHOLD_INDEX,
+                .srcSubpass = SUBPASS_STRIPE_INDEX,
+                .dstSubpass = SUBPASS_SLOPE_INDEX,
                 .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
@@ -71,7 +75,16 @@ namespace merutilm::rff2 {
                 .dependencyFlags = 0
             });
             rpm.appendDependency({
-                .srcSubpass = SUBPASS_BLOOM_THRESHOLD_INDEX,
+                .srcSubpass = SUBPASS_SLOPE_INDEX,
+                .dstSubpass = SUBPASS_COLOR_INDEX,
+                .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
+                .dependencyFlags = 0
+            });
+            rpm.appendDependency({
+                .srcSubpass = SUBPASS_COLOR_INDEX,
                 .dstSubpass = VK_SUBPASS_EXTERNAL,
                 .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,

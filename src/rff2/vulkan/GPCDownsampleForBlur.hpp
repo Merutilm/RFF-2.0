@@ -18,10 +18,10 @@ namespace merutilm::rff2 {
         static constexpr uint32_t BINDING_RESAMPLE_UBO = 1;
         static constexpr uint32_t TARGET_RESAMPLE_UBO_EXTENT = 0;
 
-        explicit GPCDownsampleForBlur(vkh::EngineRef engine,
+        explicit GPCDownsampleForBlur(vkh::EngineRef engine, const uint32_t windowContextIndex,
                              const uint32_t renderContextIndex,
                              const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, renderContextIndex, primarySubpassIndex, "vk_resample.frag") {
+            engine, windowContextIndex, renderContextIndex, primarySubpassIndex, "vk_resample.frag") {
         }
 
         ~GPCDownsampleForBlur() override = default;
@@ -40,7 +40,7 @@ namespace merutilm::rff2 {
 
         void pipelineInitialized() override;
 
-        void windowResized(uint32_t windowAttachmentIndex) override;
+        void windowResized() override;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;

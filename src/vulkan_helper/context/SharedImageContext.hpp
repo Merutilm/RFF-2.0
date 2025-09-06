@@ -39,7 +39,7 @@ namespace merutilm::vkh {
             imageContexts.emplace_back(ImageContext::createContext(core, iii));
         }
 
-        MultiframeImageContext &getMultiframeContext(const uint32_t index) {
+        MultiframeImageContext &getImageContextMF(const uint32_t index) {
             return multiframeContexts[index];
         }
 

@@ -12,10 +12,11 @@
 namespace merutilm::vkh {
     struct PipelineConfiguratorAbstract {
         EngineRef engine;
+        uint32_t windowAttachmentIndex;
         Pipeline pipeline = nullptr;
         std::vector<Descriptor> uniqueDescriptors = {};
 
-        explicit PipelineConfiguratorAbstract(EngineRef engine) : engine(engine) {
+        explicit PipelineConfiguratorAbstract(EngineRef engine, const uint32_t windowAttachmentIndex) : engine(engine), windowAttachmentIndex(windowAttachmentIndex) {
         }
 
         virtual ~PipelineConfiguratorAbstract() = default;
@@ -28,12 +29,11 @@ namespace merutilm::vkh {
 
         PipelineConfiguratorAbstract &operator=(PipelineConfiguratorAbstract &&) = delete;
 
-        template<typename ProgramName, typename... Args> requires std::is_base_of_v<PipelineConfiguratorAbstract,
-            ProgramName>
+        template<typename ProgramName, typename... Args> requires std::is_base_of_v<PipelineConfiguratorAbstract, ProgramName>
         static ProgramName *createShaderProgram(
             std::vector<std::unique_ptr<PipelineConfiguratorAbstract> > &shaderPrograms,
-            EngineRef engine, Args &&... args) {
-            auto shaderProgram = std::make_unique<ProgramName>(engine, args...);
+            EngineRef engine, uint32_t windowContextIndex, Args &&... args) {
+            auto shaderProgram = std::make_unique<ProgramName>(engine, windowContextIndex, std::forward<Args>(args)...);
             shaderProgram->configure();
             shaderPrograms.emplace_back(std::move(shaderProgram));
             return dynamic_cast<ProgramName *>(shaderPrograms.back().get());
@@ -62,7 +62,7 @@ namespace merutilm::vkh {
         }
 
         template<typename F> requires std::is_invocable_r_v<void, F, DescriptorUpdateQueue &, uint32_t>
-        void writeDescriptorForEachFrame(F &&func) const {
+        void writeDescriptorMF(F &&func) const {
             auto queue = DescriptorUpdater::createQueue();
             for (uint32_t i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
                 func(queue, i);
@@ -71,7 +71,7 @@ namespace merutilm::vkh {
         }
 
         template<typename F> requires std::is_invocable_r_v<void, F, uint32_t>
-        void updateBufferForEachFrame(F &&func) const {
+        void updateBufferMF(F &&func) const {
             for (uint32_t i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
                 func(i);
             }
@@ -110,13 +110,14 @@ namespace merutilm::vkh {
         }
 
 
+
+        virtual void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex) = 0;
+
         virtual void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices) = 0;
 
         virtual void pipelineInitialized() = 0;
 
-        virtual void windowResized(uint32_t windowAttachmentIndex) = 0;
-
-        virtual void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex) = 0;
+        virtual void windowResized() = 0;
 
     protected:
         virtual void configure() = 0;

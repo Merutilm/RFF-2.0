@@ -7,7 +7,9 @@
 #include "../util/BufferImageContextUtils.hpp"
 
 namespace merutilm::vkh {
-    CombinedImageSamplerImpl::CombinedImageSamplerImpl(CoreRef core, SamplerRef sampler) : CoreHandler(core), sampler(sampler) {
+    CombinedImageSamplerImpl::CombinedImageSamplerImpl(CoreRef core, SamplerRef sampler,
+                                                       const bool multiframeEnabled) : CoreHandler(core),
+        sampler(sampler), multiframeEnabled(multiframeEnabled) {
         CombinedImageSamplerImpl::init();
     }
 
@@ -21,7 +23,89 @@ namespace merutilm::vkh {
         if (!initialized) {
             throw exception_invalid_state{"Sampler2D is not initialized. Is setImageContext() called?"};
         }
-        return imageContext;
+        if (multiframeEnabled) {
+            throw exception_invalid_state("Sampler is multiframed (const)");
+        }
+        return std::get<ImageContext>(imageContext);
+    }
+
+    const MultiframeImageContext &CombinedImageSamplerImpl::getImageContextMF() const {
+        if (!initialized) {
+            throw exception_invalid_state{"Sampler2D is not initialized. Is setImageContext() called?"};
+        }
+        if (!multiframeEnabled) {
+            throw exception_invalid_state("Sampler is not multiframe (const)");
+        }
+        return std::get<MultiframeImageContext>(imageContext);
+    }
+
+    ImageContext &CombinedImageSamplerImpl::getImageContext() {
+        if (!initialized) {
+            throw exception_invalid_state{"Sampler2D is not initialized. Is setImageContext() called?"};
+        }
+        if (multiframeEnabled) {
+            throw exception_invalid_state("Sampler is multiframed");
+        }
+        return std::get<ImageContext>(imageContext);
+    }
+
+    MultiframeImageContext &CombinedImageSamplerImpl::getImageContextMF() {
+        if (!initialized) {
+            throw exception_invalid_state{"Sampler2D is not initialized. Is setImageContext() called?"};
+        }
+        if (!multiframeEnabled) {
+            throw exception_invalid_state("Sampler is not multiframe");
+        }
+        return std::get<MultiframeImageContext>(imageContext);
+    }
+
+    void CombinedImageSamplerImpl::setImageContext(const ImageContext &imageContext) {
+        if (multiframeEnabled) {
+            throw exception_invalid_state("Sampler is multiframed");
+        }
+        if (isUnique) {
+            ImageContext::destroyContext(core, getImageContext());
+        }
+        initialized = true;
+        isUnique = false;
+        this->imageContext = imageContext;
+    }
+
+    void CombinedImageSamplerImpl::setUniqueImageContext(const ImageContext &imageContext) {
+        if (multiframeEnabled) {
+            throw exception_invalid_state("Sampler is multiframed (Unique)");
+        }
+        if (isUnique) {
+            ImageContext::destroyContext(core, getImageContext());
+        }
+
+        initialized = true;
+        isUnique = true;
+        this->imageContext = imageContext;
+    }
+
+    void CombinedImageSamplerImpl::setImageContextMF(const MultiframeImageContext &imageContext) {
+        if (!multiframeEnabled) {
+            throw exception_invalid_state("Sampler is not multiframe");
+        }
+        if (isUnique) {
+            ImageContext::destroyContext(core, getImageContextMF());
+        }
+        initialized = true;
+        isUnique = false;
+        this->imageContext = imageContext;
+    }
+
+    void CombinedImageSamplerImpl::setUniqueImageContextMF(const MultiframeImageContext &imageContext) {
+        if (!multiframeEnabled) {
+            throw exception_invalid_state("Sampler is not multiframe (Unique)");
+        }
+        if (isUnique) {
+            ImageContext::destroyContext(core, getImageContextMF());
+        }
+        initialized = true;
+        isUnique = true;
+        this->imageContext = imageContext;
     }
 
 
@@ -30,12 +114,12 @@ namespace merutilm::vkh {
     }
 
     void CombinedImageSamplerImpl::destroy() {
-        const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-
         if (isUnique) {
-            vkDestroyImageView(device, imageContext.imageView, nullptr);
-            vkDestroyImage(device, imageContext.image, nullptr);
-            vkFreeMemory(device, imageContext.imageMemory, nullptr);
+            if (multiframeEnabled) {
+                ImageContext::destroyContext(core, getImageContextMF());
+            } else {
+                ImageContext::destroyContext(core, getImageContext());
+            }
         }
     }
 }

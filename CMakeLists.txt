@@ -273,8 +273,6 @@ add_executable(
         src/vulkan_helper/util/Debugger.hpp
         src/vulkan_helper/util/PhysicalDeviceUtils.hpp
         src/vulkan_helper/util/GraphicsContextWindowProc.hpp
-        src/vulkan_helper/impl/CombinedMultiframeImageSampler.hpp
-        src/vulkan_helper/impl/CombinedMultiframeImageSampler.cpp
         src/vulkan_helper/impl/ComputeShaderPipeline.cpp
         src/vulkan_helper/impl/ComputeShaderPipeline.hpp
         src/vulkan_helper/impl/GraphicsPipeline.cpp
@@ -319,6 +317,14 @@ add_executable(
         src/rff2/ui/VideoWindow.hpp
         src/rff2/ui/VideoRenderScene.cpp
         src/rff2/ui/VideoRenderScene.hpp
+        src/rff2/ui/VideoRenderSceneShaderPrograms.hpp
+        src/rff2/vulkan/CPCIterationPalette2Map.cpp
+        src/rff2/vulkan/CPCIterationPalette2Map.hpp
+        src/rff2/vulkan/RCC1Vid.hpp
+        src/rff2/vulkan/RCC2Vid.hpp
+        src/rff2/vulkan/RCC3Vid.hpp
+        src/rff2/vulkan/RCC4Vid.hpp
+        src/rff2/vulkan/RCCDownsampleForBlurVid.hpp
 )
 
 find_package(Vulkan REQUIRED)

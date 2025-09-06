@@ -5,7 +5,6 @@
 #pragma once
 #include "../context/SharedImageContext.hpp"
 #include "../context/ImageContext.hpp"
-#include "../impl/CommandPool.hpp"
 #include "../manage/RenderPassManager.hpp"
 
 namespace merutilm::vkh {

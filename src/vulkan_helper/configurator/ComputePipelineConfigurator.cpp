@@ -6,10 +6,6 @@
 #include "../impl/ComputeShaderPipeline.hpp"
 
 namespace merutilm::vkh {
-    ComputePipelineConfigurator::ComputePipelineConfigurator(EngineRef engine,
-                                                             const std::string &compName) : PipelineConfiguratorAbstract(engine),
-        computeShader(pickFromRepository<ShaderModuleRepo, ShaderModuleRef>(compName)) {
-    }
 
 
 

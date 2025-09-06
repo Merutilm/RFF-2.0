@@ -13,7 +13,7 @@ namespace merutilm::vkh {
         std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions = {};
 
     public:
-        explicit VertexBufferImpl(CoreRef core, HostDataObjectManager &&manager, BufferLock bufferLock);
+        explicit VertexBufferImpl(CoreRef core, HostDataObjectManager &&manager, BufferLock bufferLock, bool multiframeEnabled);
 
         ~VertexBufferImpl() override;
 

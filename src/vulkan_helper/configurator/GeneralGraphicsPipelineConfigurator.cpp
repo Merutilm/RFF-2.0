@@ -8,13 +8,6 @@
 #include "../repo/Repositories.hpp"
 
 namespace merutilm::vkh {
-    GeneralGraphicsPipelineConfigurator::GeneralGraphicsPipelineConfigurator(EngineRef engine,
-                                                             const uint32_t renderContextIndex,
-                                                             const uint32_t subpassIndex,
-                                                             const std::string &vertName,
-                                                             const std::string &fragName) : GraphicsPipelineConfigurator(
-        engine, renderContextIndex, subpassIndex, vertName, fragName) {
-    }
 
 
     void GeneralGraphicsPipelineConfigurator::configure() {
@@ -45,8 +38,8 @@ namespace merutilm::vkh {
         configureVertexBuffer(*vertManager);
         configureIndexBuffer(*indexManager);
 
-        vertexBuffer = factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_UNLOCK);
-        indexBuffer = factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_UNLOCK);
+        vertexBuffer = factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager), BufferLock::LOCK_UNLOCK, true);
+        indexBuffer = factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager), BufferLock::LOCK_UNLOCK, true);
 
         pipeline = factory::create<GraphicsPipeline>(engine, pipelineLayout, *vertexBuffer, *indexBuffer, renderContextIndex, primarySubpassIndex,
                                               std::move(pipelineManager));

@@ -2967,7 +2967,7 @@ becomes a running average of a frame sequence:
 
 \f[\texttt{dst} (x,y)  \leftarrow (1- \texttt{alpha} )  \cdot \texttt{dst} (x,y) +  \texttt{alpha} \cdot \texttt{src} (x,y)  \quad \text{if} \quad \texttt{mask} (x,y)  \ne 0\f]
 
-That is, alpha regulates the update speed (how fast the accumulator "forgets" about earlier images).
+That is, alpha regulates the updateMF speed (how fast the accumulator "forgets" about earlier images).
 The function supports multi-channel images. Each channel is processed independently.
 
 @param src Input image as 1- or 3-channel, 8-bit or 32-bit floating point.

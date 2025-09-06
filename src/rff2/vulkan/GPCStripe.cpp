@@ -29,26 +29,24 @@ namespace merutilm::rff2 {
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_OFFSET, stripe.offset);
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_ANIMATION_SPEED,
                           stripe.animationSpeed);
+        stripeUBO.update();
 
-        updateBufferForEachFrame([&stripeUBO](const uint32_t frameIndex) {
-            stripeUBO.update(frameIndex);
-        });
     }
 
     void GPCStripe::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
-        writeDescriptorForEachFrame([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             getDescriptor(SET_STRIPE).queue(queue, frameIndex, {}, {DescStripe::TARGET_STRIPE_TYPE});
         });
     }
 
-    void GPCStripe::windowResized(const uint32_t windowAttachmentIndex) {
+    void GPCStripe::windowResized() {
         auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &inputDesc = getDescriptor(SET_PREV_RESULT);
 
         switch (windowAttachmentIndex) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                const auto &input = sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY);
+                const auto &input = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY);
                 inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;
                 break;
             }
@@ -60,7 +58,7 @@ namespace merutilm::rff2 {
                 //noop
             }
         }
-        writeDescriptorForEachFrame([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             inputDesc.queue(queue, frameIndex, {}, {BINDING_PREV_RESULT_INPUT});
         });
     }

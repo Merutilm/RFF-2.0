@@ -158,7 +158,7 @@ namespace merutilm::rff2 {
                 getRenderFinished();
         const VkCommandBuffer cbh = engine.getCommandBuffer().getCommandBufferHandle(frameIndex);
         const auto mfg = [this, &frameIndex](const uint32_t index) {
-            return getTargetWindowContext().sharedImageContext->getMultiframeContext(index)[frameIndex].image;
+            return getTargetWindowContext().sharedImageContext->getImageContextMF(index)[frameIndex].image;
         };
 
         vkh::ScopedCommandBufferExecutor executor(engine, frameIndex, renderFence, imageAvailableSemaphore,
@@ -179,7 +179,7 @@ namespace merutilm::rff2 {
         // [OUT] PRIMARY (color)
 
         vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY),
+                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
                                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                                           0, 1,
                                                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
@@ -197,7 +197,7 @@ namespace merutilm::rff2 {
 
         vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
                                                           mfg(
-                                                              SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
+                                                              SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
                                                           VK_IMAGE_LAYOUT_GENERAL,
                                                           0, 1,
                                                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
@@ -211,13 +211,13 @@ namespace merutilm::rff2 {
         // [OUT] DOWNSAMPLED_SECONDARY
 
         vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY),
+                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
                                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                                           0, 1,
                                                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                                                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
         vkh::BarrierUtils::cmdImageMemoryBarrier(
-            cbh, mfg(SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
+            cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
             VK_ACCESS_SHADER_WRITE_BIT,
             VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1,
@@ -236,7 +236,7 @@ namespace merutilm::rff2 {
         // [OUT] PRIMARY (Threshold Masked)
 
         vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY),
+                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
                                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                                           0, 1,
                                                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
@@ -253,7 +253,7 @@ namespace merutilm::rff2 {
 
         vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
                                                           mfg(
-                                                              SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
+                                                              SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
                                                           VK_IMAGE_LAYOUT_GENERAL,
                                                           0, 1,
                                                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
@@ -266,13 +266,13 @@ namespace merutilm::rff2 {
         // [OUT] DOWNSAMPLED_SECONDARY
 
         vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY),
+                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
                                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                                           0, 1,
                                                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                                                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
         vkh::BarrierUtils::cmdImageMemoryBarrier(
-            cbh, mfg(SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
+            cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
             VK_ACCESS_SHADER_WRITE_BIT,
             VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1,
@@ -291,7 +291,7 @@ namespace merutilm::rff2 {
         // [OUT] PRIMARY
 
         vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_RENDER_IMAGE_PRIMARY),
+                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
                                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                                           0, 1,
                                                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
@@ -304,7 +304,7 @@ namespace merutilm::rff2 {
         // [OUT] SECONDARY
 
         vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY),
+                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
                                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                                           0, 1,
                                                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
@@ -509,8 +509,8 @@ namespace merutilm::rff2 {
                 IOUtilities::SAVE_FILE,
                 Constants::Extension::IMAGE)->string();
         }
-        const auto &imgCtx = getTargetWindowContext().sharedImageContext->getMultiframeContext(
-            SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY)[0];
+        const auto &imgCtx = getTargetWindowContext().sharedImageContext->getImageContextMF(
+            SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY)[0];
 
         vkh::BufferContext bufCtx = vkh::BufferContext::createContext(engine.getCore(), {
                                                                           .size = imgCtx.capacity,
@@ -559,7 +559,7 @@ namespace merutilm::rff2 {
         const auto &[sWidth, sHeight] = getSwapchainRenderContextExtent();
 
         for (const auto &sp: shaderPrograms->configurator) {
-            sp->windowResized(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
+            sp->windowResized();
         }
         shaderPrograms->rendererDownsampleForBlur->setRescaledResolution(0, {dWidth, dHeight});
         shaderPrograms->rendererDownsampleForBlur->setRescaledResolution(1, {dWidth, dHeight});
@@ -605,23 +605,23 @@ namespace merutilm::rff2 {
         const auto internalImageExtent = getInternalImageExtent();
         const auto blurredImageExtent = getBlurredImageExtent();
 
-        sharedImg.appendMultiframeImageContext(MF_RENDER_IMAGE_PRIMARY,
+        sharedImg.appendMultiframeImageContext(MF_MAIN_RENDER_IMAGE_PRIMARY,
                                                iiiGetter(internalImageExtent, VK_FORMAT_R16G16B16A16_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT));
-        sharedImg.appendMultiframeImageContext(MF_RENDER_IMAGE_SECONDARY,
+        sharedImg.appendMultiframeImageContext(MF_MAIN_RENDER_IMAGE_SECONDARY,
                                                iiiGetter(internalImageExtent, VK_FORMAT_R16G16B16A16_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT));
-        sharedImg.appendMultiframeImageContext(MF_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
+        sharedImg.appendMultiframeImageContext(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
                                                iiiGetter(blurredImageExtent, VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT |
                                                          VK_IMAGE_USAGE_STORAGE_BIT));
-        sharedImg.appendMultiframeImageContext(MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY,
+        sharedImg.appendMultiframeImageContext(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY,
                                                iiiGetter(blurredImageExtent, VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT |

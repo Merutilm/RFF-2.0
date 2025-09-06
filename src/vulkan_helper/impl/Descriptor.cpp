@@ -60,10 +60,9 @@ namespace merutilm::vkh {
                 if (std::holds_alternative<Uniform>(raw)) {
                     auto &ubo = std::get<Uniform>(raw);
 
-
                     updateQueue.push_back({
                         .bufferInfo = VkDescriptorBufferInfo{
-                            .buffer = ubo->getBufferContext(frameIndex).buffer,
+                            .buffer = ubo->isMultiframe() ? ubo->getBufferContextMF(frameIndex).buffer : ubo->getBufferContext().buffer,
                             .offset = 0,
                             .range = ubo->getHostObject().getTotalSizeByte()
                         },
@@ -87,7 +86,7 @@ namespace merutilm::vkh {
 
                     updateQueue.push_back({
                         .bufferInfo = VkDescriptorBufferInfo{
-                            .buffer = ssbo->getBufferContext(frameIndex).buffer,
+                            .buffer = ssbo->isMultiframe() ? ssbo->getBufferContextMF(frameIndex).buffer : ssbo->getBufferContext().buffer,
                             .offset = 0,
                             .range = ssbo->getHostObject().getTotalSizeByte()
                         },
@@ -111,31 +110,7 @@ namespace merutilm::vkh {
                     updateQueue.push_back({
                         .imageInfo = VkDescriptorImageInfo{
                             .sampler = tex->getSampler().getSamplerHandle(),
-                            .imageView = tex->getImageContext().mipmappedImageView,
-                            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                        }
-                    });
-
-                    updateQueue.back().writeSet = {
-                        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                        .pNext = nullptr,
-                        .dstSet = descriptorSets[frameIndex][descIndex],
-                        .dstBinding = binding,
-                        .dstArrayElement = 0,
-                        .descriptorCount = 1,
-                        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                        .pImageInfo = &updateQueue.back().imageInfo,
-                        .pBufferInfo = nullptr,
-                        .pTexelBufferView = nullptr,
-                    };
-                }
-                if (std::holds_alternative<CombinedMultiframeImageSampler>(raw)) {
-                    auto &tex = std::get<CombinedMultiframeImageSampler>(raw);
-
-                    updateQueue.push_back({
-                        .imageInfo = VkDescriptorImageInfo{
-                            .sampler = tex->getSampler().getSamplerHandle(),
-                            .imageView = tex->getImageContext()[frameIndex].mipmappedImageView,
+                            .imageView = tex->isMultiframe() ? tex->getImageContextMF()[frameIndex].mipmappedImageView : tex->getImageContext().mipmappedImageView,
                             .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                         }
                     });
@@ -209,7 +184,6 @@ namespace merutilm::vkh {
         const uint32_t ubo = getElementCount<Uniform>();
         const uint32_t ssbo = getElementCount<ShaderStorage>();
         const uint32_t sampler = getElementCount<CombinedImageSampler>();
-        const uint32_t multiframeSampler = getElementCount<CombinedMultiframeImageSampler>();
         const uint32_t inputAttachment = getElementCount<InputAttachment>();
         const uint32_t storageImage = getElementCount<StorageImage>();
         const uint32_t elements = getDescriptorElements();
@@ -230,10 +204,10 @@ namespace merutilm::vkh {
             });
         }
 
-        if (sampler + multiframeSampler > 0) {
+        if (sampler > 0) {
             sizes.push_back({
                 .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                .descriptorCount = (sampler + multiframeSampler) * descriptorCount
+                .descriptorCount = sampler * descriptorCount
             });
         }
         if (inputAttachment > 0) {

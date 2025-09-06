@@ -29,14 +29,10 @@ namespace merutilm::rff2 {
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_RADIUS, bloom.radius);
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_SOFTNESS, bloom.softness);
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_INTENSITY, bloom.intensity);
-
-        updateBufferForEachFrame([&bloomUBO](const uint32_t frameIndex) {
-            bloomUBO.update(frameIndex);
-        });
-
+        bloomUBO.update();
         bloomUBO.lock(engine.getCommandPool());
 
-        writeDescriptorForEachFrame([&bloomDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([&bloomDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             bloomDesc.queue(queue, frameIndex, {}, {DescBloom::BINDING_UBO_BLOOM});
         });
     }
@@ -45,19 +41,19 @@ namespace merutilm::rff2 {
         //noop
     }
 
-    void GPCBloom::windowResized(uint32_t windowAttachmentIndex) {
+    void GPCBloom::windowResized() {
         using namespace SharedDescriptorTemplate;
         auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &bloomDesc = getDescriptor(SET_BLOOM_CANVAS);
 
         switch (windowAttachmentIndex) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                bloomDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_BLOOM_CANVAS_ORIGINAL)->setImageContext(
-                    sic.getMultiframeContext(
-                        SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY));
-                bloomDesc.get<vkh::CombinedMultiframeImageSampler>(0, BINDING_BLOOM_CANVAS_BLURRED)->setImageContext(
-                    sic.getMultiframeContext(
-                        SharedImageContextIndices::MF_RENDER_DOWNSAMPLED_IMAGE_SECONDARY)
+                bloomDesc.get<vkh::CombinedImageSampler>(0, BINDING_BLOOM_CANVAS_ORIGINAL)->setImageContextMF(
+                    sic.getImageContextMF(
+                        SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY));
+                bloomDesc.get<vkh::CombinedImageSampler>(0, BINDING_BLOOM_CANVAS_BLURRED)->setImageContextMF(
+                    sic.getImageContextMF(
+                        SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY)
                 );
                 break;
             }
@@ -70,7 +66,7 @@ namespace merutilm::rff2 {
         }
 
 
-        writeDescriptorForEachFrame([&bloomDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([&bloomDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             bloomDesc.queue(queue, frameIndex, {}, {BINDING_BLOOM_CANVAS_ORIGINAL, BINDING_BLOOM_CANVAS_BLURRED});
         });
     }
@@ -106,14 +102,14 @@ namespace merutilm::rff2 {
             });
         auto descManager = vkh::factory::create<vkh::DescriptorManager>();
 
-        descManager->appendCombinedMultiframeImgSampler(BINDING_BLOOM_CANVAS_ORIGINAL,
+        descManager->appendCombinedImgSampler(BINDING_BLOOM_CANVAS_ORIGINAL,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::factory::create<vkh::CombinedMultiframeImageSampler>(
-                                                            engine.getCore(), sampler));
-        descManager->appendCombinedMultiframeImgSampler(BINDING_BLOOM_CANVAS_BLURRED,
+                                                        vkh::factory::create<vkh::CombinedImageSampler>(
+                                                            engine.getCore(), sampler, true));
+        descManager->appendCombinedImgSampler(BINDING_BLOOM_CANVAS_BLURRED,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::factory::create<vkh::CombinedMultiframeImageSampler>(
-                                                            engine.getCore(), sampler));
+                                                        vkh::factory::create<vkh::CombinedImageSampler>(
+                                                            engine.getCore(), sampler, true));
         appendUniqueDescriptor(SET_BLOOM_CANVAS, descriptors, std::move(descManager));
         appendDescriptor<DescBloom>(SET_BLOOM, descriptors);
     }

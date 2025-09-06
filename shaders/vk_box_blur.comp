@@ -1,7 +1,7 @@
 #version 450
 
-layout (set = 0, binding = 0, rgba8) uniform readonly image2D srcImage;
-layout (set = 0, binding = 1, rgba8) uniform writeonly image2D dstImage;
+layout (set = 0, binding = 0, rgba8) readonly uniform image2D srcImage;
+layout (set = 0, binding = 1, rgba8) writeonly uniform image2D dstImage;
 
 layout (set = 1, binding = 0) uniform BlurUBO {
     float blur_size;

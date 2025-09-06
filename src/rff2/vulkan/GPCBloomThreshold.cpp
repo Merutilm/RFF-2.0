@@ -18,13 +18,13 @@ namespace merutilm::rff2 {
         //no operation
     }
 
-    void GPCBloomThreshold::windowResized(const uint32_t windowAttachmentIndex) {
+    void GPCBloomThreshold::windowResized() {
         auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
         auto &inputDesc = getDescriptor(SET_BLOOM_THRESHOLD);
 
         switch (windowAttachmentIndex) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                const auto &input = sic.getMultiframeContext(SharedImageContextIndices::MF_RENDER_IMAGE_SECONDARY);
+                const auto &input = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY);
                 inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;
                 break;
             }
@@ -36,7 +36,7 @@ namespace merutilm::rff2 {
                 //noop
             }
         }
-        writeDescriptorForEachFrame([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             inputDesc.queue(queue, frameIndex, {}, {BINDING_PREV_RESULT_INPUT});
         });
     }
