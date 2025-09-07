@@ -8,7 +8,7 @@
 #include "../impl/Core.hpp"
 
 namespace merutilm::vkh {
-    struct CoreHandler : Handler {
+    struct CoreHandler : public Handler {
         const CoreRef core;
 
         explicit CoreHandler(const CoreRef core) : core(core) {};

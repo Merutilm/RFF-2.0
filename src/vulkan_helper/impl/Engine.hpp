@@ -6,22 +6,12 @@
 #include "../core/vkh_base.hpp"
 
 #include "Core.hpp"
-#include "../repo/Repositories.hpp"
-#include "CommandPool.hpp"
-#include "CommandBuffer.hpp"
-#include "SyncObject.hpp"
-#include "../context/RenderContext.hpp"
 #include "../context/WindowContext.hpp"
 
 namespace merutilm::vkh {
     class EngineImpl final : public Handler {
         Core core = nullptr;
-        Repositories repositories = nullptr;
-        CommandPool commandPool = nullptr;
-        CommandBuffer commandBuffer = nullptr;
-        SyncObject syncObject = nullptr;
         std::vector<WindowContext> windowContexts = {};
-        std::vector<RenderContext> renderContext = {};
 
     public:
         explicit EngineImpl(Core &&core);
@@ -36,42 +26,14 @@ namespace merutilm::vkh {
 
         EngineImpl &operator=(EngineImpl &&) = delete;
 
-        void createGraphicsContextForWindow(HWND hwnd, uint32_t graphicsWindowIndexExpected);
+        [[nodiscard]] WindowContextPtr attachWindowContext(HWND hwnd, uint32_t windowAttachmentIndexExpected);
 
-        template<typename T, typename ExtentImgGetter, typename SwapchainImgGetter> requires (
-            std::is_base_of_v<RenderContextConfiguratorAbstract, T> && std::is_invocable_r_v<VkExtent2D, ExtentImgGetter> && std::is_invocable_r_v<MultiframeImageContext, SwapchainImgGetter>)
-        void attachRenderContext(const uint32_t windowContextIndex, ExtentImgGetter &&extentGetter,
-                                 SwapchainImgGetter &&swapchainImageContext) {
-            safe_array::check_index_equal(T::CONTEXT_INDEX, static_cast<uint32_t>(this->renderContext.size()),
-                                              "Render Context Index");
-            this->renderContext.emplace_back(
-                factory::create<RenderContext>(*core, std::forward<ExtentImgGetter>(extentGetter),
-                                               std::make_unique<T>(*core, *getWindowContext(windowContextIndex).sharedImageContext, std::forward<SwapchainImgGetter>(swapchainImageContext))));
-        }
+        void detachWindowContext(uint32_t windowAttachmentIndex);
 
         [[nodiscard]] CoreRef getCore() const { return *core; }
 
-        [[nodiscard]] RepositoriesRef getRepositories() const { return *repositories; }
-
-        [[nodiscard]] CommandPoolRef getCommandPool() const { return *commandPool; }
-
-        [[nodiscard]] CommandBufferRef getCommandBuffer() const { return *commandBuffer; }
-
-        [[nodiscard]] SyncObjectRef getSyncObject() const { return *syncObject; }
-
-        [[nodiscard]] std::span<const RenderContext> getRenderContexts() const { return renderContext; }
-
-        [[nodiscard]] const WindowContext &getWindowContext(const uint32_t windowContextIndex) const {
-            return windowContexts.at(windowContextIndex);
-        }
-
-        [[nodiscard]] RenderContextRef getRenderContext(const uint32_t renderContextIndex) const {
-            return *renderContext[renderContextIndex];
-        }
-
-        template<typename Configurator> requires std::is_base_of_v<RenderContextConfiguratorAbstract, Configurator>
-        [[nodiscard]] Configurator & getRenderContextConfigurator() {
-            return *dynamic_cast<Configurator *>(getRenderContext(Configurator::CONTEXT_INDEX).getConfigurator());
+        [[nodiscard]] WindowContextRef getWindowContext(const uint32_t windowContextIndex) const {
+            return *windowContexts.at(windowContextIndex);
         }
 
     private:

@@ -108,7 +108,7 @@ namespace merutilm::vkh {
         template<typename T> requires std::is_trivially_copyable_v<T>
         void resizeAndClear(const uint32_t target, const uint32_t elementCount) {
             resizeArray<T>(target, elementCount);
-            std::fill_n(data.begin() + offsets[target], sizes[target], 0);
+            std::fill_n(data.begin() + offsets[target], sizes[target], static_cast<std::byte>(0));
         }
 
         [[nodiscard]] const std::vector<std::byte> &getData() const { return data; }

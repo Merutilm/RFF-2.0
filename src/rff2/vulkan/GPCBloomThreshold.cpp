@@ -19,10 +19,10 @@ namespace merutilm::rff2 {
     }
 
     void GPCBloomThreshold::windowResized() {
-        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
+        auto &sic = wc.getSharedImageContext();
         auto &inputDesc = getDescriptor(SET_BLOOM_THRESHOLD);
 
-        switch (windowAttachmentIndex) {
+        switch (wc.getAttachmentIndex()) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
                 const auto &input = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY);
                 inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;

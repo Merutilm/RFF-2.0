@@ -8,20 +8,20 @@
 
 namespace merutilm::vkh {
     ScopedCommandBufferExecutor::ScopedCommandBufferExecutor(
-        EngineRef engine, const uint32_t frameIndex, const VkFence fence, const VkSemaphore imageAvailable,
-        const VkSemaphore renderFinished) : engine(engine),
+        WindowContextRef wc, const uint32_t frameIndex, const VkFence fence, const VkSemaphore imageAvailable,
+        const VkSemaphore renderFinished) : WindowContextHandler(wc),
                                             frameIndex(frameIndex), fence(fence),
                                             imageAvailable(imageAvailable), renderFinished(renderFinished) {
-        ScopedCommandBufferExecutor::begin();
+        ScopedCommandBufferExecutor::init();
     }
 
     ScopedCommandBufferExecutor::~ScopedCommandBufferExecutor() {
-        ScopedCommandBufferExecutor::end();
+        ScopedCommandBufferExecutor::destroy();
     }
 
 
-    void ScopedCommandBufferExecutor::begin() {
-        const VkCommandBuffer cbh = engine.getCommandBuffer().getCommandBufferHandle(frameIndex);
+    void ScopedCommandBufferExecutor::init() {
+        const VkCommandBuffer cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
         constexpr VkCommandBufferBeginInfo beginInfo = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
             .pNext = nullptr,
@@ -35,8 +35,8 @@ namespace merutilm::vkh {
         }
     }
 
-    void ScopedCommandBufferExecutor::end() {
-        const VkCommandBuffer cbh = engine.getCommandBuffer().getCommandBufferHandle(frameIndex);
+    void ScopedCommandBufferExecutor::destroy() {
+        const VkCommandBuffer cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
         vkEndCommandBuffer(cbh);
 
         std::vector<VkPipelineStageFlags> waitPipelineStage = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -52,7 +52,7 @@ namespace merutilm::vkh {
             .pSignalSemaphores = renderFinished == VK_NULL_HANDLE ? nullptr : &renderFinished,
         };
 
-        if (const VkResult result = vkQueueSubmit(engine.getCore().getLogicalDevice().getGraphicsQueue(), 1,
+        if (const VkResult result = vkQueueSubmit(wc.core.getLogicalDevice().getGraphicsQueue(), 1,
                                                   &submitInfo,
                                                   fence);
             result != VK_SUCCESS) {

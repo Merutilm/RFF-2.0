@@ -80,7 +80,7 @@ namespace merutilm::rff2 {
                 if (dirPtr == nullptr) {
                     return;
                 }
-                if (!IsWindow(scene.getWindowHandle()) || !IsWindowVisible(scene.getWindowHandle())) {
+                if (!IsWindow(scene.wc.getWindow().getWindowHandle()) || !IsWindowVisible(scene.wc.getWindow().getWindowHandle())) {
                     MessageBoxW(nullptr, L"Target Window already been destroyed", L"FATAL", MB_OK | MB_ICONERROR);
                     return;
                 }
@@ -141,7 +141,7 @@ namespace merutilm::rff2 {
                 return;
             }
             const auto &save = *savePtr;
-            VideoWindow::createVideo(scene.getAttribute(), open, save);
+            VideoWindow::createVideo(scene.getEngine(), scene.getAttribute(), open, save);
         });
     };
 }

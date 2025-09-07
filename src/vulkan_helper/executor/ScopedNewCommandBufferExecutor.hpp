@@ -3,14 +3,13 @@
 //
 
 #pragma once
-#include "Executor.hpp"
-#include "../impl/Engine.hpp"
+#include "../handle/CoreHandler.hpp"
+#include "../impl/CommandPool.hpp"
 
 namespace merutilm::vkh {
-    class ScopedNewCommandBufferExecutor final : public Executor {
-        CoreRef core;
-        VkFence fenceHandle;
+    class ScopedNewCommandBufferExecutor final : public CoreHandler {
         CommandPoolRef commandPool;
+        VkFence fenceHandle;
         VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 
     public:
@@ -29,8 +28,8 @@ namespace merutilm::vkh {
         [[nodiscard]] VkCommandBuffer getCommandBufferHandle() const { return commandBuffer; }
 
     private:
-        void begin() override;
+        void init() override;
 
-        void end() override;
+        void destroy() override;
     };
 }

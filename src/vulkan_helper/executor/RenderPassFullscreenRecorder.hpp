@@ -3,18 +3,16 @@
 //
 
 #pragma once
-#include "Executor.hpp"
 #include "../configurator/PipelineConfigurator.hpp"
 
 
 namespace merutilm::vkh {
-    class RenderPassFullscreenRecorder final : public Executor {
-        EngineRef engine;
+    class RenderPassFullscreenRecorder final : public WindowContextHandler {
         const uint32_t renderContextIndex;
         const uint32_t frameIndex;
         const uint32_t swapchainImageIndex;
 
-        explicit RenderPassFullscreenRecorder(EngineRef engine, uint32_t renderContextIndex, uint32_t frameIndex,
+        explicit RenderPassFullscreenRecorder(WindowContextRef wc, uint32_t renderContextIndex, uint32_t frameIndex,
                                               uint32_t swapchainImageIndex);
 
         ~RenderPassFullscreenRecorder() override;
@@ -28,22 +26,22 @@ namespace merutilm::vkh {
         RenderPassFullscreenRecorder &operator=(RenderPassFullscreenRecorder &&) = delete;
 
         template<typename Configurator> requires std::is_base_of_v<RenderContextConfiguratorAbstract, Configurator>
-        static void cmdFullscreenRenderPass(EngineRef engine, const uint32_t frameIndex, const uint32_t swapchainImageIndex, const std::vector<PipelineConfiguratorAbstract *> shaderPrograms, std::vector<DescIndexPicker> && descIndices) {
+        static void cmdFullscreenRenderPass(WindowContextRef wc, const uint32_t frameIndex, const uint32_t swapchainImageIndex, const std::vector<PipelineConfiguratorAbstract *> shaderPrograms, std::vector<DescIndexPicker> && descIndices) {
             const auto renderPassRecorder = RenderPassFullscreenRecorder(
-                engine, Configurator::CONTEXT_INDEX, frameIndex, swapchainImageIndex);
+                wc, Configurator::CONTEXT_INDEX, frameIndex, swapchainImageIndex);
             renderPassRecorder.cmdMatchViewportAndScissor();
             renderPassRecorder.execute(frameIndex, shaderPrograms, std::move(descIndices));
         }
 
     public:
         template<typename Configurator> requires std::is_base_of_v<RenderContextConfiguratorAbstract, Configurator>
-        static void cmdFullscreenPresentOnlyRenderPass(EngineRef engine, const uint32_t frameIndex, const uint32_t swapchainImageIndex, const std::vector<PipelineConfiguratorAbstract *> shaderPrograms, std::vector<DescIndexPicker> && descIndices) {
-            cmdFullscreenRenderPass<Configurator>(engine, frameIndex, swapchainImageIndex, shaderPrograms, std::move(descIndices));
+        static void cmdFullscreenPresentOnlyRenderPass(WindowContextRef wc, const uint32_t frameIndex, const uint32_t swapchainImageIndex, const std::vector<PipelineConfiguratorAbstract *> shaderPrograms, std::vector<DescIndexPicker> && descIndices) {
+            cmdFullscreenRenderPass<Configurator>(wc, frameIndex, swapchainImageIndex, shaderPrograms, std::move(descIndices));
         }
 
         template<typename Configurator> requires std::is_base_of_v<RenderContextConfiguratorAbstract, Configurator>
-        static void cmdFullscreenInternalRenderPass(EngineRef engine, const uint32_t frameIndex, const std::vector<PipelineConfiguratorAbstract *> shaderPrograms, std::vector<DescIndexPicker> && descIndices) {
-            cmdFullscreenRenderPass<Configurator>(engine, frameIndex, UINT32_MAX,  shaderPrograms, std::move(descIndices));
+        static void cmdFullscreenInternalRenderPass(WindowContextRef wc, const uint32_t frameIndex, const std::vector<PipelineConfiguratorAbstract *> shaderPrograms, std::vector<DescIndexPicker> && descIndices) {
+            cmdFullscreenRenderPass<Configurator>(wc, frameIndex, UINT32_MAX,  shaderPrograms, std::move(descIndices));
         }
 
 
@@ -52,8 +50,8 @@ namespace merutilm::vkh {
         void execute(uint32_t frameIndex, std::span<PipelineConfiguratorAbstract * const> shaderPrograms, std::vector<DescIndexPicker> &&descIndices) const;
 
     private:
-        void begin() override;
+        void init() override;
 
-        void end() override;
+        void destroy() override;
     };
 }

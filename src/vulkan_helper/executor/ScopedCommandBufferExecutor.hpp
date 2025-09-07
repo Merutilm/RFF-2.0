@@ -3,18 +3,17 @@
 //
 
 #pragma once
-#include "Executor.hpp"
+#include "../handle/WindowContextHandler.hpp"
 #include "../impl/Engine.hpp"
 
 namespace merutilm::vkh {
-    class ScopedCommandBufferExecutor final : public Executor {
-        EngineRef engine;
+    class ScopedCommandBufferExecutor final : public WindowContextHandler {
         const uint32_t frameIndex;
         const VkFence fence;
         const VkSemaphore imageAvailable;
         const VkSemaphore renderFinished;
     public:
-        explicit ScopedCommandBufferExecutor(EngineRef engine, uint32_t frameIndex, VkFence fence, VkSemaphore imageAvailable, VkSemaphore renderFinished);
+        explicit ScopedCommandBufferExecutor(WindowContextRef wc, uint32_t frameIndex, VkFence fence, VkSemaphore imageAvailable, VkSemaphore renderFinished);
 
         ~ScopedCommandBufferExecutor() override;
 
@@ -26,8 +25,8 @@ namespace merutilm::vkh {
 
         ScopedCommandBufferExecutor &operator=(ScopedCommandBufferExecutor &&) = delete;
 
-        void begin() override;
+        void init() override;
 
-        void end() override;
+        void destroy() override;
     };
 }

@@ -30,7 +30,7 @@ namespace merutilm::rff2 {
 
 
     void CPCBoxBlur::cmdGaussianBlur(const uint32_t frameIndex, const uint32_t blurSizeDescIndex) {
-        const VkCommandBuffer cbh = engine.getCommandBuffer().getCommandBufferHandle(frameIndex);
+        const VkCommandBuffer cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
         auto &blurDesc = getDescriptor(SET_BLUR_IMAGE);
 
         auto ctxGetter = [&blurDesc, &frameIndex](const uint32_t descIndex, const uint32_t binding) {
@@ -59,7 +59,7 @@ namespace merutilm::rff2 {
 
     void CPCBoxBlur::initSize() const {
         auto &desc = getDescriptor(SET_BLUR_IMAGE);
-        const uint32_t maxFramesInFlight = engine.getCore().getPhysicalDevice().getMaxFramesInFlight();
+        const uint32_t maxFramesInFlight = wc.core.getPhysicalDevice().getMaxFramesInFlight();
         for (uint32_t i = 0; i < BOX_BLUR_COUNT; ++i) {
             desc.get<vkh::StorageImage>(i, BINDING_BLUR_IMAGE_SRC).ctx = std::vector<vkh::ImageContext>(
                 maxFramesInFlight);
@@ -101,8 +101,8 @@ namespace merutilm::rff2 {
 
     void CPCBoxBlur::windowResized() {
         using namespace SharedImageContextIndices;
-        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
-        switch (windowAttachmentIndex) {
+        auto &sic = wc.getSharedImageContext();
+        switch (wc.getAttachmentIndex()) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
                 setGaussianBlur(sic.getImageContextMF(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
                                 sic.getImageContextMF(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
@@ -137,7 +137,7 @@ namespace merutilm::rff2 {
             auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<float>(TARGET_BLUR_UBO_BLUR_SIZE);
-            auto descUBO = vkh::factory::create<vkh::Uniform>(engine.getCore(), std::move(bufferManager),
+            auto descUBO = vkh::factory::create<vkh::Uniform>(wc.core, std::move(bufferManager),
                                                               vkh::BufferLock::LOCK_UNLOCK, false);
             descManager->appendUBO(BINDING_BLUR_RADIUS_UBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(descUBO));
             radDesc[i] = std::move(descManager);

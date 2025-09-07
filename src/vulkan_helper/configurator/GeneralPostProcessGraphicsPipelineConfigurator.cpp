@@ -41,7 +41,7 @@ namespace merutilm::vkh {
         }
 
         configurePushConstant(*pipelineLayoutManager);
-        PipelineLayoutRef pipelineLayout = engine.getRepositories().getRepository<PipelineLayoutRepo>()->pick(
+        PipelineLayoutRef pipelineLayout = wc.getRepositories().getRepository<PipelineLayoutRepo>()->pick(
             std::move(pipelineLayoutManager));
 
 
@@ -59,19 +59,19 @@ namespace merutilm::vkh {
             configureVertexBuffer(*vertManager);
             configureIndexBuffer(*indexManager);
 
-            vertexBufferPP = factory::create<VertexBuffer>(engine.getCore(), std::move(vertManager),
+            vertexBufferPP = factory::create<VertexBuffer>(wc.core, std::move(vertManager),
                                                            BufferLock::LOCK_ONLY, false);
-            indexBufferPP = factory::create<IndexBuffer>(engine.getCore(), std::move(indexManager),
+            indexBufferPP = factory::create<IndexBuffer>(wc.core, std::move(indexManager),
                                                          BufferLock::LOCK_ONLY, false);
             vertexBufferPP->update();
             indexBufferPP->update();
-            vertexBufferPP->lock(engine.getCommandPool());
-            indexBufferPP->lock(engine.getCommandPool());
+            vertexBufferPP->lock(wc.getCommandPool());
+            indexBufferPP->lock(wc.getCommandPool());
             initializedVertexIndex = true;
         }
 
         if (initializedVertexIndex) {
-            pipeline = factory::create<GraphicsPipeline>(engine, pipelineLayout, getVertexBuffer(), getIndexBuffer(),
+            pipeline = factory::create<GraphicsPipeline>(wc, pipelineLayout, getVertexBuffer(), getIndexBuffer(),
                                                          renderContextIndex,
                                                          primarySubpassIndex,
                                                          std::move(pipelineManager));

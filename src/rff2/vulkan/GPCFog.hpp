@@ -14,9 +14,9 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t SET_FOG = 1;
 
-        explicit GPCFog(vkh::EngineRef engine, const uint32_t windowContextIndex, const uint32_t renderContextIndex,
+        explicit GPCFog(vkh::WindowContextRef wc, const uint32_t renderContextIndex,
                         const uint32_t subpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, subpassIndex, "vk_fog.frag") {
+            wc, renderContextIndex, subpassIndex, "vk_fog.frag") {
         }
 
         ~GPCFog() override = default;

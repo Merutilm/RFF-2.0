@@ -4,8 +4,6 @@
 
 #include "Engine.hpp"
 
-#include "../util/PhysicalDeviceUtils.hpp"
-
 namespace merutilm::vkh {
     EngineImpl::EngineImpl(Core &&core) : core(std::move(core)) {
         EngineImpl::init();
@@ -15,41 +13,38 @@ namespace merutilm::vkh {
         EngineImpl::destroy();
     }
 
-    void EngineImpl::createGraphicsContextForWindow(HWND hwnd, uint32_t graphicsWindowIndexExpected) {
-        if (graphicsWindowIndexExpected != windowContexts.size()) {
-            throw exception_init(std::format("Window index expected : {} but provided {}", windowContexts.size(),
-                                             graphicsWindowIndexExpected));
+    WindowContextPtr EngineImpl::attachWindowContext(HWND hwnd, uint32_t windowAttachmentIndexExpected) {
+        if (windowAttachmentIndexExpected >= windowContexts.size()) {
+            windowContexts.resize(windowAttachmentIndexExpected + 1);
+        }
+        if (windowContexts[windowAttachmentIndexExpected] != nullptr) {
+            throw exception_invalid_args(std::format("given window context {} is already using", windowAttachmentIndexExpected));
         }
 
         auto window = factory::create<GraphicsContextWindow>(hwnd);
-        auto surface = factory::create<Surface>(core->getInstance(), *window);
-        auto sharedImageContext = factory::create<SharedImageContext>(*core);
 
-        if (!PhysicalDeviceUtils::isDeviceSuitable(core->getPhysicalDevice().getPhysicalDeviceHandle(),
-                                                          surface->getSurfaceHandle())) {
-            throw exception_invalid_args("Invalid window provided");
+        windowContexts[windowAttachmentIndexExpected] = factory::create<WindowContext>(*core, windowAttachmentIndexExpected, std::move(window));
+        return windowContexts[windowAttachmentIndexExpected].get();
+    }
+
+    void EngineImpl::detachWindowContext(const uint32_t windowAttachmentIndex) {
+        if (windowAttachmentIndex >= windowContexts.size()) {
+            throw exception_invalid_args(std::format("window attachment index out of range : {}, size = {}", windowAttachmentIndex, windowContexts.size()));
         }
-
-        auto swapchain = factory::create<Swapchain>(*core, *surface);
-        windowContexts.push_back(WindowContext{std::move(window), std::move(surface), std::move(swapchain), std::move(sharedImageContext)});
+        if (windowContexts[windowAttachmentIndex] == nullptr) {
+            throw exception_invalid_args(std::format("deleted non-existing context {}", windowAttachmentIndex));
+        }
+        windowContexts[windowAttachmentIndex] = nullptr;
     }
 
 
     void EngineImpl::init() {
-        repositories = factory::create<Repositories>(*core);
-        commandPool = factory::create<CommandPool>(*core);
-        commandBuffer = factory::create<CommandBuffer>(*core, *commandPool);
-        syncObject = factory::create<SyncObject>(*core);
+        //noop
     }
 
 
     void EngineImpl::destroy() {
-        renderContext.clear();
         windowContexts.clear();
-        syncObject = nullptr;
-        commandBuffer = nullptr;
-        commandPool = nullptr;
-        repositories = nullptr;
         core = nullptr;
     }
 }

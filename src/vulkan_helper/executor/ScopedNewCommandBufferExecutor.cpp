@@ -7,15 +7,15 @@
 #include "../core/logger.hpp"
 
 namespace merutilm::vkh {
-    ScopedNewCommandBufferExecutor::ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool, const VkFence fenceHandle) : core(core), fenceHandle(fenceHandle), commandPool(commandPool) {
-        ScopedNewCommandBufferExecutor::begin();
+    ScopedNewCommandBufferExecutor::ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool, const VkFence fenceHandle) : CoreHandler(core), commandPool(commandPool), fenceHandle(fenceHandle) {
+        ScopedNewCommandBufferExecutor::init();
     }
 
     ScopedNewCommandBufferExecutor::~ScopedNewCommandBufferExecutor() {
-        ScopedNewCommandBufferExecutor::end();
+        ScopedNewCommandBufferExecutor::destroy();
     }
 
-    void ScopedNewCommandBufferExecutor::begin() {
+    void ScopedNewCommandBufferExecutor::init() {
         if (const VkCommandBufferAllocateInfo allocInfo = {
                 .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
                 .pNext = nullptr,
@@ -39,7 +39,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void ScopedNewCommandBufferExecutor::end() {
+    void ScopedNewCommandBufferExecutor::destroy() {
         vkEndCommandBuffer(commandBuffer);
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
 

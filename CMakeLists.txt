@@ -9,8 +9,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 add_executable(
         RFF
         res/resources.rc
-        extern/glad.c
-        extern/glad_wgl.c
         src/rff2/ui/Main.cpp
         src/rff2/calc/fp_complex_calculator.cpp
         src/rff2/calc/fp_complex_calculator.h
@@ -193,7 +191,6 @@ add_executable(
         src/vulkan_helper/impl/HostDataObject.hpp
         src/vulkan_helper/impl/Uniform.cpp
         src/vulkan_helper/impl/Uniform.hpp
-        src/vulkan_helper/executor/Executor.hpp
         src/vulkan_helper/repo/ShaderModuleRepo.hpp
         src/vulkan_helper/context/WindowContext.hpp
         src/vulkan_helper/context/RenderContext.hpp
@@ -240,7 +237,6 @@ add_executable(
         src/rff2/constants/NumConstants.hpp
         src/rff2/constants/NullConstants.hpp
         src/rff2/constants/GraphicsConfigConstants.hpp
-        src/rff2/constants/TextureFormatConstants.hpp
         src/rff2/constants/ExtensionConstants.hpp
         src/rff2/constants/StatusConstants.hpp
         src/vulkan_helper/configurator/GraphicsPipelineConfigurator.hpp
@@ -325,6 +321,7 @@ add_executable(
         src/rff2/vulkan/RCC3Vid.hpp
         src/rff2/vulkan/RCC4Vid.hpp
         src/rff2/vulkan/RCCDownsampleForBlurVid.hpp
+        src/vulkan_helper/context/WindowContext.cpp
 )
 
 find_package(Vulkan REQUIRED)
@@ -353,8 +350,6 @@ target_include_directories(RFF PRIVATE
 target_link_directories(RFF PRIVATE ${CMAKE_SOURCE_DIR}/lib)
 
 target_link_libraries(RFF PRIVATE
-        # OpenGL Linker
-        opengl32
         # GMP Linker
         gmp
         # Win32 Linker

@@ -7,7 +7,6 @@
 #include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "../attr/ShdColorAttribute.h"
-#include "../constants/ExtensionConstants.hpp"
 #include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
@@ -37,10 +36,10 @@ namespace merutilm::rff2 {
     }
 
     void GPCColor::windowResized() {
-        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
+        auto &sic = wc.getSharedImageContext();
         auto &inputDesc = getDescriptor(SET_PREV_RESULT);
 
-        switch (windowAttachmentIndex) {
+        switch (wc.getAttachmentIndex()) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
                 const auto &input =  sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY);
                 inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;

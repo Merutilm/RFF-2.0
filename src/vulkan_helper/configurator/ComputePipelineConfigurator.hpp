@@ -12,9 +12,11 @@ namespace merutilm::vkh {
         static constexpr uint32_t WORK_GROUP_SIZE = 16;
 
     public:
-        explicit ComputePipelineConfigurator(EngineRef engine, const uint32_t windowContextIndex,
-                                                             const std::string &compName) : PipelineConfiguratorAbstract(engine, windowContextIndex),
-        computeShader(pickFromRepository<ShaderModuleRepo, ShaderModuleRef>(compName)) {
+        explicit ComputePipelineConfigurator(WindowContextRef wc,
+                                             const std::string &compName) : PipelineConfiguratorAbstract(wc),
+                                                                            computeShader(
+                                                                                pickFromRepository<ShaderModuleRepo,
+                                                                                    ShaderModuleRef>(compName)) {
         }
 
         ~ComputePipelineConfigurator() override = default;
@@ -36,9 +38,10 @@ namespace merutilm::vkh {
         void configure() override;
 
     protected:
-         void cmdDispatch(const VkCommandBuffer cbh) const {
+        void cmdDispatch(const VkCommandBuffer cbh) const {
             const auto [width, height] = extent;
-            vkCmdDispatch(cbh, (width + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE, (height + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE, 1);
+            vkCmdDispatch(cbh, (width + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE,
+                          (height + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE, 1);
         }
     };
 }

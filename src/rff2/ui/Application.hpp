@@ -15,6 +15,7 @@ namespace merutilm::rff2 {
         HWND masterWindow = nullptr;
         HWND renderWindow = nullptr;
         HWND statusBar = nullptr;
+        vkh::WindowContextPtr wc = nullptr;
         std::unique_ptr<RenderScene> scene = nullptr;
         std::unique_ptr<SettingsMenu> settingsMenu = nullptr;
         vkh::Engine engine = nullptr;

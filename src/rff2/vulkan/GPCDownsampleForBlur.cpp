@@ -29,10 +29,9 @@ namespace merutilm::rff2 {
     }
 
     void GPCDownsampleForBlur::windowResized() {
-        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
+        auto &sic = wc.getSharedImageContext();
         auto &resampleDesc = getDescriptor(SET_RESAMPLE);
-
-        switch (windowAttachmentIndex) {
+        switch (wc.getAttachmentIndex()) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
                 resampleDesc.get<vkh::CombinedImageSampler>(DESC_INDEX_RESAMPLE_IMAGE_FOG,
                                                                       BINDING_RESAMPLE_SAMPLER)->
@@ -87,13 +86,13 @@ namespace merutilm::rff2 {
         auto descManagers = std::vector<vkh::DescriptorManager>(DESC_COUNT_RESAMPLE_IMAGE);
         for (uint32_t i = 0; i < DESC_COUNT_RESAMPLE_IMAGE; ++i) {
             auto descManager = vkh::factory::create<vkh::DescriptorManager>();
-            auto combinedSampler = vkh::factory::create<vkh::CombinedImageSampler>(engine.getCore(), sampler, true);
+            auto combinedSampler = vkh::factory::create<vkh::CombinedImageSampler>(wc.core, sampler, true);
             descManager->appendCombinedImgSampler(BINDING_RESAMPLE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT,
                                                             std::move(combinedSampler));
             auto uboManager = vkh::factory::create<vkh::HostDataObjectManager>();
             uboManager->reserve<glm::uvec2>(TARGET_RESAMPLE_UBO_EXTENT);
             descManager->appendUBO(BINDING_RESAMPLE_UBO, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                   vkh::factory::create<vkh::Uniform>(engine.getCore(), std::move(uboManager),
+                                   vkh::factory::create<vkh::Uniform>(wc.core, std::move(uboManager),
                                                                       vkh::BufferLock::LOCK_UNLOCK, false));
             descManagers[i] = std::move(descManager);
         }

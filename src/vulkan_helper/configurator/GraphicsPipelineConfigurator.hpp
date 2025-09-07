@@ -5,7 +5,7 @@
 #pragma once
 #include "PipelineConfigurator.hpp"
 #include "../impl/Pipeline.hpp"
-#include "../handle/EngineHandler.hpp"
+#include "../handle/WindowContextHandler.hpp"
 #include "../impl/IndexBuffer.hpp"
 #include "../impl/VertexBuffer.hpp"
 
@@ -17,10 +17,9 @@ namespace merutilm::vkh {
         ShaderModuleRef vertexShader;
         ShaderModuleRef fragmentShader;
 
-        explicit GraphicsPipelineConfigurator(EngineRef engine, const uint32_t windowAttachmentIndex, const uint32_t renderContextIndex,
+        explicit GraphicsPipelineConfigurator(WindowContextRef wc, const uint32_t renderContextIndex,
                                               const uint32_t primarySubpassIndex, const std::string &vertName,
-                                              const std::string &fragName) : PipelineConfiguratorAbstract(
-                                                                                 engine, windowAttachmentIndex), renderContextIndex(renderContextIndex), primarySubpassIndex(primarySubpassIndex),
+                                              const std::string &fragName) : PipelineConfiguratorAbstract(wc), renderContextIndex(renderContextIndex), primarySubpassIndex(primarySubpassIndex),
                                                                              vertexShader(pickFromRepository<ShaderModuleRepo, ShaderModuleRef>(vertName)),
                                                                              fragmentShader(pickFromRepository<ShaderModuleRepo, ShaderModuleRef>(fragName)) {
         }

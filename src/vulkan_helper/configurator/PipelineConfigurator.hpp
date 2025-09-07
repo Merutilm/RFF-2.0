@@ -3,20 +3,18 @@
 //
 
 #pragma once
-#include "../handle/EngineHandler.hpp"
+#include "../context/WindowContext.hpp"
 #include "../impl/Pipeline.hpp"
-#include "../impl/PushConstant.hpp"
 #include "../util/DescriptorUpdater.hpp"
 #include "../struct/DescriptorTemplate.hpp"
 
 namespace merutilm::vkh {
     struct PipelineConfiguratorAbstract {
-        EngineRef engine;
-        uint32_t windowAttachmentIndex;
+        WindowContextRef wc;
         Pipeline pipeline = nullptr;
         std::vector<Descriptor> uniqueDescriptors = {};
 
-        explicit PipelineConfiguratorAbstract(EngineRef engine, const uint32_t windowAttachmentIndex) : engine(engine), windowAttachmentIndex(windowAttachmentIndex) {
+        explicit PipelineConfiguratorAbstract(WindowContextRef wc) : wc(wc) {
         }
 
         virtual ~PipelineConfiguratorAbstract() = default;
@@ -29,11 +27,12 @@ namespace merutilm::vkh {
 
         PipelineConfiguratorAbstract &operator=(PipelineConfiguratorAbstract &&) = delete;
 
-        template<typename ProgramName, typename... Args> requires std::is_base_of_v<PipelineConfiguratorAbstract, ProgramName>
+        template<typename ProgramName, typename... Args> requires std::is_base_of_v<PipelineConfiguratorAbstract,
+            ProgramName>
         static ProgramName *createShaderProgram(
             std::vector<std::unique_ptr<PipelineConfiguratorAbstract> > &shaderPrograms,
-            EngineRef engine, uint32_t windowContextIndex, Args &&... args) {
-            auto shaderProgram = std::make_unique<ProgramName>(engine, windowContextIndex, std::forward<Args>(args)...);
+            WindowContextRef wc, Args &&... args) {
+            auto shaderProgram = std::make_unique<ProgramName>(wc, std::forward<Args>(args)...);
             shaderProgram->configure();
             shaderPrograms.emplace_back(std::move(shaderProgram));
             return dynamic_cast<ProgramName *>(shaderPrograms.back().get());
@@ -50,7 +49,7 @@ namespace merutilm::vkh {
 
         template<typename RepoType, typename Return, typename Key>
         [[nodiscard]] Return pickFromRepository(Key &&key) const {
-            return engine.getRepositories().getRepository<RepoType>()->pick(std::forward<Key>(key));
+            return wc.getRepositories().getRepository<RepoType>()->pick(std::forward<Key>(key));
         }
 
 
@@ -58,29 +57,29 @@ namespace merutilm::vkh {
         void writeDescriptor(F &&func) const {
             auto queue = DescriptorUpdater::createQueue();
             func(queue);
-            DescriptorUpdater::write(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), queue);
+            DescriptorUpdater::write(wc.core.getLogicalDevice().getLogicalDeviceHandle(), queue);
         }
 
         template<typename F> requires std::is_invocable_r_v<void, F, DescriptorUpdateQueue &, uint32_t>
         void writeDescriptorMF(F &&func) const {
             auto queue = DescriptorUpdater::createQueue();
-            for (uint32_t i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
+            for (uint32_t i = 0; i < wc.core.getPhysicalDevice().getMaxFramesInFlight(); ++i) {
                 func(queue, i);
             }
-            DescriptorUpdater::write(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), queue);
+            DescriptorUpdater::write(wc.core.getLogicalDevice().getLogicalDeviceHandle(), queue);
         }
 
         template<typename F> requires std::is_invocable_r_v<void, F, uint32_t>
         void updateBufferMF(F &&func) const {
-            for (uint32_t i = 0; i < engine.getCore().getPhysicalDevice().getMaxFramesInFlight(); ++i) {
+            for (uint32_t i = 0; i < wc.core.getPhysicalDevice().getMaxFramesInFlight(); ++i) {
                 func(i);
             }
         }
 
         template<DescTemplateHasID D>
         void appendDescriptor(const uint32_t setExpected, std::vector<DescriptorPtr> &descriptors) {
-            const auto context = engine.getRepositories().getDescriptorRequiresRepositoryContext();
-            SharedDescriptorRepo &repo = *engine.getRepositories().getRepository<SharedDescriptorRepo>();
+            const auto context = wc.getRepositories().getDescriptorRequiresRepositoryContext();
+            SharedDescriptorRepo &repo = *wc.getRepositories().getRepository<SharedDescriptorRepo>();
 
             safe_array::check_index_equal(setExpected, static_cast<uint32_t>(descriptors.size()),
                                           "Unique Descriptor Add");
@@ -99,17 +98,15 @@ namespace merutilm::vkh {
             if (manager.empty()) {
                 throw exception_invalid_args("Descriptor manager is empty");
             }
-            DescriptorSetLayoutRepo &layoutRepo = *engine.getRepositories().getRepository<DescriptorSetLayoutRepo>();
+            DescriptorSetLayoutRepo &layoutRepo = *wc.getRepositories().getRepository<DescriptorSetLayoutRepo>();
 
             safe_array::check_index_equal(setExpected, static_cast<uint32_t>(descriptors.size()),
                                           "Unique Descriptor Add");
-            auto desc = factory::create<Descriptor>(engine.getCore(), layoutRepo.pick(manager[0]->layoutBuilder),
+            auto desc = factory::create<Descriptor>(wc.core, layoutRepo.pick(manager[0]->layoutBuilder),
                                                     std::move(manager));
             uniqueDescriptors.push_back(std::move(desc));
             descriptors.push_back(uniqueDescriptors.back().get());
         }
-
-
 
         virtual void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex) = 0;
 

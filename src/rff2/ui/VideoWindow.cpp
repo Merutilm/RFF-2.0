@@ -11,31 +11,12 @@
 
 namespace merutilm::rff2 {
 
-    VideoWindow::VideoWindow(const uint16_t width, const uint16_t height) : scene(VideoRenderScene()) {
-        videoWindow = CreateWindowExW(0,
-                                     Constants::Win32::CLASS_VIDEO_WINDOW,
-                                     L"Preview video",
-                                     WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT,
-                                     CW_USEDEFAULT,
-                                     CW_USEDEFAULT, nullptr, nullptr,
-                                     nullptr, nullptr);
+    VideoWindow::VideoWindow(vkh::EngineRef engine, const uint16_t width, const uint16_t height) : EngineHandler(engine), width(width), height(height) {
+        VideoWindow::init();
+    }
 
-        renderWindow = CreateWindowExW(0, Constants::Win32::CLASS_VIDEO_RENDER_WINDOW, nullptr,
-                                      WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS, CW_USEDEFAULT,
-                                      CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr,
-                                      nullptr);
-
-        bar = CreateWindowExW(0, WC_STATICW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS,
-                             CW_USEDEFAULT,
-                             CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr, nullptr);
-
-
-        SetWindowLongPtr(videoWindow, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-
-        SetWindowPos(videoWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-        setClientSize(width, height);
-        UpdateWindow(videoWindow);
-        ShowWindow(videoWindow, SW_SHOW);
+    VideoWindow::~VideoWindow() {
+        VideoWindow::destroy();
     }
 
 
@@ -110,7 +91,8 @@ namespace merutilm::rff2 {
     }
 
 
-    void VideoWindow::createVideo(const Attribute &attr,
+    void VideoWindow::createVideo(vkh::EngineRef engine,
+    const Attribute &attr,
                                   const std::filesystem::path &open,
                                   const std::filesystem::path &save) {
         uint16_t imgWidth = 0;
@@ -145,15 +127,15 @@ namespace merutilm::rff2 {
         uint16_t cw = std::min(imgWidth, static_cast<uint16_t>(1280));
         auto ch = static_cast<uint16_t>(static_cast<uint32_t>(cw) * imgHeight / imgWidth);
 
+        auto window = VideoWindow(engine, cw, ch);
 
-        auto window = VideoWindow(cw, ch);
         std::jthread thread(
             [&window, &cw, &ch, &imgWidth, &imgHeight, &writer, &attr, &open, &save] {
 
                 // WGLContextLoader::createContext(window.hdc, &window.context);
-                // window.scene.configure(window.renderWindow, window.hdc, window.context);
-                window.scene.reloadSize(cw, ch, imgWidth, imgHeight);
-                window.scene.applyColor(attr);
+                // window.scene->configure(window.renderWindow, window.hdc, window.context);
+                window.scene->reloadSize(cw, ch, imgWidth, imgHeight);
+                window.scene->applyShader(attr);
 
                 const auto &[defaultZoomIncrement, isStatic] = attr.video.dataAttribute;
                 const auto &[overZoom, showText, mps] = attr.video.animationAttribute;
@@ -162,7 +144,7 @@ namespace merutilm::rff2 {
                 const auto frameInterval = mps / fps;
                 const uint32_t maxNumber = isStatic ? IOUtilities::fileNameCount(open, Constants::Extension::STATIC_MAP) : IOUtilities::fileNameCount(open, Constants::Extension::DYNAMIC_MAP);
                 const float minNumber = -overZoom;
-                auto currentFrameNumber = static_cast<float>(maxNumber);
+                auto currentFrame = static_cast<float>(maxNumber);
                 float currentSec = 0;
                 uint32_t pf1 = UINT32_MAX;
 
@@ -173,7 +155,6 @@ namespace merutilm::rff2 {
                 }
                 const float startSec = Utilities::getCurrentTime();
 
-
                 RFFDynamicMapBinary zoomedDynamic = RFFDynamicMapBinary::DEFAULT;
                 RFFDynamicMapBinary normalDynamic = RFFDynamicMapBinary::DEFAULT;
                 RFFStaticMapBinary zoomedStatic = RFFStaticMapBinary::DEFAULT;
@@ -182,13 +163,13 @@ namespace merutilm::rff2 {
                 cv::Mat normalStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
 
 
-                while (currentFrameNumber > minNumber) {
-                    currentFrameNumber -= frameInterval;
+                while (currentFrame > minNumber) {
+                    currentFrame -= frameInterval;
                     currentSec += 1 / fps;
                     bool requiredRefresh = false;
 
 
-                    if (currentFrameNumber < 1) {
+                    if (currentFrame < 1) {
                         if (0 != pf1) {
                             if (isStatic) {
                                 zoomedStatic = RFFStaticMapBinary::DEFAULT;
@@ -204,7 +185,7 @@ namespace merutilm::rff2 {
                             requiredRefresh = true;
                         }
                     } else {
-                        if (const auto f1 = static_cast<uint32_t>(currentFrameNumber); f1 != pf1) {
+                        if (const auto f1 = static_cast<uint32_t>(currentFrame); f1 != pf1) {
                             const uint32_t f2 = f1 + 1;
                             if (isStatic) {
                                 zoomedStatic = RFFStaticMapBinary::readByID(open, f1);
@@ -227,23 +208,22 @@ namespace merutilm::rff2 {
                     }
 
                     cv::Mat img = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
-                    window.scene.setStatic(isStatic);
-                    window.scene.setCurrentFrame(currentFrameNumber);
-                    window.scene.applyCurrentFrame();
+                    window.scene->setStatic(isStatic);
+                    window.scene->setCurrentFrame(currentFrame);
+                    window.scene->applyCurrentFrame();
 
                     if (requiredRefresh) {
                         if (isStatic) {
-                            window.scene.setMap(&normalStatic, &zoomedStatic);
-                            window.scene.applyCurrentStaticImage(normalStaticImage, zoomedStaticImage);
+                            window.scene->setMap(&normalStatic, &zoomedStatic);
+                            window.scene->applyCurrentStaticImage(normalStaticImage, zoomedStaticImage, currentSec);
                         } else {
-                            window.scene.setMap(&normalDynamic, &zoomedDynamic);
-                            window.scene.applyCurrentDynamicMap(normalDynamic, zoomedDynamic);
+                            window.scene->setMap(&normalDynamic, &zoomedDynamic);
+                            window.scene->applyCurrentDynamicMap(normalDynamic, zoomedDynamic, currentSec);
                         }
                     }
-                    const float zoom = window.scene.calculateZoom(defaultZoomIncrement);
-                    // window.scene.getDynamicRenderer().setTime(currentSec);
-                    // window.scene.renderGL();
-                    img = window.scene.getCurrentImage();
+                    const float zoom = window.scene->calculateZoom(defaultZoomIncrement);
+                    window.scene->renderOnce();
+                    img = window.scene->getCurrentImage();
 
                     if (showText) {
                         const int xg = std::max(1, imgWidth / 72);
@@ -263,7 +243,7 @@ namespace merutilm::rff2 {
 
                     writer << img;
 
-                    const float progressRatio = (static_cast<float>(maxNumber) - currentFrameNumber) / (
+                    const float progressRatio = (static_cast<float>(maxNumber) - currentFrame) / (
                                                     static_cast<float>(maxNumber) + overZoom);
                     const float spentSec = Utilities::getCurrentTime() - startSec;
                     float remainedSec = (1 - progressRatio) / progressRatio * spentSec;
@@ -291,4 +271,44 @@ namespace merutilm::rff2 {
             DispatchMessage(&msg);
         }
     }
+
+    void VideoWindow::init() {
+        videoWindow = CreateWindowExW(0,
+                                     Constants::Win32::CLASS_VIDEO_WINDOW,
+                                     L"Preview video",
+                                     WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT,
+                                     CW_USEDEFAULT,
+                                     CW_USEDEFAULT, nullptr, nullptr,
+                                     nullptr, nullptr);
+
+        renderWindow = CreateWindowExW(0, Constants::Win32::CLASS_VIDEO_RENDER_WINDOW, nullptr,
+                                      WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS, CW_USEDEFAULT,
+                                      CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr,
+                                      nullptr);
+
+        bar = CreateWindowExW(0, WC_STATICW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS,
+                             CW_USEDEFAULT,
+                             CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr, nullptr);
+
+
+        SetWindowLongPtr(videoWindow, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+
+        SetWindowPos(videoWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        setClientSize(width, height);
+        UpdateWindow(videoWindow);
+        ShowWindow(videoWindow, SW_SHOW);
+        createScene();
+    }
+
+    void VideoWindow::createScene() {
+        const auto wc = engine.attachWindowContext(renderWindow, Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX);
+        scene = std::make_unique<VideoRenderScene>(*wc);
+    }
+
+    void VideoWindow::destroy() {
+        scene = nullptr;
+        engine.detachWindowContext(Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX);
+    }
+
+
 }

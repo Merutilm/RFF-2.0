@@ -23,8 +23,8 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t BOX_BLUR_COUNT = 3;
 
-        explicit CPCBoxBlur(vkh::EngineRef engine, const uint32_t windowContextIndex) : ComputePipelineConfigurator(
-            engine, windowContextIndex, "vk_box_blur.comp") {
+        explicit CPCBoxBlur(vkh::WindowContextRef wc) : ComputePipelineConfigurator(
+            wc, "vk_box_blur.comp") {
         }
 
         ~CPCBoxBlur() override = default;

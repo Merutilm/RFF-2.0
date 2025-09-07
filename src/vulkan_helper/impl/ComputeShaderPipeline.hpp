@@ -4,13 +4,13 @@
 
 #pragma once
 #include "Pipeline.hpp"
-#include "../handle/EngineHandler.hpp"
+#include "../handle/WindowContextHandler.hpp"
 #include "../manage/PipelineManager.hpp"
 
 namespace merutilm::vkh {
     class ComputeShaderPipelineImpl final : public PipelineAbstract {
     public:
-        explicit ComputeShaderPipelineImpl(EngineRef engine, PipelineLayoutRef pipelineLayout,
+        explicit ComputeShaderPipelineImpl(WindowContextRef wc, PipelineLayoutRef pipelineLayout,
                                            PipelineManager &&pipelineManager);
 
         ~ComputeShaderPipelineImpl() override;

@@ -12,9 +12,9 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t SET_LINEAR_INTERPOLATION = 1;
 
-        explicit GPCLinearInterpolation(vkh::EngineRef engine, const uint32_t windowContextIndex, const uint32_t renderContextIndex,
+        explicit GPCLinearInterpolation(vkh::WindowContextRef wc, const uint32_t renderContextIndex,
                                                          const uint32_t subpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, subpassIndex, "vk_linear_interpolation.frag") {
+            wc, renderContextIndex, subpassIndex, "vk_linear_interpolation.frag") {
         }
 
 

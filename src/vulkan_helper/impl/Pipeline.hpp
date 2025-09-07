@@ -5,17 +5,17 @@
 #pragma once
 
 #include "../manage/PipelineManager.hpp"
-#include "../handle/EngineHandler.hpp"
+#include "../handle/WindowContextHandler.hpp"
 
 namespace merutilm::vkh {
-    struct PipelineAbstract : public EngineHandler {
+    struct PipelineAbstract : public WindowContextHandler {
         VkPipeline pipeline = nullptr;
         PipelineLayoutRef pipelineLayout;
         const std::vector<DescriptorPtr> descriptors;
         const std::vector<ShaderModulePtr> shaderModules;
 
-        explicit PipelineAbstract(EngineRef engine, PipelineLayoutRef pipelineLayout,
-                                  PipelineManager &&pipelineManager) : EngineHandler(engine),
+        explicit PipelineAbstract(WindowContextRef wc, PipelineLayoutRef pipelineLayout,
+                                  PipelineManager &&pipelineManager) : WindowContextHandler(wc),
                                                                        pipelineLayout(pipelineLayout),
                                                                        descriptors(
                                                                            std::move(pipelineManager->descriptors)),
@@ -69,7 +69,7 @@ namespace merutilm::vkh {
 
     protected:
         void destroy() override {
-            vkDestroyPipeline(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), pipeline, nullptr);
+            vkDestroyPipeline(wc.core.getLogicalDevice().getLogicalDeviceHandle(), pipeline, nullptr);
         }
     };
 

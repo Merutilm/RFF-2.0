@@ -10,6 +10,7 @@
 #include "RenderSceneRequests.hpp"
 #include "RenderSceneShaderPrograms.hpp"
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
+#include "../../vulkan_helper/handle/WindowContextHandler.hpp"
 #include "../data/ApproxTableCache.h"
 #include "../formula/MandelbrotPerturbator.h"
 #include "../io/RFFDynamicMapBinary.h"
@@ -18,9 +19,9 @@
 #include "../attr/Attribute.h"
 
 namespace merutilm::rff2 {
-    class RenderScene final : public vkh::EngineHandler {
-        HWND window;
+    class RenderScene final : public vkh::WindowContextHandler {
 
+        vkh::EngineRef engine;
         ParallelRenderState state;
         Attribute attr;
 
@@ -49,7 +50,7 @@ namespace merutilm::rff2 {
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
     public:
-        explicit RenderScene(vkh::EngineRef engine, HWND window,
+        explicit RenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc,
                              std::array<std::wstring, Constants::Status::LENGTH> *statusMessageRef);
 
         ~RenderScene() override;
@@ -62,7 +63,7 @@ namespace merutilm::rff2 {
 
         RenderScene &operator=(RenderScene &&) = delete;
 
-        [[nodiscard]] HWND getWindowHandle() const { return window; }
+
 
         void resolveWindowResizeEnd() const;
 
@@ -70,11 +71,12 @@ namespace merutilm::rff2 {
 
         void draw(uint32_t frameIndex, uint32_t swapchainImageIndex) const;
 
-
+        [[nodiscard]] vkh::EngineRef getEngine() const {
+            return engine;
+        }
 
         [[nodiscard]] VkExtent2D getInternalImageExtent() const {
-            const auto &swapchain = *engine.getWindowContext(
-                Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+            const auto &swapchain = wc.getSwapchain();
             const auto [width, height] = swapchain.populateSwapchainExtent();
             const float multiplier = attr.render.clarityMultiplier;
             return {
@@ -85,17 +87,19 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] VkExtent2D getBlurredImageExtent() const {
             const VkExtent2D internalExtent = getInternalImageExtent();
-            if (const float rat = Constants::Render::GAUSSIAN_MAX_WIDTH / static_cast<float>(internalExtent.width); rat < 1) {
-                return {Constants::Render::GAUSSIAN_MAX_WIDTH, static_cast<uint32_t>(static_cast<float>(internalExtent.height) * rat)};
+            if (const float rat = Constants::Render::GAUSSIAN_MAX_WIDTH / static_cast<float>(internalExtent.width);
+                rat < 1) {
+                return {
+                    Constants::Render::GAUSSIAN_MAX_WIDTH,
+                    static_cast<uint32_t>(static_cast<float>(internalExtent.height) * rat)
+                };
             }
 
             return internalExtent;
-
         }
 
         [[nodiscard]] VkExtent2D getSwapchainRenderContextExtent() const {
-            const auto &swapchain = *engine.getWindowContext(
-                Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).swapchain;
+            const auto &swapchain = wc.getSwapchain();
             return swapchain.populateSwapchainExtent();
         }
 
@@ -174,10 +178,6 @@ namespace merutilm::rff2 {
             return *currentMap;
         }
 
-        [[nodiscard]] const vkh::WindowContext &getTargetWindowContext() const {
-            return engine.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
-        }
-
 
         void setCurrentMap(const RFFDynamicMapBinary &map) {
             currentMap = std::make_unique<RFFDynamicMapBinary>(map);
@@ -237,8 +237,6 @@ namespace merutilm::rff2 {
 
         void destroy() override;
     };
-
-
 
 
     template<typename P> requires std::is_base_of_v<Preset, P>

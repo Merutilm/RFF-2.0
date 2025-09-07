@@ -34,7 +34,7 @@ namespace merutilm::vkh {
         pipelineManager->attachDescriptor(std::move(descriptors));
         pipelineManager->attachShader(&computeShader);
 
-        pipeline = factory::create<ComputeShaderPipeline>(engine, pipelineLayout, std::move(pipelineManager));
+        pipeline = factory::create<ComputeShaderPipeline>(wc, pipelineLayout, std::move(pipelineManager));
     }
 
 }

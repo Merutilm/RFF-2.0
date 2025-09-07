@@ -13,10 +13,10 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t SET_COLOR = 1;
 
-        explicit GPCColor(vkh::EngineRef engine, const uint32_t windowContextIndex,
+        explicit GPCColor(vkh::WindowContextRef wc,
                                            const uint32_t renderContextIndex,
                                            const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, primarySubpassIndex, "vk_color.frag") {
+            wc, renderContextIndex, primarySubpassIndex, "vk_color.frag") {
         }
 
         ~GPCColor() override = default;

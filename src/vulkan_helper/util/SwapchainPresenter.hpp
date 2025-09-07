@@ -9,9 +9,9 @@ namespace merutilm::vkh {
     struct SwapchainPresenter {
         SwapchainPresenter() = delete;
 
-        static void present(EngineRef engine, const VkSwapchainKHR target, const uint32_t frameIndex, uint32_t swapchainImageIndex) {
+        static void present(WindowContextRef wc, const VkSwapchainKHR target, const uint32_t frameIndex, uint32_t swapchainImageIndex) {
             VkSwapchainKHR swapchainHandle = target;
-            VkSemaphore renderFinishedSemaphore = engine.getSyncObject().getSemaphore(frameIndex).getRenderFinished();
+            VkSemaphore renderFinishedSemaphore = wc.getSyncObject().getSemaphore(frameIndex).getRenderFinished();
             const VkPresentInfoKHR presentInfo = {
                 .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
                 .pNext = nullptr,
@@ -22,7 +22,7 @@ namespace merutilm::vkh {
                 .pImageIndices = &swapchainImageIndex,
                 .pResults = nullptr
             };
-            if (vkQueuePresentKHR(engine.getCore().getLogicalDevice().getPresentQueue(), &presentInfo) != VK_SUCCESS) {
+            if (vkQueuePresentKHR(wc.core.getLogicalDevice().getPresentQueue(), &presentInfo) != VK_SUCCESS) {
                 throw exception_invalid_state("Failed to present queue");
             }
         }

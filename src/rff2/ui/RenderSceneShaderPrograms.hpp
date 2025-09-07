@@ -23,9 +23,7 @@
 #include "../vulkan/RCCPresent.hpp"
 
 namespace merutilm::rff2 {
-    struct RenderSceneShaderPrograms {
-        
-        vkh::EngineRef engine;
+    struct RenderSceneShaderPrograms final : public vkh::WindowContextHandler {
         std::vector<vkh::PipelineConfigurator> configurator = {};
         GPCIterationPalette *rendererIteration = nullptr;
         GPCStripe *rendererStripe = nullptr;
@@ -39,72 +37,89 @@ namespace merutilm::rff2 {
         GPCLinearInterpolation *rendererLinearInterpolation = nullptr;
         GPCPresent *rendererPresent = nullptr;
 
-        explicit RenderSceneShaderPrograms(vkh::EngineRef engine) : engine(engine) {
-            init();   
+        explicit RenderSceneShaderPrograms(vkh::WindowContextRef wc) : WindowContextHandler(wc) {
+            RenderSceneShaderPrograms::init();
         }
 
+        ~RenderSceneShaderPrograms() override {
+            RenderSceneShaderPrograms::destroy();
+        }
 
-        void init() {
+        RenderSceneShaderPrograms(const RenderSceneShaderPrograms &) = delete;
+
+        RenderSceneShaderPrograms &operator=(const RenderSceneShaderPrograms &) = delete;
+
+        RenderSceneShaderPrograms(RenderSceneShaderPrograms &&) = delete;
+
+        RenderSceneShaderPrograms &operator=(RenderSceneShaderPrograms &&) = delete;
+
+
+        void init() override {
             rendererIteration = vkh::PipelineConfiguratorAbstract::createShaderProgram<
-            GPCIterationPalette>(
-            configurator, engine, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX,
-            RCC1::CONTEXT_INDEX,
-            RCC1::SUBPASS_ITERATION_INDEX);
+                GPCIterationPalette>(
+                configurator, wc,
+                RCC1::CONTEXT_INDEX,
+                RCC1::SUBPASS_ITERATION_INDEX);
 
             rendererStripe = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCStripe>(
-                configurator, engine, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX,
+                configurator, wc,
                 RCC1::CONTEXT_INDEX,
                 RCC1::SUBPASS_STRIPE_INDEX);
 
             rendererSlope = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCSlope>(
-                configurator, engine, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX,
+                configurator, wc,
                 RCC1::CONTEXT_INDEX,
                 RCC1::SUBPASS_SLOPE_INDEX);
 
             rendererColor = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCColor>(
-                configurator, engine, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX,
+                configurator, wc,
                 RCC1::CONTEXT_INDEX,
                 RCC1::SUBPASS_COLOR_INDEX);
 
 
             rendererDownsampleForBlur = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCDownsampleForBlur>(
-                configurator, engine, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX,
+                configurator, wc,
                 RCCDownsampleForBlur::CONTEXT_INDEX,
                 RCCDownsampleForBlur::SUBPASS_DOWNSAMPLE_INDEX
             );
 
             rendererBoxBlur = vkh::PipelineConfiguratorAbstract::createShaderProgram<CPCBoxBlur>(
-                configurator, engine, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX
+                configurator, wc
             );
 
             rendererFog = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCFog>(
-                configurator, engine, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX,
+                configurator, wc,
                 RCC2::CONTEXT_INDEX,
                 RCC2::SUBPASS_FOG_INDEX
             );
 
             rendererBloomThreshold = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCBloomThreshold>(
-                configurator, engine, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX,
+                configurator, wc,
                 RCC2::CONTEXT_INDEX,
                 RCC2::SUBPASS_BLOOM_THRESHOLD_INDEX
             );
 
             rendererBloom = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCBloom>(
-                configurator, engine, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX,
+                configurator, wc,
                 RCC3::CONTEXT_INDEX,
                 RCC3::SUBPASS_BLOOM_INDEX
             );
 
-            rendererLinearInterpolation = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCLinearInterpolation>(
-                configurator, engine, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX,
+            rendererLinearInterpolation = vkh::PipelineConfiguratorAbstract::createShaderProgram<
+                GPCLinearInterpolation>(
+                configurator, wc,
                 RCC4::CONTEXT_INDEX,
                 RCC4::SUBPASS_LINEAR_INTERPOLATION_INDEX
             );
             rendererPresent = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCPresent>(
-               configurator, engine, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX,
-               RCCPresent::CONTEXT_INDEX,
-               RCCPresent::SUBPASS_PRESENT_INDEX
-           );
+                configurator, wc,
+                RCCPresent::CONTEXT_INDEX,
+                RCCPresent::SUBPASS_PRESENT_INDEX
+            );
+        }
+
+        void destroy() override {
+            //noop
         }
     };
 }

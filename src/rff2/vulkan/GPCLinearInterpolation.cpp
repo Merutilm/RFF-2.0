@@ -31,9 +31,9 @@ namespace merutilm::rff2 {
     }
 
     void GPCLinearInterpolation::windowResized() {
-        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
+        auto &sic = wc.getSharedImageContext();
         auto &samplerDesc = getDescriptor(SET_PREV_RESULT);
-        switch (windowAttachmentIndex) {
+        switch (wc.getAttachmentIndex()) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
                 const auto &sample = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY);
                 samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->
@@ -88,7 +88,7 @@ namespace merutilm::rff2 {
         descManager->appendCombinedImgSampler(BINDING_PREV_RESULT_SAMPLER,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
                                                         vkh::factory::create<vkh::CombinedImageSampler>(
-                                                            engine.getCore(), sampler, true));
+                                                            wc.core, sampler, true));
         appendUniqueDescriptor(SET_PREV_RESULT, descriptors, std::move(descManager));
         appendDescriptor<DescLinearInterpolation>(SET_LINEAR_INTERPOLATION, descriptors);
     }

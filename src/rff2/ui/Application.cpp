@@ -131,18 +131,17 @@ namespace merutilm::rff2 {
     void Application::createVulkanContext() {
         auto core = vkh::factory::create<vkh::Core>();
         engine = vkh::factory::create<vkh::Engine>(std::move(core));
-        engine->createGraphicsContextForWindow(renderWindow, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
+        wc = engine->attachWindowContext(renderWindow, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
     }
 
     void Application::createRenderScene() {
-        scene = std::make_unique<RenderScene>(*engine, renderWindow, &statusMessages);
+        scene = std::make_unique<RenderScene>(*engine, *wc, &statusMessages);
     }
 
     void Application::setProcedure() {
         const HCURSOR hCursor = LoadCursor(nullptr, IDC_ARROW);
 
-        vkh::GraphicsContextWindowRef window = *engine->getWindowContext(
-            Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window;
+        vkh::GraphicsContextWindowRef window = wc->getWindow();
 
         window.setListener(
             WM_GETMINMAXINFO, [](vkh::GraphicsContextWindowRef, HWND, WPARAM, const LPARAM lparam) {
@@ -249,23 +248,24 @@ namespace merutilm::rff2 {
             scene->wndClientSizeRequestSolved();
         }
         if (scene->isFPSRequested() != 0) {
-            engine->getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->setFramerate(scene->getAttribute().render.fps);
+            engine->getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).getWindow().setFramerate(
+                scene->getAttribute().render.fps);
             scene->wndFPSRequestSolved();
         }
     }
 
     void Application::drawFrame() {
         vkh::CoreRef core = engine->getCore();
-        if (engine->getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).window->isUnrenderable()) {
+        auto &wc = engine->getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
+        if (wc.getWindow().
+            isUnrenderable()) {
             return;
         }
         changeFrameIndex();
-        const vkh::SwapchainRef swapchain = *engine->getWindowContext(
-                    Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
-                swapchain;
+        const vkh::SwapchainRef swapchain = wc.getSwapchain();
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        const VkFence currentFence = engine->getSyncObject().getFence(frameIndex).getFenceHandle();
-        const VkSemaphore imageAvailableSemaphore = engine->getSyncObject().
+        const VkFence currentFence = wc.getSyncObject().getFence(frameIndex).getFenceHandle();
+        const VkSemaphore imageAvailableSemaphore = wc.getSyncObject().
                 getSemaphore(frameIndex).getImageAvailable();
         const VkSwapchainKHR swapchainHandle = swapchain.getSwapchainHandle();
 
@@ -278,7 +278,7 @@ namespace merutilm::rff2 {
                               nullptr, &swapchainImageIndex);
 
         scene->render(frameIndex, swapchainImageIndex);
-        vkh::SwapchainPresenter::present(*engine, swapchainHandle, frameIndex, swapchainImageIndex);
+        vkh::SwapchainPresenter::present(wc, swapchainHandle, frameIndex, swapchainImageIndex);
         refreshStatusBar();
     }
 
@@ -290,18 +290,13 @@ namespace merutilm::rff2 {
         ShowWindow(masterWindow, SW_SHOW);
         UpdateWindow(masterWindow);
         SetWindowLongPtr(masterWindow, GWLP_USERDATA,
-                         reinterpret_cast<LONG_PTR>(engine->getWindowContext(
-                                 Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
-                             window.get()));
+                         reinterpret_cast<LONG_PTR>(&wc->getWindow()));
         SetWindowLongPtr(renderWindow, GWLP_USERDATA,
                          reinterpret_cast<LONG_PTR>(scene.get()));
     }
 
     void Application::start() const {
-        vkh::GraphicsContextWindowRef window = *engine->getWindowContext(
-                    Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).
-                window;
-        window.start();
+        wc->getWindow().start();
     }
 
     void Application::destroy() {

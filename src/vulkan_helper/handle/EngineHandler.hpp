@@ -8,10 +8,10 @@
 #include "../impl/Engine.hpp"
 
 namespace merutilm::vkh {
-    struct EngineHandler : Handler {
-        EngineRef engine;
+    struct EngineHandler : public Handler {
+        const EngineRef engine;
 
-        explicit EngineHandler(EngineRef engine) : engine(engine) {};
+        explicit EngineHandler(const EngineRef engine) : engine(engine) {};
 
         ~EngineHandler() override = default;
 

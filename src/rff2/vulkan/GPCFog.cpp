@@ -33,10 +33,10 @@ namespace merutilm::rff2 {
     }
 
     void GPCFog::windowResized() {
-        auto &sic = *engine.getWindowContext(windowAttachmentIndex).sharedImageContext;
+        auto &sic = wc.getSharedImageContext();
         auto &fogDesc = getDescriptor(SET_FOG_CANVAS);
 
-        switch (windowAttachmentIndex) {
+        switch (wc.getAttachmentIndex()) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
                 fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL)->setImageContextMF(
                           sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY));
@@ -94,11 +94,11 @@ namespace merutilm::rff2 {
         descManager->appendCombinedImgSampler(BINDING_FOG_CANVAS_ORIGINAL,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
                                                         vkh::factory::create<vkh::CombinedImageSampler>(
-                                                            engine.getCore(), sampler, true));
+                                                            wc.core, sampler, true));
         descManager->appendCombinedImgSampler(BINDING_FOG_CANVAS_BLURRED,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
                                                         vkh::factory::create<vkh::CombinedImageSampler>(
-                                                            engine.getCore(), sampler, true));
+                                                            wc.core, sampler, true));
         appendUniqueDescriptor(SET_FOG_CANVAS, descriptors, std::move(descManager));
         appendDescriptor<DescFog>(SET_FOG, descriptors);
     }

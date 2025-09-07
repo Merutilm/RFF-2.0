@@ -17,7 +17,7 @@ namespace merutilm::vkh {
         IndexBufferRef indexBuffer;
 
     public:
-        explicit GraphicsPipelineImpl(EngineRef engine, PipelineLayoutRef pipelineLayout,
+        explicit GraphicsPipelineImpl(WindowContextRef wc, PipelineLayoutRef pipelineLayout,
                           VertexBufferRef vertexBuffer,
                           IndexBufferRef indexBuffer,
                           uint32_t renderContextIndex,

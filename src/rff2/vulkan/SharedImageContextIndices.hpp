@@ -3,8 +3,6 @@
 //
 
 #pragma once
-#include <cstdint>
-
 
 namespace merutilm::rff2::SharedImageContextIndices {
     static constexpr uint32_t MF_MAIN_RENDER_IMAGE_PRIMARY = 0;

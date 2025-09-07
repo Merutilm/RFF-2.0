@@ -5,13 +5,13 @@
 #include "GraphicsPipeline.hpp"
 
 namespace merutilm::vkh {
-    GraphicsPipelineImpl::GraphicsPipelineImpl(EngineRef engine, PipelineLayoutRef pipelineLayout,
+    GraphicsPipelineImpl::GraphicsPipelineImpl(WindowContextRef wc, PipelineLayoutRef pipelineLayout,
                                                VertexBufferRef vertexBuffer,
                                                IndexBufferRef indexBuffer,
                                                const uint32_t renderContextIndex,
                                                const uint32_t primarySubpassIndex,
                                                PipelineManager &&pipelineManager) : PipelineAbstract(
-            engine, pipelineLayout, std::move(pipelineManager)), renderContextIndex(renderContextIndex),
+            wc, pipelineLayout, std::move(pipelineManager)), renderContextIndex(renderContextIndex),
         primarySubpassIndex(primarySubpassIndex),
         vertexBuffer(vertexBuffer),
         indexBuffer(indexBuffer) {
@@ -173,14 +173,14 @@ namespace merutilm::vkh {
             .pColorBlendState = &colorBlendStateCreateInfo,
             .pDynamicState = &dynamicState,
             .layout = pipelineLayout.getLayoutHandle(),
-            .renderPass = engine.getRenderContext(renderContextIndex).getRenderPass()->getRenderPassHandle(),
+            .renderPass = wc.getRenderContext(renderContextIndex).getRenderPass()->getRenderPassHandle(),
             .subpass = primarySubpassIndex,
             .basePipelineHandle = nullptr,
             .basePipelineIndex = -1
         };
 
 
-        if (vkCreateGraphicsPipelines(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), nullptr, 1, &info,
+        if (vkCreateGraphicsPipelines(wc.core.getLogicalDevice().getLogicalDeviceHandle(), nullptr, 1, &info,
                                       nullptr,
                                       &pipeline) != VK_SUCCESS) {
             throw exception_init("Failed to create graphics pipeline!");

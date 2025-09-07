@@ -5,9 +5,9 @@
 #include "ComputeShaderPipeline.hpp"
 
 namespace merutilm::vkh {
-    ComputeShaderPipelineImpl::ComputeShaderPipelineImpl(EngineRef engine, PipelineLayoutRef pipelineLayout,
+    ComputeShaderPipelineImpl::ComputeShaderPipelineImpl(WindowContextRef wc, PipelineLayoutRef pipelineLayout,
                                                          PipelineManager &&pipelineManager) : PipelineAbstract(
-        engine, pipelineLayout, std::move(pipelineManager)) {
+        wc, pipelineLayout, std::move(pipelineManager)) {
         ComputeShaderPipelineImpl::init();
     }
 
@@ -45,7 +45,7 @@ namespace merutilm::vkh {
             .basePipelineIndex = -1
         };
 
-        if (vkCreateComputePipelines(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), nullptr, 1, &info,
+        if (vkCreateComputePipelines(wc.core.getLogicalDevice().getLogicalDeviceHandle(), nullptr, 1, &info,
                                      nullptr, &pipeline) != VK_SUCCESS) {
             throw exception_init("Failed to create compute pipeline!");
         }
