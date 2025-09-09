@@ -2,35 +2,37 @@
 // Created by Merutilm on 2025-09-06.
 //
 
-#include "CPCIterationPalette2Map.hpp"
+#include "CPC2MapIterationStripe.hpp"
 
 #include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
 #include "../attr/ShdPaletteAttribute.h"
 
 namespace merutilm::rff2 {
-    void CPCIterationPalette2Map::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
+    void CPC2MapIterationStripe::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
         //noop
     }
 
 
-    void CPCIterationPalette2Map::pipelineInitialized() {
+    void CPC2MapIterationStripe::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
         const auto &iterDesc = getDescriptor(SET_OUTPUT_ITERATION);
+        const auto &stripeDesc = getDescriptor(SET_STRIPE);
         const auto &timeDesc = getDescriptor(SET_TIME);
         const auto &vidDesc = getDescriptor(SET_VIDEO);
-        writeDescriptorMF([&iterDesc, &timeDesc, &vidDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([&iterDesc, &stripeDesc, &timeDesc, &vidDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             iterDesc.queue(queue, frameIndex, {}, {DescIteration::BINDING_UBO_ITERATION_INFO});
+            stripeDesc.queue(queue, frameIndex, {}, {DescStripe::BINDING_UBO_STRIPE});
             timeDesc.queue(queue, frameIndex, {}, {DescTime::BINDING_UBO_TIME});
             vidDesc.queue(queue, frameIndex, {}, {DescVideo::BINDING_UBO_VIDEO});
         });
     }
 
-    void CPCIterationPalette2Map::windowResized() {
+    void CPC2MapIterationStripe::renderContextRefreshed() {
         using namespace SharedImageContextIndices;
         auto &outDesc = getDescriptor(SET_OUTPUT_IMAGE);
         auto &[outImg] = outDesc.get<vkh::StorageImage>(0, BINDING_OUTPUT_MERGED_IMAGE);
-        outImg = wc.getSharedImageContext().getImageContextMF(MF_VIDEO_RENDER_IMAGE_SECONDARY);
+        outImg = wc.getSharedImageContext().getImageContextMF(MF_VIDEO_RENDER_IMAGE_PRIMARY);
         writeDescriptorMF(
             [&outDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
                 outDesc.queue(queue, frameIndex, {}, {BINDING_OUTPUT_MERGED_IMAGE});
@@ -38,7 +40,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPCIterationPalette2Map::setCurrentFrame(const float currentFrame) const {
+    void CPC2MapIterationStripe::setCurrentFrame(const float currentFrame) const {
         using namespace SharedDescriptorTemplate;
         auto &vidDesc = getDescriptor(SET_VIDEO);
         const auto &vidUBO = *vidDesc.get<vkh::Uniform>(0, DescVideo::BINDING_UBO_VIDEO);
@@ -48,7 +50,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPCIterationPalette2Map::setPalette(const ShdPaletteAttribute &palette) const {
+    void CPC2MapIterationStripe::setPalette(const ShdPaletteAttribute &palette) const {
         using namespace SharedDescriptorTemplate;
         auto &paletteDesc = getDescriptor(SET_PALETTE);
         auto &paletteSSBO = *paletteDesc.get<vkh::ShaderStorage>(0,
@@ -79,8 +81,26 @@ namespace merutilm::rff2 {
             });
     }
 
+    void CPC2MapIterationStripe::setStripe(const ShdStripeAttribute &stripe) const {
+        using namespace SharedDescriptorTemplate;
+        auto &stripeDesc = getDescriptor(SET_STRIPE);
+        const auto &stripeUBO = *stripeDesc.get<vkh::Uniform>(0, DescStripe::BINDING_UBO_STRIPE);
+        auto &stripeUBOHost = stripeUBO.getHostObject();
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_TYPE, static_cast<uint32_t>(stripe.stripeType));
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_FIRST_INTERVAL,
+                          stripe.firstInterval);
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_SECOND_INTERVAL,
+                          stripe.secondInterval);
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_OPACITY, stripe.opacity);
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_OFFSET, stripe.offset);
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_ANIMATION_SPEED,
+                          stripe.animationSpeed);
+        stripeUBO.update();
+    }
 
-    void CPCIterationPalette2Map::setDefaultZoomIncrement(const float defaultZoomIncrement) const {
+
+
+    void CPC2MapIterationStripe::setDefaultZoomIncrement(const float defaultZoomIncrement) const {
         using namespace SharedDescriptorTemplate;
         auto &vidDesc = getDescriptor(SET_VIDEO);
         const auto &vidUBO = *vidDesc.get<vkh::Uniform>(0, DescVideo::BINDING_UBO_VIDEO);
@@ -90,7 +110,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPCIterationPalette2Map::setAllIterations(const std::vector<double> &normal,
+    void CPC2MapIterationStripe::setAllIterations(const std::vector<double> &normal,
                                                    const std::vector<double> &zoomed) const {
         using namespace SharedDescriptorTemplate;
         auto &map2Desc = getDescriptor(SET_I2MAP);
@@ -104,7 +124,7 @@ namespace merutilm::rff2 {
         map2DescZoomedSSBO.update();
     }
 
-    void CPCIterationPalette2Map::set2MapSize(const VkExtent2D &extent) {
+    void CPC2MapIterationStripe::set2MapSize(const VkExtent2D &extent) {
         using namespace SharedDescriptorTemplate;
         const auto &[width, height] = extent;
         setExtent(extent);
@@ -138,7 +158,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPCIterationPalette2Map::setInfo(const double maxIteration, const float currentSec) const {
+    void CPC2MapIterationStripe::setInfo(const double maxIteration, const float currentSec) const {
         using namespace SharedDescriptorTemplate;
 
         auto &iter = getDescriptor(SET_OUTPUT_ITERATION);
@@ -155,11 +175,11 @@ namespace merutilm::rff2 {
         });
     }
 
-    void CPCIterationPalette2Map::configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) {
+    void CPC2MapIterationStripe::configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) {
         //noop
     }
 
-    void CPCIterationPalette2Map::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
+    void CPC2MapIterationStripe::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
         using namespace SharedDescriptorTemplate;
         auto normal = vkh::factory::create<vkh::HostDataObjectManager>();
         normal->reserveArray<double>(TARGET_I2MAP_SSBO_NORMAL_ITERATION, 1);
@@ -182,5 +202,6 @@ namespace merutilm::rff2 {
         outputManager->appendStorageImage(BINDING_OUTPUT_MERGED_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);
         appendUniqueDescriptor(SET_OUTPUT_IMAGE, descriptors, std::move(outputManager));
         appendDescriptor<DescIteration>(SET_OUTPUT_ITERATION, descriptors);
+        appendDescriptor<DescStripe>(SET_STRIPE, descriptors);
     }
 }

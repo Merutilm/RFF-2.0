@@ -49,7 +49,7 @@ namespace merutilm::rff2 {
         void setImages(uint32_t descIndex, const vkh::MultiframeImageContext &srcImage,
                        const vkh::MultiframeImageContext &dstImage) const;
 
-        void setBlurSize(uint32_t blurSizeDescIndex, float blurSize) const;
+        void setBlurInfo(uint32_t blurSizeDescIndex, float blurSize) const;
 
         void configure() override {
             ComputePipelineConfigurator::configure();
@@ -58,7 +58,7 @@ namespace merutilm::rff2 {
 
         void pipelineInitialized() override;
 
-        void windowResized() override;
+        void renderContextRefreshed() override;
 
     protected:
         void initSize() const;

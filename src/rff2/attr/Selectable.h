@@ -11,7 +11,7 @@
 #include "FrtMPACompressionMethod.h"
 #include "FrtMPASelectionMethod.h"
 #include "FrtReuseReferenceMethod.h"
-#include "StripeType.h"
+#include "ShdStripeType.h"
 
 
 namespace merutilm::rff2 {
@@ -58,8 +58,8 @@ namespace merutilm::rff2 {
                     REVERSED
                 };
             }
-            if constexpr (std::is_same_v<E, StripeType>) {
-                using enum StripeType;
+            if constexpr (std::is_same_v<E, ShdStripeType>) {
+                using enum ShdStripeType;
                 return {
                     NONE,
                     SINGLE_DIRECTION,
@@ -122,9 +122,9 @@ namespace merutilm::rff2 {
                     default: break;
                 }
             }
-            if constexpr (std::is_same_v<E, StripeType>) {
+            if constexpr (std::is_same_v<E, ShdStripeType>) {
                 switch (value) {
-                    using enum StripeType;
+                    using enum ShdStripeType;
                     case NONE: return L"None";
                     case SINGLE_DIRECTION: return L"Single Direction";
                     case SMOOTH: return L"Smooth";

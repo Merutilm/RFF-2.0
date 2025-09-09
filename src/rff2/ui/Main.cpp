@@ -32,7 +32,7 @@ void registerClasses() {
     videoWindowClass.lpszClassName = CLASS_VIDEO_WINDOW;
     videoWindowClass.lpfnWndProc = VideoWindow::videoWindowProc;
     videoWindowClass.hIcon = masterWindowClass.hIcon;
-    assert(RegisterClassExW(&videoWindowClass));
+    if(!RegisterClassExW(&videoWindowClass)) throw exception_init("Failed to register class : Video Window");
 
     WNDCLASSEXW settingsWindowClass = wClass;
     settingsWindowClass.lpszClassName = CLASS_SETTINGS_WINDOW;

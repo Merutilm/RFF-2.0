@@ -15,7 +15,6 @@ layout (location = 1) in vec2 fragTexcoord;
 layout (location = 0) out vec4 color;
 
 void main(){
-
     vec2 resolution = vec2(textureSize(normal, 0));
     vec2 coord = gl_FragCoord.xy / resolution;
 

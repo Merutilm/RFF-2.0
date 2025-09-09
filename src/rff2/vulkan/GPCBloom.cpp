@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
         //noop
     }
 
-    void GPCBloom::windowResized() {
+    void GPCBloom::renderContextRefreshed() {
         using namespace SharedDescriptorTemplate;
         auto &sic = wc.getSharedImageContext();
         auto &bloomDesc = getDescriptor(SET_BLOOM_CANVAS);

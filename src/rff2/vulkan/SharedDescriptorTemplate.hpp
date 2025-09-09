@@ -126,7 +126,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
     struct DescStripe final : public vkh::DescriptorTemplate {
         static constexpr uint32_t ID = 4;
-        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
         static constexpr uint32_t BINDING_UBO_STRIPE = 0;
 
@@ -282,7 +282,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
     struct DescVideo final : public vkh::DescriptorTemplate {
         static constexpr uint32_t ID = 10;
-        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_COMPUTE_BIT;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
         static constexpr uint32_t BINDING_UBO_VIDEO = 0;
 

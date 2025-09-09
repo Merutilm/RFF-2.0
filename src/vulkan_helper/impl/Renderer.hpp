@@ -10,15 +10,15 @@
 
 namespace merutilm::vkh {
     struct RendererAbstract : public Handler {
-
         EngineRef engine;
         WindowContextRef wc;
 
         uint32_t frameIndex = 0;
         bool pipelineInitialized = false;
         std::vector<PipelineConfigurator> configurators = {};
-        explicit RendererAbstract(EngineRef engine, const uint32_t windowContextIndex) : engine(engine), wc(engine.getWindowContext(windowContextIndex)) {
 
+        explicit RendererAbstract(EngineRef engine, const uint32_t windowContextIndex) : engine(engine),
+            wc(engine.getWindowContext(windowContextIndex)) {
         }
 
         ~RendererAbstract() override = default;
@@ -44,6 +44,11 @@ namespace merutilm::vkh {
 
         void execute() {
             SwapchainUtils::renderFrame(wc, &frameIndex, [this](const uint32_t swapchainImageIndex) {
+                if (frameIndex == 0) {
+                    for (auto &rc: wc.getRenderContexts()) {
+                        rc->getConfigurator()->allFrameInitialized();
+                    }
+                }
                 DescriptorUpdateQueue queue = DescriptorUpdater::createQueue();
                 const VkDevice device = wc.core.getLogicalDevice().getLogicalDeviceHandle();
 
@@ -66,11 +71,11 @@ namespace merutilm::vkh {
         }
 
     private:
-
         virtual void beforeCmdRender() = 0;
 
         virtual void cmdRender(uint32_t frameIndex, uint32_t swapchainImageIndex) = 0;
     };
+
     using Renderer = std::unique_ptr<RendererAbstract>;
     using RendererPtr = RendererAbstract *;
     using RendererRef = RendererAbstract &;

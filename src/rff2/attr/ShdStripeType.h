@@ -6,7 +6,7 @@
 
 
 namespace merutilm::rff2 {
-    enum class StripeType {
+    enum class ShdStripeType {
         NONE,
         SINGLE_DIRECTION,
         SMOOTH,

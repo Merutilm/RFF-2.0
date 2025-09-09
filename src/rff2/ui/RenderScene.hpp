@@ -114,13 +114,17 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] uint16_t getIterationBufferHeight(const Attribute &settings) const;
 
-        void applyDefaultSettings();
+        void applyDefaultAttr();
 
         void applyCreateImage();
 
         void applyShaderAttr(const Attribute &attr) const;
 
-        void applyResizeParams();
+        void refreshResizeParams();
+
+        void initRenderer();
+
+        void refreshRenderContext() const;
 
         void applyResize();
 
@@ -224,9 +228,7 @@ namespace merutilm::rff2 {
 
         void init() override;
 
-        void initRenderContext() const;
-
-        void initRenderer();
+        void attachRenderContext() const;
 
         void destroy() override;
     };

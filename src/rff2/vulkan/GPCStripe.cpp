@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCStripe::windowResized() {
+    void GPCStripe::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &samplerDesc = getDescriptor(SET_PREV_RESULT);
 

@@ -23,11 +23,11 @@ namespace merutilm::vkh {
         */
         static ImageContext imageFromByteColorArray(CoreRef core, CommandPoolRef commandPool, const VkFormat format,
                                                     const uint32_t width, const uint32_t height,
-                                                    const uint32_t texChannels, const bool useMipmap,
+                                                    const uint32_t texChannels, const uint32_t channelBits, const bool useMipmap,
                                                     const std::byte *const data) {
             const VkDeviceSize size = static_cast<uint64_t>(width) * static_cast<uint64_t>(height) * static_cast<
                                           uint64_t>(
-                                          texChannels);
+                                          texChannels) * channelBits / 8;
 
             auto staging = BufferContext::createContext(core, {
                                              .size = size,
@@ -35,9 +35,9 @@ namespace merutilm::vkh {
                                              .properties =
                                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                                          });
-            void *mapped = nullptr;
+
             BufferContext::mapMemory(core, staging);
-            memcpy(mapped, data, size);
+            memcpy(staging.mappedMemory, data, size);
             BufferContext::unmapMemory(core, staging);
 
 
@@ -121,7 +121,7 @@ namespace merutilm::vkh {
                 throw exception_init("Failed to load texture");
             }
             const ImageContext result = imageFromByteColorArray(core, commandPool, format, width, height, texChannels,
-                                                                useMipmap,
+                                                                8, useMipmap,
                                                                 reinterpret_cast<std::byte *>(data));
             stbi_image_free(data);
             return result;

@@ -31,7 +31,7 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCLinearInterpolation::windowResized() {
+    void GPCLinearInterpolation::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &samplerDesc = getDescriptor(SET_PREV_RESULT);
         switch (wc.getAttachmentIndex()) {

@@ -1,10 +1,10 @@
 #pragma once
-#include "StripeType.h"
+#include "ShdStripeType.h"
 
 
 namespace merutilm::rff2 {
     struct ShdStripeAttribute {
-        StripeType stripeType;
+        ShdStripeType stripeType;
         float firstInterval;
         float secondInterval;
         float opacity;

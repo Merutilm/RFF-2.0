@@ -33,7 +33,7 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCFog::windowResized() {
+    void GPCFog::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &fogDesc = getDescriptor(SET_FOG_CANVAS);
 

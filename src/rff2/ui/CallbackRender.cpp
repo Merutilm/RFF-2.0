@@ -20,7 +20,6 @@ namespace merutilm::rff2 {
                                              scene.getRequests().requestResize();
                                              scene.getRequests().requestRecompute();
                                          }, L"Clarity Multiplier", L"Sets the clarity multiplier.");
-
         window->registerTextInput<float>(L"Framerate", &fps, Unparser::FLOAT, Parser::FLOAT,
                                          ValidCondition::POSITIVE_FLOAT, [&scene] {
                                              scene.wndRequestFPS();
@@ -35,7 +34,7 @@ namespace merutilm::rff2 {
         settingsMenu.setCurrentActiveSettingsWindow(std::move(window));
     };
     const std::function<bool*(RenderScene &, bool)> CallbackRender::LINEAR_INTERPOLATION = [
-            ](RenderScene &scene, bool executeMode) {
+            ](RenderScene &scene, const bool executeMode) {
         if (executeMode) {
             scene.getRequests().requestShader();
         }

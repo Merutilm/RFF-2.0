@@ -17,12 +17,12 @@ namespace merutilm::rff2 {
         float barRatio = 0;
         std::wstring barText = L"";
         std::unique_ptr<VideoRenderScene> scene = nullptr;
-        const uint16_t width;
-        const uint16_t height;
+        const uint32_t width;
+        const uint32_t height;
 
         
     public:
-        explicit VideoWindow(vkh::EngineRef engine, uint16_t width, uint16_t height);
+        explicit VideoWindow(vkh::EngineRef engine, uint32_t width, uint32_t height);
 
         ~VideoWindow() override;
 

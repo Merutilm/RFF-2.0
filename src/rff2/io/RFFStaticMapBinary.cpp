@@ -7,6 +7,7 @@
 #include "../../vulkan_helper/core/logger.hpp"
 #include "../ui/IOUtilities.h"
 #include "opencv2/imgcodecs.hpp"
+#include "opencv2/imgproc.hpp"
 #include "opencv2/core/mat.hpp"
 
 namespace merutilm::rff2 {
@@ -46,7 +47,8 @@ namespace merutilm::rff2 {
         return read(dir / IOUtilities::fileNameFormat(id, Constants::Extension::STATIC_MAP));
     }
     cv::Mat RFFStaticMapBinary::loadImageByID(const std::filesystem::path &dir, const uint32_t id) {
-        return cv::imread((dir / IOUtilities::fileNameFormat(id, Constants::Extension::IMAGE)).string(), cv::IMREAD_COLOR_RGB);
+        cv::Mat result = cv::imread((dir / IOUtilities::fileNameFormat(id, Constants::Extension::IMAGE)).string(), cv::IMREAD_UNCHANGED);
+        return result;
     }
 
 

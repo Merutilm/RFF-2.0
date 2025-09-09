@@ -40,7 +40,7 @@ namespace merutilm::rff2 {
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto &[stripeType, firstInterval, secondInterval, opacity, offset, animationSpeed] = scene.getAttribute().shader.stripe;
         auto window = std::make_unique<SettingsWindow>(L"Set Stripe");
-        window->registerRadioButtonInput<StripeType>(L"Stripe Type", &stripeType, [&scene] {
+        window->registerRadioButtonInput<ShdStripeType>(L"Stripe Type", &stripeType, [&scene] {
             scene.getRequests().requestShader();
         }, L"Set Stripe Type", L"Sets the stripe type");
         window->registerTextInput<float>(L"Interval 1", &firstInterval, Unparser::FLOAT, Parser::FLOAT,

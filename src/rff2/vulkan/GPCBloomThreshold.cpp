@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
         //no operation
     }
 
-    void GPCBloomThreshold::windowResized() {
+    void GPCBloomThreshold::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &inputDesc = getDescriptor(SET_BLOOM_THRESHOLD);
 

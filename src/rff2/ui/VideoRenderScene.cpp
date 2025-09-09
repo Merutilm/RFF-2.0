@@ -19,51 +19,46 @@ namespace merutilm::rff2 {
     }
 
 
-    void VideoRenderScene::applyCurrentFrame() const {
-        renderer->rendererIteration2Map->setCurrentFrame(currentFrame);
-        // rendererStatic2Image->setCurrentFrame(currentFrame);
+    void VideoRenderScene::setCurrentFrame(const float currentFrame) {
+        this->currentFrame = currentFrame;
+        renderer->renderer2MapIterationStripe->setCurrentFrame(currentFrame);
     }
 
     void VideoRenderScene::applyCurrentDynamicMap(const RFFDynamicMapBinary &normal,
-                                                  const RFFDynamicMapBinary &zoomed, const float currentSec) const {
+                                                  const RFFDynamicMapBinary &zoomed) const {
         auto &normalI = normal.getMatrix();
 
         if (currentFrame < 1) {
-            const auto maxIteration = static_cast<double>(normal.getMaxIteration());
             const std::vector<double> zoomedDefault(normalI.getLength());
-            renderer->rendererIteration2Map->setInfo(maxIteration, currentSec);
-            renderer->rendererIteration2Map->setAllIterations(normalI.getCanvas(), zoomedDefault);
+            renderer->renderer2MapIterationStripe->setAllIterations(normalI.getCanvas(), zoomedDefault);
         } else {
             auto &zoomedI = zoomed.getMatrix();
-            const auto maxIteration = static_cast<double>(std::min(zoomed.getMaxIteration(), normal.getMaxIteration()));
-            renderer->rendererIteration2Map->setInfo(maxIteration, currentSec);
-            renderer->rendererIteration2Map->setAllIterations(normalI.getCanvas(), zoomedI.getCanvas());
+            renderer->renderer2MapIterationStripe->setAllIterations(normalI.getCanvas(), zoomedI.getCanvas());
         }
+    }
+
+    void VideoRenderScene::setInfo(const double maxIteration, const float currentSec) const {
+        renderer->renderer2MapIterationStripe->setInfo(maxIteration, currentSec);
     }
 
     void VideoRenderScene::applyShader() const {
         engine.getCore().getLogicalDevice().waitDeviceIdle();
-        renderer->rendererIteration2Map->setPalette(targetAttribute.shader.palette);
-        renderer->rendererIteration2Map->set2MapSize(videoExtent);
-        renderer->rendererIteration2Map->setDefaultZoomIncrement(targetAttribute.video.dataAttribute.defaultZoomIncrement);
-        renderer->rendererStripe->setStripe(targetAttribute.shader.stripe);
+        renderer->renderer2MapIterationStripe->setPalette(targetAttribute.shader.palette);
+        renderer->renderer2MapIterationStripe->set2MapSize(videoExtent);
+        renderer->renderer2MapIterationStripe->setDefaultZoomIncrement(targetAttribute.video.dataAttribute.defaultZoomIncrement);
+        renderer->renderer2MapIterationStripe->setStripe(targetAttribute.shader.stripe);
         renderer->rendererSlope->setSlope(targetAttribute.shader.slope);
         renderer->rendererColor->setColor(targetAttribute.shader.color);
         renderer->rendererFog->setFog(targetAttribute.shader.fog);
         renderer->rendererBloom->setBloom(targetAttribute.shader.bloom);
         renderer->rendererLinearInterpolation->setLinearInterpolation(targetAttribute.render.linearInterpolation);
-        renderer->rendererBoxBlur->setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, targetAttribute.shader.fog.radius);
+        renderer->rendererBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, targetAttribute.shader.fog.radius);
         renderer->rendererBoxBlur->
-                setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, targetAttribute.shader.bloom.radius);
+                setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, targetAttribute.shader.bloom.radius);
     }
 
-
-    void VideoRenderScene::setCurrentFrame(const float currentFrame) {
-        this->currentFrame = currentFrame;
-    }
-
-    void VideoRenderScene::setStatic(const bool isStatic) {
-        this->isStatic = isStatic;
+    void VideoRenderScene::setStatic(const bool isStatic) const {
+        renderer->isStaticImages = isStatic;
     }
 
     void VideoRenderScene::setMap(RFFBinary *normal, RFFBinary *zoomed) {
@@ -71,9 +66,8 @@ namespace merutilm::rff2 {
         this->zoomed = zoomed;
     }
 
-    void VideoRenderScene::applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed,
-                                                   float currentSec) const {
-        // rendererStatic2Image->setImageBuffer(normal, zoomed);
+    void VideoRenderScene::applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const {
+        renderer->rendererStaticImage->setImages(normal, zoomed);
     }
 
     void VideoRenderScene::initRenderContext() const {
@@ -101,6 +95,9 @@ namespace merutilm::rff2 {
         wc.attachRenderContext<RCCPresentVid>(wc.core,
                                            [this] { return wc.getSwapchain().populateSwapchainExtent(); },
                                            swapchainImageContextGetter);
+        wc.attachRenderContext<RCCStatic2Image>(wc.core,
+                                           [this] { return videoExtent; },
+                                           swapchainImageContextGetter);
     }
 
     void VideoRenderScene::initRenderer() {
@@ -114,7 +111,7 @@ namespace merutilm::rff2 {
         auto &[vWidth, vHeight] = videoExtent;
 
         for (const auto &sp: renderer->configurators) {
-            sp->windowResized();
+            sp->renderContextRefreshed();
         }
 
         renderer->rendererDownsampleForBlur->setRescaledResolution(0, {vWidth, vHeight});
@@ -145,17 +142,17 @@ namespace merutilm::rff2 {
         };
 
         sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_IMAGE_PRIMARY,
-                                               iiiGetter(VK_FORMAT_R16G16B16A16_UNORM,
+                                               iiiGetter(VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
-                                                         VK_IMAGE_USAGE_SAMPLED_BIT));
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT |
+                                                         VK_IMAGE_USAGE_STORAGE_BIT));
         sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_IMAGE_SECONDARY,
-                                               iiiGetter( VK_FORMAT_R16G16B16A16_UNORM,
+                                               iiiGetter(VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-                                                         VK_IMAGE_USAGE_SAMPLED_BIT |
-                                                        VK_IMAGE_USAGE_STORAGE_BIT));
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT));
         sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
                                                iiiGetter(VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
@@ -226,8 +223,8 @@ namespace merutilm::rff2 {
             vkh::BufferImageContextUtils::cmdCopyImageToBuffer(executor.getCommandBufferHandle(), imgCtx, bufCtx);
         }
         vkh::BufferContext::unmapMemory(wc.core, bufCtx);
-        auto currentImage = cv::Mat(static_cast<int>(videoExtent.height), static_cast<int>(videoExtent.width), CV_16UC4, bufCtx.mappedMemory);
-        cv::cvtColor(currentImage, currentImage, cv::COLOR_RGBA2BGRA);
+        auto currentImage = cv::Mat(static_cast<int>(videoExtent.height), static_cast<int>(videoExtent.width), CV_8UC4, bufCtx.mappedMemory);
+        cv::cvtColor(currentImage, currentImage, cv::COLOR_RGBA2BGR);
         vkh::BufferContext::destroyContext(wc.core, bufCtx);
         return currentImage;
     }

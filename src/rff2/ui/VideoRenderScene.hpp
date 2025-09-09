@@ -14,7 +14,6 @@ namespace merutilm::rff2 {
         vkh::WindowContextRef wc;
         RFFBinary *normal = nullptr;
         RFFBinary *zoomed = nullptr;
-        bool isStatic = false;
         float currentFrame = 0;
         uint32_t frameIndex = 0;
         const VkExtent2D videoExtent;
@@ -35,21 +34,19 @@ namespace merutilm::rff2 {
 
         VideoRenderScene &operator=(VideoRenderScene &&) = delete;
 
+        void applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed) const;
 
-        void applyCurrentFrame() const;
-
-        void applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed,
-                                    float currentSec) const;
+        void setInfo(double maxIteration, float currentSec) const;
 
         void applyShader() const;
 
         void setCurrentFrame(float currentFrame);
 
-        void setStatic(bool isStatic);
+        void setStatic(bool isStatic) const;
 
         void setMap(RFFBinary *normal, RFFBinary *zoomed);
 
-        void applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed, float currentSec) const;
+        void applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const;
 
         void initRenderContext() const;
 

@@ -54,6 +54,6 @@ namespace merutilm::rff2 {
     }
 
     RenderAttribute RenderPresets::Extreme::genRender() const {
-        return RenderAttribute{4.0f, 60, true, std::thread::hardware_concurrency()};
+        return RenderAttribute{4.0f,  60, true, std::thread::hardware_concurrency()};
     }
 }

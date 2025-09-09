@@ -3,12 +3,12 @@
 layout (set = 0, binding = 0, rgba8) readonly uniform image2D srcImage;
 layout (set = 0, binding = 1, rgba8) writeonly uniform image2D dstImage;
 
-layout (set = 1, binding = 0) uniform BlurUBO {
+layout (set = 1, binding = 0) uniform BlurTargetUBO {
     float blur_size;
 } blur_attr;
 
-
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
 
 void main() {
     ivec2 size = imageSize(srcImage);

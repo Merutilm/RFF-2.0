@@ -35,7 +35,7 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCColor::windowResized() {
+    void GPCColor::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &inputDesc = getDescriptor(SET_PREV_RESULT);
 

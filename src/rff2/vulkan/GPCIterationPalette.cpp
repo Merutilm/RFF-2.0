@@ -107,7 +107,7 @@ namespace merutilm::rff2 {
             });
     }
 
-    void GPCIterationPalette::windowResized() {
+    void GPCIterationPalette::renderContextRefreshed() {
         //no operation
     }
 

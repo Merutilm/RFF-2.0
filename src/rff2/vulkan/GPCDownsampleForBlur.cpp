@@ -29,7 +29,7 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCDownsampleForBlur::windowResized() {
+    void GPCDownsampleForBlur::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &resampleDesc = getDescriptor(SET_RESAMPLE);
         switch (wc.getAttachmentIndex()) {

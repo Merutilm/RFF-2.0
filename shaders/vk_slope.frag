@@ -1,7 +1,7 @@
 #version 450
 #define PI 3.141592653589793238
 
-layout (input_attachment_index = 0, set = 0, binding = 0) uniform subpassInput canvas;
+layout (set = 0, binding = 0) uniform sampler2D canvas;
 
 layout (set = 1, binding = 0) uniform IterUBO {
     uvec2 extent;
@@ -12,7 +12,7 @@ layout (set = 1, binding = 1) buffer IterSSBO {
     double iterations[];
 } iteration_attr;
 
-layout (set = 2, binding = 0) uniform SlopeUBO{
+layout (set = 2, binding = 0) uniform SlopeUBO {
     float depth;
     float reflection_ratio;
     float opacity;
@@ -37,7 +37,8 @@ void main() {
 
 
     if(slope_attr.reflection_ratio >= 1 || slope_attr.depth == 0){
-        discard;
+        color = texelFetch(canvas, ivec2(iter_coord), 0);
+        return;
     }
 
     float multiplier = float(iteration_info_attr.extent.x) / 1280;
@@ -62,5 +63,5 @@ void main() {
     float fShade = 1 - slope_attr.opacity * (1 - shade);
 
 
-    color = vec4(subpassLoad(canvas).rgb * fShade, 1);
+    color = vec4(texelFetch(canvas, ivec2(iter_coord), 0).rgb * fShade, 1);
 }

@@ -5,7 +5,6 @@
 #pragma once
 #include "SharedImageContextIndices.hpp"
 #include "../../vulkan_helper/configurator/RenderContextConfigurator.hpp"
-#include "../../vulkan_helper/util/BufferImageContextUtils.hpp"
 
 namespace merutilm::rff2 {
     struct RCC1 final : public vkh::RenderContextConfiguratorAbstract {

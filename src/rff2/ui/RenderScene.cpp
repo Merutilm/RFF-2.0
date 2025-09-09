@@ -28,6 +28,7 @@
 #include "../vulkan/RCC2.hpp"
 #include "../vulkan/RCC4.hpp"
 #include "../vulkan/RCCPresent.hpp"
+#include "../vulkan/RCCStatic2Image.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 #include "../vulkan/SharedImageContextIndices.hpp"
 #include "opencv2/opencv.hpp"
@@ -49,20 +50,24 @@ namespace merutilm::rff2 {
 
     void RenderScene::init() {
         refreshSharedImgContext();
-        initRenderContext();
+        attachRenderContext();
         initRenderer();
+        refreshRenderContext();
+        refreshResizeParams();
+        applyShaderAttr(attr);
         wndRequestFPS();
+        requests.requestRecompute();
     }
 
 
-    void RenderScene::initRenderContext() const {
+    void RenderScene::attachRenderContext() const {
         const auto swapchainImageContextGetter = [this] {
             auto &swapchain = wc.getSwapchain();
             return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
         };
         wc.attachRenderContext<RCC0>(wc.core,
-                                            [this] { return getInternalImageExtent(); },
-                                            swapchainImageContextGetter);
+                                     [this] { return getInternalImageExtent(); },
+                                     swapchainImageContextGetter);
         wc.attachRenderContext<RCC1>(wc.core,
                                      [this] { return getInternalImageExtent(); },
                                      swapchainImageContextGetter);
@@ -83,13 +88,6 @@ namespace merutilm::rff2 {
                                            swapchainImageContextGetter);
     }
 
-    void RenderScene::initRenderer() {
-        renderer = std::make_unique<RenderSceneRenderer>(engine, wc.getAttachmentIndex());
-        applyResizeParams();
-        applyShaderAttr(attr);
-        requests.requestRecompute();
-    }
-
     void RenderScene::resolveWindowResizeEnd() const {
         if (wc.getWindow().isUnrenderable()) {
             return;
@@ -102,9 +100,9 @@ namespace merutilm::rff2 {
 
 
     void RenderScene::render() {
-        if (requests.defaultSettingsRequested) {
-            applyDefaultSettings();
-            requests.defaultSettingsRequested.exchange(false);
+        if (requests.defaultAttrRequested) {
+            applyDefaultAttr();
+            requests.defaultAttrRequested.exchange(false);
             backgroundThreads.notifyAll();
         }
         if (requests.shaderRequested) {
@@ -239,7 +237,7 @@ namespace merutilm::rff2 {
                 constexpr float increment = Constants::Render::ZOOM_INTERVAL;
 
                 attr.fractal.logZoom = std::max(Constants::Render::ZOOM_MIN,
-                                             attr.fractal.logZoom);
+                                                attr.fractal.logZoom);
                 if (value == 1) {
                     const std::array<dex, 2> offset = offsetConversion(attr, getMouseXOnIterationBuffer(),
                                                                        getMouseYOnIterationBuffer());
@@ -312,14 +310,17 @@ namespace merutilm::rff2 {
         return static_cast<uint16_t>(static_cast<float>(getClientHeight()) * multiplier);
     }
 
-    void RenderScene::applyDefaultSettings() {
+    void RenderScene::applyDefaultAttr() {
         wc.core.getLogicalDevice().waitDeviceIdle();
         attr = genDefaultAttr();
     }
 
 
     void RenderScene::applyCreateImage() {
-        wc.core.getLogicalDevice().waitDeviceIdle();
+        const uint32_t frameIndex = renderer->getFrameIndex();
+        const VkFence fence = wc.getSyncObject().getFence(frameIndex).getFenceHandle();
+        vkWaitForFences(wc.core.getLogicalDevice().getLogicalDeviceHandle(), 1, &fence, VK_TRUE, UINT64_MAX);
+
         if (requests.createImageRequestedFilename.empty()) {
             requests.createImageRequestedFilename = IOUtilities::ioFileDialog(
                 L"Save image", Constants::Extension::DESC_IMAGE,
@@ -327,7 +328,7 @@ namespace merutilm::rff2 {
                 Constants::Extension::IMAGE)->string();
         }
         const auto &imgCtx = wc.getSharedImageContext().getImageContextMF(
-            SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY)[0];
+            SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY)[frameIndex];
 
         vkh::BufferContext bufCtx = vkh::BufferContext::createContext(wc.core, {
                                                                           .size = imgCtx.capacity,
@@ -349,6 +350,7 @@ namespace merutilm::rff2 {
             vkh::BufferImageContextUtils::cmdCopyImageToBuffer(executor.getCommandBufferHandle(), imgCtx, bufCtx);
         }
         vkh::BufferContext::unmapMemory(wc.core, bufCtx);
+
         auto img = cv::Mat(static_cast<int>(imgCtx.extent.height), static_cast<int>(imgCtx.extent.width), CV_16UC4,
                            bufCtx.mappedMemory);
         cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
@@ -365,38 +367,47 @@ namespace merutilm::rff2 {
         renderer->rendererFog->setFog(attr.shader.fog);
         renderer->rendererBloom->setBloom(attr.shader.bloom);
         renderer->rendererLinearInterpolation->setLinearInterpolation(attr.render.linearInterpolation);
-        renderer->rendererBoxBlur->setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, attr.shader.fog.radius);
+        renderer->rendererBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, attr.shader.fog.radius);
         renderer->rendererBoxBlur->
-                setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, attr.shader.bloom.radius);
+                setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, attr.shader.bloom.radius);
     }
 
-    void RenderScene::applyResizeParams() {
+    void RenderScene::refreshResizeParams() {
         const uint16_t iw = getIterationBufferWidth(attr);
         const uint16_t ih = getIterationBufferHeight(attr);
         const auto &[dWidth, dHeight] = getBlurredImageExtent();
         const auto &[sWidth, sHeight] = getSwapchainRenderContextExtent();
 
-        for (const auto &sp: renderer->configurators) {
-            sp->windowResized();
-        }
         renderer->rendererDownsampleForBlur->setRescaledResolution(0, {dWidth, dHeight});
         renderer->rendererDownsampleForBlur->setRescaledResolution(1, {dWidth, dHeight});
         renderer->rendererPresent->setRescaledResolution({sWidth, sHeight});
         renderer->rendererIteration->resetIterationBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
-        renderer->iterationStagingBufferContext = std::make_unique<GraphicsMatrixBuffer<double> >(wc.core, iw, ih, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+        renderer->iterationStagingBufferContext = std::make_unique<GraphicsMatrixBuffer<double> >(
+            wc.core, iw, ih, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     }
 
-    void RenderScene::applyResize() {
-        using namespace SharedImageContextIndices;
+    void RenderScene::initRenderer() {
         wc.core.getLogicalDevice().waitDeviceIdle();
+        renderer = std::make_unique<RenderSceneRenderer>(engine, wc.getAttachmentIndex());
+    }
 
+
+    void RenderScene::applyResize() {
+        wc.core.getLogicalDevice().waitDeviceIdle();
         refreshSharedImgContext();
+        refreshRenderContext();
+        refreshResizeParams();
+    }
 
+    void RenderScene::refreshRenderContext() const {
         for (auto &context: wc.getRenderContexts()) {
             context->recreate();
         }
-        applyResizeParams();
+
+        for (const auto &sp: renderer->configurators) {
+            sp->renderContextRefreshed();
+        }
     }
 
 
@@ -488,9 +499,9 @@ namespace merutilm::rff2 {
 
     void RenderScene::beforeCompute(Attribute &attr) const {
         attr.fractal.maxIteration = attr.fractal.autoMaxIteration
-                                     ? lastPeriod * attr.fractal.
-                                       autoIterationMultiplier
-                                     : this->attr.fractal.maxIteration;
+                                        ? lastPeriod * attr.fractal.
+                                          autoIterationMultiplier
+                                        : this->attr.fractal.maxIteration;
         renderer->rendererIteration->setMaxIteration(static_cast<double>(attr.fractal.maxIteration));
     }
 
@@ -623,17 +634,17 @@ namespace merutilm::rff2 {
         auto previewer = ParallelArrayDispatcher<double>(
             state, *iterationMatrix, attr.render.threads,
             [attr, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y,
-                                                        const uint16_t xRes, uint16_t, float,
+                                                        const uint16_t xRes, const uint16_t yRes, float,
                                                         float, const uint32_t i, double) {
                 rendered[i] = true;
                 const auto dc = offsetConversion(attr, x, y);
                 const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
                 renderer->iterationStagingBufferContext->set(x, y, iteration);
 
-                auto my = static_cast<int16_t>(y - 1);
-                while (my >= 0 && !rendered[my * xRes + x]) {
+                auto my = static_cast<int16_t>(y + 1);
+                while (my < yRes && !rendered[my * xRes + x]) {
                     renderer->iterationStagingBufferContext->set(x, my, iteration);
-                    --my;
+                    ++my;
                 }
 
                 ++renderPixelsCount;

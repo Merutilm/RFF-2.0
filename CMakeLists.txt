@@ -43,7 +43,7 @@ add_executable(
         src/rff2/data/Matrix.h
         src/rff2/attr/ShdPalColorSmoothingMethod.h
         src/rff2/data/ColorUtils.h
-        src/rff2/attr/StripeType.h
+        src/rff2/attr/ShdStripeType.h
         src/rff2/attr/VidAnimationAttribute.h
         src/rff2/formula/LightMandelbrotReference.cpp
         src/rff2/formula/LightMandelbrotReference.h
@@ -313,8 +313,8 @@ add_executable(
         src/rff2/ui/VideoRenderScene.cpp
         src/rff2/ui/VideoRenderScene.hpp
         src/rff2/ui/VideoRenderSceneRenderer.hpp
-        src/rff2/vulkan/CPCIterationPalette2Map.cpp
-        src/rff2/vulkan/CPCIterationPalette2Map.hpp
+        src/rff2/vulkan/CPC2MapIterationStripe.cpp
+        src/rff2/vulkan/CPC2MapIterationStripe.hpp
         src/rff2/vulkan/RCC1Vid.hpp
         src/rff2/vulkan/RCC2Vid.hpp
         src/rff2/vulkan/RCC3Vid.hpp
@@ -324,6 +324,8 @@ add_executable(
         src/vulkan_helper/impl/Renderer.hpp
         src/rff2/vulkan/RCC0.hpp
         src/vulkan_helper/core/allocator.hpp
+        src/rff2/vulkan/GPCStaticImage2Map.cpp
+        src/rff2/vulkan/GPCStaticImage2Map.hpp
 )
 
 find_package(Vulkan REQUIRED)

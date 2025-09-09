@@ -34,7 +34,7 @@ layout (location = 0) out vec4 color;
 vec4 get_color(double iteration) {
 
     if (iteration == 0 || iteration >= iteration_info_attr.max_value) {
-        return vec4(0, 0, 0, 1);
+        discard;
     }
     switch (palette_attr.smoothing) {
         case NONE:
@@ -48,9 +48,9 @@ vec4 get_color(double iteration) {
     }
 
 
-    double timed_offset_ratio = palette_attr.offset - double(time_attr.time) * palette_attr.animation_speed / palette_attr.interval;
-    double palette_offset_ratio = mod(iteration / palette_attr.interval + timed_offset_ratio, 1);
-    double palette_offset = palette_offset_ratio * palette_attr.size;
+    double timed_offset_ratio = palette_attr.offset - double(time_attr.time * palette_attr.animation_speed / palette_attr.interval);
+    double palette_offset_ratio = mod(iteration / double(palette_attr.interval) + timed_offset_ratio, 1);
+    double palette_offset = palette_offset_ratio * double(palette_attr.size);
     float palette_offset_decimal = float(mod(palette_offset, 1));
 
     uint cpl = uint(palette_offset_ratio * palette_attr.size);

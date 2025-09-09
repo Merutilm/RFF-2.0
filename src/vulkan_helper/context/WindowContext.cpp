@@ -18,6 +18,7 @@ namespace merutilm::vkh {
     }
 
     void WindowContextImpl::init() {
+
         surface = factory::create<Surface>(core.getInstance(), *window);
         if (!PhysicalDeviceUtils::isDeviceSuitable(core.getPhysicalDevice().getPhysicalDeviceHandle(),
                                                    surface->getSurfaceHandle())) {

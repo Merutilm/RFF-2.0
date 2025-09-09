@@ -10,7 +10,8 @@
 #include "opencv2/opencv.hpp"
 
 namespace merutilm::rff2 {
-    VideoWindow::VideoWindow(vkh::EngineRef engine, const uint16_t width, const uint16_t height) : EngineHandler(engine), width(width), height(height) {
+    VideoWindow::VideoWindow(vkh::EngineRef engine, const uint32_t width,
+                             const uint32_t height) : EngineHandler(engine), width(width), height(height) {
         VideoWindow::init();
     }
 
@@ -38,7 +39,7 @@ namespace merutilm::rff2 {
         const auto &window = *reinterpret_cast<VideoWindow *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
         switch (message) {
             case WM_DESTROY: {
-                MessageBox(hwnd, "Render Finished!", "Done", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
+                MessageBoxW(window.engine.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).getWindow().getWindowHandle(), L"Render Finished!", L"Done", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
                 PostQuitMessage(0);
                 return 0;
             }
@@ -94,13 +95,13 @@ namespace merutilm::rff2 {
                                   const Attribute &attr,
                                   const std::filesystem::path &open,
                                   const std::filesystem::path &save) {
-        uint16_t imgWidth = 0;
-        uint16_t imgHeight = 0;
+        uint32_t imgWidth = 0;
+        uint32_t imgHeight = 0;
 
         if (attr.video.dataAttribute.isStatic) {
             const RFFStaticMapBinary targetMap = RFFStaticMapBinary::readByID(open, 1);
             if (!targetMap.hasData()) {
-                MessageBox(nullptr, "Cannot create video. There is no samples in the directory", "Export failed",
+                MessageBoxW(nullptr, L"Cannot create video. There is no samples in the directory", L"Export failed",
                            MB_ICONERROR | MB_OK);
                 return;
             }
@@ -110,7 +111,7 @@ namespace merutilm::rff2 {
         } else {
             const RFFDynamicMapBinary targetMap = RFFDynamicMapBinary::readByID(open, 1);
             if (!targetMap.hasData()) {
-                MessageBox(nullptr, "Cannot create video. There is no samples in the directory", "Export failed",
+                MessageBoxW(nullptr, L"Cannot create video. There is no samples in the directory", L"Export failed",
                            MB_ICONERROR | MB_OK);
                 return;
             }
@@ -121,15 +122,14 @@ namespace merutilm::rff2 {
             imgHeight = targetMatrix.getHeight();
         }
 
-        cv::VideoWriter writer;
 
-        const uint16_t cw = std::min(imgWidth, static_cast<uint16_t>(1280));
-        const auto ch = static_cast<uint16_t>(static_cast<uint32_t>(cw) * imgHeight / imgWidth);
+        const uint32_t cw = std::min(imgWidth, 1280u);
+        const auto ch = cw * imgHeight / imgWidth;
         auto window = VideoWindow(engine, cw, ch);
         window.createScene(VkExtent2D{imgWidth, imgHeight}, attr);
-        std::jthread thread(
-            [&window, &imgWidth, &imgHeight, &writer, &attr, &open, &save] {
 
+        std::jthread thread(
+        [&window, imgWidth, imgHeight, &attr, &open, &save] {
                 const auto &[defaultZoomIncrement, isStatic] = attr.video.dataAttribute;
                 const auto &[overZoom, showText, mps] = attr.video.animationAttribute;
                 const auto &[fps, bitrate] = attr.video.exportAttribute;
@@ -142,10 +142,11 @@ namespace merutilm::rff2 {
                 auto currentFrame = static_cast<float>(maxNumber);
                 float currentSec = 0;
                 uint32_t pf1 = UINT32_MAX;
-
+                cv::VideoWriter writer;
                 writer.open(save.string(), CV_FOURCC('a', 'v', 'c', '1'), fps, cv::Size(imgWidth, imgHeight));
+
                 if (!writer.isOpened()) {
-                    MessageBox(nullptr, "Cannot open file!!", "Export failed", MB_ICONERROR | MB_OK);
+                    MessageBoxW(nullptr, L"Cannot open file!!", L"Export failed", MB_ICONERROR | MB_OK);
                     return;
                 }
                 const float startSec = Utilities::getCurrentTime();
@@ -154,8 +155,8 @@ namespace merutilm::rff2 {
                 RFFDynamicMapBinary normalDynamic = RFFDynamicMapBinary::DEFAULT;
                 RFFStaticMapBinary zoomedStatic = RFFStaticMapBinary::DEFAULT;
                 RFFStaticMapBinary normalStatic = RFFStaticMapBinary::DEFAULT;
-                cv::Mat zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
-                cv::Mat normalStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
+                cv::Mat zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
+                cv::Mat normalStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
 
 
                 while (currentFrame > minNumber) {
@@ -169,9 +170,8 @@ namespace merutilm::rff2 {
                             if (isStatic) {
                                 zoomedStatic = RFFStaticMapBinary::DEFAULT;
                                 normalStatic = RFFStaticMapBinary::readByID(open, 1);
-                                zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
+                                zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
                                 normalStaticImage = RFFStaticMapBinary::loadImageByID(open, 1);
-                                cv::flip(normalStaticImage, normalStaticImage, 0);
                             } else {
                                 zoomedDynamic = RFFDynamicMapBinary::DEFAULT;
                                 normalDynamic = RFFDynamicMapBinary::readByID(open, 1);
@@ -187,8 +187,6 @@ namespace merutilm::rff2 {
                                 normalStatic = RFFStaticMapBinary::readByID(open, f2);
                                 zoomedStaticImage = RFFStaticMapBinary::loadImageByID(open, f1);
                                 normalStaticImage = RFFStaticMapBinary::loadImageByID(open, f2);
-                                cv::flip(normalStaticImage, normalStaticImage, 0);
-                                cv::flip(zoomedStaticImage, zoomedStaticImage, 0);
                             } else {
                                 zoomedDynamic = RFFDynamicMapBinary::readByID(open, f1);
                                 normalDynamic = RFFDynamicMapBinary::readByID(open, f2);
@@ -205,26 +203,26 @@ namespace merutilm::rff2 {
                     cv::Mat img = cv::Mat::zeros(imgHeight, imgWidth, CV_8UC3);
                     window.scene->setStatic(isStatic);
                     window.scene->setCurrentFrame(currentFrame);
-                    window.scene->applyCurrentFrame();
 
                     if (requiredRefresh) {
                         if (isStatic) {
                             window.scene->setMap(&normalStatic, &zoomedStatic);
-                            window.scene->applyCurrentStaticImage(normalStaticImage, zoomedStaticImage, currentSec);
+                            window.scene->applyCurrentStaticImage(normalStaticImage, zoomedStaticImage);
                         } else {
                             window.scene->setMap(&normalDynamic, &zoomedDynamic);
-                            window.scene->applyCurrentDynamicMap(normalDynamic, zoomedDynamic, currentSec);
+                            window.scene->applyCurrentDynamicMap(normalDynamic, zoomedDynamic);
                         }
                     }
+                    window.scene->setInfo(isStatic ? DBL_MAX : static_cast<double>(normalDynamic.getMaxIteration()), currentSec);
                     const float zoom = window.scene->calculateZoom(defaultZoomIncrement);
 
                     window.scene->renderOnce();
                     img = window.scene->generateImage();
 
                     if (showText) {
-                        const int xg = std::max(1, imgWidth / 72);
-                        const int yg = std::max(1, imgWidth / 192);
-                        const int loc = std::max(1, imgWidth / 40);
+                        const int xg = std::max(1, static_cast<int>(imgWidth / 72));
+                        const int yg = std::max(1, static_cast<int>(imgWidth / 192));
+                        const int loc = std::max(1, static_cast<int>(imgWidth / 40));
                         const float size = std::max(1.0f, static_cast<float>(imgWidth) / 800);
                         const int off = std::max(1, loc / 15);
                         const int tkn = std::max(1, off / 2);
@@ -256,7 +254,7 @@ namespace merutilm::rff2 {
                     PostMessage(window.videoWindow, WM_CLOSE, 0, 0);
                 }
             });
-        window.messageLoop();
+        messageLoop();
     }
 
     void VideoWindow::messageLoop() {
@@ -286,7 +284,6 @@ namespace merutilm::rff2 {
                               CW_USEDEFAULT,
                               CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr, nullptr);
 
-
         SetWindowLongPtr(videoWindow, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
         SetWindowPos(videoWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -299,6 +296,7 @@ namespace merutilm::rff2 {
         const auto wc = engine.
                 attachWindowContext(renderWindow, Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX);
         scene = std::make_unique<VideoRenderScene>(engine, *wc, videoExtent, targetAttribute);
+
     }
 
     void VideoWindow::destroy() {

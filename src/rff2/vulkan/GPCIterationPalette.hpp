@@ -46,7 +46,7 @@ namespace merutilm::rff2 {
 
         void pipelineInitialized() override;
 
-        void windowResized() override;
+        void renderContextRefreshed() override;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;

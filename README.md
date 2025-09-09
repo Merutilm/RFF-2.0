@@ -1,6 +1,3 @@
-
-- ### ⚠️ The application is currently being rewritten from <u>OpenGL</u> to <u>Vulkan API</u>. Please use the latest release version. (99% Done, BugFixing and Optimizing)
-
 # RFF 2.0
 
 
@@ -16,6 +13,8 @@
 
 - A program that achieves extremely fast `Power-2 Mandelbrot set`.
 
+- The application is built with the Vulkan API.
+
 - This program uses `Fast-period-guessing`*(a.k.a. FPG)* which I developed. It automatically generates the `longest period` of the selected location.
 This value is unmodifiable.
 
@@ -28,6 +27,7 @@ To put it simply, it skips to the `Periodic point` directly.
 Of course, the approximation table can also be compressed using this algorithm, and jumps a <u>**HUGE**</u> process! \
 Therefore, If you are trying to render long periods (over `10,000,000` or so), You should compress the references. \
 This will be <u>**SIGNIFICANTLY**</u> faster because it <u>**SUPERJUMPS**</u> process of table creation. 
+
 
 - Save amazing images using shaders!
 

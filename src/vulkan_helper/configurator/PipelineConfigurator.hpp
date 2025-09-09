@@ -117,7 +117,7 @@ namespace merutilm::vkh {
 
         virtual void pipelineInitialized() = 0;
 
-        virtual void windowResized() = 0;
+        virtual void renderContextRefreshed() = 0;
 
     protected:
         virtual void configure() = 0;

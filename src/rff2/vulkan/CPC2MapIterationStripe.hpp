@@ -5,9 +5,10 @@
 #pragma once
 #include "../../vulkan_helper/configurator/ComputePipelineConfigurator.hpp"
 #include "../attr/ShdPaletteAttribute.h"
+#include "../attr/ShdStripeAttribute.h"
 
 namespace merutilm::rff2 {
-    struct CPCIterationPalette2Map final : public vkh::ComputePipelineConfigurator {
+    struct CPC2MapIterationStripe final : public vkh::ComputePipelineConfigurator {
 
         static constexpr uint32_t SET_I2MAP = 0;
         static constexpr uint32_t BINDING_I2MAP_SSBO_NORMAL = 0;
@@ -20,20 +21,21 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_OUTPUT_IMAGE = 4;
         static constexpr uint32_t BINDING_OUTPUT_MERGED_IMAGE = 0;
         static constexpr uint32_t SET_OUTPUT_ITERATION = 5;
+        static constexpr uint32_t SET_STRIPE = 6;
 
-        explicit CPCIterationPalette2Map(vkh::EngineRef engine, const uint32_t windowContextIndex)
-            : ComputePipelineConfigurator(engine, windowContextIndex, "vk_iteration_palette_2_map.comp") {
+        explicit CPC2MapIterationStripe(vkh::EngineRef engine, const uint32_t windowContextIndex)
+            : ComputePipelineConfigurator(engine, windowContextIndex, "vk_2_map_iter_stripe.comp") {
         }
 
-        ~CPCIterationPalette2Map() override = default;
+        ~CPC2MapIterationStripe() override = default;
 
-        CPCIterationPalette2Map(const CPCIterationPalette2Map &) = delete;
+        CPC2MapIterationStripe(const CPC2MapIterationStripe &) = delete;
 
-        CPCIterationPalette2Map &operator=(const CPCIterationPalette2Map &) = delete;
+        CPC2MapIterationStripe &operator=(const CPC2MapIterationStripe &) = delete;
 
-        CPCIterationPalette2Map(CPCIterationPalette2Map &&) = delete;
+        CPC2MapIterationStripe(CPC2MapIterationStripe &&) = delete;
 
-        CPCIterationPalette2Map &operator=(CPCIterationPalette2Map &&) = delete;
+        CPC2MapIterationStripe &operator=(CPC2MapIterationStripe &&) = delete;
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
@@ -43,11 +45,13 @@ namespace merutilm::rff2 {
 
         void pipelineInitialized() override;
 
-        void windowResized() override;
+        void renderContextRefreshed() override;
 
         void setCurrentFrame(float currentFrame) const;
 
         void setPalette(const ShdPaletteAttribute &palette) const;
+
+        void setStripe(const ShdStripeAttribute &stripe) const;
 
         void setDefaultZoomIncrement(float defaultZoomIncrement) const;
 

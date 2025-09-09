@@ -1,0 +1,202 @@
+#version 450
+#define SMOOTH_ITER_NONE 0
+#define SMOOTH_ITER_NORMAL 1
+#define SMOOTH_ITER_REVERSED 2
+
+#define DOUBLE_PI 6.2831853071795864
+#define STRIPE_NONE 0
+#define STRIPE_SINGLE_DIRECTION 1
+#define STRIPE_SMOOTH 2
+#define STRIPE_SMOOTH_SQUARED 3
+
+layout (set = 0, binding = 0) buffer Iteration2MapNormalSSBO {
+    double iterations[];
+} it2map_normal_attr;
+
+layout (set = 0, binding = 1) buffer Iteration2MapZoomedSSBO {
+    double iterations[];
+} it2map_zoomed_attr;
+
+
+layout (set = 1, binding = 0) uniform VideoUBO {
+    float default_zoom_increment;
+    float current_frame;
+} video_attr;
+
+
+layout (set = 2, binding = 0) buffer PaletteSSBO {
+    uint size;
+    float interval;
+    double offset;
+    uint smoothing;
+    float animation_speed;
+    vec4 palette[];
+} palette_attr;
+
+layout (set = 3, binding = 0) uniform TimeUBO {
+    float time;
+} time_attr;
+
+layout (set = 4, binding = 0, rgba8) writeonly uniform image2D merged_image_output;
+
+
+layout (set = 5, binding = 0) uniform OutputIterationUBO {
+    uvec2 extent;
+    double max_value;
+} iteration_output_info_attr;
+
+layout (set = 5, binding = 1) writeonly buffer OutputIterationSSBO {
+    double[] iterations;
+} iteration_output_attr;
+
+layout (set = 6, binding = 0) uniform StripeUBO {
+    uint type;
+    float first_interval;
+    float second_interval;
+    float opacity;
+    float offset;
+    float animation_speed;
+} stripe_attr;
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+
+vec4 get_color(double iteration) {
+
+    if (iteration == 0 || iteration >= iteration_output_info_attr.max_value) {
+        return vec4(0, 0, 0, 1);
+    }
+    switch (palette_attr.smoothing) {
+        case SMOOTH_ITER_NONE:
+            iteration = iteration - mod(iteration, 1);
+            break;
+        case SMOOTH_ITER_NORMAL:
+            break;
+        case SMOOTH_ITER_REVERSED:
+            iteration = iteration + 1 - 2 * mod(iteration, 1);
+            break;
+    }
+
+
+    double timed_offset_ratio = palette_attr.offset - double(time_attr.time * palette_attr.animation_speed / palette_attr.interval);
+    double palette_offset_ratio = mod(iteration / double(palette_attr.interval) + timed_offset_ratio, 1);
+    double palette_offset = palette_offset_ratio * double(palette_attr.size);
+    float palette_offset_decimal = float(mod(palette_offset, 1));
+
+    uint cpl = uint(palette_offset_ratio * palette_attr.size);
+    uint npl = (cpl + 1) % palette_attr.size;
+
+    vec4 cc = palette_attr.palette[cpl];
+    vec4 nc = palette_attr.palette[npl];
+
+    return cc * (1 - palette_offset_decimal) + nc * (palette_offset_decimal);
+}
+
+
+double get_iteration_normal(uvec2 iter_coord) {
+    iter_coord.y = iteration_output_info_attr.extent.y - iter_coord.y;
+    return it2map_normal_attr.iterations[iter_coord.y * iteration_output_info_attr.extent.x + iter_coord.x];
+}
+
+
+double get_iteration_zoomed(uvec2 iter_coord) {
+    iter_coord.y = iteration_output_info_attr.extent.y - iter_coord.y;
+    return it2map_zoomed_attr.iterations[iter_coord.y * iteration_output_info_attr.extent.x + iter_coord.x];
+}
+
+void set_iteration_output(uvec2 iter_coord, double value) {
+    iter_coord.y = iteration_output_info_attr.extent.y - iter_coord.y;
+    iteration_output_attr.iterations[iter_coord.y * iteration_output_info_attr.extent.x + iter_coord.x] = value;
+}
+
+float get_stripe_mul(double iteration){
+    if (stripe_attr.type == STRIPE_NONE || iteration == 0) {
+        return 1;
+    }
+
+    double iter_curr = iteration - (stripe_attr.offset + stripe_attr.animation_speed * time_attr.time);
+    float black;
+    float rat1 = float(mod(iter_curr, stripe_attr.first_interval)) / stripe_attr.first_interval;
+    float rat2 = float(mod(iter_curr, stripe_attr.second_interval)) / stripe_attr.second_interval;
+
+    switch (stripe_attr.type) {
+        case STRIPE_SINGLE_DIRECTION: {
+                                   black = rat1 * rat2;
+                                   break;
+                               }
+        case STRIPE_SMOOTH: {
+                                   black = pow((sin(rat1 * DOUBLE_PI) + 1) * (sin(rat2 * DOUBLE_PI) + 1) / 4, 2);
+                                   break;
+                               }
+        case STRIPE_SMOOTH_SQUARED: {
+                                   black = pow((sin(rat1 * DOUBLE_PI) + 1) * (sin(rat2 * DOUBLE_PI) + 1) / 4, 4);
+                                   break;
+                               }
+    }
+
+    return 1 - black * stripe_attr.opacity;
+}
+
+void main() {
+
+    vec2 center = vec2(iteration_output_info_attr.extent) / 2.0;
+    vec2 coord = vec2(gl_GlobalInvocationID.xy) - center;
+    float r = int(max(0, video_attr.current_frame)) - video_attr.current_frame;
+
+    float nsr = pow(video_attr.default_zoom_increment, r + 1);// r = 0 ~ 1
+    float zsr = pow(video_attr.default_zoom_increment, r);// r = -1 ~ 0
+
+    vec2 ntx = coord / nsr + center;
+    vec2 ztx = coord / zsr + center;
+
+    vec2 nrt = mod(ntx, 1);
+    vec2 zrt = mod(ztx, 1);
+
+    double n00 = get_iteration_normal(uvec2(ntx));
+    double n10 = get_iteration_normal(uvec2(ntx) + uvec2(1, 0));
+    double n01 = get_iteration_normal(uvec2(ntx) + uvec2(0, 1));
+    double n11 = get_iteration_normal(uvec2(ntx) + uvec2(1, 1));
+
+    double z00 = get_iteration_zoomed(uvec2(ztx));
+
+    vec4 nc00 = get_color(n00) * get_stripe_mul(n00);
+    vec4 nc10 = get_color(n10) * get_stripe_mul(n10);
+    vec4 nc01 = get_color(n01) * get_stripe_mul(n01);
+    vec4 nc11 = get_color(n11) * get_stripe_mul(n11);
+
+    vec4 nc0 = nc00 - (nc00 - nc10) * nrt.x;
+    vec4 nc1 = nc01 - (nc01 - nc11) * nrt.x;
+    vec4 nc = nc0 - (nc0 - nc1) * nrt.y;
+
+    if (ztx.x >= iteration_output_info_attr.extent.x - 1 || ztx.y >= iteration_output_info_attr.extent.y - 1 || ztx.x < 0 || ztx.y < 0 || z00 == 0) {
+
+        double n0 = n00 - (n00 - n10) * nrt.x;
+        double n1 = n01 - (n01 - n11) * nrt.x;
+        double n = n0 - (n0 - n1) * nrt.y;
+
+        set_iteration_output(gl_GlobalInvocationID.xy, n);
+        imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), nc);
+
+    } else {
+        double z10 = get_iteration_zoomed(uvec2(ztx) + uvec2(1, 0));
+        double z01 = get_iteration_zoomed(uvec2(ztx) + uvec2(0, 1));
+        double z11 = get_iteration_zoomed(uvec2(ztx) + uvec2(1, 1));
+
+        double z0 = z00 - (z00 - z10) * zrt.x;
+        double z1 = z01 - (z01 - z11) * zrt.x;
+        double z = z0 - (z0 - z1) * zrt.y;
+        set_iteration_output(gl_GlobalInvocationID.xy, z);
+
+        vec4 zc00 = get_color(z00) * get_stripe_mul(z00);
+        vec4 zc10 = get_color(z10) * get_stripe_mul(z10);
+        vec4 zc01 = get_color(z01) * get_stripe_mul(z01);
+        vec4 zc11 = get_color(z11) * get_stripe_mul(z11);
+
+        vec4 zc0 = zc00 - (zc00 - zc10) * zrt.x;
+        vec4 zc1 = zc01 - (zc01 - zc11) * zrt.x;
+        vec4 zc = zc0 - (zc0 - zc1) * zrt.y;
+
+        imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), nc * (-r) + zc * (r + 1));
+    }
+
+}

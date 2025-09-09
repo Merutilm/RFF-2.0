@@ -36,7 +36,7 @@ layout (location = 1) in vec2 fragTexcoord;
 layout (location = 0) out vec4 color;
 
 
-double getIteration(uvec2 iterCoord){
+double get_iteration(uvec2 iterCoord){
     iterCoord.y = iteration_info_attr.extent.y - iterCoord.y;
     return iteration_attr.iterations[iterCoord.y * iteration_info_attr.extent.x + iterCoord.x];
 }
@@ -45,7 +45,7 @@ double getIteration(uvec2 iterCoord){
 void main() {
 
     uvec2 iter_coord = uvec2(gl_FragCoord.xy);
-    double iteration = getIteration(iter_coord);
+    double iteration = get_iteration(iter_coord);
 
     if (stripe_attr.type == NONE || iteration == 0) {
         color = texelFetch(canvas, ivec2(gl_FragCoord.xy), 0);

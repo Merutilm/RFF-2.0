@@ -83,7 +83,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPCBoxBlur::setBlurSize(uint32_t blurSizeDescIndex, const float blurSize) const {
+    void CPCBoxBlur::setBlurInfo(uint32_t blurSizeDescIndex, const float blurSize) const {
         auto &desc = getDescriptor(SET_BLUR_RADIUS);
 
         const auto &ubo = *desc.get<vkh::Uniform>(blurSizeDescIndex, BINDING_BLUR_RADIUS_UBO);
@@ -100,7 +100,7 @@ namespace merutilm::rff2 {
         //no operation
     }
 
-    void CPCBoxBlur::windowResized() {
+    void CPCBoxBlur::renderContextRefreshed() {
         using namespace SharedImageContextIndices;
         auto &sic = wc.getSharedImageContext();
         switch (wc.getAttachmentIndex()) {

@@ -9,7 +9,7 @@
 namespace merutilm::rff2 {
     struct GPCSlope final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
         static constexpr uint32_t SET_PREV_RESULT = 0;
-        static constexpr uint32_t BINDING_PREV_RESULT_INPUT = 0;
+        static constexpr uint32_t BINDING_PREV_RESULT_SAMPLER = 0;
 
         static constexpr uint32_t SET_ITERATION = 1;
         static constexpr uint32_t SET_SLOPE = 2;
@@ -26,7 +26,7 @@ namespace merutilm::rff2 {
 
         void pipelineInitialized() override;
 
-        void windowResized() override;
+        void renderContextRefreshed() override;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;

@@ -39,37 +39,37 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 352,
+				"line" : 354,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 354,
+				"line" : 356,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 371,
+				"line" : 373,
 				"parent" : 0
 			},
 			{
 				"command" : 4,
 				"file" : 0,
-				"line" : 331,
+				"line" : 333,
 				"parent" : 0
 			},
 			{
 				"command" : 5,
 				"file" : 0,
-				"line" : 338,
+				"line" : 340,
 				"parent" : 0
 			},
 			{
 				"command" : 6,
 				"file" : 0,
-				"line" : 343,
+				"line" : 345,
 				"parent" : 0
 			}
 		]
@@ -247,7 +247,8 @@
 				300,
 				302,
 				305,
-				312
+				312,
+				316
 			]
 		},
 		{
@@ -474,7 +475,8 @@
 				300,
 				302,
 				305,
-				312
+				312,
+				316
 			]
 		},
 		{
@@ -705,7 +707,8 @@
 				311,
 				313,
 				314,
-				315
+				315,
+				317
 			]
 		}
 	],
@@ -895,7 +898,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/attr/StripeType.h",
+			"path" : "src/rff2/attr/ShdStripeType.h",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2328,12 +2331,12 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 1,
-			"path" : "src/rff2/vulkan/CPCIterationPalette2Map.cpp",
+			"path" : "src/rff2/vulkan/CPC2MapIterationStripe.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/vulkan/CPCIterationPalette2Map.hpp",
+			"path" : "src/rff2/vulkan/CPC2MapIterationStripe.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2379,7 +2382,18 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/vulkan_helper/util/SafeVkObject.hpp",
+			"path" : "src/vulkan_helper/core/allocator.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "src/rff2/vulkan/GPCStaticImage2Map.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/rff2/vulkan/GPCStaticImage2Map.hpp",
 			"sourceGroupIndex" : 1
 		}
 	],

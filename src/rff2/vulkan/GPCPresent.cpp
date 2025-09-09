@@ -29,7 +29,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void GPCPresent::windowResized() {
+    void GPCPresent::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &resampleDesc = getDescriptor(SET_PRESENT);
 
