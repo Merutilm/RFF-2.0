@@ -5,7 +5,7 @@
 #pragma once
 
 namespace merutilm::rff2 {
-    enum class CalMPACompressionMethod {
+    enum class FrtMPACompressionMethod {
         /**
          * Do Not Compress. It is the fastest but allocates the most memory.
          */

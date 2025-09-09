@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-#include "../core/exception.hpp"
+#include "../core/vkh_core.hpp"
 #include <fstream>
 
 namespace merutilm::vkh {
@@ -33,7 +33,9 @@ namespace merutilm::vkh {
 
 
     void ShaderModuleImpl::init() {
-        std::ifstream file(filename, std::ios::binary);
+        std::array<wchar_t, MAX_PATH> modulePath;
+        GetModuleFileNameW(nullptr, modulePath.data(), modulePath.size());
+        std::ifstream file(std::filesystem::path(modulePath.data()) / ".." / filename, std::ios::binary);
         if (!file.is_open()) {
             throw exception_invalid_args("invalid filename : " + filename);
         }
@@ -45,12 +47,12 @@ namespace merutilm::vkh {
             .codeSize = code.size(),
             .pCode = reinterpret_cast<uint32_t *>(code.data()),
         };
-        if (vkCreateShaderModule(core.getLogicalDevice().getLogicalDeviceHandle(), &info, nullptr, &shaderModule) != VK_SUCCESS) {
+        if (allocator::invoke(vkCreateShaderModule, core.getLogicalDevice().getLogicalDeviceHandle(), &info, nullptr, &shaderModule) != VK_SUCCESS) {
             throw exception_init("Failed to create shader module!");
         }
     }
 
     void ShaderModuleImpl::destroy() {
-        vkDestroyShaderModule(core.getLogicalDevice().getLogicalDeviceHandle(), shaderModule, nullptr);
+        allocator::invoke(vkDestroyShaderModule, core.getLogicalDevice().getLogicalDeviceHandle(), shaderModule, nullptr);
     }
 }

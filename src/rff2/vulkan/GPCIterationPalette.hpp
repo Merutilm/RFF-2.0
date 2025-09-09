@@ -15,10 +15,10 @@ namespace merutilm::rff2 {
         uint32_t iterWidth = 0;
         uint32_t iterHeight = 0;
 
-        GPCIterationPalette(vkh::WindowContextRef wc,
+        GPCIterationPalette(vkh::EngineRef engine, const uint32_t windowContextIndex,
                                              const uint32_t renderContextIndex,
                                              const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            wc, renderContextIndex, primarySubpassIndex,
+            engine, windowContextIndex, renderContextIndex, primarySubpassIndex,
             "vk_iteration_palette.frag") {
         };
 
@@ -34,13 +34,11 @@ namespace merutilm::rff2 {
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
+        void cmdRefreshIterations(VkCommandBuffer cbh, const vkh::BufferContext &src) const;
+
+        const vkh::BufferContext &getResultIterationBuffer() const;
+
         void resetIterationBuffer(uint32_t width, uint32_t height);
-
-        void resetIterationBuffer() const;
-
-        void setIteration(uint32_t x, uint32_t y, double iteration) const;
-
-        void setAllIterations(const std::vector<double> &iterations) const;
 
         void setMaxIteration(double maxIteration) const;
 

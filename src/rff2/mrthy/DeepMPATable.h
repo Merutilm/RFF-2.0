@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
 
 
         explicit DeepMPATable(const ParallelRenderState &state, const DeepMandelbrotReference &reference,
-                      const CalMPAAttribute *mpaSettings, const dex &dcMax, ApproxTableCache &tableRef,
+                      const FrtMPAAttribute *mpaSettings, const dex &dcMax, ApproxTableCache &tableRef,
                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, tableRef, std::move(actionPerCreatingTableIteration)) {
 
         }
@@ -64,7 +64,7 @@ namespace merutilm::rff2 {
         dex_trigonometric::hypot_approx(&temps[0], dzr, dzi);
 
         switch (mpaSettings.mpaSelectionMethod) {
-            using enum CalMPASelectionMethod;
+            using enum FrtMPASelectionMethod;
             case LOWEST: {
                 DeepPA *pa = nullptr;
 

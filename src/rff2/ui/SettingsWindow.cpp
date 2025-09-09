@@ -7,21 +7,20 @@
 
 
 namespace merutilm::rff2 {
-    SettingsWindow::SettingsWindow(const std::wstring_view &name) {
+    SettingsWindow::SettingsWindow(const std::wstring &name) {
         window = CreateWindowExW(Constants::Win32::STYLE_EX_SETTINGS_WINDOW, Constants::Win32::CLASS_SETTINGS_WINDOW,
-                                name.data(),
-                                WS_SYSMENU, 0, 0,
-                                Constants::Win32::INIT_SETTINGS_WINDOW_WIDTH, 0, nullptr, nullptr, nullptr, nullptr);
+                                 name.data(),
+                                 WS_SYSMENU, 0, 0,
+                                 Constants::Win32::INIT_SETTINGS_WINDOW_WIDTH, 0, nullptr, nullptr, nullptr, nullptr);
 
 
-        SetWindowLongPtr(window, GWLP_USERDATA, (LONG_PTR) this);
-
+        SetWindowLongPtrW(window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
         ShowWindow(window, SW_SHOW);
         UpdateWindow(window);
-        font = reinterpret_cast<LPARAM>(CreateFont(Constants::Win32::FONT_SIZE, 0, 0, 0, FW_THIN, FALSE, FALSE, FALSE,
-                                                   ANSI_CHARSET, OUT_DEFAULT_PRECIS,
-                                                   CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_SWISS,
-                                                   Constants::Win32::FONT_DEFAULT));
+        font = reinterpret_cast<LPARAM>(CreateFontW(Constants::Win32::FONT_SIZE, 0, 0, 0, FW_THIN, FALSE, FALSE, FALSE,
+                                                    HANGEUL_CHARSET, OUT_DEFAULT_PRECIS,
+                                                    CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY, DEFAULT_PITCH | FF_SWISS,
+                                                    Constants::Win32::FONT_DEFAULT));
     }
 
     SettingsWindow::~SettingsWindow() {
@@ -56,8 +55,13 @@ namespace merutilm::rff2 {
     }
 
     int SettingsWindow::getIndex(const HWND wnd) {
-        return GetDlgCtrlID(wnd) - Constants::Win32::ID_OPTIONS & 0x00ff;
+        return GetDlgCtrlID(wnd) - Constants::Win32::ID_OPTIONS & 0x007f;
     }
+
+    bool SettingsWindow::isCheckbox(const HWND wnd) {
+        return GetDlgCtrlID(wnd) & Constants::Win32::ID_OPTIONS_CHECKBOX_FLAG;
+    }
+
 
     int SettingsWindow::getRadioIndex(const HWND wnd) {
         const int offset = GetDlgCtrlID(wnd) - Constants::Win32::ID_OPTIONS;
@@ -73,29 +77,30 @@ namespace merutilm::rff2 {
                Constants::Win32::GAP_SETTINGS_INPUT;
     }
 
-    void SettingsWindow::createLabel(const std::wstring_view &settingsName, const std::wstring_view descriptionTitle,
-                                     const std::wstring_view descriptionDetail, const int nw) {
+    void SettingsWindow::createLabel(const std::wstring &settingsName, const std::wstring &descriptionTitle,
+                                     const std::wstring &descriptionDetail, const int nw) {
         const HWND text = CreateWindowExW(0, WC_STATICW, settingsName.data(),
-                                         Constants::Win32::STYLE_LABEL, 0,
-                                         getYOffset(), nw,
-                                         Constants::Win32::SETTINGS_INPUT_HEIGHT, window, nullptr, nullptr, nullptr);
-        const HWND tooltip = CreateWindowExW(Constants::Win32::STYLE_EX_TOOLTIP, TOOLTIPS_CLASSW, L"",
+                                          Constants::Win32::STYLE_LABEL, 0,
+                                          getYOffset(), nw,
+                                          Constants::Win32::SETTINGS_INPUT_HEIGHT, window, nullptr,
+                                          GetModuleHandleW(nullptr), nullptr);
+        const HWND tooltip = CreateWindowExW(Constants::Win32::STYLE_EX_TOOLTIP, TOOLTIPS_CLASSW, nullptr,
                                             Constants::Win32::STYLE_TOOLTIP,
                                             CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, window, nullptr,
                                             nullptr, nullptr);
-
-        TOOLINFO toolInfo = {};
-        toolInfo.cbSize = sizeof(toolInfo);
+        const auto str = descriptionDetail.data();
+        TTTOOLINFOW toolInfo = {};
+        toolInfo.cbSize = 6 > SendMessage(tooltip, CCM_GETVERSION, 0, 0) ? TTTOOLINFOW_V2_SIZE : sizeof(TOOLINFOW); // WTF?
         toolInfo.hwnd = text;
         toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
         toolInfo.uId = reinterpret_cast<UINT_PTR>(text);
-        toolInfo.lpszText = LPSTR(descriptionDetail.data());
+        toolInfo.lpszText = const_cast<LPWSTR>(str);
 
-        SendMessage(tooltip, TTM_SETMAXTIPWIDTH, 0, Constants::Win32::INIT_SETTINGS_WINDOW_WIDTH); //enable line break
-        SendMessage(tooltip, TTM_ADDTOOL, 0, (LPARAM) &toolInfo);
-        SendMessage(tooltip, TTM_SETTITLE, 0, (LPARAM) descriptionTitle.data());
-        SendMessage(tooltip, WM_SETFONT, font, TRUE);
-        SendMessage(text, WM_SETFONT, font, TRUE);
+
+        SendMessageW(tooltip, TTM_SETMAXTIPWIDTH, 0, Constants::Win32::INIT_SETTINGS_WINDOW_WIDTH);
+        SendMessageW(tooltip, TTM_ADDTOOLW, 0, reinterpret_cast<LPARAM>(&toolInfo));
+        SendMessageW(tooltip, TTM_SETTITLEW, 0, reinterpret_cast<LPARAM>(descriptionTitle.data()));
+        SendMessageW(tooltip, WM_SETFONT, font, TRUE);
 
         createdChildWindows.push_back(tooltip);
         createdChildWindows.push_back(text);
@@ -114,14 +119,17 @@ namespace merutilm::rff2 {
                     wnd.checkIndex(index) &&
                     LOWORD(wParam) != 0
                 ) {
-                    if (HIWORD(wParam) == CBN_SELCHANGE) {
+                    if (isCheckbox(editor)) {
+                        std::any value = SendMessageW(editor, BM_GETCHECK, 0, 0) == BST_CHECKED;
+                        (*wnd.callbacks[index])(value);
+                        wnd.references[index] = value;
+                    } else if (HIWORD(wParam) == CBN_SELCHANGE) {
                         const auto combobox = (HWND) lParam;
                         const auto selectedIndex = static_cast<int>(SendMessage(combobox, CB_GETCURSEL, 0, 0));
                         std::any &value = (*wnd.enumValues[index])[selectedIndex];
                         (*wnd.callbacks[index])(value);
                         wnd.references[index] = value;
-                    }
-                    if (HIWORD(wParam) == BN_CLICKED) {
+                    } else if (HIWORD(wParam) == BN_CLICKED) {
                         const int radioIndex = getRadioIndex(editor);
                         std::any &value = (*wnd.enumValues[index])[radioIndex];
                         (*wnd.callbacks[index])(value);
@@ -147,7 +155,7 @@ namespace merutilm::rff2 {
                 const int index = getIndex(hwndEdit);
 
                 if (!wnd.checkIndex(index)) {
-                    return DefWindowProc(window, message, wParam, lParam);
+                    return DefWindowProcW(window, message, wParam, lParam);
                 }
 
                 if (wnd.error[index]) {
@@ -166,9 +174,9 @@ namespace merutilm::rff2 {
                 const auto hwndStatic = (HWND) lParam;
                 return IsWindowEnabled(hwndStatic)
                            ? (INT_PTR) GetStockObject(WHITE_BRUSH)
-                           : DefWindowProc(window, message, wParam, lParam);
+                           : DefWindowProcW(window, message, wParam, lParam);
             }
-            default: return DefWindowProc(window, message, wParam, lParam);
+            default: return DefWindowProcW(window, message, wParam, lParam);
         }
     }
 
@@ -187,7 +195,7 @@ namespace merutilm::rff2 {
                 SetWindowTextW(window, (*wnd.unparsers[index])(wnd.references[index]).data());
             }
             if (wParam == VK_RETURN && wnd.checkIndex(index)) {
-                const int length = GetWindowTextLength(window) + 1; //include NULL character
+                const int length = GetWindowTextLengthW(window) + 1; //include NULL character
                 std::wstring buf(length, '\0');
                 GetWindowTextW(window, buf.data(), length);
 

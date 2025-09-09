@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
         if (const std::unique_ptr<fp_complex> c = MandelbrotLocator::findCenter(perturbator); c == nullptr) {
             MessageBox(nullptr, "No center found!", "Caution", MB_OK | MB_ICONWARNING);
         } else {
-            scene.getAttribute().calc.center = *c;
+            scene.getAttribute().fractal.center = *c;
             scene.getRequests().requestRecompute();
         }
     };
@@ -47,7 +47,7 @@ namespace merutilm::rff2 {
             ](const SettingsMenu &, RenderScene &scene) {
         Attribute &settings = scene.getAttribute();
 
-        if (settings.calc.reuseReferenceMethod != CalReuseReferenceMethod::DISABLED) {
+        if (settings.fractal.reuseReferenceMethod != FrtReuseReferenceMethod::DISABLED) {
             MessageBox(nullptr, "Do not reuse reference!", "Caution", MB_OK | MB_ICONWARNING);
             return;
         }
@@ -59,7 +59,7 @@ namespace merutilm::rff2 {
         }
 
         scene.getState().createThread(
-            [&scene, logZoom = settings.calc.logZoom, perturbator, &settings](
+            [&scene, logZoom = settings.fractal.logZoom, perturbator, &settings](
         const std::stop_token&) {
                 ApproxTableCache &approxTableCache = scene.getApproxTableCache();
                 const uint64_t longestPeriod = perturbator->getReference()->longestPeriod();
@@ -75,9 +75,9 @@ namespace merutilm::rff2 {
                     vkh::logger::w_log(L"Locate Minibrot Cancelled.");
                     return;
                 }
-                const CalcAttribute &locatorCalc = locator->perturbator->getCalculationSettings();
-                settings.calc.center = locatorCalc.center;
-                settings.calc.logZoom = locatorCalc.logZoom - MandelbrotLocator::MINIBROT_LOG_ZOOM_OFFSET;
+                const FractalAttribute &locatorCalc = locator->perturbator->getCalculationSettings();
+                settings.fractal.center = locatorCalc.center;
+                settings.fractal.logZoom = locatorCalc.logZoom - MandelbrotLocator::MINIBROT_LOG_ZOOM_OFFSET;
                 scene.getRequests().requestRecompute();
             }
         );

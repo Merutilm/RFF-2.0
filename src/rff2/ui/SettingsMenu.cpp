@@ -60,7 +60,7 @@ namespace merutilm::rff2 {
         addChildCheckbox(currentMenu, "Absolute Iteration Mode", CallbackFractal::ABSOLUTE_ITERATION_MODE);
 
         currentMenu = addChildMenu(menubar, "Render");
-        addChildItem(currentMenu, "Clarity", CallbackRender::SET_CLARITY);
+        addChildItem(currentMenu, "Set Render Properties", CallbackRender::SET_CLARITY);
         addChildCheckbox(currentMenu, "Linear Interpolation", CallbackRender::LINEAR_INTERPOLATION);
         currentMenu = addChildMenu(menubar, "Shader");
         addChildItem(currentMenu, "Palette", CallbackShader::PALETTE);

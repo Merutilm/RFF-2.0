@@ -7,7 +7,7 @@
 
 namespace merutilm::rff2 {
     struct RCCPresent final : public vkh::RenderContextConfiguratorAbstract {
-        static constexpr uint32_t CONTEXT_INDEX = 5;
+        static constexpr uint32_t CONTEXT_INDEX = 6;
 
         static constexpr uint32_t SUBPASS_PRESENT_INDEX = 0;
 
@@ -31,16 +31,6 @@ namespace merutilm::rff2 {
 
             rpm.appendSubpass(SUBPASS_PRESENT_INDEX);
             rpm.appendReference(PRESENT_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-            rpm.appendDependency({
-                .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = SUBPASS_PRESENT_INDEX,
-                .srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .srcAccessMask = 0,
-                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dependencyFlags = 0
-            });
 
             rpm.appendDependency({
                 .srcSubpass = SUBPASS_PRESENT_INDEX,

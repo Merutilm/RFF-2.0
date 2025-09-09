@@ -25,23 +25,20 @@ namespace merutilm::vkh {
                                                     const uint32_t width, const uint32_t height,
                                                     const uint32_t texChannels, const bool useMipmap,
                                                     const std::byte *const data) {
-            VkBuffer stagingBuffer = VK_NULL_HANDLE;
-            VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
-            const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
             const VkDeviceSize size = static_cast<uint64_t>(width) * static_cast<uint64_t>(height) * static_cast<
                                           uint64_t>(
                                           texChannels);
 
-            BufferImageUtils::initBuffer(core, {
+            auto staging = BufferContext::createContext(core, {
                                              .size = size,
                                              .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                                              .properties =
                                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                         }, &stagingBuffer, &stagingMemory);
+                                         });
             void *mapped = nullptr;
-            vkMapMemory(device, stagingMemory, 0, size, 0, &mapped);
+            BufferContext::mapMemory(core, staging);
             memcpy(mapped, data, size);
-            vkUnmapMemory(device, stagingMemory);
+            BufferContext::unmapMemory(core, staging);
 
 
             const ImageInitInfo initInfo = {
@@ -84,7 +81,7 @@ namespace merutilm::vkh {
                                                     0, 1, VK_PIPELINE_STAGE_HOST_BIT,
                                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
 
-                vkCmdCopyBufferToImage(sce.getCommandBufferHandle(), stagingBuffer, context.image,
+                vkCmdCopyBufferToImage(sce.getCommandBufferHandle(), staging.buffer, context.image,
                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 
                 if (useMipmap) {
@@ -105,9 +102,7 @@ namespace merutilm::vkh {
                 }
             }
             //COMMAND END
-            vkFreeMemory(device, stagingMemory, nullptr);
-            vkDestroyBuffer(device, stagingBuffer, nullptr);
-
+            BufferContext::destroyContext(core, staging);
             return context;
         }
 
@@ -156,6 +151,16 @@ namespace merutilm::vkh {
             vkCmdCopyImageToBuffer(commandBuffer, image.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer.buffer, 1,
                                    &copyRegion);
         }
+
+        static void cmdCopyFromStagingBuffer(const VkCommandBuffer commandBuffer,  const BufferContext &srcBuffer, const BufferContext &dstBuffer) {
+            const VkBufferCopy copyRegion = {
+                .srcOffset = 0,
+                .dstOffset = 0,
+                .size = srcBuffer.bufferSize
+            };
+            vkCmdCopyBuffer(commandBuffer, srcBuffer.buffer, dstBuffer.buffer, 1, &copyRegion);
+        }
+
 
         /**
          * Generates the Mipmap. Input layout of image Context must be <b>VK_IMAGE_LAYOUT_TRANSFER_SRC_BIT</b>.

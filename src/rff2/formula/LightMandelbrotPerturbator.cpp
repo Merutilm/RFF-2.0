@@ -13,7 +13,7 @@
 namespace merutilm::rff2 {
 
 
-    LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const CalcAttribute &calc,
+    LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const FractalAttribute &calc,
                                                            const double dcMax, const int exp10,
                                                            const uint64_t initialPeriod,
                                                            ApproxTableCache &tableRef,
@@ -149,7 +149,7 @@ namespace merutilm::rff2 {
 
 
     std::unique_ptr<LightMandelbrotPerturbator> LightMandelbrotPerturbator::reuse(
-        const CalcAttribute &calc, const double dcMax, ApproxTableCache &tableRef) {
+        const FractalAttribute &calc, const double dcMax, ApproxTableCache &tableRef) {
 
         const int exp10 = logZoomToExp10(calc.logZoom);
         double offR = 0;

@@ -8,7 +8,7 @@
 #include "../struct/StringHasher.hpp"
 
 namespace merutilm::vkh {
-    struct ShaderModuleRepo final : Repository<std::string, const std::string &, ShaderModule, ShaderModuleRef,
+    struct GlobalShaderModuleRepo final : Repository<std::string, const std::string &, ShaderModule, ShaderModuleRef,
                 StringHasher, std::equal_to<> > {
         using Repository::Repository;
 

@@ -51,12 +51,6 @@ namespace merutilm::vkh {
             .signalSemaphoreCount = renderFinished == VK_NULL_HANDLE ? 0 : 1u,
             .pSignalSemaphores = renderFinished == VK_NULL_HANDLE ? nullptr : &renderFinished,
         };
-
-        if (const VkResult result = vkQueueSubmit(wc.core.getLogicalDevice().getGraphicsQueue(), 1,
-                                                  &submitInfo,
-                                                  fence);
-            result != VK_SUCCESS) {
-            logger::log_err_silent("Failed to submit queue!! | CAUSE : {}", static_cast<uint32_t>(result));
-        }
+        wc.core.getLogicalDevice().queueSubmit(1, &submitInfo, fence);
     }
 }

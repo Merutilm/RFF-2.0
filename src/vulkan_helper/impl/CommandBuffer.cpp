@@ -4,7 +4,7 @@
 
 #include "CommandBuffer.hpp"
 
-#include "../core/exception.hpp"
+#include "../core/vkh_core.hpp"
 
 namespace merutilm::vkh {
     CommandBufferImpl::CommandBufferImpl(CoreRef core, CommandPoolRef commandPool) : CoreHandler(core), commandPool(commandPool) {
@@ -28,7 +28,7 @@ namespace merutilm::vkh {
                 .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
                 .commandBufferCount = 1
             };
-            if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffers[i]) != VK_SUCCESS) {
+            if (allocator::invoke(vkAllocateCommandBuffers,device, &allocInfo, &commandBuffers[i]) != VK_SUCCESS) {
                 throw exception_init("Failed to allocate command buffers!");
             }
         }
@@ -38,7 +38,7 @@ namespace merutilm::vkh {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-            vkFreeCommandBuffers(device, commandPool.getCommandPoolHandle(), 1, &commandBuffers[i]);
+            allocator::invoke(vkFreeCommandBuffers, device, commandPool.getCommandPoolHandle(), 1, &commandBuffers[i]);
         }
     }
 

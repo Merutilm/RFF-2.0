@@ -17,8 +17,8 @@ namespace merutilm::rff2 {
         float barRatio = 0;
         std::wstring barText = L"";
         std::unique_ptr<VideoRenderScene> scene = nullptr;
-        uint16_t width;
-        uint16_t height;
+        const uint16_t width;
+        const uint16_t height;
 
         
     public:
@@ -44,7 +44,7 @@ namespace merutilm::rff2 {
 
         void setClientSize(int width, int height) const;
 
-        void createScene();
+        void createScene(const VkExtent2D &videoExtent, const Attribute &targetAttribute);
 
         void init() override;
 

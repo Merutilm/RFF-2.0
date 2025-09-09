@@ -4,6 +4,7 @@
 
 #include "ComputePipelineConfigurator.hpp"
 #include "../impl/ComputeShaderPipeline.hpp"
+#include "../repo/GlobalPipelineLayoutRepo.hpp"
 
 namespace merutilm::vkh {
 
@@ -25,7 +26,7 @@ namespace merutilm::vkh {
         }
 
         configurePushConstant(*pipelineLayoutManager);
-        PipelineLayoutRef pipelineLayout = pickFromRepository<PipelineLayoutRepo, PipelineLayoutRef>(
+        PipelineLayoutRef pipelineLayout = pickFromGlobalRepository<GlobalPipelineLayoutRepo, PipelineLayoutRef>(
             std::move(pipelineLayoutManager));
 
 

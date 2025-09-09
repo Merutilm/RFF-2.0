@@ -8,7 +8,7 @@
 
 namespace merutilm::rff2 {
     struct RCC2 final : public vkh::RenderContextConfiguratorAbstract {
-        static constexpr uint32_t CONTEXT_INDEX = 2;
+        static constexpr uint32_t CONTEXT_INDEX = 3;
         static constexpr uint32_t SUBPASS_FOG_INDEX = 0;
         static constexpr uint32_t SUBPASS_BLOOM_THRESHOLD_INDEX = 1;
 
@@ -53,31 +53,13 @@ namespace merutilm::rff2 {
 
 
             rpm.appendDependency({
-                .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = SUBPASS_FOG_INDEX,
-                .srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .srcAccessMask = 0,
-                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dependencyFlags = 0
-            });
-            rpm.appendDependency({
                 .srcSubpass = SUBPASS_FOG_INDEX,
                 .dstSubpass = SUBPASS_BLOOM_THRESHOLD_INDEX,
                 .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-                .dependencyFlags = 0
-            });
-            rpm.appendDependency({
-                .srcSubpass = SUBPASS_BLOOM_THRESHOLD_INDEX,
-                .dstSubpass = VK_SUBPASS_EXTERNAL,
-                .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dstAccessMask = 0,
-                .dependencyFlags = 0
+                .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
             });
         }
     };

@@ -4,8 +4,7 @@
 
 #include "PhysicalDeviceLoader.hpp"
 
-#include "../core/config.hpp"
-#include "../core/exception.hpp"
+#include "../core/vkh_core.hpp"
 #include "../util/PhysicalDeviceUtils.hpp"
 
 namespace merutilm::vkh {
@@ -54,7 +53,7 @@ namespace merutilm::vkh {
             .hwnd = dummyWindow,
         };
 
-        vkCreateWin32SurfaceKHR(instance.getInstanceHandle(), &surfaceCreateInfo, nullptr, &surface);
+        allocator::invoke(vkCreateWin32SurfaceKHR, instance.getInstanceHandle(), &surfaceCreateInfo, nullptr, &surface);
 
         return surface;
     }
@@ -84,7 +83,7 @@ namespace merutilm::vkh {
             }
         }
 
-        vkDestroySurfaceKHR(instance.getInstanceHandle(), surface, nullptr);
+        allocator::invoke(vkDestroySurfaceKHR, instance.getInstanceHandle(), surface, nullptr);
         DestroyWindow(dummyWindow);
         UnregisterClassW(config::DUMMY_WINDOW_CLASS, nullptr);
 

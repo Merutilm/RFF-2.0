@@ -5,7 +5,6 @@
 #include "Application.hpp"
 
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
-#include "../../vulkan_helper/util/SwapchainPresenter.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
@@ -30,8 +29,7 @@ namespace merutilm::rff2 {
         createRenderWindow();
         createStatusBar();
         setClientSize(Constants::Win32::INIT_RENDER_SCENE_WIDTH, Constants::Win32::INIT_RENDER_SCENE_HEIGHT);
-        createVulkanContext();
-        createRenderScene();
+        createScene();
         prepareWindow();
         setProcedure();
     }
@@ -128,13 +126,10 @@ namespace merutilm::rff2 {
         }
     }
 
-    void Application::createVulkanContext() {
+    void Application::createScene() {
         auto core = vkh::factory::create<vkh::Core>();
         engine = vkh::factory::create<vkh::Engine>(std::move(core));
         wc = engine->attachWindowContext(renderWindow, Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
-    }
-
-    void Application::createRenderScene() {
         scene = std::make_unique<RenderScene>(*engine, *wc, &statusMessages);
     }
 
@@ -226,7 +221,8 @@ namespace merutilm::rff2 {
 
         window.appendRenderer([this] {
             resolveWNDRequest();
-            drawFrame();
+            scene->render();
+            refreshStatusBar();
         });
     }
 
@@ -254,37 +250,6 @@ namespace merutilm::rff2 {
         }
     }
 
-    void Application::drawFrame() {
-        vkh::CoreRef core = engine->getCore();
-        auto &wc = engine->getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX);
-        if (wc.getWindow().
-            isUnrenderable()) {
-            return;
-        }
-        changeFrameIndex();
-        const vkh::SwapchainRef swapchain = wc.getSwapchain();
-        const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        const VkFence currentFence = wc.getSyncObject().getFence(frameIndex).getFenceHandle();
-        const VkSemaphore imageAvailableSemaphore = wc.getSyncObject().
-                getSemaphore(frameIndex).getImageAvailable();
-        const VkSwapchainKHR swapchainHandle = swapchain.getSwapchainHandle();
-
-
-        vkWaitForFences(device, 1, &currentFence, VK_TRUE, UINT64_MAX);
-        vkResetFences(device, 1, &currentFence);
-
-        uint32_t swapchainImageIndex = 0;
-        vkAcquireNextImageKHR(device, swapchainHandle, UINT64_MAX, imageAvailableSemaphore,
-                              nullptr, &swapchainImageIndex);
-
-        scene->render(frameIndex, swapchainImageIndex);
-        vkh::SwapchainPresenter::present(wc, swapchainHandle, frameIndex, swapchainImageIndex);
-        refreshStatusBar();
-    }
-
-    void Application::changeFrameIndex() {
-        ++frameIndex %= engine->getCore().getPhysicalDevice().getMaxFramesInFlight();
-    }
 
     void Application::prepareWindow() const {
         ShowWindow(masterWindow, SW_SHOW);
@@ -300,7 +265,7 @@ namespace merutilm::rff2 {
     }
 
     void Application::destroy() {
-        vkDeviceWaitIdle(engine->getCore().getLogicalDevice().getLogicalDeviceHandle());
+        engine->getCore().getLogicalDevice().waitDeviceIdle();
         scene = nullptr;
         vkh::GeneralPostProcessGraphicsPipelineConfigurator::cleanup();
         engine = nullptr;

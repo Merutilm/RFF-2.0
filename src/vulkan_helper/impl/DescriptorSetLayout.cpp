@@ -39,7 +39,7 @@ namespace merutilm::vkh {
             .bindingCount = static_cast<uint32_t>(bindings.size()),
             .pBindings = bindings.empty() ? nullptr : bindings.data(),
         };
-        if (vkCreateDescriptorSetLayout(core.getLogicalDevice().getLogicalDeviceHandle(), &descriptorSetLayoutInfo, nullptr, &layout) !=
+        if (allocator::invoke(vkCreateDescriptorSetLayout, core.getLogicalDevice().getLogicalDeviceHandle(), &descriptorSetLayoutInfo, nullptr, &layout) !=
             VK_SUCCESS) {
             throw exception_init("Failed to create descriptor set layout");
             }
@@ -49,7 +49,7 @@ namespace merutilm::vkh {
 
     void DescriptorSetLayoutImpl::destroy() {
         if (layout != nullptr) {
-            vkDestroyDescriptorSetLayout(core.getLogicalDevice().getLogicalDeviceHandle(), layout, nullptr);
+            allocator::invoke(vkDestroyDescriptorSetLayout, core.getLogicalDevice().getLogicalDeviceHandle(), layout, nullptr);
         }
     }
 }

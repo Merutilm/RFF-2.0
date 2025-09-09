@@ -29,7 +29,8 @@ namespace merutilm::rff2 {
                 break;
             }
             case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
-                //TODO : Video window
+                const auto &input = sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_SECONDARY);
+                inputDesc.get<vkh::InputAttachment>(0, BINDING_PREV_RESULT_INPUT).ctx = input;
                 break;
             }
             default: {

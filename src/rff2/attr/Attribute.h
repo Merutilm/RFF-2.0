@@ -1,12 +1,12 @@
 #pragma once
-#include "CalcAttribute.h"
+#include "FractalAttribute.h"
 #include "RenderAttribute.h"
 #include "ShaderAttribute.h"
 #include "VideoAttribute.h"
 
 namespace merutilm::rff2 {
     struct Attribute final{
-        CalcAttribute calc;
+        FractalAttribute fractal;
         RenderAttribute render;
         ShaderAttribute shader;
         VideoAttribute video;

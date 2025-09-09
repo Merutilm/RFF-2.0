@@ -14,7 +14,7 @@ add_executable(
         src/rff2/calc/fp_complex_calculator.h
         src/rff2/constants/Constants.hpp
         src/rff2/attr/Attribute.h
-        src/rff2/attr/CalcAttribute.h
+        src/rff2/attr/FractalAttribute.h
         src/rff2/attr/RenderAttribute.h
         src/rff2/attr/ShaderAttribute.h
         src/rff2/attr/ShdSlopeAttribute.h
@@ -26,12 +26,12 @@ add_executable(
         src/rff2/attr/ShdBloomAttribute.h
         src/rff2/attr/VidDataAttribute.h
         src/rff2/attr/VidExportAttribute.h
-        src/rff2/attr/CalMPAAttribute.h
+        src/rff2/attr/FrtMPAAttribute.h
         src/rff2/calc/fp_complex.cpp
         src/rff2/calc/fp_complex.h
-        src/rff2/attr/CalDecimalizeIterationMethod.h
-        src/rff2/attr/CalReferenceCompAttribute.h
-        src/rff2/attr/CalReuseReferenceMethod.h
+        src/rff2/attr/FrtDecimalizeIterationMethod.h
+        src/rff2/attr/FrtReferenceCompAttribute.h
+        src/rff2/attr/FrtReuseReferenceMethod.h
         src/rff2/attr/Selectable.h
         src/rff2/calc/fp_decimal_calculator.cpp
         src/rff2/calc/fp_decimal_calculator.h
@@ -191,7 +191,7 @@ add_executable(
         src/vulkan_helper/impl/HostDataObject.hpp
         src/vulkan_helper/impl/Uniform.cpp
         src/vulkan_helper/impl/Uniform.hpp
-        src/vulkan_helper/repo/ShaderModuleRepo.hpp
+        src/vulkan_helper/repo/GlobalShaderModuleRepo.hpp
         src/vulkan_helper/context/WindowContext.hpp
         src/vulkan_helper/context/RenderContext.hpp
         src/vulkan_helper/hash/VectorHasher.hpp
@@ -201,14 +201,14 @@ add_executable(
         src/vulkan_helper/repo/RepoAbstract.hpp
         src/vulkan_helper/manage/PipelineLayoutManager.hpp
         src/vulkan_helper/hash/BoostHasher.hpp
-        src/vulkan_helper/repo/PipelineLayoutRepo.hpp
+        src/vulkan_helper/repo/GlobalPipelineLayoutRepo.hpp
         src/vulkan_helper/impl/IndexBuffer.cpp
         src/vulkan_helper/impl/IndexBuffer.hpp
         src/vulkan_helper/impl/CombinedImageSampler.cpp
         src/vulkan_helper/impl/CombinedImageSampler.hpp
         src/vulkan_helper/configurator/GeneralGraphicsPipelineConfigurator.cpp
         src/vulkan_helper/configurator/GeneralGraphicsPipelineConfigurator.hpp
-        src/vulkan_helper/repo/SharedDescriptorRepo.hpp
+        src/vulkan_helper/repo/WindowLocalDescriptorRepo.hpp
         src/vulkan_helper/struct/DescriptorTemplateInfo.hpp
         src/rff2/vulkan/SharedDescriptorTemplate.hpp
         src/vulkan_helper/impl/Engine.cpp
@@ -220,7 +220,7 @@ add_executable(
         src/rff2/vulkan/RCC1.hpp
         src/vulkan_helper/hash/DescriptorSetLayoutBuildTypeHasher.hpp
         src/vulkan_helper/context/ImageContext.hpp
-        src/vulkan_helper/util/SwapchainPresenter.hpp
+        src/vulkan_helper/util/SwapchainUtils.hpp
         src/rff2/vulkan/GPCIterationPalette.cpp
         src/rff2/vulkan/GPCIterationPalette.hpp
         src/vulkan_helper/context/DescriptorUpdateContext.hpp
@@ -244,10 +244,9 @@ add_executable(
         src/vulkan_helper/struct/DescriptorTemplate.hpp
         src/vulkan_helper/impl/Sampler.cpp
         src/vulkan_helper/impl/Sampler.hpp
-        src/vulkan_helper/repo/SamplerRepo.hpp
+        src/vulkan_helper/repo/GlobalSamplerRepo.hpp
         src/vulkan_helper/hash/SamplerCreateInfoHasher.hpp
         src/vulkan_helper/hash/SamplerCreateInfoEquals.hpp
-        src/vulkan_helper/context/DescriptorRequiresRepoContext.hpp
         src/vulkan_helper/impl/ShaderStorage.cpp
         src/vulkan_helper/impl/ShaderStorage.hpp
         src/vulkan_helper/struct/BufferLock.hpp
@@ -306,14 +305,14 @@ add_executable(
         src/vulkan_helper/context/BufferContext.hpp
         src/vulkan_helper/struct/BufferInitInfo.hpp
         src/rff2/ui/RenderSceneRequests.hpp
-        src/rff2/ui/RenderSceneShaderPrograms.hpp
+        src/rff2/ui/RenderSceneRenderer.hpp
         src/rff2/vulkan/GPCPresent.cpp
         src/rff2/vulkan/GPCPresent.hpp
         src/rff2/ui/VideoWindow.cpp
         src/rff2/ui/VideoWindow.hpp
         src/rff2/ui/VideoRenderScene.cpp
         src/rff2/ui/VideoRenderScene.hpp
-        src/rff2/ui/VideoRenderSceneShaderPrograms.hpp
+        src/rff2/ui/VideoRenderSceneRenderer.hpp
         src/rff2/vulkan/CPCIterationPalette2Map.cpp
         src/rff2/vulkan/CPCIterationPalette2Map.hpp
         src/rff2/vulkan/RCC1Vid.hpp
@@ -322,6 +321,9 @@ add_executable(
         src/rff2/vulkan/RCC4Vid.hpp
         src/rff2/vulkan/RCCDownsampleForBlurVid.hpp
         src/vulkan_helper/context/WindowContext.cpp
+        src/vulkan_helper/impl/Renderer.hpp
+        src/rff2/vulkan/RCC0.hpp
+        src/vulkan_helper/core/allocator.hpp
 )
 
 find_package(Vulkan REQUIRED)

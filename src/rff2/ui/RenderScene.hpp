@@ -8,9 +8,8 @@
 #include <atomic>
 
 #include "RenderSceneRequests.hpp"
-#include "RenderSceneShaderPrograms.hpp"
+#include "RenderSceneRenderer.hpp"
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
-#include "../../vulkan_helper/handle/WindowContextHandler.hpp"
 #include "../data/ApproxTableCache.h"
 #include "../formula/MandelbrotPerturbator.h"
 #include "../io/RFFDynamicMapBinary.h"
@@ -19,15 +18,17 @@
 #include "../attr/Attribute.h"
 
 namespace merutilm::rff2 {
-    class RenderScene final : public vkh::WindowContextHandler {
+    class RenderScene final : public vkh::EngineHandler {
 
-        vkh::EngineRef engine;
+        vkh::WindowContextRef wc;
         ParallelRenderState state;
         Attribute attr;
 
         uint16_t interactedMX = 0;
         uint16_t interactedMY = 0;
 
+        uint64_t lastMaxIteration = 0;
+        float lastLogZoom = 0;
         uint64_t lastPeriod = 1;
 
         RenderSceneRequests requests;
@@ -37,11 +38,11 @@ namespace merutilm::rff2 {
         ApproxTableCache approxTableCache = ApproxTableCache();
 
         std::array<std::wstring, Constants::Status::LENGTH> *statusMessageRef = nullptr;
-        std::unique_ptr<RFFDynamicMapBinary> currentMap = nullptr;
-        std::unique_ptr<Matrix<double> > iterationMatrix = nullptr;
+        std::unique_ptr<Matrix<double>> iterationMatrix = nullptr;
+
         std::unique_ptr<MandelbrotPerturbator> currentPerturbator = nullptr;
 
-        std::unique_ptr<RenderSceneShaderPrograms> shaderPrograms = nullptr;
+        std::unique_ptr<RenderSceneRenderer> renderer = nullptr;
 
         bool wndFPSRequest = false;
         uint16_t wndCWRequest = 0;
@@ -67,13 +68,7 @@ namespace merutilm::rff2 {
 
         void resolveWindowResizeEnd() const;
 
-        void render(uint32_t frameIndex, uint32_t swapchainImageIndex);
-
-        void draw(uint32_t frameIndex, uint32_t swapchainImageIndex) const;
-
-        [[nodiscard]] vkh::EngineRef getEngine() const {
-            return engine;
-        }
+        void render();
 
         [[nodiscard]] VkExtent2D getInternalImageExtent() const {
             const auto &swapchain = wc.getSwapchain();
@@ -94,7 +89,6 @@ namespace merutilm::rff2 {
                     static_cast<uint32_t>(static_cast<float>(internalExtent.height) * rat)
                 };
             }
-
             return internalExtent;
         }
 
@@ -132,7 +126,7 @@ namespace merutilm::rff2 {
 
         void refreshSharedImgContext() const;
 
-        void overwriteMatrixFromMap() const;
+        void overwriteMatrixFromMap(const RFFDynamicMapBinary &map) const;
 
         [[nodiscard]] uint16_t getMouseXOnIterationBuffer() const;
 
@@ -140,9 +134,9 @@ namespace merutilm::rff2 {
 
         void recomputeThreaded();
 
-        void beforeCompute(Attribute &settings) const;
+        void beforeCompute(Attribute &attr) const;
 
-        bool compute(const Attribute &settings);
+        bool compute(const Attribute &attr);
 
         void afterCompute(bool success);
 
@@ -174,13 +168,8 @@ namespace merutilm::rff2 {
             return backgroundThreads;
         }
 
-        [[nodiscard]] RFFDynamicMapBinary &getCurrentMap() const {
-            return *currentMap;
-        }
-
-
-        void setCurrentMap(const RFFDynamicMapBinary &map) {
-            currentMap = std::make_unique<RFFDynamicMapBinary>(map);
+        [[nodiscard]] RFFDynamicMapBinary generateMap() const {
+            return RFFDynamicMapBinary(lastLogZoom, lastPeriod, lastMaxIteration, *iterationMatrix);
         }
 
         [[nodiscard]] RenderSceneRequests &getRequests() {
@@ -202,6 +191,10 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] int getWndCHRequest() const {
             return wndCHRequest;
+        }
+
+        [[nodiscard]] vkh::WindowContextRef getWindowContext() const {
+            return wc;
         }
 
         void wndRequestFPS() {
@@ -233,7 +226,7 @@ namespace merutilm::rff2 {
 
         void initRenderContext() const;
 
-        void initShaderPrograms();
+        void initRenderer();
 
         void destroy() override;
     };
@@ -241,17 +234,17 @@ namespace merutilm::rff2 {
 
     template<typename P> requires std::is_base_of_v<Preset, P>
     void RenderScene::changePreset(P &preset) {
-        if constexpr (std::is_base_of_v<Presets::CalculationPresets, P>) {
-            attr.calc.mpaAttribute = preset.genMPA();
-            attr.calc.referenceCompAttribute = preset.genReferenceCompression();
+        if constexpr (std::is_base_of_v<Presets::CalculationPreset, P>) {
+            attr.fractal.mpaAttribute = preset.genMPA();
+            attr.fractal.referenceCompAttribute = preset.genReferenceCompression();
             requests.requestRecompute();
         }
-        if constexpr (std::is_base_of_v<Presets::RenderPresets, P>) {
+        if constexpr (std::is_base_of_v<Presets::RenderPreset, P>) {
             attr.render = preset.genRender();
             requests.requestResize();
             requests.requestRecompute();
         }
-        if constexpr (std::is_base_of_v<Presets::ResolutionPresets, P>) {
+        if constexpr (std::is_base_of_v<Presets::ResolutionPreset, P>) {
             auto r = preset.genResolution();
             wndRequestClientSize(r[0], r[1]);
         }

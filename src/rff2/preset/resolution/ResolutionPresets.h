@@ -6,31 +6,31 @@
 #include "../Presets.h"
 
 namespace merutilm::rff2::ResolutionPresets {
-    struct L1 final : public Presets::ResolutionPresets {
+    struct L1 final : public Presets::ResolutionPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] std::array<int, 2> genResolution() const override;
     };
 
-    struct L2 final : public Presets::ResolutionPresets {
+    struct L2 final : public Presets::ResolutionPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] std::array<int, 2> genResolution() const override;
     };
 
-    struct L3 final : public Presets::ResolutionPresets {
+    struct L3 final : public Presets::ResolutionPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] std::array<int, 2> genResolution() const override;
     };
 
-    struct L4 final : public Presets::ResolutionPresets {
+    struct L4 final : public Presets::ResolutionPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] std::array<int, 2> genResolution() const override;
     };
 
-    struct L5 final : public Presets::ResolutionPresets {
+    struct L5 final : public Presets::ResolutionPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] std::array<int, 2> genResolution() const override;

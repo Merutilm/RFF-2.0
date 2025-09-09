@@ -21,7 +21,7 @@ namespace merutilm::vkh {
                 return context.writeSet;
             });
 
-            vkUpdateDescriptorSets(device,
+            allocator::invoke(vkUpdateDescriptorSets, device,
                                    static_cast<uint32_t>(writeDescriptorSets.size()),
                                    writeDescriptorSets.data(), 0, nullptr);
         }

@@ -18,10 +18,10 @@ namespace merutilm::rff2 {
         static constexpr uint32_t BINDING_RESAMPLE_UBO = 1;
         static constexpr uint32_t TARGET_RESAMPLE_UBO_EXTENT = 0;
 
-        explicit GPCDownsampleForBlur(vkh::WindowContextRef wc,
+        explicit GPCDownsampleForBlur(vkh::EngineRef engine, const uint32_t windowContextIndex,
                              const uint32_t renderContextIndex,
                              const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            wc, renderContextIndex, primarySubpassIndex, "vk_resample.frag") {
+            engine, windowContextIndex, renderContextIndex, primarySubpassIndex, "vk_resample.frag") {
         }
 
         ~GPCDownsampleForBlur() override = default;

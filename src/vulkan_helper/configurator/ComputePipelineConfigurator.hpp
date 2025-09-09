@@ -12,10 +12,12 @@ namespace merutilm::vkh {
         static constexpr uint32_t WORK_GROUP_SIZE = 16;
 
     public:
-        explicit ComputePipelineConfigurator(WindowContextRef wc,
-                                             const std::string &compName) : PipelineConfiguratorAbstract(wc),
+        explicit ComputePipelineConfigurator(EngineRef engine, const uint32_t windowContextIndex,
+                                             const std::string &compName) : PipelineConfiguratorAbstract(
+                                                                                engine, windowContextIndex),
                                                                             computeShader(
-                                                                                pickFromRepository<ShaderModuleRepo,
+                                                                                pickFromGlobalRepository<
+                                                                                    GlobalShaderModuleRepo,
                                                                                     ShaderModuleRef>(compName)) {
         }
 

@@ -7,15 +7,15 @@
 #include "Perturbator.h"
 #include "../mrthy/MPATable.h"
 #include "../parallel/ParallelRenderState.h"
-#include "../attr/CalcAttribute.h"
+#include "../attr/FractalAttribute.h"
 
 namespace merutilm::rff2 {
     struct MandelbrotPerturbator : public Perturbator {
         ParallelRenderState &state;
-        const CalcAttribute calc;
+        const FractalAttribute calc;
 
         explicit MandelbrotPerturbator(ParallelRenderState &state,
-                                       const CalcAttribute &calculationSettings) : state(state),
+                                       const FractalAttribute &calculationSettings) : state(state),
             calc(calculationSettings) {
         }
 
@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
 
         virtual const MandelbrotReference *getReference() const = 0;
 
-        const CalcAttribute &getCalculationSettings() const {
+        const FractalAttribute &getCalculationSettings() const {
             return calc;
         };
 

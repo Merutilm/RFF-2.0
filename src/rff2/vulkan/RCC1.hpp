@@ -9,12 +9,11 @@
 
 namespace merutilm::rff2 {
     struct RCC1 final : public vkh::RenderContextConfiguratorAbstract {
-        static constexpr uint32_t CONTEXT_INDEX = 0;
+        static constexpr uint32_t CONTEXT_INDEX = 1;
 
-        static constexpr uint32_t SUBPASS_ITERATION_INDEX = 0;
-        static constexpr uint32_t SUBPASS_STRIPE_INDEX = 1;
-        static constexpr uint32_t SUBPASS_SLOPE_INDEX = 2;
-        static constexpr uint32_t SUBPASS_COLOR_INDEX = 3;
+        static constexpr uint32_t SUBPASS_STRIPE_INDEX = 0;
+        static constexpr uint32_t SUBPASS_SLOPE_INDEX = 1;
+        static constexpr uint32_t SUBPASS_COLOR_INDEX = 2;
 
         static constexpr uint32_t RESULT_COLOR_ATTACHMENT_INDEX = 0;
         static constexpr uint32_t TEMP_COLOR_ATTACHMENT_INDEX = 1;
@@ -51,11 +50,7 @@ namespace merutilm::rff2 {
 
 
 
-            rpm.appendSubpass(SUBPASS_ITERATION_INDEX);
-            rpm.appendReference(TEMP_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
             rpm.appendSubpass(SUBPASS_STRIPE_INDEX);
-            rpm.appendReference(TEMP_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::INPUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
             rpm.appendSubpass(SUBPASS_SLOPE_INDEX);
@@ -68,31 +63,13 @@ namespace merutilm::rff2 {
 
 
             rpm.appendDependency({
-                .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = SUBPASS_ITERATION_INDEX,
-                .srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .srcAccessMask = 0,
-                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dependencyFlags = 0
-            });
-            rpm.appendDependency({
-                .srcSubpass = SUBPASS_ITERATION_INDEX,
-                .dstSubpass = SUBPASS_STRIPE_INDEX,
-                .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-                .dependencyFlags = 0
-            });
-            rpm.appendDependency({
                 .srcSubpass = SUBPASS_STRIPE_INDEX,
                 .dstSubpass = SUBPASS_SLOPE_INDEX,
                 .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-                .dependencyFlags = 0
+                .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
             });
             rpm.appendDependency({
                 .srcSubpass = SUBPASS_SLOPE_INDEX,
@@ -101,16 +78,7 @@ namespace merutilm::rff2 {
                 .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-                .dependencyFlags = 0
-            });
-            rpm.appendDependency({
-                .srcSubpass = SUBPASS_COLOR_INDEX,
-                .dstSubpass = VK_SUBPASS_EXTERNAL,
-                .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dstAccessMask = 0,
-                .dependencyFlags = 0
+                .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
             });
         }
     };

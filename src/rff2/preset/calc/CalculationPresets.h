@@ -4,48 +4,48 @@
 
 #pragma once
 #include "../Presets.h"
-#include "../../attr/CalMPAAttribute.h"
-#include "../../attr/CalReferenceCompAttribute.h"
+#include "../../attr/FrtMPAAttribute.h"
+#include "../../attr/FrtReferenceCompAttribute.h"
 
 namespace merutilm::rff2::CalculationPresets {
-    struct UltraFast final : public Presets::CalculationPresets {
+    struct UltraFast final : public Presets::CalculationPreset {
         [[nodiscard]] std::string getName() const override;
-        [[nodiscard]] CalMPAAttribute genMPA() const override;
-        [[nodiscard]] CalReferenceCompAttribute genReferenceCompression() const override;
+        [[nodiscard]] FrtMPAAttribute genMPA() const override;
+        [[nodiscard]] FrtReferenceCompAttribute genReferenceCompression() const override;
     };
-    struct Fast final : public Presets::CalculationPresets {
+    struct Fast final : public Presets::CalculationPreset {
         [[nodiscard]] std::string getName() const override;
-        [[nodiscard]] CalMPAAttribute genMPA() const override;
-        [[nodiscard]] CalReferenceCompAttribute genReferenceCompression() const override;
+        [[nodiscard]] FrtMPAAttribute genMPA() const override;
+        [[nodiscard]] FrtReferenceCompAttribute genReferenceCompression() const override;
     };
-    struct Normal final : public Presets::CalculationPresets {
+    struct Normal final : public Presets::CalculationPreset {
         [[nodiscard]] std::string getName() const override;
-        [[nodiscard]] CalMPAAttribute genMPA() const override;
-        [[nodiscard]] CalReferenceCompAttribute genReferenceCompression() const override;
+        [[nodiscard]] FrtMPAAttribute genMPA() const override;
+        [[nodiscard]] FrtReferenceCompAttribute genReferenceCompression() const override;
     };
-    struct Best final : public Presets::CalculationPresets {
+    struct Best final : public Presets::CalculationPreset {
         [[nodiscard]] std::string getName() const override;
-        [[nodiscard]] CalMPAAttribute genMPA() const override;
-        [[nodiscard]] CalReferenceCompAttribute genReferenceCompression() const override;
+        [[nodiscard]] FrtMPAAttribute genMPA() const override;
+        [[nodiscard]] FrtReferenceCompAttribute genReferenceCompression() const override;
     };
-    struct UltraBest final : public Presets::CalculationPresets {
+    struct UltraBest final : public Presets::CalculationPreset {
         [[nodiscard]] std::string getName() const override;
-        [[nodiscard]] CalMPAAttribute genMPA() const override;
-        [[nodiscard]] CalReferenceCompAttribute genReferenceCompression() const override;
+        [[nodiscard]] FrtMPAAttribute genMPA() const override;
+        [[nodiscard]] FrtReferenceCompAttribute genReferenceCompression() const override;
     };
-    struct Stable final : public Presets::CalculationPresets {
+    struct Stable final : public Presets::CalculationPreset {
         [[nodiscard]] std::string getName() const override;
-        [[nodiscard]] CalMPAAttribute genMPA() const override;
-        [[nodiscard]] CalReferenceCompAttribute genReferenceCompression() const override;
+        [[nodiscard]] FrtMPAAttribute genMPA() const override;
+        [[nodiscard]] FrtReferenceCompAttribute genReferenceCompression() const override;
     };
-    struct MoreStable final : public Presets::CalculationPresets {
+    struct MoreStable final : public Presets::CalculationPreset {
         [[nodiscard]] std::string getName() const override;
-        [[nodiscard]] CalMPAAttribute genMPA() const override;
-        [[nodiscard]] CalReferenceCompAttribute genReferenceCompression() const override;
+        [[nodiscard]] FrtMPAAttribute genMPA() const override;
+        [[nodiscard]] FrtReferenceCompAttribute genReferenceCompression() const override;
     };
-    struct UltraStable final : public Presets::CalculationPresets {
+    struct UltraStable final : public Presets::CalculationPreset {
         [[nodiscard]] std::string getName() const override;
-        [[nodiscard]] CalMPAAttribute genMPA() const override;
-        [[nodiscard]] CalReferenceCompAttribute genReferenceCompression() const override;
+        [[nodiscard]] FrtMPAAttribute genMPA() const override;
+        [[nodiscard]] FrtReferenceCompAttribute genReferenceCompression() const override;
     };
 }

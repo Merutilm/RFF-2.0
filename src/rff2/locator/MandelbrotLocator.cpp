@@ -64,7 +64,7 @@ namespace merutilm::rff2 {
             return nullptr;
         }
         dex resultDcMax = result->getDcMaxAsDoubleExp();
-        CalcAttribute resultCalc = result->getCalculationSettings();
+        FractalAttribute resultCalc = result->getCalculationSettings();
         resultCalc.absoluteIterationMode = false;
         float resultZoom = resultCalc.logZoom;
         const uint64_t maxIteration = resultCalc.maxIteration;
@@ -120,8 +120,8 @@ namespace merutilm::rff2 {
         uint64_t longestPeriod = perturbator->getReference()->longestPeriod();
 
         const float logZoom = perturbator->getCalculationSettings().logZoom;
-        const CalcAttribute &calc = perturbator->getCalculationSettings();
-        CalcAttribute doubledZoomCalc = calc;
+        const FractalAttribute &calc = perturbator->getCalculationSettings();
+        FractalAttribute doubledZoomCalc = calc;
         const uint64_t maxIteration = doubledZoomCalc.maxIteration;
         const float doubledLogZoom = logZoom * 2;
         const int doubledExp10 = Perturbator::logZoomToExp10(doubledLogZoom);

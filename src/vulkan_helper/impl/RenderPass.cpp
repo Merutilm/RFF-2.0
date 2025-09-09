@@ -73,7 +73,7 @@ namespace merutilm::vkh {
             .dependencyCount = static_cast<uint32_t>(dependencies.size()),
             .pDependencies = dependencies.data(),
         };
-        if (vkCreateRenderPass(core.getLogicalDevice().getLogicalDeviceHandle(), &renderPassInfo, nullptr,
+        if (allocator::invoke(vkCreateRenderPass, core.getLogicalDevice().getLogicalDeviceHandle(), &renderPassInfo, nullptr,
                                &renderPass) !=
             VK_SUCCESS) {
             throw exception_init("Failed to create render pass!");
@@ -81,6 +81,6 @@ namespace merutilm::vkh {
     }
 
     void RenderPassImpl::destroy() {
-        vkDestroyRenderPass(core.getLogicalDevice().getLogicalDeviceHandle(), renderPass, nullptr);
+        allocator::invoke(vkDestroyRenderPass, core.getLogicalDevice().getLogicalDeviceHandle(), renderPass, nullptr);
     }
 }

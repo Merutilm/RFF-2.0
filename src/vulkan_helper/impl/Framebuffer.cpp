@@ -41,7 +41,7 @@ namespace merutilm::vkh {
             };
 
 
-            if (vkCreateFramebuffer(core.getLogicalDevice().getLogicalDeviceHandle(), &createInfo, nullptr,
+            if (allocator::invoke(vkCreateFramebuffer, core.getLogicalDevice().getLogicalDeviceHandle(), &createInfo, nullptr,
                                     &framebuffer[i]) != VK_SUCCESS) {
                 throw exception_init("Failed to create framebuffer");
             }
@@ -52,7 +52,7 @@ namespace merutilm::vkh {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-            vkDestroyFramebuffer(device, framebuffer[i], nullptr);
+            allocator::invoke(vkDestroyFramebuffer, device, framebuffer[i], nullptr);
         }
     }
 

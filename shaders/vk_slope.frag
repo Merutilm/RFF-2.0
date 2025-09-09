@@ -3,9 +3,12 @@
 
 layout (input_attachment_index = 0, set = 0, binding = 0) uniform subpassInput canvas;
 
-layout (set = 1, binding = 0) buffer IterSSBO {
+layout (set = 1, binding = 0) uniform IterUBO {
     uvec2 extent;
     double max_value;
+} iteration_info_attr;
+
+layout (set = 1, binding = 1) buffer IterSSBO {
     double iterations[];
 } iteration_attr;
 
@@ -23,9 +26,9 @@ layout (location = 1) in vec2 fragTexcoord;
 layout (location = 0) out vec4 color;
 
 double get_iteration(uvec2 iter_coord, uvec2 offset){
-    iter_coord.y = iteration_attr.extent.y - iter_coord.y;
+    iter_coord.y = iteration_info_attr.extent.y - iter_coord.y;
     iter_coord += offset;
-    return iteration_attr.iterations[iter_coord.y * iteration_attr.extent.x + iter_coord.x];
+    return iteration_attr.iterations[iter_coord.y * iteration_info_attr.extent.x + iter_coord.x];
 }
 
 void main() {
@@ -37,7 +40,7 @@ void main() {
         discard;
     }
 
-    float multiplier = float(iteration_attr.extent.x) / 1280;
+    float multiplier = float(iteration_info_attr.extent.x) / 1280;
 
     float aRad = radians(slope_attr.azimuth);
     float zRad = radians(slope_attr.zenith);

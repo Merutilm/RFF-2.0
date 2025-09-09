@@ -6,45 +6,46 @@
 
 #include "Application.hpp"
 #include "SettingsWindow.hpp"
+#include "VideoWindow.hpp"
 #include "../../vulkan_helper/util/GraphicsContextWindowProc.hpp"
 
 void registerClasses() {
     using namespace merutilm::rff2;
     using namespace Constants::Win32;
     using namespace merutilm::vkh;
-    WNDCLASSEXW wc = {};
-    wc.cbSize = sizeof(WNDCLASSEXW);
+    WNDCLASSEXW wClass = {};
+    wClass.cbSize = sizeof(WNDCLASSEXW);
+    wClass.hInstance = GetModuleHandleW(nullptr);
 
-    WNDCLASSEXW masterWindowClass = wc;
+    WNDCLASSEXW masterWindowClass = wClass;
     masterWindowClass.lpszClassName = CLASS_MASTER_WINDOW;
     masterWindowClass.lpfnWndProc = GraphicsContextWindowProc::WinProc;
     masterWindowClass.hIcon = static_cast<HICON>(LoadImage(
-    GetModuleHandle(nullptr),
+    GetModuleHandleW(nullptr),
     MAKEINTRESOURCE(1),
     IMAGE_ICON,
     32, 32,
     LR_DEFAULTCOLOR));
     if(!RegisterClassExW(&masterWindowClass)) throw exception_init("Failed to register class : Master Window");
 
-    // WNDCLASSEXW videoWindowClass = wc;
-    // videoWindowClass.lpszClassName = CLASS_VIDEO_WINDOW;
-    // videoWindowClass.lpfnWndProc = merutilm::rff2::VideoWindow::videoWindowProc;
-    // videoWindowClass.hIcon = masterWindowClass.hIcon;
-    // assert(RegisterClassExW(&videoWindowClass));
+    WNDCLASSEXW videoWindowClass = wClass;
+    videoWindowClass.lpszClassName = CLASS_VIDEO_WINDOW;
+    videoWindowClass.lpfnWndProc = VideoWindow::videoWindowProc;
+    videoWindowClass.hIcon = masterWindowClass.hIcon;
+    assert(RegisterClassExW(&videoWindowClass));
 
-    WNDCLASSEXW settingsWindowClass = wc;
-    settingsWindowClass.cbSize = sizeof(WNDCLASSEX);
+    WNDCLASSEXW settingsWindowClass = wClass;
     settingsWindowClass.lpszClassName = CLASS_SETTINGS_WINDOW;
     settingsWindowClass.lpfnWndProc = SettingsWindow::settingsWindowProc;
     settingsWindowClass.hbrBackground = CreateSolidBrush(COLOR_LABEL_BACKGROUND);
     if(!RegisterClassExW(&settingsWindowClass)) throw exception_init("Failed to register class : Settings Window");
 
-    WNDCLASSEXW videoRenderWindowClass = wc;
+    WNDCLASSEXW videoRenderWindowClass = wClass;
     videoRenderWindowClass.lpszClassName = CLASS_VIDEO_RENDER_WINDOW;
-    videoRenderWindowClass.lpfnWndProc = DefWindowProc;
+    videoRenderWindowClass.lpfnWndProc = DefWindowProcW;
     if (!RegisterClassExW(&videoRenderWindowClass)) throw exception_init("Failed to register class : Video Window");
 
-    WNDCLASSEXW vkRenderSceneClass = wc;
+    WNDCLASSEXW vkRenderSceneClass = wClass;
     vkRenderSceneClass.lpszClassName = CLASS_VK_RENDER_SCENE;
     vkRenderSceneClass.lpfnWndProc = RenderScene::renderSceneProc;
     if(!RegisterClassExW(&vkRenderSceneClass)) throw exception_init("Failed to register class : Video Scene");

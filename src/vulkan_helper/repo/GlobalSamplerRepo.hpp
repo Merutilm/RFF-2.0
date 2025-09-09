@@ -12,7 +12,7 @@
 
 namespace merutilm::vkh {
 
-    struct SamplerRepo final : public Repository<VkSamplerCreateInfo, const VkSamplerCreateInfo &, Sampler, SamplerRef, SamplerCreateInfoHasher, SamplerCreateInfoEquals>{
+    struct GlobalSamplerRepo final : public Repository<VkSamplerCreateInfo, const VkSamplerCreateInfo &, Sampler, SamplerRef, SamplerCreateInfoHasher, SamplerCreateInfoEquals>{
 
         using Repository::Repository;
 

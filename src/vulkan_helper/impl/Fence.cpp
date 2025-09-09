@@ -4,6 +4,7 @@
 
 #include "Fence.hpp"
 
+
 namespace merutilm::vkh {
     FenceImpl::FenceImpl(CoreRef core) : CoreHandler(core) {
         FenceImpl::init();
@@ -23,13 +24,13 @@ namespace merutilm::vkh {
         };
 
 
-        if (vkCreateFence(device, &fenceInfo, nullptr, &fence) != VK_SUCCESS) {
+        if (allocator::invoke(vkCreateFence, device, &fenceInfo, nullptr, &fence) != VK_SUCCESS) {
             throw exception_init("Failed to create fence!");
         }
     }
 
     void FenceImpl::destroy() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        vkDestroyFence(device, fence, nullptr);
+        allocator::invoke(vkDestroyFence, device, fence, nullptr);
     }
 }

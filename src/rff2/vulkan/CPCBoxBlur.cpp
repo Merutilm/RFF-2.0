@@ -54,6 +54,7 @@ namespace merutilm::rff2 {
                                                           VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                                           VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
         cmdRender(cbh, frameIndex, {2u, blurSizeDescIndex});
+
     }
 
 
@@ -109,7 +110,8 @@ namespace merutilm::rff2 {
                 break;
             }
             case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
-                //TODO : video window
+                setGaussianBlur(sic.getImageContextMF(MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
+                                sic.getImageContextMF(MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
                 break;
             }
             default: {

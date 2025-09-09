@@ -11,6 +11,7 @@
 namespace merutilm::vkh {
     class EngineImpl final : public Handler {
         Core core = nullptr;
+        Repositories globalRepositories = nullptr;
         std::vector<WindowContext> windowContexts = {};
 
     public:
@@ -36,8 +37,14 @@ namespace merutilm::vkh {
             return *windowContexts.at(windowContextIndex);
         }
 
+        [[nodiscard]] RepositoriesRef getGlobalRepositories() const {
+            return *globalRepositories;
+        }
+
     private:
         void init() override;
+
+        void configureRepositories() const;
 
         void destroy() override;
     };

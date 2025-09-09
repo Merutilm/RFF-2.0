@@ -4,6 +4,8 @@
 
 #include "Semaphore.hpp"
 
+#include "../core/allocator.hpp"
+
 namespace merutilm::vkh {
     SemaphoreImpl::SemaphoreImpl(CoreRef core) : CoreHandler(core) {
         SemaphoreImpl::init();
@@ -24,15 +26,15 @@ namespace merutilm::vkh {
         };
 
 
-        if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailable) != VK_SUCCESS ||
-            vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinished) != VK_SUCCESS) {
+        if (allocator::invoke(vkCreateSemaphore, device, &semaphoreInfo, nullptr, &imageAvailable) != VK_SUCCESS ||
+            allocator::invoke(vkCreateSemaphore, device, &semaphoreInfo, nullptr, &renderFinished) != VK_SUCCESS) {
             throw exception_init("Failed to create sync objects!");
         }
     }
 
     void SemaphoreImpl::destroy() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        vkDestroySemaphore(device, imageAvailable, nullptr);
-        vkDestroySemaphore(device, renderFinished, nullptr);
+        allocator::invoke(vkDestroySemaphore, device, imageAvailable, nullptr);
+        allocator::invoke(vkDestroySemaphore, device, renderFinished, nullptr);
     }
 }

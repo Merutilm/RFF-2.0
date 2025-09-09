@@ -28,7 +28,7 @@ namespace merutilm::rff2 {
                                          Callback::NOTHING, L"Set Default Zoom increment",
                                          L"Set the w_log-Zoom interval between two adjacent video data.");
 
-        window->registerBoolInput(L"Static data", &isStatic, Callback::NOTHING, L"Use static video data",
+        window->registerCheckboxInput(L"Static data", &isStatic, Callback::NOTHING, L"Use static video data",
                                   L"Generates using .png image instead of data file. all shaders will be disabled when trying to generate video data.");
 
         window->setWindowCloseFunction([&settingsMenu] {
@@ -44,7 +44,7 @@ namespace merutilm::rff2 {
         window->registerTextInput<float>(L"Over Zoom", &overZoom, Unparser::FLOAT, Parser::FLOAT,
                                          ValidCondition::POSITIVE_FLOAT_ZERO, Callback::NOTHING, L"Over Zoom",
                                          L"Zoom the final video data.");
-        window->registerBoolInput(L"Show Text", &showText, Callback::NOTHING, L"Show Text", L"Show the text on video.");
+        window->registerCheckboxInput(L"Show Text", &showText, Callback::NOTHING, L"Show Text", L"Show the text on video.");
         window->registerTextInput<float>(L"MPS", &mps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
                                          Callback::NOTHING, L"MPS",
                                          L"Map per second, Number of video data used per second in video");
@@ -76,11 +76,12 @@ namespace merutilm::rff2 {
                 const auto &state = scene.getState();
                 const auto dirPtr = IOUtilities::ioDirectoryDialog(L"Folder to generate keyframes");
 
-                float &logZoom = scene.getAttribute().calc.logZoom;
+                float &logZoom = scene.getAttribute().fractal.logZoom;
                 if (dirPtr == nullptr) {
                     return;
                 }
-                if (!IsWindow(scene.wc.getWindow().getWindowHandle()) || !IsWindowVisible(scene.wc.getWindow().getWindowHandle())) {
+                const HWND hwnd = scene.getWindowContext().getWindow().getWindowHandle();
+                if (!IsWindow(hwnd) || !IsWindowVisible(hwnd)) {
                     MessageBoxW(nullptr, L"Target Window already been destroyed", L"FATAL", MB_OK | MB_ICONERROR);
                     return;
                 }
@@ -115,7 +116,7 @@ namespace merutilm::rff2 {
                         thread.waitUntil([&scene] { return !scene.getRequests().createImageRequested; });
                         RFFStaticMapBinary(logZoom, scene.getIterationBufferWidth(settings), scene.getIterationBufferHeight(settings)).exportAsKeyframe(dir);
                     } else {
-                        scene.getCurrentMap().exportAsKeyframe(dir);
+                        scene.generateMap().exportAsKeyframe(dir);
                     }
                     logZoom -= increment;
                     nextFrame = true;
@@ -141,7 +142,7 @@ namespace merutilm::rff2 {
                 return;
             }
             const auto &save = *savePtr;
-            VideoWindow::createVideo(scene.getEngine(), scene.getAttribute(), open, save);
+            VideoWindow::createVideo(scene.engine, scene.getAttribute(), open, save);
         });
     };
 }

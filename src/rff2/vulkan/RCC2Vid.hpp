@@ -16,11 +16,13 @@ namespace merutilm::rff2 {
         static constexpr uint32_t BLOOM_THRESHOLD_COLOR_ATTACHMENT_INDEX = 1;
 
         using RenderContextConfiguratorAbstract::RenderContextConfiguratorAbstract;
+
         void configure(vkh::RenderPassManagerRef rpm) override {
-using namespace SharedImageContextIndices;
+            using namespace SharedImageContextIndices;
             rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,
-                                     .format = sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_SECONDARY)[0].imageFormat,
+                                     .format = sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_SECONDARY)[0].
+                                     imageFormat,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
                                      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                                      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -31,7 +33,8 @@ using namespace SharedImageContextIndices;
                                  }, sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_SECONDARY));
             rpm.appendAttachment(BLOOM_THRESHOLD_COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,
-                                     .format = sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_PRIMARY)[0].imageFormat,
+                                     .format = sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_PRIMARY)[0].
+                                     imageFormat,
                                      .samples = VK_SAMPLE_COUNT_1_BIT,
                                      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                                      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -42,22 +45,15 @@ using namespace SharedImageContextIndices;
                                  }, sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_PRIMARY));
 
             rpm.appendSubpass(SUBPASS_FOG_INDEX);
-            rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+            rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR,
+                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
             rpm.appendSubpass(SUBPASS_BLOOM_THRESHOLD_INDEX);
-            rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::INPUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-            rpm.appendReference(BLOOM_THRESHOLD_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+            rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::INPUT,
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            rpm.appendReference(BLOOM_THRESHOLD_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR,
+                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-
-            rpm.appendDependency({
-                .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = SUBPASS_FOG_INDEX,
-                .srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .srcAccessMask = 0,
-                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dependencyFlags = 0
-            });
             rpm.appendDependency({
                 .srcSubpass = SUBPASS_FOG_INDEX,
                 .dstSubpass = SUBPASS_BLOOM_THRESHOLD_INDEX,
@@ -65,15 +61,6 @@ using namespace SharedImageContextIndices;
                 .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-                .dependencyFlags = 0
-            });
-            rpm.appendDependency({
-                .srcSubpass = SUBPASS_BLOOM_THRESHOLD_INDEX,
-                .dstSubpass = VK_SUBPASS_EXTERNAL,
-                .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dstAccessMask = 0,
                 .dependencyFlags = 0
             });
         }

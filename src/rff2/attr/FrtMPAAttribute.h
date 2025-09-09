@@ -5,16 +5,16 @@
 #pragma once
 #include <cstdint>
 
-#include "CalMPACompressionMethod.h"
-#include "CalMPASelectionMethod.h"
+#include "FrtMPACompressionMethod.h"
+#include "FrtMPASelectionMethod.h"
 
 
 namespace merutilm::rff2 {
-    struct CalMPAAttribute final {
+    struct FrtMPAAttribute final {
         uint16_t minSkipReference;
         uint8_t maxMultiplierBetweenLevel;
         float epsilonPower;
-        CalMPASelectionMethod mpaSelectionMethod;
-        CalMPACompressionMethod mpaCompressionMethod;
+        FrtMPASelectionMethod mpaSelectionMethod;
+        FrtMPACompressionMethod mpaCompressionMethod;
     };
 }

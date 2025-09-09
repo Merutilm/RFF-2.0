@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
 
     public:
 
-        explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const CalcAttribute &calc,
+        explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const FractalAttribute &calc,
                                            const dex &dcMax, int exp10,
                                            uint64_t initialPeriod, ApproxTableCache &tableRef,
                                            std::function<void(uint64_t)> &&actionPerRefCalcIteration,
@@ -33,7 +33,7 @@ namespace merutilm::rff2 {
 
         double iterate(const dex &dcr, const dex &dci) const override;
 
-        std::unique_ptr<DeepMandelbrotPerturbator> reuse(const CalcAttribute &calc, const dex &dcMax,
+        std::unique_ptr<DeepMandelbrotPerturbator> reuse(const FractalAttribute &calc, const dex &dcMax,
                                                          ApproxTableCache &tableRef);
 
         const DeepMandelbrotReference *getReference() const override;

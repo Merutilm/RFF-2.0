@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../vulkan_helper/configurator/ComputePipelineConfigurator.hpp"
-#include "../attr/VidAnimationAttribute.h"
+#include "../attr/ShdPaletteAttribute.h"
 
 namespace merutilm::rff2 {
     struct CPCIterationPalette2Map final : public vkh::ComputePipelineConfigurator {
@@ -13,20 +13,16 @@ namespace merutilm::rff2 {
         static constexpr uint32_t BINDING_I2MAP_SSBO_NORMAL = 0;
         static constexpr uint32_t TARGET_I2MAP_SSBO_NORMAL_ITERATION = 0;
         static constexpr uint32_t BINDING_I2MAP_SSBO_ZOOMED = 1;
-        static constexpr uint32_t TARGET_I2MAP_SSBO_ZOOMED_ITERATION = 1;
-        static constexpr uint32_t BINDING_I2MAP_UBO_ATTR = 2;
-        static constexpr uint32_t TARGET_I2MAP_UBO_ATTR_EXTENT = 0;
-        static constexpr uint32_t TARGET_I2MAP_UBO_ATTR_MAX_ITERATION = 1;
-        static constexpr uint32_t TARGET_I2MAP_UBO_ATTR_CURRENT_SEC = 2;
+        static constexpr uint32_t TARGET_I2MAP_SSBO_ZOOMED_ITERATION = 0;
         static constexpr uint32_t SET_VIDEO = 1;
         static constexpr uint32_t SET_PALETTE = 2;
-        static constexpr uint32_t SET_OUTPUT = 3;
+        static constexpr uint32_t SET_TIME = 3;
+        static constexpr uint32_t SET_OUTPUT_IMAGE = 4;
         static constexpr uint32_t BINDING_OUTPUT_MERGED_IMAGE = 0;
-        static constexpr uint32_t BINDING_OUTPUT_SSBO_RESULT = 1;
-        static constexpr uint32_t TARGET_OUTPUT_SSBO_RESULT_ITERATION = 0;
+        static constexpr uint32_t SET_OUTPUT_ITERATION = 5;
 
-        explicit CPCIterationPalette2Map(vkh::WindowContextRef wc)
-            : ComputePipelineConfigurator(wc, "vk_iteration_palette_2_map.comp") {
+        explicit CPCIterationPalette2Map(vkh::EngineRef engine, const uint32_t windowContextIndex)
+            : ComputePipelineConfigurator(engine, windowContextIndex, "vk_iteration_palette_2_map.comp") {
         }
 
         ~CPCIterationPalette2Map() override = default;
@@ -42,9 +38,8 @@ namespace merutilm::rff2 {
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
         [[nodiscard]] const vkh::ImageContext &getOutputColorImage() const {
-            return getDescriptor(SET_OUTPUT).get<vkh::StorageImage>(0, BINDING_OUTPUT_MERGED_IMAGE).ctx[0];
+            return getDescriptor(SET_OUTPUT_IMAGE).get<vkh::StorageImage>(0, BINDING_OUTPUT_MERGED_IMAGE).ctx[0];
         }
-
 
         void pipelineInitialized() override;
 
@@ -52,11 +47,15 @@ namespace merutilm::rff2 {
 
         void setCurrentFrame(float currentFrame) const;
 
+        void setPalette(const ShdPaletteAttribute &palette) const;
+
         void setDefaultZoomIncrement(float defaultZoomIncrement) const;
 
         void setAllIterations(const std::vector<double> &normal, const std::vector<double> &zoomed) const;
 
-        void setInfo(uint32_t width, uint32_t height, double maxIteration, float currentSec);
+        void set2MapSize(const VkExtent2D &extent);
+
+        void setInfo(double maxIteration, float currentSec) const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;

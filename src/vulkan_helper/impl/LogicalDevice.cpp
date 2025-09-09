@@ -45,7 +45,7 @@ namespace merutilm::vkh {
             .enabledExtensionCount = static_cast<uint32_t>(PhysicalDeviceUtils::PHYSICAL_DEVICE_EXTENSIONS.size()),
             .ppEnabledExtensionNames = PhysicalDeviceUtils::PHYSICAL_DEVICE_EXTENSIONS.data(),
             .pEnabledFeatures = &physicalDevice.getPhysicalDeviceFeatures()
-        }; vkCreateDevice(physicalDevice.getPhysicalDeviceHandle(), &createInfo, nullptr, &logicalDevice) !=
+        }; allocator::invoke(vkCreateDevice, physicalDevice.getPhysicalDeviceHandle(), &createInfo, nullptr, &logicalDevice) !=
            VK_SUCCESS) {
             throw exception_init("failed to create logical device!");
         }
@@ -56,6 +56,6 @@ namespace merutilm::vkh {
 
 
     void LogicalDeviceImpl::destroy() {
-        vkDestroyDevice(logicalDevice, nullptr);
+        allocator::invoke(vkDestroyDevice, logicalDevice, nullptr);
     }
 }

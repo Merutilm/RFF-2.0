@@ -4,6 +4,8 @@
 
 #include "Sampler.hpp"
 
+#include "../core/allocator.hpp"
+
 namespace merutilm::vkh {
     SamplerImpl::SamplerImpl(const CoreRef core, const VkSamplerCreateInfo &samplerInfo) : CoreHandler(core), samplerInfo(samplerInfo) {
         SamplerImpl::init();
@@ -14,12 +16,12 @@ namespace merutilm::vkh {
     }
 
     void SamplerImpl::init() {
-        if (vkCreateSampler(core.getLogicalDevice().getLogicalDeviceHandle(), &samplerInfo, nullptr, &sampler)) {
+        if (allocator::invoke(vkCreateSampler, core.getLogicalDevice().getLogicalDeviceHandle(), &samplerInfo, nullptr, &sampler)) {
             throw exception_init("Failed to create sampler!");
         }
     }
 
     void SamplerImpl::destroy() {
-        vkDestroySampler(core.getLogicalDevice().getLogicalDeviceHandle(), sampler, nullptr);
+        allocator::invoke(vkDestroySampler, core.getLogicalDevice().getLogicalDeviceHandle(), sampler, nullptr);
     }
 }

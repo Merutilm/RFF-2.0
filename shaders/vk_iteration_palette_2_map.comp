@@ -11,11 +11,6 @@ layout (set = 0, binding = 1) buffer Iteration2MapZoomedSSBO {
     double iterations[];
 } it2map_zoomed_attr;
 
-layout (set = 0, binding = 2) uniform Iteration2MapUBO {
-    uvec2 extent;
-    double max_value;
-    float current_sec;
-} it2map_attr;
 
 layout (set = 1, binding = 0) uniform VideoUBO {
     float default_zoom_increment;
@@ -32,17 +27,28 @@ layout (set = 2, binding = 0) buffer PaletteSSBO {
     vec4 palette[];
 } palette_attr;
 
-layout (set = 3, binding = 0) writeonly uniform image2D merged_image_output;
-layout (set = 3, binding = 1) writeonly buffer OutputIterationSSBO {
+layout (set = 3, binding = 0) uniform TimeUBO {
+    float time;
+} time_attr;
+
+layout (set = 4, binding = 0) writeonly uniform image2D merged_image_output;
+
+
+layout (set = 5, binding = 0) uniform OutputIterationUBO {
+    uvec2 extent;
+    double max_value;
+} iteration_output_info_attr;
+
+layout (set = 5, binding = 1) writeonly buffer OutputIterationSSBO {
     double[] iterations;
-} iteration_output;
+} iteration_output_attr;
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 
 vec4 get_color(double iteration) {
 
-    if (iteration == 0 || iteration >= it2map_attr.max_value) {
+    if (iteration == 0 || iteration >= iteration_output_info_attr.max_value) {
         return vec4(0, 0, 0, 1);
     }
     switch (palette_attr.smoothing) {
@@ -57,7 +63,7 @@ vec4 get_color(double iteration) {
     }
 
 
-    double timed_offset_ratio = palette_attr.offset - double(it2map_attr.current_sec) * palette_attr.animation_speed / palette_attr.interval;
+    double timed_offset_ratio = palette_attr.offset - double(time_attr.time) * palette_attr.animation_speed / palette_attr.interval;
     double palette_offset_ratio = mod(iteration / palette_attr.interval + timed_offset_ratio, 1);
     double palette_offset = palette_offset_ratio * palette_attr.size;
     float palette_offset_decimal = float(mod(palette_offset, 1));
@@ -72,27 +78,27 @@ vec4 get_color(double iteration) {
 }
 
 
-double get_iteration_normal(uvec2 iter_coord, uvec2 offset){
-    iter_coord.y = it2map_attr.extent.y - iter_coord.y;
+double get_iteration_normal(uvec2 iter_coord, uvec2 offset) {
+    iter_coord.y = iteration_output_info_attr.extent.y - iter_coord.y;
     iter_coord += offset;
-    return it2map_normal_attr.iterations[iter_coord.y * it2map_attr.extent.x + iter_coord.x];
+    return it2map_normal_attr.iterations[iter_coord.y * iteration_output_info_attr.extent.x + iter_coord.x];
 }
 
 
-double get_iteration_zoomed(uvec2 iter_coord, uvec2 offset){
-    iter_coord.y = it2map_attr.extent.y - iter_coord.y;
+double get_iteration_zoomed(uvec2 iter_coord, uvec2 offset) {
+    iter_coord.y = iteration_output_info_attr.extent.y - iter_coord.y;
     iter_coord += offset;
-    return it2map_zoomed_attr.iterations[iter_coord.y * it2map_attr.extent.x + iter_coord.x];
+    return it2map_zoomed_attr.iterations[iter_coord.y * iteration_output_info_attr.extent.x + iter_coord.x];
 }
 
-double set_iteration_output(uvec2 iter_coord, double value){
-    iter_coord.y = it2map_attr.extent.y - iter_coord.y;
-    return iteration_output.iterations[iter_coord.y * it2map_attr.extent.x + iter_coord.x] = value;
+void set_iteration_output(uvec2 iter_coord, double value) {
+    iter_coord.y = iteration_output_info_attr.extent.y - iter_coord.y;
+    iteration_output_attr.iterations[iter_coord.y * iteration_output_info_attr.extent.x + iter_coord.x] = value;
 }
 
-void main(){
+void main() {
 
-    vec2 center = vec2(it2map_attr.extent) / 2.0;
+    vec2 center = vec2(iteration_output_info_attr.extent) / 2.0;
     vec2 coord = vec2(gl_GlobalInvocationID.xy) - center;
     float r = int(max(0, video_attr.current_frame)) - video_attr.current_frame;
 
@@ -117,7 +123,7 @@ void main(){
     vec4 nc6 = nc3 - (nc3 - nc4) * nrt.x;
     vec4 nc7 = nc5 - (nc5 - nc6) * nrt.y;
 
-    if (ztx.x >= it2map_attr.extent.x - 1 || ztx.y >= it2map_attr.extent.y - 1 || ztx.x < 0 || ztx.y < 0 || zMain == 0){
+    if (ztx.x >= iteration_output_info_attr.extent.x - 1 || ztx.y >= iteration_output_info_attr.extent.y - 1 || ztx.x < 0 || ztx.y < 0 || zMain == 0) {
         double i2 = get_iteration_normal(uvec2(ntx), uvec2(1, 0));
         double i3 = get_iteration_normal(uvec2(ntx), uvec2(0, 1));
         double i4 = get_iteration_normal(uvec2(ntx), uvec2(1, 1));

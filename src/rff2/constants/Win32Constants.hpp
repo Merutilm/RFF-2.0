@@ -26,21 +26,22 @@ namespace merutilm::rff2::Constants::Win32 {
         constexpr auto CLASS_VK_RENDER_SCENE = L"RFF2VRS";
         constexpr auto CLASS_GL_RENDER_SCENE = L"RFF2RC";
         constexpr auto CLASS_GL_DUMMY = L"RFF2GD";
-        constexpr auto FONT_DEFAULT = "Segoe UI";
+        constexpr auto FONT_DEFAULT = L"Segoe UI";
         constexpr short FONT_SIZE = 25;
         constexpr DWORD STYLE_EX_TOOLTIP = WS_EX_TOPMOST;
         constexpr DWORD STYLE_EX_SETTINGS_WINDOW = WS_EX_TOOLWINDOW | WS_EX_TOPMOST;
         constexpr DWORD STYLE_SETTINGS_WINDOW = WS_SYSMENU | WS_BORDER;
-        constexpr DWORD STYLE_TOOLTIP = WS_POPUP | TTS_NOPREFIX | TTS_BALLOON | TTS_ALWAYSTIP;
+        constexpr DWORD STYLE_TOOLTIP = TTS_NOPREFIX | TTS_BALLOON | TTS_ALWAYSTIP;
         constexpr DWORD STYLE_LABEL = WS_CHILD | WS_VISIBLE | ES_CENTER | SS_NOTIFY;
         constexpr DWORD STYLE_RADIOBUTTON = WS_CHILD | WS_TABSTOP | WS_VISIBLE | BS_AUTORADIOBUTTON;
-        constexpr DWORD STYLE_CHECKBOX = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | BS_CHECKBOX;
+        constexpr DWORD STYLE_CHECKBOX = WS_CHILD | WS_TABSTOP | WS_VISIBLE | BS_AUTOCHECKBOX;
         constexpr DWORD STYLE_TEXT_FIELD = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | ES_RIGHT | ES_AUTOHSCROLL;
         constexpr DWORD STYLE_COMBOBOX = WS_CHILD | WS_TABSTOP | WS_VISIBLE | WS_BORDER | ES_CENTER | CBS_DROPDOWNLIST |
                                          WS_VSCROLL;
         constexpr int ID_MENUS = 0x2000;
         constexpr int ID_OPTIONS = 0x1000;
         constexpr int ID_OPTIONS_RADIO = 0x0100;
+        constexpr int ID_OPTIONS_CHECKBOX_FLAG = 0x0080;
         constexpr COLORREF COLOR_PROGRESS_BACKGROUND_PROG = RGB(40, 140, 40);
         constexpr COLORREF COLOR_PROGRESS_BACKGROUND_BACK = RGB(40, 40, 40);
         constexpr COLORREF COLOR_PROGRESS_TEXT_PROG = RGB(0, 0, 0);

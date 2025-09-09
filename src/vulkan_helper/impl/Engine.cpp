@@ -4,6 +4,10 @@
 
 #include "Engine.hpp"
 
+#include "../repo/GlobalDescriptorSetLayoutRepo.hpp"
+#include "../repo/GlobalPipelineLayoutRepo.hpp"
+#include "../repo/GlobalSamplerRepo.hpp"
+
 namespace merutilm::vkh {
     EngineImpl::EngineImpl(Core &&core) : core(std::move(core)) {
         EngineImpl::init();
@@ -39,12 +43,21 @@ namespace merutilm::vkh {
 
 
     void EngineImpl::init() {
-        //noop
+        globalRepositories = factory::create<Repositories>();
+        configureRepositories();
+    }
+
+    void EngineImpl::configureRepositories() const {
+        globalRepositories->addRepository<GlobalDescriptorSetLayoutRepo>(*core);
+        globalRepositories->addRepository<GlobalPipelineLayoutRepo>(*core);
+        globalRepositories->addRepository<GlobalShaderModuleRepo>(*core);
+        globalRepositories->addRepository<GlobalSamplerRepo>(*core);
     }
 
 
     void EngineImpl::destroy() {
         windowContexts.clear();
+        globalRepositories = nullptr;
         core = nullptr;
     }
 }

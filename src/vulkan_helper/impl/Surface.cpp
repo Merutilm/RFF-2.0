@@ -7,7 +7,7 @@
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vulkan_win32.h>
 
-#include "../core/exception.hpp"
+#include "../core/vkh_core.hpp"
 
 namespace merutilm::vkh {
     SurfaceImpl::SurfaceImpl(InstanceRef instance, GraphicsContextWindowRef window) : instance(instance), window(window) {
@@ -27,12 +27,12 @@ namespace merutilm::vkh {
             .hwnd = window.getWindowHandle()
         };
 
-        if (vkCreateWin32SurfaceKHR(instance.getInstanceHandle(), &surfaceCreateInfo, nullptr, &surface) != VK_SUCCESS) {
+        if (allocator::invoke(vkCreateWin32SurfaceKHR, instance.getInstanceHandle(), &surfaceCreateInfo, nullptr, &surface) != VK_SUCCESS) {
             throw exception_init("failed to create window surface!");
         }
     }
 
     void SurfaceImpl::destroy() {
-        vkDestroySurfaceKHR(instance.getInstanceHandle(), surface, nullptr);
+        allocator::invoke(vkDestroySurfaceKHR, instance.getInstanceHandle(), surface, nullptr);
     }
 }

@@ -12,7 +12,7 @@ namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackRender::SET_CLARITY = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto window = std::make_unique<SettingsWindow>(L"Set Render Properties");
-        auto &[clarityMultiplier, fps, linearInterpolation] = scene.getAttribute().render;
+        auto &[clarityMultiplier, fps, linearInterpolation, threads] = scene.getAttribute().render;
         window->registerTextInput<float>(L"Clarity", &clarityMultiplier, Unparser::FLOAT, Parser::FLOAT,
                                          [](const float &v) {
                                              return v > 0.05 && v <= 4;
@@ -26,6 +26,9 @@ namespace merutilm::rff2 {
                                              scene.wndRequestFPS();
                                          }, L"Framerate per second",
                                          L"Sets the Framerate.");
+        window->registerTextInput<uint32_t>(L"Threads", &threads, Unparser::U_LONG, Parser::U_LONG,
+                                         ValidCondition::ALL_U_LONG, Callback::NOTHING, L"Threads",
+                                         L"Sets the number of threads when calculating.");
         window->setWindowCloseFunction([&settingsMenu] {
             settingsMenu.setCurrentActiveSettingsWindow(nullptr);
         });

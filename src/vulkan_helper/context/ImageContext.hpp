@@ -44,23 +44,17 @@ namespace merutilm::vkh {
 
         static void destroyContext(CoreRef core, const ImageContext & imgCtx) {
             const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-            vkDestroyImageView(device, imgCtx.imageView, nullptr);
+            allocator::invoke(vkDestroyImageView, device, imgCtx.imageView, nullptr);
             if (imgCtx.mipmappedImageView != imgCtx.imageView) {
-                vkDestroyImageView(device, imgCtx.mipmappedImageView, nullptr);
+                allocator::invoke(vkDestroyImageView, device, imgCtx.mipmappedImageView, nullptr);
             }
-            vkDestroyImage(device, imgCtx.image, nullptr);
-            vkFreeMemory(device, imgCtx.imageMemory, nullptr);
+            allocator::invoke(vkDestroyImage, device, imgCtx.image, nullptr);
+            allocator::invoke(vkFreeMemory, device, imgCtx.imageMemory, nullptr);
         }
 
         static void destroyContext(CoreRef core, const MultiframeImageContext & imgCtx) {
-            const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-            for (const auto &[image, imageFormat, imageMemory, imageView, mipmappedImageView, extent, capacity]: imgCtx) {
-                vkDestroyImageView(device, imageView, nullptr);
-                if (mipmappedImageView != imageView) {
-                    vkDestroyImageView(device, mipmappedImageView, nullptr);
-                }
-                vkDestroyImage(device, image, nullptr);
-                vkFreeMemory(device, imageMemory, nullptr);
+            for (const auto &ctx: imgCtx) {
+                destroyContext(core, ctx);
             }
         }
 

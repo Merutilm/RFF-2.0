@@ -4,10 +4,13 @@
 
 #include "VideoRenderScene.hpp"
 
-#include "../../vulkan_helper/executor/ScopedCommandBufferExecutor.hpp"
+#include "../../vulkan_helper/executor/ScopedNewCommandBufferExecutor.hpp"
+#include "../../vulkan_helper/util/BufferImageContextUtils.hpp"
+#include "../vulkan/RCCPresentVid.hpp"
+#include "opencv2/imgproc.hpp"
 
 namespace merutilm::rff2 {
-    VideoRenderScene::VideoRenderScene(vkh::WindowContextRef wc) : WindowContextHandler(wc) {
+    VideoRenderScene::VideoRenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc, const VkExtent2D &videoExtent, const Attribute &targetAttribute) : EngineHandler(engine), wc(wc), videoExtent(videoExtent), targetAttribute(targetAttribute) {
         VideoRenderScene::init();
     }
 
@@ -17,7 +20,7 @@ namespace merutilm::rff2 {
 
 
     void VideoRenderScene::applyCurrentFrame() const {
-        shaderPrograms->rendererIteration2Map->setCurrentFrame(currentFrame);
+        renderer->rendererIteration2Map->setCurrentFrame(currentFrame);
         // rendererStatic2Image->setCurrentFrame(currentFrame);
     }
 
@@ -28,82 +31,32 @@ namespace merutilm::rff2 {
         if (currentFrame < 1) {
             const auto maxIteration = static_cast<double>(normal.getMaxIteration());
             const std::vector<double> zoomedDefault(normalI.getLength());
-            shaderPrograms->rendererIteration2Map->setInfo(normalI.getWidth(), normalI.getHeight(), maxIteration,
-                                                           currentSec);
-            shaderPrograms->rendererIteration2Map->setAllIterations(normalI.getCanvas(), normalI.getCanvas());
+            renderer->rendererIteration2Map->setInfo(maxIteration, currentSec);
+            renderer->rendererIteration2Map->setAllIterations(normalI.getCanvas(), zoomedDefault);
         } else {
             auto &zoomedI = zoomed.getMatrix();
             const auto maxIteration = static_cast<double>(std::min(zoomed.getMaxIteration(), normal.getMaxIteration()));
-            shaderPrograms->rendererIteration2Map->setInfo(normalI.getWidth(), normalI.getHeight(), maxIteration,
-                                                           currentSec);
-            shaderPrograms->rendererIteration2Map->setAllIterations(normalI.getCanvas(), zoomedI.getCanvas());
+            renderer->rendererIteration2Map->setInfo(maxIteration, currentSec);
+            renderer->rendererIteration2Map->setAllIterations(normalI.getCanvas(), zoomedI.getCanvas());
         }
     }
 
-    void VideoRenderScene::applyShader(const Attribute &attr) const {
-        vkDeviceWaitIdle(wc.core.getLogicalDevice().getLogicalDeviceHandle());
-        shaderPrograms->rendererBoxBlur->setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, attr.shader.fog.radius);
-        shaderPrograms->rendererBoxBlur->
-                setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, attr.shader.bloom.radius);
+    void VideoRenderScene::applyShader() const {
+        engine.getCore().getLogicalDevice().waitDeviceIdle();
+        renderer->rendererIteration2Map->setPalette(targetAttribute.shader.palette);
+        renderer->rendererIteration2Map->set2MapSize(videoExtent);
+        renderer->rendererIteration2Map->setDefaultZoomIncrement(targetAttribute.video.dataAttribute.defaultZoomIncrement);
+        renderer->rendererStripe->setStripe(targetAttribute.shader.stripe);
+        renderer->rendererSlope->setSlope(targetAttribute.shader.slope);
+        renderer->rendererColor->setColor(targetAttribute.shader.color);
+        renderer->rendererFog->setFog(targetAttribute.shader.fog);
+        renderer->rendererBloom->setBloom(targetAttribute.shader.bloom);
+        renderer->rendererLinearInterpolation->setLinearInterpolation(targetAttribute.render.linearInterpolation);
+        renderer->rendererBoxBlur->setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, targetAttribute.shader.fog.radius);
+        renderer->rendererBoxBlur->
+                setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, targetAttribute.shader.bloom.radius);
     }
 
-    void VideoRenderScene::draw(const uint32_t swapchainImageIndex) const {
-        vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
-        const VkDevice device = wc.core.getLogicalDevice().getLogicalDeviceHandle();
-
-        for (const auto &shaderProgram: shaderPrograms->configurator) {
-            shaderProgram->updateQueue(queue, frameIndex);
-        }
-
-        vkh::DescriptorUpdater::write(device, queue);
-
-        const VkFence renderFence = wc.getSyncObject().getFence(frameIndex).getFenceHandle();
-        const VkSemaphore imageAvailableSemaphore = wc.getSyncObject().getSemaphore(frameIndex).
-                getImageAvailable();
-        const VkSemaphore renderFinishedSemaphore = wc.getSyncObject().getSemaphore(frameIndex).
-                getRenderFinished();
-        const VkCommandBuffer cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
-        const auto mfg = [this](const uint32_t index) {
-            return wc.getSharedImageContext().getImageContextMF(index)[frameIndex].image;
-        };
-    }
-
-    // void VideoRenderScene::configure(const HWND wnd, const HDC hdc, const HGLRC context) {
-    //     // WGLScene::configure(wnd, hdc, context);
-    //     // makeContextCurrent();
-    //
-    //     // rendererStatic = std::make_unique<GLMultipassRenderer>();
-    //     // rendererStatic2Image = std::make_unique<GLRendererStatic2Image>();
-    //     //
-    //     // rendererStatic->add(*rendererStatic2Image);
-    //     //
-    //     // renderer = std::make_unique<GLMultipassRenderer>();
-    //     // rendererShdIteration2Map = std::make_unique<GLRendererShdIteration2Map>();
-    //     // rendererColIteration2Map = std::make_unique<GLRendererColIteration2Map>();
-    //     // rendererStripe = std::make_unique<GLRendererStripe>();
-    //     // rendererSlope = std::make_unique<GLRendererSlope>();
-    //     // rendererColor = std::make_unique<GLRendererColor>();
-    //     // rendererFog = std::make_unique<GLRendererFog>();
-    //     // rendererBloom = std::make_unique<GLRendererBloom>();
-    //     // rendererAntialiasing = std::make_unique<GLRendererAntialiasing>();
-    //     //
-    //     // renderer->add(*rendererShdIteration2Map);
-    //     // renderer->add(*rendererColIteration2Map);
-    //     // renderer->add(*rendererStripe);
-    //     // renderer->add(*rendererSlope);
-    //     // renderer->add(*rendererColor);
-    //     // renderer->add(*rendererFog);
-    //     // renderer->add(*rendererBloom);
-    //     // renderer->add(*rendererAntialiasing);
-    // }
-
-    // GLMultipassRenderer &VideoRenderScene::getStaticRenderer() const {
-    //     return *rendererStatic;
-    // }
-    //
-    // GLMultipassRenderer &VideoRenderScene::getDynamicRenderer() const {
-    //     return *renderer;
-    // }
 
     void VideoRenderScene::setCurrentFrame(const float currentFrame) {
         this->currentFrame = currentFrame;
@@ -123,52 +76,105 @@ namespace merutilm::rff2 {
         // rendererStatic2Image->setImageBuffer(normal, zoomed);
     }
 
-    void VideoRenderScene::reloadSize(const uint16_t cw, const uint16_t ch, const uint16_t iw, const uint16_t ih) {
-        // renderer->reloadSize(cw, ch, iw, ih);
-        // rendererStatic->reloadSize(cw, ch, iw, ih);
-        reloadImageBuffer(iw, ih);
+    void VideoRenderScene::initRenderContext() const {
+
+        const auto swapchainImageContextGetter = [this] {
+            auto &swapchain = wc.getSwapchain();
+            return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
+        };
+
+        wc.attachRenderContext<RCC1Vid>(wc.core,
+                                     [this] { return videoExtent; },
+                                     swapchainImageContextGetter);
+        wc.attachRenderContext<RCCDownsampleForBlurVid>(wc.core,
+                                                     [this] { return videoExtent; },
+                                                     swapchainImageContextGetter);
+        wc.attachRenderContext<RCC2Vid>(wc.core,
+                                     [this] { return videoExtent; },
+                                     swapchainImageContextGetter);
+        wc.attachRenderContext<RCC3Vid>(wc.core,
+                                     [this] { return videoExtent; },
+                                     swapchainImageContextGetter);
+        wc.attachRenderContext<RCC4Vid>(wc.core,
+                                     [this] { return videoExtent; },
+                                     swapchainImageContextGetter);
+        wc.attachRenderContext<RCCPresentVid>(wc.core,
+                                           [this] { return wc.getSwapchain().populateSwapchainExtent(); },
+                                           swapchainImageContextGetter);
+    }
+
+    void VideoRenderScene::initRenderer() {
+        renderer = std::make_unique<VideoRenderSceneRenderer>(engine, wc.getAttachmentIndex());
+        applySize();
+        applyShader();
+    }
+
+    void VideoRenderScene::applySize() const {
+        auto [sWidth, sHeight] = wc.getSwapchain().populateSwapchainExtent();
+        auto &[vWidth, vHeight] = videoExtent;
+
+        for (const auto &sp: renderer->configurators) {
+            sp->windowResized();
+        }
+
+        renderer->rendererDownsampleForBlur->setRescaledResolution(0, {vWidth, vHeight});
+        renderer->rendererDownsampleForBlur->setRescaledResolution(1, {vWidth, vHeight});
+        renderer->rendererPresent->setRescaledResolution({sWidth, sHeight});
+    }
+
+    void VideoRenderScene::refreshSharedImgContext() const {
+        using namespace SharedImageContextIndices;
+        auto &[w, h] = videoExtent;
+        auto &sharedImg = wc.getSharedImageContext();
+        sharedImg.cleanupContexts();
+
+        auto iiiGetter = [w, h]( const VkFormat format, const VkImageUsageFlags usage) {
+            return vkh::ImageInitInfo{
+                .imageType = VK_IMAGE_TYPE_2D,
+                .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
+                .imageFormat = format,
+                .extent = VkExtent3D{w, h, 1},
+                .useMipmap = VK_FALSE,
+                .arrayLayers = 1,
+                .samples = VK_SAMPLE_COUNT_1_BIT,
+                .imageTiling = VK_IMAGE_TILING_OPTIMAL,
+                .usage = usage,
+                .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            };
+        };
+
+        sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_IMAGE_PRIMARY,
+                                               iiiGetter(VK_FORMAT_R16G16B16A16_UNORM,
+                                                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT));
+        sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_IMAGE_SECONDARY,
+                                               iiiGetter( VK_FORMAT_R16G16B16A16_UNORM,
+                                                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT |
+                                                        VK_IMAGE_USAGE_STORAGE_BIT));
+        sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
+                                               iiiGetter(VK_FORMAT_R8G8B8A8_UNORM,
+                                                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT |
+                                                         VK_IMAGE_USAGE_STORAGE_BIT));
+        sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_SECONDARY,
+                                               iiiGetter(VK_FORMAT_R8G8B8A8_UNORM,
+                                                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT |
+                                                         VK_IMAGE_USAGE_STORAGE_BIT));
     }
 
 
-    void VideoRenderScene::reloadImageBuffer(const uint16_t w, const uint16_t h) {
-        pixels = std::vector<char>(static_cast<uint32_t>(w) * h * 3);
-        currentImage = cv::Mat(h, w, CV_8UC3, pixels.data());
+    void VideoRenderScene::renderOnce() const {
+        engine.getCore().getLogicalDevice().waitDeviceIdle();
+        renderer->execute();
     }
 
-
-    void VideoRenderScene::renderOnce() {
-        vkDeviceWaitIdle(wc.core.getLogicalDevice().getLogicalDeviceHandle());
-        uint32_t swapchainImageIndex = 0;
-        vkAcquireNextImageKHR(wc.core.getLogicalDevice().getLogicalDeviceHandle(),
-                              wc.getSwapchain().getSwapchainHandle(), UINT64_MAX,
-                              wc.getSyncObject().getSemaphore(frameIndex).getImageAvailable(),
-                              wc.getSyncObject().getFence(frameIndex).getFenceHandle(),
-                              &swapchainImageIndex);
-
-        //
-        // GLMultipassRenderer *targetRenderer;
-        //
-        // if (isStatic) {
-        //     targetRenderer = rendererStatic.get();
-        // }else {
-        //     targetRenderer = renderer.get();
-        // }
-        //
-        // targetRenderer->render();
-        // targetRenderer->display();
-        // swapBuffers();
-        //
-        // const GLuint fbo = targetRenderer->getRenderedFBO();
-        // const GLuint fboID = targetRenderer->getRenderedFBOTexID();
-        // const int w = targetRenderer->getWidth();
-        // const int h = targetRenderer->getHeight();
-        // GLRenderer::bindFBO(fbo, fboID);
-        // glReadPixels(0, 0, w, h, GL_BGR, GL_UNSIGNED_BYTE, pixels.data());
-        // cv::flip(currentImage, currentImage, 0);
-        // GLRenderer::unbindFBO(fbo);
-    }
-
-    float VideoRenderScene::calculateZoom(const double defaultZoomIncrement) const {
+    float VideoRenderScene::calculateZoom(const float defaultZoomIncrement) const {
         if (currentFrame < 1) {
             const float r = 1 - currentFrame;
 
@@ -179,10 +185,10 @@ namespace merutilm::rff2 {
             const float z1 = normal->getLogZoom();
             return std::lerp(z1, z1 + std::log10(defaultZoomIncrement), r);
         }
-        const int f1 = static_cast<int>(currentFrame); // it is smaller
-        const int f2 = f1 + 1;
+        const auto f1 = static_cast<int>(currentFrame); // it is smaller
+        const auto f2 = f1 + 1;
         //frame size : f1 = 1x, f2 = 2x
-        const float r = f2 - currentFrame;
+        const float r = static_cast<float>(f2) - currentFrame;
 
         if (!zoomed->hasData() || !normal->hasData()) {
             return 0;
@@ -194,15 +200,45 @@ namespace merutilm::rff2 {
     }
 
 
-    const cv::Mat &VideoRenderScene::getCurrentImage() const {
+    cv::Mat VideoRenderScene::generateImage() const {
+        wc.core.getLogicalDevice().waitDeviceIdle();
+
+        const auto &imgCtx = wc.getSharedImageContext().getImageContextMF(
+            SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_SECONDARY)[renderer->getFrameIndex()];
+
+        vkh::BufferContext bufCtx = vkh::BufferContext::createContext(wc.core, {
+                                                                          .size = imgCtx.capacity,
+                                                                          .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                                          .properties =
+                                                                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                                                      });
+        vkh::BufferContext::mapMemory(wc.core, bufCtx);
+        //NEW COMMAND BUFFER
+        {
+            const auto executor = vkh::ScopedNewCommandBufferExecutor(wc.core, wc.getCommandPool());
+            vkh::BarrierUtils::cmdImageMemoryBarrier(executor.getCommandBufferHandle(), imgCtx.image,
+                                                     VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0, 1,
+                                                     VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
+            vkh::BufferImageContextUtils::cmdCopyImageToBuffer(executor.getCommandBufferHandle(), imgCtx, bufCtx);
+        }
+        vkh::BufferContext::unmapMemory(wc.core, bufCtx);
+        auto currentImage = cv::Mat(static_cast<int>(videoExtent.height), static_cast<int>(videoExtent.width), CV_16UC4, bufCtx.mappedMemory);
+        cv::cvtColor(currentImage, currentImage, cv::COLOR_RGBA2BGRA);
+        vkh::BufferContext::destroyContext(wc.core, bufCtx);
         return currentImage;
     }
 
     void VideoRenderScene::init() {
-        //noop
+        refreshSharedImgContext();
+        initRenderContext();
+        initRenderer();
     }
 
     void VideoRenderScene::destroy() {
-        shaderPrograms = nullptr;
+        renderer = nullptr;
     }
 }

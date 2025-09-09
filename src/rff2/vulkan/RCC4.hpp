@@ -9,7 +9,7 @@
 
 namespace merutilm::rff2 {
     struct RCC4 final : public vkh::RenderContextConfiguratorAbstract{
-        static constexpr uint32_t CONTEXT_INDEX = 4;
+        static constexpr uint32_t CONTEXT_INDEX = 5;
 
         static constexpr uint32_t SUBPASS_LINEAR_INTERPOLATION_INDEX = 0;
 
@@ -35,25 +35,6 @@ namespace merutilm::rff2 {
             rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
 
-            rpm.appendDependency({
-                .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = SUBPASS_LINEAR_INTERPOLATION_INDEX,
-                .srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .srcAccessMask = 0,
-                .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dependencyFlags = 0
-            });
-
-            rpm.appendDependency({
-                .srcSubpass = SUBPASS_LINEAR_INTERPOLATION_INDEX,
-                .dstSubpass = VK_SUBPASS_EXTERNAL,
-                .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dstAccessMask = 0,
-                .dependencyFlags = 0
-            });
         }
     };
 }

@@ -6,7 +6,7 @@
 
 
 namespace merutilm::rff2 {
-    enum class CalMPASelectionMethod {
+    enum class FrtMPASelectionMethod {
         /**
         * Checks the lowest-level MPA first, increases the level until not valid.
         */

@@ -5,12 +5,8 @@
 #pragma once
 #include <vector>
 
-#include "SharedDescriptorRepo.hpp"
-#include "DescriptorSetLayoutRepo.hpp"
-#include "PipelineLayoutRepo.hpp"
 #include "Repository.hpp"
-#include "SamplerRepo.hpp"
-#include "ShaderModuleRepo.hpp"
+#include "GlobalShaderModuleRepo.hpp"
 
 namespace merutilm::vkh {
     class RepositoriesImpl {
@@ -19,12 +15,7 @@ namespace merutilm::vkh {
 
     public:
 
-        explicit RepositoriesImpl(CoreRef core) {
-            addRepository<DescriptorSetLayoutRepo>(core);
-            addRepository<SharedDescriptorRepo>(core);
-            addRepository<PipelineLayoutRepo>(core);
-            addRepository<ShaderModuleRepo>(core);
-            addRepository<SamplerRepo>(core);
+        explicit RepositoriesImpl() {
         }
 
         template<typename RepoType> requires std::is_base_of_v<RepoAbstract, RepoType>
@@ -38,19 +29,12 @@ namespace merutilm::vkh {
             return nullptr;
         }
 
-        DescriptorRequiresRepoContext getDescriptorRequiresRepositoryContext() {
-            return {
-                .layoutRepo = *getRepository<DescriptorSetLayoutRepo>(),
-                .samplerRepo = *getRepository<SamplerRepo>(),
-            };
-        }
-
         template<typename RepoType> requires std::is_base_of_v<RepoAbstract, RepoType>
-        void addRepository(CoreRef engine) {
+        void addRepository(CoreRef core) {
             if (getRepository<RepoType>() != nullptr) {
                 throw exception_invalid_args("Repository already exists");
             }
-            repositories.push_back(std::make_unique<RepoType>(engine));
+            repositories.push_back(std::make_unique<RepoType>(core));
         }
 
     };

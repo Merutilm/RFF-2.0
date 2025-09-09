@@ -9,7 +9,7 @@
 #include "../impl/PipelineLayout.hpp"
 
 namespace merutilm::vkh {
-    struct PipelineLayoutRepo final : Repository<PipelineLayoutBuilder, PipelineLayoutManager &&, PipelineLayout,
+    struct GlobalPipelineLayoutRepo final : Repository<PipelineLayoutBuilder, PipelineLayoutManager &&, PipelineLayout,
                 PipelineLayoutRef, PipelineLayoutBuilderHasher, std::equal_to<>> {
         using Repository::Repository;
 

@@ -7,7 +7,6 @@
 #include "CallbackExplore.hpp"
 #include "IOUtilities.h"
 #include "../../vulkan_helper/executor/RenderPassFullscreenRecorder.hpp"
-#include "../../vulkan_helper/executor/ScopedCommandBufferExecutor.hpp"
 #include "../vulkan/RCC1.hpp"
 #include "../vulkan/GPCIterationPalette.hpp"
 #include "../calc/dex_exp.h"
@@ -36,8 +35,11 @@
 
 namespace merutilm::rff2 {
     RenderScene::RenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc,
-                             std::array<std::wstring, Constants::Status::LENGTH> *statusMessageRef) : engine(engine), WindowContextHandler(
-            wc), attr(genDefaultAttr()), statusMessageRef(statusMessageRef) {
+                             std::array<std::wstring, Constants::Status::LENGTH> *
+                             statusMessageRef) : EngineHandler(
+                                                     engine),
+                                                 wc(wc), attr(genDefaultAttr()),
+                                                 statusMessageRef(statusMessageRef) {
         RenderScene::init();
     }
 
@@ -48,7 +50,7 @@ namespace merutilm::rff2 {
     void RenderScene::init() {
         refreshSharedImgContext();
         initRenderContext();
-        initShaderPrograms();
+        initRenderer();
         wndRequestFPS();
     }
 
@@ -58,34 +60,31 @@ namespace merutilm::rff2 {
             auto &swapchain = wc.getSwapchain();
             return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
         };
-
+        wc.attachRenderContext<RCC0>(wc.core,
+                                            [this] { return getInternalImageExtent(); },
+                                            swapchainImageContextGetter);
         wc.attachRenderContext<RCC1>(wc.core,
-                                         [this] { return getInternalImageExtent(); },
-                                         swapchainImageContextGetter);
+                                     [this] { return getInternalImageExtent(); },
+                                     swapchainImageContextGetter);
         wc.attachRenderContext<RCCDownsampleForBlur>(wc.core,
-                                                         [this] { return getBlurredImageExtent(); },
-                                                         swapchainImageContextGetter);
+                                                     [this] { return getBlurredImageExtent(); },
+                                                     swapchainImageContextGetter);
         wc.attachRenderContext<RCC2>(wc.core,
-                                         [this] { return getInternalImageExtent(); },
-                                         swapchainImageContextGetter);
+                                     [this] { return getInternalImageExtent(); },
+                                     swapchainImageContextGetter);
         wc.attachRenderContext<RCC3>(wc.core,
-                                         [this] { return getInternalImageExtent(); },
-                                         swapchainImageContextGetter);
+                                     [this] { return getInternalImageExtent(); },
+                                     swapchainImageContextGetter);
         wc.attachRenderContext<RCC4>(wc.core,
-                                         [this] { return getInternalImageExtent(); },
-                                         swapchainImageContextGetter);
+                                     [this] { return getInternalImageExtent(); },
+                                     swapchainImageContextGetter);
         wc.attachRenderContext<RCCPresent>(wc.core,
-                                               [this] { return getSwapchainRenderContextExtent(); },
-                                               swapchainImageContextGetter);
+                                           [this] { return getSwapchainRenderContextExtent(); },
+                                           swapchainImageContextGetter);
     }
 
-    void RenderScene::initShaderPrograms() {
-        shaderPrograms = std::make_unique<RenderSceneShaderPrograms>(wc);
-
-        for (const auto &sp: shaderPrograms->configurator) {
-            sp->pipelineInitialized();
-        }
-
+    void RenderScene::initRenderer() {
+        renderer = std::make_unique<RenderSceneRenderer>(engine, wc.getAttachmentIndex());
         applyResizeParams();
         applyShaderAttr(attr);
         requests.requestRecompute();
@@ -95,14 +94,14 @@ namespace merutilm::rff2 {
         if (wc.getWindow().isUnrenderable()) {
             return;
         }
-        vkDeviceWaitIdle(wc.core.getLogicalDevice().getLogicalDeviceHandle());
+        wc.core.getLogicalDevice().waitDeviceIdle();
 
         vkh::SwapchainRef swapchain = wc.getSwapchain();
         swapchain.recreate();
     }
 
 
-    void RenderScene::render(const uint32_t frameIndex, const uint32_t swapchainImageIndex) {
+    void RenderScene::render() {
         if (requests.defaultSettingsRequested) {
             applyDefaultSettings();
             requests.defaultSettingsRequested.exchange(false);
@@ -135,192 +134,13 @@ namespace merutilm::rff2 {
         }
 
 
-        draw(frameIndex, swapchainImageIndex);
-    }
-
-    void RenderScene::draw(const uint32_t frameIndex, const uint32_t swapchainImageIndex) const {
-        vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
-        const VkDevice device = wc.core.getLogicalDevice().getLogicalDeviceHandle();
-
-        for (const auto &shaderProgram: shaderPrograms->configurator) {
-            shaderProgram->updateQueue(queue, frameIndex);
-        }
-
-        vkh::DescriptorUpdater::write(device, queue);
-
-
-        const VkFence renderFence = wc.getSyncObject().getFence(frameIndex).getFenceHandle();
-        const VkSemaphore imageAvailableSemaphore = wc.getSyncObject().getSemaphore(frameIndex).
-                getImageAvailable();
-        const VkSemaphore renderFinishedSemaphore = wc.getSyncObject().getSemaphore(frameIndex).
-                getRenderFinished();
-        const VkCommandBuffer cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
-        const auto mfg = [this, &frameIndex](const uint32_t index) {
-            return wc.getSharedImageContext().getImageContextMF(index)[frameIndex].image;
-        };
-
-        vkh::ScopedCommandBufferExecutor executor(wc, frameIndex, renderFence, imageAvailableSemaphore,
-                                                  renderFinishedSemaphore);
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC1>(
-            wc, frameIndex, {
-                shaderPrograms->rendererIteration, shaderPrograms->rendererStripe, shaderPrograms->rendererSlope,
-                shaderPrograms->rendererColor
-            }, {{}, {}, {}, {}});
-
-        // [IN] EXTERNAL
-        // [SUBPASS OUT] SECONDARY (iteration)
-        // [SUBPASS IN] SECONDARY
-        // [SUBPASS OUT] PRIMARY (stripe)
-        // [SUBPASS IN] PRIMARY
-        // [SUBPASS OUT] SECONDARY (slope)
-        // [SUBPASS IN] SECONDARY
-        // [OUT] PRIMARY (color)
-
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                          0, 1,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-        // [BARRIER] PRIMARY
-
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<
-            RCCDownsampleForBlur>(
-            wc, frameIndex, {shaderPrograms->rendererDownsampleForBlur}, {
-                {GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG}
-            });
-
-        // [IN] PRIMARY
-        // [OUT] DOWNSAMPLED_PRIMARY
-
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(
-                                                              SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
-                                                          VK_IMAGE_LAYOUT_GENERAL,
-                                                          0, 1,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                          VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
-
-        // [BARRIER] DOWNSAMPLED_PRIMARY
-
-        shaderPrograms->rendererBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG);
-
-        // [IN] DOWNSAMPLED_PRIMARY
-        // [OUT] DOWNSAMPLED_SECONDARY
-
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                          0, 1,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-        vkh::BarrierUtils::cmdImageMemoryBarrier(
-            cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
-            VK_ACCESS_SHADER_WRITE_BIT,
-            VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1,
-            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-        // [BARRIER] PRIMARY
-        // [BARRIER] DOWNSAMPLED_SECONDARY
-
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC2>(
-            wc, frameIndex, {shaderPrograms->rendererFog, shaderPrograms->rendererBloomThreshold}, {{}, {}});
-
-        // [IN] PRIMARY
-        // [IN] DOWNSAMPLED_SECONDARY
-        // [PRESERVED SUBPASS OUT] SECONDARY
-        // [SUBPASS IN] SECONDARY
-        // [OUT] PRIMARY (Threshold Masked)
-
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                          0, 1,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-
-        // [BARRIER] PRIMARY
-
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCDownsampleForBlur>(
-            wc, frameIndex, {shaderPrograms->rendererDownsampleForBlur}, {
-                {GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM}
-            });
-        // [IN] PRIMARY
-        // [OUT] DOWNSAMPLED_PRIMARY
-
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(
-                                                              SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
-                                                          VK_IMAGE_LAYOUT_GENERAL,
-                                                          0, 1,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                          VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
-        // [BARRIER] DOWNSAMPLED_PRIMARY
-
-        shaderPrograms->rendererBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM);
-
-        // [IN] DOWNSAMPLED_PRIMARY
-        // [OUT] DOWNSAMPLED_SECONDARY
-
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
-                                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                          0, 1,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-        vkh::BarrierUtils::cmdImageMemoryBarrier(
-            cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
-            VK_ACCESS_SHADER_WRITE_BIT,
-            VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
-            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1,
-            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-
-        // [BARRIER] SECONDARY
-        // [BARRIER] DOWNSAMPLED_SECONDARY
-
-
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC3>(
-            wc, frameIndex, {shaderPrograms->rendererBloom}, {{}});
-
-        // [IN] SECONDARY
-        // [IN] DOWNSAMPLED_SECONDARY
-        // [OUT] PRIMARY
-
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                          0, 1,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC4>(
-            wc, frameIndex, {shaderPrograms->rendererLinearInterpolation}, {{}});
-
-        // [IN] PRIMARY
-        // [OUT] SECONDARY
-
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                          mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
-                                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                          0, 1,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-
-        // [BARRIER] SECONDARY
-
-        vkh::RenderPassFullscreenRecorder::cmdFullscreenPresentOnlyRenderPass<RCCPresent>(
-            wc, frameIndex, swapchainImageIndex, {shaderPrograms->rendererPresent}, {{}});
-
-        // [IN] SECONDARY
-        // [OUT] EXTERNAL
+        renderer->execute();
     }
 
 
     Attribute RenderScene::genDefaultAttr() {
         return Attribute{
-            .calc = CalcAttribute{
+            .fractal = FractalAttribute{
                 .center = fp_complex("-0.85",
                                      "0",
                                      //"-1.29255707077531686131098415679305324693162987219277534742408945445699102528813182208390942132824552642640105852802031375797639923173781472397893283277669022615909880587638643429120957543820179919830492623879949932",
@@ -331,10 +151,10 @@ namespace merutilm::rff2 {
                 .logZoom = 2, //186.47, //85.190033f,
                 .maxIteration = 300,
                 .bailout = 2,
-                .decimalizeIterationMethod = CalDecimalizeIterationMethod::LOG_LOG,
+                .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
                 .mpaAttribute = CalculationPresets::UltraFast().genMPA(),
                 .referenceCompAttribute = CalculationPresets::UltraFast().genReferenceCompression(),
-                .reuseReferenceMethod = CalReuseReferenceMethod::DISABLED,
+                .reuseReferenceMethod = FrtReuseReferenceMethod::DISABLED,
                 .autoMaxIteration = true,
                 .autoIterationMultiplier = 100,
                 .absoluteIterationMode = false
@@ -369,7 +189,7 @@ namespace merutilm::rff2 {
     LRESULT RenderScene::renderSceneProc(const HWND hwnd, const UINT msg, const WPARAM wparam, const LPARAM lparam) {
         RenderScene &scene = *reinterpret_cast<RenderScene *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
         scene.runAction(msg, wparam, lparam);
-        return DefWindowProc(hwnd, msg, wparam, lparam);
+        return DefWindowProcW(hwnd, msg, wparam, lparam);
     }
 
     void RenderScene::runAction(const UINT msg, const WPARAM wparam, const LPARAM) {
@@ -393,8 +213,8 @@ namespace merutilm::rff2 {
                     const auto dx = static_cast<int16_t>(interactedMX - x);
                     const auto dy = static_cast<int16_t>(interactedMY - y);
                     const float m = attr.render.clarityMultiplier;
-                    const float logZoom = attr.calc.logZoom;
-                    fp_complex &center = attr.calc.center;
+                    const float logZoom = attr.fractal.logZoom;
+                    fp_complex &center = attr.fractal.center;
                     center = center.addCenterDouble(dex::value(static_cast<float>(dx) / m) / getDivisor(attr),
                                                     dex::value(static_cast<float>(dy) / m) / getDivisor(attr),
                                                     Perturbator::logZoomToExp10(logZoom));
@@ -403,12 +223,11 @@ namespace merutilm::rff2 {
                     requests.requestRecompute();
                 } else {
                     SetCursor(LoadCursor(nullptr, IDC_CROSS));
-                    if (currentMap == nullptr) {
+                    if (renderer->iterationStagingBufferContext == nullptr) {
                         return;
                     }
 
-
-                    if (auto it = static_cast<uint64_t>((*iterationMatrix)(x, y)); it != 0) {
+                    if (auto it = static_cast<uint64_t>((*renderer->iterationStagingBufferContext)(x, y)); it != 0) {
                         setStatusMessage(Constants::Status::ITERATION_STATUS,
                                          std::format(L"I : {} ({}, {})", it, x, y));
                     }
@@ -419,15 +238,15 @@ namespace merutilm::rff2 {
                 const int value = GET_WHEEL_DELTA_WPARAM(wparam) > 0 ? 1 : -1;
                 constexpr float increment = Constants::Render::ZOOM_INTERVAL;
 
-                attr.calc.logZoom = std::max(Constants::Render::ZOOM_MIN,
-                                             attr.calc.logZoom);
+                attr.fractal.logZoom = std::max(Constants::Render::ZOOM_MIN,
+                                             attr.fractal.logZoom);
                 if (value == 1) {
                     const std::array<dex, 2> offset = offsetConversion(attr, getMouseXOnIterationBuffer(),
                                                                        getMouseYOnIterationBuffer());
                     const double mzi = 1.0 / pow(10, Constants::Render::ZOOM_INTERVAL);
-                    float &logZoom = attr.calc.logZoom;
+                    float &logZoom = attr.fractal.logZoom;
                     logZoom += increment;
-                    attr.calc.center = attr.calc.center.addCenterDouble(
+                    attr.fractal.center = attr.fractal.center.addCenterDouble(
                         offset[0] * (1 - mzi),
                         offset[1] * (1 - mzi),
                         Perturbator::logZoomToExp10(logZoom));
@@ -436,9 +255,9 @@ namespace merutilm::rff2 {
                     const std::array<dex, 2> offset = offsetConversion(attr, getMouseXOnIterationBuffer(),
                                                                        getMouseYOnIterationBuffer());
                     const double mzo = 1.0 / pow(10, -Constants::Render::ZOOM_INTERVAL);
-                    float &logZoom = attr.calc.logZoom;
+                    float &logZoom = attr.fractal.logZoom;
                     logZoom -= increment;
-                    attr.calc.center = attr.calc.center.addCenterDouble(
+                    attr.fractal.center = attr.fractal.center.addCenterDouble(
                         offset[0] * (1 - mzo),
                         offset[1] * (1 - mzo),
                         Perturbator::logZoomToExp10(logZoom));
@@ -467,7 +286,7 @@ namespace merutilm::rff2 {
 
     dex RenderScene::getDivisor(const Attribute &settings) {
         dex v = dex::ZERO;
-        dex_exp::exp10(&v, settings.calc.logZoom);
+        dex_exp::exp10(&v, settings.fractal.logZoom);
         return v;
     }
 
@@ -494,13 +313,13 @@ namespace merutilm::rff2 {
     }
 
     void RenderScene::applyDefaultSettings() {
-        vkDeviceWaitIdle(wc.core.getLogicalDevice().getLogicalDeviceHandle());
+        wc.core.getLogicalDevice().waitDeviceIdle();
         attr = genDefaultAttr();
     }
 
 
     void RenderScene::applyCreateImage() {
-        vkDeviceWaitIdle(wc.core.getLogicalDevice().getLogicalDeviceHandle());
+        wc.core.getLogicalDevice().waitDeviceIdle();
         if (requests.createImageRequestedFilename.empty()) {
             requests.createImageRequestedFilename = IOUtilities::ioFileDialog(
                 L"Save image", Constants::Extension::DESC_IMAGE,
@@ -530,23 +349,24 @@ namespace merutilm::rff2 {
             vkh::BufferImageContextUtils::cmdCopyImageToBuffer(executor.getCommandBufferHandle(), imgCtx, bufCtx);
         }
         vkh::BufferContext::unmapMemory(wc.core, bufCtx);
-        auto img = cv::Mat(static_cast<int>(imgCtx.extent.height), static_cast<int>(imgCtx.extent.width), CV_16UC4, bufCtx.mappedMemory);
+        auto img = cv::Mat(static_cast<int>(imgCtx.extent.height), static_cast<int>(imgCtx.extent.width), CV_16UC4,
+                           bufCtx.mappedMemory);
         cv::cvtColor(img, img, cv::COLOR_RGBA2BGRA);
         cv::imwrite(requests.createImageRequestedFilename, img);
         vkh::BufferContext::destroyContext(wc.core, bufCtx);
     }
 
     void RenderScene::applyShaderAttr(const Attribute &attr) const {
-        vkDeviceWaitIdle(wc.core.getLogicalDevice().getLogicalDeviceHandle());
-        shaderPrograms->rendererIteration->setPalette(attr.shader.palette);
-        shaderPrograms->rendererStripe->setStripe(attr.shader.stripe);
-        shaderPrograms->rendererSlope->setSlope(attr.shader.slope);
-        shaderPrograms->rendererColor->setColor(attr.shader.color);
-        shaderPrograms->rendererFog->setFog(attr.shader.fog);
-        shaderPrograms->rendererBloom->setBloom(attr.shader.bloom);
-        shaderPrograms->rendererLinearInterpolation->setLinearInterpolation(attr.render.linearInterpolation);
-        shaderPrograms->rendererBoxBlur->setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, attr.shader.fog.radius);
-        shaderPrograms->rendererBoxBlur->
+        wc.core.getLogicalDevice().waitDeviceIdle();
+        renderer->rendererIteration->setPalette(attr.shader.palette);
+        renderer->rendererStripe->setStripe(attr.shader.stripe);
+        renderer->rendererSlope->setSlope(attr.shader.slope);
+        renderer->rendererColor->setColor(attr.shader.color);
+        renderer->rendererFog->setFog(attr.shader.fog);
+        renderer->rendererBloom->setBloom(attr.shader.bloom);
+        renderer->rendererLinearInterpolation->setLinearInterpolation(attr.render.linearInterpolation);
+        renderer->rendererBoxBlur->setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, attr.shader.fog.radius);
+        renderer->rendererBoxBlur->
                 setBlurSize(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, attr.shader.bloom.radius);
     }
 
@@ -556,20 +376,20 @@ namespace merutilm::rff2 {
         const auto &[dWidth, dHeight] = getBlurredImageExtent();
         const auto &[sWidth, sHeight] = getSwapchainRenderContextExtent();
 
-        for (const auto &sp: shaderPrograms->configurator) {
+        for (const auto &sp: renderer->configurators) {
             sp->windowResized();
         }
-        shaderPrograms->rendererDownsampleForBlur->setRescaledResolution(0, {dWidth, dHeight});
-        shaderPrograms->rendererDownsampleForBlur->setRescaledResolution(1, {dWidth, dHeight});
-        shaderPrograms->rendererPresent->setRescaledResolution({sWidth, sHeight});
-
-        shaderPrograms->rendererIteration->resetIterationBuffer(iw, ih);
+        renderer->rendererDownsampleForBlur->setRescaledResolution(0, {dWidth, dHeight});
+        renderer->rendererDownsampleForBlur->setRescaledResolution(1, {dWidth, dHeight});
+        renderer->rendererPresent->setRescaledResolution({sWidth, sHeight});
+        renderer->rendererIteration->resetIterationBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double> >(iw, ih);
+        renderer->iterationStagingBufferContext = std::make_unique<GraphicsMatrixBuffer<double> >(wc.core, iw, ih, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     }
 
     void RenderScene::applyResize() {
         using namespace SharedImageContextIndices;
-        vkDeviceWaitIdle(wc.core.getLogicalDevice().getLogicalDeviceHandle());
+        wc.core.getLogicalDevice().waitDeviceIdle();
 
         refreshSharedImgContext();
 
@@ -607,12 +427,12 @@ namespace merutilm::rff2 {
                                                iiiGetter(internalImageExtent, VK_FORMAT_R16G16B16A16_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
-                                                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT));
         sharedImg.appendMultiframeImageContext(MF_MAIN_RENDER_IMAGE_SECONDARY,
                                                iiiGetter(internalImageExtent, VK_FORMAT_R16G16B16A16_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
+                                                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT));
         sharedImg.appendMultiframeImageContext(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
                                                iiiGetter(blurredImageExtent, VK_FORMAT_R8G8B8A8_UNORM,
@@ -626,10 +446,18 @@ namespace merutilm::rff2 {
                                                          VK_IMAGE_USAGE_STORAGE_BIT));
     }
 
-    void RenderScene::overwriteMatrixFromMap() const {
-        vkDeviceWaitIdle(wc.core.getLogicalDevice().getLogicalDeviceHandle());
-        shaderPrograms->rendererIteration->setMaxIteration(static_cast<double>(currentMap->getMaxIteration()));
-        shaderPrograms->rendererIteration->setAllIterations(currentMap->getMatrix().getCanvas());
+    void RenderScene::overwriteMatrixFromMap(const RFFDynamicMapBinary &map) const {
+        wc.core.getLogicalDevice().waitDeviceIdle();
+        const uint32_t iw = getIterationBufferWidth(attr);
+        const uint32_t ih = getIterationBufferHeight(attr);
+        if (iw != map.getMatrix().getWidth() || ih != map.getMatrix().getHeight()) {
+            vkh::logger::log_err("Map size mismatch, {}x{} required but provided {}x{}", iw, ih,
+                                 map.getMatrix().getWidth(), map.getMatrix().getHeight());
+            return;
+        }
+
+        renderer->rendererIteration->setMaxIteration(static_cast<double>(map.getMaxIteration()));
+        renderer->iterationStagingBufferContext->fill(map.getMatrix().getCanvas());
     }
 
     uint16_t RenderScene::getMouseXOnIterationBuffer() const {
@@ -658,23 +486,23 @@ namespace merutilm::rff2 {
         });
     }
 
-    void RenderScene::beforeCompute(Attribute &settings) const {
-        settings.calc.maxIteration = settings.calc.autoMaxIteration
-                                         ? lastPeriod * settings.calc.
-                                           autoIterationMultiplier
-                                         : this->attr.calc.maxIteration;
-        shaderPrograms->rendererIteration->setMaxIteration(static_cast<double>(settings.calc.maxIteration));
+    void RenderScene::beforeCompute(Attribute &attr) const {
+        attr.fractal.maxIteration = attr.fractal.autoMaxIteration
+                                     ? lastPeriod * attr.fractal.
+                                       autoIterationMultiplier
+                                     : this->attr.fractal.maxIteration;
+        renderer->rendererIteration->setMaxIteration(static_cast<double>(attr.fractal.maxIteration));
     }
 
-    bool RenderScene::compute(const Attribute &settings) {
+    bool RenderScene::compute(const Attribute &attr) {
         auto start = std::chrono::high_resolution_clock::now();
-        const uint16_t w = getIterationBufferWidth(settings);
-        const uint16_t h = getIterationBufferHeight(settings);
+        const uint16_t w = getIterationBufferWidth(attr);
+        const uint16_t h = getIterationBufferHeight(attr);
         uint32_t len = uint32_t(w) * h;
 
         if (state.interruptRequested()) return false;
 
-        auto &calc = settings.calc;
+        auto &calc = attr.fractal;
 
         const float logZoom = calc.logZoom;
 
@@ -683,7 +511,7 @@ namespace merutilm::rff2 {
         setStatusMessage(Constants::Status::ZOOM_STATUS,
                          std::format(L"Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
-        const std::array<dex, 2> offset = offsetConversion(settings, 0, 0);
+        const std::array<dex, 2> offset = offsetConversion(attr, 0, 0);
         dex dcMax = dex::ZERO;
         dex_trigonometric::hypot_approx(&dcMax, offset[0], offset[1]);
         const auto refreshInterval = Utilities::getRefreshInterval(logZoom);
@@ -704,7 +532,7 @@ namespace merutilm::rff2 {
 
         if (state.interruptRequested()) return false;
         switch (calc.reuseReferenceMethod) {
-                using enum CalReuseReferenceMethod;
+                using enum FrtReuseReferenceMethod;
             case CURRENT_REFERENCE: {
                 if (auto p = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
                     currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxAsDoubleExp(), approxTableCache);
@@ -726,7 +554,7 @@ namespace merutilm::rff2 {
                 );
                 if (center == nullptr) return false;
 
-                CalcAttribute refCalc = calc;
+                FractalAttribute refCalc = calc;
                 refCalc.center = center->perturbator->calc.center;
                 refCalc.logZoom = center->perturbator->calc.logZoom;
                 int refExp10 = Perturbator::logZoomToExp10(refCalc.logZoom);
@@ -771,7 +599,8 @@ namespace merutilm::rff2 {
         if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE || state.interruptRequested())
             return false;
 
-
+        lastLogZoom = calc.logZoom;
+        lastMaxIteration = calc.maxIteration;
         lastPeriod = reference->longestPeriod();
         size_t refLength = reference->length();
         size_t mpaLen;
@@ -792,19 +621,18 @@ namespace merutilm::rff2 {
         auto rendered = std::vector<bool>(len);
 
         auto previewer = ParallelArrayDispatcher<double>(
-            state, *iterationMatrix,
-            [settings, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y,
-                                                            const uint16_t xRes, uint16_t, float,
-                                                            float, const uint32_t i,
-                                                            double) {
+            state, *iterationMatrix, attr.render.threads,
+            [attr, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y,
+                                                        const uint16_t xRes, uint16_t, float,
+                                                        float, const uint32_t i, double) {
                 rendered[i] = true;
-                const auto dc = offsetConversion(settings, x, y);
+                const auto dc = offsetConversion(attr, x, y);
                 const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
-                shaderPrograms->rendererIteration->setIteration(x, y, iteration);
+                renderer->iterationStagingBufferContext->set(x, y, iteration);
 
                 auto my = static_cast<int16_t>(y - 1);
                 while (my >= 0 && !rendered[my * xRes + x]) {
-                    shaderPrograms->rendererIteration->setIteration(x, my, iteration);
+                    renderer->iterationStagingBufferContext->set(x, my, iteration);
                     --my;
                 }
 
@@ -812,7 +640,7 @@ namespace merutilm::rff2 {
                 return iteration;
             });
 
-        shaderPrograms->rendererIteration->resetIterationBuffer();
+        renderer->iterationStagingBufferContext->fillZero();
 
         auto statusThread = std::jthread([&renderPixelsCount, len, this, &start](const std::stop_token &stop) {
             while (!stop.stop_requested()) {
@@ -832,17 +660,14 @@ namespace merutilm::rff2 {
         if (state.interruptRequested()) return false;
 
         const auto syncer = ParallelDispatcher(
-            state, w, h,
+            state, w, h, attr.render.threads,
             [this](const uint16_t x, const uint16_t y, uint16_t, uint16_t, float, float, uint32_t) {
-                shaderPrograms->rendererIteration->setIteration(x, y, (*iterationMatrix)(x, y));
+                renderer->iterationStagingBufferContext->set(x, y, (*iterationMatrix)(x, y));
             });
 
         syncer.dispatch();
 
         if (state.interruptRequested()) return false;
-
-        currentMap = std::make_unique<RFFDynamicMapBinary>(calc.logZoom, lastPeriod, calc.maxIteration,
-                                                           *iterationMatrix);
         setStatusMessage(Constants::Status::RENDER_STATUS, L"Done");
 
         return true;
@@ -852,8 +677,8 @@ namespace merutilm::rff2 {
         if (!success) {
             vkh::logger::log("Recompute cancelled.");
         }
-        if (success && attr.calc.reuseReferenceMethod == CalReuseReferenceMethod::CENTERED_REFERENCE) {
-            attr.calc.reuseReferenceMethod = CalReuseReferenceMethod::CURRENT_REFERENCE;
+        if (success && attr.fractal.reuseReferenceMethod == FrtReuseReferenceMethod::CENTERED_REFERENCE) {
+            attr.fractal.reuseReferenceMethod = FrtReuseReferenceMethod::CURRENT_REFERENCE;
         }
         idleCompute = true;
         backgroundThreads.notifyAll();
@@ -862,6 +687,6 @@ namespace merutilm::rff2 {
 
     void RenderScene::destroy() {
         state.cancel();
-        shaderPrograms = nullptr;
+        renderer = nullptr;
     }
 }

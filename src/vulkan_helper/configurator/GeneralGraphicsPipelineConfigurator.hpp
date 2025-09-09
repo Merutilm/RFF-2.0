@@ -16,12 +16,12 @@ namespace merutilm::vkh {
         IndexBuffer indexBuffer = nullptr;
 
     public:
-        explicit GeneralGraphicsPipelineConfigurator(WindowContextRef wc,
+        explicit GeneralGraphicsPipelineConfigurator(EngineRef engine, const uint32_t windowContextIndex,
                                                              const uint32_t renderContextIndex,
                                                              const uint32_t subpassIndex,
                                                              const std::string &vertName,
                                                              const std::string &fragName) : GraphicsPipelineConfigurator(
-        wc, renderContextIndex, subpassIndex, vertName, fragName) {
+        engine, windowContextIndex, renderContextIndex, subpassIndex, vertName, fragName) {
         }
 
         ~GeneralGraphicsPipelineConfigurator() override = default;

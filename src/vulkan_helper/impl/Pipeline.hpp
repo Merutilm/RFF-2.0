@@ -22,7 +22,7 @@ namespace merutilm::vkh {
                                                                        shaderModules(
                                                                            std::move(
                                                                                pipelineManager->shaderModules)) {
-        };
+        }
 
         ~PipelineAbstract() override = default;
 
@@ -69,7 +69,7 @@ namespace merutilm::vkh {
 
     protected:
         void destroy() override {
-            vkDestroyPipeline(wc.core.getLogicalDevice().getLogicalDeviceHandle(), pipeline, nullptr);
+            allocator::invoke(vkDestroyPipeline, wc.core.getLogicalDevice().getLogicalDeviceHandle(), pipeline, nullptr);
         }
     };
 

@@ -6,6 +6,7 @@
 
 #include "RCC3.hpp"
 #include "SharedDescriptorTemplate.hpp"
+#include "../../vulkan_helper/repo/GlobalSamplerRepo.hpp"
 #include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
@@ -41,7 +42,9 @@ namespace merutilm::rff2 {
                 break;
             }
             case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
-                //TODO : Video window
+                const auto &sample = sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_PRIMARY);
+                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->
+                        setImageContextMF(sample);
                 break;
             }
             default: {
@@ -62,7 +65,7 @@ namespace merutilm::rff2 {
 
     void GPCLinearInterpolation::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
         using namespace SharedDescriptorTemplate;
-        vkh::SamplerRef sampler = pickFromRepository<vkh::SamplerRepo, vkh::SamplerRef>(
+        vkh::SamplerRef sampler = pickFromGlobalRepository<vkh::GlobalSamplerRepo, vkh::SamplerRef>(
             VkSamplerCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,

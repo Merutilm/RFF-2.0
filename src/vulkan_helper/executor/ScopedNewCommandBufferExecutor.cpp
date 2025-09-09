@@ -4,10 +4,12 @@
 
 #include "ScopedNewCommandBufferExecutor.hpp"
 
-#include "../core/logger.hpp"
+#include "../core/vkh_core.hpp"
 
 namespace merutilm::vkh {
-    ScopedNewCommandBufferExecutor::ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool, const VkFence fenceHandle) : CoreHandler(core), commandPool(commandPool), fenceHandle(fenceHandle) {
+    ScopedNewCommandBufferExecutor::ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool,
+                                                                   const VkFence fenceHandle) : CoreHandler(core),
+        commandPool(commandPool), fenceHandle(fenceHandle) {
         ScopedNewCommandBufferExecutor::init();
     }
 
@@ -23,7 +25,7 @@ namespace merutilm::vkh {
                 .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
                 .commandBufferCount = 1
             };
-            vkAllocateCommandBuffers(core.getLogicalDevice().getLogicalDeviceHandle(), &allocInfo,
+            allocator::invoke(vkAllocateCommandBuffers, core.getLogicalDevice().getLogicalDeviceHandle(), &allocInfo,
                                      &commandBuffer) != VK_SUCCESS) {
             throw exception_init("Failed to allocate command buffers!");
         }
@@ -42,27 +44,24 @@ namespace merutilm::vkh {
     void ScopedNewCommandBufferExecutor::destroy() {
         vkEndCommandBuffer(commandBuffer);
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
+        const VkSubmitInfo submitInfo = {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .pNext = nullptr,
+            .waitSemaphoreCount = 0,
+            .pWaitSemaphores = nullptr,
+            .pWaitDstStageMask = nullptr,
+            .commandBufferCount = 1,
+            .pCommandBuffers = &commandBuffer,
+            .signalSemaphoreCount = 0,
+            .pSignalSemaphores = nullptr
+        };
 
-        if (const VkSubmitInfo submitInfo = {
-                .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                .pNext = nullptr,
-                .waitSemaphoreCount = 0,
-                .pWaitSemaphores = nullptr,
-                .pWaitDstStageMask = nullptr,
-                .commandBufferCount = 1,
-                .pCommandBuffers = &commandBuffer,
-                .signalSemaphoreCount = 0,
-                .pSignalSemaphores = nullptr
-            };
-            vkQueueSubmit(core.getLogicalDevice().getGraphicsQueue(), 1, &submitInfo, fenceHandle) != VK_SUCCESS) {
-            logger::log_err_silent("Failed to submit command buffer operation.");
-        }
+        core.getLogicalDevice().queueSubmit(1, &submitInfo, fenceHandle);
         if (fenceHandle == VK_NULL_HANDLE) {
-            vkDeviceWaitIdle(core.getLogicalDevice().getLogicalDeviceHandle());
-        }else{
+            core.getLogicalDevice().waitDeviceIdle();
+        } else {
             vkWaitForFences(device, 1, &fenceHandle, VK_FALSE, UINT64_MAX);
         }
-        vkFreeCommandBuffers(device, commandPool.getCommandPoolHandle(), 1, &commandBuffer);
-
+        allocator::invoke(vkFreeCommandBuffers, device, commandPool.getCommandPoolHandle(), 1, &commandBuffer);
     }
 }

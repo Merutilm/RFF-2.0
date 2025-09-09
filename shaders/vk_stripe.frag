@@ -6,11 +6,14 @@
 #define SMOOTH 2
 #define SMOOTH_SQUARED 3
 
-layout (input_attachment_index = 0, set = 0, binding = 0) uniform subpassInput canvas;
+layout (set = 0, binding = 0) uniform sampler2D canvas;
 
-layout (set = 1, binding = 0) buffer IterSSBO {
+layout (set = 1, binding = 0) uniform IterUBO {
     uvec2 extent;
     double max_value;
+} iteration_info_attr;
+
+layout (set = 1, binding = 1) buffer IterSSBO {
     double iterations[];
 } iteration_attr;
 
@@ -34,8 +37,8 @@ layout (location = 0) out vec4 color;
 
 
 double getIteration(uvec2 iterCoord){
-    iterCoord.y = iteration_attr.extent.y - iterCoord.y;
-    return iteration_attr.iterations[iterCoord.y * iteration_attr.extent.x + iterCoord.x];
+    iterCoord.y = iteration_info_attr.extent.y - iterCoord.y;
+    return iteration_attr.iterations[iterCoord.y * iteration_info_attr.extent.x + iterCoord.x];
 }
 
 
@@ -45,7 +48,7 @@ void main() {
     double iteration = getIteration(iter_coord);
 
     if (stripe_attr.type == NONE || iteration == 0) {
-        color = subpassLoad(canvas);
+        color = texelFetch(canvas, ivec2(gl_FragCoord.xy), 0);
         return;
     }
 
@@ -69,5 +72,5 @@ void main() {
                                }
     }
 
-    color = vec4((subpassLoad(canvas).rgb * (1 - black * stripe_attr.opacity)), 1);
+    color = vec4((texelFetch(canvas, ivec2(gl_FragCoord.xy), 0).rgb * (1 - black * stripe_attr.opacity)), 1);
 }

@@ -11,7 +11,7 @@
 #include "MandelbrotReference.h"
 #include "../mrthy/ArrayCompressor.h"
 #include "../parallel/ParallelRenderState.h"
-#include "../attr/CalcAttribute.h"
+#include "../attr/FractalAttribute.h"
 
 namespace merutilm::rff2 {
     struct LightMandelbrotReference final : public MandelbrotReference{
@@ -25,7 +25,7 @@ namespace merutilm::rff2 {
                                  std::vector<uint64_t> &&period, fp_complex &&fpgReference, fp_complex &&fpgBn);
 
         static std::unique_ptr<LightMandelbrotReference> createReference(const ParallelRenderState &state,
-                                                                         const CalcAttribute &calc, int exp10,
+                                                                         const FractalAttribute &calc, int exp10,
                                                                          uint64_t initialPeriod, double dcMax, bool
                                                                          strictFPG,
                                                                          std::function<void(uint64_t)> &&

@@ -31,6 +31,7 @@ namespace merutilm::vkh {
 
     void BufferObjectAbstract::reloadBuffer() {
         BufferObjectAbstract::destroy();
+        locked = false;
         BufferObjectAbstract::init();
     }
 
@@ -152,7 +153,7 @@ namespace merutilm::vkh {
             }
 
             if (fence == VK_NULL_HANDLE) {
-                vkDeviceWaitIdle(device);
+                core.getLogicalDevice().waitDeviceIdle();
             } else {
                 vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
             }
@@ -174,7 +175,7 @@ namespace merutilm::vkh {
             }
 
             if (fence == VK_NULL_HANDLE) {
-                vkDeviceWaitIdle(device);
+                core.getLogicalDevice().waitDeviceIdle();
             } else {
                 vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
             }
@@ -236,7 +237,7 @@ namespace merutilm::vkh {
                 }
             }
             if (fence == VK_NULL_HANDLE) {
-                vkDeviceWaitIdle(device);
+                core.getLogicalDevice().waitDeviceIdle();
             } else {
                 vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
             }
@@ -258,7 +259,7 @@ namespace merutilm::vkh {
                                 &copyRegion);
             }
             if (fence == VK_NULL_HANDLE) {
-                vkDeviceWaitIdle(device);
+                core.getLogicalDevice().waitDeviceIdle();
             } else {
                 vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
             }

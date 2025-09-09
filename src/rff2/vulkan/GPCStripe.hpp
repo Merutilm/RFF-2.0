@@ -10,16 +10,16 @@ namespace merutilm::rff2 {
     struct GPCStripe final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
 
         static constexpr uint32_t SET_PREV_RESULT = 0;
-        static constexpr uint32_t BINDING_PREV_RESULT_INPUT = 0;
+        static constexpr uint32_t BINDING_PREV_RESULT_SAMPLER = 0;
 
         static constexpr uint32_t SET_ITERATION = 1;
         static constexpr uint32_t SET_STRIPE = 2;
         static constexpr uint32_t SET_TIME = 3;
 
-        explicit GPCStripe(vkh::WindowContextRef wc,
+        explicit GPCStripe(vkh::EngineRef engine, const uint32_t windowContextIndex,
                                    const uint32_t renderContextIndex,
                                    const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            wc, renderContextIndex, primarySubpassIndex, "vk_stripe.frag") {
+            engine, windowContextIndex, renderContextIndex, primarySubpassIndex, "vk_stripe.frag") {
         }
 
         ~GPCStripe() override = default;

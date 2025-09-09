@@ -6,6 +6,7 @@
 
 #include "../core/vkh_core.hpp"
 #include "../impl/GraphicsPipeline.hpp"
+#include "../repo/GlobalPipelineLayoutRepo.hpp"
 #include "../struct/Vertex.hpp"
 
 namespace merutilm::vkh {
@@ -41,7 +42,7 @@ namespace merutilm::vkh {
         }
 
         configurePushConstant(*pipelineLayoutManager);
-        PipelineLayoutRef pipelineLayout = wc.getRepositories().getRepository<PipelineLayoutRepo>()->pick(
+        PipelineLayoutRef pipelineLayout = engine.getGlobalRepositories().getRepository<GlobalPipelineLayoutRepo>()->pick(
             std::move(pipelineLayoutManager));
 
 

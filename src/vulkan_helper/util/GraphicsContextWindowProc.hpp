@@ -36,7 +36,7 @@ namespace merutilm::vkh {
                 listeners.contains(message)) {
                 return listeners.at(message)(window, hwnd, wparam, lparam);
             }
-            return DefWindowProc(hwnd, message, wparam, lparam);
+            return DefWindowProcW(hwnd, message, wparam, lparam);
         }
     };
 }

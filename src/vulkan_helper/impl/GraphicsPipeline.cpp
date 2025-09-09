@@ -180,7 +180,7 @@ namespace merutilm::vkh {
         };
 
 
-        if (vkCreateGraphicsPipelines(wc.core.getLogicalDevice().getLogicalDeviceHandle(), nullptr, 1, &info,
+        if (allocator::invoke(vkCreateGraphicsPipelines, wc.core.getLogicalDevice().getLogicalDeviceHandle(), nullptr, 1, &info,
                                       nullptr,
                                       &pipeline) != VK_SUCCESS) {
             throw exception_init("Failed to create graphics pipeline!");

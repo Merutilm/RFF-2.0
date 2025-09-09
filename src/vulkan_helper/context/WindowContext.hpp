@@ -19,7 +19,7 @@ namespace merutilm::vkh {
         GraphicsContextWindow window = nullptr;
         Surface surface = nullptr;
         Swapchain swapchain = nullptr;
-        Repositories repositories = nullptr;
+        Repositories windowLocalRepositories = nullptr;
         CommandPool commandPool = nullptr;
         CommandBuffer commandBuffer = nullptr;
         SyncObject syncObject = nullptr;
@@ -64,8 +64,8 @@ namespace merutilm::vkh {
             return *swapchain;
         }
 
-        [[nodiscard]] RepositoriesRef getRepositories() const {
-            return *repositories;
+        [[nodiscard]] RepositoriesRef getWindowLocalRepositories() const {
+            return *windowLocalRepositories;
         }
 
         [[nodiscard]] CommandPoolRef getCommandPool() const {
@@ -91,6 +91,8 @@ namespace merutilm::vkh {
         }
 
         void init() override;
+
+        void configureRepositories() const;
 
         void destroy() override;
     };

@@ -6,7 +6,7 @@
 
 
 namespace merutilm::rff2 {
-    struct CalReferenceCompAttribute final{
+    struct FrtReferenceCompAttribute final{
         uint32_t compressCriteria;
         uint8_t compressionThresholdPower;
         bool noCompressorNormalization;

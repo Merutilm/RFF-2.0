@@ -52,7 +52,7 @@ namespace merutilm::vkh {
         };
 
 
-        if (vkCreatePipelineLayout(core.getLogicalDevice().getLogicalDeviceHandle(), &pipelineLayoutInfo, nullptr,
+        if (allocator::invoke(vkCreatePipelineLayout, core.getLogicalDevice().getLogicalDeviceHandle(), &pipelineLayoutInfo, nullptr,
                                    &layout) !=
             VK_SUCCESS) {
             throw exception_init("Failed to create pipeline layout!");
@@ -61,6 +61,6 @@ namespace merutilm::vkh {
 
 
     void PipelineLayoutImpl::destroy() {
-        vkDestroyPipelineLayout(core.getLogicalDevice().getLogicalDeviceHandle(), layout, nullptr);
+        allocator::invoke(vkDestroyPipelineLayout, core.getLogicalDevice().getLogicalDeviceHandle(), layout, nullptr);
     }
 }

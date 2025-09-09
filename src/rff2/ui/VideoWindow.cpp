@@ -10,7 +10,6 @@
 #include "opencv2/opencv.hpp"
 
 namespace merutilm::rff2 {
-
     VideoWindow::VideoWindow(vkh::EngineRef engine, const uint16_t width, const uint16_t height) : EngineHandler(engine), width(width), height(height) {
         VideoWindow::init();
     }
@@ -87,12 +86,12 @@ namespace merutilm::rff2 {
             }
             default: break;
         }
-        return DefWindowProc(hwnd, message, wParam, lParam);
+        return DefWindowProcW(hwnd, message, wParam, lParam);
     }
 
 
     void VideoWindow::createVideo(vkh::EngineRef engine,
-    const Attribute &attr,
+                                  const Attribute &attr,
                                   const std::filesystem::path &open,
                                   const std::filesystem::path &save) {
         uint16_t imgWidth = 0;
@@ -108,7 +107,7 @@ namespace merutilm::rff2 {
 
             imgWidth = targetMap.getWidth();
             imgHeight = targetMap.getHeight();
-        }else {
+        } else {
             const RFFDynamicMapBinary targetMap = RFFDynamicMapBinary::readByID(open, 1);
             if (!targetMap.hasData()) {
                 MessageBox(nullptr, "Cannot create video. There is no samples in the directory", "Export failed",
@@ -124,25 +123,21 @@ namespace merutilm::rff2 {
 
         cv::VideoWriter writer;
 
-        uint16_t cw = std::min(imgWidth, static_cast<uint16_t>(1280));
-        auto ch = static_cast<uint16_t>(static_cast<uint32_t>(cw) * imgHeight / imgWidth);
-
+        const uint16_t cw = std::min(imgWidth, static_cast<uint16_t>(1280));
+        const auto ch = static_cast<uint16_t>(static_cast<uint32_t>(cw) * imgHeight / imgWidth);
         auto window = VideoWindow(engine, cw, ch);
-
+        window.createScene(VkExtent2D{imgWidth, imgHeight}, attr);
         std::jthread thread(
-            [&window, &cw, &ch, &imgWidth, &imgHeight, &writer, &attr, &open, &save] {
-
-                // WGLContextLoader::createContext(window.hdc, &window.context);
-                // window.scene->configure(window.renderWindow, window.hdc, window.context);
-                window.scene->reloadSize(cw, ch, imgWidth, imgHeight);
-                window.scene->applyShader(attr);
+            [&window, &imgWidth, &imgHeight, &writer, &attr, &open, &save] {
 
                 const auto &[defaultZoomIncrement, isStatic] = attr.video.dataAttribute;
                 const auto &[overZoom, showText, mps] = attr.video.animationAttribute;
                 const auto &[fps, bitrate] = attr.video.exportAttribute;
 
                 const auto frameInterval = mps / fps;
-                const uint32_t maxNumber = isStatic ? IOUtilities::fileNameCount(open, Constants::Extension::STATIC_MAP) : IOUtilities::fileNameCount(open, Constants::Extension::DYNAMIC_MAP);
+                const uint32_t maxNumber = isStatic
+                                               ? IOUtilities::fileNameCount(open, Constants::Extension::STATIC_MAP)
+                                               : IOUtilities::fileNameCount(open, Constants::Extension::DYNAMIC_MAP);
                 const float minNumber = -overZoom;
                 auto currentFrame = static_cast<float>(maxNumber);
                 float currentSec = 0;
@@ -222,8 +217,9 @@ namespace merutilm::rff2 {
                         }
                     }
                     const float zoom = window.scene->calculateZoom(defaultZoomIncrement);
+
                     window.scene->renderOnce();
-                    img = window.scene->getCurrentImage();
+                    img = window.scene->generateImage();
 
                     if (showText) {
                         const int xg = std::max(1, imgWidth / 72);
@@ -274,21 +270,21 @@ namespace merutilm::rff2 {
 
     void VideoWindow::init() {
         videoWindow = CreateWindowExW(0,
-                                     Constants::Win32::CLASS_VIDEO_WINDOW,
-                                     L"Preview video",
-                                     WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT,
-                                     CW_USEDEFAULT,
-                                     CW_USEDEFAULT, nullptr, nullptr,
-                                     nullptr, nullptr);
+                                      Constants::Win32::CLASS_VIDEO_WINDOW,
+                                      L"Preview video",
+                                      WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT,
+                                      CW_USEDEFAULT,
+                                      CW_USEDEFAULT, nullptr, nullptr,
+                                      nullptr, nullptr);
 
         renderWindow = CreateWindowExW(0, Constants::Win32::CLASS_VIDEO_RENDER_WINDOW, nullptr,
-                                      WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS, CW_USEDEFAULT,
-                                      CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr,
-                                      nullptr);
+                                       WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS, CW_USEDEFAULT,
+                                       CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr,
+                                       nullptr);
 
         bar = CreateWindowExW(0, WC_STATICW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS,
-                             CW_USEDEFAULT,
-                             CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr, nullptr);
+                              CW_USEDEFAULT,
+                              CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr, nullptr);
 
 
         SetWindowLongPtr(videoWindow, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
@@ -297,18 +293,16 @@ namespace merutilm::rff2 {
         setClientSize(width, height);
         UpdateWindow(videoWindow);
         ShowWindow(videoWindow, SW_SHOW);
-        createScene();
     }
 
-    void VideoWindow::createScene() {
-        const auto wc = engine.attachWindowContext(renderWindow, Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX);
-        scene = std::make_unique<VideoRenderScene>(*wc);
+    void VideoWindow::createScene(const VkExtent2D &videoExtent, const Attribute &targetAttribute) {
+        const auto wc = engine.
+                attachWindowContext(renderWindow, Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX);
+        scene = std::make_unique<VideoRenderScene>(engine, *wc, videoExtent, targetAttribute);
     }
 
     void VideoWindow::destroy() {
         scene = nullptr;
         engine.detachWindowContext(Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX);
     }
-
-
 }

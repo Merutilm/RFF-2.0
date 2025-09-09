@@ -16,7 +16,7 @@ namespace merutilm::rff2 {
         if (path == nullptr) {
             return;
         }
-        scene.getCurrentMap().exportFile(*path);
+        scene.generateMap().exportFile(*path);
     };
     const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::SAVE_IMAGE = [](const SettingsMenu&, RenderScene& scene) {
         scene.getRequests().requestCreateImage();
@@ -26,7 +26,7 @@ namespace merutilm::rff2 {
         if (path == nullptr) {
             return;
         }
-        const auto settings = scene.getAttribute().calc; // clone the attr
+        const auto settings = scene.getAttribute().fractal; // clone the attr
         const auto &center = settings.center;
         RFFLocationBinary(settings.logZoom, center.real.to_string(), center.imag.to_string(), settings.maxIteration).exportFile(*path);
     };
@@ -35,8 +35,7 @@ namespace merutilm::rff2 {
         if (path == nullptr) {
             return;
         }
-        scene.setCurrentMap(RFFDynamicMapBinary::read(*path));
-        scene.overwriteMatrixFromMap();
+        scene.overwriteMatrixFromMap(RFFDynamicMapBinary::read(*path));
     };
     const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::LOAD_LOCATION = [](SettingsMenu&, RenderScene& scene) {
         const auto path = IOUtilities::ioFileDialog(L"Load Map", Constants::Extension::DESC_LOCATION, IOUtilities::OPEN_FILE, Constants::Extension::LOCATION);
@@ -45,9 +44,9 @@ namespace merutilm::rff2 {
         }
         const RFFLocationBinary location = RFFLocationBinary::read(*path);
 
-        scene.getAttribute().calc.center = fp_complex(location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
-        scene.getAttribute().calc.logZoom = location.getLogZoom();
-        scene.getAttribute().calc.maxIteration = location.getMaxIteration();
+        scene.getAttribute().fractal.center = fp_complex(location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
+        scene.getAttribute().fractal.logZoom = location.getLogZoom();
+        scene.getAttribute().fractal.maxIteration = location.getMaxIteration();
         scene.getRequests().requestRecompute();
     };
 }

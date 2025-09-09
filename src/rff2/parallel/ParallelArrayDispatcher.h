@@ -15,11 +15,11 @@ namespace merutilm::rff2 {
     class ParallelArrayDispatcher {
         ParallelRenderState &state;
         Matrix<T> &matrix;
-
         ParallelArrayRenderer<T> renderer;
+        uint32_t threads;
 
     public:
-        ParallelArrayDispatcher(ParallelRenderState &state, Matrix<T> &matrix,
+        ParallelArrayDispatcher(ParallelRenderState &state, Matrix<T> &matrix, uint32_t threads,
                                 ParallelArrayRenderer<T> renderer);
 
 
@@ -43,15 +43,14 @@ namespace merutilm::rff2 {
 
 
     template<typename T>
-    ParallelArrayDispatcher<T>::ParallelArrayDispatcher(ParallelRenderState &state, Matrix<T> &matrix,
+    ParallelArrayDispatcher<T>::ParallelArrayDispatcher(ParallelRenderState &state, Matrix<T> &matrix, const uint32_t threads,
                                                         ParallelArrayRenderer<T> renderer) : state(state), matrix(matrix),
-        renderer(std::move(renderer)) {
+        renderer(std::move(renderer)), threads(threads) {
     }
 
     template<typename T>
     void ParallelArrayDispatcher<T>::dispatch() {
-        const auto cores = std::thread::hardware_concurrency();
-        const uint16_t rpy = matrix.getHeight() / cores + 1;
+        const uint16_t rpy = matrix.getHeight() / threads + 1;
         if (state.interruptRequested()) {
             return;
         }
@@ -59,7 +58,7 @@ namespace merutilm::rff2 {
 
         const std::vector<uint16_t> rpyIndices = getRenderPriority(rpy);
         auto threadPool = std::vector<std::jthread>();
-        threadPool.reserve(cores);
+        threadPool.reserve(threads);
         auto xRes = matrix.getWidth();
         auto yRes = matrix.getHeight();
         auto len = matrix.getLength();

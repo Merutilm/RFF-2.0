@@ -4,9 +4,8 @@
 
 #include "Swapchain.hpp"
 
-#include "../core/exception.hpp"
+#include "../core/vkh_core.hpp"
 #include "../util/BufferImageUtils.hpp"
-#include "../core/config.hpp"
 
 namespace merutilm::vkh {
     SwapchainImpl::SwapchainImpl(CoreRef core, SurfaceRef surface) : CoreHandler(core), surface(surface) {
@@ -83,7 +82,7 @@ namespace merutilm::vkh {
             .presentMode = VK_PRESENT_MODE_MAILBOX_KHR,
             .clipped = VK_TRUE,
             .oldSwapchain = old
-        }; vkCreateSwapchainKHR(core.getLogicalDevice().getLogicalDeviceHandle(), &createInfo, nullptr, target) !=
+        }; allocator::invoke(vkCreateSwapchainKHR, core.getLogicalDevice().getLogicalDeviceHandle(), &createInfo, nullptr, target) !=
            VK_SUCCESS) {
             throw exception_init("Failed to create swapchain!");
         }
@@ -105,13 +104,13 @@ namespace merutilm::vkh {
 
     void SwapchainImpl::destroy() {
         destroyImageViews();
-        vkDestroySwapchainKHR(core.getLogicalDevice().getLogicalDeviceHandle(), swapchain, nullptr);
+        allocator::invoke(vkDestroySwapchainKHR, core.getLogicalDevice().getLogicalDeviceHandle(), swapchain, nullptr);
     }
 
     void SwapchainImpl::destroyImageViews() const {
         const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-            vkDestroyImageView(core.getLogicalDevice().getLogicalDeviceHandle(), swapchainImageViews[i], nullptr);
+            allocator::invoke(vkDestroyImageView, core.getLogicalDevice().getLogicalDeviceHandle(), swapchainImageViews[i], nullptr);
         }
     }
 }

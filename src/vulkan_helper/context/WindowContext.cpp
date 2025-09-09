@@ -4,6 +4,7 @@
 
 #include "WindowContext.hpp"
 
+#include "../repo/WindowLocalDescriptorRepo.hpp"
 #include "../util/PhysicalDeviceUtils.hpp"
 
 namespace merutilm::vkh {
@@ -24,11 +25,16 @@ namespace merutilm::vkh {
         }
 
         swapchain = factory::create<Swapchain>(core, *surface);
-        repositories = factory::create<Repositories>(core);
+        windowLocalRepositories = factory::create<Repositories>();
+        configureRepositories();
         commandPool = factory::create<CommandPool>(core);
         commandBuffer = factory::create<CommandBuffer>(core, *commandPool);
         syncObject = factory::create<SyncObject>(core);
         sharedImageContext = factory::create<SharedImageContext>(core);
+    }
+
+    void WindowContextImpl::configureRepositories() const {
+        windowLocalRepositories->addRepository<WindowLocalDescriptorRepo>(core);
     }
 
     void WindowContextImpl::destroy() {
@@ -37,7 +43,7 @@ namespace merutilm::vkh {
         syncObject = nullptr;
         commandBuffer = nullptr;
         commandPool = nullptr;
-        repositories = nullptr;
+        windowLocalRepositories = nullptr;
         swapchain = nullptr;
         surface = nullptr;
         window = nullptr;

@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "../core/vkh_base.hpp"
+#include "../core/vkh_core.hpp"
 #include "Core.hpp"
 #include "../handle/CoreHandler.hpp"
 
