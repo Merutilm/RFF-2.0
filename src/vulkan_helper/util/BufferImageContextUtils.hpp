@@ -128,6 +128,22 @@ namespace merutilm::vkh {
         }
 
         /**
+         * Copies whole buffer.
+         * @param commandBuffer The command buffer to record
+         * @param srcBuffer The source buffer to copy.
+         * @param dstBuffer The destination buffer to copy.
+         */
+        static void cmdCopyBuffer(const VkCommandBuffer commandBuffer, const BufferContext &srcBuffer,
+                                         const BufferContext &dstBuffer) {
+            const VkBufferCopy copyRegion = {
+                .srcOffset = 0,
+                .dstOffset = 0,
+                .size = srcBuffer.bufferSize
+            };
+            vkCmdCopyBuffer(commandBuffer, srcBuffer.buffer, dstBuffer.buffer, 1,
+                                   &copyRegion);
+        }
+        /**
          * Copies whole image to buffer.
          * @param commandBuffer The command buffer to record
          * @param image The source image to copy. its layout must be <b>VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL</b>

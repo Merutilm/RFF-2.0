@@ -45,8 +45,8 @@ namespace merutilm::rff2 {
     double DeepMandelbrotPerturbator::iterate(const dex &dcr, const dex &dci) const {
         if (state.interruptRequested()) return 0.0;
 
-        const dex dcr1 = dcr + offR + (offR.sgn() == 0 ? dcMax / Constants::Render::INTENTIONAL_ERROR_DCPTB : dex::ZERO);
-        const dex dci1 = dci + offI + (offR.sgn() == 0 ? dcMax / Constants::Render::INTENTIONAL_ERROR_DCPTB : dex::ZERO);
+        const dex dcr1 = dcr + offR + (offR.sgn() == 0 ? dcMax / Constants::Fractal::INTENTIONAL_ERROR_DCPTB : dex::ZERO);
+        const dex dci1 = dci + offI + (offR.sgn() == 0 ? dcMax / Constants::Fractal::INTENTIONAL_ERROR_DCPTB : dex::ZERO);
 
         uint64_t iteration = 0;
         uint64_t refIteration = 0;
@@ -153,7 +153,7 @@ namespace merutilm::rff2 {
             dzr.try_normalize();
             dzi.try_normalize();
             if (cd > bailout2) break;
-            if (absIteration % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
+            if (absIteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
         }
 
         if (isAbs) {

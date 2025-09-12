@@ -32,6 +32,15 @@ namespace merutilm::rff2 {
             rpm.appendSubpass(SUBPASS_PRESENT_INDEX);
             rpm.appendReference(PRESENT_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
+            rpm.appendDependency({
+                .srcSubpass = SUBPASS_PRESENT_INDEX,
+                .dstSubpass = VK_SUBPASS_EXTERNAL,
+                .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                .dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                .dstAccessMask = 0,
+                .dependencyFlags = 0
+            });
         }
     };
 }

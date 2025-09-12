@@ -23,10 +23,10 @@
 #include "../preset/shader/palette/ShdPalettePresets.h"
 #include "../preset/shader/slope/ShdSlopePresets.h"
 #include "../preset/shader/stripe/ShdStripePresets.h"
-#include "../vulkan/RCC3.hpp"
-#include "../vulkan/RCCDownsampleForBlur.hpp"
-#include "../vulkan/RCC2.hpp"
 #include "../vulkan/RCC4.hpp"
+#include "../vulkan/RCCDownsampleForBlur.hpp"
+#include "../vulkan/RCC3.hpp"
+#include "../vulkan/RCC5.hpp"
 #include "../vulkan/RCCPresent.hpp"
 #include "../vulkan/RCCStatic2Image.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
@@ -71,16 +71,19 @@ namespace merutilm::rff2 {
         wc.attachRenderContext<RCC1>(wc.core,
                                      [this] { return getInternalImageExtent(); },
                                      swapchainImageContextGetter);
+        wc.attachRenderContext<RCC2>(wc.core,
+                                    [this] { return getInternalImageExtent(); },
+                                    swapchainImageContextGetter);
         wc.attachRenderContext<RCCDownsampleForBlur>(wc.core,
                                                      [this] { return getBlurredImageExtent(); },
                                                      swapchainImageContextGetter);
-        wc.attachRenderContext<RCC2>(wc.core,
-                                     [this] { return getInternalImageExtent(); },
-                                     swapchainImageContextGetter);
         wc.attachRenderContext<RCC3>(wc.core,
                                      [this] { return getInternalImageExtent(); },
                                      swapchainImageContextGetter);
         wc.attachRenderContext<RCC4>(wc.core,
+                                     [this] { return getInternalImageExtent(); },
+                                     swapchainImageContextGetter);
+        wc.attachRenderContext<RCC5>(wc.core,
                                      [this] { return getInternalImageExtent(); },
                                      swapchainImageContextGetter);
         wc.attachRenderContext<RCCPresent>(wc.core,
@@ -167,16 +170,16 @@ namespace merutilm::rff2 {
                 .bloom = BloomPresets::Normal().genBloom()
             },
             .video = {
-                .dataAttribute = {
+                .data = {
                     .defaultZoomIncrement = 2,
                     .isStatic = false
                 },
-                .animationAttribute = {
+                .animation = {
                     .overZoom = 2,
                     .showText = true,
                     .mps = 1
                 },
-                .exportAttribute = {
+                .exportation = {
                     .fps = 60,
                     .bitrate = 9000
                 }
@@ -234,14 +237,14 @@ namespace merutilm::rff2 {
             }
             case WM_MOUSEWHEEL: {
                 const int value = GET_WHEEL_DELTA_WPARAM(wparam) > 0 ? 1 : -1;
-                constexpr float increment = Constants::Render::ZOOM_INTERVAL;
+                constexpr float increment = Constants::Fractal::ZOOM_INTERVAL;
 
-                attr.fractal.logZoom = std::max(Constants::Render::ZOOM_MIN,
+                attr.fractal.logZoom = std::max(Constants::Fractal::ZOOM_MIN,
                                                 attr.fractal.logZoom);
                 if (value == 1) {
                     const std::array<dex, 2> offset = offsetConversion(attr, getMouseXOnIterationBuffer(),
                                                                        getMouseYOnIterationBuffer());
-                    const double mzi = 1.0 / pow(10, Constants::Render::ZOOM_INTERVAL);
+                    const double mzi = 1.0 / pow(10, Constants::Fractal::ZOOM_INTERVAL);
                     float &logZoom = attr.fractal.logZoom;
                     logZoom += increment;
                     attr.fractal.center = attr.fractal.center.addCenterDouble(
@@ -252,7 +255,7 @@ namespace merutilm::rff2 {
                 if (value == -1) {
                     const std::array<dex, 2> offset = offsetConversion(attr, getMouseXOnIterationBuffer(),
                                                                        getMouseYOnIterationBuffer());
-                    const double mzo = 1.0 / pow(10, -Constants::Render::ZOOM_INTERVAL);
+                    const double mzo = 1.0 / pow(10, -Constants::Fractal::ZOOM_INTERVAL);
                     float &logZoom = attr.fractal.logZoom;
                     logZoom -= increment;
                     attr.fractal.center = attr.fractal.center.addCenterDouble(
@@ -318,8 +321,7 @@ namespace merutilm::rff2 {
 
     void RenderScene::applyCreateImage() {
         const uint32_t frameIndex = renderer->getFrameIndex();
-        const VkFence fence = wc.getSyncObject().getFence(frameIndex).getFenceHandle();
-        vkWaitForFences(wc.core.getLogicalDevice().getLogicalDeviceHandle(), 1, &fence, VK_TRUE, UINT64_MAX);
+        wc.getSyncObject().getFence(frameIndex).wait();
 
         if (requests.createImageRequestedFilename.empty()) {
             requests.createImageRequestedFilename = IOUtilities::ioFileDialog(
@@ -570,7 +572,7 @@ namespace merutilm::rff2 {
                 refCalc.logZoom = center->perturbator->calc.logZoom;
                 int refExp10 = Perturbator::logZoomToExp10(refCalc.logZoom);
 
-                if (refCalc.logZoom > Constants::Render::ZOOM_DEADLINE) {
+                if (refCalc.logZoom > Constants::Fractal::ZOOM_DEADLINE) {
                     currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
                                 state, refCalc, center->perturbator->getDcMaxAsDoubleExp(),
                                 refExp10,
@@ -588,7 +590,7 @@ namespace merutilm::rff2 {
             }
             case DISABLED: {
                 int exp10 = Perturbator::logZoomToExp10(logZoom);
-                if (logZoom > Constants::Render::ZOOM_DEADLINE) {
+                if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
                     currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
                         state, calc, dcMax, exp10,
                         0, approxTableCache, std::move(actionPerRefCalcIteration),
@@ -698,6 +700,7 @@ namespace merutilm::rff2 {
 
     void RenderScene::destroy() {
         state.cancel();
+        engine.getCore().getLogicalDevice().waitDeviceIdle();
         renderer = nullptr;
     }
 }

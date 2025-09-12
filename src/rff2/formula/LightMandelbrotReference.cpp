@@ -80,7 +80,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<fp_complex> fpgReference = nullptr;
 
         while (zr * zr + zi * zi < bailoutSqr && iteration < maxIteration) {
-            if (iteration % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            if (iteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return Constants::NullPointer::PROCESS_TERMINATED_REFERENCE;
             }
 

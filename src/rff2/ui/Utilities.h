@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
         }
 
         static float getCurrentTime() {
-            return static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count() - Constants::Render::INIT_TIME)
+            return static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count() - Constants::Fractal::INIT_TIME)
                    / 1e9;
         }
 

@@ -3,6 +3,9 @@
 //
 
 #pragma once
+#include <queue>
+
+#include "VideoBufferCache.hpp"
 #include "VideoRenderSceneRenderer.hpp"
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
 #include "../attr/Attribute.h"
@@ -14,12 +17,13 @@ namespace merutilm::rff2 {
         vkh::WindowContextRef wc;
         RFFBinary *normal = nullptr;
         RFFBinary *zoomed = nullptr;
-        float currentFrame = 0;
-        uint32_t frameIndex = 0;
         const VkExtent2D videoExtent;
         const Attribute targetAttribute;
         std::unique_ptr<VideoRenderSceneRenderer> renderer = nullptr;
-        cv::Mat currentImage;
+
+        std::mutex bufferCachedMutex;
+        std::queue<std::unique_ptr<VideoBufferCache>> queuedVbc = {};
+        std::condition_variable bufferCachedCondition;
 
     public:
         explicit VideoRenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc, const VkExtent2D &videoExtent, const Attribute &targetAttribute);
@@ -34,13 +38,15 @@ namespace merutilm::rff2 {
 
         VideoRenderScene &operator=(VideoRenderScene &&) = delete;
 
-        void applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed) const;
+        void applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed, float currentFrame) const;
 
-        void setInfo(double maxIteration, float currentSec) const;
+        void setMaxIterationDynamic(double maxIteration) const;
 
         void applyShader() const;
 
-        void setCurrentFrame(float currentFrame);
+        void setTime(float currentSec) const;
+
+        void setCurrentFrame(float currentFrame) const;
 
         void setStatic(bool isStatic) const;
 
@@ -54,13 +60,33 @@ namespace merutilm::rff2 {
 
         void applySize() const;
 
+        VkExtent2D getBlurredImageExtent() const;
+
         void refreshSharedImgContext() const;
 
         void renderOnce() const;
 
-        [[nodiscard]] float calculateZoom(float defaultZoomIncrement) const;
+        [[nodiscard]] const VideoRenderSceneRenderer &getRenderer() const {
+            return *renderer;
+        }
 
-        [[nodiscard]] cv::Mat generateImage() const;
+        [[nodiscard]] float calculateZoom(float defaultZoomIncrement, float currentFrame) const;
+
+        void queueImage();
+
+
+        [[nodiscard]] std::mutex &getBufferCachedMutex() {
+            return bufferCachedMutex;
+        }
+
+        [[nodiscard]] std::condition_variable &getBufferCachedCondition() {
+            return bufferCachedCondition;
+        }
+
+        [[nodiscard]] std::queue<std::unique_ptr<VideoBufferCache>> &getQueuedBuffers() {
+            return queuedVbc;
+        }
+
 
         void init() override;
 

@@ -10,8 +10,8 @@
 
 namespace merutilm::rff2 {
     struct VideoAttribute {
-        VidDataAttribute dataAttribute;
-        VidAnimationAttribute animationAttribute;
-        VidExportAttribute exportAttribute;
+        VidDataAttribute data;
+        VidAnimationAttribute animation;
+        VidExportAttribute exportation;
     };
 }

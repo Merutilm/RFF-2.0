@@ -19,6 +19,8 @@ namespace merutilm::vkh {
 
         ~EngineImpl() override;
 
+        bool isValidWindowContext(uint32_t windowAttachmentIndex) const;
+
         EngineImpl(const EngineImpl &) = delete;
 
         EngineImpl &operator=(const EngineImpl &) = delete;

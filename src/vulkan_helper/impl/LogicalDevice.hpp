@@ -5,6 +5,7 @@
 #pragma once
 #include "Instance.hpp"
 #include "PhysicalDeviceLoader.hpp"
+#include "../core/allocator.hpp"
 #include "../handle/Handler.hpp"
 
 namespace merutilm::vkh {
@@ -14,8 +15,6 @@ namespace merutilm::vkh {
         VkDevice logicalDevice = nullptr;
         VkQueue graphicsQueue = nullptr;
         VkQueue presentQueue = nullptr;
-        std::mutex queueSubmitMutex;
-        std::mutex queuePresentMutex;
 
     public:
         explicit LogicalDeviceImpl(InstanceRef instance, PhysicalDeviceLoaderRef physicalDevice);
@@ -37,27 +36,19 @@ namespace merutilm::vkh {
         [[nodiscard]] VkQueue getPresentQueue() const { return presentQueue; }
 
         void queueSubmit(const uint32_t submitCount, const VkSubmitInfo *pSubmits, const VkFence fence) {
-            std::scoped_lock lock(queueSubmitMutex);
-            if (vkQueueSubmit(graphicsQueue, submitCount, pSubmits, fence) != VK_SUCCESS) {
+            if (allocator::invoke(vkQueueSubmit, graphicsQueue, submitCount, pSubmits, fence) != VK_SUCCESS) {
                 throw exception_invalid_state("Failed to submit queue!");
             }
         }
 
         void queuePresent(const VkPresentInfoKHR *presentInfo) {
-            std::scoped_lock lock(graphicsQueue == presentQueue ? queueSubmitMutex : queuePresentMutex);
-            if (vkQueuePresentKHR(presentQueue, presentInfo) != VK_SUCCESS) {
+            if (allocator::invoke(vkQueuePresentKHR,presentQueue, presentInfo) != VK_SUCCESS) {
                 throw exception_invalid_state("Failed to present queue!");
             }
         }
 
         void waitDeviceIdle() {
-            std::scoped_lock lock(queueSubmitMutex);
-            if (graphicsQueue != presentQueue) {
-                std::scoped_lock lock2(queuePresentMutex);
-                vkDeviceWaitIdle(logicalDevice);
-                return;
-            }
-            vkDeviceWaitIdle(logicalDevice);
+            allocator::invoke(vkDeviceWaitIdle, logicalDevice);
         }
 
     private:

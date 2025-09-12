@@ -80,7 +80,7 @@ namespace merutilm::rff2 {
         auto temps = std::array<dex, 8>();
 
         while ((iteration == 0 || dex_trigonometric::hypot2(zr, zi) < bailoutSqr) && iteration < maxIteration) {
-            if (iteration % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            if (iteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return Constants::NullPointer::PROCESS_TERMINATED_REFERENCE;
             }
 
@@ -144,10 +144,10 @@ namespace merutilm::rff2 {
             z.getImag().double_exp_value(&zi);
 
             if (zr.sgn() == 0) {
-                dex::cpy(&zr, dex_exp::exp10(exp10 * Constants::Render::INTENTIONAL_ERROR_REFZERO_POWER));
+                dex::cpy(&zr, dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER));
             }
             if (zi.sgn() == 0) {
-                dex::cpy(&zi, dex_exp::exp10(exp10 * Constants::Render::INTENTIONAL_ERROR_REFZERO_POWER));
+                dex::cpy(&zi, dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER));
             }
 
             uint64_t j = iteration;

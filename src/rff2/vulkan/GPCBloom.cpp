@@ -5,7 +5,7 @@
 #include "GPCBloom.hpp"
 
 #include "RCCDownsampleForBlur.hpp"
-#include "RCC2.hpp"
+#include "RCC3.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "GPCSlope.hpp"
 #include "../../vulkan_helper/repo/GlobalSamplerRepo.hpp"

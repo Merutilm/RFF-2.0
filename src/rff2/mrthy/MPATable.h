@@ -224,7 +224,7 @@ namespace merutilm::rff2 {
 
 
         while (iteration <= longestPeriod) {
-            if (absIteration % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return;
+            if (absIteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return;
 
             func(iteration, static_cast<double>(iteration) / static_cast<double>(longestPeriod));
             const uint64_t pulledTableIndex = iterationToPulledTableIndex(*mpaPeriod, iteration);

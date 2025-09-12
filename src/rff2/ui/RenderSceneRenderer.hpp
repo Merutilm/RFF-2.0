@@ -22,6 +22,7 @@
 #include "../vulkan/RCC2.hpp"
 #include "../vulkan/RCC3.hpp"
 #include "../vulkan/RCC4.hpp"
+#include "../vulkan/RCC5.hpp"
 #include "../vulkan/RCCDownsampleForBlur.hpp"
 #include "../vulkan/RCCPresent.hpp"
 
@@ -75,13 +76,13 @@ namespace merutilm::rff2 {
 
             rendererSlope = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCSlope>(
                 configurators, engine, wc.getAttachmentIndex(),
-                RCC1::CONTEXT_INDEX,
-                RCC1::SUBPASS_SLOPE_INDEX);
+                RCC2::CONTEXT_INDEX,
+                RCC2::SUBPASS_SLOPE_INDEX);
 
             rendererColor = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCColor>(
                 configurators, engine, wc.getAttachmentIndex(),
-                RCC1::CONTEXT_INDEX,
-                RCC1::SUBPASS_COLOR_INDEX);
+                RCC2::CONTEXT_INDEX,
+                RCC2::SUBPASS_COLOR_INDEX);
 
 
             rendererDownsampleForBlur = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCDownsampleForBlur>(
@@ -96,27 +97,27 @@ namespace merutilm::rff2 {
 
             rendererFog = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCFog>(
                 configurators, engine, wc.getAttachmentIndex(),
-                RCC2::CONTEXT_INDEX,
-                RCC2::SUBPASS_FOG_INDEX
+                RCC3::CONTEXT_INDEX,
+                RCC3::SUBPASS_FOG_INDEX
             );
 
             rendererBloomThreshold = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCBloomThreshold>(
                 configurators, engine, wc.getAttachmentIndex(),
-                RCC2::CONTEXT_INDEX,
-                RCC2::SUBPASS_BLOOM_THRESHOLD_INDEX
+                RCC3::CONTEXT_INDEX,
+                RCC3::SUBPASS_BLOOM_THRESHOLD_INDEX
             );
 
             rendererBloom = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCBloom>(
                 configurators, engine, wc.getAttachmentIndex(),
-                RCC3::CONTEXT_INDEX,
-                RCC3::SUBPASS_BLOOM_INDEX
+                RCC4::CONTEXT_INDEX,
+                RCC4::SUBPASS_BLOOM_INDEX
             );
 
             rendererLinearInterpolation = vkh::PipelineConfiguratorAbstract::createShaderProgram<
                 GPCLinearInterpolation>(
                 configurators, engine, wc.getAttachmentIndex(),
-                RCC4::CONTEXT_INDEX,
-                RCC4::SUBPASS_LINEAR_INTERPOLATION_INDEX
+                RCC5::CONTEXT_INDEX,
+                RCC5::SUBPASS_LINEAR_INTERPOLATION_INDEX
             );
             rendererPresent = vkh::PipelineConfiguratorAbstract::createShaderProgram<GPCPresent>(
                 configurators, engine, wc.getAttachmentIndex(),
@@ -133,10 +134,10 @@ namespace merutilm::rff2 {
         }
 
 
-        void cmdRender(const uint32_t frameIndex, const uint32_t swapchainImageIndex) override {
+        void cmdRender(const uint32_t swapchainImageIndex) override {
 
             const auto cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
-            const auto mfg = [this, &frameIndex](const uint32_t index) {
+            const auto mfg = [this](const uint32_t index) {
                 return wc.getSharedImageContext().getImageContextMF(index)[frameIndex].image;
             };
 
@@ -165,16 +166,30 @@ namespace merutilm::rff2 {
                                                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                                                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
             // [BARRIER] SECONDARY
-
             vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC1>(
-                wc, frameIndex, {
-                    rendererStripe, rendererSlope,
-                    rendererColor
-                }, {{}, {}, {}});
+                           wc, frameIndex, {
+                               rendererStripe
+                           }, {{}});
+
 
             // [IN] SECONDARY
-            // [SUBPASS OUT] PRIMARY (stripe)
-            // [SUBPASS IN] PRIMARY
+            // [OUT] PRIMARY
+
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
+                                                                          mfg(
+                                                                              SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
+                                                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                                                          0, 1,
+                                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            // [BARRIER] PRIMARY
+
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC2>(
+                wc, frameIndex, {
+                    rendererSlope, rendererColor
+                }, {{}, {}});
+
+            // [IN] PRIMARY
             // [SUBPASS OUT] SECONDARY (slope)
             // [SUBPASS IN] SECONDARY
             // [OUT] PRIMARY (color)
@@ -229,7 +244,7 @@ namespace merutilm::rff2 {
             // [BARRIER] PRIMARY
             // [BARRIER] DOWNSAMPLED_SECONDARY
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC2>(
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC3>(
                 wc, frameIndex, {rendererFog, rendererBloomThreshold}, {{}, {}});
 
             // [IN] PRIMARY
@@ -288,7 +303,7 @@ namespace merutilm::rff2 {
             // [BARRIER] DOWNSAMPLED_SECONDARY
 
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC3>(
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC4>(
                 wc, frameIndex, {rendererBloom}, {{}});
 
             // [IN] SECONDARY
@@ -303,7 +318,7 @@ namespace merutilm::rff2 {
                                                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                                                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC4>(
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC5>(
                 wc, frameIndex, {rendererLinearInterpolation}, {{}});
 
             // [IN] PRIMARY

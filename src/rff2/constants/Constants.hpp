@@ -1,10 +1,10 @@
 #pragma once
 
 #include "ExtensionConstants.hpp"
-#include "GraphicsConfigConstants.hpp"
+#include "VideoConstants.hpp"
 #include "NullConstants.hpp"
 #include "NumConstants.hpp"
-#include "RenderConstants.hpp"
+#include "FractalConstants.hpp"
 #include "StatusConstants.hpp"
 #include "VulkanWindowConstants.hpp"
 #include "Win32Constants.hpp"

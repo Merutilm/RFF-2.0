@@ -81,15 +81,15 @@ namespace merutilm::rff2 {
         }
 
         [[nodiscard]] VkExtent2D getBlurredImageExtent() const {
-            const VkExtent2D internalExtent = getInternalImageExtent();
-            if (const float rat = Constants::Render::GAUSSIAN_MAX_WIDTH / static_cast<float>(internalExtent.width);
+            const VkExtent2D blurredExtent = getInternalImageExtent();
+            if (const float rat = Constants::Fractal::GAUSSIAN_MAX_WIDTH / static_cast<float>(blurredExtent.width);
                 rat < 1) {
                 return {
-                    Constants::Render::GAUSSIAN_MAX_WIDTH,
-                    static_cast<uint32_t>(static_cast<float>(internalExtent.height) * rat)
+                    Constants::Fractal::GAUSSIAN_MAX_WIDTH,
+                    static_cast<uint32_t>(static_cast<float>(blurredExtent.height) * rat)
                 };
             }
-            return internalExtent;
+            return blurredExtent;
         }
 
         [[nodiscard]] VkExtent2D getSwapchainRenderContextExtent() const {

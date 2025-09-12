@@ -40,13 +40,13 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPC2MapIterationStripe::setCurrentFrame(const float currentFrame) const {
+    void CPC2MapIterationStripe::setCurrentFrame(const float currentFrame, const uint32_t frameIndex) const {
         using namespace SharedDescriptorTemplate;
         auto &vidDesc = getDescriptor(SET_VIDEO);
         const auto &vidUBO = *vidDesc.get<vkh::Uniform>(0, DescVideo::BINDING_UBO_VIDEO);
         auto &vidUBOHost = vidUBO.getHostObject();
         vidUBOHost.set<float>(DescVideo::TARGET_VIDEO_CURRENT_FRAME, currentFrame);
-        vidUBO.update();
+        vidUBO.updateMF(frameIndex);
     }
 
 
@@ -106,7 +106,9 @@ namespace merutilm::rff2 {
         const auto &vidUBO = *vidDesc.get<vkh::Uniform>(0, DescVideo::BINDING_UBO_VIDEO);
         auto &vidUBOHost = vidUBO.getHostObject();
         vidUBOHost.set<float>(DescVideo::TARGET_VIDEO_DEFAULT_ZOOM_INCREMENT, defaultZoomIncrement);
-        vidUBO.update();
+        updateBufferMF([&vidUBO](const uint32_t frameIndex) {
+            vidUBO.updateMF(frameIndex);
+        });
     }
 
 
@@ -117,10 +119,11 @@ namespace merutilm::rff2 {
         const auto &map2DescNormalSSBO = *map2Desc.get<vkh::ShaderStorage>(0, BINDING_I2MAP_SSBO_NORMAL);
         map2DescNormalSSBO.getHostObject().set<double>(
             TARGET_I2MAP_SSBO_NORMAL_ITERATION, normal);
-        map2DescNormalSSBO.update();
         const auto &map2DescZoomedSSBO = *map2Desc.get<vkh::ShaderStorage>(0, BINDING_I2MAP_SSBO_ZOOMED);
         map2DescZoomedSSBO.getHostObject().set<double>(
             TARGET_I2MAP_SSBO_ZOOMED_ITERATION, zoomed);
+
+        map2DescNormalSSBO.update();
         map2DescZoomedSSBO.update();
     }
 
@@ -158,21 +161,22 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPC2MapIterationStripe::setInfo(const double maxIteration, const float currentSec) const {
+    void CPC2MapIterationStripe::setInfo(const double maxIteration) const {
         using namespace SharedDescriptorTemplate;
 
         auto &iter = getDescriptor(SET_OUTPUT_ITERATION);
         const auto &iterOutUBO = *iter.get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
         iterOutUBO.getHostObject().set<double>(DescIteration::TARGET_UBO_ITERATION_MAX, maxIteration);
+        iterOutUBO.update(DescIteration::TARGET_UBO_ITERATION_MAX);
+    }
 
+    void CPC2MapIterationStripe::setTime(const float currentSec, const uint32_t frameIndex) const {
+        using namespace SharedDescriptorTemplate;
         auto &time = getDescriptor(SET_TIME);
         const auto &timeUBO = *time.get<vkh::Uniform>(0, DescTime::BINDING_UBO_TIME);
         timeUBO.getHostObject().set<float>(DescTime::TARGET_TIME_CURRENT, currentSec);
+        timeUBO.updateMF(frameIndex, DescTime::TARGET_TIME_CURRENT);
 
-        iterOutUBO.update(DescIteration::TARGET_UBO_ITERATION_MAX);
-        updateBufferMF([&timeUBO](const uint32_t frameIndex){
-            timeUBO.updateMF(frameIndex, DescTime::TARGET_TIME_CURRENT);
-        });
     }
 
     void CPC2MapIterationStripe::configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) {

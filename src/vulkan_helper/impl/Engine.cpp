@@ -17,6 +17,10 @@ namespace merutilm::vkh {
         EngineImpl::destroy();
     }
 
+    bool EngineImpl::isValidWindowContext(const uint32_t windowAttachmentIndex) const {
+        return windowContexts.size() > windowAttachmentIndex && windowContexts[windowAttachmentIndex] != nullptr;
+    }
+
     WindowContextPtr EngineImpl::attachWindowContext(HWND hwnd, uint32_t windowAttachmentIndexExpected) {
         if (windowAttachmentIndexExpected >= windowContexts.size()) {
             windowContexts.resize(windowAttachmentIndexExpected + 1);

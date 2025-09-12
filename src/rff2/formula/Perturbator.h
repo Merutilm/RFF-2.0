@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
     };
 
     inline int Perturbator::logZoomToExp10(const float logZoom) {
-        return -static_cast<int>(logZoom) - Constants::Render::EXP10_ADDITION;
+        return -static_cast<int>(logZoom) - Constants::Fractal::EXP10_ADDITION;
     }
 
     inline double Perturbator::getDoubleValueIteration(const uint64_t iteration, const double prevIterDistance,

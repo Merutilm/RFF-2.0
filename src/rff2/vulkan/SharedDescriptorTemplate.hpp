@@ -295,10 +295,12 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
             bufferManager->reserve<float>(TARGET_VIDEO_DEFAULT_ZOOM_INCREMENT);
             bufferManager->reserve<float>(TARGET_VIDEO_CURRENT_FRAME);
-            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, false);
+            auto ubo = vkh::factory::create<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, true);
             auto descManager = vkh::factory::create<vkh::DescriptorManager>();
             descManager->appendUBO(BINDING_UBO_VIDEO, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));
         }
     };
+
+
 }

@@ -9,7 +9,7 @@
 namespace merutilm::rff2 {
     struct RCCDownsampleForBlur final : public vkh::RenderContextConfiguratorAbstract {
 
-        static constexpr uint32_t CONTEXT_INDEX = 2;
+        static constexpr uint32_t CONTEXT_INDEX = 3;
 
         static constexpr uint32_t SUBPASS_DOWNSAMPLE_INDEX = 0;
 

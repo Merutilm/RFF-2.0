@@ -148,7 +148,7 @@ namespace merutilm::rff2 {
             doubledZoomCalc.center = fp_complex(e += off.edit(doubledExp10));
             ++centerFixCount;
 
-            if (logZoom < Constants::Render::ZOOM_DEADLINE / 2) {
+            if (logZoom < Constants::Fractal::ZOOM_DEADLINE / 2) {
                 doubledZoomPerturbator = std::make_unique<LightMandelbrotPerturbator>(
                     state, doubledZoomCalc, static_cast<double>(doubledZoomDcMax),
                     Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
@@ -173,7 +173,7 @@ namespace merutilm::rff2 {
     bool MandelbrotLocator::checkMaxIterationOnly(const MandelbrotPerturbator &perturbator,
                                                   const uint64_t maxIteration) {
         return perturbator.iterate(perturbator.getDcMaxAsDoubleExp(),
-                                   perturbator.getDcMaxAsDoubleExp() / Constants::Render::INTENTIONAL_ERROR_DCLMB) == static_cast<
+                                   perturbator.getDcMaxAsDoubleExp() / Constants::Fractal::INTENTIONAL_ERROR_DCLMB) == static_cast<
                    double>(maxIteration);
     }
 }

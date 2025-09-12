@@ -99,7 +99,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void BufferObjectAbstract::lock(CommandPoolRef commandPool, const VkFence fence) {
+    void BufferObjectAbstract::lock(CommandPoolRef commandPool, FencePtr const fence) {
         if (locked) {
             logger::log_err_silent("Double-call of BufferObjectAbstract::lock()");
             return;
@@ -121,7 +121,6 @@ namespace merutilm::vkh {
         }
 
 
-        const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const VkBufferCopy copyRegion = {
             .srcOffset = 0,
             .dstOffset = 0,
@@ -152,10 +151,10 @@ namespace merutilm::vkh {
                 }
             }
 
-            if (fence == VK_NULL_HANDLE) {
+            if (fence == nullptr) {
                 core.getLogicalDevice().waitDeviceIdle();
             } else {
-                vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+                fence->wait();
             }
 
             BufferContext::destroyContext(core, getBufferContextMF());
@@ -174,10 +173,10 @@ namespace merutilm::vkh {
                                 &copyRegion);
             }
 
-            if (fence == VK_NULL_HANDLE) {
+            if (fence == nullptr) {
                 core.getLogicalDevice().waitDeviceIdle();
             } else {
-                vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+                fence->wait();
             }
 
             BufferContext::destroyContext(core, getBufferContext());
@@ -187,7 +186,7 @@ namespace merutilm::vkh {
     }
 
 
-    void BufferObjectAbstract::unlock(CommandPoolRef commandPool, const VkFence fence) {
+    void BufferObjectAbstract::unlock(CommandPoolRef commandPool, FencePtr const fence) {
         if (!locked) {
             logger::w_log_err_silent(L"Double-call of BufferObjectAbstract::unlock()");
             return;
@@ -212,7 +211,6 @@ namespace merutilm::vkh {
             .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         };
 
-        const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         const VkBufferCopy copyRegion = {
             .srcOffset = 0,
             .dstOffset = 0,
@@ -239,7 +237,7 @@ namespace merutilm::vkh {
             if (fence == VK_NULL_HANDLE) {
                 core.getLogicalDevice().waitDeviceIdle();
             } else {
-                vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+                fence->wait();
             }
 
             BufferContext::destroyContext(core, getBufferContextMF());
@@ -261,7 +259,7 @@ namespace merutilm::vkh {
             if (fence == VK_NULL_HANDLE) {
                 core.getLogicalDevice().waitDeviceIdle();
             } else {
-                vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+                fence->wait();
             }
 
             BufferContext::destroyContext(core, getBufferContext());

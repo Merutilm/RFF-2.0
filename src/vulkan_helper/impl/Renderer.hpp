@@ -66,14 +66,14 @@ namespace merutilm::vkh {
                 beforeCmdRender();
                 ScopedCommandBufferExecutor executor(wc, frameIndex, fence, imageAvailableSemaphore,
                                                      renderFinishedSemaphore);
-                cmdRender(frameIndex, swapchainImageIndex);
+                cmdRender(swapchainImageIndex);
             });
         }
 
     private:
         virtual void beforeCmdRender() = 0;
 
-        virtual void cmdRender(uint32_t frameIndex, uint32_t swapchainImageIndex) = 0;
+        virtual void cmdRender(uint32_t swapchainImageIndex) = 0;
     };
 
     using Renderer = std::unique_ptr<RendererAbstract>;

@@ -233,10 +233,10 @@ add_executable(
         src/rff2/ui/Application.cpp
         src/rff2/ui/Application.hpp
         src/rff2/constants/Win32Constants.hpp
-        src/rff2/constants/RenderConstants.hpp
+        src/rff2/constants/FractalConstants.hpp
         src/rff2/constants/NumConstants.hpp
         src/rff2/constants/NullConstants.hpp
-        src/rff2/constants/GraphicsConfigConstants.hpp
+        src/rff2/constants/VideoConstants.hpp
         src/rff2/constants/ExtensionConstants.hpp
         src/rff2/constants/StatusConstants.hpp
         src/vulkan_helper/configurator/GraphicsPipelineConfigurator.hpp
@@ -285,13 +285,13 @@ add_executable(
         src/vulkan_helper/impl/Fence.cpp
         src/vulkan_helper/impl/Fence.hpp
         src/rff2/vulkan/RCCDownsampleForBlur.hpp
-        src/rff2/vulkan/RCC2.hpp
+        src/rff2/vulkan/RCC3.hpp
         src/rff2/vulkan/GPCBloom.cpp
         src/rff2/vulkan/GPCBloom.hpp
-        src/rff2/vulkan/RCC3.hpp
+        src/rff2/vulkan/RCC4.hpp
         src/rff2/vulkan/GPCLinearInterpolation.cpp
         src/rff2/vulkan/GPCLinearInterpolation.hpp
-        src/rff2/vulkan/RCC4.hpp
+        src/rff2/vulkan/RCC5.hpp
         src/vulkan_helper/core/vkh_base.hpp
         src/vulkan_helper/core/vkh.hpp
         src/vulkan_helper/core/vkh_core.hpp
@@ -326,6 +326,9 @@ add_executable(
         src/vulkan_helper/core/allocator.hpp
         src/rff2/vulkan/GPCStaticImage2Map.cpp
         src/rff2/vulkan/GPCStaticImage2Map.hpp
+        src/rff2/vulkan/CPCImageRGBA2BGR.cpp
+        src/rff2/vulkan/CPCImageRGBA2BGR.hpp
+        src/rff2/ui/VideoBufferCache.hpp
 )
 
 find_package(Vulkan REQUIRED)

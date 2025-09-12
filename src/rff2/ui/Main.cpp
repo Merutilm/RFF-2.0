@@ -1,8 +1,8 @@
 #include <memory>
-#include <fstream>
 
-#define UNICODE
-#define _UNICODE
+#ifndef NDEBUG
+#include <fstream>
+#endif
 
 #include "Application.hpp"
 #include "SettingsWindow.hpp"
@@ -20,9 +20,9 @@ void registerClasses() {
     WNDCLASSEXW masterWindowClass = wClass;
     masterWindowClass.lpszClassName = CLASS_MASTER_WINDOW;
     masterWindowClass.lpfnWndProc = GraphicsContextWindowProc::WinProc;
-    masterWindowClass.hIcon = static_cast<HICON>(LoadImage(
+    masterWindowClass.hIcon = static_cast<HICON>(LoadImageW(
     GetModuleHandleW(nullptr),
-    MAKEINTRESOURCE(1),
+    MAKEINTRESOURCEW(1),
     IMAGE_ICON,
     32, 32,
     LR_DEFAULTCOLOR));
@@ -52,6 +52,8 @@ void registerClasses() {
 
 }
 
+#ifndef NDEBUG
+
 void counter(const std::filesystem::path &path, uint32_t *lines) {
     if (std::filesystem::is_directory(path)) {
         for (std::filesystem::directory_iterator it(path); it != std::filesystem::directory_iterator(); ++it) {
@@ -75,13 +77,15 @@ void countLines() {
     std::cout << "Lines : " << lines << std::endl;
 
 }
+#endif
 
 int main() {
     using namespace merutilm::rff2;
     using namespace merutilm::vkh;
     registerClasses();
+#ifndef NDEBUG
     countLines();
-
+#endif
     const auto app = Application();
     app.start();
     return 0;

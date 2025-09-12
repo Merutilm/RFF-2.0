@@ -27,6 +27,19 @@ namespace merutilm::vkh {
 
         [[nodiscard]] VkFence getFenceHandle() const { return fence; }
 
+        void wait() {
+            allocator::invoke(vkWaitForFences, core.getLogicalDevice().getLogicalDeviceHandle(), 1, &fence, VK_TRUE, UINT64_MAX);
+        }
+
+        void reset() {
+            allocator::invoke(vkResetFences, core.getLogicalDevice().getLogicalDeviceHandle(), 1, &fence);
+        }
+
+        void waitAndReset() {
+            wait();
+            reset();
+        }
+
     private:
         void init() override;
 

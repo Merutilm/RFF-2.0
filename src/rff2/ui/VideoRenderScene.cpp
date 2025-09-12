@@ -4,13 +4,15 @@
 
 #include "VideoRenderScene.hpp"
 
-#include "../../vulkan_helper/executor/ScopedNewCommandBufferExecutor.hpp"
 #include "../../vulkan_helper/util/BufferImageContextUtils.hpp"
 #include "../vulkan/RCCPresentVid.hpp"
 #include "opencv2/imgproc.hpp"
 
 namespace merutilm::rff2 {
-    VideoRenderScene::VideoRenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc, const VkExtent2D &videoExtent, const Attribute &targetAttribute) : EngineHandler(engine), wc(wc), videoExtent(videoExtent), targetAttribute(targetAttribute) {
+    VideoRenderScene::VideoRenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc, const VkExtent2D &videoExtent,
+                                       const Attribute &targetAttribute) : EngineHandler(engine), wc(wc),
+                                                                           videoExtent(videoExtent),
+                                                                           targetAttribute(targetAttribute) {
         VideoRenderScene::init();
     }
 
@@ -19,15 +21,10 @@ namespace merutilm::rff2 {
     }
 
 
-    void VideoRenderScene::setCurrentFrame(const float currentFrame) {
-        this->currentFrame = currentFrame;
-        renderer->renderer2MapIterationStripe->setCurrentFrame(currentFrame);
-    }
-
     void VideoRenderScene::applyCurrentDynamicMap(const RFFDynamicMapBinary &normal,
-                                                  const RFFDynamicMapBinary &zoomed) const {
+                                                  const RFFDynamicMapBinary &zoomed, const float currentFrame) const {
+        wc.core.getLogicalDevice().waitDeviceIdle();
         auto &normalI = normal.getMatrix();
-
         if (currentFrame < 1) {
             const std::vector<double> zoomedDefault(normalI.getLength());
             renderer->renderer2MapIterationStripe->setAllIterations(normalI.getCanvas(), zoomedDefault);
@@ -37,24 +34,35 @@ namespace merutilm::rff2 {
         }
     }
 
-    void VideoRenderScene::setInfo(const double maxIteration, const float currentSec) const {
-        renderer->renderer2MapIterationStripe->setInfo(maxIteration, currentSec);
+    void VideoRenderScene::setMaxIterationDynamic(const double maxIteration) const {
+        renderer->renderer2MapIterationStripe->setInfo(maxIteration);
     }
 
     void VideoRenderScene::applyShader() const {
         engine.getCore().getLogicalDevice().waitDeviceIdle();
         renderer->renderer2MapIterationStripe->setPalette(targetAttribute.shader.palette);
         renderer->renderer2MapIterationStripe->set2MapSize(videoExtent);
-        renderer->renderer2MapIterationStripe->setDefaultZoomIncrement(targetAttribute.video.dataAttribute.defaultZoomIncrement);
+        renderer->renderer2MapIterationStripe->setDefaultZoomIncrement(
+            targetAttribute.video.data.defaultZoomIncrement);
         renderer->renderer2MapIterationStripe->setStripe(targetAttribute.shader.stripe);
         renderer->rendererSlope->setSlope(targetAttribute.shader.slope);
         renderer->rendererColor->setColor(targetAttribute.shader.color);
         renderer->rendererFog->setFog(targetAttribute.shader.fog);
         renderer->rendererBloom->setBloom(targetAttribute.shader.bloom);
         renderer->rendererLinearInterpolation->setLinearInterpolation(targetAttribute.render.linearInterpolation);
-        renderer->rendererBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, targetAttribute.shader.fog.radius);
+        renderer->rendererBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
+                                               targetAttribute.shader.fog.radius);
         renderer->rendererBoxBlur->
                 setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, targetAttribute.shader.bloom.radius);
+    }
+
+    void VideoRenderScene::setTime(const float currentSec) const {
+        renderer->currentSec = currentSec;
+    }
+
+
+    void VideoRenderScene::setCurrentFrame(const float currentFrame) const {
+        renderer->currentFrame = currentFrame;
     }
 
     void VideoRenderScene::setStatic(const bool isStatic) const {
@@ -67,37 +75,35 @@ namespace merutilm::rff2 {
     }
 
     void VideoRenderScene::applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const {
-        renderer->rendererStaticImage->setImages(normal, zoomed);
+        renderer->rendererStaticImage->setImages(normal, zoomed, renderer->frameIndex);
     }
 
     void VideoRenderScene::initRenderContext() const {
-
         const auto swapchainImageContextGetter = [this] {
             auto &swapchain = wc.getSwapchain();
             return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
         };
-
         wc.attachRenderContext<RCC1Vid>(wc.core,
-                                     [this] { return videoExtent; },
-                                     swapchainImageContextGetter);
+                                        [this] { return videoExtent; },
+                                        swapchainImageContextGetter);
         wc.attachRenderContext<RCCDownsampleForBlurVid>(wc.core,
-                                                     [this] { return videoExtent; },
-                                                     swapchainImageContextGetter);
+                                                        [this] { return getBlurredImageExtent(); },
+                                                        swapchainImageContextGetter);
         wc.attachRenderContext<RCC2Vid>(wc.core,
-                                     [this] { return videoExtent; },
-                                     swapchainImageContextGetter);
+                                        [this] { return videoExtent; },
+                                        swapchainImageContextGetter);
         wc.attachRenderContext<RCC3Vid>(wc.core,
-                                     [this] { return videoExtent; },
-                                     swapchainImageContextGetter);
+                                        [this] { return videoExtent; },
+                                        swapchainImageContextGetter);
         wc.attachRenderContext<RCC4Vid>(wc.core,
-                                     [this] { return videoExtent; },
-                                     swapchainImageContextGetter);
+                                        [this] { return videoExtent; },
+                                        swapchainImageContextGetter);
         wc.attachRenderContext<RCCPresentVid>(wc.core,
-                                           [this] { return wc.getSwapchain().populateSwapchainExtent(); },
-                                           swapchainImageContextGetter);
+                                              [this] { return wc.getSwapchain().populateSwapchainExtent(); },
+                                              swapchainImageContextGetter);
         wc.attachRenderContext<RCCStatic2Image>(wc.core,
-                                           [this] { return videoExtent; },
-                                           swapchainImageContextGetter);
+                                                [this] { return videoExtent; },
+                                                swapchainImageContextGetter);
     }
 
     void VideoRenderScene::initRenderer() {
@@ -108,29 +114,40 @@ namespace merutilm::rff2 {
 
     void VideoRenderScene::applySize() const {
         auto [sWidth, sHeight] = wc.getSwapchain().populateSwapchainExtent();
-        auto &[vWidth, vHeight] = videoExtent;
+        auto [bWidth, bHeight] = getBlurredImageExtent();
 
         for (const auto &sp: renderer->configurators) {
             sp->renderContextRefreshed();
         }
 
-        renderer->rendererDownsampleForBlur->setRescaledResolution(0, {vWidth, vHeight});
-        renderer->rendererDownsampleForBlur->setRescaledResolution(1, {vWidth, vHeight});
+        renderer->rendererDownsampleForBlur->setRescaledResolution(0, {bWidth, bHeight});
+        renderer->rendererDownsampleForBlur->setRescaledResolution(1, {bWidth, bHeight});
         renderer->rendererPresent->setRescaledResolution({sWidth, sHeight});
     }
 
+    VkExtent2D VideoRenderScene::getBlurredImageExtent() const {
+        if (const float rat = Constants::Fractal::GAUSSIAN_MAX_WIDTH / static_cast<float>(videoExtent.width); rat < 1) {
+            return {
+                Constants::Fractal::GAUSSIAN_MAX_WIDTH,
+                static_cast<uint32_t>(static_cast<float>(videoExtent.height) * rat)
+            };
+        }
+        return videoExtent;
+    }
+
+
     void VideoRenderScene::refreshSharedImgContext() const {
         using namespace SharedImageContextIndices;
-        auto &[w, h] = videoExtent;
+
         auto &sharedImg = wc.getSharedImageContext();
         sharedImg.cleanupContexts();
 
-        auto iiiGetter = [w, h]( const VkFormat format, const VkImageUsageFlags usage) {
+        auto iiiGetter = [](const VkExtent2D extent, const VkFormat format, const VkImageUsageFlags usage) {
             return vkh::ImageInitInfo{
                 .imageType = VK_IMAGE_TYPE_2D,
                 .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
                 .imageFormat = format,
-                .extent = VkExtent3D{w, h, 1},
+                .extent = VkExtent3D{extent.width, extent.height, 1},
                 .useMipmap = VK_FALSE,
                 .arrayLayers = 1,
                 .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -140,26 +157,28 @@ namespace merutilm::rff2 {
                 .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             };
         };
+        const auto blurredImageExtent = getBlurredImageExtent();
 
         sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_IMAGE_PRIMARY,
-                                               iiiGetter(VK_FORMAT_R8G8B8A8_UNORM,
+                                               iiiGetter(videoExtent, VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT |
                                                          VK_IMAGE_USAGE_STORAGE_BIT));
         sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_IMAGE_SECONDARY,
-                                               iiiGetter(VK_FORMAT_R8G8B8A8_UNORM,
+                                               iiiGetter(videoExtent, VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-                                                         VK_IMAGE_USAGE_SAMPLED_BIT));
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT |
+                                                         VK_IMAGE_USAGE_STORAGE_BIT));
         sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
-                                               iiiGetter(VK_FORMAT_R8G8B8A8_UNORM,
+                                               iiiGetter(blurredImageExtent, VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT |
                                                          VK_IMAGE_USAGE_STORAGE_BIT));
         sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_SECONDARY,
-                                               iiiGetter(VK_FORMAT_R8G8B8A8_UNORM,
+                                               iiiGetter(blurredImageExtent, VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                          VK_IMAGE_USAGE_SAMPLED_BIT |
                                                          VK_IMAGE_USAGE_STORAGE_BIT));
@@ -167,11 +186,10 @@ namespace merutilm::rff2 {
 
 
     void VideoRenderScene::renderOnce() const {
-        engine.getCore().getLogicalDevice().waitDeviceIdle();
         renderer->execute();
     }
 
-    float VideoRenderScene::calculateZoom(const float defaultZoomIncrement) const {
+    float VideoRenderScene::calculateZoom(const float defaultZoomIncrement, const float currentFrame) const {
         if (currentFrame < 1) {
             const float r = 1 - currentFrame;
 
@@ -197,36 +215,35 @@ namespace merutilm::rff2 {
     }
 
 
-    cv::Mat VideoRenderScene::generateImage() const {
-        wc.core.getLogicalDevice().waitDeviceIdle();
+    void VideoRenderScene::queueImage() {
+        const uint32_t frameIndex = renderer->getFrameIndex();
+        wc.getSyncObject().getFence(frameIndex).waitAndReset();
+        const vkh::BufferContext &srcBuffer = renderer->rendererImageRGBA2BGR->getBufferContext(frameIndex);
+        vkh::BufferContext dstBuffer = vkh::BufferContext::createContext(wc.core, {
+                                                                             .size = srcBuffer.bufferSize,
+                                                                             .usage =
+                                                                             VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                                             .properties =
+                                                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                                                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                                                         });
 
-        const auto &imgCtx = wc.getSharedImageContext().getImageContextMF(
-            SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_SECONDARY)[renderer->getFrameIndex()];
-
-        vkh::BufferContext bufCtx = vkh::BufferContext::createContext(wc.core, {
-                                                                          .size = imgCtx.capacity,
-                                                                          .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                                                          .properties =
-                                                                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                                                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                                                      });
-        vkh::BufferContext::mapMemory(wc.core, bufCtx);
-        //NEW COMMAND BUFFER
-        {
-            const auto executor = vkh::ScopedNewCommandBufferExecutor(wc.core, wc.getCommandPool());
-            vkh::BarrierUtils::cmdImageMemoryBarrier(executor.getCommandBufferHandle(), imgCtx.image,
-                                                     VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
-                                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                     VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0, 1,
-                                                     VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
-            vkh::BufferImageContextUtils::cmdCopyImageToBuffer(executor.getCommandBufferHandle(), imgCtx, bufCtx);
+        vkh::BufferContext::mapMemory(wc.core, dstBuffer); {
+            vkh::ScopedCommandBufferExecutor executor(wc, frameIndex,
+                                                      wc.getSyncObject().getFence(frameIndex).getFenceHandle(),
+                                                      VK_NULL_HANDLE, VK_NULL_HANDLE);
+            vkh::BufferImageContextUtils::cmdCopyBuffer(wc.getCommandBuffer().getCommandBufferHandle(frameIndex),
+                                                        srcBuffer, dstBuffer);
         }
-        vkh::BufferContext::unmapMemory(wc.core, bufCtx);
-        auto currentImage = cv::Mat(static_cast<int>(videoExtent.height), static_cast<int>(videoExtent.width), CV_8UC4, bufCtx.mappedMemory);
-        cv::cvtColor(currentImage, currentImage, cv::COLOR_RGBA2BGR);
-        vkh::BufferContext::destroyContext(wc.core, bufCtx);
-        return currentImage;
+        vkh::BufferContext::unmapMemory(wc.core, dstBuffer);
+        std::unique_lock queueLock(bufferCachedMutex);
+        bufferCachedCondition.wait(queueLock, [this]{return queuedVbc.size() < Constants::VideoConfig::MAX_VIDEO_QUEUE_SIZE;});
+        queuedVbc.push(std::make_unique<VideoBufferCache>(wc.core, std::move(dstBuffer),
+                                                          static_cast<int>(videoExtent.width),
+                                                          static_cast<int>(videoExtent.height),
+                                                          calculateZoom(
+                                                              targetAttribute.video.data.defaultZoomIncrement,
+                                                              renderer->currentFrame)));
     }
 
     void VideoRenderScene::init() {
@@ -236,6 +253,6 @@ namespace merutilm::rff2 {
     }
 
     void VideoRenderScene::destroy() {
-        renderer = nullptr;
+        engine.getCore().getLogicalDevice().waitDeviceIdle();
     }
 }

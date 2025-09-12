@@ -36,9 +36,9 @@ namespace merutilm::vkh {
 
         BufferObjectAbstract &operator=(BufferObjectAbstract &&) noexcept = delete;
 
-        void lock(CommandPoolRef commandPool, VkFence fence = VK_NULL_HANDLE);
+        void lock(CommandPoolRef commandPool, FencePtr fence = VK_NULL_HANDLE);
 
-        void unlock(CommandPoolRef commandPool, VkFence fence = VK_NULL_HANDLE);
+        void unlock(CommandPoolRef commandPool, FencePtr fence = VK_NULL_HANDLE);
 
         [[nodiscard]] MultiframeBufferContext &getBufferContextMF() {
             if (multiframeEnabled) return std::get<MultiframeBufferContext>(bufferContext);

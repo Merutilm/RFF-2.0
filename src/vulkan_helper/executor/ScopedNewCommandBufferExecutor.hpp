@@ -5,15 +5,16 @@
 #pragma once
 #include "../handle/CoreHandler.hpp"
 #include "../impl/CommandPool.hpp"
+#include "../impl/Fence.hpp"
 
 namespace merutilm::vkh {
     class ScopedNewCommandBufferExecutor final : public CoreHandler {
         CommandPoolRef commandPool;
-        VkFence fenceHandle;
+        FencePtr const fence;
         VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 
     public:
-        explicit ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool, VkFence fenceHandle = VK_NULL_HANDLE);
+        explicit ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool, FencePtr fence = VK_NULL_HANDLE);
 
         ~ScopedNewCommandBufferExecutor() override;
 

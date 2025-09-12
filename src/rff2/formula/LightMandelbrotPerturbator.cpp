@@ -130,7 +130,7 @@ namespace merutilm::rff2 {
                 break;
             }
 
-            if (absIteration % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
+            if (absIteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
         }
 
         if (isAbs) {

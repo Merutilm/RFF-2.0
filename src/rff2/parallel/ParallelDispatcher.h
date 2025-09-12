@@ -116,7 +116,7 @@ namespace merutilm::rff2 {
         }
 
         for (uint32_t x = 0; x < xRes; ++x) {
-            if (x % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            if (x % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
 
@@ -133,7 +133,7 @@ namespace merutilm::rff2 {
     inline void ParallelDispatcher::renderBackward(const uint32_t xRes, const uint32_t yRes, const uint32_t len,
                                                    std::vector<std::atomic<bool> > &rendered) const {
         for (uint32_t i = len - 1; i > 0; --i) {
-            if (i % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            if (i % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
             const uint32_t px = i % xRes;

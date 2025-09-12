@@ -1,0 +1,4 @@
+C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/cmake-build-relwithdebinfo/CMakeFiles/RFF.dir
+C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/cmake-build-relwithdebinfo/CMakeFiles/spirv.dir
+C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/cmake-build-relwithdebinfo/CMakeFiles/edit_cache.dir
+C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/cmake-build-relwithdebinfo/CMakeFiles/rebuild_cache.dir

@@ -5,11 +5,12 @@
 #include "ScopedNewCommandBufferExecutor.hpp"
 
 #include "../core/vkh_core.hpp"
+#include "../impl/Fence.hpp"
 
 namespace merutilm::vkh {
     ScopedNewCommandBufferExecutor::ScopedNewCommandBufferExecutor(CoreRef core, CommandPoolRef commandPool,
-                                                                   const VkFence fenceHandle) : CoreHandler(core),
-        commandPool(commandPool), fenceHandle(fenceHandle) {
+                                                                   FencePtr const fence) : CoreHandler(core),
+        commandPool(commandPool), fence(fence) {
         ScopedNewCommandBufferExecutor::init();
     }
 
@@ -56,11 +57,11 @@ namespace merutilm::vkh {
             .pSignalSemaphores = nullptr
         };
 
-        core.getLogicalDevice().queueSubmit(1, &submitInfo, fenceHandle);
-        if (fenceHandle == VK_NULL_HANDLE) {
+        core.getLogicalDevice().queueSubmit(1, &submitInfo, fence == nullptr ? nullptr : fence->getFenceHandle());
+        if (fence == nullptr) {
             core.getLogicalDevice().waitDeviceIdle();
         } else {
-            vkWaitForFences(device, 1, &fenceHandle, VK_FALSE, UINT64_MAX);
+            fence->wait();
         }
         allocator::invoke(vkFreeCommandBuffers, device, commandPool.getCommandPoolHandle(), 1, &commandBuffer);
     }

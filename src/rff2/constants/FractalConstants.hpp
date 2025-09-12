@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <chrono>
 
-namespace merutilm::rff2::Constants::Render {
+namespace merutilm::rff2::Constants::Fractal {
     constexpr int EXIT_CHECK_INTERVAL = 256;
     constexpr float ZOOM_MIN = 1.0f;
     constexpr float ZOOM_INTERVAL = 0.235f;

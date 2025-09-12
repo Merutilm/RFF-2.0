@@ -12,16 +12,17 @@ namespace merutilm::rff2 {
         std::mutex mutex;
         std::condition_variable cv;
         std::jthread thread;
+        bool finished = false;
 
     public:
+
+
         template<typename T> requires std::is_invocable_r_v<void, T, BackgroundThread &> && (!std::is_same_v<T, BackgroundThread>)
-        explicit BackgroundThread(T &&func);
-
-        template<typename P> requires (!std::is_same_v<P, BackgroundThread>)
-        void waitUntil(P &&b);
-
-        void notify();
-
+        explicit BackgroundThread(T &&func) : thread(std::jthread([this, f = std::forward<T>(func)] {
+            f(*this);
+            finished = true;
+        })) {
+        }
         ~BackgroundThread() = default;
 
         BackgroundThread(const BackgroundThread &) = delete;
@@ -34,22 +35,28 @@ namespace merutilm::rff2 {
 
         friend bool operator==(const BackgroundThread &a, const BackgroundThread &b) {
             return &a == &b;
-        };
+        }
+
+
+        template<typename P> requires (!std::is_same_v<P, BackgroundThread>)
+        void waitUntil(P &&b) {
+            std::unique_lock lock(mutex);
+            cv.wait(lock, std::forward<P>(b));
+        }
+
+
+        void notify() {
+            cv.notify_all();
+        }
+
+        void tryJoin() {
+            if(thread.joinable()) thread.join();
+        }
+
+        bool isFinished() const {
+            return finished;
+        }
     };
 
 
-    template<typename T> requires std::is_invocable_r_v<void, T, BackgroundThread &> && (!std::is_same_v<T, BackgroundThread>)
-    BackgroundThread::BackgroundThread(T &&func) : thread(std::jthread([this, f = std::forward<T>(func)] { f(*this); })) {
-    }
-
-    template<typename P> requires (!std::is_same_v<P, BackgroundThread>)
-    void BackgroundThread::waitUntil(P &&b) {
-        std::unique_lock lock(mutex);
-        cv.wait(lock, std::forward<P>(b));
-    }
-
-
-    inline void BackgroundThread::notify() {
-        cv.notify_all();
-    }
 }

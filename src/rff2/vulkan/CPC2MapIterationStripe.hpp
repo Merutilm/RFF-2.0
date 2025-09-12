@@ -47,7 +47,7 @@ namespace merutilm::rff2 {
 
         void renderContextRefreshed() override;
 
-        void setCurrentFrame(float currentFrame) const;
+        void setCurrentFrame(float currentFrame, uint32_t frameIndex) const;
 
         void setPalette(const ShdPaletteAttribute &palette) const;
 
@@ -59,7 +59,9 @@ namespace merutilm::rff2 {
 
         void set2MapSize(const VkExtent2D &extent);
 
-        void setInfo(double maxIteration, float currentSec) const;
+        void setInfo(double maxIteration) const;
+
+        void setTime(float currentSec, uint32_t frameIndex) const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;

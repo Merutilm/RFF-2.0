@@ -125,7 +125,7 @@ namespace merutilm::rff2 {
         }
 
         for (uint16_t x = 0; x < xRes; ++x) {
-            if (x % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            if (x % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
 
@@ -143,7 +143,7 @@ namespace merutilm::rff2 {
     void ParallelArrayDispatcher<T>::renderBackward(const uint16_t xRes, const uint16_t yRes, const uint32_t len,
                                                     std::vector<std::atomic<bool> > &rendered) {
         for (uint32_t i = len - 1; i > 0; --i) {
-            if (i % Constants::Render::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            if (i % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
             const auto [px, py] = matrix.getLocation(i);

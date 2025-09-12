@@ -28,17 +28,15 @@ namespace merutilm::vkh {
         static uint32_t begin(WindowContextRef wc, const uint32_t frameIndex) {
             const SwapchainRef swapchain = wc.getSwapchain();
             const VkDevice device = wc.core.getLogicalDevice().getLogicalDeviceHandle();
-            const VkFence currentFence = wc.getSyncObject().getFence(frameIndex).getFenceHandle();
             const VkSemaphore imageAvailableSemaphore = wc.getSyncObject().
                     getSemaphore(frameIndex).getImageAvailable();
             const VkSwapchainKHR swapchainHandle = swapchain.getSwapchainHandle();
 
 
-            vkWaitForFences(device, 1, &currentFence, VK_TRUE, UINT64_MAX);
-            vkResetFences(device, 1, &currentFence);
+            wc.getSyncObject().getFence(frameIndex).waitAndReset();
 
             uint32_t swapchainImageIndex = 0;
-            vkAcquireNextImageKHR(device, swapchainHandle, UINT64_MAX, imageAvailableSemaphore,
+            allocator::invoke(vkAcquireNextImageKHR, device, swapchainHandle, UINT64_MAX, imageAvailableSemaphore,
                                   nullptr, &swapchainImageIndex);
             return swapchainImageIndex;
         }

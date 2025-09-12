@@ -18,7 +18,7 @@
 namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::DATA_SETTINGS = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[defaultZoomIncrement, isStatic] = scene.getAttribute().video.dataAttribute;
+        auto &[defaultZoomIncrement, isStatic] = scene.getAttribute().video.data;
         auto window = std::make_unique<SettingsWindow>(L"Data Settings");
 
         window->registerTextInput<float>(L"Default Zoom Increment", &defaultZoomIncrement,
@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
 
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::ANIMATION_SETTINGS = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[overZoom, showText, mps] = scene.getAttribute().video.animationAttribute;
+        auto &[overZoom, showText, mps] = scene.getAttribute().video.animation;
         auto window = std::make_unique<SettingsWindow>(L"Animation Settings");
         window->registerTextInput<float>(L"Over Zoom", &overZoom, Unparser::FLOAT, Parser::FLOAT,
                                          ValidCondition::POSITIVE_FLOAT_ZERO, Callback::NOTHING, L"Over Zoom",
@@ -57,7 +57,7 @@ namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackVideo::EXPORT_SETTINGS = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
         auto window = std::make_unique<SettingsWindow>(L"Export Settings");
-        auto &[fps, bitrate] = scene.getAttribute().video.exportAttribute;
+        auto &[fps, bitrate] = scene.getAttribute().video.exportation;
         window->registerTextInput<float>(L"FPS", &fps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
                                          Callback::NOTHING, L"Set video FPS", L"Set the fps of the video to export.");
         window->registerTextInput<uint32_t>(L"Bitrate", &bitrate, Unparser::U_SHORT, Parser::U_SHORT,
@@ -91,7 +91,7 @@ namespace merutilm::rff2 {
                 Attribute &settings = scene.getAttribute();
                 const VideoAttribute &videoSettings = settings.video;
 
-                if (videoSettings.dataAttribute.isStatic) {
+                if (videoSettings.data.isStatic) {
                     settings.shader.stripe = ShdStripePresets::Disabled().genStripe();
                     settings.shader.slope = ShdSlopePresets::Disabled().genSlope();
                     settings.shader.fog = ShdFogPresets::Disabled().genFog();
@@ -99,8 +99,8 @@ namespace merutilm::rff2 {
                     scene.getRequests().requestShader();
                     thread.waitUntil([&scene] { return !scene.getRequests().shaderRequested; });
                 }
-                const float increment = std::log10(videoSettings.dataAttribute.defaultZoomIncrement);
-                while (logZoom > Constants::Render::ZOOM_MIN) {
+                const float increment = std::log10(videoSettings.data.defaultZoomIncrement);
+                while (logZoom > Constants::Fractal::ZOOM_MIN) {
                     if (state.interruptRequested() || nextFrame) {
                         //incomplete frame
                         scene.getRequests().requestRecompute();
@@ -109,7 +109,7 @@ namespace merutilm::rff2 {
                     if (state.interruptRequested()) {
                         return;
                     }
-                    if (videoSettings.dataAttribute.isStatic) {
+                    if (videoSettings.data.isStatic) {
                         const std::string &path = IOUtilities::generateFileName(dir, Constants::Extension::IMAGE).
                                 string();
                         scene.getRequests().requestCreateImage(path);

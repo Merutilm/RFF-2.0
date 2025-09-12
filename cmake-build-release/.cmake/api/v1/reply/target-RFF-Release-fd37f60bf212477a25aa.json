@@ -39,37 +39,37 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 354,
+				"line" : 357,
 				"parent" : 0
 			},
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 356,
+				"line" : 359,
 				"parent" : 0
 			},
 			{
 				"command" : 3,
 				"file" : 0,
-				"line" : 373,
+				"line" : 376,
 				"parent" : 0
 			},
 			{
 				"command" : 4,
 				"file" : 0,
-				"line" : 333,
+				"line" : 336,
 				"parent" : 0
 			},
 			{
 				"command" : 5,
 				"file" : 0,
-				"line" : 340,
+				"line" : 343,
 				"parent" : 0
 			},
 			{
 				"command" : 6,
 				"file" : 0,
-				"line" : 345,
+				"line" : 348,
 				"parent" : 0
 			}
 		]
@@ -248,7 +248,8 @@
 				302,
 				305,
 				312,
-				316
+				316,
+				318
 			]
 		},
 		{
@@ -476,7 +477,8 @@
 				302,
 				305,
 				312,
-				316
+				316,
+				318
 			]
 		},
 		{
@@ -708,7 +710,9 @@
 				313,
 				314,
 				315,
-				317
+				317,
+				319,
+				320
 			]
 		}
 	],
@@ -1910,7 +1914,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/constants/RenderConstants.hpp",
+			"path" : "src/rff2/constants/FractalConstants.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -1925,7 +1929,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/constants/GraphicsConfigConstants.hpp",
+			"path" : "src/rff2/constants/VideoConstants.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2184,7 +2188,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/vulkan/RCC2.hpp",
+			"path" : "src/rff2/vulkan/RCC3.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2200,7 +2204,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/vulkan/RCC3.hpp",
+			"path" : "src/rff2/vulkan/RCC4.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2216,7 +2220,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "src/rff2/vulkan/RCC4.hpp",
+			"path" : "src/rff2/vulkan/RCC5.hpp",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -2394,6 +2398,22 @@
 		{
 			"backtrace" : 1,
 			"path" : "src/rff2/vulkan/GPCStaticImage2Map.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "src/rff2/vulkan/CPCImageRGBA2BGR.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/rff2/vulkan/CPCImageRGBA2BGR.hpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "src/rff2/ui/VideoBufferCache.hpp",
 			"sourceGroupIndex" : 1
 		}
 	],
