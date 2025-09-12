@@ -75,7 +75,8 @@ namespace merutilm::rff2 {
     }
 
     void VideoRenderScene::applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const {
-        renderer->rendererStaticImage->setImages(normal, zoomed, renderer->frameIndex);
+        wc.core.getLogicalDevice().waitDeviceIdle();
+        renderer->rendererStaticImage->setImages(normal, zoomed);
     }
 
     void VideoRenderScene::initRenderContext() const {
@@ -237,7 +238,9 @@ namespace merutilm::rff2 {
         }
         vkh::BufferContext::unmapMemory(wc.core, dstBuffer);
         std::unique_lock queueLock(bufferCachedMutex);
-        bufferCachedCondition.wait(queueLock, [this]{return queuedVbc.size() < Constants::VideoConfig::MAX_VIDEO_QUEUE_SIZE;});
+        bufferCachedCondition.wait(queueLock, [this] {
+            return queuedVbc.size() < Constants::VideoConfig::MAX_VIDEO_QUEUE_SIZE;
+        });
         queuedVbc.push(std::make_unique<VideoBufferCache>(wc.core, std::move(dstBuffer),
                                                           static_cast<int>(videoExtent.width),
                                                           static_cast<int>(videoExtent.height),

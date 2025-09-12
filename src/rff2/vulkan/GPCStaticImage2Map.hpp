@@ -37,7 +37,7 @@ namespace merutilm::rff2{
 
         void renderContextRefreshed() override;
 
-        void setImages(const cv::Mat &normal, const cv::Mat &zoomed, uint32_t frameIndex) const;
+        void setImages(const cv::Mat &normal, const cv::Mat &zoomed) const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
