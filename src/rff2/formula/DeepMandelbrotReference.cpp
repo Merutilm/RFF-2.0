@@ -215,7 +215,7 @@ namespace merutilm::rff2 {
         }
 
         if (!strictFPG) fpgBn = fp_complex_calculator(fpgBnr, fpgBni, exp10);
-        if (fpgReference == nullptr) std::make_unique<fp_complex>(z);
+        if (fpgReference == nullptr) fpgReference = std::make_unique<fp_complex>(z);
 
         rr.resize(period - compressed + 1);
         ri.resize(period - compressed + 1);

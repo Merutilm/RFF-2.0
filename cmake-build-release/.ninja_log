@@ -140,3 +140,10 @@
 21556	42705	7793941691553606	CMakeFiles/RFF.dir/src/rff2/ui/VideoWindow.cpp.obj	40282f9564427da8
 21236	47928	7793941688349790	CMakeFiles/RFF.dir/src/rff2/ui/RenderScene.cpp.obj	4115fb5f5f97a498
 47928	48650	7793941955272408	C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/bin/RFF.exe	632783379825c13d
+25	2670	7793947610470187	CMakeFiles/spirv	a7b24e9eda10f2f1
+25	2670	7793947610470187	C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/cmake-build-release/CMakeFiles/spirv	a7b24e9eda10f2f1
+33	2987	7793950906860416	CMakeFiles/spirv	a7b24e9eda10f2f1
+33	2987	7793950906860416	C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/cmake-build-release/CMakeFiles/spirv	a7b24e9eda10f2f1
+2995	8949	7793950936491322	CMakeFiles/RFF.dir/src/rff2/formula/DeepMandelbrotReference.cpp.obj	dde23d60efd3364
+2987	13351	7793950936415616	CMakeFiles/RFF.dir/src/rff2/formula/LightMandelbrotPerturbator.cpp.obj	f0737d6b368a03ca
+13351	14089	7793951040055467	C:/Users/nudet/Desktop/Main/Developments/cpp/Projects/RFF/bin/RFF.exe	632783379825c13d
