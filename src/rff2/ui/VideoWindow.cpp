@@ -10,8 +10,8 @@
 #include "opencv2/opencv.hpp"
 
 namespace merutilm::rff2 {
-    VideoWindow::VideoWindow(vkh::EngineRef engine, const uint32_t width,
-                             const uint32_t height) : EngineHandler(engine), width(width), height(height) {
+    VideoWindow::VideoWindow(vkh::EngineRef engine, const int width,
+                             const int height) : EngineHandler(engine), width(width), height(height) {
         VideoWindow::init();
     }
 
@@ -94,8 +94,8 @@ namespace merutilm::rff2 {
                                   const Attribute &attr,
                                   const std::filesystem::path &open,
                                   const std::filesystem::path &save) {
-        uint32_t imgWidth = 0;
-        uint32_t imgHeight = 0;
+        int imgWidth = 0;
+        int imgHeight = 0;
         HWND wnd = engine.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).getWindow().
                 getWindowHandle();
         wnd = IsWindow(wnd) ? wnd : nullptr;
@@ -113,8 +113,8 @@ namespace merutilm::rff2 {
                 return;
             }
 
-            imgWidth = targetMap.getWidth();
-            imgHeight = targetMap.getHeight();
+            imgWidth = static_cast<int>(targetMap.getWidth());
+            imgHeight = static_cast<int>(targetMap.getHeight());
         } else {
             const RFFDynamicMapBinary targetMap = RFFDynamicMapBinary::readByID(open, 1);
             if (!targetMap.hasData()) {
@@ -130,10 +130,10 @@ namespace merutilm::rff2 {
         }
 
 
-        const uint32_t cw = std::min(imgWidth, 1280u);
+        const auto cw = static_cast<uint32_t>(std::min(imgWidth, 1280));
         const auto ch = cw * imgHeight / imgWidth;
         auto window = VideoWindow(engine, cw, ch);
-        window.createScene(VkExtent2D{imgWidth, imgHeight}, attr);
+        window.createScene(VkExtent2D{static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight)}, attr);
         auto &scene = *window.scene;
         bool exitFlag = false;
 
@@ -160,7 +160,7 @@ namespace merutilm::rff2 {
                 {
                     std::mutex &mutex = scene.getBufferCachedMutex();
                     std::unique_lock lock(mutex);
-                    scene.getBufferCachedCondition().wait(lock, [&] {
+                    scene.getBufferCachedCondition().wait(lock, [&scene, &exitFlag] {
                         return !scene.getQueuedBuffers().empty() || exitFlag;
                     });
                     if (exitFlag && scene.getQueuedBuffers().empty()) {
@@ -174,9 +174,9 @@ namespace merutilm::rff2 {
                 //MUTEX LOCK SCOPE END
                 auto &img = buffer->image;
                 if (showText) {
-                    const int xg = std::max(1, static_cast<int>(imgWidth / 72));
-                    const int yg = std::max(1, static_cast<int>(imgWidth / 192));
-                    const int loc = std::max(1, static_cast<int>(imgWidth / 40));
+                    const int xg = std::max(1, imgWidth / 72);
+                    const int yg = std::max(1, imgWidth / 192);
+                    const int loc = std::max(1, imgWidth / 40);
                     const float size = std::max(1.0f, static_cast<float>(imgWidth) / 800);
                     const int off = std::max(1, loc / 15);
                     const int tkn = std::max(1, off / 2);

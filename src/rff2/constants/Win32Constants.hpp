@@ -8,26 +8,24 @@
 
 namespace merutilm::rff2::Constants::Win32 {
 
-        constexpr short INIT_RENDER_SCENE_WIDTH = 1280;
-        constexpr short INIT_RENDER_SCENE_HEIGHT = 720;
-        constexpr short MIN_WINDOW_WIDTH = 300;
-        constexpr short MIN_WINDOW_HEIGHT = 300;
-        constexpr short INIT_RENDER_SCENE_FPS = 60;
-        constexpr short INIT_SETTINGS_WINDOW_WIDTH = 700;
-        constexpr short PROGRESS_BAR_HEIGHT = 40;
-        constexpr short SETTINGS_INPUT_HEIGHT = 30;
-        constexpr short GAP_SETTINGS_INPUT = 15;
-        constexpr short SETTINGS_LABEL_WIDTH_DIVISOR = 2;
-        constexpr short MAX_AMOUNT_COMBOBOX = 7;
+        constexpr int INIT_RENDER_SCENE_WIDTH = 1280;
+        constexpr int INIT_RENDER_SCENE_HEIGHT = 720;
+        constexpr int MIN_WINDOW_WIDTH = 300;
+        constexpr int MIN_WINDOW_HEIGHT = 300;
+        constexpr float INIT_RENDER_SCENE_FPS = 60;
+        constexpr int INIT_SETTINGS_WINDOW_WIDTH = 700;
+        constexpr int PROGRESS_BAR_HEIGHT = 40;
+        constexpr int SETTINGS_INPUT_HEIGHT = 30;
+        constexpr int GAP_SETTINGS_INPUT = 15;
+        constexpr int SETTINGS_LABEL_WIDTH_DIVISOR = 2;
+        constexpr int MAX_AMOUNT_COMBOBOX = 7;
         constexpr auto CLASS_MASTER_WINDOW = L"RFF2MW";
         constexpr auto CLASS_SETTINGS_WINDOW = L"RFF2SW";
         constexpr auto CLASS_VIDEO_WINDOW = L"RFF2VW";
         constexpr auto CLASS_VIDEO_RENDER_WINDOW = L"RFF2VRW";
         constexpr auto CLASS_VK_RENDER_SCENE = L"RFF2VRS";
-        constexpr auto CLASS_GL_RENDER_SCENE = L"RFF2RC";
-        constexpr auto CLASS_GL_DUMMY = L"RFF2GD";
         constexpr auto FONT_DEFAULT = L"Segoe UI";
-        constexpr short FONT_SIZE = 25;
+        constexpr int FONT_SIZE = 25;
         constexpr DWORD STYLE_EX_TOOLTIP = WS_EX_TOPMOST;
         constexpr DWORD STYLE_EX_SETTINGS_WINDOW = WS_EX_TOOLWINDOW | WS_EX_TOPMOST;
         constexpr DWORD STYLE_SETTINGS_WINDOW = WS_SYSMENU | WS_BORDER;

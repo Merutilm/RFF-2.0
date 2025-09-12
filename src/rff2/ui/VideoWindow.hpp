@@ -11,18 +11,18 @@ namespace merutilm::rff2 {
 
     class VideoWindow final : public vkh::EngineHandler{
 
-        HWND videoWindow;
-        HWND renderWindow;
-        HWND bar;
+        HWND videoWindow = nullptr;
+        HWND renderWindow = nullptr;
+        HWND bar = nullptr;
         float barRatio = 0;
         std::wstring barText = L"";
         std::unique_ptr<VideoRenderScene> scene = nullptr;
-        const uint32_t width;
-        const uint32_t height;
+        const int width;
+        const int height;
 
         
     public:
-        explicit VideoWindow(vkh::EngineRef engine, uint32_t width, uint32_t height);
+        explicit VideoWindow(vkh::EngineRef engine, int width, int height);
 
         ~VideoWindow() override;
 

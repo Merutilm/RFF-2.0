@@ -5,7 +5,7 @@
 #include "LightMandelbrotPerturbator.h"
 
 #include <cmath>
-#include <iostream>
+
 
 #include "Perturbator.h"
 
@@ -72,6 +72,7 @@ namespace merutilm::rff2 {
         const float bailout2 = bailout * bailout;
 
 
+
         while (iteration < maxIteration) {
             if (table != nullptr) {
                 if (const LightPA *mpaPtr = table->lookup(refIteration, dzr, dzi); mpaPtr != nullptr) {
@@ -115,6 +116,12 @@ namespace merutilm::rff2 {
             zr = reference->refReal[index] + dzr;
             zi = reference->refImag[index] + dzi;
 
+
+            if (zi == 0 && zr < 0.25 && zr >= -2) {
+                //IT IS NOT SATISFIED MPA SKIP RADIUS CONDITION.
+                //WHEN THE MAX ITERATION IS HIGH, REPEATS SEMI-INFINITELY.
+                return maxIteration;
+            }
 
             pd = cd;
             cd = zr * zr + zi * zi;

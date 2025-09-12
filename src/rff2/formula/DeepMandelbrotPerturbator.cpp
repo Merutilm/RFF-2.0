@@ -56,6 +56,11 @@ namespace merutilm::rff2 {
         dex dzi = dex::ZERO;
         dex zr = dex::ZERO;
         dex zi = dex::ZERO;
+
+
+        const dex zrMin = dex::value(-2);
+        const dex zrMax = dex::value(0.25);
+
         double cd = 0;
         double pd = cd;
         const bool isAbs = calc.absoluteIterationMode;
@@ -136,12 +141,23 @@ namespace merutilm::rff2 {
             const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration);
             dex::add(&zr, reference->refReal[index], dzr);
             dex::add(&zi, reference->refImag[index], dzi);
-            pd = cd;
+
+
+            dex::sub(&temps[0], zr, zrMin);
+            dex::sub(&temps[1], zrMax, zr);
+
+            if (zi.sgn() == 0 && temps[0].sgn() != -1 && temps[1].sgn() != -1) {
+                //IT IS NOT SATISFIED MPA SKIP RADIUS CONDITION.
+                //WHEN THE MAX ITERATION IS HIGH, REPEATS SEMI-INFINITELY.
+                return maxIteration;
+            }
 
             const auto zr0 = static_cast<double>(zr);
             const auto zi0 = static_cast<double>(zi);
             const auto dzr0 = static_cast<double>(dzr);
             const auto dzi0 = static_cast<double>(dzi);
+
+            pd = cd;
             cd = zr0 * zr0 + zi0 * zi0;
 
             if (refIteration == maxRefIteration || cd < dzr0 * dzr0 + dzi0 * dzi0) {
