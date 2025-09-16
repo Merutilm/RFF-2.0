@@ -198,5 +198,4 @@ void main() {
 
         imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), vec4(nc * (-r) + zc * (r + 1), 1));
     }
-
 }
