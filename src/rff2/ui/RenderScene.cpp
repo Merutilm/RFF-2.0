@@ -72,8 +72,8 @@ namespace merutilm::rff2 {
                                      [this] { return getInternalImageExtent(); },
                                      swapchainImageContextGetter);
         wc.attachRenderContext<RCC2>(wc.core,
-                                    [this] { return getInternalImageExtent(); },
-                                    swapchainImageContextGetter);
+                                     [this] { return getInternalImageExtent(); },
+                                     swapchainImageContextGetter);
         wc.attachRenderContext<RCCDownsampleForBlur>(wc.core,
                                                      [this] { return getBlurredImageExtent(); },
                                                      swapchainImageContextGetter);
@@ -275,11 +275,15 @@ namespace merutilm::rff2 {
     }
 
     std::array<dex, 2> RenderScene::offsetConversion(const Attribute &settings, const int mx, const int my) const {
+        using namespace Constants::Fractal;
+        const double ox = static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth(settings)) / 2.0;
+        const double oy = static_cast<double>(my) - static_cast<double>(getIterationBufferHeight(settings)) / 2.0;
+
         return {
-            dex::value(static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth(settings)) / 2.0) /
+            dex::value(std::abs(ox) < INTENTIONAL_ERROR_OFFSET_MIN_PIX ? INTENTIONAL_ERROR_OFFSET_MIN_PIX : ox) /
             getDivisor(settings)
             / settings.render.clarityMultiplier,
-            dex::value(static_cast<double>(my) - static_cast<double>(getIterationBufferHeight(settings)) / 2.0) /
+            dex::value(std::abs(oy) < INTENTIONAL_ERROR_OFFSET_MIN_PIX ? INTENTIONAL_ERROR_OFFSET_MIN_PIX : oy) /
             getDivisor(settings)
             / settings.render.clarityMultiplier
         };

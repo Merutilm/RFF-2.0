@@ -120,7 +120,7 @@ namespace merutilm::rff2 {
             if (zi == 0 && zr < 0.25 && zr >= -2) {
                 //IT IS NOT SATISFIED MPA SKIP RADIUS CONDITION.
                 //WHEN THE MAX ITERATION IS HIGH, REPEATS SEMI-INFINITELY.
-                return maxIteration;
+                return static_cast<double>(maxIteration);
             }
 
             pd = cd;

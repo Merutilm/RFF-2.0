@@ -6,8 +6,6 @@
 #include "DeepMandelbrotReference.h"
 #include "MandelbrotPerturbator.h"
 #include "../mrthy/DeepMPATable.h"
-#include "../mrthy/DeepPA.h"
-#include "../mrthy/LightPA.h"
 
 namespace merutilm::rff2 {
     class DeepMandelbrotPerturbator final : public MandelbrotPerturbator {
@@ -31,16 +29,16 @@ namespace merutilm::rff2 {
                                            const dex &offR = dex::ZERO, const dex &offI = dex::ZERO);
 
 
-        double iterate(const dex &dcr, const dex &dci) const override;
+        [[nodiscard]] double iterate(const dex &dcr, const dex &dci) const override;
 
         std::unique_ptr<DeepMandelbrotPerturbator> reuse(const FractalAttribute &calc, const dex &dcMax,
                                                          ApproxTableCache &tableRef);
 
-        const DeepMandelbrotReference *getReference() const override;
+        [[nodiscard]] const DeepMandelbrotReference *getReference() const override;
 
-        DeepMPATable &getTable() const;
+        [[nodiscard]] DeepMPATable &getTable() const;
 
-        dex getDcMaxAsDoubleExp() const override;
+        [[nodiscard]] dex getDcMaxAsDoubleExp() const override;
     };
 
     // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR

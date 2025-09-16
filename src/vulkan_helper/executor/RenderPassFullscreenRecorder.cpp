@@ -78,7 +78,6 @@ namespace merutilm::vkh {
             .clearValueCount = static_cast<uint32_t>(clearValues.size()),
             .pClearValues = clearValues.data()
         };
-
         vkCmdBeginRenderPass(wc.getCommandBuffer().getCommandBufferHandle(frameIndex), &renderPassBeginInfo,
                              VK_SUBPASS_CONTENTS_INLINE);
     }

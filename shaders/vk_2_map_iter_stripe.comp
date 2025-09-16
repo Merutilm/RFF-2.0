@@ -159,14 +159,14 @@ void main() {
 
     double z00 = get_iteration_zoomed(uvec2(ztx));
 
-    vec4 nc00 = get_color(n00) * get_stripe_mul(n00);
-    vec4 nc10 = get_color(n10) * get_stripe_mul(n10);
-    vec4 nc01 = get_color(n01) * get_stripe_mul(n01);
-    vec4 nc11 = get_color(n11) * get_stripe_mul(n11);
+    vec3 nc00 = get_color(n00).rgb * get_stripe_mul(n00);
+    vec3 nc10 = get_color(n10).rgb * get_stripe_mul(n10);
+    vec3 nc01 = get_color(n01).rgb * get_stripe_mul(n01);
+    vec3 nc11 = get_color(n11).rgb * get_stripe_mul(n11);
 
-    vec4 nc0 = nc00 - (nc00 - nc10) * nrt.x;
-    vec4 nc1 = nc01 - (nc01 - nc11) * nrt.x;
-    vec4 nc = nc0 - (nc0 - nc1) * nrt.y;
+    vec3 nc0 = nc00 - (nc00 - nc10) * nrt.x;
+    vec3 nc1 = nc01 - (nc01 - nc11) * nrt.x;
+    vec3 nc = nc0 - (nc0 - nc1) * nrt.y;
 
     if (ztx.x >= iteration_output_info_attr.extent.x - 1 || ztx.y >= iteration_output_info_attr.extent.y - 1 || ztx.x < 0 || ztx.y < 0 || z00 == 0) {
 
@@ -175,7 +175,7 @@ void main() {
         double n = n0 - (n0 - n1) * nrt.y;
 
         set_iteration_output(gl_GlobalInvocationID.xy, n);
-        imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), nc);
+        imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), vec4(nc, 1));
 
     } else {
         double z10 = get_iteration_zoomed(uvec2(ztx) + uvec2(1, 0));
@@ -187,16 +187,16 @@ void main() {
         double z = z0 - (z0 - z1) * zrt.y;
         set_iteration_output(gl_GlobalInvocationID.xy, z);
 
-        vec4 zc00 = get_color(z00) * get_stripe_mul(z00);
-        vec4 zc10 = get_color(z10) * get_stripe_mul(z10);
-        vec4 zc01 = get_color(z01) * get_stripe_mul(z01);
-        vec4 zc11 = get_color(z11) * get_stripe_mul(z11);
+        vec3 zc00 = get_color(z00).rgb * get_stripe_mul(z00);
+        vec3 zc10 = get_color(z10).rgb * get_stripe_mul(z10);
+        vec3 zc01 = get_color(z01).rgb * get_stripe_mul(z01);
+        vec3 zc11 = get_color(z11).rgb * get_stripe_mul(z11);
 
-        vec4 zc0 = zc00 - (zc00 - zc10) * zrt.x;
-        vec4 zc1 = zc01 - (zc01 - zc11) * zrt.x;
-        vec4 zc = zc0 - (zc0 - zc1) * zrt.y;
+        vec3 zc0 = zc00 - (zc00 - zc10) * zrt.x;
+        vec3 zc1 = zc01 - (zc01 - zc11) * zrt.x;
+        vec3 zc = zc0 - (zc0 - zc1) * zrt.y;
 
-        imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), nc * (-r) + zc * (r + 1));
+        imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), vec4(nc * (-r) + zc * (r + 1), 1));
     }
 
 }

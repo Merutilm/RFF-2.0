@@ -45,8 +45,8 @@ namespace merutilm::rff2 {
     double DeepMandelbrotPerturbator::iterate(const dex &dcr, const dex &dci) const {
         if (state.interruptRequested()) return 0.0;
 
-        const dex dcr1 = dcr + offR + (offR.sgn() == 0 ? dcMax / Constants::Fractal::INTENTIONAL_ERROR_DCPTB : dex::ZERO);
-        const dex dci1 = dci + offI + (offR.sgn() == 0 ? dcMax / Constants::Fractal::INTENTIONAL_ERROR_DCPTB : dex::ZERO);
+        const dex dcr1 = dcr + offR;
+        const dex dci1 = dci + offI;
 
         uint64_t iteration = 0;
         uint64_t refIteration = 0;
@@ -149,7 +149,7 @@ namespace merutilm::rff2 {
             if (zi.sgn() == 0 && temps[0].sgn() != -1 && temps[1].sgn() != -1) {
                 //IT IS NOT SATISFIED MPA SKIP RADIUS CONDITION.
                 //WHEN THE MAX ITERATION IS HIGH, REPEATS SEMI-INFINITELY.
-                return maxIteration;
+                return static_cast<double>(maxIteration);
             }
 
             const auto zr0 = static_cast<double>(zr);
