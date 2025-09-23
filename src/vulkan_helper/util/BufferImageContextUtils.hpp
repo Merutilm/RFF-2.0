@@ -168,15 +168,6 @@ namespace merutilm::vkh {
                                    &copyRegion);
         }
 
-        static void cmdCopyFromStagingBuffer(const VkCommandBuffer commandBuffer,  const BufferContext &srcBuffer, const BufferContext &dstBuffer) {
-            const VkBufferCopy copyRegion = {
-                .srcOffset = 0,
-                .dstOffset = 0,
-                .size = srcBuffer.bufferSize
-            };
-            vkCmdCopyBuffer(commandBuffer, srcBuffer.buffer, dstBuffer.buffer, 1, &copyRegion);
-        }
-
 
         /**
          * Generates the Mipmap. Input layout of image Context must be <b>VK_IMAGE_LAYOUT_TRANSFER_SRC_BIT</b>.

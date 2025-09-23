@@ -30,9 +30,9 @@ void main(){
     vec2 px = off / resolution;
 
     if (ztx.x >= 1 - px.x || ztx.y >= 1 - px.y || ztx.x <= px.x || ztx.y <= px.y || video_attr.current_frame < 1){
-        color = texture(normal, ntx);
+        color = texture(normal, ntx).bgra;
     } else {
-        color = texture(normal, ntx) * (-r) + texture(zoomed, ztx) * (r + 1);
+        color = texture(normal, ntx).bgra * (-r) + texture(zoomed, ztx).bgra * (r + 1);
     }
 
 }

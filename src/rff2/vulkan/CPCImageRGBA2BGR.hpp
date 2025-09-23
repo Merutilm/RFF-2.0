@@ -22,7 +22,7 @@ namespace merutilm::rff2{
 
         void renderContextRefreshed() override;
 
-        const vkh::BufferContext &getBufferContext(uint32_t frameIndex) const;
+        [[nodiscard]] const vkh::BufferContext &getBufferContext(uint32_t frameIndex) const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;

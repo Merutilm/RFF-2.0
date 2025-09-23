@@ -22,7 +22,7 @@ namespace merutilm::rff2 {
     }
 
     void GPCIterationPalette::cmdRefreshIterations(const VkCommandBuffer cbh, const vkh::BufferContext &src) const {
-        vkh::BufferImageContextUtils::cmdCopyFromStagingBuffer(cbh, src, getResultIterationBuffer());
+        vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, src, getResultIterationBuffer());
     }
 
     const vkh::BufferContext &GPCIterationPalette::getResultIterationBuffer() const {
