@@ -60,7 +60,7 @@ namespace merutilm::rff2 {
         dex::mul(&temps[4], bnr, temps[0]);
         dex::mul(&temps[5], bni, temps[1]);
         dex::sub(&temps[4], temps[4], temps[5]);
-        dex::cpy(&temps[5], 1);
+        dex::cpy(&temps[5], dex::ONE);
         dex::add(&temps[4], temps[4], temps[5]);
         dex::mul(&temps[5], bnr, temps[1]);
         dex::mul(&temps[6], bni, temps[0]);

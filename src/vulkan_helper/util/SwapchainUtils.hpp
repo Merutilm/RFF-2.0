@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include "../core/vkh.hpp"
 
 namespace merutilm::vkh {
     struct SwapchainUtils {

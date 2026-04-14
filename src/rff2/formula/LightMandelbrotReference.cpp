@@ -52,9 +52,9 @@ namespace merutilm::rff2 {
 
         fp_complex center = calc.center;
         auto c = center.edit(exp10);
-        auto z = fp_complex_calculator(0, 0, exp10);
-        auto fpgBn = fp_complex_calculator(0, 0, exp10);
-        auto one = fp_complex_calculator(1.0, 0.0, exp10);
+        auto z = fp_complex_mutable(0, 0, exp10);
+        auto fpgBn = fp_complex_mutable(0, 0, exp10);
+        auto one = fp_complex_mutable(1.0, 0.0, exp10);
         double bailoutSqr = calc.bailout * calc.bailout;
 
         double fpgBnr = 1;
@@ -189,7 +189,7 @@ namespace merutilm::rff2 {
         }
 
 
-        if (!strictFPG) fpgBn = fp_complex_calculator(fpgBnr, fpgBni, exp10);
+        if (!strictFPG) fpgBn = fp_complex_mutable(fpgBnr, fpgBni, exp10);
         if (fpgReference == nullptr) fpgReference = std::make_unique<fp_complex>(z);
 
         rr.resize(period - compressed + 1);

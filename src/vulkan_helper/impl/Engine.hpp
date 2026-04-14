@@ -19,8 +19,6 @@ namespace merutilm::vkh {
 
         ~EngineImpl() override;
 
-        bool isValidWindowContext(uint32_t windowAttachmentIndex) const;
-
         EngineImpl(const EngineImpl &) = delete;
 
         EngineImpl &operator=(const EngineImpl &) = delete;
@@ -28,6 +26,8 @@ namespace merutilm::vkh {
         EngineImpl(EngineImpl &&) = delete;
 
         EngineImpl &operator=(EngineImpl &&) = delete;
+
+        [[nodiscard]] bool isValidWindowContext(uint32_t windowAttachmentIndex) const;
 
         [[nodiscard]] WindowContextPtr attachWindowContext(HWND hwnd, uint32_t windowAttachmentIndexExpected);
 

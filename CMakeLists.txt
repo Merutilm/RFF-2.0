@@ -10,8 +10,7 @@ add_executable(
         RFF
         res/resources.rc
         src/rff2/ui/Main.cpp
-        src/rff2/calc/fp_complex_calculator.cpp
-        src/rff2/calc/fp_complex_calculator.h
+        src/rff2/calc/fp_complex_mutable.h
         src/rff2/constants/Constants.hpp
         src/rff2/attr/Attribute.h
         src/rff2/attr/FractalAttribute.h
@@ -27,15 +26,12 @@ add_executable(
         src/rff2/attr/VidDataAttribute.h
         src/rff2/attr/VidExportAttribute.h
         src/rff2/attr/FrtMPAAttribute.h
-        src/rff2/calc/fp_complex.cpp
         src/rff2/calc/fp_complex.h
         src/rff2/attr/FrtDecimalizeIterationMethod.h
         src/rff2/attr/FrtReferenceCompAttribute.h
         src/rff2/attr/FrtReuseReferenceMethod.h
         src/rff2/attr/Selectable.h
-        src/rff2/calc/fp_decimal_calculator.cpp
-        src/rff2/calc/fp_decimal_calculator.h
-        src/rff2/calc/fp_decimal.cpp
+        src/rff2/calc/fp_decimal_mutable.h
         src/rff2/calc/fp_decimal.h
         src/rff2/formula/Perturbator.h
         src/rff2/io/RFFDynamicMapBinary.cpp

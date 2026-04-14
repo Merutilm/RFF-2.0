@@ -2,29 +2,83 @@
 // Created by Merutilm on 2025-05-05.
 //
 
-#include "fp_decimal_calculator.h"
+#pragma once
 
-#include <cfloat>
-#include <cmath>
-
-#include "fp_complex_calculator.h"
-#include "../constants/Constants.hpp"
+#include "dex.h"
+#include "gmp.h"
 
 namespace merutilm::rff2 {
-    fp_decimal_calculator::fp_decimal_calculator() {
+    struct fp_decimal_mutable final {
+        int exp2;
+        mpz_t value = {};
+        mpz_t temp = {};
+
+        explicit fp_decimal_mutable();
+
+        explicit fp_decimal_mutable(mpz_srcptr value, int exp2);
+
+        explicit fp_decimal_mutable(const dex &d, int exp10);
+
+        explicit fp_decimal_mutable(double d, int exp10);
+
+        explicit fp_decimal_mutable(const std::string &str, int exp10);
+
+        ~fp_decimal_mutable();
+
+
+        fp_decimal_mutable(const fp_decimal_mutable &other);
+
+        fp_decimal_mutable &operator=(const fp_decimal_mutable &other);
+
+        fp_decimal_mutable(fp_decimal_mutable &&other) noexcept;
+
+        fp_decimal_mutable &operator=(fp_decimal_mutable &&other) noexcept;
+
+        static void fp_mul(fp_decimal_mutable &out, const fp_decimal_mutable &a, const fp_decimal_mutable &b);
+
+        static void fp_add(fp_decimal_mutable &out, const fp_decimal_mutable &a, const fp_decimal_mutable &b);
+
+        static void fp_sub(fp_decimal_mutable &out, const fp_decimal_mutable &a, const fp_decimal_mutable &b);
+
+        static void fp_div(fp_decimal_mutable &out, const fp_decimal_mutable &a, const fp_decimal_mutable &b);
+
+        static void fp_dbl(fp_decimal_mutable &out, const fp_decimal_mutable &target);
+
+        static void fp_hlv(fp_decimal_mutable &out, const fp_decimal_mutable &target);
+
+        static void fp_swap(fp_decimal_mutable &a, fp_decimal_mutable &b);
+
+        static void negate(fp_decimal_mutable &target);
+
+        static int exp2ToExp10(int exp2);
+
+        static int exp10ToExp2(int precision);
+
+        double double_value();
+
+        void double_exp_value(dex *result);
+
+        void setExp10(int exp10);
+    };
+
+
+    //DEFINITION OF FP_DECIMAL_MUTABLE
+
+
+    inline fp_decimal_mutable::fp_decimal_mutable() {
         exp2 = 0;
         mpz_init(value);
         mpz_init(temp);
     }
 
-    fp_decimal_calculator::fp_decimal_calculator(const mpz_srcptr value, const int exp2) {
+    inline fp_decimal_mutable::fp_decimal_mutable(const mpz_srcptr value, const int exp2) {
         mpz_init(this->value);
         mpz_init(temp);
         mpz_set(this->value, value);
         this->exp2 = exp2;
     }
 
-    fp_decimal_calculator::fp_decimal_calculator(const dex &d, const int exp10) {
+    inline fp_decimal_mutable::fp_decimal_mutable(const dex &d, const int exp10) {
         mpz_init(value);
         mpz_init(temp);
 
@@ -46,7 +100,7 @@ namespace merutilm::rff2 {
         mpf_clear(d1);
     }
 
-    fp_decimal_calculator::fp_decimal_calculator(const double d, const int exp10) {
+    inline fp_decimal_mutable::fp_decimal_mutable(const double d, const int exp10) {
         mpz_init(value);
         mpz_init(temp);
 
@@ -66,7 +120,7 @@ namespace merutilm::rff2 {
         mpf_clear(d1);
     }
 
-    fp_decimal_calculator::fp_decimal_calculator(const std::string &str, const int exp10) {
+    inline fp_decimal_mutable::fp_decimal_mutable(const std::string &str, const int exp10) {
         mpz_init(value);
         mpz_init(temp);
 
@@ -88,19 +142,19 @@ namespace merutilm::rff2 {
     }
 
 
-    fp_decimal_calculator::~fp_decimal_calculator() {
+    inline fp_decimal_mutable::~fp_decimal_mutable() {
         mpz_clear(value);
         mpz_clear(temp);
     }
 
 
-    fp_decimal_calculator::fp_decimal_calculator(const fp_decimal_calculator &other) {
+    inline fp_decimal_mutable::fp_decimal_mutable(const fp_decimal_mutable &other) {
         mpz_init_set(temp, other.temp);
         mpz_init_set(value, other.value);
         exp2 = other.exp2;
     }
 
-    fp_decimal_calculator &fp_decimal_calculator::operator=(const fp_decimal_calculator &other) {
+    inline fp_decimal_mutable &fp_decimal_mutable::operator=(const fp_decimal_mutable &other) {
         if (this != &other) {
             mpz_set(value, other.value);
             exp2 = other.exp2;
@@ -109,7 +163,7 @@ namespace merutilm::rff2 {
     }
 
 
-    fp_decimal_calculator::fp_decimal_calculator(fp_decimal_calculator &&other) noexcept {
+    inline fp_decimal_mutable::fp_decimal_mutable(fp_decimal_mutable &&other) noexcept {
         mpz_init(value);
         mpz_init(temp);
 
@@ -119,7 +173,7 @@ namespace merutilm::rff2 {
         exp2 = other.exp2;
     }
 
-    fp_decimal_calculator &fp_decimal_calculator::operator=(fp_decimal_calculator &&other) noexcept {
+    inline fp_decimal_mutable &fp_decimal_mutable::operator=(fp_decimal_mutable &&other) noexcept {
         exp2 = other.exp2;
         mpz_swap(value, other.value);
         return *this;
@@ -132,8 +186,8 @@ namespace merutilm::rff2 {
      * @param a input A
      * @param b input B
      */
-    void fp_decimal_calculator::fp_add(fp_decimal_calculator &out, const fp_decimal_calculator &a,
-                                        const fp_decimal_calculator &b) {
+    inline void fp_decimal_mutable::fp_add(fp_decimal_mutable &out, const fp_decimal_mutable &a,
+                                        const fp_decimal_mutable &b) {
         mpz_add(out.value, a.value, b.value);
     }
 
@@ -144,8 +198,8 @@ namespace merutilm::rff2 {
      * @param a input A
      * @param b input B
      */
-    void fp_decimal_calculator::fp_sub(fp_decimal_calculator &out, const fp_decimal_calculator &a,
-                                        const fp_decimal_calculator &b) {
+    inline void fp_decimal_mutable::fp_sub(fp_decimal_mutable &out, const fp_decimal_mutable &a,
+                                        const fp_decimal_mutable &b) {
         mpz_sub(out.value, a.value, b.value);
     }
 
@@ -156,8 +210,8 @@ namespace merutilm::rff2 {
      * @param a input A
      * @param b input B
      */
-    void fp_decimal_calculator::fp_mul(fp_decimal_calculator &out, const fp_decimal_calculator &a,
-                                        const fp_decimal_calculator &b) {
+    inline void fp_decimal_mutable::fp_mul(fp_decimal_mutable &out, const fp_decimal_mutable &a,
+                                        const fp_decimal_mutable &b) {
         mpz_mul(out.temp, a.value, b.value);
         mpz_div_2exp(out.value, out.temp, -a.exp2);
     }
@@ -169,8 +223,8 @@ namespace merutilm::rff2 {
      * @param a input A
      * @param b input B
      */
-    void fp_decimal_calculator::fp_div(fp_decimal_calculator &out, const fp_decimal_calculator &a,
-                                        const fp_decimal_calculator &b) {
+    inline void fp_decimal_mutable::fp_div(fp_decimal_mutable &out, const fp_decimal_mutable &a,
+                                        const fp_decimal_mutable &b) {
         const auto vbl = static_cast<int>(mpz_sizeinbase(b.value, 2));
 
         const int e = b.exp2 + vbl;
@@ -188,7 +242,7 @@ namespace merutilm::rff2 {
      * @param out the result
      * @param target input B
      */
-    void fp_decimal_calculator::fp_dbl(fp_decimal_calculator &out, const fp_decimal_calculator &target) {
+    inline void fp_decimal_mutable::fp_dbl(fp_decimal_mutable &out, const fp_decimal_mutable &target) {
         mpz_mul_2exp(out.value, target.value, 1);
     }
 
@@ -197,7 +251,7 @@ namespace merutilm::rff2 {
      * @param out the result
      * @param target input B
      */
-    void fp_decimal_calculator::fp_hlv(fp_decimal_calculator &out, const fp_decimal_calculator &target) {
+    inline void fp_decimal_mutable::fp_hlv(fp_decimal_mutable &out, const fp_decimal_mutable &target) {
         mpz_div_2exp(out.value, target.value, 1);
     }
 
@@ -206,24 +260,24 @@ namespace merutilm::rff2 {
      * @param a input A
      * @param b input B
      */
-    void fp_decimal_calculator::fp_swap(fp_decimal_calculator &a, fp_decimal_calculator &b) {
+    inline void fp_decimal_mutable::fp_swap(fp_decimal_mutable &a, fp_decimal_mutable &b) {
         mpz_swap(a.value, b.value);
     }
 
-    void fp_decimal_calculator::negate(fp_decimal_calculator &target) {
+    inline void fp_decimal_mutable::negate(fp_decimal_mutable &target) {
         mpz_neg(target.value, target.value);
     }
 
-    int fp_decimal_calculator::exp2ToExp10(const int exp2) {
+    inline int fp_decimal_mutable::exp2ToExp10(const int exp2) {
         return static_cast<int>(static_cast<double>(exp2) * Constants::Num::LOG10_2);
     }
 
-    int fp_decimal_calculator::exp10ToExp2(const int precision) {
+    inline int fp_decimal_mutable::exp10ToExp2(const int precision) {
         return static_cast<int>(static_cast<double>(precision) / Constants::Num::LOG10_2);
     }
 
 
-    double fp_decimal_calculator::double_value() {
+    inline double fp_decimal_mutable::double_value() {
         const int sgn = mpz_sgn(value);
         if (sgn == 0) {
             return 0;
@@ -260,7 +314,7 @@ namespace merutilm::rff2 {
         return std::bit_cast<double>(sig | exponent | mantissa);
     }
 
-    void fp_decimal_calculator::double_exp_value(dex *result) {
+    inline void fp_decimal_mutable::double_exp_value(dex *result) {
         const int sgn = mpz_sgn(value);
         if (sgn == 0) {
             dex::cpy(result, dex::ZERO);
@@ -287,7 +341,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void fp_decimal_calculator::setExp10(const int exp10) {
+    inline void fp_decimal_mutable::setExp10(const int exp10) {
         const int exp2 = exp10ToExp2(exp10);
         const int d_exp2 = this->exp2 - exp2;
         if (d_exp2 < 0) {

@@ -32,8 +32,8 @@ namespace merutilm::rff2 {
 
         void step() override;
 
-        DeepPA build() const{
-            return DeepPA(anr, ani, bnr, bni, skip, radius);
+        [[nodiscard]] DeepPA build() const{
+            return DeepPA{anr, ani, bnr, bni, skip, radius};
         }
     };
 

@@ -13,8 +13,8 @@
 namespace merutilm::rff2 {
     std::unique_ptr<fp_complex> MandelbrotLocator::findCenter(const MandelbrotPerturbator *perturbator) {
         const int exp10 = Perturbator::logZoomToExp10(perturbator->getCalculationSettings().logZoom);
-        fp_complex_calculator center = perturbator->getReference()->center.edit(exp10);
-        const fp_complex_calculator dc = findCenterOffset(*perturbator)->edit(exp10);
+        fp_complex_mutable center = perturbator->getReference()->center.edit(exp10);
+        const fp_complex_mutable dc = findCenterOffset(*perturbator)->edit(exp10);
         const double dr = dc.getRealClone().double_value();
         const double di = dc.getImagClone().double_value();
         if (const dex dcMax = perturbator->getDcMaxAsDoubleExp();
@@ -33,8 +33,8 @@ namespace merutilm::rff2 {
             return nullptr;
         }
 
-        fp_complex_calculator bn = reference->fpgBn.edit(exp10);
-        fp_complex_calculator z = reference->fpgReference.edit(exp10);
+        fp_complex_mutable bn = reference->fpgBn.edit(exp10);
+        fp_complex_mutable z = reference->fpgReference.edit(exp10);
         z /= bn.negate();
         return std::make_unique<fp_complex>(z);
     }

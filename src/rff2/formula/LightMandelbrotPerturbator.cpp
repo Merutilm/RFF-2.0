@@ -169,7 +169,7 @@ namespace merutilm::rff2 {
             MessageBox(nullptr, "Please do not try to use PROCESS-TERMINATED Reference.", "Warning",
                        MB_OK | MB_ICONWARNING);
         } else {
-            fp_complex_calculator centerOffset = calc.center.edit(exp10);
+            fp_complex_mutable centerOffset = calc.center.edit(exp10);
             centerOffset -= reference->center.edit(exp10);
             offR = centerOffset.getReal().double_value();
             offI = centerOffset.getImag().double_value();
