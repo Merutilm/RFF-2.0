@@ -4,11 +4,11 @@
 
 #include "../vulkan/GPCIterationPalette.hpp"
 
-#include "SharedDescriptorTemplate.hpp"
 #include "../../vulkan_helper/util/BufferImageContextUtils.hpp"
 #include "../../vulkan_helper/util/DescriptorUpdater.hpp"
-#include "../attr/ShdPaletteAttribute.h"
+#include "../settings/ShdPaletteSettings.h"
 #include "../ui/Utilities.h"
+#include "SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
     void GPCIterationPalette::updateQueue(vkh::DescriptorUpdateQueue &queue,
@@ -65,7 +65,7 @@ namespace merutilm::rff2 {
         iterUBO.update();
     }
 
-    void GPCIterationPalette::setPalette(const ShdPaletteAttribute &palette) const {
+    void GPCIterationPalette::setPalette(const ShdPaletteSettings &palette) const {
         using namespace SharedDescriptorTemplate;
         auto &paletteDesc = getDescriptor(SET_PALETTE);
         auto &paletteSSBO = *paletteDesc.get<vkh::ShaderStorage>(0,

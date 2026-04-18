@@ -16,7 +16,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void GPCFog::setFog(const ShdFogAttribute &fog) const {
+    void GPCFog::setFog(const ShdFogSettings &fog) const {
         using namespace SharedDescriptorTemplate;
         auto &fogDesc = getDescriptor(SET_FOG);
         const auto &fogUBO = *fogDesc.get<vkh::Uniform>(0, DescFog::BINDING_UBO_FOG);

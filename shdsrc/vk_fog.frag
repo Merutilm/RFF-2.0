@@ -6,7 +6,7 @@ layout (set = 0, binding = 1) uniform sampler2D fog_blurred;
 layout (set = 1, binding = 0) uniform FogUBO {
     float radius;
     float opacity;
-} fog_attr;
+} fog_settings;
 
 
 layout (location = 0) in vec3 fragColor;
@@ -34,7 +34,7 @@ void main() {
     vec3 blurredColor = texture(fog_blurred, coord).rgb;
     color = texture(fog_canvas, coord);
 
-    vec3 cf = color.rgb - (color.rgb - blurredColor) * fog_attr.opacity;
+    vec3 cf = color.rgb - (color.rgb - blurredColor) * fog_settings.opacity;
 
     float cg = grayScale(color.rgb);
     float cfg = grayScale(cf);

@@ -5,8 +5,8 @@
 #pragma once
 
 namespace merutilm::rff2 {
-    struct VidDataAttribute {
-        float defaultZoomIncrement;
-        bool isStatic;
+    struct VidExportSettings {
+        float fps;
+        uint32_t bitrate;
     };
 }

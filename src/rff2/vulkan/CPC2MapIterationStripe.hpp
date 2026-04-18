@@ -4,8 +4,8 @@
 
 #pragma once
 #include "../../vulkan_helper/configurator/ComputePipelineConfigurator.hpp"
-#include "../attr/ShdPaletteAttribute.h"
-#include "../attr/ShdStripeAttribute.h"
+#include "../settings/ShdPaletteSettings.h"
+#include "../settings/ShdStripeSettings.h"
 
 namespace merutilm::rff2 {
     struct CPC2MapIterationStripe final : public vkh::ComputePipelineConfigurator {
@@ -49,9 +49,9 @@ namespace merutilm::rff2 {
 
         void setCurrentFrame(float currentFrame, uint32_t frameIndex) const;
 
-        void setPalette(const ShdPaletteAttribute &palette) const;
+        void setPalette(const ShdPaletteSettings &palette) const;
 
-        void setStripe(const ShdStripeAttribute &stripe) const;
+        void setStripe(const ShdStripeSettings &stripe) const;
 
         void setDefaultZoomIncrement(float defaultZoomIncrement) const;
 

@@ -4,12 +4,12 @@
 
 #include "GPCStripe.hpp"
 
-#include "RCC1.hpp"
-#include "SharedDescriptorTemplate.hpp"
 #include "../../vulkan_helper/repo/GlobalSamplerRepo.hpp"
 #include "../../vulkan_helper/util/DescriptorUpdater.hpp"
-#include "../attr/ShdStripeAttribute.h"
 #include "../constants/VulkanWindowConstants.hpp"
+#include "../settings/ShdStripeSettings.h"
+#include "RCC1.hpp"
+#include "SharedDescriptorTemplate.hpp"
 
 
 namespace merutilm::rff2 {
@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
         //no operation
     }
 
-    void GPCStripe::setStripe(const ShdStripeAttribute &stripe) const {
+    void GPCStripe::setStripe(const ShdStripeSettings &stripe) const {
         using namespace SharedDescriptorTemplate;
         auto &stripeDesc = getDescriptor(SET_STRIPE);
         const auto &stripeUBO = *stripeDesc.get<vkh::Uniform>(0, DescStripe::BINDING_UBO_STRIPE);

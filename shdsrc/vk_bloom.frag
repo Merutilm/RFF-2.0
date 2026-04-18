@@ -7,7 +7,7 @@ layout (set = 1, binding = 0) uniform BloomUBO {
     float radius;
     float softness;
     float intensity;
-} bloom_attr;
+} bloom_settings;
 
 
 layout (location = 0) in vec3 fragColor;
@@ -33,7 +33,7 @@ void main() {
 
     color = texture(bloom_canvas, coord);
     vec3 blur = texture(bloom_blurred, coord).rgb;
-    vec3 add = blur - (blur - color.rgb) * bloom_attr.softness;
-    color = color + vec4(add * bloom_attr.intensity, 1);
+    vec3 add = blur - (blur - color.rgb) * bloom_settings.softness;
+    color = color + vec4(add * bloom_settings.intensity, 1);
 
 }

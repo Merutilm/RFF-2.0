@@ -16,7 +16,7 @@ namespace merutilm::rff2 {
         //no operation
     }
 
-    void GPCBloom::setBloom(const ShdBloomAttribute &bloom) const {
+    void GPCBloom::setBloom(const ShdBloomSettings &bloom) const {
         using namespace SharedDescriptorTemplate;
         auto &bloomDesc = getDescriptor(SET_BLOOM);
         auto &bloomUBO = *bloomDesc.get<vkh::Uniform>(0, DescBloom::BINDING_UBO_BLOOM);

@@ -7,22 +7,22 @@
 #include <windows.h>
 #include <atomic>
 
-#include "RenderSceneRequests.hpp"
-#include "RenderSceneRenderer.hpp"
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
 #include "../data/ApproxTableCache.h"
 #include "../formula/MandelbrotPerturbator.h"
 #include "../io/RFFDynamicMapBinary.h"
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
-#include "../attr/Attribute.h"
+#include "../settings/Settings.h"
+#include "RenderSceneRenderer.hpp"
+#include "RenderSceneRequests.hpp"
 
 namespace merutilm::rff2 {
     class RenderScene final : public vkh::EngineHandler {
 
         vkh::WindowContextRef wc;
         ParallelRenderState state;
-        Attribute attr;
+        Settings settings;
 
         uint16_t interactedMX = 0;
         uint16_t interactedMY = 0;
@@ -73,7 +73,7 @@ namespace merutilm::rff2 {
         [[nodiscard]] VkExtent2D getInternalImageExtent() const {
             const auto &swapchain = wc.getSwapchain();
             const auto [width, height] = swapchain.populateSwapchainExtent();
-            const float multiplier = attr.render.clarityMultiplier;
+            const float multiplier = settings.render.clarityMultiplier;
             return {
                 static_cast<uint32_t>(static_cast<float>(width) * multiplier),
                 static_cast<uint32_t>(static_cast<float>(height) * multiplier)
@@ -98,27 +98,27 @@ namespace merutilm::rff2 {
         }
 
 
-        static Attribute genDefaultAttr();
+        static Settings genDefaultAttr();
 
         static LRESULT CALLBACK renderSceneProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
-        [[nodiscard]] std::array<dex, 2> offsetConversion(const Attribute &settings, int mx, int my) const;
+        [[nodiscard]] std::array<dex, 2> offsetConversion(const Settings &settings, int mx, int my) const;
 
-        static dex getDivisor(const Attribute &settings);
+        static dex getDivisor(const Settings &settings);
 
         [[nodiscard]] uint16_t getClientWidth() const;
 
         [[nodiscard]] uint16_t getClientHeight() const;
 
-        [[nodiscard]] uint16_t getIterationBufferWidth(const Attribute &settings) const;
+        [[nodiscard]] uint16_t getIterationBufferWidth(const Settings &settings) const;
 
-        [[nodiscard]] uint16_t getIterationBufferHeight(const Attribute &settings) const;
+        [[nodiscard]] uint16_t getIterationBufferHeight(const Settings &settings) const;
 
         void applyDefaultAttr();
 
         void applyCreateImage();
 
-        void applyShaderAttr(const Attribute &attr) const;
+        void applyShaderAttr(const Settings &settings) const;
 
         void refreshResizeParams();
 
@@ -138,9 +138,9 @@ namespace merutilm::rff2 {
 
         void recomputeThreaded();
 
-        void beforeCompute(Attribute &attr) const;
+        void beforeCompute(Settings &settings) const;
 
-        bool compute(const Attribute &attr);
+        bool compute(const Settings &settings);
 
         void afterCompute(bool success);
 
@@ -148,8 +148,8 @@ namespace merutilm::rff2 {
             (*statusMessageRef)[index] = std::wstring(L"  ").append(message);
         }
 
-        [[nodiscard]] Attribute &getAttribute() {
-            return attr;
+        [[nodiscard]] Settings &getSettings() {
+            return settings;
         }
 
         [[nodiscard]] ParallelRenderState &getState() {
@@ -237,12 +237,13 @@ namespace merutilm::rff2 {
     template<typename P> requires std::is_base_of_v<Preset, P>
     void RenderScene::changePreset(P &preset) {
         if constexpr (std::is_base_of_v<Presets::CalculationPreset, P>) {
-            attr.fractal.mpaAttribute = preset.genMPA();
-            attr.fractal.referenceCompAttribute = preset.genReferenceCompression();
+            settings.fractal.referenceSyncSettings = preset.genRefSync();
+            settings.fractal.mpaSettings = preset.genMPA();
+            settings.fractal.referenceCompSettings = preset.genRefComp();
             requests.requestRecompute();
         }
         if constexpr (std::is_base_of_v<Presets::RenderPreset, P>) {
-            attr.render = preset.genRender();
+            settings.render = preset.genRender();
             requests.requestResize();
             requests.requestRecompute();
         }
@@ -252,22 +253,22 @@ namespace merutilm::rff2 {
         }
         if constexpr (std::is_base_of_v<Presets::ShaderPreset, P>) {
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::PalettePreset, P>) {
-                attr.shader.palette = preset.genPalette();
+                settings.shader.palette = preset.genPalette();
             }
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::StripePreset, P>) {
-                attr.shader.stripe = preset.genStripe();
+                settings.shader.stripe = preset.genStripe();
             }
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::SlopePreset, P>) {
-                attr.shader.slope = preset.genSlope();
+                settings.shader.slope = preset.genSlope();
             }
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::ColorPreset, P>) {
-                attr.shader.color = preset.genColor();
+                settings.shader.color = preset.genColor();
             }
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::FogPreset, P>) {
-                attr.shader.fog = preset.genFog();
+                settings.shader.fog = preset.genFog();
             }
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::BloomPreset, P>) {
-                attr.shader.bloom = preset.genBloom();
+                settings.shader.bloom = preset.genBloom();
             }
             requests.requestShader();
         }

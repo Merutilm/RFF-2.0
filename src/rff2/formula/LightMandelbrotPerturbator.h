@@ -19,24 +19,24 @@ namespace merutilm::rff2 {
 
     public:
 
-        explicit LightMandelbrotPerturbator(ParallelRenderState &state, const FractalAttribute &calc, double dcMax, int exp10,
+        explicit LightMandelbrotPerturbator(ParallelRenderState &state, const FractalSettings &calc, double dcMax, int exp10,
                                    uint64_t initialPeriod, ApproxTableCache &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                    std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
                                    bool arbitraryPrecisionFPGBn = false, std::unique_ptr<LightMandelbrotReference> reusedReference = nullptr, std::unique_ptr<LightMPATable> reusedTable = nullptr,
                                    double offR = 0, double offI = 0);
 
 
-        double iterate(const dex &dcr, const dex &dci) const override;
+        [[nodiscard]] double iterate(const dex &dcr, const dex &dci) const override;
 
-        std::unique_ptr<LightMandelbrotPerturbator> reuse(const FractalAttribute &calc, double dcMax, ApproxTableCache &tableRef);
+        [[nodiscard]] std::unique_ptr<LightMandelbrotPerturbator> reuse(const FractalSettings &calc, double dcMax, ApproxTableCache &tableRef);
 
-        const LightMandelbrotReference *getReference() const override;
+        [[nodiscard]] const LightMandelbrotReference *getReference() const override;
 
-        LightMPATable &getTable() const;
+        [[nodiscard]] LightMPATable &getTable() const;
 
-        double getDcMax() const;
+        [[nodiscard]] double getDcMax() const;
 
-        dex getDcMaxAsDoubleExp() const override;
+        [[nodiscard]] dex getDcMaxAsDoubleExp() const override;
     };
 
 

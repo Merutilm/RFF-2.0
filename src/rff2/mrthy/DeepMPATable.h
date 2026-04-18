@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
 
 
         explicit DeepMPATable(const ParallelRenderState &state, const DeepMandelbrotReference &reference,
-                      const FrtMPAAttribute *mpaSettings, const dex &dcMax, ApproxTableCache &tableRef,
+                      const FrtMPASettings *mpaSettings, const dex &dcMax, ApproxTableCache &tableRef,
                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, tableRef, std::move(actionPerCreatingTableIteration)) {
 
         }

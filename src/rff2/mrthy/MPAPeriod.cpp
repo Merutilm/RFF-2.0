@@ -50,7 +50,7 @@ namespace merutilm::rff2 {
         return tablePeriodElements;
     }
 
-    MPAPeriod::Temp MPAPeriod::generateTablePeriod(const std::vector<uint64_t> &referencePeriod, const FrtMPAAttribute &mpaSettings) {
+    MPAPeriod::Temp MPAPeriod::generateTablePeriod(const std::vector<uint64_t> &referencePeriod, const FrtMPASettings &mpaSettings) {
         // example
         // period : [3, 11, 26]
         //
@@ -119,8 +119,8 @@ namespace merutilm::rff2 {
         return Temp{std::move(tablePeriod), std::move(isArtificial)};
     }
 
-    std::unique_ptr<MPAPeriod> MPAPeriod::create(const std::vector<uint64_t> &referencePeriod,
-                                                 const FrtMPAAttribute &mpaSettings) {
+    std::unique_ptr<MPAPeriod> MPAPeriod::generate(const std::vector<uint64_t> &referencePeriod,
+                                                 const FrtMPASettings &mpaSettings) {
         auto [tablePeriod, isArtificial] = generateTablePeriod(referencePeriod, mpaSettings);
         auto tablePeriodElements = generatePeriodElements(tablePeriod);
         return std::make_unique<MPAPeriod>(std::move(tablePeriod), std::move(isArtificial), std::move(tablePeriodElements));

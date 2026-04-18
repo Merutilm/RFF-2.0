@@ -10,9 +10,9 @@
 
 namespace merutilm::rff2 {
     VideoRenderScene::VideoRenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc, const VkExtent2D &videoExtent,
-                                       const Attribute &targetAttribute) : EngineHandler(engine), wc(wc),
+                                       const Settings &targetSettings) : EngineHandler(engine), wc(wc),
                                                                            videoExtent(videoExtent),
-                                                                           targetAttribute(targetAttribute) {
+                                                                           targetSettings(targetSettings) {
         VideoRenderScene::init();
     }
 
@@ -40,20 +40,20 @@ namespace merutilm::rff2 {
 
     void VideoRenderScene::applyShader() const {
         engine.getCore().getLogicalDevice().waitDeviceIdle();
-        renderer->renderer2MapIterationStripe->setPalette(targetAttribute.shader.palette);
+        renderer->renderer2MapIterationStripe->setPalette(targetSettings.shader.palette);
         renderer->renderer2MapIterationStripe->set2MapSize(videoExtent);
         renderer->renderer2MapIterationStripe->setDefaultZoomIncrement(
-            targetAttribute.video.data.defaultZoomIncrement);
-        renderer->renderer2MapIterationStripe->setStripe(targetAttribute.shader.stripe);
-        renderer->rendererSlope->setSlope(targetAttribute.shader.slope);
-        renderer->rendererColor->setColor(targetAttribute.shader.color);
-        renderer->rendererFog->setFog(targetAttribute.shader.fog);
-        renderer->rendererBloom->setBloom(targetAttribute.shader.bloom);
-        renderer->rendererLinearInterpolation->setLinearInterpolation(targetAttribute.render.linearInterpolation);
+            targetSettings.video.data.defaultZoomIncrement);
+        renderer->renderer2MapIterationStripe->setStripe(targetSettings.shader.stripe);
+        renderer->rendererSlope->setSlope(targetSettings.shader.slope);
+        renderer->rendererColor->setColor(targetSettings.shader.color);
+        renderer->rendererFog->setFog(targetSettings.shader.fog);
+        renderer->rendererBloom->setBloom(targetSettings.shader.bloom);
+        renderer->rendererLinearInterpolation->setLinearInterpolation(targetSettings.render.linearInterpolation);
         renderer->rendererBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
-                                               targetAttribute.shader.fog.radius);
+                                               targetSettings.shader.fog.radius);
         renderer->rendererBoxBlur->
-                setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, targetAttribute.shader.bloom.radius);
+                setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, targetSettings.shader.bloom.radius);
     }
 
     void VideoRenderScene::setTime(const float currentSec) const {
@@ -245,7 +245,7 @@ namespace merutilm::rff2 {
                                                           static_cast<int>(videoExtent.width),
                                                           static_cast<int>(videoExtent.height),
                                                           calculateZoom(
-                                                              targetAttribute.video.data.defaultZoomIncrement,
+                                                              targetSettings.video.data.defaultZoomIncrement,
                                                               renderer->currentFrame)));
     }
 

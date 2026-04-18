@@ -3,7 +3,7 @@
 layout (set = 0, binding = 0) uniform sampler2D canvas;
 layout (set = 0, binding = 1) uniform ResampleUBO{
     uvec2 extent;
-} resample_attr;
+} resample_settings;
 
 
 layout (location = 0) in vec3 fragColor;
@@ -13,6 +13,6 @@ layout (location = 0) out vec4 color;
 
 void main() {
 
-    vec2 coord = vec2(gl_FragCoord.xy / resample_attr.extent);
+    vec2 coord = vec2(gl_FragCoord.xy / resample_settings.extent);
     color = texture(canvas, coord);
 }

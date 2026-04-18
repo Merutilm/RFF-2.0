@@ -9,7 +9,7 @@ layout (set = 1, binding = 0) uniform ColorUBO {
     float saturation;
     float brightness;
     float contrast;
-} color_attr;
+} color_settings;
 
 layout (location = 0) in vec3 fragColor;
 layout (location = 1) in vec2 fragTexcoord;
@@ -126,12 +126,12 @@ void main() {
 
     vec3 c = subpassLoad(canvas).rgb;
 
-    c = fix_color(pow(c, vec3(1 / color_attr.gamma)));
-    c = fix_color(c * (1 + color_attr.exposure) / (1 - color_attr.exposure));
-    c = fix_color(add_hue(c, color_attr.hue));
+    c = fix_color(pow(c, vec3(1 / color_settings.gamma)));
+    c = fix_color(c * (1 + color_settings.exposure) / (1 - color_settings.exposure));
+    c = fix_color(add_hue(c, color_settings.hue));
     float gray = grayscale(c);
-    c = fix_color(c + (c - vec3(gray, gray, gray)) * color_attr.saturation);
-    c = fix_color(c + color_attr.brightness);
-    c = fix_color((c - 0.5) / (1 - color_attr.contrast) * (1 + color_attr.contrast) + 0.5);
+    c = fix_color(c + (c - vec3(gray, gray, gray)) * color_settings.saturation);
+    c = fix_color(c + color_settings.brightness);
+    c = fix_color((c - 0.5) / (1 - color_settings.contrast) * (1 + color_settings.contrast) + 0.5);
     color = vec4(c, 1);
 }

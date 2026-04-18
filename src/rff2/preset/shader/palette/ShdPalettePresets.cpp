@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 
-#include "../../../data/ColorUtils.h"
+#include "../../../util/ColorUtils.h"
 
 namespace merutilm::rff2 {
 #define PI static_cast<float>(M_PI)
@@ -15,8 +15,8 @@ namespace merutilm::rff2 {
         return "Classic 1";
     }
 
-    ShdPaletteAttribute ShdPalettePresets::Classic1::genPalette() const {
-        ShdPaletteAttribute p = {};
+    ShdPaletteSettings ShdPalettePresets::Classic1::genPalette() const {
+        ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
             const float r = 0.5f + 0.5f * std::sin(i - 2);
@@ -32,8 +32,8 @@ namespace merutilm::rff2 {
         return "Classic 2";
     }
 
-    ShdPaletteAttribute ShdPalettePresets::Classic2::genPalette() const {
-        ShdPaletteAttribute p = {};
+    ShdPaletteSettings ShdPalettePresets::Classic2::genPalette() const {
+        ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
             const float r = 0.5f + 0.5f * std::sin(i - 2);
@@ -49,8 +49,8 @@ namespace merutilm::rff2 {
         return "Azure";
     }
 
-    ShdPaletteAttribute ShdPalettePresets::Azure::genPalette() const {
-        ShdPaletteAttribute p = {};
+    ShdPaletteSettings ShdPalettePresets::Azure::genPalette() const {
+        ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
             const float r = 0.5f + 0.5f * std::sin(1.5f * std::sin(i) - 0.5f);
@@ -67,8 +67,8 @@ namespace merutilm::rff2 {
         return "Cinematic";
     }
 
-    ShdPaletteAttribute ShdPalettePresets::Cinematic::genPalette() const {
-        ShdPaletteAttribute p = {};
+    ShdPaletteSettings ShdPalettePresets::Cinematic::genPalette() const {
+        ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
             float v = 0.5f + 0.5f * std::sin(i);
@@ -86,8 +86,8 @@ namespace merutilm::rff2 {
         return "Desert";
     }
 
-    ShdPaletteAttribute ShdPalettePresets::Desert::genPalette() const {
-        ShdPaletteAttribute p = {};
+    ShdPaletteSettings ShdPalettePresets::Desert::genPalette() const {
+        ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
             glm::vec4 c = {0.75f, 0.5f, 0.25f, 1};
@@ -102,8 +102,8 @@ namespace merutilm::rff2 {
         return "Flame";
     }
 
-    ShdPaletteAttribute ShdPalettePresets::Flame::genPalette() const {
-        ShdPaletteAttribute p = {};
+    ShdPaletteSettings ShdPalettePresets::Flame::genPalette() const {
+        ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
             const float r = 0.5f + 0.5f * std::sin(1.5f * std::sin(i) + 0.5f);
@@ -121,8 +121,8 @@ namespace merutilm::rff2 {
         return "Long Random 64";
     }
 
-    ShdPaletteAttribute ShdPalettePresets::LongRandom64::genPalette() const {
-        auto p = ShdPaletteAttribute();
+    ShdPaletteSettings ShdPalettePresets::LongRandom64::genPalette() const {
+        auto p = ShdPaletteSettings();
         p.colors.reserve(64);
 
         for (int i = 0; i < 64; ++i) {
@@ -132,7 +132,7 @@ namespace merutilm::rff2 {
         p.iterationInterval = 1;
 
 
-        const ShdPaletteAttribute p1 = p;
+        const ShdPaletteSettings p1 = p;
         constexpr uint64_t r1 = 100;
 
         p.colors.clear();
@@ -146,7 +146,7 @@ namespace merutilm::rff2 {
             p.colors.push_back(ColorUtils::forEachExceptAlpha(c2, cr, [](const float c, const float t) { return c + t / 6; }));
         }
 
-        const ShdPaletteAttribute p2 = p;
+        const ShdPaletteSettings p2 = p;
         constexpr uint64_t r2 = 100;
         p.colors.clear();
         p.colors.reserve(p2.colors.size() * r2);
@@ -174,8 +174,8 @@ namespace merutilm::rff2 {
         return "Long Rainbow 7";
     }
 
-    ShdPaletteAttribute ShdPalettePresets::LongRainbow7::genPalette() const {
-        auto p = ShdPaletteAttribute();
+    ShdPaletteSettings ShdPalettePresets::LongRainbow7::genPalette() const {
+        auto p = ShdPaletteSettings();
         p.colors.reserve(7);
         p.colors.push_back(glm::vec4{0.909803f, 0.078431f, 0.086274f, 1.000000f});
         p.colors.push_back(glm::vec4{1.000000f, 0.647058f, 0.000000f, 1.000000f});
@@ -188,7 +188,7 @@ namespace merutilm::rff2 {
         p.iterationInterval = 1;
 
 
-        const ShdPaletteAttribute p1 = p;
+        const ShdPaletteSettings p1 = p;
         constexpr uint64_t r1 = 100;
 
         p.colors.clear();
@@ -202,7 +202,7 @@ namespace merutilm::rff2 {
             p.colors.push_back(ColorUtils::forEachExceptAlpha(c2, cr, [](const float c, const float t) { return c + t / 6; }));
         }
 
-        const ShdPaletteAttribute p2 = p;
+        const ShdPaletteSettings p2 = p;
         constexpr uint64_t r2 = 100;
         p.colors.clear();
         p.colors.reserve(p2.colors.size() * r2);
@@ -230,8 +230,8 @@ namespace merutilm::rff2 {
         return "Rainbow";
     }
 
-    ShdPaletteAttribute ShdPalettePresets::Rainbow::genPalette() const {
-        auto p = ShdPaletteAttribute();
+    ShdPaletteSettings ShdPalettePresets::Rainbow::genPalette() const {
+        auto p = ShdPaletteSettings();
         p.colors.reserve(7);
 
         p.colors.push_back(glm::vec4{0.909803f, 0.078431f, 0.086274f, 1.000000f});

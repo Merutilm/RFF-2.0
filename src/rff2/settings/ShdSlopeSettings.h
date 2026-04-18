@@ -1,7 +1,7 @@
 #pragma once
 
 namespace merutilm::rff2 {
-    struct ShdSlopeAttribute {
+    struct ShdSlopeSettings {
         float depth;
         float reflectionRatio;
         float opacity;

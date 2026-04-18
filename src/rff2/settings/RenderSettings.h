@@ -1,7 +1,8 @@
 #pragma once
+#include <cstdint>
 
 namespace merutilm::rff2 {
-    struct RenderAttribute {
+    struct RenderSettings {
         float clarityMultiplier;
         float fps;
         bool linearInterpolation;

@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
-#include "../attr/ShdColorAttribute.h"
+#include "../settings/ShdColorSettings.h"
 
 namespace merutilm::rff2 {
     struct GPCColor final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
@@ -31,7 +31,7 @@ namespace merutilm::rff2 {
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
-        void setColor(const ShdColorAttribute &color) const;
+        void setColor(const ShdColorSettings &color) const;
 
         void pipelineInitialized() override;
 

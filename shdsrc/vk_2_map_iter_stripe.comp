@@ -11,17 +11,17 @@
 
 layout (set = 0, binding = 0) buffer Iteration2MapNormalSSBO {
     double iterations[];
-} it2map_normal_attr;
+} it2map_normal_settings;
 
 layout (set = 0, binding = 1) buffer Iteration2MapZoomedSSBO {
     double iterations[];
-} it2map_zoomed_attr;
+} it2map_zoomed_settings;
 
 
 layout (set = 1, binding = 0) uniform VideoUBO {
     float default_zoom_increment;
     float current_frame;
-} video_attr;
+} video_settings;
 
 
 layout (set = 2, binding = 0) buffer PaletteSSBO {
@@ -31,11 +31,11 @@ layout (set = 2, binding = 0) buffer PaletteSSBO {
     uint smoothing;
     float animation_speed;
     vec4 palette[];
-} palette_attr;
+} palette_settings;
 
 layout (set = 3, binding = 0) uniform TimeUBO {
     float time;
-} time_attr;
+} time_settings;
 
 layout (set = 4, binding = 0, rgba8) writeonly uniform image2D merged_image_output;
 
@@ -43,11 +43,11 @@ layout (set = 4, binding = 0, rgba8) writeonly uniform image2D merged_image_outp
 layout (set = 5, binding = 0) uniform OutputIterationUBO {
     uvec2 extent;
     double max_value;
-} iteration_output_info_attr;
+} iteration_output_info_settings;
 
 layout (set = 5, binding = 1) writeonly buffer OutputIterationSSBO {
     double[] iterations;
-} iteration_output_attr;
+} iteration_output_settings;
 
 layout (set = 6, binding = 0) uniform StripeUBO {
     uint type;
@@ -56,17 +56,17 @@ layout (set = 6, binding = 0) uniform StripeUBO {
     float opacity;
     float offset;
     float animation_speed;
-} stripe_attr;
+} stripe_settings;
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 
 vec4 get_color(double iteration) {
 
-    if (iteration == 0 || iteration >= iteration_output_info_attr.max_value) {
+    if (iteration == 0 || iteration >= iteration_output_info_settings.max_value) {
         return vec4(0, 0, 0, 1);
     }
-    switch (palette_attr.smoothing) {
+    switch (palette_settings.smoothing) {
         case SMOOTH_ITER_NONE:
             iteration = iteration - mod(iteration, 1);
             break;
@@ -78,48 +78,48 @@ vec4 get_color(double iteration) {
     }
 
 
-    double timed_offset_ratio = palette_attr.offset - double(time_attr.time * palette_attr.animation_speed / palette_attr.interval);
-    double palette_offset_ratio = mod(iteration / double(palette_attr.interval) + timed_offset_ratio, 1);
-    double palette_offset = palette_offset_ratio * double(palette_attr.size);
+    double timed_offset_ratio = palette_settings.offset - double(time_settings.time * palette_settings.animation_speed / palette_settings.interval);
+    double palette_offset_ratio = mod(iteration / double(palette_settings.interval) + timed_offset_ratio, 1);
+    double palette_offset = palette_offset_ratio * double(palette_settings.size);
     float palette_offset_decimal = float(mod(palette_offset, 1));
 
-    uint cpl = uint(palette_offset_ratio * palette_attr.size);
-    uint npl = (cpl + 1) % palette_attr.size;
+    uint cpl = uint(palette_offset_ratio * palette_settings.size);
+    uint npl = (cpl + 1) % palette_settings.size;
 
-    vec4 cc = palette_attr.palette[cpl];
-    vec4 nc = palette_attr.palette[npl];
+    vec4 cc = palette_settings.palette[cpl];
+    vec4 nc = palette_settings.palette[npl];
 
     return cc * (1 - palette_offset_decimal) + nc * (palette_offset_decimal);
 }
 
 
 double get_iteration_normal(uvec2 iter_coord) {
-    iter_coord.y = iteration_output_info_attr.extent.y - iter_coord.y;
-    return it2map_normal_attr.iterations[iter_coord.y * iteration_output_info_attr.extent.x + iter_coord.x];
+    iter_coord.y = iteration_output_info_settings.extent.y - iter_coord.y;
+    return it2map_normal_settings.iterations[iter_coord.y * iteration_output_info_settings.extent.x + iter_coord.x];
 }
 
 
 double get_iteration_zoomed(uvec2 iter_coord) {
-    iter_coord.y = iteration_output_info_attr.extent.y - iter_coord.y;
-    return it2map_zoomed_attr.iterations[iter_coord.y * iteration_output_info_attr.extent.x + iter_coord.x];
+    iter_coord.y = iteration_output_info_settings.extent.y - iter_coord.y;
+    return it2map_zoomed_settings.iterations[iter_coord.y * iteration_output_info_settings.extent.x + iter_coord.x];
 }
 
 void set_iteration_output(uvec2 iter_coord, double value) {
-    iter_coord.y = iteration_output_info_attr.extent.y - iter_coord.y;
-    iteration_output_attr.iterations[iter_coord.y * iteration_output_info_attr.extent.x + iter_coord.x] = value;
+    iter_coord.y = iteration_output_info_settings.extent.y - iter_coord.y;
+    iteration_output_settings.iterations[iter_coord.y * iteration_output_info_settings.extent.x + iter_coord.x] = value;
 }
 
 float get_stripe_mul(double iteration){
-    if (stripe_attr.type == STRIPE_NONE || iteration == 0) {
+    if (stripe_settings.type == STRIPE_NONE || iteration == 0) {
         return 1;
     }
 
-    double iter_curr = iteration - (stripe_attr.offset + stripe_attr.animation_speed * time_attr.time);
+    double iter_curr = iteration - (stripe_settings.offset + stripe_settings.animation_speed * time_settings.time);
     float black;
-    float rat1 = float(mod(iter_curr, stripe_attr.first_interval)) / stripe_attr.first_interval;
-    float rat2 = float(mod(iter_curr, stripe_attr.second_interval)) / stripe_attr.second_interval;
+    float rat1 = float(mod(iter_curr, stripe_settings.first_interval)) / stripe_settings.first_interval;
+    float rat2 = float(mod(iter_curr, stripe_settings.second_interval)) / stripe_settings.second_interval;
 
-    switch (stripe_attr.type) {
+    switch (stripe_settings.type) {
         case STRIPE_SINGLE_DIRECTION: {
                                    black = rat1 * rat2;
                                    break;
@@ -134,17 +134,17 @@ float get_stripe_mul(double iteration){
                                }
     }
 
-    return 1 - black * stripe_attr.opacity;
+    return 1 - black * stripe_settings.opacity;
 }
 
 void main() {
 
-    vec2 center = vec2(iteration_output_info_attr.extent) / 2.0;
+    vec2 center = vec2(iteration_output_info_settings.extent) / 2.0;
     vec2 coord = vec2(gl_GlobalInvocationID.xy) - center;
-    float r = int(max(0, video_attr.current_frame)) - video_attr.current_frame;
+    float r = int(max(0, video_settings.current_frame)) - video_settings.current_frame;
 
-    float nsr = pow(video_attr.default_zoom_increment, r + 1);// r = 0 ~ 1
-    float zsr = pow(video_attr.default_zoom_increment, r);// r = -1 ~ 0
+    float nsr = pow(video_settings.default_zoom_increment, r + 1);// r = 0 ~ 1
+    float zsr = pow(video_settings.default_zoom_increment, r);// r = -1 ~ 0
 
     vec2 ntx = coord / nsr + center;
     vec2 ztx = coord / zsr + center;
@@ -168,7 +168,7 @@ void main() {
     vec3 nc1 = nc01 - (nc01 - nc11) * nrt.x;
     vec3 nc = nc0 - (nc0 - nc1) * nrt.y;
 
-    if (ztx.x >= iteration_output_info_attr.extent.x - 1 || ztx.y >= iteration_output_info_attr.extent.y - 1 || ztx.x < 0 || ztx.y < 0 || z00 == 0) {
+    if (ztx.x >= iteration_output_info_settings.extent.x - 1 || ztx.y >= iteration_output_info_settings.extent.y - 1 || ztx.x < 0 || ztx.y < 0 || z00 == 0) {
 
         double n0 = n00 - (n00 - n10) * nrt.x;
         double n1 = n01 - (n01 - n11) * nrt.x;

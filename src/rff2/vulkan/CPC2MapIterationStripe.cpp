@@ -4,9 +4,9 @@
 
 #include "CPC2MapIterationStripe.hpp"
 
+#include "../settings/ShdPaletteSettings.h"
 #include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
-#include "../attr/ShdPaletteAttribute.h"
 
 namespace merutilm::rff2 {
     void CPC2MapIterationStripe::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
@@ -50,7 +50,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPC2MapIterationStripe::setPalette(const ShdPaletteAttribute &palette) const {
+    void CPC2MapIterationStripe::setPalette(const ShdPaletteSettings &palette) const {
         using namespace SharedDescriptorTemplate;
         auto &paletteDesc = getDescriptor(SET_PALETTE);
         auto &paletteSSBO = *paletteDesc.get<vkh::ShaderStorage>(0,
@@ -81,7 +81,7 @@ namespace merutilm::rff2 {
             });
     }
 
-    void CPC2MapIterationStripe::setStripe(const ShdStripeAttribute &stripe) const {
+    void CPC2MapIterationStripe::setStripe(const ShdStripeSettings &stripe) const {
         using namespace SharedDescriptorTemplate;
         auto &stripeDesc = getDescriptor(SET_STRIPE);
         const auto &stripeUBO = *stripeDesc.get<vkh::Uniform>(0, DescStripe::BINDING_UBO_STRIPE);

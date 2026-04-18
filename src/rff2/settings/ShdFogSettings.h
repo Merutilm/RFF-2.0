@@ -6,7 +6,7 @@
 
 
 namespace merutilm::rff2 {
-    struct ShdFogAttribute {
+    struct ShdFogSettings {
         float radius;
         float opacity;
     };

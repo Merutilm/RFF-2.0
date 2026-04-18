@@ -17,9 +17,9 @@ namespace merutilm::rff2 {
 
         explicit PAGenerator(uint64_t start, uint64_t skip, const std::vector<ArrayCompressionTool> &compressors, double epsilon);
 
-        uint64_t getStart() const;
+        [[nodiscard]] uint64_t getStart() const;
 
-        uint64_t getSkip() const;
+        [[nodiscard]] uint64_t getSkip() const;
 
         virtual ~PAGenerator() = default;
 

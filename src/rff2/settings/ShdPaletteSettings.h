@@ -5,7 +5,7 @@
 
 
 namespace merutilm::rff2 {
-    struct ShdPaletteAttribute {
+    struct ShdPaletteSettings {
         std::vector<glm::vec4> colors;
         ShdPalColorSmoothingMethod colorSmoothing;
         float iterationInterval;
@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
         glm::vec4 getMidColor(float rat) const;
     };
 
-    inline glm::vec4 ShdPaletteAttribute::getMidColor(const float rat) const {
+    inline glm::vec4 ShdPaletteSettings::getMidColor(const float rat) const {
         const float ratio = std::fmod(rat / iterationInterval + offsetRatio, 1.0f);
         const float i = ratio * static_cast<float>(colors.size());
         const auto i0 = static_cast<int>(i);

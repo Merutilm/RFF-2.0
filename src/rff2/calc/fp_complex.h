@@ -36,8 +36,8 @@ namespace merutilm::rff2 {
                                                      imag(fp_decimal(im, exp10)) {
     }
 
-    inline fp_complex::fp_complex(const fp_complex_mutable &calc) : real(calc.getRealClone()),
-                                                                    imag(calc.getImagClone()) {
+    inline fp_complex::fp_complex(const fp_complex_mutable &calc) : real(calc.clone_real()),
+                                                                    imag(calc.clone_imag()) {
     }
 
 

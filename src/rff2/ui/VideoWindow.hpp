@@ -3,9 +3,9 @@
 //
 
 #pragma once
-#include "VideoRenderScene.hpp"
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
-#include "../attr/Attribute.h"
+#include "../settings/Settings.h"
+#include "VideoRenderScene.hpp"
 
 namespace merutilm::rff2 {
 
@@ -36,7 +36,7 @@ namespace merutilm::rff2 {
 
         static LRESULT CALLBACK videoWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-        static void createVideo(vkh::EngineRef engine, const Attribute &attr, const std::filesystem::path &open, const std::filesystem::path &save);
+        static void createVideo(vkh::EngineRef engine, const Settings &settings, const std::filesystem::path &open, const std::filesystem::path &save);
 
         static void messageLoop();
 
@@ -44,7 +44,7 @@ namespace merutilm::rff2 {
 
         void setClientSize(int width, int height) const;
 
-        void createScene(const VkExtent2D &videoExtent, const Attribute &targetAttribute);
+        void createScene(const VkExtent2D &videoExtent, const Settings &targetSettings);
 
         void init() override;
 

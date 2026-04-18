@@ -77,15 +77,15 @@ namespace merutilm::rff2 {
 
         fp_complex_mutable &negate();
 
-        fp_decimal_mutable &getReal();
+        fp_decimal_mutable &get_real();
 
-        fp_decimal_mutable &getImag();
+        fp_decimal_mutable &get_imag();
 
-        fp_decimal_mutable getRealClone() const;
+        fp_decimal_mutable clone_real() const;
 
-        fp_decimal_mutable getImagClone() const;
+        fp_decimal_mutable clone_imag() const;
 
-        void setExp10(int exp10);
+        void set_exp10(int exp10);
     };
 
     //DEFINITION OF FP_COMPLEX_MUTABLE
@@ -103,7 +103,7 @@ namespace merutilm::rff2 {
                                                   const int exp10) {
         this->real = re;
         this->imag = im;
-        setExp10(exp10);
+        set_exp10(exp10);
         for (auto &temp1: temp) {
             temp1 = fp_decimal_mutable("0", exp10);
         }
@@ -206,15 +206,14 @@ namespace merutilm::rff2 {
         fp_decimal_mutable::fp_mul(a.temp[1], a.real, b.real);
         fp_decimal_mutable::fp_mul(a.temp[2], a.imag, b.imag);
         fp_decimal_mutable::fp_add(a.temp[1], a.temp[1], a.temp[2]);
-        fp_decimal_mutable::fp_div(a.temp[1], a.temp[1], a.temp[0]);
 
         fp_decimal_mutable::fp_mul(a.temp[2], a.imag, b.real);
         fp_decimal_mutable::fp_mul(a.temp[3], a.real, b.imag);
         fp_decimal_mutable::fp_sub(a.temp[2], a.temp[2], a.temp[3]);
-        fp_decimal_mutable::fp_div(a.temp[2], a.temp[2], a.temp[0]);
 
-        fp_decimal_mutable::fp_swap(a.real, a.temp[1]);
-        fp_decimal_mutable::fp_swap(a.imag, a.temp[2]);
+        fp_decimal_mutable::fp_div(a.real, a.temp[1], a.temp[0]);
+        fp_decimal_mutable::fp_div(a.imag, a.temp[2], a.temp[0]);
+
     }
 
     inline void fp_complex_mutable::fpc_square(fp_complex_mutable &a) {
@@ -260,24 +259,24 @@ namespace merutilm::rff2 {
         return *this;
     }
 
-    inline fp_decimal_mutable &fp_complex_mutable::getReal() {
+    inline fp_decimal_mutable &fp_complex_mutable::get_real() {
         return real;
     }
 
-    inline fp_decimal_mutable &fp_complex_mutable::getImag() {
+    inline fp_decimal_mutable &fp_complex_mutable::get_imag() {
         return imag;
     }
 
-    inline fp_decimal_mutable fp_complex_mutable::getRealClone() const {
+    inline fp_decimal_mutable fp_complex_mutable::clone_real() const {
         return real;
     }
 
-    inline fp_decimal_mutable fp_complex_mutable::getImagClone() const {
+    inline fp_decimal_mutable fp_complex_mutable::clone_imag() const {
         return imag;
     }
 
 
-    inline void fp_complex_mutable::setExp10(const int exp10) {
+    inline void fp_complex_mutable::set_exp10(const int exp10) {
         real.setExp10(exp10);
         imag.setExp10(exp10);
         for (auto &temp1: temp) {

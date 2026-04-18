@@ -1976,17 +1976,17 @@ specification (type_id attribute).
  */
 typedef struct CvAttrList
 {
-    const char** attr;         /**< NULL-terminated array of (attribute_name,attribute_value) pairs. */
+    const char** settings;         /**< NULL-terminated array of (attribute_name,attribute_value) pairs. */
     struct CvAttrList* next;   /**< Pointer to next chunk of the attributes list.                    */
 }
 CvAttrList;
 
 /** initializes CvAttrList structure */
-CV_INLINE CvAttrList cvAttrList( const char** attr CV_DEFAULT(NULL),
+CV_INLINE CvAttrList cvAttrList( const char** settings CV_DEFAULT(NULL),
                                  CvAttrList* next CV_DEFAULT(NULL) )
 {
     CvAttrList l;
-    l.attr = attr;
+    l.settings = settings;
     l.next = next;
 
     return l;

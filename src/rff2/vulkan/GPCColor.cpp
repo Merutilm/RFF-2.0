@@ -4,17 +4,17 @@
 
 #include "GPCColor.hpp"
 
+#include "../constants/VulkanWindowConstants.hpp"
+#include "../settings/ShdColorSettings.h"
 #include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
-#include "../attr/ShdColorAttribute.h"
-#include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
     void GPCColor::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
         //no operation
     }
 
-    void GPCColor::setColor(const ShdColorAttribute &color) const {
+    void GPCColor::setColor(const ShdColorSettings &color) const {
         using namespace SharedDescriptorTemplate;
         auto &colorDesc = getDescriptor(SET_COLOR);
         const auto &colorUBO = *colorDesc.get<vkh::Uniform>(0, DescColor::BINDING_UBO_COLOR);

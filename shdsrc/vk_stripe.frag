@@ -11,11 +11,11 @@ layout (set = 0, binding = 0) uniform sampler2D canvas;
 layout (set = 1, binding = 0) uniform IterUBO {
     uvec2 extent;
     double max_value;
-} iteration_info_attr;
+} iteration_info_settings;
 
 layout (set = 1, binding = 1) buffer IterSSBO {
     double iterations[];
-} iteration_attr;
+} iteration_settings;
 
 layout (set = 2, binding = 0) uniform StripeUBO {
     uint type;
@@ -24,11 +24,11 @@ layout (set = 2, binding = 0) uniform StripeUBO {
     float opacity;
     float offset;
     float animation_speed;
-} stripe_attr;
+} stripe_settings;
 
 layout (set = 3, binding = 0) uniform TimeUBO {
     float time;
-} time_attr;
+} time_settings;
 
 layout (location = 0) in vec3 fragColor;
 layout (location = 1) in vec2 fragTexcoord;
@@ -37,8 +37,8 @@ layout (location = 0) out vec4 color;
 
 
 double get_iteration(uvec2 iterCoord){
-    iterCoord.y = iteration_info_attr.extent.y - iterCoord.y;
-    return iteration_attr.iterations[iterCoord.y * iteration_info_attr.extent.x + iterCoord.x];
+    iterCoord.y = iteration_info_settings.extent.y - iterCoord.y;
+    return iteration_settings.iterations[iterCoord.y * iteration_info_settings.extent.x + iterCoord.x];
 }
 
 
@@ -47,17 +47,17 @@ void main() {
     uvec2 iter_coord = uvec2(gl_FragCoord.xy);
     double iteration = get_iteration(iter_coord);
 
-    if (stripe_attr.type == NONE || iteration == 0) {
+    if (stripe_settings.type == NONE || iteration == 0) {
         color = texelFetch(canvas, ivec2(gl_FragCoord.xy), 0);
         return;
     }
 
-    double iter_curr = iteration - (stripe_attr.offset + stripe_attr.animation_speed * time_attr.time);
+    double iter_curr = iteration - (stripe_settings.offset + stripe_settings.animation_speed * time_settings.time);
     float black;
-    float rat1 = float(mod(iter_curr, stripe_attr.first_interval)) / stripe_attr.first_interval;
-    float rat2 = float(mod(iter_curr, stripe_attr.second_interval)) / stripe_attr.second_interval;
+    float rat1 = float(mod(iter_curr, stripe_settings.first_interval)) / stripe_settings.first_interval;
+    float rat2 = float(mod(iter_curr, stripe_settings.second_interval)) / stripe_settings.second_interval;
 
-    switch (stripe_attr.type) {
+    switch (stripe_settings.type) {
         case SINGLE_DIRECTION: {
                                    black = rat1 * rat2;
                                    break;
@@ -72,5 +72,5 @@ void main() {
                                }
     }
 
-    color = vec4((texelFetch(canvas, ivec2(gl_FragCoord.xy), 0).rgb * (1 - black * stripe_attr.opacity)), 1);
+    color = vec4((texelFetch(canvas, ivec2(gl_FragCoord.xy), 0).rgb * (1 - black * stripe_settings.opacity)), 1);
 }

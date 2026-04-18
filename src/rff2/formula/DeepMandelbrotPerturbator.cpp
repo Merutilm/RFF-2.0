@@ -7,34 +7,31 @@
 namespace merutilm::rff2 {
 
 
-    DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(ParallelRenderState &state, const FractalAttribute &calc,
-                                                         const dex &dcMax, const int exp10,
-                                                         const uint64_t initialPeriod,
-                                                         ApproxTableCache &tableRef,
-                                                         std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                                                         std::function<void(uint64_t, double)> &&
-                                                         actionPerCreatingTableIteration,
-                                                         const bool arbitraryPrecisionFPGBn,
-                                                         std::unique_ptr<DeepMandelbrotReference> reusedReference,
-                                                         std::unique_ptr<DeepMPATable> reusedTable,
-                                                         const dex &offR,
-                                                         const dex &offI) : MandelbrotPerturbator(state, calc),
-                                                                                   dcMax(dcMax), offR(offR), offI(offI) {
+    DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(
+            ParallelRenderState &state, const FractalSettings &calc, const dex &dcMax, const int exp10,
+            const uint64_t initialPeriod, ApproxTableCache &tableRef,
+            std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+            std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration, const bool arbitraryPrecisionFPGBn,
+            std::unique_ptr<DeepMandelbrotReference> reusedReference, std::unique_ptr<DeepMPATable> reusedTable,
+            const dex &offR, const dex &offI) :
+        MandelbrotPerturbator(state, calc), dcMax(dcMax), offR(offR), offI(offI) {
+
         if (reusedReference == nullptr) {
-            reference = DeepMandelbrotReference::createReference(state, calc, exp10, initialPeriod, dcMax,
-                                                                 arbitraryPrecisionFPGBn,
-                                                                 std::move(actionPerRefCalcIteration));
+            this->referenceCreationResult = DeepMandelbrotReference::createReference(
+                    state, calc, exp10, initialPeriod, dcMax, arbitraryPrecisionFPGBn,
+                    std::move(actionPerRefCalcIteration), &reference);
         } else {
             reference = std::move(reusedReference);
+            this->referenceCreationResult = Reference::CreationResult::SUCCESS;
         }
 
-        if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
+        if (this->referenceCreationResult != Reference::CreationResult::SUCCESS) {
+            reference = nullptr;
             return;
         }
 
         if (reusedTable == nullptr) {
-            table = std::make_unique<DeepMPATable>(state, *reference, &calc.mpaAttribute, dcMax,
-                                                   tableRef,
+            table = std::make_unique<DeepMPATable>(state, *reference, &calc.mpaSettings, dcMax, tableRef,
                                                    std::move(actionPerCreatingTableIteration));
         } else {
             table = std::move(reusedTable);
@@ -43,7 +40,8 @@ namespace merutilm::rff2 {
 
 
     double DeepMandelbrotPerturbator::iterate(const dex &dcr, const dex &dci) const {
-        if (state.interruptRequested()) return 0.0;
+        if (state.interruptRequested())
+            return 0.0;
 
         const dex dcr1 = dcr + offR;
         const dex dci1 = dci + offI;
@@ -104,18 +102,17 @@ namespace merutilm::rff2 {
 
 
             if (refIteration != maxRefIteration) {
-                if (const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration);
-                    index == 0) {
+                if (const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration); index == 0) {
                     dex::cpy(&temps[0], dzr);
                     dex::cpy(&temps[1], dzi);
-                    } else {
-                        dex::cpy(&temps[0], reference->refReal[index]);
-                        dex::cpy(&temps[1], reference->refImag[index]);
-                        dex::mul_2exp(&temps[0], temps[0], 1);
-                        dex::mul_2exp(&temps[1], temps[1], 1);
-                        dex::add(&temps[0], temps[0], dzr);
-                        dex::add(&temps[1], temps[1], dzi);
-                    }
+                } else {
+                    dex::cpy(&temps[0], reference->refReal[index]);
+                    dex::cpy(&temps[1], reference->refImag[index]);
+                    dex::mul_2exp(&temps[0], temps[0], 1);
+                    dex::mul_2exp(&temps[1], temps[1], 1);
+                    dex::add(&temps[0], temps[0], dzr);
+                    dex::add(&temps[1], temps[1], dzi);
+                }
 
 
                 if (temps[0].sgn() == 0 && temps[1].sgn() == 0) {
@@ -147,8 +144,8 @@ namespace merutilm::rff2 {
             dex::sub(&temps[1], zrMax, zr);
 
             if (zi.sgn() == 0 && temps[0].sgn() != -1 && temps[1].sgn() != -1) {
-                //IT IS NOT SATISFIED MPA SKIP RADIUS CONDITION.
-                //WHEN THE MAX ITERATION IS HIGH, REPEATS SEMI-INFINITELY.
+                // IT IS NOT SATISFIED MPA SKIP RADIUS CONDITION.
+                // WHEN THE MAX ITERATION IS HIGH, REPEATS SEMI-INFINITELY.
                 return static_cast<double>(maxIteration);
             }
 
@@ -168,8 +165,10 @@ namespace merutilm::rff2 {
 
             dzr.try_normalize();
             dzi.try_normalize();
-            if (cd > bailout2) break;
-            if (absIteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
+            if (cd > bailout2)
+                break;
+            if (absIteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested())
+                return 0.0;
         }
 
         if (isAbs) {
@@ -187,8 +186,8 @@ namespace merutilm::rff2 {
     }
 
 
-    std::unique_ptr<DeepMandelbrotPerturbator> DeepMandelbrotPerturbator::reuse(
-        const FractalAttribute &calc, const dex &dcMax, ApproxTableCache &tableRef) {
+    std::unique_ptr<DeepMandelbrotPerturbator>
+    DeepMandelbrotPerturbator::reuse(const FractalSettings &calc, const dex &dcMax, ApproxTableCache &tableRef) {
         dex offR = dex::ZERO;
         dex offI = dex::ZERO;
         uint64_t longestPeriod = 1;
@@ -196,27 +195,27 @@ namespace merutilm::rff2 {
 
         const int exp10 = logZoomToExp10(calc.logZoom);
 
-        if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
-            //try to use process-terminated reference
-            MessageBox(nullptr, "Please do not try to use PROCESS-TERMINATED Reference.", "Warning",
-                       MB_OK | MB_ICONWARNING);
+        if (this->referenceCreationResult != Reference::CreationResult::SUCCESS) {
+            // try to use incomplete reference
+            MessageBox(nullptr, "Please do not try to use incomplete Reference.", "Warning", MB_OK | MB_ICONWARNING);
         } else {
             fp_complex_mutable centerOffset = calc.center.edit(exp10);
             centerOffset -= reference->center.edit(exp10);
-            centerOffset.getReal().double_exp_value(&offR);
-            centerOffset.getImag().double_exp_value(&offI);
+            centerOffset.get_real().double_exp_value(&offR);
+            centerOffset.get_imag().double_exp_value(&offI);
             longestPeriod = reference->longestPeriod();
             reusedReference = std::move(reference);
         }
 
 
-        return std::make_unique<DeepMandelbrotPerturbator>(state, calc, dcMax, exp10, longestPeriod,
-                                                           tableRef,
-                                                           [](uint64_t) {
-                                                               //no action because the reference is already declared
-                                                           }, [](uint64_t, double) {
-                                                               //same reason
-                                                           }, false, std::move(reusedReference),
-                                                           std::move(table), offR, offI);
+        return std::make_unique<DeepMandelbrotPerturbator>(
+                state, calc, dcMax, exp10, longestPeriod, tableRef,
+                [](uint64_t) {
+                    // no action because the reference is already declared
+                },
+                [](uint64_t, double) {
+                    // same reason
+                },
+                false, std::move(reusedReference), std::move(table), offR, offI);
     }
-}
+} // namespace merutilm::rff2

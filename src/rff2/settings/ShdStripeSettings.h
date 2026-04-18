@@ -3,7 +3,7 @@
 
 
 namespace merutilm::rff2 {
-    struct ShdStripeAttribute {
+    struct ShdStripeSettings {
         ShdStripeType stripeType;
         float firstInterval;
         float secondInterval;

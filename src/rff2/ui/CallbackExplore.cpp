@@ -39,13 +39,13 @@ namespace merutilm::rff2 {
         if (const std::unique_ptr<fp_complex> c = MandelbrotLocator::findCenter(perturbator); c == nullptr) {
             MessageBox(nullptr, "No center found!", "Caution", MB_OK | MB_ICONWARNING);
         } else {
-            scene.getAttribute().fractal.center = *c;
+            scene.getSettings().fractal.center = *c;
             scene.getRequests().requestRecompute();
         }
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::LOCATE_MINIBROT = [
             ](const SettingsMenu &, RenderScene &scene) {
-        Attribute &settings = scene.getAttribute();
+        Settings &settings = scene.getSettings();
 
         if (settings.fractal.reuseReferenceMethod != FrtReuseReferenceMethod::DISABLED) {
             MessageBox(nullptr, "Do not reuse reference!", "Caution", MB_OK | MB_ICONWARNING);
@@ -75,7 +75,7 @@ namespace merutilm::rff2 {
                     vkh::logger::w_log(L"Locate Minibrot Cancelled.");
                     return;
                 }
-                const FractalAttribute &locatorCalc = locator->perturbator->getCalculationSettings();
+                const FractalSettings &locatorCalc = locator->perturbator->getCalculationSettings();
                 settings.fractal.center = locatorCalc.center;
                 settings.fractal.logZoom = locatorCalc.logZoom - MandelbrotLocator::MINIBROT_LOG_ZOOM_OFFSET;
                 scene.getRequests().requestRecompute();

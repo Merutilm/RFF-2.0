@@ -10,7 +10,7 @@
 
 
 namespace merutilm::rff2 {
-    struct FrtMPAAttribute final {
+    struct FrtMPASettings final {
         uint16_t minSkipReference;
         uint8_t maxMultiplierBetweenLevel;
         float epsilonPower;

@@ -9,6 +9,7 @@
 
 namespace merutilm::rff2 {
     class DeepMandelbrotPerturbator final : public MandelbrotPerturbator {
+
         std::unique_ptr<DeepMandelbrotReference> reference = nullptr;
         std::unique_ptr<DeepMPATable> table = nullptr;
 
@@ -18,7 +19,7 @@ namespace merutilm::rff2 {
 
     public:
 
-        explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const FractalAttribute &calc,
+        explicit DeepMandelbrotPerturbator(ParallelRenderState &state, const FractalSettings &calc,
                                            const dex &dcMax, int exp10,
                                            uint64_t initialPeriod, ApproxTableCache &tableRef,
                                            std::function<void(uint64_t)> &&actionPerRefCalcIteration,
@@ -31,7 +32,7 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] double iterate(const dex &dcr, const dex &dci) const override;
 
-        std::unique_ptr<DeepMandelbrotPerturbator> reuse(const FractalAttribute &calc, const dex &dcMax,
+        std::unique_ptr<DeepMandelbrotPerturbator> reuse(const FractalSettings &calc, const dex &dcMax,
                                                          ApproxTableCache &tableRef);
 
         [[nodiscard]] const DeepMandelbrotReference *getReference() const override;
@@ -41,12 +42,7 @@ namespace merutilm::rff2 {
         [[nodiscard]] dex getDcMaxAsDoubleExp() const override;
     };
 
-    // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
-    // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
-    // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
-    // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
-    // DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR  DEFINITION OF DEEP MANDELBROT PERTURBATOR
-
+    // DEFINITION OF DEEP MANDELBROT PERTURBATOR
 
     inline const DeepMandelbrotReference *DeepMandelbrotPerturbator::getReference() const {
         return reference.get();

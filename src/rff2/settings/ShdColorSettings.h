@@ -2,7 +2,7 @@
 #pragma once
 
 namespace merutilm::rff2 {
-    struct ShdColorAttribute {
+    struct ShdColorSettings {
         float gamma;
         float exposure;
         float hue;

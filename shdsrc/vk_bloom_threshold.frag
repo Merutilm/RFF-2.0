@@ -7,7 +7,7 @@ layout (set = 1, binding = 0) uniform BloomUBO {
     float radius;
     float softness;
     float intensity;
-} bloom_attr;
+} bloom_settings;
 
 layout (location = 0) in vec3 fragColor;
 layout (location = 1) in vec2 fragTexcoord;
@@ -19,7 +19,7 @@ float grayScale(vec3 c) {
 
 void main() {
     vec4 c = subpassLoad(canvas);
-    if (grayScale(c.rgb) < bloom_attr.threshold) {
+    if (grayScale(c.rgb) < bloom_settings.threshold) {
         color = vec4(0, 0, 0, 1);
         return;
     }

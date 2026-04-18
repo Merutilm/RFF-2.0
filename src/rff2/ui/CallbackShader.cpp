@@ -11,7 +11,7 @@ namespace merutilm::rff2 {
 
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::PALETTE = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[colors, colorSmoothing, iterationInterval, offsetRatio, animationSpeed] = scene.getAttribute().shader.palette;
+        auto &[colors, colorSmoothing, iterationInterval, offsetRatio, animationSpeed] = scene.getSettings().shader.palette;
         auto window = std::make_unique<SettingsWindow>(L"Set Palette");
         window->registerTextInput<float>(L"Iteration Interval", &iterationInterval, Unparser::FLOAT,
                                          Parser::FLOAT, ValidCondition::POSITIVE_FLOAT, [&scene] {
@@ -38,7 +38,7 @@ namespace merutilm::rff2 {
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::STRIPE = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[stripeType, firstInterval, secondInterval, opacity, offset, animationSpeed] = scene.getAttribute().shader.stripe;
+        auto &[stripeType, firstInterval, secondInterval, opacity, offset, animationSpeed] = scene.getSettings().shader.stripe;
         auto window = std::make_unique<SettingsWindow>(L"Set Stripe");
         window->registerRadioButtonInput<ShdStripeType>(L"Stripe Type", &stripeType, [&scene] {
             scene.getRequests().requestShader();
@@ -71,7 +71,7 @@ namespace merutilm::rff2 {
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::SLOPE = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[depth, reflectionRatio, opacity, zenith, azimuth] = scene.getAttribute().shader.slope;
+        auto &[depth, reflectionRatio, opacity, zenith, azimuth] = scene.getSettings().shader.slope;
         auto window = std::make_unique<SettingsWindow>(L"Set Slope");
         window->registerTextInput<float>(L"Depth", &depth, Unparser::FLOAT, Parser::FLOAT,
                                          ValidCondition::ALL_FLOAT, [&scene] {
@@ -107,7 +107,7 @@ namespace merutilm::rff2 {
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::COLOR = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[gamma, exposure, hue, saturation, brightness, contrast] = scene.getAttribute().shader.color;
+        auto &[gamma, exposure, hue, saturation, brightness, contrast] = scene.getSettings().shader.color;
         auto window = std::make_unique<SettingsWindow>(L"Set Color");
         window->registerTextInput<float>(L"Gamma", &gamma, Unparser::FLOAT, Parser::FLOAT,
                                          ValidCondition::ALL_FLOAT, [&scene] {
@@ -140,7 +140,7 @@ namespace merutilm::rff2 {
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::FOG = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[radius, opacity] = scene.getAttribute().shader.fog;
+        auto &[radius, opacity] = scene.getSettings().shader.fog;
         auto window = std::make_unique<SettingsWindow>(L"Set Fog");
         window->registerTextInput<float>(L"Radius", &radius, Unparser::FLOAT, Parser::FLOAT,
                                          ValidCondition::FLOAT_ZERO_TO_ONE, [&scene] {
@@ -157,7 +157,7 @@ namespace merutilm::rff2 {
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackShader::BLOOM = [
             ](SettingsMenu &settingsMenu, RenderScene &scene) {
-        auto &[threshold, radius, softness, intensity] = scene.getAttribute().shader.bloom;
+        auto &[threshold, radius, softness, intensity] = scene.getSettings().shader.bloom;
         auto window = std::make_unique<SettingsWindow>(L"Set Bloom");
         window->registerTextInput<float>(L"Threshold", &threshold, Unparser::FLOAT, Parser::FLOAT,
                                          ValidCondition::FLOAT_ZERO_TO_ONE, [&scene] {
@@ -187,7 +187,7 @@ namespace merutilm::rff2 {
             MessageBoxW(nullptr, L"No colors found", L"Error", MB_OK | MB_ICONERROR);
             return;
         }
-        scene.getAttribute().shader.palette.colors = colors;
+        scene.getSettings().shader.palette.colors = colors;
         scene.getRequests().requestShader();
     };
 }

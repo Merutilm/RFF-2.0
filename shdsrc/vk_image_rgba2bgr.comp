@@ -3,7 +3,7 @@
 layout (set = 0, binding = 0) uniform sampler2D srcImage;
 layout (set = 0, binding = 1) writeonly buffer BGRSSBO {
     uint data[];
-} bgr_ssbo_attr;
+} bgr_ssbo_settings;
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
@@ -48,17 +48,17 @@ void main() {
     switch (index % 3) {
         case 0:
             {
-                bgr_ssbo_attr.data[index] = c2.b << 24 | c1.r << 16 | c1.g << 8 | c1.b;
+                bgr_ssbo_settings.data[index] = c2.b << 24 | c1.r << 16 | c1.g << 8 | c1.b;
                 return;
             }
         case 1:
             {
-                bgr_ssbo_attr.data[index] = c2.g << 24 | c2.b << 16 | c1.r << 8 | c1.g;
+                bgr_ssbo_settings.data[index] = c2.g << 24 | c2.b << 16 | c1.r << 8 | c1.g;
                 return;
             }
         case 2:
             {
-                bgr_ssbo_attr.data[index] = c2.r << 24 | c2.g << 16 | c2.b << 8 | c1.r;
+                bgr_ssbo_settings.data[index] = c2.r << 24 | c2.g << 16 | c2.b << 8 | c1.r;
                 return;
             }
     }

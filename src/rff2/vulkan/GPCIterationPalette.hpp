@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
-#include "../attr/ShdPaletteAttribute.h"
+#include "../settings/ShdPaletteSettings.h"
 
 namespace merutilm::rff2 {
     struct GPCIterationPalette final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
 
         void setMaxIteration(double maxIteration) const;
 
-        void setPalette(const ShdPaletteAttribute &palette) const;
+        void setPalette(const ShdPaletteSettings &palette) const;
 
         void pipelineInitialized() override;
 

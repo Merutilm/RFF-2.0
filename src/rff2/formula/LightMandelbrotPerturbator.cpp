@@ -13,34 +13,31 @@
 namespace merutilm::rff2 {
 
 
-    LightMandelbrotPerturbator::LightMandelbrotPerturbator(ParallelRenderState &state, const FractalAttribute &calc,
-                                                           const double dcMax, const int exp10,
-                                                           const uint64_t initialPeriod,
-                                                           ApproxTableCache &tableRef,
-                                                           std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                                                           std::function<void(uint64_t, double)> &&
-                                                           actionPerCreatingTableIteration,
-                                                           const bool arbitraryPrecisionFPGBn,
-                                                           std::unique_ptr<LightMandelbrotReference> reusedReference,
-                                                           std::unique_ptr<LightMPATable> reusedTable,
-                                                           const double offR,
-                                                           const double offI) : MandelbrotPerturbator(state, calc),
-                                                                                dcMax(dcMax), offR(offR), offI(offI) {
+    LightMandelbrotPerturbator::LightMandelbrotPerturbator(
+            ParallelRenderState &state, const FractalSettings &calc, const double dcMax, const int exp10,
+            const uint64_t initialPeriod, ApproxTableCache &tableRef,
+            std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+            std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration, const bool arbitraryPrecisionFPGBn,
+            std::unique_ptr<LightMandelbrotReference> reusedReference, std::unique_ptr<LightMPATable> reusedTable,
+            const double offR, const double offI) :
+        MandelbrotPerturbator(state, calc), dcMax(dcMax), offR(offR), offI(offI) {
+
         if (reusedReference == nullptr) {
-            reference = LightMandelbrotReference::createReference(state, calc, exp10, initialPeriod, dcMax,
+            this->referenceCreationResult = LightMandelbrotReference::generateReference(state, calc, exp10, initialPeriod, dcMax,
                                                                   arbitraryPrecisionFPGBn,
-                                                                  std::move(actionPerRefCalcIteration));
+                                                                  std::move(actionPerRefCalcIteration), &reference);
+
         } else {
             reference = std::move(reusedReference);
+            this->referenceCreationResult = Reference::CreationResult::SUCCESS;
         }
 
-        if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
+        if (this->referenceCreationResult != Reference::CreationResult::SUCCESS) {
             return;
         }
 
         if (reusedTable == nullptr) {
-            table = std::make_unique<LightMPATable>(state, *reference, &calc.mpaAttribute, dcMax,
-                                                    tableRef,
+            table = std::make_unique<LightMPATable>(state, *reference, &calc.mpaSettings, dcMax, tableRef,
                                                     std::move(actionPerCreatingTableIteration));
         } else {
             table = std::move(reusedTable);
@@ -49,7 +46,8 @@ namespace merutilm::rff2 {
 
 
     double LightMandelbrotPerturbator::iterate(const dex &dcr, const dex &dci) const {
-        if (state.interruptRequested()) return 0.0;
+        if (state.interruptRequested())
+            return 0.0;
 
         const double dcr1 = static_cast<double>(dcr) + offR;
         const double dci1 = static_cast<double>(dci) + offI;
@@ -70,7 +68,6 @@ namespace merutilm::rff2 {
         const uint64_t maxIteration = calc.maxIteration;
         const float bailout = calc.bailout;
         const float bailout2 = bailout * bailout;
-
 
 
         while (iteration < maxIteration) {
@@ -118,8 +115,8 @@ namespace merutilm::rff2 {
 
 
             if (zi == 0 && zr < 0.25 && zr >= -2) {
-                //IT IS NOT SATISFIED MPA SKIP RADIUS CONDITION.
-                //WHEN THE MAX ITERATION IS HIGH, REPEATS SEMI-INFINITELY.
+                // IT IS NOT SATISFIED MPA SKIP RADIUS CONDITION.
+                // WHEN THE MAX ITERATION IS HIGH, REPEATS SEMI-INFINITELY.
                 return static_cast<double>(maxIteration);
             }
 
@@ -137,7 +134,8 @@ namespace merutilm::rff2 {
                 break;
             }
 
-            if (absIteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return 0.0;
+            if (absIteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested())
+                return 0.0;
         }
 
         if (isAbs) {
@@ -155,8 +153,8 @@ namespace merutilm::rff2 {
     }
 
 
-    std::unique_ptr<LightMandelbrotPerturbator> LightMandelbrotPerturbator::reuse(
-        const FractalAttribute &calc, const double dcMax, ApproxTableCache &tableRef) {
+    std::unique_ptr<LightMandelbrotPerturbator>
+    LightMandelbrotPerturbator::reuse(const FractalSettings &calc, const double dcMax, ApproxTableCache &tableRef) {
 
         const int exp10 = logZoomToExp10(calc.logZoom);
         double offR = 0;
@@ -164,26 +162,28 @@ namespace merutilm::rff2 {
         uint64_t longestPeriod = 1;
         std::unique_ptr<LightMandelbrotReference> reusedReference = nullptr;
 
-        if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
-            //try to use process-terminated reference
-            MessageBox(nullptr, "Please do not try to use PROCESS-TERMINATED Reference.", "Warning",
+        if (this->referenceCreationResult != Reference::CreationResult::SUCCESS) {
+            // try to use incomplete reference
+            MessageBox(nullptr, "Please do not try to use incomplete Reference.", "Warning",
                        MB_OK | MB_ICONWARNING);
         } else {
             fp_complex_mutable centerOffset = calc.center.edit(exp10);
             centerOffset -= reference->center.edit(exp10);
-            offR = centerOffset.getReal().double_value();
-            offI = centerOffset.getImag().double_value();
+            offR = centerOffset.get_real().double_value();
+            offI = centerOffset.get_imag().double_value();
             longestPeriod = reference->longestPeriod();
             reusedReference = std::move(reference);
         }
 
 
-        return std::make_unique<LightMandelbrotPerturbator>(state, calc, dcMax, exp10, longestPeriod, tableRef,
-                                                            [](uint64_t) {
-                                                                //no action because the reference is already declared
-                                                            }, [](uint64_t, double) {
-                                                                //same reason
-                                                            }, false, std::move(reusedReference),
-                                                            std::move(table), offR, offI);
+        return std::make_unique<LightMandelbrotPerturbator>(
+                state, calc, dcMax, exp10, longestPeriod, tableRef,
+                [](uint64_t) {
+                    // no action because the reference is already declared
+                },
+                [](uint64_t, double) {
+                    // same reason
+                },
+                false, std::move(reusedReference), std::move(table), offR, offI);
     }
-}
+} // namespace merutilm::rff2

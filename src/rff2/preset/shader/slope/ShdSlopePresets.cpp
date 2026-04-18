@@ -11,24 +11,24 @@ namespace merutilm::rff2 {
         return "Disabled";
     }
 
-    ShdSlopeAttribute ShdSlopePresets::Disabled::genSlope() const {
-        return ShdSlopeAttribute{0, 0, 1.0f, 60, 135};
+    ShdSlopeSettings ShdSlopePresets::Disabled::genSlope() const {
+        return ShdSlopeSettings{0, 0, 1.0f, 60, 135};
     }
 
     std::string ShdSlopePresets::NoReflection::getName() const {
         return "No Reflection";
     }
 
-    ShdSlopeAttribute ShdSlopePresets::NoReflection::genSlope() const {
-        return ShdSlopeAttribute{300, 0, 1.0f, 60, 135};
+    ShdSlopeSettings ShdSlopePresets::NoReflection::genSlope() const {
+        return ShdSlopeSettings{300, 0, 1.0f, 60, 135};
     }
 
     std::string ShdSlopePresets::Reflective::getName() const {
         return "Reflective";
     }
 
-    ShdSlopeAttribute ShdSlopePresets::Reflective::genSlope() const {
-        return ShdSlopeAttribute{300, 0.5f, 1.0f, 60, 135};
+    ShdSlopeSettings ShdSlopePresets::Reflective::genSlope() const {
+        return ShdSlopeSettings{300, 0.5f, 1.0f, 60, 135};
     }
 
 
@@ -36,31 +36,31 @@ namespace merutilm::rff2 {
         return "Translucent";
     }
 
-    ShdSlopeAttribute ShdSlopePresets::Translucent::genSlope() const {
-        return ShdSlopeAttribute{300, 0, 0.5f, 60, 135};
+    ShdSlopeSettings ShdSlopePresets::Translucent::genSlope() const {
+        return ShdSlopeSettings{300, 0, 0.5f, 60, 135};
     }
 
     std::string ShdSlopePresets::Reversed::getName() const {
         return "Reversed";
     }
 
-    ShdSlopeAttribute ShdSlopePresets::Reversed::genSlope() const {
-        return ShdSlopeAttribute{-300, 0, 0.5f, 60, 135};
+    ShdSlopeSettings ShdSlopePresets::Reversed::genSlope() const {
+        return ShdSlopeSettings{-300, 0, 0.5f, 60, 135};
     }
 
     std::string ShdSlopePresets::Micro::getName() const {
         return "Micro";
     }
 
-    ShdSlopeAttribute ShdSlopePresets::Micro::genSlope() const {
-        return ShdSlopeAttribute{3, 0, 0.5f, 60, 135};
+    ShdSlopeSettings ShdSlopePresets::Micro::genSlope() const {
+        return ShdSlopeSettings{3, 0, 0.5f, 60, 135};
     }
 
     std::string ShdSlopePresets::Nano::getName() const {
         return "Nano";
     }
 
-    ShdSlopeAttribute ShdSlopePresets::Nano::genSlope() const {
-        return ShdSlopeAttribute{0.003f, 0, 0.5f, 60, 135};
+    ShdSlopeSettings ShdSlopePresets::Nano::genSlope() const {
+        return ShdSlopeSettings{0.003f, 0, 0.5f, 60, 135};
     }
 }

@@ -1,21 +1,23 @@
 #pragma once
 
-#include "FrtDecimalizeIterationMethod.h"
-#include "FrtMPAAttribute.h"
-#include "FrtReferenceCompAttribute.h"
-#include "FrtReuseReferenceMethod.h"
 #include "../calc/fp_complex.h"
+#include "FrtDecimalizeIterationMethod.h"
+#include "FrtMPASettings.h"
+#include "FrtReferenceCompSettings.h"
+#include "FrtReferenceSyncSettings.hpp"
+#include "FrtReuseReferenceMethod.h"
 
 
 namespace merutilm::rff2 {
-    struct FractalAttribute final{
+    struct FractalSettings final{
         fp_complex center;
         float logZoom;
         uint64_t maxIteration;
         float bailout;
+        FrtReferenceSyncSettings referenceSyncSettings;
         FrtDecimalizeIterationMethod decimalizeIterationMethod;
-        FrtMPAAttribute mpaAttribute;
-        FrtReferenceCompAttribute referenceCompAttribute;
+        FrtMPASettings mpaSettings;
+        FrtReferenceCompSettings referenceCompSettings;
         FrtReuseReferenceMethod reuseReferenceMethod;
         bool autoMaxIteration;
         uint16_t autoIterationMultiplier;

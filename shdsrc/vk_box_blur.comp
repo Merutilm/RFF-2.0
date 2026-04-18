@@ -5,7 +5,7 @@ layout (set = 0, binding = 1, rgba8) writeonly uniform image2D dstImage;
 
 layout (set = 1, binding = 0) uniform BlurTargetUBO {
     float blur_size;
-} blur_attr;
+} blur_settings;
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
@@ -17,7 +17,7 @@ void main() {
         return;
     }
     vec3 v = imageLoad(srcImage, gid).rgb;
-    int blur_radius = int(size.y * blur_attr.blur_size);
+    int blur_radius = int(size.y * blur_settings.blur_size);
     if (blur_radius <= 0) {
         imageStore(dstImage, gid, vec4(v, 1));
         return;

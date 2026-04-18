@@ -91,7 +91,7 @@ namespace merutilm::rff2 {
 
 
     void VideoWindow::createVideo(vkh::EngineRef engine,
-                                  const Attribute &attr,
+                                  const Settings &settings,
                                   const std::filesystem::path &open,
                                   const std::filesystem::path &save) {
         int imgWidth = 0;
@@ -105,7 +105,7 @@ namespace merutilm::rff2 {
             return;
         }
 
-        if (attr.video.data.isStatic) {
+        if (settings.video.data.isStatic) {
             const RFFStaticMapBinary targetMap = RFFStaticMapBinary::readByID(open, 1);
             if (!targetMap.hasData()) {
                 MessageBoxW(wnd, L"Cannot create video. There is no samples in the directory", L"Export failed",
@@ -133,14 +133,14 @@ namespace merutilm::rff2 {
         const auto cw = static_cast<uint32_t>(std::min(imgWidth, 1280));
         const auto ch = cw * imgHeight / imgWidth;
         auto window = VideoWindow(engine, cw, ch);
-        window.createScene(VkExtent2D{static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight)}, attr);
+        window.createScene(VkExtent2D{static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight)}, settings);
         auto &scene = *window.scene;
         bool exitFlag = false;
 
 
-        const auto &[defaultZoomIncrement, isStatic] = attr.video.data;
-        const auto &[overZoom, showText, mps] = attr.video.animation;
-        const auto &[fps, bitrate] = attr.video.exportation;
+        const auto &[defaultZoomIncrement, isStatic] = settings.video.data;
+        const auto &[overZoom, showText, mps] = settings.video.animation;
+        const auto &[fps, bitrate] = settings.video.exportation;
 
 
 
@@ -334,10 +334,10 @@ namespace merutilm::rff2 {
         ShowWindow(videoWindow, SW_SHOW);
     }
 
-    void VideoWindow::createScene(const VkExtent2D &videoExtent, const Attribute &targetAttribute) {
+    void VideoWindow::createScene(const VkExtent2D &videoExtent, const Settings &targetSettings) {
         const auto wc = engine.
                 attachWindowContext(renderWindow, Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX);
-        scene = std::make_unique<VideoRenderScene>(engine, *wc, videoExtent, targetAttribute);
+        scene = std::make_unique<VideoRenderScene>(engine, *wc, videoExtent, targetSettings);
     }
 
     void VideoWindow::destroy() {

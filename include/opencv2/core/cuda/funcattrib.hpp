@@ -57,8 +57,8 @@ namespace cv { namespace cuda { namespace device
     void printFuncAttrib(Func& func)
     {
 
-        cudaFuncAttributes attrs;
-        cudaFuncGetAttributes(&attrs, func);
+        cudaFuncSettingss attrs;
+        cudaFuncGetSettingss(&attrs, func);
 
         printf("=== Function stats ===\n");
         printf("Name: \n");

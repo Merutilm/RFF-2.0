@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
-#include "../attr/ShdFogAttribute.h"
+#include "../settings/ShdFogSettings.h"
 
 namespace merutilm::rff2 {
     struct GPCFog final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
@@ -31,7 +31,7 @@ namespace merutilm::rff2 {
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
-        void setFog(const ShdFogAttribute &fog) const;
+        void setFog(const ShdFogSettings &fog) const;
 
         void pipelineInitialized() override;
 

@@ -5,7 +5,7 @@
 #pragma once
 #include <glm/vec4.hpp>
 
-#include "../attr/ShdPaletteAttribute.h"
+#include "../settings/ShdPaletteSettings.h"
 
 namespace merutilm::rff2 {
     struct KFRColorLoader {

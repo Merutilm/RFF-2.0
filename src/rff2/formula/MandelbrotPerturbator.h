@@ -3,27 +3,29 @@
 //
 
 #pragma once
-#include "MandelbrotReference.h"
-#include "Perturbator.h"
 #include "../mrthy/MPATable.h"
 #include "../parallel/ParallelRenderState.h"
-#include "../attr/FractalAttribute.h"
+#include "../settings/FractalSettings.h"
+#include "MandelbrotReference.h"
+#include "Perturbator.h"
 
 namespace merutilm::rff2 {
     struct MandelbrotPerturbator : public Perturbator {
+
         ParallelRenderState &state;
-        const FractalAttribute calc;
+        const FractalSettings calc;
+        Reference::CreationResult referenceCreationResult = Reference::CreationResult::FAILED;
 
         explicit MandelbrotPerturbator(ParallelRenderState &state,
-                                       const FractalAttribute &calculationSettings) : state(state),
-            calc(calculationSettings) {
+                                       FractalSettings calculationSettings) : state(state),
+            calc(std::move(calculationSettings)) {
         }
 
         ~MandelbrotPerturbator() override = default;
 
         virtual const MandelbrotReference *getReference() const = 0;
 
-        const FractalAttribute &getCalculationSettings() const {
+        const FractalSettings &getCalculationSettings() const {
             return calc;
         };
 

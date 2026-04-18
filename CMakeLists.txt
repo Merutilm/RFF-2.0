@@ -12,35 +12,35 @@ add_executable(
         src/rff2/ui/Main.cpp
         src/rff2/calc/fp_complex_mutable.h
         src/rff2/constants/Constants.hpp
-        src/rff2/attr/Attribute.h
-        src/rff2/attr/FractalAttribute.h
-        src/rff2/attr/RenderAttribute.h
-        src/rff2/attr/ShaderAttribute.h
-        src/rff2/attr/ShdSlopeAttribute.h
-        src/rff2/attr/ShdStripeAttribute.h
-        src/rff2/attr/ShdColorAttribute.h
-        src/rff2/attr/ShdPaletteAttribute.h
-        src/rff2/attr/ShdFogAttribute.h
-        src/rff2/attr/VideoAttribute.h
-        src/rff2/attr/ShdBloomAttribute.h
-        src/rff2/attr/VidDataAttribute.h
-        src/rff2/attr/VidExportAttribute.h
-        src/rff2/attr/FrtMPAAttribute.h
+        src/rff2/settings/Settings.h
+        src/rff2/settings/FractalSettings.h
+        src/rff2/settings/RenderSettings.h
+        src/rff2/settings/ShaderSettings.h
+        src/rff2/settings/ShdSlopeSettings.h
+        src/rff2/settings/ShdStripeSettings.h
+        src/rff2/settings/ShdColorSettings.h
+        src/rff2/settings/ShdPaletteSettings.h
+        src/rff2/settings/ShdFogSettings.h
+        src/rff2/settings/VideoSettings.h
+        src/rff2/settings/ShdBloomSettings.h
+        src/rff2/settings/VidDataSettings.h
+        src/rff2/settings/VidExportSettings.h
+        src/rff2/settings/FrtMPASettings.h
         src/rff2/calc/fp_complex.h
-        src/rff2/attr/FrtDecimalizeIterationMethod.h
-        src/rff2/attr/FrtReferenceCompAttribute.h
-        src/rff2/attr/FrtReuseReferenceMethod.h
-        src/rff2/attr/Selectable.h
+        src/rff2/settings/FrtDecimalizeIterationMethod.h
+        src/rff2/settings/FrtReferenceCompSettings.h
+        src/rff2/settings/FrtReuseReferenceMethod.h
+        src/rff2/settings/Selectable.h
         src/rff2/calc/fp_decimal_mutable.h
         src/rff2/calc/fp_decimal.h
         src/rff2/formula/Perturbator.h
         src/rff2/io/RFFDynamicMapBinary.cpp
         src/rff2/io/RFFDynamicMapBinary.h
         src/rff2/data/Matrix.h
-        src/rff2/attr/ShdPalColorSmoothingMethod.h
-        src/rff2/data/ColorUtils.h
-        src/rff2/attr/ShdStripeType.h
-        src/rff2/attr/VidAnimationAttribute.h
+        src/rff2/settings/ShdPalColorSmoothingMethod.h
+        src/rff2/util/ColorUtils.h
+        src/rff2/settings/ShdStripeType.h
+        src/rff2/settings/VidAnimationSettings.h
         src/rff2/formula/LightMandelbrotReference.cpp
         src/rff2/formula/LightMandelbrotReference.h
         src/rff2/parallel/ParallelRenderState.cpp
@@ -325,6 +325,9 @@ add_executable(
         src/rff2/vulkan/CPCImageRGBA2BGR.cpp
         src/rff2/vulkan/CPCImageRGBA2BGR.hpp
         src/rff2/ui/VideoBufferCache.hpp
+        src/rff2/util/profiler.hpp
+        src/rff2/formula/Reference.hpp
+        src/rff2/settings/FrtReferenceSyncSettings.hpp
 )
 
 find_package(Vulkan REQUIRED)

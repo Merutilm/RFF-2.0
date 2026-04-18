@@ -6,8 +6,8 @@
 
 #include "../calc/double_exp_math.h"
 #include "../calc/rff_math.h"
-#include "../mrthy/ArrayCompressor.h"
 #include "../constants/Constants.hpp"
+#include "../mrthy/ArrayCompressor.h"
 
 
 namespace merutilm::rff2 {
@@ -15,13 +15,10 @@ namespace merutilm::rff2 {
                                                      std::vector<dex> &&refImag,
                                                      std::vector<ArrayCompressionTool> &&compressor,
                                                      std::vector<uint64_t> &&period, fp_complex &&fpgReference,
-                                                     fp_complex &&fpgBn) : MandelbrotReference(std::move(center),
-                                                                               std::move(compressor), std::move(period),
-                                                                               std::move(fpgReference),
-                                                                               std::move(fpgBn)),
-                                                                           refReal(std::move(refReal)),
-                                                                           refImag(std::move(refImag)) {
-    }
+                                                     fp_complex &&fpgBn) :
+        MandelbrotReference(std::move(center), std::move(compressor), std::move(period), std::move(fpgReference),
+                            std::move(fpgBn)),
+        refReal(std::move(refReal)), refImag(std::move(refImag)) {}
 
 
     /**
@@ -29,18 +26,21 @@ namespace merutilm::rff2 {
      * @param state the processor
      * @param calc calculation settings
      * @param exp10 the exponent of 10 for arbitrary-precision operation
-     * @param initialPeriod the initial period. default value is 0. i.e. maximum iterations of arbitrary-precision operation
+     * @param initialPeriod the initial period. default value is 0. i.e. maximum iterations of arbitrary-precision
+     * operation
      * @param dcMax the length of center-to-vertex of screen.
      * @param strictFPG use arbitrary-precision operation for fpg_bn calculation
      * @param actionPerRefCalcIteration the action of every iteration
-     * @return the result of generation. but returns @code PROCESS_TERMINATED_REFERENCE@endcode if the process is terminated
+     * @return the result of generation. but returns @code PROCESS_TERMINATED_REFERENCE@endcode if the process is
+     * terminated
      */
-    std::unique_ptr<DeepMandelbrotReference> DeepMandelbrotReference::createReference(
-        const ParallelRenderState &state, const FractalAttribute &calc, int exp10, uint64_t initialPeriod,
-        dex dcMax,
-        const bool strictFPG, std::function<void(uint64_t)> &&actionPerRefCalcIteration) {
+    Reference::CreationResult
+    DeepMandelbrotReference::createReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
+                                             uint64_t initialPeriod, dex dcMax, const bool strictFPG,
+                                             std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                                             std::unique_ptr<DeepMandelbrotReference> *result) {
         if (state.interruptRequested()) {
-            return Constants::NullPointer::PROCESS_TERMINATED_REFERENCE;
+            return CreationResult::TERMINATED;
         }
 
         auto rr = std::vector<dex>();
@@ -70,7 +70,7 @@ namespace merutilm::rff2 {
         auto tools = std::vector<ArrayCompressionTool>();
         uint64_t compressed = 0;
         uint64_t maxIteration = calc.maxIteration;
-        auto [compressCriteria, compressionThresholdPower, withoutNormalize] = calc.referenceCompAttribute;
+        auto [compressCriteria, compressionThresholdPower, withoutNormalize] = calc.referenceCompSettings;
         auto func = std::move(actionPerRefCalcIteration);
 
         double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
@@ -79,9 +79,11 @@ namespace merutilm::rff2 {
         std::unique_ptr<fp_complex> fpgReference = nullptr;
         auto temps = std::array<dex, 8>();
 
+
+        // TODO improvement required
         while ((iteration == 0 || dex_trigonometric::hypot2(zr, zi) < bailoutSqr) && iteration < maxIteration) {
-            if (iteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
-                return Constants::NullPointer::PROCESS_TERMINATED_REFERENCE;
+            if (state.interruptRequested()) {
+                return CreationResult::TERMINATED;
             }
 
             // use Fast-Period-Guessing, and create MPA Table
@@ -119,8 +121,8 @@ namespace merutilm::rff2 {
 
                 dex::sub(&temps[4], temps[4], temps[1]);
 
-                if ((fpgReference == nullptr && temps[4].sgn() == 1) || temps[0].sgn() == 0 || (
-                        initialPeriod != 0 && initialPeriod == iteration)) {
+                if ((fpgReference == nullptr && temps[4].sgn() == 1) || temps[0].sgn() == 0 ||
+                    (initialPeriod != 0 && initialPeriod == iteration)) {
                     periodArray.push_back(iteration);
                     fpgReference = std::make_unique<fp_complex>(z);
                     break;
@@ -136,12 +138,12 @@ namespace merutilm::rff2 {
                 z.halved();
             }
 
-            //Let's do arbitrary-precision operation!!
+            // Let's do arbitrary-precision operation!!
             func(iteration);
             z.square();
             z += c;
-            z.getReal().double_exp_value(&zr);
-            z.getImag().double_exp_value(&zi);
+            z.get_real().double_exp_value(&zr);
+            z.get_imag().double_exp_value(&zi);
 
             if (zr.sgn() == 0) {
                 dex::cpy(&zr, dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER));
@@ -176,24 +178,23 @@ namespace merutilm::rff2 {
                 const uint64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
                 const bool sr = zr.sgn() == rr[refIndex].sgn() && zr.sgn() == 0;
                 const bool si = zi.sgn() == ri[refIndex].sgn() && zi.sgn() == 0;
-                if (!sr) dex::div(&temps[0], zr, rr[refIndex]);
-                if (!si) dex::div(&temps[1], zi, ri[refIndex]);
+                if (!sr)
+                    dex::div(&temps[0], zr, rr[refIndex]);
+                if (!si)
+                    dex::div(&temps[1], zi, ri[refIndex]);
 
-                if (
-                    (sr || std::fabs(static_cast<double>(temps[0]) - 1) <= compressionThreshold) &&
-                    (si || std::fabs(static_cast<double>(temps[1]) - 1) <= compressionThreshold) && canReuse
-                ) {
+                if ((sr || std::fabs(static_cast<double>(temps[0]) - 1) <= compressionThreshold) &&
+                    (si || std::fabs(static_cast<double>(temps[1]) - 1) <= compressionThreshold) && canReuse) {
                     ++reuseIndex;
                 } else if (reuseIndex != 0) {
                     if (reuseIndex > compressCriteria) {
                         // reference compression criteria
 
-                        const auto compressor = ArrayCompressionTool(
-                            1, iteration - reuseIndex + 1, iteration);
-                        compressed += compressor.range(); //get the increment of iteration
+                        const auto compressor = ArrayCompressionTool(1, iteration - reuseIndex + 1, iteration);
+                        compressed += compressor.range(); // get the increment of iteration
                         tools.push_back(compressor);
                     }
-                    //If it is enough to large, set all reference in the range to 0 and save the index
+                    // If it is enough to large, set all reference in the range to 0 and save the index
 
                     reuseIndex = 0;
                     canReuse = withoutNormalize;
@@ -203,8 +204,7 @@ namespace merutilm::rff2 {
             period = ++iteration;
 
             if (compressCriteria == 0 || reuseIndex <= compressCriteria) {
-                if (const uint64_t index = iteration - compressed;
-                    index == rr.size()) {
+                if (const uint64_t index = iteration - compressed; index == rr.size()) {
                     rr.push_back(zr);
                     ri.push_back(zi);
                 } else {
@@ -214,8 +214,10 @@ namespace merutilm::rff2 {
             }
         }
 
-        if (!strictFPG) fpgBn = fp_complex_mutable(fpgBnr, fpgBni, exp10);
-        if (fpgReference == nullptr) fpgReference = std::make_unique<fp_complex>(z);
+        if (!strictFPG)
+            fpgBn = fp_complex_mutable(fpgBnr, fpgBni, exp10);
+        if (fpgReference == nullptr)
+            fpgReference = std::make_unique<fp_complex>(z);
 
         rr.resize(period - compressed + 1);
         ri.resize(period - compressed + 1);
@@ -223,9 +225,11 @@ namespace merutilm::rff2 {
         ri.shrink_to_fit();
         periodArray = periodArray.empty() ? std::vector(1, period) : periodArray;
 
-        return std::make_unique<DeepMandelbrotReference>(std::move(center), std::move(rr), std::move(ri),
-                                                         std::move(tools),
-                                                         std::move(periodArray), std::move(*fpgReference), fp_complex(fpgBn));
+        *result = std::make_unique<DeepMandelbrotReference>(std::move(center), std::move(rr), std::move(ri),
+                                                            std::move(tools), std::move(periodArray),
+                                                            std::move(*fpgReference), fp_complex(fpgBn));
+
+        return CreationResult::SUCCESS;
     }
 
 
@@ -238,12 +242,8 @@ namespace merutilm::rff2 {
     }
 
 
-    size_t DeepMandelbrotReference::length() const {
-        return refReal.size();
-    }
+    size_t DeepMandelbrotReference::length() const { return refReal.size(); }
 
 
-    uint64_t DeepMandelbrotReference::longestPeriod() const {
-        return period.back();
-    }
-}
+    uint64_t DeepMandelbrotReference::longestPeriod() const { return period.back(); }
+} // namespace merutilm::rff2

@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include "../attr/FrtDecimalizeIterationMethod.h"
 #include "../constants/Constants.hpp"
+#include "../settings/FrtDecimalizeIterationMethod.h"
 
 namespace merutilm::rff2 {
     struct Perturbator {

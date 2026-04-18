@@ -175,7 +175,7 @@ namespace merutilm::rff2 {
                 const auto popup = reinterpret_cast<HMENU>(wparam);
                 const int count = GetMenuItemCount(popup);
                 for (int i = 0; i < count; ++i) {
-                    //synchronize current attr
+                    //synchronize current settings
                     MENUITEMINFO info = {};
                     info.cbSize = sizeof(MENUITEMINFO);
                     info.fMask = MIIM_ID;
@@ -245,7 +245,7 @@ namespace merutilm::rff2 {
         }
         if (scene->isFPSRequested() != 0) {
             engine->getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).getWindow().setFramerate(
-                scene->getAttribute().render.fps);
+                scene->getSettings().render.fps);
             scene->wndFPSRequestSolved();
         }
     }

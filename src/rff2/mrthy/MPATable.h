@@ -5,32 +5,37 @@
 #pragma once
 #include <vector>
 
+#include <algorithm>
+#include "../constants/Constants.hpp"
+#include "../data/ApproxTableCache.h"
+#include "../settings/FrtMPACompressionMethod.h"
 #include "ArrayCompressionTool.h"
 #include "ArrayCompressor.h"
 #include "DeepPAGenerator.h"
 #include "LightPAGenerator.h"
 #include "MPAPeriod.h"
-#include "../data/ApproxTableCache.h"
-#include "../attr/FrtMPACompressionMethod.h"
-#include "../constants/Constants.hpp"
-#include <algorithm>
 
-#include "../../vulkan_helper/util/BufferImageUtils.hpp"
 #include "../../vulkan_helper/core/logger.hpp"
-#include "../ui/Utilities.h"
 
 namespace merutilm::rff2 {
     template<typename Ref, typename Num>
     struct MPATable {
         static constexpr int REQUIRED_PERTURBATION = 2;
 
-        const FrtMPAAttribute mpaSettings;
+        const FrtMPASettings mpaSettings;
+
+        //pulled mpa : fill only valid elements from the sparse mpa vector
+        //pulled mpa compressor : distinct the elements from "pulled mpa"
         std::vector<ArrayCompressionTool> pulledMPACompressor = std::vector<ArrayCompressionTool>();
+
+        //important data to generate
         std::unique_ptr<MPAPeriod> mpaPeriod = nullptr;
+
+        //table caches
         ApproxTableCache &tableRef;
 
         explicit MPATable(const ParallelRenderState &state, const Ref &reference,
-                          const FrtMPAAttribute *mpaSettings, const Num &dcMax,
+                          const FrtMPASettings *mpaSettings, const Num &dcMax,
                           ApproxTableCache &tableRef,
                           std::function<void(uint64_t, double)> &&
                           actionPerCreatingTableIteration);
@@ -39,9 +44,9 @@ namespace merutilm::rff2 {
         virtual ~MPATable() = default;
 
     protected:
-        void initTable(const MandelbrotReference &reference);
+        [[nodiscard]] bool tryInit(const MandelbrotReference &reference);
 
-        std::vector<ArrayCompressionTool> createPulledMPACompressor(
+        [[nodiscard]] std::vector<ArrayCompressionTool> generatePulledMPACompressor(
             const std::vector<ArrayCompressionTool> &referenceCompressor) const;
 
         static uint64_t binarySearch(const std::vector<uint64_t> &arr, uint64_t key);
@@ -87,39 +92,47 @@ namespace merutilm::rff2 {
 
     template<typename Ref, typename Num>
     MPATable<Ref, Num>::MPATable(const ParallelRenderState &state, const Ref &reference,
-                                 const FrtMPAAttribute *mpaSettings, const Num &dcMax,
+                                 const FrtMPASettings *mpaSettings, const Num &dcMax,
                                  ApproxTableCache &tableRef,
                                  std::function<void(uint64_t, double)> &&
                                  actionPerCreatingTableIteration) : mpaSettings(*mpaSettings), tableRef(tableRef) {
-        initTable(reference);
-        if constexpr (std::is_same_v<Ref, LightMandelbrotReference>) {
-            generateTable<LightPA, LightPAGenerator>(state, reference, dcMax,
-                                                     std::move(actionPerCreatingTableIteration));
-        } else {
-            generateTable<DeepPA, DeepPAGenerator>(state, reference, dcMax, std::move(actionPerCreatingTableIteration));
+
+        if (tryInit(reference)) {
+
+            if constexpr (std::is_same_v<Ref, LightMandelbrotReference>) {
+                generateTable<LightPA, LightPAGenerator>(state, reference, dcMax,
+                                                         std::move(actionPerCreatingTableIteration));
+            } else {
+                generateTable<DeepPA, DeepPAGenerator>(state, reference, dcMax, std::move(actionPerCreatingTableIteration));
+            }
         }
+
     }
 
+
+    //[re] init mpa periods and compressors
     template<typename Ref, typename Num>
-    void MPATable<Ref, Num>::initTable(const MandelbrotReference &reference) {
+    bool MPATable<Ref, Num>::tryInit(const MandelbrotReference &reference) {
         const auto &referencePeriod = reference.period;
         const uint64_t longestPeriod = reference.longestPeriod();
 
         if (const int minSkip = mpaSettings.minSkipReference;
             longestPeriod < minSkip) {
+            this->mpaPeriod = nullptr;
             this->pulledMPACompressor = std::vector<ArrayCompressionTool>();
-            return;
+            return false;
         }
 
         const FrtMPACompressionMethod compressionMethod = mpaSettings.mpaCompressionMethod;
-        this->mpaPeriod = MPAPeriod::create(referencePeriod, mpaSettings);
+        this->mpaPeriod = MPAPeriod::generate(referencePeriod, mpaSettings);
         this->pulledMPACompressor = compressionMethod == FrtMPACompressionMethod::STRONGEST
-                                        ? createPulledMPACompressor(reference.compressor)
+                                        ? generatePulledMPACompressor(reference.compressor)
                                         : std::vector<ArrayCompressionTool>();
+        return true;
     }
 
     template<typename Ref, typename Num>
-    std::vector<ArrayCompressionTool> MPATable<Ref, Num>::createPulledMPACompressor(
+    std::vector<ArrayCompressionTool> MPATable<Ref, Num>::generatePulledMPACompressor(
         const std::vector<ArrayCompressionTool> &referenceCompressor) const {
         std::vector<ArrayCompressionTool> mpaTools;
         auto &tablePeriod = mpaPeriod->tablePeriod;
@@ -176,12 +189,6 @@ namespace merutilm::rff2 {
     template<typename PAB, typename PAG>
     void MPATable<Ref, Num>::generateTable(const ParallelRenderState &state, const Ref &reference, Num dcMax,
                                            std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) {
-        const auto func = std::move(actionPerCreatingTableIteration);
-        initTable(reference);
-
-        if (mpaPeriod == nullptr) {
-            return;
-        }
 
         std::vector<std::vector<PAB> > *tablePtr;
         if constexpr (std::is_same_v<LightPA, PAB>) {
@@ -220,8 +227,9 @@ namespace merutilm::rff2 {
         table.reserve(size);
         allocateTableSize<PAB>(table, 0, levels);
         const std::vector<PAB> &mainReferenceMPA = table[0];
-        auto dpTableTemps = std::array<dex, 8>();
+        const auto func = std::move(actionPerCreatingTableIteration);
 
+        auto dpTableTemps = std::array<dex, 8>();
 
         while (iteration <= longestPeriod) {
             if (absIteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) return;

@@ -5,7 +5,7 @@
 #pragma once
 
 namespace merutilm::rff2 {
-    struct VidAnimationAttribute {
+    struct VidAnimationSettings {
         float overZoom;
         bool showText;
         float mps;

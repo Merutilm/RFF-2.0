@@ -4,7 +4,9 @@
 
 #include "LightPAGenerator.h"
 #include <cfloat>
+
 #include "../calc/rff_math.h"
+#include "ArrayCompressor.h"
 
 namespace merutilm::rff2 {
     LightPAGenerator::LightPAGenerator(const LightMandelbrotReference &reference, const double epsilon, const double dcMax,

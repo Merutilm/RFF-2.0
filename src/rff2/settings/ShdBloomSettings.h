@@ -5,7 +5,7 @@
 #pragma once
 
 namespace merutilm::rff2 {
-    struct ShdBloomAttribute {
+    struct ShdBloomSettings {
         float threshold;
         float radius;
         float softness;

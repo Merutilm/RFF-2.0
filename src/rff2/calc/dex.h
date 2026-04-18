@@ -5,6 +5,7 @@
 #pragma once
 #include <cmath>
 #include <format>
+#include <iostream>
 #include <string>
 
 #include "../constants/Constants.hpp"

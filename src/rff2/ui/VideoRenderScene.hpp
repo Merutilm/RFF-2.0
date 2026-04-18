@@ -5,11 +5,11 @@
 #pragma once
 #include <queue>
 
+#include "../../vulkan_helper/handle/EngineHandler.hpp"
+#include "../io/RFFDynamicMapBinary.h"
+#include "../settings/Settings.h"
 #include "VideoBufferCache.hpp"
 #include "VideoRenderSceneRenderer.hpp"
-#include "../../vulkan_helper/handle/EngineHandler.hpp"
-#include "../attr/Attribute.h"
-#include "../io/RFFDynamicMapBinary.h"
 
 namespace merutilm::rff2 {
     class VideoRenderScene final : vkh::EngineHandler {
@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
         RFFBinary *normal = nullptr;
         RFFBinary *zoomed = nullptr;
         const VkExtent2D videoExtent;
-        const Attribute targetAttribute;
+        const Settings targetSettings;
         std::unique_ptr<VideoRenderSceneRenderer> renderer = nullptr;
 
         std::mutex bufferCachedMutex;
@@ -26,7 +26,7 @@ namespace merutilm::rff2 {
         std::condition_variable bufferCachedCondition;
 
     public:
-        explicit VideoRenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc, const VkExtent2D &videoExtent, const Attribute &targetAttribute);
+        explicit VideoRenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc, const VkExtent2D &videoExtent, const Settings &targetSettings);
 
         ~VideoRenderScene() override;
 

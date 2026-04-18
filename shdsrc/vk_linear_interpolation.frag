@@ -3,7 +3,7 @@
 layout(set = 0, binding = 0) uniform sampler2D canvas;
 layout(set = 1, binding = 0) uniform LinearInterpolationUBO{
     bool use;
-} linear_interpolation_attr;
+} linear_interpolation_settings;
 
 layout(location = 0) in vec3 fragColor;
 layout(location = 1) in vec2 fragTexcoord;
@@ -14,7 +14,7 @@ void main() {
 
     ivec2 coord = ivec2(gl_FragCoord.xy);
 
-    if (!linear_interpolation_attr.use) {
+    if (!linear_interpolation_settings.use) {
         color = texelFetch(canvas, coord, 0);
         return;
     }

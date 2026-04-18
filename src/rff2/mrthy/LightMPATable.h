@@ -5,11 +5,11 @@
 #pragma once
 #include <vector>
 
-#include "LightPA.h"
-#include "MPATable.h"
 #include "../calc/rff_math.h"
 #include "../formula/LightMandelbrotReference.h"
-#include "../attr/FrtMPAAttribute.h"
+#include "../settings/FrtMPASettings.h"
+#include "LightPA.h"
+#include "MPATable.h"
 
 namespace merutilm::rff2 {
     class LightMPATable final : public MPATable<LightMandelbrotReference, double>{
@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
 
 
         explicit LightMPATable(const ParallelRenderState &state, const LightMandelbrotReference &reference,
-                      const FrtMPAAttribute *mpaSettings, double dcMax, ApproxTableCache &tableRef,
+                      const FrtMPASettings *mpaSettings, const double dcMax, ApproxTableCache &tableRef,
                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, tableRef, std::move(actionPerCreatingTableIteration)) {
 
         };
@@ -34,7 +34,7 @@ namespace merutilm::rff2 {
 
         LightMPATable &operator=(LightMPATable &&) noexcept = delete;
 
-        LightPA *lookup(uint64_t refIteration, double dzr, double dzi) const;
+        [[nodiscard]] LightPA *lookup(uint64_t refIteration, double dzr, double dzi) const;
 
         size_t getLength() override;
 

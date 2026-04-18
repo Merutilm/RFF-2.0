@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
-#include "../attr/ShdStripeAttribute.h"
+#include "../settings/ShdStripeSettings.h"
 
 namespace merutilm::rff2 {
     struct GPCStripe final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
@@ -35,7 +35,7 @@ namespace merutilm::rff2 {
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
-        void setStripe(const ShdStripeAttribute &stripe) const;
+        void setStripe(const ShdStripeSettings &stripe) const;
 
         void pipelineInitialized() override;
 

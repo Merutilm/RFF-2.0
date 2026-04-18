@@ -14,7 +14,7 @@
 #include <memory>
 #include <optional>
 
-#include "../attr/Selectable.h"
+#include "../settings/Selectable.h"
 
 namespace merutilm::rff2 {
     class SettingsWindow {

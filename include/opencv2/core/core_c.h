@@ -2008,7 +2008,7 @@ It must be called after all I/O operations with the storage are finished.
 CVAPI(void) cvReleaseFileStorage( CvFileStorage** fs );
 
 /** returns attribute value or 0 (NULL) if there is no such attribute */
-CVAPI(const char*) cvAttrValue( const CvAttrList* attr, const char* attr_name );
+CVAPI(const char*) cvAttrValue( const CvAttrList* settings, const char* attr_name );
 
 /** @brief Starts writing a new structure.
 
@@ -2114,7 +2114,7 @@ CVAPI(void) cvWriteComment( CvFileStorage* fs, const char* comment,
 The function writes an object to file storage. First, the appropriate type info is found using
 cvTypeOf. Then, the write method associated with the type info is called.
 
-Attributes are used to customize the writing procedure. The standard types support the following
+Settingss are used to customize the writing procedure. The standard types support the following
 attributes (all the dt attributes have the same format as in cvWriteRawData):
 
 -# CvSeq

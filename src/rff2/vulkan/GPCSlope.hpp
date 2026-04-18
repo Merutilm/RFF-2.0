@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
-#include "../attr/ShdSlopeAttribute.h"
+#include "../settings/ShdSlopeSettings.h"
 
 namespace merutilm::rff2 {
     struct GPCSlope final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
@@ -22,7 +22,7 @@ namespace merutilm::rff2 {
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
-        void setSlope(const ShdSlopeAttribute &slope) const;
+        void setSlope(const ShdSlopeSettings &slope) const;
 
         void pipelineInitialized() override;
 

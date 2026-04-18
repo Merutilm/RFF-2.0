@@ -5,39 +5,34 @@
 #pragma once
 #include <vector>
 
-#include "MandelbrotReference.h"
 #include "../calc/fp_complex.h"
 #include "../parallel/ParallelRenderState.h"
-#include "../attr/FractalAttribute.h"
+#include "../settings/FractalSettings.h"
+#include "MandelbrotReference.h"
 
 struct ArrayCompressionTool;
 
 namespace merutilm::rff2 {
-    struct DeepMandelbrotReference final : public MandelbrotReference{
+    struct DeepMandelbrotReference final : public MandelbrotReference {
         const std::vector<dex> refReal;
         const std::vector<dex> refImag;
 
 
-        DeepMandelbrotReference(fp_complex &&center, std::vector<dex> &&refReal,
-                                 std::vector<dex> &&refImag, std::vector<ArrayCompressionTool> &&compressor,
-                                 std::vector<uint64_t> &&period, fp_complex &&fpgReference, fp_complex &&fpgBn);
+        explicit DeepMandelbrotReference(fp_complex &&center, std::vector<dex> &&refReal, std::vector<dex> &&refImag,
+                                         std::vector<ArrayCompressionTool> &&compressor, std::vector<uint64_t> &&period,
+                                         fp_complex &&fpgReference, fp_complex &&fpgBn);
 
-        static std::unique_ptr<DeepMandelbrotReference> createReference(const ParallelRenderState &state,
-                                                                         const FractalAttribute &calc, int exp10,
-                                                                         uint64_t initialPeriod, dex dcMax, bool
-                                                                         strictFPG,
-                                                                         std::function<void(uint64_t)> &&
-                                                                         actionPerRefCalcIteration);
+        static CreationResult createReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
+                                              uint64_t initialPeriod, dex dcMax, bool strictFPG,
+                                              std::function<void(uint64_t)> &&actionPerRefCalcIteration,  std::unique_ptr<DeepMandelbrotReference> *result);
 
 
+        [[nodiscard]] dex real(uint64_t refIteration) const;
 
-        dex real(uint64_t refIteration) const;
+        [[nodiscard]] dex imag(uint64_t refIteration) const;
 
-        dex imag(uint64_t refIteration) const;
+        [[nodiscard]] size_t length() const override;
 
-        size_t length() const override;
-
-        uint64_t longestPeriod() const override;
-
+        [[nodiscard]] uint64_t longestPeriod() const override;
     };
-}
+} // namespace merutilm::rff2

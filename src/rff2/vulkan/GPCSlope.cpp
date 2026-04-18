@@ -16,7 +16,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void GPCSlope::setSlope(const ShdSlopeAttribute &slope) const {
+    void GPCSlope::setSlope(const ShdSlopeSettings &slope) const {
         using namespace SharedDescriptorTemplate;
         auto &slopeDesc = getDescriptor(SET_SLOPE);
         const auto &slopeUBO = slopeDesc.get<vkh::Uniform>(0, DescSlope::BINDING_UBO_SLOPE);

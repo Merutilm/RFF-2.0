@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include "../calc/rff_math.h"
 #include <glm/glm.hpp>
+#include "../calc/rff_math.h"
 
 namespace merutilm::rff2 {
     struct ColorUtils {

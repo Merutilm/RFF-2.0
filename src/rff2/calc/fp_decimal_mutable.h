@@ -212,8 +212,8 @@ namespace merutilm::rff2 {
      */
     inline void fp_decimal_mutable::fp_mul(fp_decimal_mutable &out, const fp_decimal_mutable &a,
                                         const fp_decimal_mutable &b) {
-        mpz_mul(out.temp, a.value, b.value);
-        mpz_div_2exp(out.value, out.temp, -a.exp2);
+        mpz_mul(out.value, a.value, b.value);
+        mpz_div_2exp(out.value, out.value, -a.exp2);
     }
 
     /**
@@ -228,12 +228,12 @@ namespace merutilm::rff2 {
         const auto vbl = static_cast<int>(mpz_sizeinbase(b.value, 2));
 
         const int e = b.exp2 + vbl;
-        mpz_mul_2exp(out.temp, a.value, vbl);
-        mpz_div(out.temp, out.temp, b.value);
+        mpz_mul_2exp(out.value, a.value, vbl);
+        mpz_div(out.value, out.value, b.value);
         if (e < 0) {
-            mpz_mul_2exp(out.value, out.temp, -e);
+            mpz_mul_2exp(out.value, out.value, -e);
         } else {
-            mpz_div_2exp(out.value, out.temp, e);
+            mpz_div_2exp(out.value, out.value, e);
         }
     }
 
