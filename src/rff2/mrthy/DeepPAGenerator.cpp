@@ -8,7 +8,7 @@
 #include "../calc/double_exp_math.h"
 
 namespace merutilm::rff2 {
-    DeepPAGenerator::DeepPAGenerator(const DeepMandelbrotReference &reference, const double epsilon, const dex &dcMax,
+    DeepPAGenerator::DeepPAGenerator(const DeepMB2Reference &reference, const double epsilon, const dex &dcMax,
                                                     const uint64_t start, std::array<dex, 8> &temps) : PAGenerator(start, 0, reference.compressor, epsilon), anr(dex::ONE),
                                                                                          ani(dex::ZERO),
                                                                                          bnr(dex::ZERO), bni(dex::ZERO),

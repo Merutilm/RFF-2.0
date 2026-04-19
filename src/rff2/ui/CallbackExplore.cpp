@@ -11,7 +11,7 @@
 
 #include "RenderScene.hpp"
 #include "../constants/Constants.hpp"
-#include "../locator/MandelbrotLocator.h"
+#include "../locator/MB2Locator.h"
 
 namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::RECOMPUTE = [
@@ -31,12 +31,12 @@ namespace merutilm::rff2 {
     };
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::FIND_CENTER = [
             ](const SettingsMenu &, RenderScene &scene) {
-        const MandelbrotPerturbator *perturbator = scene.getCurrentPerturbator();
+        const MB2Perturbator *perturbator = scene.getCurrentPerturbator();
         if (perturbator == nullptr || perturbator->getReference() == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
             return;
         }
 
-        if (const std::unique_ptr<fp_complex> c = MandelbrotLocator::findCenter(perturbator); c == nullptr) {
+        if (const std::unique_ptr<fp_complex> c = MB2Locator::findCenter(perturbator); c == nullptr) {
             MessageBox(nullptr, "No center found!", "Caution", MB_OK | MB_ICONWARNING);
         } else {
             scene.getSettings().fractal.center = *c;
@@ -53,7 +53,7 @@ namespace merutilm::rff2 {
         }
 
         scene.getState().cancel();
-        const MandelbrotPerturbator *perturbator = scene.getCurrentPerturbator();
+        const MB2Perturbator *perturbator = scene.getCurrentPerturbator();
         if(perturbator == nullptr) {
             throw vkh::exception_invalid_state("Perturbator cannot be null");
         }
@@ -64,7 +64,7 @@ namespace merutilm::rff2 {
                 ApproxTableCache &approxTableCache = scene.getApproxTableCache();
                 const uint64_t longestPeriod = perturbator->getReference()->longestPeriod();
 
-                const std::unique_ptr<MandelbrotLocator> locator = MandelbrotLocator::locateMinibrot(
+                const std::unique_ptr<MB2Locator> locator = MB2Locator::locateMinibrot(
                     scene.getState(), perturbator, approxTableCache,
                     getActionWhileFindingMinibrotCenter(scene, logZoom, longestPeriod),
                     getActionWhileCreatingTable(scene, logZoom),
@@ -77,7 +77,7 @@ namespace merutilm::rff2 {
                 }
                 const FractalSettings &locatorCalc = locator->perturbator->getCalculationSettings();
                 settings.fractal.center = locatorCalc.center;
-                settings.fractal.logZoom = locatorCalc.logZoom - MandelbrotLocator::MINIBROT_LOG_ZOOM_OFFSET;
+                settings.fractal.logZoom = locatorCalc.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
                 scene.getRequests().requestRecompute();
             }
         );

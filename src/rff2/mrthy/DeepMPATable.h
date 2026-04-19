@@ -6,15 +6,15 @@
 #include "DeepPA.h"
 #include "MPATable.h"
 #include "../calc/double_exp_math.h"
-#include "../formula/DeepMandelbrotReference.h"
+#include "../formula/DeepMB2Reference.h"
 
 namespace merutilm::rff2 {
-    class DeepMPATable final : public MPATable<DeepMandelbrotReference, dex>{
+    class DeepMPATable final : public MPATable<DeepMB2Reference, dex>{
 
     public:
 
 
-        explicit DeepMPATable(const ParallelRenderState &state, const DeepMandelbrotReference &reference,
+        explicit DeepMPATable(const ParallelRenderState &state, const DeepMB2Reference &reference,
                       const FrtMPASettings *mpaSettings, const dex &dcMax, ApproxTableCache &tableRef,
                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, tableRef, std::move(actionPerCreatingTableIteration)) {
 
@@ -52,11 +52,11 @@ namespace merutilm::rff2 {
         const uint64_t index = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
                                                          refIteration);
 
-        if (index >= tableRef.deepTable.size()) {
+        if (index >= tableRef.mpaDeepTable.size()) {
             return nullptr;
         }
 
-        std::vector<DeepPA> &table = this->tableRef.deepTable[index];
+        std::vector<DeepPA> &table = this->tableRef.mpaDeepTable[index];
         if (table.empty()) {
             return nullptr;
         }
@@ -97,6 +97,6 @@ namespace merutilm::rff2 {
     }
 
     inline size_t DeepMPATable::getLength() {
-        return tableRef.deepTable.size();
+        return tableRef.mpaDeepTable.size();
     }
 }

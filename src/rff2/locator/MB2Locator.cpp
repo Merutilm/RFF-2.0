@@ -2,16 +2,16 @@
 // Created by Merutilm on 2025-05-16.
 //
 
-#include "MandelbrotLocator.h"
+#include "MB2Locator.h"
 
 #include "../formula/Perturbator.h"
 #include "../calc/dex_exp.h"
 #include "../data/ApproxTableCache.h"
-#include "../formula/DeepMandelbrotPerturbator.h"
+#include "../formula/DeepMB2Perturbator.h"
 
 
 namespace merutilm::rff2 {
-    std::unique_ptr<fp_complex> MandelbrotLocator::findCenter(const MandelbrotPerturbator *perturbator) {
+    std::unique_ptr<fp_complex> MB2Locator::findCenter(const MB2Perturbator *perturbator) {
         const int exp10 = Perturbator::logZoomToExp10(perturbator->getCalculationSettings().logZoom);
         fp_complex_mutable center = perturbator->getReference()->center.edit(exp10);
         const fp_complex_mutable dc = findCenterOffset(*perturbator)->edit(exp10);
@@ -26,9 +26,9 @@ namespace merutilm::rff2 {
     }
 
 
-    std::unique_ptr<fp_complex> MandelbrotLocator::findCenterOffset(const MandelbrotPerturbator &perturbator) {
+    std::unique_ptr<fp_complex> MB2Locator::findCenterOffset(const MB2Perturbator &perturbator) {
         const int exp10 = Perturbator::logZoomToExp10(perturbator.getCalculationSettings().logZoom);
-        const MandelbrotReference *reference = perturbator.getReference();
+        const MB2Reference *reference = perturbator.getReference();
         if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
             return nullptr;
         }
@@ -39,8 +39,8 @@ namespace merutilm::rff2 {
         return std::make_unique<fp_complex>(z);
     }
 
-    std::unique_ptr<MandelbrotLocator> MandelbrotLocator::locateMinibrot(ParallelRenderState &state,
-                                                                         const MandelbrotPerturbator *perturbator,
+    std::unique_ptr<MB2Locator> MB2Locator::locateMinibrot(ParallelRenderState &state,
+                                                                         const MB2Perturbator *perturbator,
                                                                          ApproxTableCache &approxTableCache,
                                                                          const std::function<void(uint64_t, int)> &
                                                                          actionWhileFindingMinibrotCenter,
@@ -57,7 +57,7 @@ namespace merutilm::rff2 {
         // specific small number. O(w_log N)
 
 
-        std::unique_ptr<MandelbrotPerturbator> result = findAccurateCenterPerturbator(
+        std::unique_ptr<MB2Perturbator> result = findAccurateCenterPerturbator(
             state, perturbator, approxTableCache, actionWhileFindingMinibrotCenter, actionWhileCreatingTable);
 
         if (result == nullptr) {
@@ -85,16 +85,16 @@ namespace merutilm::rff2 {
 
             actionWhileFindingMinibrotZoom(resultZoom);
             resultCalc.logZoom = resultZoom;
-            if (const auto v = dynamic_cast<LightMandelbrotPerturbator *>(result.get())) {
+            if (const auto v = dynamic_cast<LightMB2Perturbator *>(result.get())) {
                 result = v->reuse(resultCalc, static_cast<double>(resultDcMax), approxTableCache);
             }
-            if (const auto v = dynamic_cast<DeepMandelbrotPerturbator *>(result.get())) {
+            if (const auto v = dynamic_cast<DeepMB2Perturbator *>(result.get())) {
                 result = v->reuse(resultCalc, resultDcMax, approxTableCache);
             }
             zoomIncrement /= 2;
         }
 
-        return std::make_unique<MandelbrotLocator>(std::move(result));
+        return std::make_unique<MB2Locator>(std::move(result));
     }
 
     /**
@@ -107,8 +107,8 @@ namespace merutilm::rff2 {
      * @param actionWhileCreatingTable action 2
      * @return result table
      */
-    std::unique_ptr<MandelbrotPerturbator> MandelbrotLocator::findAccurateCenterPerturbator(ParallelRenderState &state,
-        const MandelbrotPerturbator *perturbator,
+    std::unique_ptr<MB2Perturbator> MB2Locator::findAccurateCenterPerturbator(ParallelRenderState &state,
+        const MB2Perturbator *perturbator,
         ApproxTableCache &approxTableCache,
         const std::function<void(uint64_t, int)> &
         actionWhileFindingMinibrotCenter,
@@ -135,7 +135,7 @@ namespace merutilm::rff2 {
 
         int centerFixCount = 0;
 
-        std::unique_ptr<MandelbrotPerturbator> doubledZoomPerturbator = nullptr;
+        std::unique_ptr<MB2Perturbator> doubledZoomPerturbator = nullptr;
 
         while (doubledZoomPerturbator == nullptr || !checkMaxIterationOnly(*doubledZoomPerturbator, maxIteration)) {
             if (state.interruptRequested()) {
@@ -149,7 +149,7 @@ namespace merutilm::rff2 {
             ++centerFixCount;
 
             if (logZoom < Constants::Fractal::ZOOM_DEADLINE / 2) {
-                doubledZoomPerturbator = std::make_unique<LightMandelbrotPerturbator>(
+                doubledZoomPerturbator = std::make_unique<LightMB2Perturbator>(
                     state, doubledZoomCalc, static_cast<double>(doubledZoomDcMax),
                     Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
                     approxTableCache,
@@ -157,7 +157,7 @@ namespace merutilm::rff2 {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileCreatingTable, true);
             } else {
-                doubledZoomPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
+                doubledZoomPerturbator = std::make_unique<DeepMB2Perturbator>(
                     state, doubledZoomCalc, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
                     approxTableCache,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
@@ -170,7 +170,7 @@ namespace merutilm::rff2 {
         return doubledZoomPerturbator;
     }
 
-    bool MandelbrotLocator::checkMaxIterationOnly(const MandelbrotPerturbator &perturbator,
+    bool MB2Locator::checkMaxIterationOnly(const MB2Perturbator &perturbator,
                                                   const uint64_t maxIteration) {
         return perturbator.iterate(perturbator.getDcMaxAsDoubleExp(),
                                    perturbator.getDcMaxAsDoubleExp() / Constants::Fractal::INTENTIONAL_ERROR_DCLMB) == static_cast<

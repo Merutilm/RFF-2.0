@@ -63,27 +63,27 @@ namespace merutilm::rff2 {
         window->registerCheckboxInput(L"NO Compressor normalization",
                                       &calc.referenceCompSettings.noCompressorNormalization, Callback::NOTHING,
                                       L"NO Compressor normalization",
-                                      L"No normalization during reference compression. "
-                                      L"this will accelerates table creation, But may cause table creation to fail in "
+                                      L"No normalization during reference compression.\n"
+                                      L"this will accelerates table creation, But may cause table creation to fail in\n"
                                       L"the specific locations!!");
         window->registerTextInput<uint32_t>(L"Reference Synchronization Interval",
                                   &calc.referenceSyncSettings.referenceSynchronizationInterval, Unparser::UINT32,
                                   Parser::UINT32, ValidCondition::POSITIVE_UINT32, Callback::NOTHING,
                                   L"Reference Synchronization Interval",
-                                  L"Sets the synchronization interval between the reference array and "
-                                  "arbitrary-precision operation when calculating references. When the value is small, "
-                                  "it guarantees high quality but is slow because the synchronization happens every iterations. "
-                                  "when the value is high, resulting lower quality but is faster. set 1 to fully sync.");
+                                  L"Sets the synchronization interval between the reference array\n"
+                                  L"and arbitrary-precision operation when calculating references. When the value is small,\n"
+                                  L"it guarantees high quality but is slow because the synchronization happens every iterations.\n"
+                                  L"when the value is high, resulting lower quality but is faster. set 1 to fully sync.");
         window->registerTextInput<uint8_t>(L"Reference Synchronization Radius",
                                   &calc.referenceSyncSettings.referenceSynchronizationRadiusPower, Unparser::UINT8,
                                   Parser::UINT8, ValidCondition::ALL_UINT8, Callback::NOTHING,
                                   L"Reference Synchronization Radius",
-                                  L"If only the Reference Synchronization Interval is set,"
-                                  "when the periodic point is reached and it is not a multiple of its value,"
-                                  "the calculation will be resulted so weird due to significant mismatch with "
-                                  "arbitrary-precision operations caused by precision loss. This setting determines within the radius : "
-                                  "10^(-value) from the origin to be considered the periodic point."
-                                  "set 0 to fully sync.");
+                                  L"If only the Reference Synchronization Interval is set,\n"
+                                  L"when the periodic point is reached and it is not a multiple of its value,\n"
+                                  L"the calculation will be resulted so weird due to significant mismatch with\n"
+                                  L"arbitrary-precision operations caused by precision loss. This setting determines within the radius : \n"
+                                  L"10^(-value) from the origin to be considered the periodic point.\n"
+                                  L"set 0 to fully sync.");
         window->setWindowCloseFunction([centerPtr, zoomPtr, locationChanged, &settingsMenu, &scene, &calc] {
             const int exp10 = Perturbator::logZoomToExp10(*zoomPtr);
             if (*locationChanged) {

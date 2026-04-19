@@ -9,23 +9,23 @@
 
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FractalSettings.h"
-#include "MandelbrotReference.h"
+#include "MB2Reference.h"
 
 namespace merutilm::rff2 {
-    struct LightMandelbrotReference final : public MandelbrotReference {
+    struct LightMB2Reference final : public MB2Reference {
 
         const std::vector<double> refReal;
         const std::vector<double> refImag;
 
 
-        explicit LightMandelbrotReference(fp_complex &&center, std::vector<double> &&refReal,
+        explicit LightMB2Reference(fp_complex &&center, std::vector<double> &&refReal,
                                           std::vector<double> &&refImag, std::vector<ArrayCompressionTool> &&compressor,
                                           std::vector<uint64_t> &&period, fp_complex &&fpgReference,
                                           fp_complex &&fpgBn);
 
         static CreationResult generateReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
                         uint64_t initialPeriod, double dcMax, bool strictFPG,
-                        std::function<void(uint64_t)> &&actionPerRefCalcIteration, std::unique_ptr<LightMandelbrotReference> *result);
+                        std::function<void(uint64_t)> &&actionPerRefCalcIteration, std::unique_ptr<LightMB2Reference> *result);
 
         [[nodiscard]] double real(uint64_t refIteration) const;
 

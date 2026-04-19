@@ -6,7 +6,7 @@
 #include "DeepPA.h"
 #include "PAGenerator.h"
 #include "../calc/dex.h"
-#include "../formula/DeepMandelbrotReference.h"
+#include "../formula/DeepMB2Reference.h"
 
 namespace merutilm::rff2 {
     class DeepPAGenerator final : public PAGenerator{
@@ -21,12 +21,7 @@ namespace merutilm::rff2 {
         dex dcMax;
 
     public:
-        explicit DeepPAGenerator(const DeepMandelbrotReference &reference, double epsilon, const dex &dcMax, uint64_t start, std::array<dex, 8> &temps);
-
-        static std::unique_ptr<DeepPAGenerator> create(const DeepMandelbrotReference &reference, double epsilon,
-                                                 const dex &dcMax,
-                                                 uint64_t start, std::array<dex, 8> &temps);
-
+        explicit DeepPAGenerator(const DeepMB2Reference &reference, double epsilon, const dex &dcMax, uint64_t start, std::array<dex, 8> &temps);
 
         void merge(const PA &pa) override;
 
@@ -37,9 +32,4 @@ namespace merutilm::rff2 {
         }
     };
 
-    inline std::unique_ptr<DeepPAGenerator> DeepPAGenerator::create(const DeepMandelbrotReference &reference,
-                                                                          const double epsilon, const dex &dcMax,
-                                                                          const uint64_t start, std::array<dex, 8> &temps) {
-        return std::make_unique<DeepPAGenerator>(reference, epsilon, dcMax, start, temps);
-    }
 }

@@ -2,22 +2,22 @@
 // Created by Merutilm on 2025-05-18.
 //
 
-#include "DeepMandelbrotPerturbator.h"
+#include "DeepMB2Perturbator.h"
 
 namespace merutilm::rff2 {
 
 
-    DeepMandelbrotPerturbator::DeepMandelbrotPerturbator(
+    DeepMB2Perturbator::DeepMB2Perturbator(
             ParallelRenderState &state, const FractalSettings &calc, const dex &dcMax, const int exp10,
             const uint64_t initialPeriod, ApproxTableCache &tableRef,
             std::function<void(uint64_t)> &&actionPerRefCalcIteration,
             std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration, const bool arbitraryPrecisionFPGBn,
-            std::unique_ptr<DeepMandelbrotReference> reusedReference, std::unique_ptr<DeepMPATable> reusedTable,
+            std::unique_ptr<DeepMB2Reference> reusedReference, std::unique_ptr<DeepMPATable> reusedTable,
             const dex &offR, const dex &offI) :
-        MandelbrotPerturbator(state, calc), dcMax(dcMax), offR(offR), offI(offI) {
+        MB2Perturbator(state, calc), dcMax(dcMax), offR(offR), offI(offI) {
 
         if (reusedReference == nullptr) {
-            this->referenceCreationResult = DeepMandelbrotReference::createReference(
+            this->referenceCreationResult = DeepMB2Reference::createReference(
                     state, calc, exp10, initialPeriod, dcMax, arbitraryPrecisionFPGBn,
                     std::move(actionPerRefCalcIteration), &reference);
         } else {
@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
     }
 
 
-    double DeepMandelbrotPerturbator::iterate(const dex &dcr, const dex &dci) const {
+    double DeepMB2Perturbator::iterate(const dex &dcr, const dex &dci) const {
         if (state.interruptRequested())
             return 0.0;
 
@@ -186,12 +186,12 @@ namespace merutilm::rff2 {
     }
 
 
-    std::unique_ptr<DeepMandelbrotPerturbator>
-    DeepMandelbrotPerturbator::reuse(const FractalSettings &calc, const dex &dcMax, ApproxTableCache &tableRef) {
+    std::unique_ptr<DeepMB2Perturbator>
+    DeepMB2Perturbator::reuse(const FractalSettings &calc, const dex &dcMax, ApproxTableCache &tableRef) {
         dex offR = dex::ZERO;
         dex offI = dex::ZERO;
         uint64_t longestPeriod = 1;
-        std::unique_ptr<DeepMandelbrotReference> reusedReference = nullptr;
+        std::unique_ptr<DeepMB2Reference> reusedReference = nullptr;
 
         const int exp10 = logZoomToExp10(calc.logZoom);
 
@@ -208,7 +208,7 @@ namespace merutilm::rff2 {
         }
 
 
-        return std::make_unique<DeepMandelbrotPerturbator>(
+        return std::make_unique<DeepMB2Perturbator>(
                 state, calc, dcMax, exp10, longestPeriod, tableRef,
                 [](uint64_t) {
                     // no action because the reference is already declared

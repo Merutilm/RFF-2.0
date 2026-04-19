@@ -7,7 +7,7 @@
 
 #include "LightPA.h"
 #include "PAGenerator.h"
-#include "../formula/LightMandelbrotReference.h"
+#include "../formula/LightMB2Reference.h"
 
 namespace merutilm::rff2 {
     class LightPAGenerator final : public PAGenerator{
@@ -21,11 +21,7 @@ namespace merutilm::rff2 {
         double dcMax;
 
     public:
-        explicit LightPAGenerator(const LightMandelbrotReference &reference, double epsilon, double dcMax, uint64_t start);
-
-        static std::unique_ptr<LightPAGenerator> create(const LightMandelbrotReference &reference, double epsilon,
-                                                   double dcMax,
-                                                   uint64_t start);
+        explicit LightPAGenerator(const LightMB2Reference &reference, double epsilon, double dcMax, uint64_t start);
 
 
         void merge(const PA &pa) override;
@@ -37,9 +33,4 @@ namespace merutilm::rff2 {
         }
     };
 
-    inline std::unique_ptr<LightPAGenerator> LightPAGenerator::create(const LightMandelbrotReference &reference,
-                                                                 const double epsilon, const double dcMax,
-                                                                 const uint64_t start) {
-        return std::make_unique<LightPAGenerator>(reference, epsilon, dcMax, start);
-    }
 }

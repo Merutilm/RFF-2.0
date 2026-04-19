@@ -10,9 +10,9 @@
 #include "../vulkan/RCC1.hpp"
 #include "../vulkan/GPCIterationPalette.hpp"
 #include "../calc/dex_exp.h"
-#include "../formula/DeepMandelbrotPerturbator.h"
-#include "../formula/LightMandelbrotPerturbator.h"
-#include "../locator/MandelbrotLocator.h"
+#include "../formula/DeepMB2Perturbator.h"
+#include "../formula/LightMB2Perturbator.h"
+#include "../locator/MB2Locator.h"
 #include "../parallel/ParallelArrayDispatcher.h"
 #include "../parallel/ParallelDispatcher.h"
 #include "../preset/calc/CalculationPresets.h"
@@ -552,10 +552,10 @@ namespace merutilm::rff2 {
         switch (calc.reuseReferenceMethod) {
                 using enum FrtReuseReferenceMethod;
             case CURRENT_REFERENCE: {
-                if (auto p = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
+                if (auto p = dynamic_cast<DeepMB2Perturbator *>(currentPerturbator.get())) {
                     currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxAsDoubleExp(), approxTableCache);
                 }
-                if (auto p = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get())) {
+                if (auto p = dynamic_cast<LightMB2Perturbator *>(currentPerturbator.get())) {
                     currentPerturbator = p->reuse(calc, static_cast<double>(currentPerturbator->getDcMaxAsDoubleExp()),
                                                   approxTableCache);
                 }
@@ -563,7 +563,7 @@ namespace merutilm::rff2 {
             }
             case CENTERED_REFERENCE: {
                 uint64_t period = currentPerturbator->getReference()->longestPeriod();
-                auto center = MandelbrotLocator::locateMinibrot(state, currentPerturbator.get(), approxTableCache,
+                auto center = MB2Locator::locateMinibrot(state, currentPerturbator.get(), approxTableCache,
                                                                 CallbackExplore::getActionWhileFindingMinibrotCenter(
                                                                     *this, logZoom, period),
                                                                 CallbackExplore::getActionWhileCreatingTable(
@@ -578,14 +578,14 @@ namespace merutilm::rff2 {
                 int refExp10 = Perturbator::logZoomToExp10(refCalc.logZoom);
 
                 if (refCalc.logZoom > Constants::Fractal::ZOOM_DEADLINE) {
-                    currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
+                    currentPerturbator = std::make_unique<DeepMB2Perturbator>(
                                 state, refCalc, center->perturbator->getDcMaxAsDoubleExp(),
                                 refExp10,
                                 period, approxTableCache, std::move(actionPerRefCalcIteration),
                                 std::move(actionPerCreatingTableIteration))
                             ->reuse(calc, dcMax, approxTableCache);
                 } else {
-                    currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(state, refCalc,
+                    currentPerturbator = std::make_unique<LightMB2Perturbator>(state, refCalc,
                                 static_cast<double>(center->perturbator->getDcMaxAsDoubleExp()),
                                 refExp10, period, approxTableCache, std::move(actionPerRefCalcIteration),
                                 std::move(actionPerCreatingTableIteration))
@@ -596,12 +596,12 @@ namespace merutilm::rff2 {
             case DISABLED: {
                 int exp10 = Perturbator::logZoomToExp10(logZoom);
                 if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
-                    currentPerturbator = std::make_unique<DeepMandelbrotPerturbator>(
+                    currentPerturbator = std::make_unique<DeepMB2Perturbator>(
                         state, calc, dcMax, exp10,
                         0, approxTableCache, std::move(actionPerRefCalcIteration),
                         std::move(actionPerCreatingTableIteration));
                 } else {
-                    currentPerturbator = std::make_unique<LightMandelbrotPerturbator>(
+                    currentPerturbator = std::make_unique<LightMB2Perturbator>(
                         state, calc, static_cast<double>(dcMax), exp10,
                         0, approxTableCache, std::move(actionPerRefCalcIteration),
                         std::move(actionPerCreatingTableIteration));
@@ -613,7 +613,7 @@ namespace merutilm::rff2 {
             }
         }
 
-        const MandelbrotReference *reference = currentPerturbator->getReference();
+        const MB2Reference *reference = currentPerturbator->getReference();
         if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE || state.interruptRequested())
             return false;
 
@@ -622,10 +622,10 @@ namespace merutilm::rff2 {
         lastPeriod = reference->longestPeriod();
         size_t refLength = reference->length();
         size_t mpaLen;
-        if (const auto t = dynamic_cast<LightMandelbrotPerturbator *>(currentPerturbator.get())) {
+        if (const auto t = dynamic_cast<LightMB2Perturbator *>(currentPerturbator.get())) {
             mpaLen = t->getTable().getLength();
         }
-        if (const auto t = dynamic_cast<DeepMandelbrotPerturbator *>(currentPerturbator.get())) {
+        if (const auto t = dynamic_cast<DeepMB2Perturbator *>(currentPerturbator.get())) {
             mpaLen = t->getTable().getLength();
         }
 

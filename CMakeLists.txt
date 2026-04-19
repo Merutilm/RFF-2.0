@@ -41,8 +41,8 @@ add_executable(
         src/rff2/util/ColorUtils.h
         src/rff2/settings/ShdStripeType.h
         src/rff2/settings/VidAnimationSettings.h
-        src/rff2/formula/LightMandelbrotReference.cpp
-        src/rff2/formula/LightMandelbrotReference.h
+        src/rff2/formula/LightMB2Reference.cpp
+        src/rff2/formula/LightMB2Reference.h
         src/rff2/parallel/ParallelRenderState.cpp
         src/rff2/parallel/ParallelRenderState.h
         src/rff2/calc/rff_math.h
@@ -50,8 +50,8 @@ add_executable(
         src/rff2/mrthy/ArrayCompressor.h
         src/rff2/parallel/ParallelArrayDispatcher.h
         src/rff2/ui/Utilities.h
-        src/rff2/formula/LightMandelbrotPerturbator.cpp
-        src/rff2/formula/LightMandelbrotPerturbator.h
+        src/rff2/formula/LightMB2Perturbator.cpp
+        src/rff2/formula/LightMB2Perturbator.h
         src/rff2/mrthy/LightPA.h
         src/rff2/mrthy/LightMPATable.h
         src/rff2/mrthy/MPAPeriod.cpp
@@ -68,19 +68,19 @@ add_executable(
         src/rff2/ui/CallbackRender.hpp
         src/rff2/ui/CallbackShader.cpp
         src/rff2/ui/CallbackShader.hpp
-        src/rff2/locator/MandelbrotLocator.cpp
-        src/rff2/locator/MandelbrotLocator.h
+        src/rff2/locator/MB2Locator.cpp
+        src/rff2/locator/MB2Locator.h
         src/rff2/ui/CallbackExplore.cpp
         src/rff2/ui/CallbackExplore.hpp
         src/rff2/calc/dex.h
-        src/rff2/formula/DeepMandelbrotReference.cpp
-        src/rff2/formula/DeepMandelbrotReference.h
-        src/rff2/formula/MandelbrotReference.h
+        src/rff2/formula/DeepMB2Reference.cpp
+        src/rff2/formula/DeepMB2Reference.h
+        src/rff2/formula/MB2Reference.h
         src/rff2/calc/dex_std.h
         src/rff2/calc/double_exp_math.h
-        src/rff2/formula/DeepMandelbrotPerturbator.cpp
-        src/rff2/formula/DeepMandelbrotPerturbator.h
-        src/rff2/formula/MandelbrotPerturbator.h
+        src/rff2/formula/DeepMB2Perturbator.cpp
+        src/rff2/formula/DeepMB2Perturbator.h
+        src/rff2/formula/MB2Perturbator.h
         src/rff2/mrthy/DeepPA.h
         src/rff2/mrthy/DeepMPATable.h
         src/rff2/mrthy/MPATable.h

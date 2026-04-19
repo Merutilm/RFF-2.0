@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "../formula/LightMandelbrotReference.h"
+#include "../formula/LightMB2Reference.h"
 #include "PA.h"
 
 namespace merutilm::rff2 {

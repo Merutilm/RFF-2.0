@@ -8,7 +8,11 @@
 
 namespace merutilm::rff2 {
     struct ApproxTableCache {
-        std::vector<std::vector<LightPA>> lightTable = std::vector<std::vector<LightPA> >();
-        std::vector<std::vector<DeepPA>> deepTable = std::vector<std::vector<DeepPA>>();
+
+        std::vector<std::vector<LightPA>> mpaLightTable = std::vector<std::vector<LightPA>>();
+        std::vector<std::vector<DeepPA>> mpaDeepTable = std::vector<std::vector<DeepPA>>();
+
+        std::vector<size_t> mpaIndexer = std::vector<size_t>();
+        std::vector<uint64_t> mpaElementCounter = std::vector<uint64_t>();
     };
 }

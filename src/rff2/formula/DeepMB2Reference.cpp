@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-05-18.
 //
 
-#include "DeepMandelbrotReference.h"
+#include "DeepMB2Reference.h"
 
 #include "../calc/double_exp_math.h"
 #include "../calc/rff_math.h"
@@ -11,18 +11,18 @@
 
 
 namespace merutilm::rff2 {
-    DeepMandelbrotReference::DeepMandelbrotReference(fp_complex &&center, std::vector<dex> &&refReal,
+    DeepMB2Reference::DeepMB2Reference(fp_complex &&center, std::vector<dex> &&refReal,
                                                      std::vector<dex> &&refImag,
                                                      std::vector<ArrayCompressionTool> &&compressor,
                                                      std::vector<uint64_t> &&period, fp_complex &&fpgReference,
                                                      fp_complex &&fpgBn) :
-        MandelbrotReference(std::move(center), std::move(compressor), std::move(period), std::move(fpgReference),
+        MB2Reference(std::move(center), std::move(compressor), std::move(period), std::move(fpgReference),
                             std::move(fpgBn)),
         refReal(std::move(refReal)), refImag(std::move(refImag)) {}
 
 
     /**
-     * Generates Reference of Mandelbrot set.
+     * Generates Reference of MB2 set.
      * @param state the processor
      * @param calc calculation settings
      * @param exp10 the exponent of 10 for arbitrary-precision operation
@@ -31,14 +31,15 @@ namespace merutilm::rff2 {
      * @param dcMax the length of center-to-vertex of screen.
      * @param strictFPG use arbitrary-precision operation for fpg_bn calculation
      * @param actionPerRefCalcIteration the action of every iteration
-     * @return the result of generation. but returns @code PROCESS_TERMINATED_REFERENCE@endcode if the process is
+     * @param result the result reference.
+     * @return the status of this function. returns @code TERMINATED@endcode if the process is
      * terminated
      */
     Reference::CreationResult
-    DeepMandelbrotReference::createReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
+    DeepMB2Reference::createReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
                                              uint64_t initialPeriod, dex dcMax, const bool strictFPG,
                                              std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                                             std::unique_ptr<DeepMandelbrotReference> *result) {
+                                             std::unique_ptr<DeepMB2Reference> *result) {
         if (state.interruptRequested()) {
             return CreationResult::TERMINATED;
         }
@@ -86,7 +87,8 @@ namespace merutilm::rff2 {
                 return CreationResult::TERMINATED;
             }
 
-            // use Fast-Period-Guessing, and create MPA Table
+            // use Fast-Period-Guessing to prepare MPA Table creation
+            // 템프 돌려쓰기 WTF
             if (iteration > 0) {
                 dex_trigonometric::hypot2(&temps[0], zr, zi);
                 dex::div(&temps[1], temps[0], dcMax);
@@ -225,7 +227,7 @@ namespace merutilm::rff2 {
         ri.shrink_to_fit();
         periodArray = periodArray.empty() ? std::vector(1, period) : periodArray;
 
-        *result = std::make_unique<DeepMandelbrotReference>(std::move(center), std::move(rr), std::move(ri),
+        *result = std::make_unique<DeepMB2Reference>(std::move(center), std::move(rr), std::move(ri),
                                                             std::move(tools), std::move(periodArray),
                                                             std::move(*fpgReference), fp_complex(fpgBn));
 
@@ -233,17 +235,17 @@ namespace merutilm::rff2 {
     }
 
 
-    dex DeepMandelbrotReference::real(const uint64_t refIteration) const {
+    dex DeepMB2Reference::real(const uint64_t refIteration) const {
         return refReal[ArrayCompressor::compress(compressor, refIteration)];
     }
 
-    dex DeepMandelbrotReference::imag(const uint64_t refIteration) const {
+    dex DeepMB2Reference::imag(const uint64_t refIteration) const {
         return refImag[ArrayCompressor::compress(compressor, refIteration)];
     }
 
 
-    size_t DeepMandelbrotReference::length() const { return refReal.size(); }
+    size_t DeepMB2Reference::length() const { return refReal.size(); }
 
 
-    uint64_t DeepMandelbrotReference::longestPeriod() const { return period.back(); }
+    uint64_t DeepMB2Reference::longestPeriod() const { return period.back(); }
 } // namespace merutilm::rff2

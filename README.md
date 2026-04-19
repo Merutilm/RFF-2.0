@@ -11,7 +11,7 @@
 ## Overview
 ### Important : This program is **NOT COMPATIBLE** with **RFF(Java)** file extensions!
 
-- A program that achieves extremely fast `Power-2 Mandelbrot set`.
+- A program that achieves extremely fast `Power-2 MB2 set`.
 
 - The application is built with the Vulkan API.
 

@@ -9,7 +9,7 @@
 #include "ArrayCompressor.h"
 
 namespace merutilm::rff2 {
-    LightPAGenerator::LightPAGenerator(const LightMandelbrotReference &reference, const double epsilon, const double dcMax,
+    LightPAGenerator::LightPAGenerator(const LightMB2Reference &reference, const double epsilon, const double dcMax,
                                                       const uint64_t start) : PAGenerator(start, 0, reference.compressor, epsilon), anr(1), ani(0), bnr(0), bni(0), radius(DBL_MAX),
                                                                               refReal(reference.refReal), refImag(reference.refImag),
                                                                               dcMax(dcMax) {

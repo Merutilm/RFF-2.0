@@ -6,24 +6,24 @@
 #include "../mrthy/MPATable.h"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FractalSettings.h"
-#include "MandelbrotReference.h"
+#include "MB2Reference.h"
 #include "Perturbator.h"
 
 namespace merutilm::rff2 {
-    struct MandelbrotPerturbator : public Perturbator {
+    struct MB2Perturbator : public Perturbator {
 
         ParallelRenderState &state;
         const FractalSettings calc;
         Reference::CreationResult referenceCreationResult = Reference::CreationResult::FAILED;
 
-        explicit MandelbrotPerturbator(ParallelRenderState &state,
+        explicit MB2Perturbator(ParallelRenderState &state,
                                        FractalSettings calculationSettings) : state(state),
             calc(std::move(calculationSettings)) {
         }
 
-        ~MandelbrotPerturbator() override = default;
+        ~MB2Perturbator() override = default;
 
-        virtual const MandelbrotReference *getReference() const = 0;
+        virtual const MB2Reference *getReference() const = 0;
 
         const FractalSettings &getCalculationSettings() const {
             return calc;

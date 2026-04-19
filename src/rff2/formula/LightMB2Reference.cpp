@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-05-09.
 //
 
-#include "LightMandelbrotReference.h"
+#include "LightMB2Reference.h"
 
 #include <cmath>
 
@@ -15,17 +15,17 @@
 #include "../util/profiler.hpp"
 
 namespace merutilm::rff2 {
-    LightMandelbrotReference::LightMandelbrotReference(fp_complex &&center, std::vector<double> &&refReal,
+    LightMB2Reference::LightMB2Reference(fp_complex &&center, std::vector<double> &&refReal,
                                                        std::vector<double> &&refImag,
                                                        std::vector<ArrayCompressionTool> &&compressor,
                                                        std::vector<uint64_t> &&period, fp_complex &&fpgReference,
                                                        fp_complex &&fpgBn) :
-        MandelbrotReference(std::move(center), std::move(compressor), std::move(period), std::move(fpgReference),
+        MB2Reference(std::move(center), std::move(compressor), std::move(period), std::move(fpgReference),
                             std::move(fpgBn)),
         refReal(std::move(refReal)), refImag(std::move(refImag)) {}
 
     /**
-     * Generates Reference of Mandelbrot set.
+     * Generates Reference of MB2 set.
      * @param state the processor
      * @param calc calculation settings
      * @param exp10 the exponent of 10 for arbitrary-precision operation
@@ -34,15 +34,15 @@ namespace merutilm::rff2 {
      * @param dcMax the length of center-to-vertex of screen.
      * @param strictFPG use arbitrary-precision operation for fpg_bn calculation
      * @param actionPerRefCalcIteration the action of every iteration
-     * @param result the status of result reference.
-     * @return the result of status. but returns @code PROCESS_TERMINATED_REFERENCE@endcode if the process is
+     * @param result the result reference.
+     * @return the status of this function. returns @code TERMINATED@endcode if the process is
      * terminated
      */
     Reference::CreationResult
-    LightMandelbrotReference::generateReference(const ParallelRenderState &state, const FractalSettings &calc,
+    LightMB2Reference::generateReference(const ParallelRenderState &state, const FractalSettings &calc,
                                                 int exp10, uint64_t initialPeriod, double dcMax, const bool strictFPG,
                                                 std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                                                std::unique_ptr<LightMandelbrotReference> *result) {
+                                                std::unique_ptr<LightMB2Reference> *result) {
         if (state.interruptRequested()) {
             return CreationResult::TERMINATED;
         }
@@ -226,24 +226,24 @@ namespace merutilm::rff2 {
         ri.shrink_to_fit();
         periodArray = periodArray.empty() ? std::vector(1, period) : periodArray;
 
-        *result = std::make_unique<LightMandelbrotReference>(std::move(center), std::move(rr), std::move(ri),
+        *result = std::make_unique<LightMB2Reference>(std::move(center), std::move(rr), std::move(ri),
                                                              std::move(tools), std::move(periodArray),
                                                              std::move(*fpgReference), fp_complex(fpgBn));
         return CreationResult::SUCCESS;
     }
 
 
-    double LightMandelbrotReference::real(const uint64_t refIteration) const {
+    double LightMB2Reference::real(const uint64_t refIteration) const {
         return refReal[ArrayCompressor::compress(compressor, refIteration)];
     }
 
-    double LightMandelbrotReference::imag(const uint64_t refIteration) const {
+    double LightMB2Reference::imag(const uint64_t refIteration) const {
         return refImag[ArrayCompressor::compress(compressor, refIteration)];
     }
 
 
-    size_t LightMandelbrotReference::length() const { return refReal.size(); }
+    size_t LightMB2Reference::length() const { return refReal.size(); }
 
 
-    uint64_t LightMandelbrotReference::longestPeriod() const { return period.back(); }
+    uint64_t LightMB2Reference::longestPeriod() const { return period.back(); }
 } // namespace merutilm::rff2

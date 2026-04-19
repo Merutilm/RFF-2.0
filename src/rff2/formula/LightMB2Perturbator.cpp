@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-05-10.
 //
 
-#include "LightMandelbrotPerturbator.h"
+#include "LightMB2Perturbator.h"
 
 #include <cmath>
 
@@ -13,17 +13,17 @@
 namespace merutilm::rff2 {
 
 
-    LightMandelbrotPerturbator::LightMandelbrotPerturbator(
+    LightMB2Perturbator::LightMB2Perturbator(
             ParallelRenderState &state, const FractalSettings &calc, const double dcMax, const int exp10,
             const uint64_t initialPeriod, ApproxTableCache &tableRef,
             std::function<void(uint64_t)> &&actionPerRefCalcIteration,
             std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration, const bool arbitraryPrecisionFPGBn,
-            std::unique_ptr<LightMandelbrotReference> reusedReference, std::unique_ptr<LightMPATable> reusedTable,
+            std::unique_ptr<LightMB2Reference> reusedReference, std::unique_ptr<LightMPATable> reusedTable,
             const double offR, const double offI) :
-        MandelbrotPerturbator(state, calc), dcMax(dcMax), offR(offR), offI(offI) {
+        MB2Perturbator(state, calc), dcMax(dcMax), offR(offR), offI(offI) {
 
         if (reusedReference == nullptr) {
-            this->referenceCreationResult = LightMandelbrotReference::generateReference(state, calc, exp10, initialPeriod, dcMax,
+            this->referenceCreationResult = LightMB2Reference::generateReference(state, calc, exp10, initialPeriod, dcMax,
                                                                   arbitraryPrecisionFPGBn,
                                                                   std::move(actionPerRefCalcIteration), &reference);
 
@@ -45,7 +45,7 @@ namespace merutilm::rff2 {
     }
 
 
-    double LightMandelbrotPerturbator::iterate(const dex &dcr, const dex &dci) const {
+    double LightMB2Perturbator::iterate(const dex &dcr, const dex &dci) const {
         if (state.interruptRequested())
             return 0.0;
 
@@ -153,14 +153,14 @@ namespace merutilm::rff2 {
     }
 
 
-    std::unique_ptr<LightMandelbrotPerturbator>
-    LightMandelbrotPerturbator::reuse(const FractalSettings &calc, const double dcMax, ApproxTableCache &tableRef) {
+    std::unique_ptr<LightMB2Perturbator>
+    LightMB2Perturbator::reuse(const FractalSettings &calc, const double dcMax, ApproxTableCache &tableRef) {
 
         const int exp10 = logZoomToExp10(calc.logZoom);
         double offR = 0;
         double offI = 0;
         uint64_t longestPeriod = 1;
-        std::unique_ptr<LightMandelbrotReference> reusedReference = nullptr;
+        std::unique_ptr<LightMB2Reference> reusedReference = nullptr;
 
         if (this->referenceCreationResult != Reference::CreationResult::SUCCESS) {
             // try to use incomplete reference
@@ -176,7 +176,7 @@ namespace merutilm::rff2 {
         }
 
 
-        return std::make_unique<LightMandelbrotPerturbator>(
+        return std::make_unique<LightMB2Perturbator>(
                 state, calc, dcMax, exp10, longestPeriod, tableRef,
                 [](uint64_t) {
                     // no action because the reference is already declared

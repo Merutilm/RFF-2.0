@@ -8,7 +8,7 @@
 #include "ArrayCompressionTool.h"
 #include "PA.h"
 #include "../calc/dex.h"
-#include "../formula/DeepMandelbrotReference.h"
+#include "../formula/DeepMB2Reference.h"
 
 
 namespace merutilm::rff2 {

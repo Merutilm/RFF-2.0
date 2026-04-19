@@ -9,7 +9,7 @@
 
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
 #include "../data/ApproxTableCache.h"
-#include "../formula/MandelbrotPerturbator.h"
+#include "../formula/MB2Perturbator.h"
 #include "../io/RFFDynamicMapBinary.h"
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
@@ -40,7 +40,7 @@ namespace merutilm::rff2 {
         std::array<std::wstring, Constants::Status::LENGTH> *statusMessageRef = nullptr;
         std::unique_ptr<Matrix<double>> iterationMatrix = nullptr;
 
-        std::unique_ptr<MandelbrotPerturbator> currentPerturbator = nullptr;
+        std::unique_ptr<MB2Perturbator> currentPerturbator = nullptr;
 
         std::unique_ptr<RenderSceneRenderer> renderer = nullptr;
 
@@ -156,11 +156,11 @@ namespace merutilm::rff2 {
             return state;
         }
 
-        [[nodiscard]] MandelbrotPerturbator *getCurrentPerturbator() const {
+        [[nodiscard]] MB2Perturbator *getCurrentPerturbator() const {
             return currentPerturbator.get();
         }
 
-        void setCurrentPerturbator(std::unique_ptr<MandelbrotPerturbator> perturbator) {
+        void setCurrentPerturbator(std::unique_ptr<MB2Perturbator> perturbator) {
             currentPerturbator = std::move(perturbator);
         }
 
