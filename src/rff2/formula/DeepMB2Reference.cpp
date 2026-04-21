@@ -21,23 +21,10 @@ namespace merutilm::rff2 {
         refReal(std::move(refReal)), refImag(std::move(refImag)) {}
 
 
-    /**
-     * Generates Reference of MB2 set.
-     * @param state the processor
-     * @param calc calculation settings
-     * @param exp10 the exponent of 10 for arbitrary-precision operation
-     * @param initialPeriod the initial period. default value is 0. i.e. maximum iterations of arbitrary-precision
-     * operation
-     * @param dcMax the length of center-to-vertex of screen.
-     * @param strictFPG use arbitrary-precision operation for fpg_bn calculation
-     * @param actionPerRefCalcIteration the action of every iteration
-     * @param result the result reference.
-     * @return the status of this function. returns @code TERMINATED@endcode if the process is
-     * terminated
-     */
+
     Reference::CreationResult
     DeepMB2Reference::createReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
-                                             uint64_t initialPeriod, dex dcMax, const bool strictFPG,
+                                             uint64_t refInitialCapacity, uint64_t fixedPeriod, dex dcMax, const bool strictFPG,
                                              std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                              std::unique_ptr<DeepMB2Reference> *result) {
         if (state.interruptRequested()) {
@@ -46,6 +33,10 @@ namespace merutilm::rff2 {
 
         auto rr = std::vector<dex>();
         auto ri = std::vector<dex>();
+
+        rr.reserve(refInitialCapacity);
+        ri.reserve(refInitialCapacity);
+
         rr.push_back(dex::ZERO);
         ri.push_back(dex::ZERO);
 
@@ -124,7 +115,7 @@ namespace merutilm::rff2 {
                 dex::sub(&temps[4], temps[4], temps[1]);
 
                 if ((fpgReference == nullptr && temps[4].sgn() == 1) || temps[0].sgn() == 0 ||
-                    (initialPeriod != 0 && initialPeriod == iteration)) {
+                    (fixedPeriod != 0 && fixedPeriod == iteration)) {
                     periodArray.push_back(iteration);
                     fpgReference = std::make_unique<fp_complex>(z);
                     break;

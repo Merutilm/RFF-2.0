@@ -29,7 +29,8 @@ namespace merutilm::rff2 {
      * @param state the processor
      * @param calc calculation settings
      * @param exp10 the exponent of 10 for arbitrary-precision operation
-     * @param initialPeriod the initial period. default value is 0. i.e. maximum iterations of arbitrary-precision
+     * @param refInitialCapacity the initial capacity of the reference
+     * @param fixedPeriod the fixed period. default value is 0. i.e. maximum iterations of arbitrary-precision
      * operation
      * @param dcMax the length of center-to-vertex of screen.
      * @param strictFPG use arbitrary-precision operation for fpg_bn calculation
@@ -40,7 +41,7 @@ namespace merutilm::rff2 {
      */
     Reference::CreationResult
     LightMB2Reference::generateReference(const ParallelRenderState &state, const FractalSettings &calc,
-                                                int exp10, uint64_t initialPeriod, double dcMax, const bool strictFPG,
+                                                int exp10, uint64_t refInitialCapacity, uint64_t fixedPeriod, double dcMax, const bool strictFPG,
                                                 std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                                 std::unique_ptr<LightMB2Reference> *result) {
         if (state.interruptRequested()) {
@@ -49,8 +50,14 @@ namespace merutilm::rff2 {
 
         auto rr = std::vector<double>();
         auto ri = std::vector<double>();
+
+        rr.reserve(refInitialCapacity);
+        ri.reserve(refInitialCapacity);
+
         rr.push_back(0);
         ri.push_back(0);
+
+
 
         fp_complex center = calc.center;
         auto c = center.edit(exp10);
@@ -113,7 +120,7 @@ namespace merutilm::rff2 {
                 }
 
                 if ((fpgReference == nullptr && fpgRadius > fpgLimit) || radius2 == 0 ||
-                    (initialPeriod != 0 && initialPeriod == period)) {
+                    (fixedPeriod != 0 && fixedPeriod == period)) {
                     periodArray.push_back(period);
                     fpgReference = std::make_unique<fp_complex>(z);
                     break;

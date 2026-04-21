@@ -6,8 +6,8 @@
 
 #include <filesystem>
 
+#include "../data/ApproxTableManager.h"
 #include "Utilities.h"
-#include "../data/ApproxTableCache.h"
 
 
 namespace merutilm::rff2 {

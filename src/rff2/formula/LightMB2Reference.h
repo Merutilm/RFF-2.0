@@ -24,7 +24,7 @@ namespace merutilm::rff2 {
                                           fp_complex &&fpgBn);
 
         static CreationResult generateReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
-                        uint64_t initialPeriod, double dcMax, bool strictFPG,
+                        uint64_t refInitialCapacity, uint64_t fixedPeriod, double dcMax, bool strictFPG,
                         std::function<void(uint64_t)> &&actionPerRefCalcIteration, std::unique_ptr<LightMB2Reference> *result);
 
         [[nodiscard]] double real(uint64_t refIteration) const;

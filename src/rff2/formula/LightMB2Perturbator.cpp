@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
 
     LightMB2Perturbator::LightMB2Perturbator(
             ParallelRenderState &state, const FractalSettings &calc, const double dcMax, const int exp10,
-            const uint64_t initialPeriod, ApproxTableCache &tableRef,
+            const uint64_t refInitialCapacity, const uint64_t fixedPeriod, ApproxTableManager &tableRef,
             std::function<void(uint64_t)> &&actionPerRefCalcIteration,
             std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration, const bool arbitraryPrecisionFPGBn,
             std::unique_ptr<LightMB2Reference> reusedReference, std::unique_ptr<LightMPATable> reusedTable,
@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
         MB2Perturbator(state, calc), dcMax(dcMax), offR(offR), offI(offI) {
 
         if (reusedReference == nullptr) {
-            this->referenceCreationResult = LightMB2Reference::generateReference(state, calc, exp10, initialPeriod, dcMax,
+            this->referenceCreationResult = LightMB2Reference::generateReference(state, calc, exp10, refInitialCapacity, fixedPeriod, dcMax,
                                                                   arbitraryPrecisionFPGBn,
                                                                   std::move(actionPerRefCalcIteration), &reference);
 
@@ -154,7 +154,7 @@ namespace merutilm::rff2 {
 
 
     std::unique_ptr<LightMB2Perturbator>
-    LightMB2Perturbator::reuse(const FractalSettings &calc, const double dcMax, ApproxTableCache &tableRef) {
+    LightMB2Perturbator::reuse(const FractalSettings &calc, const double dcMax, ApproxTableManager &tableRef) {
 
         const int exp10 = logZoomToExp10(calc.logZoom);
         double offR = 0;
@@ -177,7 +177,7 @@ namespace merutilm::rff2 {
 
 
         return std::make_unique<LightMB2Perturbator>(
-                state, calc, dcMax, exp10, longestPeriod, tableRef,
+                state, calc, dcMax, exp10, 0, longestPeriod, tableRef,
                 [](uint64_t) {
                     // no action because the reference is already declared
                 },

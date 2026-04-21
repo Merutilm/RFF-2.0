@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
 
 
         explicit LightMPATable(const ParallelRenderState &state, const LightMB2Reference &reference,
-                      const FrtMPASettings *mpaSettings, const double dcMax, ApproxTableCache &tableRef,
+                      const FrtMPASettings *mpaSettings, const double dcMax, ApproxTableManager &tableRef,
                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, tableRef, std::move(actionPerCreatingTableIteration)) {
 
         };
@@ -53,11 +53,11 @@ namespace merutilm::rff2 {
         const uint64_t index = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
                                                          refIteration);
 
-        if (index >= tableRef.mpaLightTable.size()) {
+        if (index >= tableRef.mpaLightTable->size()) {
             return nullptr;
         }
 
-        std::vector<LightPA> &table = tableRef.mpaLightTable[index];
+        std::pmr::vector<LightPA> &table = (*tableRef.mpaLightTable)[index];
         if (table.empty()) {
             return nullptr;
         }
@@ -98,6 +98,6 @@ namespace merutilm::rff2 {
     }
 
     inline size_t LightMPATable::getLength() {
-        return tableRef.mpaLightTable.size();
+        return tableRef.mpaLightTable ? tableRef.mpaLightTable->size() : 0;
     }
 }

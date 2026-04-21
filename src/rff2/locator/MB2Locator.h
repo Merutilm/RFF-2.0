@@ -3,9 +3,9 @@
 //
 
 #pragma once
-#include "../formula/LightMB2Perturbator.h"
 #include "../calc/fp_complex.h"
-#include "../data/ApproxTableCache.h"
+#include "../data/ApproxTableManager.h"
+#include "../formula/LightMB2Perturbator.h"
 
 namespace merutilm::rff2 {
     struct MB2Locator {
@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
 
         static std::unique_ptr<MB2Locator> locateMinibrot(ParallelRenderState &state,
                                                                  const MB2Perturbator *perturbator,
-                                                                 ApproxTableCache &approxTableCache,
+                                                                 ApproxTableManager &approxTableCache,
                                                                  const std::function<void(uint64_t, int)> &
                                                                  actionWhileFindingMinibrotCenter,
                                                                  const std::function<void(uint64_t, float)> &actionWhileCreatingTable,
@@ -29,7 +29,7 @@ namespace merutilm::rff2 {
     private:
         static std::unique_ptr<MB2Perturbator> findAccurateCenterPerturbator(ParallelRenderState &state,
             const MB2Perturbator *perturbator,
-            ApproxTableCache &approxTableCache,
+            ApproxTableManager &approxTableCache,
             const std::function<void(uint64_t, int)> &
             actionWhileFindingMinibrotCenter, const std::function<void(uint64_t, float)> &
             actionWhileCreatingTable);

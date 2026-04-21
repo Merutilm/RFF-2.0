@@ -29,7 +29,7 @@ namespace merutilm::rff2 {
         void step() override;
 
         [[nodiscard]] LightPA build() const {
-            return {anr, ani, bnr, bni, skip, radius};
+            return LightPA{anr, ani, bnr, bni, skip, radius};
         }
     };
 

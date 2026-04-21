@@ -4,10 +4,10 @@
 
 #include "MB2Locator.h"
 
-#include "../formula/Perturbator.h"
 #include "../calc/dex_exp.h"
-#include "../data/ApproxTableCache.h"
+#include "../data/ApproxTableManager.h"
 #include "../formula/DeepMB2Perturbator.h"
+#include "../formula/Perturbator.h"
 
 
 namespace merutilm::rff2 {
@@ -41,7 +41,7 @@ namespace merutilm::rff2 {
 
     std::unique_ptr<MB2Locator> MB2Locator::locateMinibrot(ParallelRenderState &state,
                                                                          const MB2Perturbator *perturbator,
-                                                                         ApproxTableCache &approxTableCache,
+                                                                         ApproxTableManager &approxTableCache,
                                                                          const std::function<void(uint64_t, int)> &
                                                                          actionWhileFindingMinibrotCenter,
                                                                          const std::function<void (uint64_t, float)> &
@@ -109,7 +109,7 @@ namespace merutilm::rff2 {
      */
     std::unique_ptr<MB2Perturbator> MB2Locator::findAccurateCenterPerturbator(ParallelRenderState &state,
         const MB2Perturbator *perturbator,
-        ApproxTableCache &approxTableCache,
+        ApproxTableManager &approxTableCache,
         const std::function<void(uint64_t, int)> &
         actionWhileFindingMinibrotCenter,
         const std::function<void(uint64_t, float)> &
@@ -118,6 +118,7 @@ namespace merutilm::rff2 {
         // set the center to center + centerOffset.
 
         uint64_t longestPeriod = perturbator->getReference()->longestPeriod();
+        uint64_t refLen = perturbator->getReference()->length();
 
         const float logZoom = perturbator->getCalculationSettings().logZoom;
         const FractalSettings &calc = perturbator->getCalculationSettings();
@@ -151,14 +152,14 @@ namespace merutilm::rff2 {
             if (logZoom < Constants::Fractal::ZOOM_DEADLINE / 2) {
                 doubledZoomPerturbator = std::make_unique<LightMB2Perturbator>(
                     state, doubledZoomCalc, static_cast<double>(doubledZoomDcMax),
-                    Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
+                    Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     approxTableCache,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileCreatingTable, true);
             } else {
                 doubledZoomPerturbator = std::make_unique<DeepMB2Perturbator>(
-                    state, doubledZoomCalc, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), longestPeriod,
+                    state, doubledZoomCalc, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     approxTableCache,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);

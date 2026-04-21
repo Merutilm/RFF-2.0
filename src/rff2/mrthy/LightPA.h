@@ -3,18 +3,19 @@
 //
 
 #pragma once
-#include "../formula/LightMB2Reference.h"
 #include "PA.h"
 
 namespace merutilm::rff2 {
-    struct LightPA final : public PA {
-        const double anr;
-        const double ani;
-        const double bnr;
-        const double bni;
-        const double radius;
 
-        LightPA(double anr, double ani, double bnr, double bni, uint64_t skip, double radius);
+    //DO NOT MODIFY THIS FIELDS OUTER SCOPE
+    struct LightPA final : public PA {
+        double anr;
+        double ani;
+        double bnr;
+        double bni;
+        double radius;
+
+        explicit LightPA(double anr, double ani, double bnr, double bni, uint64_t skip, double radius);
 
         bool isValid(double dzRad) const;
     };

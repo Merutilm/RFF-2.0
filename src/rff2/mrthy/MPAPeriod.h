@@ -17,17 +17,17 @@ namespace merutilm::rff2 {
         // artificially-generated period flag
         const std::vector<bool> isArtificial;
 
-        // the count of elements of each level period
-        const std::vector<uint64_t> tableElements;
+        // the total count of skippable iterations count within current period
+        const std::vector<uint64_t> skippableIterationsCount;
 
-        explicit MPAPeriod(std::vector<uint64_t> &&tablePeriod, std::vector<bool> &&isArtificial, std::vector<uint64_t> &&tableElements);
+        explicit MPAPeriod(std::vector<uint64_t> &&tablePeriod, std::vector<bool> &&isArtificial, std::vector<uint64_t> &&nonEmptyMpaCount);
 
         struct Temp {
             std::vector<uint64_t> tablePeriod;
             std::vector<bool> isArtificial;
         };
 
-        static std::vector<uint64_t> generatePeriodElements(const std::vector<uint64_t> &tablePeriod);
+        static std::vector<uint64_t> generateNonEmptyMpaCount(const std::vector<uint64_t> &tablePeriod);
 
         static Temp generateTablePeriod(const std::vector<uint64_t> &referencePeriod, const FrtMPASettings &mpaSettings);
 

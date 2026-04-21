@@ -531,6 +531,8 @@ namespace merutilm::rff2 {
 
         const std::array<dex, 2> offset = offsetConversion(settings, 0, 0);
         dex dcMax = dex::ZERO;
+        uint64_t capacity = currentPerturbator && currentPerturbator->getReference() ? currentPerturbator->getReference()->length() : lastLength;
+
         dex_trigonometric::hypot_approx(&dcMax, offset[0], offset[1]);
         const auto refreshInterval = Utilities::getRefreshInterval(logZoom);
         std::function actionPerRefCalcIteration = [refreshInterval, this, &start](const uint64_t p) {
@@ -581,13 +583,13 @@ namespace merutilm::rff2 {
                     currentPerturbator = std::make_unique<DeepMB2Perturbator>(
                                 state, refCalc, center->perturbator->getDcMaxAsDoubleExp(),
                                 refExp10,
-                                period, approxTableCache, std::move(actionPerRefCalcIteration),
+                                capacity, period, approxTableCache, std::move(actionPerRefCalcIteration),
                                 std::move(actionPerCreatingTableIteration))
                             ->reuse(calc, dcMax, approxTableCache);
                 } else {
                     currentPerturbator = std::make_unique<LightMB2Perturbator>(state, refCalc,
                                 static_cast<double>(center->perturbator->getDcMaxAsDoubleExp()),
-                                refExp10, period, approxTableCache, std::move(actionPerRefCalcIteration),
+                                refExp10, capacity, period, approxTableCache, std::move(actionPerRefCalcIteration),
                                 std::move(actionPerCreatingTableIteration))
                             ->reuse(calc, static_cast<double>(dcMax), approxTableCache);
                 }
@@ -598,12 +600,12 @@ namespace merutilm::rff2 {
                 if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
                     currentPerturbator = std::make_unique<DeepMB2Perturbator>(
                         state, calc, dcMax, exp10,
-                        0, approxTableCache, std::move(actionPerRefCalcIteration),
+                        capacity, 0, approxTableCache, std::move(actionPerRefCalcIteration),
                         std::move(actionPerCreatingTableIteration));
                 } else {
                     currentPerturbator = std::make_unique<LightMB2Perturbator>(
                         state, calc, static_cast<double>(dcMax), exp10,
-                        0, approxTableCache, std::move(actionPerRefCalcIteration),
+                        capacity, 0, approxTableCache, std::move(actionPerRefCalcIteration),
                         std::move(actionPerCreatingTableIteration));
                 }
                 break;

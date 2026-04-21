@@ -8,7 +8,7 @@
 #include <atomic>
 
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
-#include "../data/ApproxTableCache.h"
+#include "../data/ApproxTableManager.h"
 #include "../formula/MB2Perturbator.h"
 #include "../io/RFFDynamicMapBinary.h"
 #include "../parallel/BackgroundThreads.h"
@@ -30,12 +30,13 @@ namespace merutilm::rff2 {
         uint64_t lastMaxIteration = 0;
         float lastLogZoom = 0;
         uint64_t lastPeriod = 1;
+        uint64_t lastLength = 1;
 
         RenderSceneRequests requests;
 
         std::atomic<bool> idleCompute = true;
 
-        ApproxTableCache approxTableCache = ApproxTableCache();
+        ApproxTableManager approxTableCache = ApproxTableManager();
 
         std::array<std::wstring, Constants::Status::LENGTH> *statusMessageRef = nullptr;
         std::unique_ptr<Matrix<double>> iterationMatrix = nullptr;
@@ -164,7 +165,7 @@ namespace merutilm::rff2 {
             currentPerturbator = std::move(perturbator);
         }
 
-        [[nodiscard]] ApproxTableCache &getApproxTableCache() {
+        [[nodiscard]] ApproxTableManager &getApproxTableCache() {
             return approxTableCache;
         }
 

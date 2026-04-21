@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
                                          fp_complex &&fpgReference, fp_complex &&fpgBn);
 
         static CreationResult createReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
-                                              uint64_t initialPeriod, dex dcMax, bool strictFPG,
+                                              uint64_t refInitialCapacity, uint64_t fixedPeriod, dex dcMax, bool strictFPG,
                                               std::function<void(uint64_t)> &&actionPerRefCalcIteration,  std::unique_ptr<DeepMB2Reference> *result);
 
 

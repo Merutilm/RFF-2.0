@@ -91,7 +91,7 @@ add_executable(
         src/rff2/mrthy/LightPAGenerator.h
         src/rff2/mrthy/DeepPAGenerator.cpp
         src/rff2/mrthy/DeepPAGenerator.h
-        src/rff2/data/ApproxTableCache.h
+        src/rff2/data/ApproxTableManager.h
         src/rff2/preset/shader/palette/ShdPalettePresets.h
         src/rff2/preset/shader/color/ShdColorPresets.h
         src/rff2/preset/shader/bloom/ShdBloomPresets.h
@@ -328,6 +328,7 @@ add_executable(
         src/rff2/util/profiler.hpp
         src/rff2/formula/Reference.hpp
         src/rff2/settings/FrtReferenceSyncSettings.hpp
+        src/rff2/mem/single_alloc_permitted_memory_resource.hpp
 )
 
 find_package(Vulkan REQUIRED)

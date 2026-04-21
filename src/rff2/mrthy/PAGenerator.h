@@ -5,6 +5,7 @@
 #pragma once
 #include <memory>
 
+#include "ArrayCompressionTool.h"
 #include "PA.h"
 
 namespace merutilm::rff2 {

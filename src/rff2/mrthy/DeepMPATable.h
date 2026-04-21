@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
 
 
         explicit DeepMPATable(const ParallelRenderState &state, const DeepMB2Reference &reference,
-                      const FrtMPASettings *mpaSettings, const dex &dcMax, ApproxTableCache &tableRef,
+                      const FrtMPASettings *mpaSettings, const dex &dcMax, ApproxTableManager &tableRef,
                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, tableRef, std::move(actionPerCreatingTableIteration)) {
 
         }
@@ -52,11 +52,11 @@ namespace merutilm::rff2 {
         const uint64_t index = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
                                                          refIteration);
 
-        if (index >= tableRef.mpaDeepTable.size()) {
+        if (index >= tableRef.mpaDeepTable->size()) {
             return nullptr;
         }
 
-        std::vector<DeepPA> &table = this->tableRef.mpaDeepTable[index];
+        std::pmr::vector<DeepPA> &table = (*this->tableRef.mpaDeepTable)[index];
         if (table.empty()) {
             return nullptr;
         }
@@ -97,6 +97,6 @@ namespace merutilm::rff2 {
     }
 
     inline size_t DeepMPATable::getLength() {
-        return tableRef.mpaDeepTable.size();
+        return tableRef.mpaDeepTable ? tableRef.mpaDeepTable->size() : 0;
     }
 }
