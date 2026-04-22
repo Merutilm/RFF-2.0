@@ -11,7 +11,7 @@ namespace merutilm::rff2 {
     }
 
     FrtReferenceSyncSettings CalculationPresets::UltraFast::genRefSync() const {
-        return FrtReferenceSyncSettings{32, 6};
+        return FrtReferenceSyncSettings{32, 3};
     }
 
 
@@ -29,7 +29,7 @@ namespace merutilm::rff2 {
 
 
     FrtReferenceSyncSettings CalculationPresets::Fast::genRefSync() const {
-        return FrtReferenceSyncSettings{16, 5};
+        return FrtReferenceSyncSettings{16, 3};
     }
 
     FrtMPASettings CalculationPresets::Fast::genMPA() const {
@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
 
 
     FrtReferenceSyncSettings CalculationPresets::Normal::genRefSync() const {
-        return FrtReferenceSyncSettings{8, 4};
+        return FrtReferenceSyncSettings{8, 2};
     }
 
     std::string CalculationPresets::Normal::getName() const {
@@ -63,7 +63,7 @@ namespace merutilm::rff2 {
 
 
     FrtReferenceSyncSettings CalculationPresets::Best::genRefSync() const {
-        return FrtReferenceSyncSettings{4, 3};
+        return FrtReferenceSyncSettings{4, 2};
     }
 
     FrtMPASettings CalculationPresets::Best::genMPA() const {
@@ -96,7 +96,7 @@ namespace merutilm::rff2 {
 
 
     FrtReferenceSyncSettings CalculationPresets::Stable::genRefSync() const {
-        return FrtReferenceSyncSettings{16, 4};
+        return FrtReferenceSyncSettings{16, 3};
     }
 
     FrtMPASettings CalculationPresets::Stable::genMPA() const {
@@ -112,7 +112,7 @@ namespace merutilm::rff2 {
     }
 
     FrtReferenceSyncSettings CalculationPresets::MoreStable::genRefSync() const {
-        return FrtReferenceSyncSettings{16, 4};
+        return FrtReferenceSyncSettings{16, 3};
     }
 
     FrtMPASettings CalculationPresets::MoreStable::genMPA() const {
@@ -124,7 +124,7 @@ namespace merutilm::rff2 {
     }
 
     FrtReferenceSyncSettings CalculationPresets::UltraStable::genRefSync() const {
-        return FrtReferenceSyncSettings{16, 4};
+        return FrtReferenceSyncSettings{16, 3};
     }
 
     std::string CalculationPresets::UltraStable::getName() const {

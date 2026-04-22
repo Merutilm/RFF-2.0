@@ -10,6 +10,7 @@
 #include "../settings/Settings.h"
 #include "VideoBufferCache.hpp"
 #include "VideoRenderSceneRenderer.hpp"
+#include "libavutil/frame.h"
 
 namespace merutilm::rff2 {
     class VideoRenderScene final : vkh::EngineHandler {
@@ -26,7 +27,8 @@ namespace merutilm::rff2 {
         std::condition_variable bufferCachedCondition;
 
     public:
-        explicit VideoRenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc, const VkExtent2D &videoExtent, const Settings &targetSettings);
+        explicit VideoRenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc, const VkExtent2D &videoExtent,
+                                  const Settings &targetSettings);
 
         ~VideoRenderScene() override;
 
@@ -38,7 +40,8 @@ namespace merutilm::rff2 {
 
         VideoRenderScene &operator=(VideoRenderScene &&) = delete;
 
-        void applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed, float currentFrame) const;
+        void applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed,
+                                    float currentFrame) const;
 
         void setMaxIterationDynamic(double maxIteration) const;
 
@@ -66,30 +69,27 @@ namespace merutilm::rff2 {
 
         void renderOnce() const;
 
-        [[nodiscard]] const VideoRenderSceneRenderer &getRenderer() const {
-            return *renderer;
-        }
+        [[nodiscard]] const VideoRenderSceneRenderer &getRenderer() const { return *renderer; }
 
         [[nodiscard]] float calculateZoom(float defaultZoomIncrement, float currentFrame) const;
 
         void queueImage();
 
+        const vkh::BufferContext &getCurrentBufferWithSync(uint32_t *frameIndex) const;
 
-        [[nodiscard]] std::mutex &getBufferCachedMutex() {
-            return bufferCachedMutex;
-        }
+        void fillCurrentImgToFrame(const AVFrame *frame) const;
 
-        [[nodiscard]] std::condition_variable &getBufferCachedCondition() {
-            return bufferCachedCondition;
-        }
+        HANDLE getBufferExtHandle(const vkh::BufferContext &buf) const;
 
-        [[nodiscard]] std::queue<std::unique_ptr<VideoBufferCache>> &getQueuedBuffers() {
-            return queuedVbc;
-        }
+        [[nodiscard]] std::mutex &getBufferCachedMutex() { return bufferCachedMutex; }
+
+        [[nodiscard]] std::condition_variable &getBufferCachedCondition() { return bufferCachedCondition; }
+
+        [[nodiscard]] std::queue<std::unique_ptr<VideoBufferCache>> &getQueuedBuffers() { return queuedVbc; }
 
 
         void init() override;
 
         void destroy() override;
     };
-}
+} // namespace merutilm::rff2

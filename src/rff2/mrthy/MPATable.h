@@ -65,8 +65,8 @@ namespace merutilm::rff2 {
 
         template<typename PAB, typename PAG>
             requires std::is_base_of_v<PA, PAB> && std::is_base_of_v<PAGenerator, PAG>
-        void stepOnce(std::pmr::vector<std::pmr::vector<PAB>> &table, const Ref &reference, double epsilon, const Num &dcMax,
-                      std::vector<uint64_t> &periodCount, std::vector<std::optional<PAG>> &currentPA,
+        void stepOnce(std::pmr::vector<std::pmr::vector<PAB>> &table, const Ref &reference, double epsilon,
+                      const Num &dcMax, std::vector<uint64_t> &periodCount, std::vector<std::optional<PAG>> &currentPA,
                       uint64_t pulledTableIndex, std::array<dex, 8> &dpTableTemps, uint64_t *currentIteration,
                       bool jumped);
 
@@ -251,15 +251,14 @@ namespace merutilm::rff2 {
 
         for (uint64_t i = level + 1; i < levels; ++i) {
             if (i <= level && periodCount[i] != 0) {
-                vkh::logger::w_log(
-                        L"WARNING : Failed to compress!! \n what : the table period count {} is not zero.",
-                        periodCount[i]);
+                vkh::logger::w_log(L"WARNING : Failed to compress!! \n what : the table period count {} is not zero.",
+                                   periodCount[i]);
                 return false;
             }
             if (periodCount[i] + skip > tablePeriod[i] - REQUIRED_PERTURBATION) {
                 vkh::logger::w_log(L"WARNING : Failed to compress!! \n what : the table period count {} + "
-                                       L"skip {} exceeds its period {}.",
-                                       periodCount[i], skip, tablePeriod[i]);
+                                   L"skip {} exceeds its period {}.",
+                                   periodCount[i], skip, tablePeriod[i]);
                 return false;
             }
         }
@@ -312,24 +311,25 @@ namespace merutilm::rff2 {
 
         for (uint64_t i = levels; i > 0; --i) {
             const uint64_t level = i - 1;
+            std::optional<PAG> &currentLevel = currentPA[level];
             if (periodCount[level] == 0 && independent && !jumped) {
                 if constexpr (std::is_same_v<PAG, LightPAGenerator>) {
-                    currentPA[level].emplace(reference, epsilon, dcMax, *currentIteration);
+                    currentLevel.emplace(reference, epsilon, dcMax, *currentIteration);
                 } else {
-                    currentPA[level].emplace(reference, epsilon, dcMax, *currentIteration, dpTableTemps);
+                    currentLevel.emplace(reference, epsilon, dcMax, *currentIteration, dpTableTemps);
                 }
             }
 
-            if (currentPA[level] != std::nullopt && periodCount[level] + REQUIRED_PERTURBATION < tablePeriod[level]) {
-                currentPA[level]->step();
+            if (currentLevel != std::nullopt && periodCount[level] + REQUIRED_PERTURBATION < tablePeriod[level]) {
+                currentLevel->step();
             }
 
 
             ++periodCount[level];
 
             if (periodCount[level] == tablePeriod[level]) {
-                const std::optional<PAG> &currentLevel = currentPA[level];
-                if (currentLevel != std::nullopt && currentLevel->getSkip() == tablePeriod[level] - REQUIRED_PERTURBATION) {
+                if (currentLevel != std::nullopt &&
+                    currentLevel->getSkip() == tablePeriod[level] - REQUIRED_PERTURBATION) {
                     const uint64_t compTableIndex =
                             iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
                                                       currentLevel->getStart());
@@ -337,8 +337,8 @@ namespace merutilm::rff2 {
 
                     if (compTableIndex == UINT64_MAX) {
                         vkh::logger::w_log(L"FATAL : FAILED TO CREATING TABLE!!\n what : iteration {} is not "
-                                               L"pullable. aborting the table creation...",
-                                               currentLevel->getStart());
+                                           L"pullable. aborting the table creation...",
+                                           currentLevel->getStart());
                         return;
                     }
 
@@ -348,12 +348,14 @@ namespace merutilm::rff2 {
                     if (pa.empty() || pa.back().skip < currentLevel->getSkip())
                         pa.push_back(currentLevel->build());
                     else {
-                        vkh::logger::w_log(L"WARNING : The insertion of pa generated from compressed index {} is not allowed. It might be a bug!", compTableIndex);
+                        vkh::logger::w_log(L"WARNING : The insertion of pa generated from compressed index {} is not "
+                                           L"allowed. It might be a bug!",
+                                           compTableIndex);
                     }
                 }
                 // Stop all lower level iteration for efficiency
                 // because it is too hard to skipping to next part of the periodic point
-                currentPA[level] = std::nullopt;
+                currentLevel = std::nullopt;
                 resetLowerLevel = true;
             }
 
@@ -498,7 +500,7 @@ namespace merutilm::rff2 {
     void MPATable<Ref, Num>::allocateWithCheckTableSize(std::pmr::vector<std::pmr::vector<PAB>> &table,
                                                         const uint64_t index, const uint64_t levels) {
         if (table.size() <= index) {
-            throw new vkh::exception_init("index out of range");
+            throw vkh::exception_init("index out of range");
         }
         if (table[index].empty()) {
             table[index].reserve(levels);

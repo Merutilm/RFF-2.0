@@ -3,9 +3,14 @@
 //
 
 #pragma once
+#include <cuda_runtime.h>
+#include <libavcodec/avcodec.h>
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
 #include "../settings/Settings.h"
 #include "VideoRenderScene.hpp"
+#include "opencv2/videoio.hpp"
+
+#include "FFmpegContext.hpp"
 
 namespace merutilm::rff2 {
 
@@ -36,9 +41,16 @@ namespace merutilm::rff2 {
 
         static LRESULT CALLBACK videoWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+        static cv::VideoWriter createWriter(const std::string &filename, int width, int height, double fps, uint32_t bitrate);
+
         static void createVideo(vkh::EngineRef engine, const Settings &settings, const std::filesystem::path &open, const std::filesystem::path &save);
 
         static void messageLoop();
+
+        void renderOnce(const FFmpegContext &ffmpegContext, const uint32_t frameNum, FILE *file) const;
+
+
+        static int encode(AVCodecContext *ctx, const AVFrame *frame, FILE *file);
 
     private:
 

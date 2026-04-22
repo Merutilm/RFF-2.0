@@ -4,9 +4,10 @@
 
 #include "VideoWindow.hpp"
 
-#include "IOUtilities.h"
 #include "../io/RFFDynamicMapBinary.h"
 #include "../io/RFFStaticMapBinary.h"
+#include "IOUtilities.h"
+#include "VideoCodec.hpp"
 #include "opencv2/opencv.hpp"
 
 namespace merutilm::rff2 {
@@ -15,11 +16,27 @@ namespace merutilm::rff2 {
         VideoWindow::init();
     }
 
-    VideoWindow::~VideoWindow() {
-        VideoWindow::destroy();
+    VideoWindow::~VideoWindow() { VideoWindow::destroy(); }
+
+
+    int VideoWindow::encode(AVCodecContext *ctx, const AVFrame *frame, FILE *file) {
+        int ret = avcodec_send_frame(ctx, frame);
+        if (ret < 0)
+            return ret;
+
+        AVPacket *pkt = av_packet_alloc();
+
+        while (true) {
+            ret = avcodec_receive_packet(ctx, pkt);
+            if (ret < 0)
+                break;
+            fwrite(pkt->data, 1, pkt->size, file);
+            av_packet_unref(pkt);
+        }
+
+        av_packet_free(&pkt);
+        return ret;
     }
-
-
     void VideoWindow::setClientSize(const int width, const int height) const {
         const RECT rect = {0, 0, width, height};
         RECT adjusted = rect;
@@ -48,7 +65,7 @@ namespace merutilm::rff2 {
                 GetClientRect(window.bar, &rc);
 
                 const HDC hdcBar = BeginPaint(window.bar, &ps);
-
+                
                 const auto pos = window.barRatio;
 
                 RECT prc = rc;
@@ -87,6 +104,34 @@ namespace merutilm::rff2 {
             default: break;
         }
         return DefWindowProcW(hwnd, message, wParam, lParam);
+    }
+
+    cv::VideoWriter VideoWindow::createWriter(const std::string &filename, const int width, const int height, const double fps, const uint32_t bitrate) {
+        const int fourcc = cv::VideoWriter::fourcc('a','v','c','1');
+
+        std::vector<VideoCodec> candidates = {
+            {"h264_nvenc", "rc=cbr:bitrate=" + bitrate},  // NVIDIA
+            {"h264_qsv",   "rc=cbr:bitrate=" + bitrate},  // Intel
+            {"h264_amf",   "rc=cbr:bitrate=" + bitrate},  // AMD
+            {"libx264",    "rc=cbr:bitrate=" + bitrate}   //fallback
+        };
+
+        for (const auto &[name, params] : candidates) {
+            std::string opts = "video_codec;" + name + "|" + params;
+#if defined(LINUX) || defined(MACOS)
+            setenv("OPENCV_FFMPEG_WRITER_OPTIONS", opts.c_str(), 1);  // Linux/macOS
+#elif WIN32
+            _putenv_s("OPENCV_FFMPEG_WRITER_OPTIONS", opts.c_str());
+#endif
+            cv::VideoWriter writer(filename, cv::CAP_FFMPEG, fourcc,
+                                   fps, cv::Size(width, height), true);
+            if (writer.isOpened()) {
+                std::cout << "codec : " << name << std::endl;
+                return writer;
+            }
+        }
+
+        throw std::runtime_error("no available codecs");
     }
 
 
@@ -144,9 +189,7 @@ namespace merutilm::rff2 {
 
 
 
-        cv::VideoWriter writer;
-        writer.open(save.string(), cv::VideoWriter::fourcc('a', 'v', 'c', '1'), fps,
-                    cv::Size(imgWidth, imgHeight));
+        cv::VideoWriter writer = createWriter(save.string(), imgWidth, imgHeight, fps, bitrate);
 
         if (!writer.isOpened()) {
             MessageBoxW(wnd, L"Cannot open file!!", L"Export failed", MB_TOPMOST | MB_ICONERROR | MB_OK);
@@ -297,6 +340,12 @@ namespace merutilm::rff2 {
             }
         });
         messageLoop();
+    }
+
+    void VideoWindow::renderOnce(const FFmpegContext &ffmpegContext, const uint32_t frameNum, FILE *file) const {
+        ffmpegContext.frame->pts = frameNum;
+        scene->fillCurrentImgToFrame(ffmpegContext.frame);
+        encode(ffmpegContext.codecCtx, ffmpegContext.frame, file);
     }
 
     void VideoWindow::messageLoop() {

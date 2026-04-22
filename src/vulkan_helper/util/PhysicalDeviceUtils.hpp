@@ -10,7 +10,8 @@ namespace merutilm::vkh {
     struct PhysicalDeviceUtils {
 
         inline static const std::vector<const char *> PHYSICAL_DEVICE_EXTENSIONS = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+            VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME
         };
 
         explicit PhysicalDeviceUtils() = delete;

@@ -3,6 +3,9 @@
 //
 
 #pragma once
+#include <any>
+
+
 #include "../core/vkh_base.hpp"
 
 namespace merutilm::vkh {
@@ -18,6 +21,8 @@ namespace merutilm::vkh {
         VkImageUsageFlags usage;
         VkImageLayout initialLayout;
         VkMemoryPropertyFlags properties;
+        std::vector<std::any> imgExtensions;
+        std::vector<std::any> memExtensions;
     };
 
     

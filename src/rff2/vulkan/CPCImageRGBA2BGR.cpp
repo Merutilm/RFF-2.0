@@ -73,9 +73,22 @@ namespace merutilm::rff2 {
         auto hdm = vkh::factory::create<vkh::HostDataObjectManager>();
         hdm->reserveArray<uint32_t>(TARGET_OUTPUT_SSBO_DATA, 1);
 
+        VkExternalMemoryBufferCreateInfo bufExtInfo{
+            .sType = VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO,
+            .pNext = nullptr,
+            .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT
+        };
+
+        VkExportMemoryAllocateInfo memExtInfo{
+            .sType = VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO,
+            .pNext = nullptr,
+            .handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT
+        };
+
+
         descManager->appendSSBO(BINDING_OUTPUT_SSBO, VK_SHADER_STAGE_COMPUTE_BIT,
                                 vkh::factory::create<vkh::ShaderStorage>(
-                                    wc.core, std::move(hdm), vkh::BufferLock::LOCK_UNLOCK, true));
+                                    wc.core, std::move(hdm), vkh::BufferLock::LOCK_UNLOCK, true, std::vector<std::any>{bufExtInfo}, std::vector<std::any>{memExtInfo}));
 
         appendUniqueDescriptor(SET_INFO, descriptors, std::move(descManager));
     }

@@ -329,10 +329,9 @@ add_executable(
         src/rff2/formula/Reference.hpp
         src/rff2/settings/FrtReferenceSyncSettings.hpp
         src/rff2/mem/single_alloc_permitted_memory_resource.hpp
+        src/rff2/ui/VideoCodec.hpp
+        src/rff2/ui/FFmpegContext.hpp
 )
-
-find_package(Vulkan REQUIRED)
-
 target_compile_options(RFF PRIVATE
         #Debug options
         $<$<CONFIG:Debug>:-O0>
@@ -354,8 +353,14 @@ target_include_directories(RFF PRIVATE
         ${Vulkan_INCLUDE_DIRS}
 )
 
-target_link_directories(RFF PRIVATE ${CMAKE_SOURCE_DIR}/lib)
 
+find_package(Vulkan REQUIRED)
+find_package(CUDAToolkit REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(FFMPEG REQUIRED libavcodec libavformat libavutil libavdevice libavfilter)
+
+target_link_directories(RFF PRIVATE ${CMAKE_SOURCE_DIR}/lib)
+target_include_directories(RFF PRIVATE ${FFMPEG_INCLUDE_DIRS})
 target_link_libraries(RFF PRIVATE
         # GMP Linker
         gmp
@@ -367,6 +372,17 @@ target_link_libraries(RFF PRIVATE
         opencv_imgproc4110
         opencv_videoio4110
         opencv_highgui4110
+        # ffmpeg
+        ${FFMPEG_LIBRARIES}
+        avcodec
+        avformat
+        avutil
+        avdevice
+        avfilter
+        # CUDA
+        CUDA::nppicc
+        CUDA::cudart
+        CUDA::cuda_driver
         # Vulkan
         Vulkan::Vulkan
 )

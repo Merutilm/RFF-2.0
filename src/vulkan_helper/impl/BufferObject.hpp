@@ -19,10 +19,13 @@ namespace merutilm::vkh {
         BufferLock bufferLock;
         bool locked = false;
         const bool multiframeEnabled;
+        std::vector<std::any> bufExtensions;
+        std::vector<std::any> memExtensions;
+
 
     public:
         explicit BufferObjectAbstract(CoreRef core, HostDataObjectManager &&dataManager,
-                              VkBufferUsageFlags bufferUsage, BufferLock bufferLock, bool multiframeEnabled);
+                              VkBufferUsageFlags bufferUsage, BufferLock bufferLock, bool multiframeEnabled, std::vector<std::any> &&bufExtensions = {}, std::vector<std::any> &&memExtensions = {});
 
         ~BufferObjectAbstract() override;
 

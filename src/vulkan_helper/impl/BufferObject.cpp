@@ -4,29 +4,23 @@
 
 #include "BufferObject.hpp"
 
-#include "../executor/ScopedNewCommandBufferExecutor.hpp"
-#include "../util/BufferImageUtils.hpp"
 #include "../core/logger.hpp"
+#include "../executor/ScopedNewCommandBufferExecutor.hpp"
 #include "../util/BarrierUtils.hpp"
 #include "../util/BufferImageContextUtils.hpp"
+#include "../util/BufferImageUtils.hpp"
 
 namespace merutilm::vkh {
     BufferObjectAbstract::BufferObjectAbstract(CoreRef core, HostDataObjectManager &&dataManager,
-                                               const VkBufferUsageFlags bufferUsage,
-                                               const BufferLock bufferLock,
-                                               const bool multiframeEnabled) : CoreHandler(core),
-                                                                               hostDataObject(
-                                                                                   factory::create<HostDataObject>(
-                                                                                       std::move(dataManager))),
-                                                                               bufferUsage(bufferUsage),
-                                                                               bufferLock(bufferLock),
-                                                                               multiframeEnabled(multiframeEnabled) {
+                                               const VkBufferUsageFlags bufferUsage, const BufferLock bufferLock,
+                                               const bool multiframeEnabled, std::vector<std::any> &&bufExtensions,
+                                               std::vector<std::any> &&memExtensions) :
+        CoreHandler(core), hostDataObject(factory::create<HostDataObject>(std::move(dataManager))),
+        bufferUsage(bufferUsage), bufferLock(bufferLock), multiframeEnabled(multiframeEnabled), bufExtensions(std::move(bufExtensions)),  memExtensions(std::move(memExtensions)){
         BufferObjectAbstract::init();
     }
 
-    BufferObjectAbstract::~BufferObjectAbstract() {
-        BufferObjectAbstract::destroy();
-    }
+    BufferObjectAbstract::~BufferObjectAbstract() { BufferObjectAbstract::destroy(); }
 
 
     void BufferObjectAbstract::reloadBuffer() {
@@ -62,8 +56,8 @@ namespace merutilm::vkh {
 
     void BufferObjectAbstract::checkFinalizedBeforeUpdate() const {
         if (locked) {
-            throw exception_invalid_state(
-                "BufferObjectAbstract::updateMF() This bufferObject is already been finalized. It cannot be modified.");
+            throw exception_invalid_state("BufferObjectAbstract::updateMF() This bufferObject is already been "
+                                          "finalized. It cannot be modified.");
         }
     }
 
@@ -74,20 +68,22 @@ namespace merutilm::vkh {
         VkBufferUsageFlags lockFlags = 0;
 
         switch (bufferLock) {
-                using enum BufferLock;
+            using enum BufferLock;
             case LOCK_UNLOCK:
-            case LOCK_ONLY: lockFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            case LOCK_ONLY:
+                lockFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
                 break;
-            case ALWAYS_MUTABLE: lockFlags = 0;
+            case ALWAYS_MUTABLE:
+                lockFlags = 0;
                 break;
         }
 
         const BufferInitInfo info{
-            .size = size,
-            .usage = bufferUsage | lockFlags,
-            .properties =
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                .size = size,
+                .usage = bufferUsage | lockFlags,
+                .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                .bufExtensions = bufExtensions,
+                .memExtensions = memExtensions,
         };
 
         if (multiframeEnabled) {
@@ -108,10 +104,12 @@ namespace merutilm::vkh {
         VkBufferUsageFlags lockFlags = 0;
 
         switch (bufferLock) {
-                using enum BufferLock;
-            case LOCK_UNLOCK: lockFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+            using enum BufferLock;
+            case LOCK_UNLOCK:
+                lockFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
                 break;
-            case LOCK_ONLY: lockFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+            case LOCK_ONLY:
+                lockFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
                 break;
             case ALWAYS_MUTABLE: {
                 logger::log_err_silent("Cannot lock object because the given BufferLock is {}",
@@ -122,19 +120,21 @@ namespace merutilm::vkh {
 
 
         const VkBufferCopy copyRegion = {
-            .srcOffset = 0,
-            .dstOffset = 0,
-            .size = hostDataObject->getTotalSizeByte(),
+                .srcOffset = 0,
+                .dstOffset = 0,
+                .size = hostDataObject->getTotalSizeByte(),
         };
         const BufferInitInfo info{
-            .size = hostDataObject->getTotalSizeByte(),
-            .usage = bufferUsage | lockFlags,
-            .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+                .size = hostDataObject->getTotalSizeByte(),
+                .usage = bufferUsage | lockFlags,
+                .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                .bufExtensions = bufExtensions,
+                .memExtensions = memExtensions,
         };
 
         if (multiframeEnabled) {
             MultiframeBufferContext lockedBuffer = BufferContext::createMultiframeContext(core, info);
-            //NEW COMMAND BUFFER
+            // NEW COMMAND BUFFER
             {
                 const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
                 BufferContext::unmapMemory(core, getBufferContextMF());
@@ -146,8 +146,7 @@ namespace merutilm::vkh {
                                                          hostDataObject->getTotalSizeByte(), VK_PIPELINE_STAGE_HOST_BIT,
                                                          VK_PIPELINE_STAGE_TRANSFER_BIT);
                     vkCmdCopyBuffer(cex.getCommandBufferHandle(), getBufferContextMF(i).buffer, lockedBuffer[i].buffer,
-                                    1,
-                                    &copyRegion);
+                                    1, &copyRegion);
                 }
             }
 
@@ -162,7 +161,7 @@ namespace merutilm::vkh {
         } else {
             BufferContext::unmapMemory(core, getBufferContext());
             BufferContext lockedBuffer = BufferContext::createContext(core, info);
-            //NEW COMMAND BUFFER
+            // NEW COMMAND BUFFER
             {
                 const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
                 BarrierUtils::cmdBufferMemoryBarrier(cex.getCommandBufferHandle(), VK_ACCESS_HOST_WRITE_BIT,
@@ -194,8 +193,9 @@ namespace merutilm::vkh {
         VkBufferUsageFlags lockFlags = 0;
 
         switch (bufferLock) {
-                using enum BufferLock;
-            case LOCK_UNLOCK: lockFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+            using enum BufferLock;
+            case LOCK_UNLOCK:
+                lockFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
                 break;
             case LOCK_ONLY:
             case ALWAYS_MUTABLE: {
@@ -205,18 +205,20 @@ namespace merutilm::vkh {
         }
 
 
-        const BufferInitInfo info {
-            .size = hostDataObject->getTotalSizeByte(),
-            .usage = bufferUsage | lockFlags,
-            .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+        const BufferInitInfo info{
+                .size = hostDataObject->getTotalSizeByte(),
+                .usage = bufferUsage | lockFlags,
+                .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                .bufExtensions = bufExtensions,
+                .memExtensions = memExtensions,
         };
 
         const VkBufferCopy copyRegion = {
-            .srcOffset = 0,
-            .dstOffset = 0,
-            .size = hostDataObject->getTotalSizeByte(),
+                .srcOffset = 0,
+                .dstOffset = 0,
+                .size = hostDataObject->getTotalSizeByte(),
         };
-        //NEW COMMAND BUFFER
+        // NEW COMMAND BUFFER
         if (multiframeEnabled) {
 
             MultiframeBufferContext unlockedBuffer = BufferContext::createMultiframeContext(core, info);
@@ -224,14 +226,12 @@ namespace merutilm::vkh {
                 const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
                 const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
                 for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-                    BarrierUtils::cmdBufferMemoryBarrier(cex.getCommandBufferHandle(), VK_ACCESS_SHADER_WRITE_BIT,
-                                                         VK_ACCESS_TRANSFER_READ_BIT, getBufferContextMF(i).buffer, 0,
-                                                         hostDataObject->getTotalSizeByte(),
-                                                         VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                                                         VK_PIPELINE_STAGE_TRANSFER_BIT);
+                    BarrierUtils::cmdBufferMemoryBarrier(
+                            cex.getCommandBufferHandle(), VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                            getBufferContextMF(i).buffer, 0, hostDataObject->getTotalSizeByte(),
+                            VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
                     vkCmdCopyBuffer(cex.getCommandBufferHandle(), getBufferContextMF(i).buffer,
-                                    unlockedBuffer[i].buffer, 1,
-                                    &copyRegion);
+                                    unlockedBuffer[i].buffer, 1, &copyRegion);
                 }
             }
             if (fence == VK_NULL_HANDLE) {
@@ -248,11 +248,10 @@ namespace merutilm::vkh {
             BufferContext unlockedBuffer = BufferContext::createContext(core, info);
             {
                 const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
-                BarrierUtils::cmdBufferMemoryBarrier(cex.getCommandBufferHandle(), VK_ACCESS_SHADER_WRITE_BIT,
-                                                     VK_ACCESS_TRANSFER_READ_BIT, getBufferContext().buffer, 0,
-                                                     hostDataObject->getTotalSizeByte(),
-                                                     VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-                                                     VK_PIPELINE_STAGE_TRANSFER_BIT);
+                BarrierUtils::cmdBufferMemoryBarrier(
+                        cex.getCommandBufferHandle(), VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                        getBufferContext().buffer, 0, hostDataObject->getTotalSizeByte(),
+                        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
                 vkCmdCopyBuffer(cex.getCommandBufferHandle(), getBufferContext().buffer, unlockedBuffer.buffer, 1,
                                 &copyRegion);
             }
@@ -274,8 +273,8 @@ namespace merutilm::vkh {
     void BufferObjectAbstract::destroy() {
         if (multiframeEnabled) {
             BufferContext::destroyContext(core, getBufferContextMF());
-        }else {
+        } else {
             BufferContext::destroyContext(core, getBufferContext());
         }
     }
-}
+} // namespace merutilm::vkh

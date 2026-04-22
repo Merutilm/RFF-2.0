@@ -6,7 +6,6 @@
 #include "../struct/ImageInitInfo.hpp"
 #include "../impl/Core.hpp"
 #include "../struct/BufferInitInfo.hpp"
-#include "../core/vkh_core.hpp"
 
 namespace merutilm::vkh {
     struct BufferImageUtils {
@@ -43,7 +42,7 @@ namespace merutilm::vkh {
         static void createImage(const VkDevice device, const ImageInitInfo &iii, const uint32_t mipLevels, VkImage *image) {
             const VkImageCreateInfo imageInfo = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-                .pNext = nullptr,
+                .pNext = iii.imgExtensions.empty() ? nullptr : iii.imgExtensions.data(),
                 .flags = 0,
                 .imageType = iii.imageType,
                 .format = iii.imageFormat,
@@ -71,7 +70,7 @@ namespace merutilm::vkh {
             vkGetImageMemoryRequirements(device, image, &memRequirements);
             const VkMemoryAllocateInfo allocInfo = {
                 .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                .pNext = nullptr,
+                .pNext = iii.memExtensions.empty() ? nullptr : iii.memExtensions.data(),
                 .allocationSize = memRequirements.size,
                 .memoryTypeIndex = findMemoryTypeIndex(memProperties, memRequirements.memoryTypeBits, iii.properties),
             };
@@ -158,20 +157,20 @@ namespace merutilm::vkh {
 
         static void initBuffer(const VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
                                const BufferInitInfo &bii, VkBuffer *buffer, VkDeviceMemory *bufferMemory) {
-            createBuffer(device, bii.size, bii.usage, buffer);
-            allocateBufferMemory(device, memProperties, bii.properties, *buffer,
+            createBuffer(device, bii, buffer);
+            allocateBufferMemory(device, memProperties, bii, *buffer,
                                  bufferMemory);
             allocator::invoke(vkBindBufferMemory, device, *buffer, *bufferMemory, 0);
         }
 
-        static void createBuffer(const VkDevice device, const VkDeviceSize size, const VkBufferUsageFlags usage,
+        static void createBuffer(const VkDevice device, const BufferInitInfo &bii,
                                  VkBuffer *buffer) {
             const VkBufferCreateInfo bufferInfo = {
                 .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-                .pNext = nullptr,
+                .pNext = bii.bufExtensions.empty() ? nullptr : bii.bufExtensions.data(),
                 .flags = 0,
-                .size = size,
-                .usage = usage,
+                .size = bii.size,
+                .usage = bii.usage,
                 .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
                 .queueFamilyIndexCount = 0,
                 .pQueueFamilyIndices = nullptr
@@ -184,16 +183,16 @@ namespace merutilm::vkh {
 
 
         static void allocateBufferMemory(const VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
-                                         const VkMemoryPropertyFlags properties,
+                                         const BufferInitInfo &bii,
                                          const VkBuffer buffer, VkDeviceMemory *bufferMemory) {
             VkMemoryRequirements memRequirements;
             vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
             const VkMemoryAllocateInfo allocInfo = {
                 .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                .pNext = nullptr,
+                .pNext = bii.memExtensions.empty() ? nullptr : bii.memExtensions.data(),
                 .allocationSize = memRequirements.size,
                 .memoryTypeIndex = findMemoryTypeIndex(memProperties, memRequirements.memoryTypeBits,
-                                                       properties)
+                                                       bii.properties)
             };
             if (allocator::invoke(vkAllocateMemory, device, &allocInfo, nullptr,
                                  bufferMemory) != VK_SUCCESS) {
