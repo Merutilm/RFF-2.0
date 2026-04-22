@@ -51,7 +51,7 @@ namespace merutilm::rff2 {
                 Parser::UINT32, ValidCondition::ALL_UINT32, Callback::NOTHING, L"Reference Compression Criteria",
                 L"When compressing references, sets the minimum amount of references to compress at one time.\n"
                 L"Reference compression slows down the calculation but frees up memory space.\n"
-                L"Not activate option is ZERO.");
+                L"set 0 to disable.");
         window->registerTextInput<uint8_t>(
                 L"Reference Compression Threshold", &calc.referenceCompSettings.compressionThresholdPower,
                 Unparser::UINT8, Parser::UINT8, ValidCondition::ALL_UINT8, Callback::NOTHING,
@@ -59,7 +59,7 @@ namespace merutilm::rff2 {
                 L"When compressing references, sets the negative exponents of ten of minimum error to be considered "
                 L"equal.\n"
                 L"Reference compression slows down the calculation but frees up memory space.\n"
-                L"Not activate option is ZERO.");
+                L"set 0 to disable.");
         window->registerCheckboxInput(L"NO Compressor normalization",
                                       &calc.referenceCompSettings.noCompressorNormalization, Callback::NOTHING,
                                       L"NO Compressor normalization",

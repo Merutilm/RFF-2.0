@@ -45,9 +45,9 @@ namespace merutilm::rff2 {
                                          ValidCondition::POSITIVE_FLOAT_ZERO, Callback::NOTHING, L"Over Zoom",
                                          L"Zoom the final video data.");
         window->registerCheckboxInput(L"Show Text", &showText, Callback::NOTHING, L"Show Text", L"Show the text on video.");
-        window->registerTextInput<float>(L"MPS", &mps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
-                                         Callback::NOTHING, L"MPS",
-                                         L"Map per second, Number of video data used per second in video");
+        window->registerTextInput<float>(L"Zoom Speed", &mps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
+                                         Callback::NOTHING, L"Set Zoom Speed",
+                                         L"Sets the zoom speed, Number of Map(.rfm) data used per second in video");
 
         window->setWindowCloseFunction([&settingsMenu] {
             settingsMenu.setCurrentActiveSettingsWindow(nullptr);
