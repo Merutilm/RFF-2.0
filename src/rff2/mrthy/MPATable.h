@@ -312,23 +312,23 @@ namespace merutilm::rff2 {
 
         for (uint64_t i = levels; i > 0; --i) {
             const uint64_t level = i - 1;
+            std::optional<PAG> &currentLevel = currentPA[level];
             if (periodCount[level] == 0 && independent && !jumped) {
                 if constexpr (std::is_same_v<PAG, LightPAGenerator>) {
-                    currentPA[level].emplace(reference, epsilon, dcMax, *currentIteration);
+                    currentLevel.emplace(reference, epsilon, dcMax, *currentIteration);
                 } else {
-                    currentPA[level].emplace(reference, epsilon, dcMax, *currentIteration, dpTableTemps);
+                    currentLevel.emplace(reference, epsilon, dcMax, *currentIteration, dpTableTemps);
                 }
             }
 
-            if (currentPA[level] != std::nullopt && periodCount[level] + REQUIRED_PERTURBATION < tablePeriod[level]) {
-                currentPA[level]->step();
+            if (currentLevel != std::nullopt && periodCount[level] + REQUIRED_PERTURBATION < tablePeriod[level]) {
+                currentLevel->step();
             }
 
 
             ++periodCount[level];
 
             if (periodCount[level] == tablePeriod[level]) {
-                const std::optional<PAG> &currentLevel = currentPA[level];
                 if (currentLevel != std::nullopt && currentLevel->getSkip() == tablePeriod[level] - REQUIRED_PERTURBATION) {
                     const uint64_t compTableIndex =
                             iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
@@ -353,7 +353,7 @@ namespace merutilm::rff2 {
                 }
                 // Stop all lower level iteration for efficiency
                 // because it is too hard to skipping to next part of the periodic point
-                currentPA[level] = std::nullopt;
+                currentLevel = std::nullopt;
                 resetLowerLevel = true;
             }
 
@@ -498,7 +498,7 @@ namespace merutilm::rff2 {
     void MPATable<Ref, Num>::allocateWithCheckTableSize(std::pmr::vector<std::pmr::vector<PAB>> &table,
                                                         const uint64_t index, const uint64_t levels) {
         if (table.size() <= index) {
-            throw new vkh::exception_init("index out of range");
+            throw vkh::exception_init("index out of range");
         }
         if (table[index].empty()) {
             table[index].reserve(levels);
