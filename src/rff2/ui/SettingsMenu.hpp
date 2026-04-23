@@ -6,7 +6,6 @@
 #include <functional>
 #include <string_view>
 #include <vector>
-#include <windef.h>
 
 #include "RenderScene.hpp"
 #include "SettingsWindow.hpp"

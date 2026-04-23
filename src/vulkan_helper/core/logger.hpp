@@ -3,7 +3,9 @@
 //
 
 #pragma once
+
 #include "vkh_base.hpp"
+#include <iomanip>
 
 namespace merutilm::vkh {
     struct logger {
@@ -59,11 +61,11 @@ namespace merutilm::vkh {
             return tm;
         }
 
-        static std::_Put_time<char> current_put_time(const std::tm * const tm) {
+        static std::_Timeobj<char, const tm *> current_put_time(const std::tm * const tm) {
             return std::put_time(tm, "%Y/%m/%d, %H:%M:%S");
         }
 
-        static std::_Put_time<wchar_t> w_current_put_time(const std::tm * const tm) {
+        static std::_Timeobj<wchar_t, const tm *> w_current_put_time(const std::tm * const tm) {
             return std::put_time(tm, L"%Y/%m/%d, %H:%M:%S");
         }
     };

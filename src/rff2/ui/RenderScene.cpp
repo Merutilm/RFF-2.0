@@ -31,7 +31,7 @@
 #include "../vulkan/RCCStatic2Image.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 #include "../vulkan/SharedImageContextIndices.hpp"
-#include "opencv2/opencv.hpp"
+#include <opencv2/opencv.hpp>
 
 
 namespace merutilm::rff2 {
@@ -610,7 +610,7 @@ namespace merutilm::rff2 {
         }
 
         const MB2Reference *reference = currentPerturbator->getReference();
-        if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE || state.interruptRequested())
+        if (!reference || state.interruptRequested())
             return false;
 
         lastLogZoom = calc.logZoom;

@@ -23,14 +23,14 @@ namespace merutilm::rff2 {
 
         ~MB2Perturbator() override = default;
 
-        virtual const MB2Reference *getReference() const = 0;
+        [[nodiscard]] virtual const MB2Reference *getReference() const = 0;
 
-        const FractalSettings &getCalculationSettings() const {
+        [[nodiscard]] const FractalSettings &getCalculationSettings() const {
             return calc;
         };
 
-        virtual dex getDcMaxAsDoubleExp() const = 0;
+        [[nodiscard]] virtual dex getDcMaxAsDoubleExp() const = 0;
 
-        virtual double iterate(const dex &dcr, const dex &dci) const = 0;
+        [[nodiscard]] virtual double iterate(const dex &dcr, const dex &dci) const = 0;
     };
 }

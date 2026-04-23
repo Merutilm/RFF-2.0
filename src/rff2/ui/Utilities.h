@@ -5,7 +5,6 @@
 #pragma once
 
 #include <string>
-#include <ctime>
 #include <filesystem>
 
 #include "../constants/Constants.hpp"
@@ -14,8 +13,8 @@ namespace merutilm::rff2 {
     struct Utilities {
         Utilities() = delete;
 
-        static std::wstring elapsed_time(const std::chrono::time_point<std::chrono::system_clock> start) {
-            const auto current = std::chrono::system_clock::now();
+        static std::wstring elapsed_time(const std::chrono::time_point<std::chrono::steady_clock> &start) {
+            const auto current = std::chrono::steady_clock::now();
             const auto elapsed = std::chrono::milliseconds((current - start).count() / 1000000);
             const auto hms = std::chrono::hh_mm_ss(elapsed);
             return std::format(L"T : {:02d}:{:02d}:{:02d}:{:03d}", hms.hours().count(),
@@ -23,7 +22,7 @@ namespace merutilm::rff2 {
         }
 
         static float getCurrentTime() {
-            return static_cast<float>(std::chrono::system_clock::now().time_since_epoch().count() - Constants::Fractal::INIT_TIME)
+            return static_cast<float>(std::chrono::high_resolution_clock::now().time_since_epoch().count() - Constants::Fractal::INIT_TIME)
                    / 1e9;
         }
 

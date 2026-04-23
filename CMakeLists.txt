@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
+
 project(RFF)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -231,7 +232,6 @@ add_executable(
         src/rff2/constants/Win32Constants.hpp
         src/rff2/constants/FractalConstants.hpp
         src/rff2/constants/NumConstants.hpp
-        src/rff2/constants/NullConstants.hpp
         src/rff2/constants/VideoConstants.hpp
         src/rff2/constants/ExtensionConstants.hpp
         src/rff2/constants/StatusConstants.hpp
@@ -334,9 +334,9 @@ add_executable(
 )
 target_compile_options(RFF PRIVATE
         #Debug options
-        $<$<CONFIG:Debug>:-O0>
+        $<$<CONFIG:Debug>:/Od /utf-8>
         #Release options
-        $<$<CONFIG:Release>:-Ofast -funroll-loops -march=native>
+        $<$<CONFIG:Release>:/O2 /utf-8 /GL /fp:fast /arch:AVX2 /Qpar /Gw /GS->
 )
 
 target_compile_definitions(RFF
@@ -344,43 +344,63 @@ target_compile_definitions(RFF
         VK_USE_PLATFORM_WIN32_KHR
 )
 
+
+find_package(Vulkan REQUIRED)
+find_package(CUDAToolkit REQUIRED)
+
+set(MSVC_INCLUDE_DIRS "D:/merutilm/Developments/cpp/extern/vcpkg/installed/x64-windows/include")
+set(MSVC_LINK_DIRS
+        $<$<CONFIG:Debug>:D:/merutilm/Developments/cpp/extern/vcpkg/installed/x64-windows/debug/lib>
+        $<$<CONFIG:Release>:D:/merutilm/Developments/cpp/extern/vcpkg/installed/x64-windows/lib>
+)
+
+
 target_include_directories(RFF PRIVATE
         # standard include
-        ${CMAKE_SOURCE_DIR}/include
+        # {CMAKE_SOURCE_DIR}/include/mingw
         # extern sources
         ${CMAKE_SOURCE_DIR}/extern
         # vulkan sdk directory
         ${Vulkan_INCLUDE_DIRS}
+        ${MSVC_INCLUDE_DIRS}
+        ${CUDAToolkit_INCLUDE_DIRS}
 )
 
+target_link_directories(RFF PRIVATE
+        ${MSVC_LINK_DIRS}
+)
 
-find_package(Vulkan REQUIRED)
-find_package(CUDAToolkit REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(FFMPEG REQUIRED libavcodec libavformat libavutil libavdevice libavfilter)
-
-target_link_directories(RFF PRIVATE ${CMAKE_SOURCE_DIR}/lib)
-target_include_directories(RFF PRIVATE ${FFMPEG_INCLUDE_DIRS})
 target_link_libraries(RFF PRIVATE
-        # GMP Linker
+        # GMP
         gmp
-        # Win32 Linker
-        comctl32
-        # OpenCV Linkers
-        opencv_core4110
-        opencv_imgcodecs4110
-        opencv_imgproc4110
-        opencv_videoio4110
-        opencv_highgui4110
-        # ffmpeg
-        ${FFMPEG_LIBRARIES}
+        # FFmpeg
         avcodec
-        avformat
-        avutil
         avdevice
         avfilter
+        avutil
+        avformat
+        swresample
+        swscale
+        # OpenCV
+        $<$<CONFIG:Debug>:opencv_core4d>
+        $<$<CONFIG:Debug>:opencv_imgcodecs4d>
+        $<$<CONFIG:Debug>:opencv_imgproc4d>
+        $<$<CONFIG:Debug>:opencv_videoio4d>
+        $<$<CONFIG:Debug>:opencv_highgui4d>
+        $<$<CONFIG:Release>:opencv_core4>
+        $<$<CONFIG:Release>:opencv_imgcodecs4>
+        $<$<CONFIG:Release>:opencv_imgproc4>
+        $<$<CONFIG:Release>:opencv_videoio4>
+        $<$<CONFIG:Release>:opencv_highgui4>
+        # Win32 Linker
+        comctl32
         # CUDA
         CUDA::nppicc
+        CUDA::nppc
+        CUDA::nppig
+        CUDA::nppif
+        CUDA::nppist
+        CUDA::nppisu
         CUDA::cudart
         CUDA::cuda_driver
         # Vulkan

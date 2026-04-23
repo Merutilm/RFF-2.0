@@ -251,7 +251,7 @@ namespace merutilm::rff2 {
         createLabel(settingsName, descriptionTitle, descriptionDetail, nw);
         const auto item = CreateWindowExW(0, WC_BUTTONW, L"", Constants::Win32::STYLE_CHECKBOX, nw, getYOffset(), vw,
                                     Constants::Win32::SETTINGS_INPUT_HEIGHT, window, reinterpret_cast<HMENU>(
-                                        Constants::Win32::ID_OPTIONS + Constants::Win32::ID_OPTIONS_CHECKBOX_FLAG + count), nullptr, nullptr);
+                                        static_cast<uint16_t>(Constants::Win32::ID_OPTIONS + Constants::Win32::ID_OPTIONS_CHECKBOX_FLAG + count)), nullptr, nullptr);
 
         SendMessage(item, WM_SETFONT, font, TRUE);
         SendMessage(item, BM_SETCHECK, *defaultValue ? BST_CHECKED : BST_UNCHECKED, 0);

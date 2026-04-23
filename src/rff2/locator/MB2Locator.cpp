@@ -29,9 +29,7 @@ namespace merutilm::rff2 {
     std::unique_ptr<fp_complex> MB2Locator::findCenterOffset(const MB2Perturbator &perturbator) {
         const int exp10 = Perturbator::logZoomToExp10(perturbator.getCalculationSettings().logZoom);
         const MB2Reference *reference = perturbator.getReference();
-        if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
-            return nullptr;
-        }
+        if (!reference) return nullptr;
 
         fp_complex_mutable bn = reference->fpgBn.edit(exp10);
         fp_complex_mutable z = reference->fpgReference.edit(exp10);

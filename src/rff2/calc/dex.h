@@ -3,13 +3,10 @@
 //
 
 #pragma once
-#include <cmath>
 #include <format>
-#include <iostream>
 #include <string>
 
 #include "../constants/Constants.hpp"
-
 
 namespace merutilm::rff2 {
 
@@ -307,7 +304,7 @@ namespace merutilm::rff2 {
 
         static void normalize(dex *target);
 
-        [[nodiscard]] char sgn() const;
+        [[nodiscard]] int sgn() const;
 
         [[nodiscard]] bool isinf() const;
 
@@ -340,9 +337,9 @@ namespace merutilm::rff2 {
 
     inline const dex dex::NN = dex(0, NAN);
 
-    inline const dex dex::PINF = dex(0, INFINITY);
+    inline const dex dex::PINF = dex(0, HUGE_VAL);
 
-    inline const dex dex::NINF = dex(0, -INFINITY);
+    inline const dex dex::NINF = dex(0, -HUGE_VAL);
     constexpr dex::dex() : dex(0, 0) {
     }
 
@@ -441,8 +438,8 @@ namespace merutilm::rff2 {
         target->exp2 += static_cast<int>((mts_bits & 0x7ff0000000000000ULL) >> 52) - 0x03fe;
     }
 
-    inline char dex::sgn() const {
-        return static_cast<char>(0 < mantissa) - static_cast<char>(mantissa < 0);
+    inline int dex::sgn() const {
+        return static_cast<int>(0 < mantissa) - static_cast<int>(mantissa < 0);
     }
 
     inline bool dex::isinf() const {
@@ -471,6 +468,8 @@ namespace merutilm::rff2 {
         if (isinf()) {
             return sgn() > 0 ? "inf" : "-inf";
         }
+
+
         const double raw_exp10 = Constants::Num::LOG10_2 * exp2;
         auto exp10 = static_cast<int>(raw_exp10);
         double mantissa10 = mantissa * std::pow(10, raw_exp10 - exp10);

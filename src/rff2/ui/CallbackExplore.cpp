@@ -32,7 +32,7 @@ namespace merutilm::rff2 {
     const std::function<void(SettingsMenu &, RenderScene &)> CallbackExplore::FIND_CENTER = [
             ](const SettingsMenu &, RenderScene &scene) {
         const MB2Perturbator *perturbator = scene.getCurrentPerturbator();
-        if (perturbator == nullptr || perturbator->getReference() == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE) {
+        if (perturbator == nullptr || !perturbator->getReference()) {
             return;
         }
 

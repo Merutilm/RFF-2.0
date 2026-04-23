@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
-#include "opencv2/core/mat.hpp"
+#include <opencv2/core/mat.hpp>
 
 namespace merutilm::rff2{
     struct GPCStaticImage2Map final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {

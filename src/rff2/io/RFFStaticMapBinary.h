@@ -6,7 +6,7 @@
 #include <filesystem>
 
 #include "RFFBinary.h"
-#include "opencv2/core/mat.hpp"
+#include <opencv2/core/mat.hpp>
 
 namespace merutilm::rff2 {
     class RFFStaticMapBinary final : public RFFBinary {

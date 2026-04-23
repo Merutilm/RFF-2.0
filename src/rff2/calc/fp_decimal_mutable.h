@@ -4,8 +4,9 @@
 
 #pragma once
 
+#include <gmp.h>
 #include "dex.h"
-#include "gmp.h"
+#include "../constants/NumConstants.hpp"
 
 namespace merutilm::rff2 {
     struct fp_decimal_mutable final {
@@ -65,17 +66,15 @@ namespace merutilm::rff2 {
     //DEFINITION OF FP_DECIMAL_MUTABLE
 
 
-    inline fp_decimal_mutable::fp_decimal_mutable() {
-        exp2 = 0;
+    inline fp_decimal_mutable::fp_decimal_mutable() : exp2(0){
         mpz_init(value);
         mpz_init(temp);
     }
 
-    inline fp_decimal_mutable::fp_decimal_mutable(const mpz_srcptr value, const int exp2) {
+    inline fp_decimal_mutable::fp_decimal_mutable(const mpz_srcptr value, const int exp2) : exp2(exp2) {
         mpz_init(this->value);
         mpz_init(temp);
         mpz_set(this->value, value);
-        this->exp2 = exp2;
     }
 
     inline fp_decimal_mutable::fp_decimal_mutable(const dex &d, const int exp10) {
@@ -148,10 +147,9 @@ namespace merutilm::rff2 {
     }
 
 
-    inline fp_decimal_mutable::fp_decimal_mutable(const fp_decimal_mutable &other) {
+    inline fp_decimal_mutable::fp_decimal_mutable(const fp_decimal_mutable &other) : exp2(other.exp2){
         mpz_init_set(temp, other.temp);
         mpz_init_set(value, other.value);
-        exp2 = other.exp2;
     }
 
     inline fp_decimal_mutable &fp_decimal_mutable::operator=(const fp_decimal_mutable &other) {
@@ -163,14 +161,12 @@ namespace merutilm::rff2 {
     }
 
 
-    inline fp_decimal_mutable::fp_decimal_mutable(fp_decimal_mutable &&other) noexcept {
+    inline fp_decimal_mutable::fp_decimal_mutable(fp_decimal_mutable &&other) noexcept : exp2(other.exp2){
         mpz_init(value);
         mpz_init(temp);
 
         mpz_swap(value, other.value);
         mpz_swap(temp, other.temp);
-
-        exp2 = other.exp2;
     }
 
     inline fp_decimal_mutable &fp_decimal_mutable::operator=(fp_decimal_mutable &&other) noexcept {
@@ -301,7 +297,7 @@ namespace merutilm::rff2 {
         //0000 0000 0000 : 2^-1023
         //0111 1111 1111 : 2^1024
         if (fExp2 > 0x03ff) {
-            return sgn == 1 ? INFINITY : -INFINITY;
+            return sgn == 1 ? HUGE_VAL : -HUGE_VAL;
         }
         const int mantissa_shift = fExp2 <= -0x03ff ? -0x03ff - fExp2 + 1 : 0;
         mantissa = (mantissa >> mantissa_shift) & 0x800fffffffffffffULL;
@@ -333,7 +329,7 @@ namespace merutilm::rff2 {
         size_t cnt;
         mpz_export(&mantissa_bit, &cnt, -1, sizeof(mantissa_bit), 0, 0, temp);
         const int fExp2 = exp2 + shift + 52;
-        const double mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
+        const auto mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
 
         dex::cpy(result, mantissa);
         dex::mul_2exp(result, *result, fExp2);

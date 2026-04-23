@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "gmp.h"
+#include <gmp.h>
 #include "fp_decimal_mutable.h"
 
 namespace merutilm::rff2 {
@@ -27,17 +27,17 @@ namespace merutilm::rff2 {
 
         fp_decimal& operator=(fp_decimal&& other) noexcept;
 
-        std::string to_string() const;
+        [[nodiscard]] std::string to_string() const;
 
-        int get_exp2() const;
+        [[nodiscard]] int get_exp2() const;
 
-        bool is_positive() const;
+        [[nodiscard]] bool is_positive() const;
 
-        bool is_zero() const;
+        [[nodiscard]] bool is_zero() const;
 
-        bool is_negative() const;
+        [[nodiscard]] bool is_negative() const;
 
-        fp_decimal_mutable edit() const;
+        [[nodiscard]] fp_decimal_mutable edit() const;
 
     };
 
@@ -46,8 +46,7 @@ namespace merutilm::rff2 {
     inline fp_decimal::fp_decimal(const std::string& value, const int exp10) : fp_decimal(fp_decimal_mutable(value, exp10)){};
 
 
-    inline fp_decimal::fp_decimal(const fp_decimal_mutable &calc) {
-        this->exp2 = calc.exp2;
+    inline fp_decimal::fp_decimal(const fp_decimal_mutable &calc) : exp2(calc.exp2), value(){
         mpz_init(this->value);
         mpz_set(this->value, calc.value);
     }
@@ -59,8 +58,7 @@ namespace merutilm::rff2 {
     }
 
 
-    inline fp_decimal::fp_decimal(const fp_decimal &other) {
-        this->exp2 = other.exp2;
+    inline fp_decimal::fp_decimal(const fp_decimal &other) : exp2(other.exp2), value(){
         mpz_init(this->value);
         mpz_set(this->value, other.value);
     }
@@ -71,8 +69,7 @@ namespace merutilm::rff2 {
         return *this;
     }
 
-    inline fp_decimal::fp_decimal(fp_decimal &&other) noexcept {
-        this->exp2 = other.exp2;
+    inline fp_decimal::fp_decimal(fp_decimal &&other) noexcept : exp2(other.exp2), value() {
         mpz_init(this->value);
         mpz_swap(this->value, other.value);
         mpz_set_ui(other.value, 0);

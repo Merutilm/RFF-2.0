@@ -3,8 +3,14 @@
 //
 
 #pragma once
+
+extern "C" {
 #include "libavcodec/avcodec.h"
 #include "libavutil/frame.h"
+}
+
+#include "nppi_color_conversion.h"
+
 namespace merutilm::rff2 {
     struct FFmpegContext {
 
@@ -12,6 +18,7 @@ namespace merutilm::rff2 {
         AVCodecContext *codecCtx;
         AVBufferRef *hwDeviceCtxBufferRef;
         AVBufferRef *hwFramesCtxBufferRef;
+        NppStreamContext streamContext;
 
         static bool tryInit(uint32_t width, uint32_t height, uint32_t bitrate, int32_t fps, FFmpegContext *ctx);
 
@@ -19,7 +26,7 @@ namespace merutilm::rff2 {
 
     private:
         static void freeContext(AVBufferRef *hwDeviceCtxBufferRef, AVBufferRef *hwFramesCtxBufferRef,
-                                           AVCodecContext *codecCtx, AVFrame *frame);
+                                AVCodecContext *codecCtx, AVFrame *frame);
     };
 
     // DEFINITION OF FFmpegContext
@@ -28,7 +35,8 @@ namespace merutilm::rff2 {
                                        const int32_t fps, FFmpegContext *ctx) {
         // codec
         const AVCodec *codec = avcodec_find_encoder_by_name("h264_nvenc");
-        if (!codec) return false;
+        if (!codec)
+            return false;
 
         // init hw device context
         AVBufferRef *hwDeviceCtxBufferRef = av_hwdevice_ctx_alloc(AV_HWDEVICE_TYPE_CUDA);
@@ -82,11 +90,31 @@ namespace merutilm::rff2 {
             freeContext(hwDeviceCtxBufferRef, hwFramesCtxBufferRef, codecCtx, frame);
             return false;
         }
+
+        NppStreamContext streamContext{};
+
+        cudaGetDevice(&streamContext.nCudaDeviceId);
+        cudaDeviceGetAttribute(&streamContext.nMultiProcessorCount, cudaDevAttrMultiProcessorCount,
+                               streamContext.nCudaDeviceId);
+        cudaDeviceGetAttribute(&streamContext.nMaxThreadsPerMultiProcessor, cudaDevAttrMaxThreadsPerMultiProcessor,
+                               streamContext.nCudaDeviceId);
+        cudaDeviceGetAttribute(&streamContext.nMaxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock,
+                               streamContext.nCudaDeviceId);
+        cudaDeviceGetAttribute(reinterpret_cast<int *>(&streamContext.nSharedMemPerBlock),
+                               cudaDevAttrMaxSharedMemoryPerBlock, streamContext.nCudaDeviceId);
+        cudaDeviceGetAttribute(&streamContext.nCudaDevAttrComputeCapabilityMajor, cudaDevAttrComputeCapabilityMajor,
+                               streamContext.nCudaDeviceId);
+        cudaDeviceGetAttribute(&streamContext.nCudaDevAttrComputeCapabilityMinor, cudaDevAttrComputeCapabilityMinor,
+                               streamContext.nCudaDeviceId);
+        cudaStreamGetFlags(streamContext.hStream, &streamContext.nStreamFlags);
+        streamContext.nReserved0 = 0;
+
         if (ctx)
             *ctx = {.frame = frame,
                     .codecCtx = codecCtx,
                     .hwDeviceCtxBufferRef = hwDeviceCtxBufferRef,
-                    .hwFramesCtxBufferRef = hwFramesCtxBufferRef};
+                    .hwFramesCtxBufferRef = hwFramesCtxBufferRef,
+                    .streamContext = std::move(streamContext)};
         return true;
     }
 

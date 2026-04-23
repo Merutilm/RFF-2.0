@@ -4,13 +4,15 @@
 
 #include "ShdPalettePresets.h"
 
-#include <algorithm>
+#include <cmath>
 #include <glm/glm.hpp>
 
 #include "../../../util/ColorUtils.h"
 
+
+#define PI 3.14159265
+
 namespace merutilm::rff2 {
-#define PI static_cast<float>(M_PI)
     std::string ShdPalettePresets::Classic1::getName() const {
         return "Classic 1";
     }

@@ -4,7 +4,7 @@
 
 #include "LightMB2Reference.h"
 
-#include <cmath>
+
 
 #include <cfloat>
 #include <fstream>

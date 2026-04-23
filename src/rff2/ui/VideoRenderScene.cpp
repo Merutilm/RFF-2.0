@@ -10,8 +10,7 @@
 #include <nppi_color_conversion.h>
 #include "../../vulkan_helper/util/BufferImageContextUtils.hpp"
 #include "../vulkan/RCCPresentVid.hpp"
-#include "libavutil/frame.h"
-#include "opencv2/imgproc.hpp"
+#include <opencv2/imgproc.hpp>
 
 namespace merutilm::rff2 {
     VideoRenderScene::VideoRenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc, const VkExtent2D &videoExtent,
@@ -232,7 +231,7 @@ namespace merutilm::rff2 {
         return renderer->rendererImageRGBA2BGR->getBufferContext(fi);
     }
 
-    void VideoRenderScene::fillCurrentImgToFrame(const AVFrame *const frame) const {
+    void VideoRenderScene::fillCurrentImgToFrame(const AVFrame *const frame, const NppStreamContext &streamCtx) const {
 
         const vkh::BufferContext &srcBuffer = getCurrentBufferWithSync(nullptr);
         const HANDLE handle = getBufferExtHandle(srcBuffer);
@@ -262,9 +261,9 @@ namespace merutilm::rff2 {
         std::array ycbcr = {pY, pCb, pCr};
         std::array widths = {w, w / 2, w / 2};
 
-        nppiRGBToYCbCr420_8u_C3P3R(static_cast<Npp8u *>(devPtr), w * 3, ycbcr.data(), widths.data(), roi);
-        nppiYCbCr420_8u_P3P2R(ycbcr.data(), widths.data(), frame->data[0], frame->linesize[0], frame->data[1],
-                              frame->linesize[1], roi);
+        nppiRGBToYCbCr420_8u_C3P3R_Ctx(static_cast<Npp8u *>(devPtr), w * 3, ycbcr.data(), widths.data(), roi, streamCtx);
+        nppiYCbCr420_8u_P3P2R_Ctx(ycbcr.data(), widths.data(), frame->data[0], frame->linesize[0], frame->data[1],
+                              frame->linesize[1], roi, streamCtx);
 
         cudaFree(pY);
         cudaFree(pCb);
@@ -280,6 +279,8 @@ namespace merutilm::rff2 {
                                                          .handleType =
                                                                  VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR};
         HANDLE handle;
+        const auto vkGetMemoryWin32HandleKHR = reinterpret_cast<PFN_vkGetMemoryWin32HandleKHR>(vkGetDeviceProcAddr(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), "vkGetMemoryWin32HandleKHR"));
+        if (!vkGetMemoryWin32HandleKHR) return nullptr;
         vkGetMemoryWin32HandleKHR(engine.getCore().getLogicalDevice().getLogicalDeviceHandle(), &win32Info, &handle);
         return handle;
     }

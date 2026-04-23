@@ -7,7 +7,7 @@
 #include <stb_image.h>
 #include <glm/glm.hpp>
 
-#include <cmath>
+
 #include <numeric>
 #include <string>
 #include <format>

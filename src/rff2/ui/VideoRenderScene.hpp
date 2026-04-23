@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include <nppdefs.h>
 #include <queue>
 
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
@@ -10,7 +11,10 @@
 #include "../settings/Settings.h"
 #include "VideoBufferCache.hpp"
 #include "VideoRenderSceneRenderer.hpp"
-#include "libavutil/frame.h"
+
+extern "C"{
+    #include "libavutil/frame.h"
+}
 
 namespace merutilm::rff2 {
     class VideoRenderScene final : vkh::EngineHandler {
@@ -77,7 +81,7 @@ namespace merutilm::rff2 {
 
         const vkh::BufferContext &getCurrentBufferWithSync(uint32_t *frameIndex) const;
 
-        void fillCurrentImgToFrame(const AVFrame *frame) const;
+        void fillCurrentImgToFrame(const AVFrame *frame, const NppStreamContext &streamCtx) const;
 
         HANDLE getBufferExtHandle(const vkh::BufferContext &buf) const;
 

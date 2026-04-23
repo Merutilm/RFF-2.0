@@ -7,7 +7,7 @@
 
 #include "RFFBinary.h"
 #include "../data/Matrix.h"
-#include "opencv2/core/mat.hpp"
+#include <opencv2/core/mat.hpp>
 
 namespace merutilm::rff2 {
     class RFFDynamicMapBinary final : public RFFBinary{

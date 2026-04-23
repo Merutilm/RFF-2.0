@@ -5,7 +5,7 @@
 #pragma once
 #include "../../vulkan_helper/context/BufferContext.hpp"
 #include "../../vulkan_helper/handle/CoreHandler.hpp"
-#include "opencv2/core/mat.hpp"
+#include <opencv2/core/mat.hpp>
 
 namespace merutilm::rff2 {
     struct VideoBufferCache final : vkh::CoreHandler{

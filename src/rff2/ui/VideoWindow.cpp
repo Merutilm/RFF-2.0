@@ -8,7 +8,7 @@
 #include "../io/RFFStaticMapBinary.h"
 #include "IOUtilities.h"
 #include "VideoCodec.hpp"
-#include "opencv2/opencv.hpp"
+#include <opencv2/opencv.hpp>
 
 namespace merutilm::rff2 {
     VideoWindow::VideoWindow(vkh::EngineRef engine, const int width,
@@ -344,7 +344,7 @@ namespace merutilm::rff2 {
 
     void VideoWindow::renderOnce(const FFmpegContext &ffmpegContext, const uint32_t frameNum, FILE *file) const {
         ffmpegContext.frame->pts = frameNum;
-        scene->fillCurrentImgToFrame(ffmpegContext.frame);
+        scene->fillCurrentImgToFrame(ffmpegContext.frame, ffmpegContext.streamContext);
         encode(ffmpegContext.codecCtx, ffmpegContext.frame, file);
     }
 

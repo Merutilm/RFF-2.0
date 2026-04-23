@@ -3,9 +3,9 @@
 //
 
 #pragma once
-#include <vector>
 #include <windows.h>
 #include <atomic>
+#include <vector>
 
 #include "../../vulkan_helper/handle/EngineHandler.hpp"
 #include "../data/ApproxTableManager.h"

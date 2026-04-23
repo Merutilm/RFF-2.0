@@ -3,6 +3,7 @@
 //
 
 #pragma once
+
 #include "RenderScene.hpp"
 #include "SettingsMenu.hpp"
 
