@@ -5,6 +5,7 @@
 #include "IOUtilities.h"
 
 #include <filesystem>
+#include <shlobj.h>
 
 #include "../data/ApproxTableManager.h"
 #include "Utilities.h"

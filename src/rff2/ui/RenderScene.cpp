@@ -610,8 +610,7 @@ namespace merutilm::rff2 {
         }
 
         const MB2Reference *reference = currentPerturbator->getReference();
-        if (reference == Constants::NullPointer::PROCESS_TERMINATED_REFERENCE || state.interruptRequested())
-            return false;
+        if (!reference || state.interruptRequested()) return false;
 
         lastLogZoom = calc.logZoom;
         lastMaxIteration = calc.maxIteration;

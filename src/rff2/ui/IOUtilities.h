@@ -11,8 +11,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <shlobj.h>
-
 #include "Utilities.h"
 
 namespace merutilm::rff2 {

@@ -13,7 +13,7 @@ namespace merutilm::rff2 {
     }
 
 
-    std::vector<uint64_t> MPAPeriod::generateNonEmptyMpaCount(const std::vector<uint64_t> &tablePeriod) {
+    std::vector<uint64_t> MPAPeriod::generateSkippableIterationsCount(const std::vector<uint64_t> &tablePeriod) {
         // index compression : [3, 11, 26, 77] // index compression : [3, 11, 26, 77]
         // startIteration : 1  4  7 12 15 18 23 27
         // index :          0  1  2  3  4  5  6  7
@@ -122,7 +122,7 @@ namespace merutilm::rff2 {
     std::unique_ptr<MPAPeriod> MPAPeriod::generate(const std::vector<uint64_t> &referencePeriod,
                                                  const FrtMPASettings &mpaSettings) {
         auto [tablePeriod, isArtificial] = generateTablePeriod(referencePeriod, mpaSettings);
-        auto tablePeriodElements = generateNonEmptyMpaCount(tablePeriod);
-        return std::make_unique<MPAPeriod>(std::move(tablePeriod), std::move(isArtificial), std::move(tablePeriodElements));
+        auto tableSkippableIterationsCount = generateSkippableIterationsCount(tablePeriod);
+        return std::make_unique<MPAPeriod>(std::move(tablePeriod), std::move(isArtificial), std::move(tableSkippableIterationsCount));
     }
 }

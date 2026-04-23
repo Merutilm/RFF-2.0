@@ -4,8 +4,6 @@ project(RFF)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-
-
 add_executable(
         RFF
         res/resources.rc
@@ -231,7 +229,6 @@ add_executable(
         src/rff2/constants/Win32Constants.hpp
         src/rff2/constants/FractalConstants.hpp
         src/rff2/constants/NumConstants.hpp
-        src/rff2/constants/NullConstants.hpp
         src/rff2/constants/VideoConstants.hpp
         src/rff2/constants/ExtensionConstants.hpp
         src/rff2/constants/StatusConstants.hpp
@@ -331,7 +328,6 @@ add_executable(
         src/rff2/mem/single_alloc_permitted_memory_resource.hpp
 )
 
-find_package(Vulkan REQUIRED)
 
 target_compile_options(RFF PRIVATE
         #Debug options
@@ -345,16 +341,27 @@ target_compile_definitions(RFF
         VK_USE_PLATFORM_WIN32_KHR
 )
 
+
+find_package(Vulkan REQUIRED)
+
+set(MINGW64_DIRS "D:/merutilm/Developments/cpp/extern/mingw/mingw64")
+set(OPENCV_DIRS "D:/merutilm/Developments/cpp/extern/mingw/home/user/opencv/build")
+
 target_include_directories(RFF PRIVATE
-        # standard include
-        ${CMAKE_SOURCE_DIR}/include
-        # extern sources
-        ${CMAKE_SOURCE_DIR}/extern
         # vulkan sdk directory
         ${Vulkan_INCLUDE_DIRS}
+        # extern sources
+        ${CMAKE_SOURCE_DIR}/extern
+        # mingw include dirs
+        ${MINGW64_DIRS}/include
+        # opencv dir
+        ${OPENCV_DIRS}/include
 )
 
-target_link_directories(RFF PRIVATE ${CMAKE_SOURCE_DIR}/lib)
+target_link_directories(RFF PRIVATE
+        ${CMAKE_SOURCE_DIR}/lib
+)
+
 
 target_link_libraries(RFF PRIVATE
         # GMP Linker
@@ -362,15 +369,14 @@ target_link_libraries(RFF PRIVATE
         # Win32 Linker
         comctl32
         # OpenCV Linkers
-        opencv_core4110
-        opencv_imgcodecs4110
-        opencv_imgproc4110
-        opencv_videoio4110
-        opencv_highgui4110
+        opencv_core4140
+        opencv_imgcodecs4140
+        opencv_imgproc4140
+        opencv_videoio4140
+        opencv_highgui4140
         # Vulkan
         Vulkan::Vulkan
 )
-
 
 add_custom_target(spirv ALL COMMAND powershell -ExecutionPolicy Bypass -File "${CMAKE_CURRENT_SOURCE_DIR}/compile.ps1")
 add_dependencies(RFF spirv)

@@ -27,7 +27,7 @@ namespace merutilm::rff2 {
             std::vector<bool> isArtificial;
         };
 
-        static std::vector<uint64_t> generateNonEmptyMpaCount(const std::vector<uint64_t> &tablePeriod);
+        static std::vector<uint64_t> generateSkippableIterationsCount(const std::vector<uint64_t> &tablePeriod);
 
         static Temp generateTablePeriod(const std::vector<uint64_t> &referencePeriod, const FrtMPASettings &mpaSettings);
 
