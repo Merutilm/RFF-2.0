@@ -35,7 +35,7 @@ namespace merutilm::vkh {
     void ShaderModuleImpl::init() {
         std::array<wchar_t, MAX_PATH> modulePath;
         GetModuleFileNameW(nullptr, modulePath.data(), modulePath.size());
-        std::ifstream file(std::filesystem::path(modulePath.data()) / ".." / filename, std::ios::binary);
+        std::ifstream file(std::filesystem::path(modulePath.data()) / ".." / ".." / filename, std::ios::binary);
         if (!file.is_open()) {
             throw exception_invalid_args("invalid filename : " + filename);
         }

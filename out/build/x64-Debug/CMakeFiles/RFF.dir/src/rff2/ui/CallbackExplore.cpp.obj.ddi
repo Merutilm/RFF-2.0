@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "CMakeFiles\\RFF.dir\\src\\rff2\\ui\\CallbackExplore.cpp.obj",
+            "outputs": [
+                "D:\\merutilm\\Developments\\cpp\\Projects\\General\\RFF\\out\\build\\x64-Debug\\vc140.pdb",
+                "CMakeFiles\\RFF.dir\\src\\rff2\\ui\\CallbackExplore.cpp.obj.ddi"
+            ],
+            "requires": []
+        }
+    ]
+}

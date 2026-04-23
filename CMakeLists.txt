@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.31)
 project(RFF)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/msvc)
 
 
 
@@ -348,10 +348,10 @@ target_compile_definitions(RFF
 find_package(Vulkan REQUIRED)
 find_package(CUDAToolkit REQUIRED)
 
-set(MSVC_INCLUDE_DIRS "D:/merutilm/Developments/cpp/extern/vcpkg/installed/x64-windows/include")
+set(MSVC_INCLUDE_DIRS "D:/merutilm/Developments/cpp/extern/msvc/installed/x64-windows/include")
 set(MSVC_LINK_DIRS
-        $<$<CONFIG:Debug>:D:/merutilm/Developments/cpp/extern/vcpkg/installed/x64-windows/debug/lib>
-        $<$<CONFIG:Release>:D:/merutilm/Developments/cpp/extern/vcpkg/installed/x64-windows/lib>
+        $<$<CONFIG:Debug>:D:/merutilm/Developments/cpp/extern/msvc/installed/x64-windows/debug/lib>
+        $<$<CONFIG:Release>:D:/merutilm/Developments/cpp/extern/msvc/installed/x64-windows/lib>
 )
 
 

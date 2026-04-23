@@ -1,0 +1,4 @@
+D:/merutilm/Developments/cpp/Projects/General/RFF/out/build/x64-Debug/CMakeFiles/RFF.dir
+D:/merutilm/Developments/cpp/Projects/General/RFF/out/build/x64-Debug/CMakeFiles/spirv.dir
+D:/merutilm/Developments/cpp/Projects/General/RFF/out/build/x64-Debug/CMakeFiles/edit_cache.dir
+D:/merutilm/Developments/cpp/Projects/General/RFF/out/build/x64-Debug/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,464 @@
+{
+	"bmi-installation" : null,
+	"compiler-frontend-variant" : "MSVC",
+	"compiler-id" : "MSVC",
+	"compiler-simulate-id" : "",
+	"config" : "Debug",
+	"cxx-modules" : {},
+	"database-info" : null,
+	"dir-cur-bld" : "D:/merutilm/Developments/cpp/Projects/General/RFF/out/build/x64-Debug",
+	"dir-cur-src" : "D:/merutilm/Developments/cpp/Projects/General/RFF",
+	"dir-top-bld" : "D:/merutilm/Developments/cpp/Projects/General/RFF/out/build/x64-Debug",
+	"dir-top-src" : "D:/merutilm/Developments/cpp/Projects/General/RFF",
+	"exports" : [],
+	"forward-modules-from-target-dirs" : [],
+	"include-dirs" : 
+	[
+		"D:\\merutilm\\Developments\\cpp\\Projects\\General\\RFF\\extern",
+		"D:\\merutilm\\Developments\\cpp\\extern\\msvc\\installed\\x64-windows\\include",
+		"C:\\VulkanSDK\\1.4.313.2\\Include",
+		"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.0\\include",
+		"C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.0\\include\\cccl"
+	],
+	"language" : "CXX",
+	"linked-target-dirs" : [],
+	"module-dir" : "D:/merutilm/Developments/cpp/Projects/General/RFF/out/build/x64-Debug/CMakeFiles/RFF.dir",
+	"sources" : 
+	{
+		"CMakeFiles/RFF.dir/src/rff2/formula/DeepMB2Perturbator.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/formula/DeepMB2Perturbator.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/formula/DeepMB2Reference.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/formula/DeepMB2Reference.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/formula/LightMB2Perturbator.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/formula/LightMB2Perturbator.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/formula/LightMB2Reference.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/formula/LightMB2Reference.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/io/KFRColorLoader.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/io/KFRColorLoader.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/io/RFFBinary.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/io/RFFBinary.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/io/RFFDynamicMapBinary.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/io/RFFDynamicMapBinary.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/io/RFFLocationBinary.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/io/RFFLocationBinary.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/io/RFFStaticMapBinary.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/io/RFFStaticMapBinary.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/locator/MB2Locator.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/locator/MB2Locator.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/mrthy/DeepPAGenerator.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/mrthy/DeepPAGenerator.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/mrthy/LightPAGenerator.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/mrthy/LightPAGenerator.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/mrthy/MPAPeriod.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/mrthy/MPAPeriod.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/parallel/ParallelRenderState.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/parallel/ParallelRenderState.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/preset/calc/CalculationPresets.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/preset/calc/CalculationPresets.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/preset/render/RenderPresets.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/preset/render/RenderPresets.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/preset/resolution/ResolutionPresets.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/preset/resolution/ResolutionPresets.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/preset/shader/bloom/ShdBloomPresets.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/preset/shader/bloom/ShdBloomPresets.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/preset/shader/color/ShdColorPresets.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/preset/shader/color/ShdColorPresets.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/preset/shader/fog/ShdFogPresets.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/preset/shader/fog/ShdFogPresets.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/preset/shader/palette/ShdPalettePresets.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/preset/shader/palette/ShdPalettePresets.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/preset/shader/slope/ShdSlopePresets.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/preset/shader/slope/ShdSlopePresets.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/preset/shader/stripe/ShdStripePresets.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/preset/shader/stripe/ShdStripePresets.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/Application.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/Application.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/CallbackExplore.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/CallbackExplore.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/CallbackFile.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/CallbackFile.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/CallbackFractal.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/CallbackFractal.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/CallbackRender.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/CallbackRender.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/CallbackShader.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/CallbackShader.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/CallbackVideo.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/CallbackVideo.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/IOUtilities.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/IOUtilities.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/Main.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/Main.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/RenderScene.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/RenderScene.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/SettingsMenu.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/SettingsMenu.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/SettingsWindow.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/SettingsWindow.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/VideoRenderScene.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/VideoRenderScene.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/ui/VideoWindow.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/ui/VideoWindow.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/CPC2MapIterationStripe.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/CPC2MapIterationStripe.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/CPCBoxBlur.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/CPCBoxBlur.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/CPCImageRGBA2BGR.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/CPCImageRGBA2BGR.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/GPCBloom.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/GPCBloom.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/GPCBloomThreshold.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/GPCBloomThreshold.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/GPCColor.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/GPCColor.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/GPCDownsampleForBlur.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/GPCDownsampleForBlur.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/GPCFog.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/GPCFog.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/GPCIterationPalette.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/GPCIterationPalette.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/GPCLinearInterpolation.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/GPCLinearInterpolation.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/GPCPresent.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/GPCPresent.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/GPCSlope.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/GPCSlope.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/GPCStaticImage2Map.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/GPCStaticImage2Map.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/rff2/vulkan/GPCStripe.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/rff2/vulkan/GPCStripe.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/configurator/ComputePipelineConfigurator.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/configurator/ComputePipelineConfigurator.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/configurator/GeneralGraphicsPipelineConfigurator.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/configurator/GeneralGraphicsPipelineConfigurator.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/context/WindowContext.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/context/WindowContext.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/executor/RenderPassFullscreenRecorder.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/executor/RenderPassFullscreenRecorder.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/executor/ScopedCommandBufferExecutor.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/executor/ScopedCommandBufferExecutor.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/executor/ScopedNewCommandBufferExecutor.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/executor/ScopedNewCommandBufferExecutor.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/BufferObject.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/BufferObject.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/CombinedImageSampler.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/CombinedImageSampler.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/CommandBuffer.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/CommandBuffer.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/CommandPool.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/CommandPool.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/ComputeShaderPipeline.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/ComputeShaderPipeline.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/Core.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/Core.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/Descriptor.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/Descriptor.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/DescriptorSetLayout.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/DescriptorSetLayout.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/Engine.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/Engine.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/Fence.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/Fence.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/Framebuffer.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/Framebuffer.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/GraphicsContextWindow.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/GraphicsContextWindow.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/GraphicsPipeline.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/GraphicsPipeline.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/IndexBuffer.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/IndexBuffer.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/Instance.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/Instance.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/LogicalDevice.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/LogicalDevice.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/PhysicalDeviceLoader.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/PhysicalDeviceLoader.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/PipelineLayout.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/PipelineLayout.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/RenderPass.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/RenderPass.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/Sampler.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/Sampler.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/Semaphore.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/Semaphore.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/ShaderModule.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/ShaderModule.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/ShaderStorage.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/ShaderStorage.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/Surface.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/Surface.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/Swapchain.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/Swapchain.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/SyncObject.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/SyncObject.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/Uniform.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/Uniform.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/ValidationLayer.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/ValidationLayer.cpp"
+		},
+		"CMakeFiles/RFF.dir/src/vulkan_helper/impl/VertexBuffer.cpp.obj" : 
+		{
+			"language" : "CXX",
+			"source" : "D:/merutilm/Developments/cpp/Projects/General/RFF/src/vulkan_helper/impl/VertexBuffer.cpp"
+		}
+	}
+}

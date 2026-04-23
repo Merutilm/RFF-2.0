@@ -214,8 +214,8 @@ namespace merutilm::rff2 {
         const uint64_t skippableIterationsCount = mpaPeriod->skippableIterationsCount.back();
         const uint64_t lastCompIndex = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod,
                                                                  pulledMPACompressor, longestPeriod + 1);
-        const uint64_t bufferSize = levels * sizeof(PAB) * std::min(lastCompIndex, skippableIterationsCount) +
-                                    lastCompIndex * sizeof(std::pmr::vector<PAB>);
+        const uint64_t bufferSize = (levels * sizeof(PAB) * std::min(lastCompIndex, skippableIterationsCount) +
+                                    lastCompIndex * sizeof(std::pmr::vector<PAB>)) * 2;
         tableRef.reinit(lastCompIndex, bufferSize, table);
     }
 
