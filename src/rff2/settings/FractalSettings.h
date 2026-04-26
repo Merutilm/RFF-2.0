@@ -19,6 +19,7 @@ namespace merutilm::rff2 {
         FrtMPASettings mpaSettings;
         FrtReferenceCompSettings referenceCompSettings;
         FrtReuseReferenceMethod reuseReferenceMethod;
+        bool useParallelRefCalculation;
         bool autoMaxIteration;
         uint16_t autoIterationMultiplier;
         bool absoluteIterationMode;

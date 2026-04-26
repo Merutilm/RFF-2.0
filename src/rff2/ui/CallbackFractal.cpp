@@ -84,6 +84,11 @@ namespace merutilm::rff2 {
                                   L"arbitrary-precision operations caused by precision loss. This setting determines within the radius : \n"
                                   L"10^(-value) from the origin to be considered the periodic point.\n"
                                   L"set 0 to fully sync.");
+
+        window->registerCheckboxInput(L"Parallel reference calculation", &calc.useParallelRefCalculation,
+                                                   Callback::NOTHING, L"Use parallel reference calculation",
+                                                   L"Sets whether or not the reference calculation should be parallel.\n"
+                                                   L"It is effective for deep-zoom.");
         window->setWindowCloseFunction([centerPtr, zoomPtr, locationChanged, &settingsMenu, &scene, &calc] {
             const int exp10 = Perturbator::logZoomToExp10(*zoomPtr);
             if (*locationChanged) {

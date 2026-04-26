@@ -67,6 +67,9 @@ namespace merutilm::rff2 {
         auto one = fixed_point_complex(1.0, 0.0, exp10, iterIntExp10);
         double bailoutSqr = calc.bailout * calc.bailout;
 
+        op_thread_pool parallelReferenceThreadPool{};
+        bool useParallel = calc.useParallelRefCalculation;
+
         double fpgBnr = 1;
         double fpgBni = 0;
 
@@ -85,14 +88,15 @@ namespace merutilm::rff2 {
 
         auto [refSyncInterval, refSyncRadiusPower] = calc.referenceSyncSettings;
         auto [compressCriteria, compressionThresholdPower, withoutNormalize] = calc.referenceCompSettings;
-        auto func = std::move(actionPerRefCalcIteration);
+
         double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
-        double refSyncRadius2 = pow(10, -(refSyncRadiusPower << 1));
+        double refSyncRadius2 = pow(10, -refSyncRadiusPower * 2);
         bool canReuse = withoutNormalize;
 
         std::unique_ptr<fixed_point_complex> fpgReference = nullptr;
-        uint64_t period;
+        auto func = std::move(actionPerRefCalcIteration);
 
+        uint64_t period;
         for (period = 0; zr * zr + zi * zi < bailoutSqr && period < maxIteration; ++period) {
             if (state.interruptRequested()) {
                 return CreationResult::TERMINATED;
@@ -134,7 +138,7 @@ namespace merutilm::rff2 {
             // strict fpg
             if (strictFPG) {
                 fixed_point_complex::dbl(z);
-                fixed_point_complex::mul(fpgBn, fpgBn, z);
+                fixed_point_complex::mul(fpgBn, fpgBn, z, useParallel ? &parallelReferenceThreadPool : nullptr);
                 fixed_point_complex::add(fpgBn, fpgBn, one);
                 fixed_point_complex::hlv(z);
             }
@@ -144,7 +148,7 @@ namespace merutilm::rff2 {
             // Let's do arbitrary-precision operation!!
             // arbitrary precision
 
-            fixed_point_complex::sqr(z, z);
+            fixed_point_complex::sqr(z, z, useParallel ? &parallelReferenceThreadPool : nullptr);
             fixed_point_complex::add(z, z, c);
 
             // double value
@@ -166,7 +170,7 @@ namespace merutilm::rff2 {
             }
 
             // reference compression
-            uint64_t j = period;
+            uint64_t normalizedPeriodForCompCheck = period;
 
             if (compressCriteria > 0) {
                 if (!withoutNormalize) {
@@ -174,14 +178,14 @@ namespace merutilm::rff2 {
                         if (compressCriteria >= periodArray[i - 1]) {
                             break;
                         }
-                        j %= periodArray[i - 1];
+                        normalizedPeriodForCompCheck %= periodArray[i - 1];
 
-                        if (j == 0) {
+                        if (normalizedPeriodForCompCheck == 0) {
                             canReuse = true;
                             break;
                         }
 
-                        if (j == periodArray[i - 1] - 1) {
+                        if (normalizedPeriodForCompCheck == periodArray[i - 1] - 1) {
                             canReuse = false;
                             break;
                         }

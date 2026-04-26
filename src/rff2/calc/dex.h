@@ -92,13 +92,9 @@ namespace merutilm::rff2 {
             return result;
         }
 
-        friend dex operator+(const dex &a, const double b) {
-            return a + value(b);
-        }
+        friend dex operator+(const dex &a, const double b) { return a + value(b); }
 
-        friend dex operator+(const double a, const dex &b) {
-            return value(a) + b;
-        }
+        friend dex operator+(const double a, const dex &b) { return value(a) + b; }
 
         friend dex operator-(const dex &a, const dex &b) {
             if (a.isnan() || b.isnan()) {
@@ -122,17 +118,11 @@ namespace merutilm::rff2 {
             return result;
         }
 
-        friend dex operator-(const dex &a) {
-            return dex(a.exp2, -a.mantissa);
-        }
+        friend dex operator-(const dex &a) { return dex(a.exp2, -a.mantissa); }
 
-        friend dex operator-(const dex &a, const double b) {
-            return a - value(b);
-        }
+        friend dex operator-(const dex &a, const double b) { return a - value(b); }
 
-        friend dex operator-(const double a, const dex &b) {
-            return value(a) - b;
-        }
+        friend dex operator-(const double a, const dex &b) { return value(a) - b; }
 
         friend dex operator*(const dex &a, const dex &b) {
             if (a.is_zero() || b.is_zero()) {
@@ -150,13 +140,9 @@ namespace merutilm::rff2 {
             return result;
         }
 
-        friend dex operator*(const dex &a, const double b) {
-            return a * value(b);
-        }
+        friend dex operator*(const dex &a, const double b) { return a * value(b); }
 
-        friend dex operator*(const double a, const dex &b) {
-            return value(a) * b;
-        }
+        friend dex operator*(const double a, const dex &b) { return value(a) * b; }
 
         friend dex operator/(const dex &a, const dex &b) {
             if (a.is_zero() && b.is_zero()) {
@@ -175,13 +161,9 @@ namespace merutilm::rff2 {
             return result;
         }
 
-        friend dex operator/(const dex &a, const double b) {
-            return a / value(b);
-        }
+        friend dex operator/(const dex &a, const double b) { return a / value(b); }
 
-        friend dex operator/(const double a, const dex &b) {
-            return value(a) / b;
-        }
+        friend dex operator/(const double a, const dex &b) { return value(a) / b; }
 
         friend dex &operator+=(dex &a, const dex &b) {
             if (a.isnan() || b.isnan()) {
@@ -207,9 +189,7 @@ namespace merutilm::rff2 {
             return a;
         }
 
-        friend dex &operator+=(dex &a, const double b) {
-            return a += value(b);
-        }
+        friend dex &operator+=(dex &a, const double b) { return a += value(b); }
 
         friend dex &operator-=(dex &a, const dex &b) {
             if (a.isnan() || b.isnan()) {
@@ -250,8 +230,10 @@ namespace merutilm::rff2 {
                 return a;
             }
             if (a.isinf() || b.isinf()) {
-                if (a.sgn() == b.sgn()) cpy(&a, PINF);
-                else cpy(&a, NINF);
+                if (a.sgn() == b.sgn())
+                    cpy(&a, PINF);
+                else
+                    cpy(&a, NINF);
                 return a;
             }
             mul(&a, a, b);
@@ -273,8 +255,10 @@ namespace merutilm::rff2 {
                 return a;
             }
             if (b.is_zero() || a.isinf()) {
-                if (a.sgn() == b.sgn()) cpy(&a, PINF);
-                else cpy(&a, NINF);
+                if (a.sgn() == b.sgn())
+                    cpy(&a, PINF);
+                else
+                    cpy(&a, NINF);
                 return a;
             }
 
@@ -283,9 +267,7 @@ namespace merutilm::rff2 {
             return a;
         }
 
-        friend dex &operator/=(dex &a, const double b) {
-            return a /= value(b);
-        }
+        friend dex &operator/=(dex &a, const double b) { return a /= value(b); }
 
         friend std::partial_ordering operator<=>(const dex &a, const dex &b) {
             const dex v = a - b;
@@ -295,13 +277,9 @@ namespace merutilm::rff2 {
             return v.sgn() <=> 0;
         }
 
-        friend std::partial_ordering operator<=>(const dex &a, const double b) {
-            return a <=> value(b);
-        }
+        friend std::partial_ordering operator<=>(const dex &a, const double b) { return a <=> value(b); }
 
-        friend std::partial_ordering operator<=>(const double a, const dex &b){
-            return value(a) <=> b;
-        }
+        friend std::partial_ordering operator<=>(const double a, const dex &b) { return value(a) <=> b; }
 
         static dex value(double value);
 
@@ -326,12 +304,14 @@ namespace merutilm::rff2 {
         void try_normalize();
     };
 
-    // DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP
-    // DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP
-    // DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP
-    // DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP
-    // DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP
-    // Move to header for 20-30% performance improvement
+    // DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP DEFINITION
+    // OF DOUBLE EXP  DEFINITION OF DOUBLE EXP DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE
+    // EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP DEFINITION OF DOUBLE EXP
+    // DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP DEFINITION
+    // OF DOUBLE EXP DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE
+    // EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP
+    // DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP  DEFINITION OF DOUBLE EXP Move to
+    // header for 20-30% performance improvement
 
 
     inline const dex dex::ZERO = dex(0, 0);
@@ -343,11 +323,9 @@ namespace merutilm::rff2 {
     inline const dex dex::PINF = dex(0, INFINITY);
 
     inline const dex dex::NINF = dex(0, -INFINITY);
-    constexpr dex::dex() : dex(0, 0) {
-    }
+    constexpr dex::dex() : dex(0, 0) {}
 
-    constexpr dex::dex(const int exp2, const double mantissa) : exp2(exp2), mantissa(mantissa) {
-    }
+    constexpr dex::dex(const int exp2, const double mantissa) : exp2(exp2), mantissa(mantissa) {}
 
     inline void dex::add(dex *result, const dex &a, const dex &b) {
         const int d_exp2 = a.exp2 - b.exp2;
@@ -366,7 +344,7 @@ namespace merutilm::rff2 {
 
         const auto mts_ubits = mts_bits & 0x7fffffffffffffffULL;
         if (const auto f_shift = static_cast<int>(mts_ubits >> 52) + exp2; f_shift < 0) {
-            return 0; //Do not consider ~e-309.
+            return 0; // Do not consider ~e-309.
         }
         return std::bit_cast<double>(mts_bits - (static_cast<uint64_t>(-exp2) << 52));
     }
@@ -401,9 +379,7 @@ namespace merutilm::rff2 {
         result->mantissa = v.mantissa;
     }
 
-    inline void dex::neg(dex *result) {
-        result->mantissa = -result->mantissa;
-    }
+    inline void dex::neg(dex *result) { result->mantissa = -result->mantissa; }
 
     inline void dex::cpy(dex *result, const double v) {
         result->exp2 = 0;
@@ -441,25 +417,15 @@ namespace merutilm::rff2 {
         target->exp2 += static_cast<int>((mts_bits & 0x7ff0000000000000ULL) >> 52) - 0x03fe;
     }
 
-    inline char dex::sgn() const {
-        return static_cast<char>(0 < mantissa) - static_cast<char>(mantissa < 0);
-    }
+    inline char dex::sgn() const { return static_cast<char>(0 < mantissa) - static_cast<char>(mantissa < 0); }
 
-    inline bool dex::isinf() const {
-        return std::isinf(mantissa);
-    }
+    inline bool dex::isinf() const { return std::isinf(mantissa); }
 
-    inline bool dex::isnan() const {
-        return std::isnan(mantissa);
-    }
+    inline bool dex::isnan() const { return std::isnan(mantissa); }
 
-    inline bool dex::is_zero() const {
-        return sgn() == 0;
-    }
+    inline bool dex::is_zero() const { return sgn() == 0; }
 
-    inline dex::operator double() const {
-        return ldexp(mantissa, exp2);
-    }
+    inline dex::operator double() const { return ldexp(mantissa, exp2); }
 
     inline std::string dex::to_string() const {
         // m * 2^n
@@ -482,13 +448,9 @@ namespace merutilm::rff2 {
         return std::format("{}e{}", mantissa10, exp10);
     }
 
-    inline int dex::get_exp2() const {
-        return exp2;
-    }
+    inline int dex::get_exp2() const { return exp2; }
 
-    inline double dex::get_mantissa() const {
-        return mantissa;
-    }
+    inline double dex::get_mantissa() const { return mantissa; }
 
     inline void dex::try_normalize() {
         const auto mts = mantissa * sgn();
@@ -512,4 +474,4 @@ namespace merutilm::rff2 {
         cpy(&result, value);
         return result;
     }
-}
+} // namespace merutilm::rff2

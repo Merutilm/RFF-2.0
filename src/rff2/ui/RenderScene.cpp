@@ -180,7 +180,8 @@ namespace merutilm::rff2 {
                     fixed_point_complex_i1 &center = settings.fractal.center;
                     center.set_exp10(exp10);
                     const fixed_point_complex_i1 add(dex::value(static_cast<float>(dx) / m) / getDivisor(settings),
-                                               dex::value(static_cast<float>(dy) / m) / getDivisor(settings), exp10);
+                                                     dex::value(static_cast<float>(dy) / m) / getDivisor(settings),
+                                                     exp10);
                     fixed_point_complex_i1::add(center, center, add);
 
                     interactedMX = x;
@@ -212,11 +213,10 @@ namespace merutilm::rff2 {
                     logZoom += increment;
 
                     fixed_point_complex_i1 &center = settings.fractal.center;
-                    const int exp10 =  Perturbator::logZoomToExp10(logZoom);
+                    const int exp10 = Perturbator::logZoomToExp10(logZoom);
                     center.set_exp10(exp10);
                     const fixed_point_complex_i1 add(offset[0] * (1 - mzi), offset[1] * (1 - mzi), exp10);
                     fixed_point_complex_i1::add(center, center, add);
-
                 }
                 if (value == -1) {
                     const std::array<dex, 2> offset =
@@ -227,7 +227,7 @@ namespace merutilm::rff2 {
 
 
                     fixed_point_complex_i1 &center = settings.fractal.center;
-                    const int exp10 =  Perturbator::logZoomToExp10(logZoom);
+                    const int exp10 = Perturbator::logZoomToExp10(logZoom);
                     center.set_exp10(exp10);
                     const fixed_point_complex_i1 add(offset[0] * (1 - mzo), offset[1] * (1 - mzo), exp10);
                     fixed_point_complex_i1::add(center, center, add);
@@ -293,10 +293,11 @@ namespace merutilm::rff2 {
         wc.getSyncObject().getFence(frameIndex).wait();
 
         if (requests.createImageRequestedFilename.empty()) {
-            const auto path = IOUtilities::ioFileDialog(L"Save image", Constants::Extension::DESC_IMAGE, IOUtilities::SAVE_FILE,
-                                              Constants::Extension::IMAGE);
+            const auto path = IOUtilities::ioFileDialog(L"Save image", Constants::Extension::DESC_IMAGE,
+                                                        IOUtilities::SAVE_FILE, Constants::Extension::IMAGE);
 
-            if (path == nullptr) return;
+            if (path == nullptr)
+                return;
 
             requests.createImageRequestedFilename = path->string();
         }
@@ -494,12 +495,14 @@ namespace merutilm::rff2 {
                          std::format(L"Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
         const std::array<dex, 2> offset = offsetConversion(settings, 0, 0);
+        std::array<dex, 2> temp;
+
         dex dcMax = dex::ZERO;
         uint64_t capacity = currentPerturbator && currentPerturbator->getReference()
                                     ? currentPerturbator->getReference()->length()
                                     : lastLength;
 
-        dex_trigonometric::hypot_approx(&dcMax, offset[0], offset[1]);
+        dex_trigonometric::hypot_approx(&dcMax, temp.data(), offset[0], offset[1]);
         const auto refreshInterval = Utilities::getRefreshInterval(logZoom);
         std::function actionPerRefCalcIteration = [refreshInterval, this, &start](const uint64_t p) {
             if (p % refreshInterval == 0) {
@@ -606,25 +609,25 @@ namespace merutilm::rff2 {
 
         auto rendered = std::vector<bool>(len);
 
+        auto func = [settings, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y,
+                                                                    const uint16_t xRes, const uint16_t yRes, float,
+                                                                    float, const uint32_t i, double) {
+            rendered[i] = true;
+            const auto dc = offsetConversion(settings, x, y);
+            const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
+            renderer->iterationStagingBufferContext->set(x, y, iteration);
+
+            auto my = static_cast<int16_t>(y + 1);
+            while (my < yRes && !rendered[my * xRes + x]) {
+                renderer->iterationStagingBufferContext->set(x, my, iteration);
+                ++my;
+            }
+
+            ++renderPixelsCount;
+            return iteration;
+        };
         auto previewer =
-                ParallelArrayDispatcher<double>(state, *iterationMatrix, settings.render.threads,
-                                                [settings, this, &renderPixelsCount, &rendered](
-                                                        const uint16_t x, const uint16_t y, const uint16_t xRes,
-                                                        const uint16_t yRes, float, float, const uint32_t i, double) {
-                                                    rendered[i] = true;
-                                                    const auto dc = offsetConversion(settings, x, y);
-                                                    const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
-                                                    renderer->iterationStagingBufferContext->set(x, y, iteration);
-
-                                                    auto my = static_cast<int16_t>(y + 1);
-                                                    while (my < yRes && !rendered[my * xRes + x]) {
-                                                        renderer->iterationStagingBufferContext->set(x, my, iteration);
-                                                        ++my;
-                                                    }
-
-                                                    ++renderPixelsCount;
-                                                    return iteration;
-                                                });
+                ParallelArrayDispatcher<double>(state, *iterationMatrix, settings.render.threads, std::move(func));
 
         renderer->iterationStagingBufferContext->fillZero();
 

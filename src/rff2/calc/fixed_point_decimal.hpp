@@ -219,8 +219,8 @@ namespace merutilm::rff2 {
 
         dec_limbs_count = -dec_exp2div64;
         int_limbs_count = int_exp2div64;
-        mpf_init2(val, (dec_limbs_count + int_limbs_count) * 64);
 
+        mpf_init2(val, (dec_limbs_count * int_limbs_count) * 64);
         const int exp2 = setter_exp2_getter(val, dec_exp2div64);
 
         if (exp2 < 0) {
@@ -406,10 +406,11 @@ namespace merutilm::rff2 {
         if (rhs.sgn == 0) {
             throw std::overflow_error("divide by zero");
         }
+        const int b_nlc = normalized_limbs_count(b_value, lc);
+
         mpn_zero(result.raw + lc * 3, lc * 2);
         mpn_copyi(result.raw + lc * 4 - result.int_limbs_count, a_value, lc);
-        mpn_tdiv_qr(result.raw, result.raw + lc * 5, 0, result.raw + lc * 3, lc * 2, b_value,
-                    normalized_limbs_count(b_value, lc));
+        mpn_tdiv_qr(result.raw, result.raw + lc * 5, 0, result.raw + lc * 3, lc * 2, b_value, b_nlc);
         result.sgn = lhs.sgn * rhs.sgn;
         result.offset = 0;
     }
@@ -438,8 +439,9 @@ namespace merutilm::rff2 {
         const int dec_copy_count = std::min(new_dec_limbs_count, dec_limbs_count);
         const int int_copy_count = std::min(new_int_limbs_count, int_limbs_count);
         const int src_offset = dec_limbs_count - dec_copy_count;
+        const int dst_offset = new_dec_limbs_count - dec_copy_count;
         const auto new_raw = new mp_limb_t[(new_dec_limbs_count + new_int_limbs_count) * RAW_ARR_LEN]();
-        memcpy(new_raw + src_offset, get_value_ptr(), sizeof(mp_limb_t) * (dec_copy_count + int_copy_count));
+        memcpy(new_raw + dst_offset, get_value_ptr() + src_offset, sizeof(mp_limb_t) * (dec_copy_count + int_copy_count));
 
         delete[] raw;
         raw = new_raw;
