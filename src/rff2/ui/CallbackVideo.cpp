@@ -29,7 +29,8 @@ namespace merutilm::rff2 {
                                          L"Set the w_log-Zoom interval between two adjacent video data.");
 
         window->registerCheckboxInput(L"Static data", &isStatic, Callback::NOTHING, L"Use static video data",
-                                  L"Generates using .png image instead of data file. all shaders will be disabled when trying to generate video data.");
+                                      L"Generates using .png image instead of data file. all shaders will be disabled "
+                                      L"when trying to generate video data.");
 
         window->setWindowCloseFunction([&settingsMenu] {
             settingsMenu.setCurrentActiveSettingsWindow(nullptr);
@@ -44,7 +45,8 @@ namespace merutilm::rff2 {
         window->registerTextInput<float>(L"Over Zoom", &overZoom, Unparser::FLOAT, Parser::FLOAT,
                                          ValidCondition::POSITIVE_FLOAT_ZERO, Callback::NOTHING, L"Over Zoom",
                                          L"Zoom the final video data.");
-        window->registerCheckboxInput(L"Show Text", &showText, Callback::NOTHING, L"Show Text", L"Show the text on video.");
+        window->registerCheckboxInput(L"Show Text", &showText, Callback::NOTHING, L"Show Text",
+                                      L"Show the text on video.");
         window->registerTextInput<float>(L"Zoom Speed", &mps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
                                          Callback::NOTHING, L"Set Zoom Speed",
                                          L"Sets the zoom speed, Number of Map(.rfm) data used per second in video");

@@ -26,8 +26,8 @@ namespace merutilm::rff2 {
         if (path == nullptr) {
             return;
         }
-        const auto settings = scene.getSettings().fractal; // clone the settings
-        const auto &center = settings.center;
+        auto settings = scene.getSettings().fractal; // clone the settings
+        auto &center = settings.center;
         RFFLocationBinary(settings.logZoom, center.real.to_string(), center.imag.to_string(), settings.maxIteration).exportFile(*path);
     };
     const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::LOAD_MAP = [](const SettingsMenu&, RenderScene& scene) {
@@ -44,7 +44,7 @@ namespace merutilm::rff2 {
         }
         const RFFLocationBinary location = RFFLocationBinary::read(*path);
 
-        scene.getSettings().fractal.center = fp_complex(location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
+        scene.getSettings().fractal.center = fixed_point_complex_i1(location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
         scene.getSettings().fractal.logZoom = location.getLogZoom();
         scene.getSettings().fractal.maxIteration = location.getMaxIteration();
         scene.getRequests().requestRecompute();

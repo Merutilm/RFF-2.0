@@ -20,7 +20,9 @@ namespace merutilm::rff2 {
 
         template<typename PAB> requires std::is_base_of_v<PA, PAB>
         void reinit(uint64_t tableWidth, uint64_t bufferSize, std::unique_ptr<std::pmr::vector<std::pmr::vector<PAB>>>& table) {
-            table.reset();
+            if (mpaLightTable) mpaLightTable.reset();
+            if (mpaDeepTable) mpaDeepTable.reset();
+
             strictTablePool.reset();
             strictResource.reset();
 

@@ -199,10 +199,13 @@ namespace merutilm::rff2 {
             // try to use incomplete reference
             MessageBox(nullptr, "Please do not try to use incomplete Reference.", "Warning", MB_OK | MB_ICONWARNING);
         } else {
-            fp_complex_mutable centerOffset = calc.center.edit(exp10);
-            centerOffset -= reference->center.edit(exp10);
-            centerOffset.get_real().double_exp_value(&offR);
-            centerOffset.get_imag().double_exp_value(&offI);
+
+            fixed_point_complex_i1 center = calc.center.create_variant(exp10);
+            const fixed_point_complex_i1 refCenter = reference->center.create_variant(exp10);
+            fixed_point_complex_i1::sub(center, center, refCenter);
+
+            center.get_real().dex_value(&offR);
+            center.get_imag().dex_value(&offI);
             longestPeriod = reference->longestPeriod();
             reusedReference = std::move(reference);
         }

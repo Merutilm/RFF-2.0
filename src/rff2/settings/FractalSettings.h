@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../calc/fp_complex.h"
+#include "../calc/fixed_point_complex.hpp"
 #include "FrtDecimalizeIterationMethod.h"
 #include "FrtMPASettings.h"
 #include "FrtReferenceCompSettings.h"
@@ -10,7 +10,7 @@
 
 namespace merutilm::rff2 {
     struct FractalSettings final{
-        fp_complex center;
+        fixed_point_complex_i1 center;
         float logZoom;
         uint64_t maxIteration;
         float bailout;

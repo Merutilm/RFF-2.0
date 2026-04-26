@@ -11,11 +11,11 @@
 
 
 namespace merutilm::rff2 {
-    DeepMB2Reference::DeepMB2Reference(fp_complex &&center, std::vector<dex> &&refReal,
+    DeepMB2Reference::DeepMB2Reference(fixed_point_complex_i1 &&center, std::vector<dex> &&refReal,
                                                      std::vector<dex> &&refImag,
                                                      std::vector<ArrayCompressionTool> &&compressor,
-                                                     std::vector<uint64_t> &&period, fp_complex &&fpgReference,
-                                                     fp_complex &&fpgBn) :
+                                                     std::vector<uint64_t> &&period, fixed_point_complex &&fpgReference,
+                                                     fixed_point_complex &&fpgBn) :
         MB2Reference(std::move(center), std::move(compressor), std::move(period), std::move(fpgReference),
                             std::move(fpgBn)),
         refReal(std::move(refReal)), refImag(std::move(refImag)) {}
@@ -40,11 +40,14 @@ namespace merutilm::rff2 {
         rr.push_back(dex::ZERO);
         ri.push_back(dex::ZERO);
 
-        fp_complex center = calc.center;
-        auto c = center.edit(exp10);
-        auto z = fp_complex_mutable(0, 0, exp10);
-        auto fpgBn = fp_complex_mutable(0, 0, exp10);
-        auto one = fp_complex_mutable(1.0, 0.0, exp10);
+        int strictIntExp10 = -exp10;
+        int iterIntExp10 = strictFPG ? strictIntExp10 : 1;
+
+        fixed_point_complex_i1 center = calc.center;
+        fixed_point_complex c = center.create_variant(exp10, iterIntExp10);
+        auto z = fixed_point_complex(0.0, 0.0, exp10, iterIntExp10);
+        auto fpgBn = fixed_point_complex(0.0, 0.0, exp10, iterIntExp10);
+        auto one = fixed_point_complex(1.0, 0.0, exp10, iterIntExp10);
         double bailoutSqr = calc.bailout * calc.bailout;
 
         dex fpgBnr = dex::ONE;
@@ -68,7 +71,7 @@ namespace merutilm::rff2 {
         double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
         bool canReuse = withoutNormalize;
 
-        std::unique_ptr<fp_complex> fpgReference = nullptr;
+        std::unique_ptr<fixed_point_complex> fpgReference = nullptr;
         auto temps = std::array<dex, 8>();
 
 
@@ -117,7 +120,7 @@ namespace merutilm::rff2 {
                 if ((fpgReference == nullptr && temps[4].sgn() == 1) || temps[0].sgn() == 0 ||
                     (fixedPeriod != 0 && fixedPeriod == iteration)) {
                     periodArray.push_back(iteration);
-                    fpgReference = std::make_unique<fp_complex>(z);
+                    fpgReference = std::make_unique<fixed_point_complex>(z);
                     break;
                 }
 
@@ -126,17 +129,19 @@ namespace merutilm::rff2 {
             }
 
             if (strictFPG) {
-                fpgBn *= z.doubled();
-                fpgBn += one;
-                z.halved();
+                fixed_point_complex::dbl(z);
+                fixed_point_complex::mul(fpgBn, fpgBn, z);
+                fixed_point_complex::add(fpgBn, fpgBn, one);
+                fixed_point_complex::hlv(z);
             }
 
             // Let's do arbitrary-precision operation!!
             func(iteration);
-            z.square();
-            z += c;
-            z.get_real().double_exp_value(&zr);
-            z.get_imag().double_exp_value(&zi);
+
+            fixed_point_complex::sqr(z, z);
+            fixed_point_complex::add(z, z, c);
+            z.get_real().dex_value(&zr);
+            z.get_imag().dex_value(&zi);
 
             if (zr.sgn() == 0) {
                 dex::cpy(&zr, dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER));
@@ -208,9 +213,9 @@ namespace merutilm::rff2 {
         }
 
         if (!strictFPG)
-            fpgBn = fp_complex_mutable(fpgBnr, fpgBni, exp10);
+            fpgBn = fixed_point_complex(fpgBnr, fpgBni, exp10, strictIntExp10);
         if (fpgReference == nullptr)
-            fpgReference = std::make_unique<fp_complex>(z);
+            fpgReference = std::make_unique<fixed_point_complex>(z);
 
         rr.resize(period - compressed + 1);
         ri.resize(period - compressed + 1);
@@ -220,7 +225,7 @@ namespace merutilm::rff2 {
 
         *result = std::make_unique<DeepMB2Reference>(std::move(center), std::move(rr), std::move(ri),
                                                             std::move(tools), std::move(periodArray),
-                                                            std::move(*fpgReference), fp_complex(fpgBn));
+                                                            std::move(*fpgReference), std::move(fpgBn));
 
         return CreationResult::SUCCESS;
     }

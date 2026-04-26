@@ -32,8 +32,8 @@ namespace merutilm::rff2 {
         }
 
         void requestCreateImage(const std::string_view filename = "") {
-            createImageRequested = true;
             createImageRequestedFilename = filename;
+            createImageRequested = true;
         }
 
     };

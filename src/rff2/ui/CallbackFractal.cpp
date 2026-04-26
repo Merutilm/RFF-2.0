@@ -87,7 +87,7 @@ namespace merutilm::rff2 {
         window->setWindowCloseFunction([centerPtr, zoomPtr, locationChanged, &settingsMenu, &scene, &calc] {
             const int exp10 = Perturbator::logZoomToExp10(*zoomPtr);
             if (*locationChanged) {
-                calc.center = fp_complex((*centerPtr)[0], (*centerPtr)[1], exp10);
+                calc.center = fixed_point_complex_i1((*centerPtr)[0], (*centerPtr)[1], exp10);
                 calc.logZoom = *zoomPtr;
                 scene.getRequests().requestRecompute();
             }

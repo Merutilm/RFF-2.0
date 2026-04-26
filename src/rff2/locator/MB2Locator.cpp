@@ -11,30 +11,31 @@
 
 
 namespace merutilm::rff2 {
-    std::unique_ptr<fp_complex> MB2Locator::findCenter(const MB2Perturbator *perturbator) {
+    std::unique_ptr<fixed_point_complex_i1> MB2Locator::findCenter(const MB2Perturbator *perturbator) {
         const int exp10 = Perturbator::logZoomToExp10(perturbator->getCalculationSettings().logZoom);
-        fp_complex_mutable center = perturbator->getReference()->center.edit(exp10);
-        const fp_complex_mutable dc = findCenterOffset(*perturbator)->edit(exp10);
+        fixed_point_complex_i1 center = perturbator->getReference()->center.create_variant(exp10);
+        const fixed_point_complex_i1 dc = findCenterOffset(*perturbator)->create_variant(exp10);
+
         const double dr = dc.clone_real().double_value();
         const double di = dc.clone_imag().double_value();
-        if (const dex dcMax = perturbator->getDcMaxAsDoubleExp();
-            dr * dr + di * di > dcMax * dcMax) {
+        if (const dex dcMax = perturbator->getDcMaxAsDoubleExp(); dr * dr + di * di > dcMax * dcMax) {
             return nullptr;
-            }
-        center += dc;
-        return std::make_unique<fp_complex>(center);
+        }
+        fixed_point_complex::add(center, center, dc);
+        return std::make_unique<fixed_point_complex_i1>(center);
     }
 
 
-    std::unique_ptr<fp_complex> MB2Locator::findCenterOffset(const MB2Perturbator &perturbator) {
+    std::unique_ptr<fixed_point_complex_i1> MB2Locator::findCenterOffset(const MB2Perturbator &perturbator) {
         const int exp10 = Perturbator::logZoomToExp10(perturbator.getCalculationSettings().logZoom);
         const MB2Reference *reference = perturbator.getReference();
         if (!reference) return nullptr;
 
-        fp_complex_mutable bn = reference->fpgBn.edit(exp10);
-        fp_complex_mutable z = reference->fpgReference.edit(exp10);
-        z /= bn.negate();
-        return std::make_unique<fp_complex>(z);
+        fixed_point_complex bn = reference->fpgBn.create_variant(exp10, -exp10 * 2);
+        fixed_point_complex z = reference->fpgReference.create_variant(exp10, -exp10 * 2);
+        fixed_point_complex::neg(bn);
+        fixed_point_complex::div(z, z, bn);
+        return std::make_unique<fixed_point_complex_i1>(z.real, z.imag, exp10);
     }
 
     std::unique_ptr<MB2Locator> MB2Locator::locateMinibrot(ParallelRenderState &state,
@@ -124,10 +125,12 @@ namespace merutilm::rff2 {
         const uint64_t maxIteration = doubledZoomCalc.maxIteration;
         const float doubledLogZoom = logZoom * 2;
         const int doubledExp10 = Perturbator::logZoomToExp10(doubledLogZoom);
-        auto e = doubledZoomCalc.center.edit(doubledExp10);
+
+
+
         doubledZoomCalc.absoluteIterationMode = false;
-        doubledZoomCalc.center = fp_complex(e += findCenterOffset(*perturbator)->edit(doubledExp10));
         doubledZoomCalc.logZoom = doubledLogZoom;
+
 
         dex doubledZoomDcMax = perturbator->getDcMaxAsDoubleExp() / dex_exp::exp10(logZoom);
 
@@ -139,12 +142,15 @@ namespace merutilm::rff2 {
         while (doubledZoomPerturbator == nullptr || !checkMaxIterationOnly(*doubledZoomPerturbator, maxIteration)) {
             if (state.interruptRequested()) {
                 return nullptr;
-                //try to save the vector
+                // try to save the vector
             }
 
-            fp_complex off = *findCenterOffset(doubledZoomPerturbator == nullptr ? *perturbator : *doubledZoomPerturbator);
-            e = doubledZoomCalc.center.edit(doubledExp10);
-            doubledZoomCalc.center = fp_complex(e += off.edit(doubledExp10));
+            auto center = doubledZoomCalc.center.create_variant(doubledExp10);
+            auto centerOffset = findCenterOffset(doubledZoomPerturbator == nullptr ? *perturbator : *doubledZoomPerturbator)->create_variant(doubledExp10);
+
+
+            fixed_point_complex::add(center, center, centerOffset);
+            doubledZoomCalc.center = center;
             ++centerFixCount;
 
             if (logZoom < Constants::Fractal::ZOOM_DEADLINE / 2) {

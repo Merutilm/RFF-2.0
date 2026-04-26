@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "../calc/fp_complex.h"
+#include "../calc/fixed_point_complex.hpp"
 #include "../data/ApproxTableManager.h"
 #include "../formula/LightMB2Perturbator.h"
 
@@ -14,9 +14,9 @@ namespace merutilm::rff2 {
 
         std::unique_ptr<MB2Perturbator> perturbator;
 
-        static std::unique_ptr<fp_complex> findCenter(const MB2Perturbator *perturbator);
+        static std::unique_ptr<fixed_point_complex_i1> findCenter(const MB2Perturbator *perturbator);
 
-        static std::unique_ptr<fp_complex> findCenterOffset(const MB2Perturbator &perturbator);
+        static std::unique_ptr<fixed_point_complex_i1> findCenterOffset(const MB2Perturbator &perturbator);
 
         static std::unique_ptr<MB2Locator> locateMinibrot(ParallelRenderState &state,
                                                                  const MB2Perturbator *perturbator,

@@ -5,7 +5,7 @@
 #pragma once
 
 #include <vector>
-#include "../calc/fp_complex.h"
+#include "../calc/fixed_point_complex.hpp"
 
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FractalSettings.h"
@@ -18,10 +18,10 @@ namespace merutilm::rff2 {
         const std::vector<double> refImag;
 
 
-        explicit LightMB2Reference(fp_complex &&center, std::vector<double> &&refReal,
+        explicit LightMB2Reference(fixed_point_complex_i1 &&center, std::vector<double> &&refReal,
                                           std::vector<double> &&refImag, std::vector<ArrayCompressionTool> &&compressor,
-                                          std::vector<uint64_t> &&period, fp_complex &&fpgReference,
-                                          fp_complex &&fpgBn);
+                                          std::vector<uint64_t> &&period, fixed_point_complex &&fpgReference,
+                                          fixed_point_complex &&fpgBn);
 
         static CreationResult generateReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
                         uint64_t refInitialCapacity, uint64_t fixedPeriod, double dcMax, bool strictFPG,

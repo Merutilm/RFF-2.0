@@ -4,10 +4,11 @@
 #include <fstream>
 #endif
 
+#include "../../vulkan_helper/util/GraphicsContextWindowProc.hpp"
+#include "../util/profiler.hpp"
 #include "Application.hpp"
 #include "SettingsWindow.hpp"
 #include "VideoWindow.hpp"
-#include "../../vulkan_helper/util/GraphicsContextWindowProc.hpp"
 
 void registerClasses() {
     using namespace merutilm::rff2;
@@ -71,13 +72,17 @@ void counter(const std::filesystem::path &path, uint32_t *lines) {
 }
 
 void countLines() {
-    const std::filesystem::path path("../src");
+    const std::filesystem::path path("../../src");
     uint32_t lines = 0;
     counter(path, &lines);
     std::cout << "Lines : " << lines << std::endl;
 
 }
 #endif
+
+
+
+
 
 int main() {
     using namespace merutilm::rff2;

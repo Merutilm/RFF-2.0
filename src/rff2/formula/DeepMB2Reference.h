@@ -5,10 +5,11 @@
 #pragma once
 #include <vector>
 
-#include "../calc/fp_complex.h"
+#include "../calc/fixed_point_complex.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FractalSettings.h"
 #include "MB2Reference.h"
+#include "../calc/dex.h"
 
 struct ArrayCompressionTool;
 
@@ -18,9 +19,9 @@ namespace merutilm::rff2 {
         const std::vector<dex> refImag;
 
 
-        explicit DeepMB2Reference(fp_complex &&center, std::vector<dex> &&refReal, std::vector<dex> &&refImag,
+        explicit DeepMB2Reference(fixed_point_complex_i1 &&center, std::vector<dex> &&refReal, std::vector<dex> &&refImag,
                                          std::vector<ArrayCompressionTool> &&compressor, std::vector<uint64_t> &&period,
-                                         fp_complex &&fpgReference, fp_complex &&fpgBn);
+                                         fixed_point_complex &&fpgReference, fixed_point_complex &&fpgBn);
 
         static CreationResult createReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
                                               uint64_t refInitialCapacity, uint64_t fixedPeriod, dex dcMax, bool strictFPG,

@@ -34,7 +34,7 @@ namespace merutilm::rff2 {
         const MB2Perturbator *perturbator = scene.getCurrentPerturbator();
         if (perturbator == nullptr || !perturbator->getReference()) return;
 
-        if (const std::unique_ptr<fp_complex> c = MB2Locator::findCenter(perturbator); c == nullptr) {
+        if (const std::unique_ptr<fixed_point_complex_i1> c = MB2Locator::findCenter(perturbator); c == nullptr) {
             MessageBox(nullptr, "No center found!", "Caution", MB_OK | MB_ICONWARNING);
         } else {
             scene.getSettings().fractal.center = *c;

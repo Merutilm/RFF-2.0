@@ -15,11 +15,11 @@
 #include "../util/profiler.hpp"
 
 namespace merutilm::rff2 {
-    LightMB2Reference::LightMB2Reference(fp_complex &&center, std::vector<double> &&refReal,
+    LightMB2Reference::LightMB2Reference(fixed_point_complex_i1 &&center, std::vector<double> &&refReal,
                                                        std::vector<double> &&refImag,
                                                        std::vector<ArrayCompressionTool> &&compressor,
-                                                       std::vector<uint64_t> &&period, fp_complex &&fpgReference,
-                                                       fp_complex &&fpgBn) :
+                                                       std::vector<uint64_t> &&period, fixed_point_complex &&fpgReference,
+                                                       fixed_point_complex &&fpgBn) :
         MB2Reference(std::move(center), std::move(compressor), std::move(period), std::move(fpgReference),
                             std::move(fpgBn)),
         refReal(std::move(refReal)), refImag(std::move(refImag)) {}
@@ -57,13 +57,14 @@ namespace merutilm::rff2 {
         rr.push_back(0);
         ri.push_back(0);
 
+        int strictIntExp10 = -exp10;
+        int iterIntExp10 = strictFPG ? strictIntExp10 : 1;
 
-
-        fp_complex center = calc.center;
-        auto c = center.edit(exp10);
-        auto z = fp_complex_mutable(0, 0, exp10);
-        auto fpgBn = fp_complex_mutable(0, 0, exp10);
-        auto one = fp_complex_mutable(1.0, 0.0, exp10);
+        fixed_point_complex_i1 center = calc.center;
+        fixed_point_complex c = center.create_variant(exp10, iterIntExp10);
+        auto z = fixed_point_complex(0.0, 0.0, exp10, iterIntExp10);
+        auto fpgBn = fixed_point_complex(0.0, 0.0, exp10, iterIntExp10);
+        auto one = fixed_point_complex(1.0, 0.0, exp10, iterIntExp10);
         double bailoutSqr = calc.bailout * calc.bailout;
 
         double fpgBnr = 1;
@@ -89,7 +90,7 @@ namespace merutilm::rff2 {
         double refSyncRadius2 = pow(10, -(refSyncRadiusPower << 1));
         bool canReuse = withoutNormalize;
 
-        std::unique_ptr<fp_complex> fpgReference = nullptr;
+        std::unique_ptr<fixed_point_complex> fpgReference = nullptr;
         uint64_t period;
 
         for (period = 0; zr * zr + zi * zi < bailoutSqr && period < maxIteration; ++period) {
@@ -122,7 +123,7 @@ namespace merutilm::rff2 {
                 if ((fpgReference == nullptr && fpgRadius > fpgLimit) || radius2 == 0 ||
                     (fixedPeriod != 0 && fixedPeriod == period)) {
                     periodArray.push_back(period);
-                    fpgReference = std::make_unique<fp_complex>(z);
+                    fpgReference = std::make_unique<fixed_point_complex>(z);
                     break;
                 }
 
@@ -132,9 +133,10 @@ namespace merutilm::rff2 {
 
             // strict fpg
             if (strictFPG) {
-                fpgBn *= z.doubled();
-                fpgBn += one;
-                z.halved();
+                fixed_point_complex::dbl(z);
+                fixed_point_complex::mul(fpgBn, fpgBn, z);
+                fixed_point_complex::add(fpgBn, fpgBn, one);
+                fixed_point_complex::hlv(z);
             }
             // listener invocation
             func(period);
@@ -142,8 +144,8 @@ namespace merutilm::rff2 {
             // Let's do arbitrary-precision operation!!
             // arbitrary precision
 
-            z.square();
-            z += c;
+            fixed_point_complex::sqr(z, z);
+            fixed_point_complex::add(z, z, c);
 
             // double value
             if (refSyncRadiusPower == 0 || refSyncInterval == 1) {
@@ -223,9 +225,9 @@ namespace merutilm::rff2 {
         if (period == 0)
             period = 1; // period is zero when "for" scope was escaped instantly. set the min period to 1.
         if (!strictFPG)
-            fpgBn = fp_complex_mutable(fpgBnr, fpgBni, exp10); // strict fpgBn generated
+            fpgBn = fixed_point_complex(fpgBnr, fpgBni, exp10, strictIntExp10); // strict fpgBn generated
         if (fpgReference == nullptr)
-            fpgReference = std::make_unique<fp_complex>(z);
+            fpgReference = std::make_unique<fixed_point_complex>(z);
 
         rr.resize(period - compressed + 1);
         ri.resize(period - compressed + 1);
@@ -235,7 +237,7 @@ namespace merutilm::rff2 {
 
         *result = std::make_unique<LightMB2Reference>(std::move(center), std::move(rr), std::move(ri),
                                                              std::move(tools), std::move(periodArray),
-                                                             std::move(*fpgReference), fp_complex(fpgBn));
+                                                             std::move(*fpgReference), std::move(fpgBn));
         return CreationResult::SUCCESS;
     }
 
