@@ -38,7 +38,7 @@ namespace merutilm::rff2 {
         scene.overwriteMatrixFromMap(RFFDynamicMapBinary::read(*path));
     };
     const std::function<void(SettingsMenu&, RenderScene&)> CallbackFile::LOAD_LOCATION = [](SettingsMenu&, RenderScene& scene) {
-        const auto path = IOUtilities::ioFileDialog(L"Load Map", Constants::Extension::DESC_LOCATION, IOUtilities::OPEN_FILE, Constants::Extension::LOCATION);
+        const auto path = IOUtilities::ioFileDialog(L"Load Location", Constants::Extension::DESC_LOCATION, IOUtilities::OPEN_FILE, Constants::Extension::LOCATION);
         if (path == nullptr) {
             return;
         }
