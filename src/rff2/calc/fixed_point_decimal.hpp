@@ -145,7 +145,7 @@ namespace merutilm::rff2 {
             return exp2div64 * 64;
         });
     }
-    inline fixed_point_decimal::fixed_point_decimal(const dex &v, int dec_exp10, int int_exp10) {
+    inline fixed_point_decimal::fixed_point_decimal(const dex &v, const int dec_exp10, const int int_exp10) {
         init_data(dec_exp10, int_exp10, [v](mpf_t val, const int exp2div64) {
             mpf_set_d(val, v.get_mantissa());
             return exp2div64 * 64 - v.get_exp2();
