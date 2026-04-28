@@ -92,28 +92,28 @@ namespace merutilm::rff2 {
             // use Fast-Period-Guessing to prepare MPA Table creation
             // fpg
             if (period > 0) {
-                dex_trigonometric::hypot2(&temps[0], &temps[1], zr, zi);
-                dex::div(&temps[1], temps[0], dcMax);
-                dex::mul(&temps[2], fpgBnr, zr);
-                dex::mul_2exp(&temps[2], temps[2], 1);
-                dex::mul(&temps[3], fpgBni, zi);
-                dex::mul_2exp(&temps[3], temps[3], 1);
-                dex::sub(&temps[2], temps[2], temps[3]);
-                dex::add(&temps[2], temps[2], dex::ONE);
-                dex::mul(&temps[3], fpgBnr, zi);
-                dex::mul_2exp(&temps[3], temps[3], 1);
-                dex::mul(&temps[4], fpgBni, zr);
-                dex::mul_2exp(&temps[4], temps[4], 1);
-                dex::add(&temps[3], temps[3], temps[4]);
-                dex_trigonometric::hypot_approx(&temps[4], &temps[5], temps[2], temps[3]);
+                dex_trig::hypot2(temps[0], temps[1], zr, zi);
+                dex::div(temps[1], temps[0], dcMax);
+                dex::mul(temps[2], fpgBnr, zr);
+                dex::mul_2exp(temps[2], temps[2], 1);
+                dex::mul(temps[3], fpgBni, zi);
+                dex::mul_2exp(temps[3], temps[3], 1);
+                dex::sub(temps[2], temps[2], temps[3]);
+                dex::add(temps[2], temps[2], dex::ONE);
+                dex::mul(temps[3], fpgBnr, zi);
+                dex::mul_2exp(temps[3], temps[3], 1);
+                dex::mul(temps[4], fpgBni, zr);
+                dex::mul_2exp(temps[4], temps[4], 1);
+                dex::add(temps[3], temps[3], temps[4]);
+                dex_trig::hypot_approx(temps[4], temps[5], temps[6], temps[2], temps[3]);
 
                 temps[2].try_normalize();
                 temps[3].try_normalize();
                 temps[4].try_normalize();
 
-                dex::sub(&temps[5], minZRadius, temps[0]);
+                dex::sub(temps[5], minZRadius, temps[0]);
                 if (minZRadius.isinf() || temps[5].sgn() > 0 || temps[0].sgn() == 1) {
-                    dex::cpy(&minZRadius, temps[0]);
+                    dex::cpy(minZRadius, temps[0]);
                     periodArray.push_back(period);
                 }
 
@@ -123,7 +123,7 @@ namespace merutilm::rff2 {
                     break;
                 }
 
-                dex::sub(&temps[4], temps[4], temps[1]);
+                dex::sub(temps[4], temps[4], temps[1]);
 
                 if ((fpgReference == nullptr && temps[4].sgn() == 1) || temps[0].sgn() == 0 ||
                     (fixedPeriod != 0 && fixedPeriod == period)) {
@@ -132,8 +132,8 @@ namespace merutilm::rff2 {
                     break;
                 }
 
-                dex::cpy(&fpgBnr, temps[2]);
-                dex::cpy(&fpgBni, temps[3]);
+                dex::cpy(fpgBnr, temps[2]);
+                dex::cpy(fpgBni, temps[3]);
             }
 
             // strict fpg
@@ -153,23 +153,23 @@ namespace merutilm::rff2 {
                 z.get_real().dex_value(&zr);
                 z.get_imag().dex_value(&zi);
             } else {
-                dex::add(&temps[0], zr, zi);
-                dex::sub(&temps[1], zr, zi);
-                dex::mul(&temps[0], temps[0], temps[1]);
-                dex::add(&temps[0], temps[0], cr);
-                dex::mul(&temps[1], zr, zi);
-                dex::mul_2exp(&temps[1], temps[1], 1);
-                dex::add(&temps[1], temps[1], ci);
+                dex::add(temps[0], zr, zi);
+                dex::sub(temps[1], zr, zi);
+                dex::mul(temps[0], temps[0], temps[1]);
+                dex::add(temps[0], temps[0], cr);
+                dex::mul(temps[1], zr, zi);
+                dex::mul_2exp(temps[1], temps[1], 1);
+                dex::add(temps[1], temps[1], ci);
 
-                dex_trigonometric::hypot2(&temps[2], &temps[3], temps[0], temps[1]);
-                dex::sub(&temps[2], refSyncRadius2, temps[2]);
+                dex_trig::hypot2(temps[2], temps[3], temps[0], temps[1]);
+                dex::sub(temps[2], refSyncRadius2, temps[2]);
 
                 if (temps[2].sgn() == 1 || period % refSyncInterval == 0) {
                     z.get_real().dex_value(&zr);
                     z.get_imag().dex_value(&zi);
                 } else {
-                    dex::cpy(&zr, temps[0]);
-                    dex::cpy(&zi, temps[1]);
+                    dex::cpy(zr, temps[0]);
+                    dex::cpy(zi, temps[1]);
                     zr.try_normalize();
                     zi.try_normalize();
                 }
@@ -177,10 +177,10 @@ namespace merutilm::rff2 {
 
 
             if (zr.sgn() == 0) {
-                dex::cpy(&zr, dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER));
+                dex::cpy(zr, dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER));
             }
             if (zi.sgn() == 0) {
-                dex::cpy(&zi, dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER));
+                dex::cpy(zi, dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER));
             }
 
             uint64_t normalizedPeriodForCompCheck = period;
@@ -229,9 +229,9 @@ namespace merutilm::rff2 {
                     const bool sr = zr.sgn() == rr[refIndex].sgn() && zr.sgn() == 0;
                     const bool si = zi.sgn() == ri[refIndex].sgn() && zi.sgn() == 0;
                     if (!sr)
-                        dex::div(&temps[0], zr, rr[refIndex]);
+                        dex::div(temps[0], zr, rr[refIndex]);
                     if (!si)
-                        dex::div(&temps[1], zi, ri[refIndex]);
+                        dex::div(temps[1], zi, ri[refIndex]);
 
                     if ((sr || std::fabs(static_cast<double>(temps[0]) - 1) <= compressionThreshold) &&
                         (si || std::fabs(static_cast<double>(temps[1]) - 1) <= compressionThreshold) && canReuse) {
@@ -263,8 +263,8 @@ namespace merutilm::rff2 {
                 }
             }
 
-            dex_trigonometric::hypot2(&temps[1], &temps[0], zr, zi),
-            dex::sub(&temps[1], bailoutSqr, temps[1]),
+            dex_trig::hypot2(temps[1], temps[0], zr, zi),
+            dex::sub(temps[1], bailoutSqr, temps[1]),
             ++period;
 
         } while (temps[1].sgn() == 1 && period < maxIteration);

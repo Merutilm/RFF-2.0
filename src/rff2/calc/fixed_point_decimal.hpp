@@ -497,7 +497,7 @@ namespace merutilm::rff2 {
     }
     inline void fixed_point_decimal::dex_value(dex *result) {
         if (sgn == 0) {
-            dex::cpy(result, dex::ZERO);
+            dex::cpy(*result, dex::ZERO);
             return;
         }
         uint64_t mantissa_bit;
@@ -509,10 +509,10 @@ namespace merutilm::rff2 {
         export_value(&exp2, &shift, &mantissa_bit, &cnt, &f_exp2);
 
         const double mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
-        dex::cpy(result, mantissa);
-        dex::mul_2exp(result, *result, f_exp2);
+        dex::cpy(*result, mantissa);
+        dex::mul_2exp(*result, *result, f_exp2);
         if (sgn == -1)
-            dex::neg(result);
+            dex::neg(*result);
     }
 
 

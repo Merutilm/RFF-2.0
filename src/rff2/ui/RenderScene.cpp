@@ -256,7 +256,7 @@ namespace merutilm::rff2 {
 
     dex RenderScene::getDivisor(const Settings &settings) {
         dex v = dex::ZERO;
-        dex_exp::exp10(&v, settings.fractal.logZoom);
+        dex_exp::exp10(v, settings.fractal.logZoom);
         return v;
     }
 
@@ -502,7 +502,7 @@ namespace merutilm::rff2 {
                                     ? currentPerturbator->getReference()->length()
                                     : lastLength;
 
-        dex_trigonometric::hypot_approx(&dcMax, temp.data(), offset[0], offset[1]);
+        dex_trig::hypot_approx(dcMax, temp[0], temp[1], offset[0], offset[1]);
         const auto refreshInterval = Utilities::getRefreshInterval(logZoom);
         std::function actionPerRefCalcIteration = [refreshInterval, this, &start](const uint64_t p) {
             if (p % refreshInterval == 0) {

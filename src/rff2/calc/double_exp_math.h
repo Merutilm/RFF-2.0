@@ -5,4 +5,4 @@
 #pragma once
 #include "dex_exp.h"
 #include "dex_std.h"
-#include "dex_trigonometric.h"
+#include "dex_trig.h"

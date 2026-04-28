@@ -61,7 +61,7 @@ namespace merutilm::rff2 {
             return nullptr;
         }
 
-        dex_trigonometric::hypot_approx(&temps[0], &temps[1], dzr, dzi);
+        dex_trig::hypot_approx(temps[0], temps[1], temps[2], dzr, dzi);
 
         switch (mpaSettings.mpaSelectionMethod) {
             using enum FrtMPASelectionMethod;

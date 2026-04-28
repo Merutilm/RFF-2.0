@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
 
 
     inline bool DeepPA::isValid(dex *temp, const dex &dzRad) const {
-        dex::sub(temp, radius, dzRad);
+        dex::sub(*temp, radius, dzRad);
         return temp->sgn() > 0;
     }
 }

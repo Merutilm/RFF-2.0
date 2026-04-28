@@ -11,11 +11,11 @@ namespace merutilm::rff2 {
 
         explicit dex_exp() = delete;
 
-        static void exp10(dex *result, double v);
+        static void exp10(dex &result, double v);
 
         static dex exp10(double v);
 
-        static void exp(dex *result, double v);
+        static void exp(dex &result, double v);
 
         static dex exp(double v);
 
@@ -26,39 +26,39 @@ namespace merutilm::rff2 {
 
 
 
-    inline void dex_exp::exp10(dex *result, const double v) {
+    inline void dex_exp::exp10(dex &result, const double v) {
         //10 ^ v
         //2 ^ (v * log2(10))
         //exp2 = v / log10(2)
         //mantissa = decimal value of exp2
         const double raw_exp2 = v / Constants::Num::LOG10_2;
         const auto exp2 = static_cast<int>(raw_exp2);
-        result->exp2 = exp2;
-        result->mantissa = std::pow(2, raw_exp2 - exp2);
+        result.exp2 = exp2;
+        result.mantissa = std::pow(2, raw_exp2 - exp2);
         dex::normalize(result);
     }
 
     inline dex dex_exp::exp10(const double v) {
         dex result = dex::ZERO;
-        exp10(&result, v);
+        exp10(result, v);
         return result;
     }
 
 
-    inline void dex_exp::exp(dex *result, const double v) {
+    inline void dex_exp::exp(dex &result, const double v) {
         //e^v
         //exp2 = v / ln2
         //mantissa = decimal value of exp2
         const double raw_exp2 = v / Constants::Num::LOG_2;
         const auto exp2 = static_cast<int>(raw_exp2);
-        result->exp2 = exp2;
-        result->mantissa = std::pow(2, raw_exp2 - exp2);
+        result.exp2 = exp2;
+        result.mantissa = std::pow(2, raw_exp2 - exp2);
         dex::normalize(result);
     }
 
     inline dex dex_exp::exp(const double v) {
         dex result = dex::ZERO;
-        exp(&result, v);
+        exp(result, v);
         return result;
     }
 

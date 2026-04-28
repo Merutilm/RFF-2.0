@@ -73,21 +73,21 @@ namespace merutilm::rff2 {
                 if (const DeepPA *mpaPtr = table->lookup(refIteration, dzr, dzi, temps); mpaPtr != nullptr) {
                     const DeepPA &mpa = *mpaPtr;
 
-                    dex::mul(&temps[0], mpa.anr, dzr);
-                    dex::mul(&temps[1], mpa.ani, dzi);
-                    dex::sub(&temps[0], temps[0], temps[1]);
-                    dex::mul(&temps[1], mpa.bnr, dcr1);
-                    dex::add(&temps[0], temps[0], temps[1]);
-                    dex::mul(&temps[1], mpa.bni, dci1);
-                    dex::sub(&temps[0], temps[0], temps[1]);
-                    dex::mul(&temps[1], mpa.anr, dzi);
-                    dex::mul(&temps[2], mpa.ani, dzr);
-                    dex::add(&temps[1], temps[1], temps[2]);
-                    dex::mul(&temps[2], mpa.bnr, dci1);
-                    dex::add(&temps[1], temps[1], temps[2]);
-                    dex::mul(&temps[2], mpa.bni, dcr1);
-                    dex::cpy(&dzr, temps[0]);
-                    dex::add(&dzi, temps[1], temps[2]);
+                    dex::mul(temps[0], mpa.anr, dzr);
+                    dex::mul(temps[1], mpa.ani, dzi);
+                    dex::sub(temps[0], temps[0], temps[1]);
+                    dex::mul(temps[1], mpa.bnr, dcr1);
+                    dex::add(temps[0], temps[0], temps[1]);
+                    dex::mul(temps[1], mpa.bni, dci1);
+                    dex::sub(temps[0], temps[0], temps[1]);
+                    dex::mul(temps[1], mpa.anr, dzi);
+                    dex::mul(temps[2], mpa.ani, dzr);
+                    dex::add(temps[1], temps[1], temps[2]);
+                    dex::mul(temps[2], mpa.bnr, dci1);
+                    dex::add(temps[1], temps[1], temps[2]);
+                    dex::mul(temps[2], mpa.bni, dcr1);
+                    dex::cpy(dzr, temps[0]);
+                    dex::add(dzi, temps[1], temps[2]);
 
                     iteration += mpa.skip;
                     refIteration += mpa.skip;
@@ -103,30 +103,30 @@ namespace merutilm::rff2 {
 
             if (refIteration != maxRefIteration) {
                 if (const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration); index == 0) {
-                    dex::cpy(&temps[0], dzr);
-                    dex::cpy(&temps[1], dzi);
+                    dex::cpy(temps[0], dzr);
+                    dex::cpy(temps[1], dzi);
                 } else {
-                    dex::cpy(&temps[0], reference->refReal[index]);
-                    dex::cpy(&temps[1], reference->refImag[index]);
-                    dex::mul_2exp(&temps[0], temps[0], 1);
-                    dex::mul_2exp(&temps[1], temps[1], 1);
-                    dex::add(&temps[0], temps[0], dzr);
-                    dex::add(&temps[1], temps[1], dzi);
+                    dex::cpy(temps[0], reference->refReal[index]);
+                    dex::cpy(temps[1], reference->refImag[index]);
+                    dex::mul_2exp(temps[0], temps[0], 1);
+                    dex::mul_2exp(temps[1], temps[1], 1);
+                    dex::add(temps[0], temps[0], dzr);
+                    dex::add(temps[1], temps[1], dzi);
                 }
 
 
                 if (temps[0].sgn() == 0 && temps[1].sgn() == 0) {
-                    dex::cpy(&dzr, dcr1);
-                    dex::cpy(&dzi, dci1);
+                    dex::cpy(dzr, dcr1);
+                    dex::cpy(dzi, dci1);
                 } else {
-                    dex::mul(&temps[2], temps[0], dzr);
-                    dex::mul(&temps[3], temps[1], dzi);
-                    dex::sub(&temps[3], temps[2], temps[3]);
-                    dex::mul(&temps[2], temps[0], dzi);
-                    dex::mul(&temps[0], temps[1], dzr);
-                    dex::add(&temps[2], temps[2], temps[0]);
-                    dex::add(&dzr, temps[3], dcr1);
-                    dex::add(&dzi, temps[2], dci1);
+                    dex::mul(temps[2], temps[0], dzr);
+                    dex::mul(temps[3], temps[1], dzi);
+                    dex::sub(temps[3], temps[2], temps[3]);
+                    dex::mul(temps[2], temps[0], dzi);
+                    dex::mul(temps[0], temps[1], dzr);
+                    dex::add(temps[2], temps[2], temps[0]);
+                    dex::add(dzr, temps[3], dcr1);
+                    dex::add(dzi, temps[2], dci1);
                 }
 
 
@@ -136,12 +136,12 @@ namespace merutilm::rff2 {
             }
 
             const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration);
-            dex::add(&zr, reference->refReal[index], dzr);
-            dex::add(&zi, reference->refImag[index], dzi);
+            dex::add(zr, reference->refReal[index], dzr);
+            dex::add(zi, reference->refImag[index], dzi);
 
 
-            dex::sub(&temps[0], zr, zrMin);
-            dex::sub(&temps[1], zrMax, zr);
+            dex::sub(temps[0], zr, zrMin);
+            dex::sub(temps[1], zrMax, zr);
 
             if (zi.sgn() == 0 && temps[0].sgn() != -1 && temps[1].sgn() != -1) {
                 // IT IS NOT SATISFIED MPA SKIP RADIUS CONDITION.
@@ -159,8 +159,8 @@ namespace merutilm::rff2 {
 
             if (refIteration == maxRefIteration || cd < dzr0 * dzr0 + dzi0 * dzi0) {
                 refIteration = 0;
-                dex::cpy(&dzr, zr);
-                dex::cpy(&dzi, zi);
+                dex::cpy(dzr, zr);
+                dex::cpy(dzi, zi);
             }
 
             dzr.try_normalize();
