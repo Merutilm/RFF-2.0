@@ -39,13 +39,14 @@ namespace merutilm::rff2 {
         ri.push_back(dex::ZERO);
 
         int strictIntExp10 = -exp10;
-        int iterIntExp10 = strictFPG ? strictIntExp10 : 1;
+        int fpgIntExp10 = strictFPG ? strictIntExp10 : 1;
 
         fixed_point_complex_i1 center = calc.center;
-        fixed_point_complex c = center.create_variant(exp10, iterIntExp10);
-        auto z = fixed_point_complex(0.0, 0.0, exp10, iterIntExp10);
-        auto fpgBn = fixed_point_complex(0.0, 0.0, exp10, iterIntExp10);
-        auto one = fixed_point_complex(1.0, 0.0, exp10, iterIntExp10);
+        fixed_point_complex_i1 c = center.create_variant(exp10);
+        auto z = fixed_point_complex_i1(0.0, 0.0, exp10);
+        auto temp = z;
+        auto fpgBn = fixed_point_complex(0.0, 0.0, exp10, fpgIntExp10);
+        auto one = fixed_point_complex_i1(1.0, 0.0, exp10);
         dex bailoutSqr = dex::value(calc.bailout * calc.bailout);
 
         op_thread_pool parallelReferenceThreadPool{};
@@ -58,8 +59,8 @@ namespace merutilm::rff2 {
         dex zi = dex::ZERO;
         dex cr;
         dex ci;
-        c.get_real().dex_value(&cr);
-        c.get_imag().dex_value(&ci);
+        c.get_real().dex_value(cr);
+        c.get_imag().dex_value(ci);
 
         auto periodArray = std::vector<uint64_t>();
 
@@ -68,7 +69,6 @@ namespace merutilm::rff2 {
 
         auto tools = std::vector<ArrayCompressionTool>();
         uint64_t compressed = 0;
-        uint64_t maxIteration = calc.maxIteration;
 
         auto [refSyncInterval, refSyncRadiusPower] = calc.referenceSyncSettings;
         auto [compressCriteria, compressionThresholdPower, withoutNormalize] = calc.referenceCompSettings;
@@ -117,12 +117,6 @@ namespace merutilm::rff2 {
                     periodArray.push_back(period);
                 }
 
-
-                if (period == maxIteration - 1) {
-                    periodArray.push_back(period);
-                    break;
-                }
-
                 dex::sub(temps[4], temps[4], temps[1]);
 
                 if ((fpgReference == nullptr && temps[4].sgn() == 1) || temps[0].sgn() == 0 ||
@@ -138,10 +132,9 @@ namespace merutilm::rff2 {
 
             // strict fpg
             if (strictFPG) {
-                fixed_point_complex::dbl(z);
-                fixed_point_complex::mul(fpgBn, fpgBn, z, useParallel ? &parallelReferenceThreadPool : nullptr);
+                fixed_point_complex::dbl(temp, z);
+                fixed_point_complex::mul(fpgBn, fpgBn, temp, useParallel ? &parallelReferenceThreadPool : nullptr);
                 fixed_point_complex::add(fpgBn, fpgBn, one);
-                fixed_point_complex::hlv(z);
             }
             // listener invocation
             func(period);
@@ -150,8 +143,8 @@ namespace merutilm::rff2 {
 
             // dex value
             if (refSyncRadiusPower == 0 || refSyncInterval == 1) {
-                z.get_real().dex_value(&zr);
-                z.get_imag().dex_value(&zi);
+                z.get_real().dex_value(zr);
+                z.get_imag().dex_value(zi);
             } else {
                 dex::add(temps[0], zr, zi);
                 dex::sub(temps[1], zr, zi);
@@ -165,8 +158,8 @@ namespace merutilm::rff2 {
                 dex::sub(temps[2], refSyncRadius2, temps[2]);
 
                 if (temps[2].sgn() == 1 || period % refSyncInterval == 0) {
-                    z.get_real().dex_value(&zr);
-                    z.get_imag().dex_value(&zi);
+                    z.get_real().dex_value(zr);
+                    z.get_imag().dex_value(zi);
                 } else {
                     dex::cpy(zr, temps[0]);
                     dex::cpy(zi, temps[1]);
@@ -267,7 +260,7 @@ namespace merutilm::rff2 {
             dex::sub(temps[1], bailoutSqr, temps[1]),
             ++period;
 
-        } while (temps[1].sgn() == 1 && period < maxIteration);
+        } while (temps[1].sgn() == 1);
 
 
         if (!strictFPG)

@@ -204,8 +204,8 @@ namespace merutilm::rff2 {
             const fixed_point_complex_i1 refCenter = reference->center.create_variant(exp10);
             fixed_point_complex_i1::sub(center, center, refCenter);
 
-            center.get_real().dex_value(&offR);
-            center.get_imag().dex_value(&offI);
+            center.get_real().dex_value(offR);
+            center.get_imag().dex_value(offI);
             longestPeriod = reference->longestPeriod();
             reusedReference = std::move(reference);
         }

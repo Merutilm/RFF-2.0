@@ -58,13 +58,14 @@ namespace merutilm::rff2 {
         ri.push_back(0);
 
         int strictIntExp10 = -exp10;
-        int iterIntExp10 = strictFPG ? strictIntExp10 : 1;
+        int fpgIntExp10 = strictFPG ? strictIntExp10 : 1;
 
         fixed_point_complex_i1 center = calc.center;
-        fixed_point_complex c = center.create_variant(exp10, iterIntExp10);
-        auto z = fixed_point_complex(0.0, 0.0, exp10, iterIntExp10);
-        auto fpgBn = fixed_point_complex(0.0, 0.0, exp10, iterIntExp10);
-        auto one = fixed_point_complex(1.0, 0.0, exp10, iterIntExp10);
+        fixed_point_complex_i1 c = center.create_variant(exp10);
+        auto z = fixed_point_complex_i1(0.0, 0.0, exp10);
+        auto temp = z;
+        auto fpgBn = fixed_point_complex(0.0, 0.0, exp10, fpgIntExp10);
+        auto one = fixed_point_complex_i1(1.0, 0.0, exp10);
         double bailoutSqr = calc.bailout * calc.bailout;
 
         op_thread_pool parallelReferenceThreadPool{};
@@ -97,7 +98,7 @@ namespace merutilm::rff2 {
         auto func = std::move(actionPerRefCalcIteration);
 
         uint64_t period;
-        for (period = 0; zr * zr + zi * zi < bailoutSqr && period < maxIteration; ++period) {
+        for (period = 0; zr * zr + zi * zi < bailoutSqr; ++period) {
             if (state.interruptRequested()) {
                 return CreationResult::TERMINATED;
             }
@@ -119,11 +120,6 @@ namespace merutilm::rff2 {
                     periodArray.push_back(period);
                 }
 
-                if (period == maxIteration - 1) {
-                    periodArray.push_back(period);
-                    break;
-                }
-
                 if ((fpgReference == nullptr && fpgRadius > fpgLimit) || radius2 == 0 ||
                     (fixedPeriod != 0 && fixedPeriod == period)) {
                     periodArray.push_back(period);
@@ -137,10 +133,9 @@ namespace merutilm::rff2 {
 
             // strict fpg
             if (strictFPG) {
-                fixed_point_complex::dbl(z);
-                fixed_point_complex::mul(fpgBn, fpgBn, z, useParallel ? &parallelReferenceThreadPool : nullptr);
+                fixed_point_complex::dbl(temp, z);
+                fixed_point_complex::mul(fpgBn, fpgBn, temp, useParallel ? &parallelReferenceThreadPool : nullptr);
                 fixed_point_complex::add(fpgBn, fpgBn, one);
-                fixed_point_complex::hlv(z);
             }
             // listener invocation
             func(period);

@@ -70,6 +70,7 @@ namespace merutilm::rff2 {
          * @param result the pointer of result
          * @param lhs left operand
          * @param rhs right operand
+         * @param tp multithread pool, default is nullptr
          */
         static void div(fixed_point_complex &result, const fixed_point_complex &lhs, const fixed_point_complex &rhs,
                         op_thread_pool *tp = nullptr);
@@ -85,18 +86,22 @@ namespace merutilm::rff2 {
         /**
          * Fast-doubling. It assumes that the count of limbs of both numbers are the same.
          * in-place operation is supported.
+         * @param result
          * @param v operand
          */
-        static void dbl(fixed_point_complex &v);
+        static void dbl(fixed_point_complex &result, const fixed_point_complex &v);
         /**
          * Fast-halving. It assumes that the count of limbs of both numbers are the same.
          * in-place operation is supported.
+         * @param result
          * @param v operand
          */
-        static void hlv(fixed_point_complex &v);
+        static void hlv(fixed_point_complex &result, const fixed_point_complex &v);
 
 
         static void neg(fixed_point_complex &v);
+
+        static void make_operation_compatible(fixed_point_complex &result, const fixed_point_complex &v);
 
         [[nodiscard]] fixed_point_decimal &get_real();
 
@@ -166,6 +171,12 @@ namespace merutilm::rff2 {
         // REAL : ac-bd
         // IMAG : ad+bc
 
+        fixed_point_decimal::make_operation_compatible(result.temps[0], lhs.real);
+        fixed_point_decimal::make_operation_compatible(result.temps[1], rhs.real);
+        fixed_point_decimal::make_operation_compatible(result.temps[2], lhs.real);
+        fixed_point_decimal::make_operation_compatible(result.temps[3], lhs.real);
+        fixed_point_decimal::make_operation_compatible(result.temps[4], lhs.real);
+
         if (tp) {
             if (tp->is_empty()) {
                 tp->add_func([](fixed_point_complex *res, const fixed_point_complex *l, const fixed_point_complex *r) {
@@ -185,19 +196,18 @@ namespace merutilm::rff2 {
             tp->run_all(&result, &lhs, &rhs);
             tp->wait_all();
 
-            fixed_point_decimal::sub(result.real, result.temps[2], result.temps[3]);
-            fixed_point_decimal::add(result.real, result.real, result.temps[4]);
-            fixed_point_decimal::add(result.imag, result.temps[3], result.temps[4]);
         } else {
+
             fixed_point_decimal::sub(result.temps[0], lhs.real, lhs.imag);
             fixed_point_decimal::add(result.temps[1], rhs.real, rhs.imag);
             fixed_point_decimal::mul(result.temps[2], result.temps[0], result.temps[1]);
-            fixed_point_decimal::mul(result.temps[1], lhs.real, rhs.imag);
-            fixed_point_decimal::mul(result.temps[0], lhs.imag, rhs.real);
-            fixed_point_decimal::sub(result.real, result.temps[2], result.temps[1]);
-            fixed_point_decimal::add(result.real, result.real, result.temps[0]);
-            fixed_point_decimal::add(result.imag, result.temps[1], result.temps[0]);
+            fixed_point_decimal::mul(result.temps[3], lhs.real, rhs.imag);
+            fixed_point_decimal::mul(result.temps[4], lhs.imag, rhs.real);
         }
+
+        fixed_point_decimal::sub(result.real, result.temps[2], result.temps[3]);
+        fixed_point_decimal::add(result.real, result.real, result.temps[4]);
+        fixed_point_decimal::add(result.imag, result.temps[3], result.temps[4]);
     }
 
 
@@ -284,8 +294,12 @@ namespace merutilm::rff2 {
         //(a+bi)^2
         // REAL : a^2-b^2 = (a+b)(a-b)
         // IMAG : 2ab
+        fixed_point_decimal::make_operation_compatible(result.temps[0], v.real);
+        fixed_point_decimal::make_operation_compatible(result.temps[1], v.real);
+        fixed_point_decimal::make_operation_compatible(result.temps[2], v.real);
 
         if (tp) {
+
             if (tp->is_empty()) {
                 tp->add_func([](fixed_point_complex *res, const fixed_point_complex *, const fixed_point_complex *) {
                     fixed_point_decimal::mul(res->temps[3], res->temps[0], res->temps[1]);
@@ -295,32 +309,31 @@ namespace merutilm::rff2 {
                 });
             }
 
+            fixed_point_decimal::make_operation_compatible(result.temps[3], v.real);
             fixed_point_decimal::add(result.temps[0], v.real, v.imag);
             fixed_point_decimal::sub(result.temps[1], v.real, v.imag);
             tp->run_all(&result, &v, nullptr);
             tp->wait_all();
             std::swap(result.real, result.temps[3]);
-            fixed_point_decimal::dbl(result.temps[2]);
-            std::swap(result.temps[2], result.imag);
+            fixed_point_decimal::dbl(result.imag, result.temps[2]);
         } else {
             fixed_point_decimal::add(result.temps[0], v.real, v.imag);
             fixed_point_decimal::sub(result.temps[1], v.real, v.imag);
             fixed_point_decimal::mul(result.temps[2], v.real, v.imag);
             fixed_point_decimal::mul(result.real, result.temps[0], result.temps[1]);
-            fixed_point_decimal::dbl(result.temps[2]);
-            std::swap(result.temps[2], result.imag);
+            fixed_point_decimal::dbl(result.imag, result.temps[2]);
         }
     }
 
-    inline void fixed_point_complex::dbl(fixed_point_complex &v) {
-        fixed_point_decimal::dbl(v.real);
-        fixed_point_decimal::dbl(v.imag);
+    inline void fixed_point_complex::dbl(fixed_point_complex &result, const fixed_point_complex &v) {
+        fixed_point_decimal::dbl(result.real, v.real);
+        fixed_point_decimal::dbl(result.imag, v.imag);
     }
 
 
-    inline void fixed_point_complex::hlv(fixed_point_complex &v) {
-        fixed_point_decimal::hlv(v.real);
-        fixed_point_decimal::hlv(v.imag);
+    inline void fixed_point_complex::hlv(fixed_point_complex &result, const fixed_point_complex &v) {
+        fixed_point_decimal::hlv(result.real, v.real);
+        fixed_point_decimal::hlv(result.imag, v.imag);
     }
 
     inline void fixed_point_complex::neg(fixed_point_complex &v) {
@@ -328,6 +341,10 @@ namespace merutilm::rff2 {
         fixed_point_decimal::neg(v.imag);
     }
 
+    inline void fixed_point_complex::make_operation_compatible(fixed_point_complex &result, const fixed_point_complex &v) {
+        fixed_point_decimal::make_operation_compatible(result.real, v.real);
+        fixed_point_decimal::make_operation_compatible(result.imag, v.imag);
+    }
 
     inline fixed_point_decimal &fixed_point_complex::get_real() { return real; }
 
