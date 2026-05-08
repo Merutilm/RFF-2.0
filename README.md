@@ -28,14 +28,24 @@ Of course, the approximation table can also be compressed using this algorithm, 
 Therefore, If you are trying to render long periods (over `10,000,000` or so), You should compress the references. \
 This will be <u>**SIGNIFICANTLY**</u> faster because it <u>**SUPERJUMPS**</u> process of table creation. 
 
-
 - Save amazing images using shaders!
+
 
 ## Get Started
 
 - It's very simple. Just go into the `releases`, 
 download the zip, 
 unzip it and run it from the `bin` directory.
+
+- or you can build manually with following command line.
+```bash
+mkdir build
+cd build
+cmake -G "MinGW Makefiles" ..
+mingw32-make
+mingw32-make install
+```
+
 
 
 ## Features

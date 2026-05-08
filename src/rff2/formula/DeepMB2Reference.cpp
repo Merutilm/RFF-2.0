@@ -178,31 +178,13 @@ namespace merutilm::rff2 {
 
             uint64_t normalizedPeriodForCompCheck = period;
 
-            if (!withoutNormalize) {
-                for (uint64_t i = periodArray.size(); i > 0; --i) {
-                    if (compressCriteria >= periodArray[i - 1]) {
-                        break;
-                    }
-                    normalizedPeriodForCompCheck %= periodArray[i - 1];
-
-                    if (normalizedPeriodForCompCheck == 0) {
-                        canReuse = true;
-                        break;
-                    }
-
-                    if (normalizedPeriodForCompCheck == periodArray[i - 1] - 1) {
-                        canReuse = false;
-                        break;
-                    }
-                }
-            }
-
             if (compressCriteria > 0) {
                 if (!withoutNormalize) {
                     for (uint64_t i = periodArray.size(); i > 0; --i) {
                         if (compressCriteria >= periodArray[i - 1]) {
                             break;
                         }
+
                         normalizedPeriodForCompCheck %= periodArray[i - 1];
 
                         if (normalizedPeriodForCompCheck == 0) {
