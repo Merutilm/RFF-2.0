@@ -79,7 +79,6 @@ namespace merutilm::rff2 {
         bool canReuse = withoutNormalize;
 
         std::unique_ptr<fixed_point_complex> fpgReference = nullptr;
-        auto temps = std::array<dex, 8>();
         auto func = std::move(actionPerRefCalcIteration);
 
         uint64_t period = 0;

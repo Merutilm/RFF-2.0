@@ -64,8 +64,6 @@ namespace merutilm::rff2 {
         const uint64_t maxIteration = calc.maxIteration;
         const float bailout = calc.bailout;
         const float bailout2 = bailout * bailout;
-        auto temps = std::array<dex, 4>();
-
 
         while (iteration < maxIteration) {
             if (table != nullptr) {

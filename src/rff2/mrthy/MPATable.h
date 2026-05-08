@@ -60,14 +60,13 @@ namespace merutilm::rff2 {
             requires std::is_base_of_v<PA, PAB> && std::is_base_of_v<PAGenerator, PAG>
         bool tryJumpTableGeneration(std::pmr::vector<std::pmr::vector<PAB>> &table, const Ref &reference,
                                     double epsilon, const Num &dcMax, std::vector<uint64_t> &periodCount,
-                                    std::vector<std::optional<PAG>> &currentPA, uint64_t pulledTableIndex,
-                                    std::array<dex, 8> &dpTableTemps, uint64_t *currentIteration);
+                                    std::vector<std::optional<PAG>> &currentPA, uint64_t pulledTableIndex, uint64_t *currentIteration);
 
         template<typename PAB, typename PAG>
             requires std::is_base_of_v<PA, PAB> && std::is_base_of_v<PAGenerator, PAG>
         void stepOnce(std::pmr::vector<std::pmr::vector<PAB>> &table, const Ref &reference, double epsilon, const Num &dcMax,
                       std::vector<uint64_t> &periodCount, std::vector<std::optional<PAG>> &currentPA,
-                      uint64_t pulledTableIndex, std::array<dex, 8> &dpTableTemps, uint64_t *currentIteration,
+                      uint64_t pulledTableIndex, uint64_t *currentIteration,
                       bool jumped);
 
         template<typename PAB, typename PAG>
@@ -226,7 +225,7 @@ namespace merutilm::rff2 {
                                                     const Ref &reference, double epsilon, const Num &dcMax,
                                                     std::vector<uint64_t> &periodCount,
                                                     std::vector<std::optional<PAG>> &currentPA,
-                                                    const uint64_t pulledTableIndex, std::array<dex, 8> &dpTableTemps,
+                                                    const uint64_t pulledTableIndex,
                                                     uint64_t *const currentIteration) {
 
         const ArrayCompressionTool *containedTool = ArrayCompressor::find(pulledMPACompressor, pulledTableIndex + 1);
@@ -276,12 +275,7 @@ namespace merutilm::rff2 {
                 periodCount[i] = count;
             } else {
                 if (currentPA[i] == std::nullopt) {
-                    if constexpr (std::is_same_v<PAG, LightPAGenerator>) {
-                        currentPA[i].emplace(reference, epsilon, dcMax, *currentIteration);
-                    } else {
-                        currentPA[i].emplace(reference, epsilon, dcMax, *currentIteration, dpTableTemps);
-                    }
-
+                    currentPA[i].emplace(reference, epsilon, dcMax, *currentIteration);
                     currentPA[i]->merge(mainReferencePA);
                 } else {
                     currentPA[i]->merge(mainReferencePA);
@@ -301,7 +295,7 @@ namespace merutilm::rff2 {
     void MPATable<Ref, Num>::stepOnce(std::pmr::vector<std::pmr::vector<PAB>> &table, const Ref &reference,
                                       double epsilon, const Num &dcMax, std::vector<uint64_t> &periodCount,
                                       std::vector<std::optional<PAG>> &currentPA, const uint64_t pulledTableIndex,
-                                      std::array<dex, 8> &dpTableTemps, uint64_t *const currentIteration,
+                                      uint64_t *const currentIteration,
                                       const bool jumped) {
 
         bool resetLowerLevel = false;
@@ -314,11 +308,7 @@ namespace merutilm::rff2 {
             const uint64_t level = i - 1;
             std::optional<PAG> &currentLevel = currentPA[level];
             if (periodCount[level] == 0 && independent && !jumped) {
-                if constexpr (std::is_same_v<PAG, LightPAGenerator>) {
-                    currentLevel.emplace(reference, epsilon, dcMax, *currentIteration);
-                } else {
-                    currentLevel.emplace(reference, epsilon, dcMax, *currentIteration, dpTableTemps);
-                }
+                currentLevel.emplace(reference, epsilon, dcMax, *currentIteration);
             }
 
             if (currentLevel != std::nullopt && periodCount[level] + REQUIRED_PERTURBATION < tablePeriod[level]) {
@@ -383,7 +373,6 @@ namespace merutilm::rff2 {
         fitBufferSize(table);
 
         const auto func = std::move(actionPerCreatingTableIteration);
-        auto dpTableTemps = std::array<dex, 8>();
         const double epsilon = pow(10, epsilonPower);
         uint64_t iteration = 1;
         uint64_t absIteration = 0;
@@ -398,12 +387,11 @@ namespace merutilm::rff2 {
             const uint64_t pulledTableIndex = iterationToPulledTableIndex(*mpaPeriod, iteration);
             bool jumped = false;
 
-            if (tryJumpTableGeneration(*table, reference, epsilon, dcMax, periodCount, currentPA, pulledTableIndex,
-                                       dpTableTemps, &iteration)) {
+            if (tryJumpTableGeneration(*table, reference, epsilon, dcMax, periodCount, currentPA, pulledTableIndex, &iteration)) {
                 jumped = true;
             }
 
-            stepOnce(*table, reference, epsilon, dcMax, periodCount, currentPA, pulledTableIndex, dpTableTemps,
+            stepOnce(*table, reference, epsilon, dcMax, periodCount, currentPA, pulledTableIndex,
                      &iteration, jumped);
 
             ++iteration;

@@ -15,13 +15,12 @@ namespace merutilm::rff2 {
         dex bnr;
         dex bni;
         dex radius;
-        std::array<dex, 8> &temps;
         const std::vector<dex> &refReal;
         const std::vector<dex> &refImag;
         dex dcMax;
 
     public:
-        explicit DeepPAGenerator(const DeepMB2Reference &reference, double epsilon, const dex dcMax, uint64_t start, std::array<dex, 8> &temps);
+        explicit DeepPAGenerator(const DeepMB2Reference &reference, double epsilon, dex dcMax, uint64_t start);
 
         void merge(const PA &pa) override;
 

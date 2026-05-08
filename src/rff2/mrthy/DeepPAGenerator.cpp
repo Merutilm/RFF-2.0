@@ -9,11 +9,10 @@
 
 namespace merutilm::rff2 {
     DeepPAGenerator::DeepPAGenerator(const DeepMB2Reference &reference, const double epsilon, const dex dcMax,
-                                                    const uint64_t start, std::array<dex, 8> &temps) : PAGenerator(start, 0, reference.compressor, epsilon), anr(dex::ONE),
+                                                    const uint64_t start) : PAGenerator(start, 0, reference.compressor, epsilon), anr(dex::ONE),
                                                                                          ani(dex::ZERO),
                                                                                          bnr(dex::ZERO), bni(dex::ZERO),
                                                                                          radius(dex::ONE),
-                                                                                         temps(temps),
                                                                                          refReal(reference.refReal),
                                                                                          refImag(reference.refImag), dcMax(dcMax) {
     }

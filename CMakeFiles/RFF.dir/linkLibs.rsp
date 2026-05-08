@@ -1,1 +1,0 @@
-  -LD:/merutilm/Developments/cpp/Projects/General/RFF/lib/mingw  -lgmp -lcomctl32 -lopencv_core4140 -lopencv_imgcodecs4140 -lopencv_imgproc4140 -lopencv_videoio4140 -lopencv_highgui4140 "C:/VulkanSDK/1.4.313.2/Lib/vulkan-1.lib" -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 
