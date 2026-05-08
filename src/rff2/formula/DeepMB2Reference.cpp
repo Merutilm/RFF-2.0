@@ -47,7 +47,7 @@ namespace merutilm::rff2 {
         auto temp = z;
         auto fpgBn = fixed_point_complex(0.0, 0.0, exp10, fpgIntExp10);
         auto one = fixed_point_complex_i1(1.0, 0.0, exp10);
-        dex bailoutSqr = dex::value(calc.bailout * calc.bailout);
+        auto bailoutSqr = dex(calc.bailout * calc.bailout);
 
         op_thread_pool parallelReferenceThreadPool{};
         bool useParallel = calc.useParallelRefCalculation;
@@ -59,8 +59,9 @@ namespace merutilm::rff2 {
         dex zi = dex::ZERO;
         dex cr;
         dex ci;
-        c.get_real().dex_value(cr);
-        c.get_imag().dex_value(ci);
+        auto two = dex(2);
+        cr = c.get_real().dex_value();
+        ci = c.get_imag().dex_value();
 
         auto periodArray = std::vector<uint64_t>();
 
@@ -83,8 +84,7 @@ namespace merutilm::rff2 {
 
         uint64_t period = 0;
 
-        do {
-
+        for (period = 0; period == 0 || zr * zr + zi * zi < bailoutSqr; ++period) {
             if (state.interruptRequested()) {
                 return CreationResult::TERMINATED;
             }
@@ -92,42 +92,31 @@ namespace merutilm::rff2 {
             // use Fast-Period-Guessing to prepare MPA Table creation
             // fpg
             if (period > 0) {
-                dex_trig::hypot2(temps[0], temps[1], zr, zi);
-                dex::div(temps[1], temps[0], dcMax);
-                dex::mul(temps[2], fpgBnr, zr);
-                dex::mul_2exp(temps[2], temps[2], 1);
-                dex::mul(temps[3], fpgBni, zi);
-                dex::mul_2exp(temps[3], temps[3], 1);
-                dex::sub(temps[2], temps[2], temps[3]);
-                dex::add(temps[2], temps[2], dex::ONE);
-                dex::mul(temps[3], fpgBnr, zi);
-                dex::mul_2exp(temps[3], temps[3], 1);
-                dex::mul(temps[4], fpgBni, zr);
-                dex::mul_2exp(temps[4], temps[4], 1);
-                dex::add(temps[3], temps[3], temps[4]);
-                dex_trig::hypot_approx(temps[4], temps[5], temps[6], temps[2], temps[3]);
+                dex radius2 = zr * zr + zi * zi;
+                dex fpgLimit = radius2 / dcMax;
+                dex fpgBnrTemp = fpgBnr * zr * two - fpgBni * zi * two + dex::ONE;
+                dex fpgBniTemp = fpgBnr * zi * two + fpgBni * zr * two;
 
-                temps[2].try_normalize();
-                temps[3].try_normalize();
-                temps[4].try_normalize();
+                fpgBnrTemp.try_normalize();
+                fpgBniTemp.try_normalize();
 
-                dex::sub(temps[5], minZRadius, temps[0]);
-                if (minZRadius.isinf() || temps[5].sgn() > 0 || temps[0].sgn() == 1) {
-                    dex::cpy(minZRadius, temps[0]);
+                dex fpgRadius = dex_trig::hypot_approx(fpgBnrTemp, fpgBniTemp);
+                bool isRadZero = radius2.is_zero();
+
+                if (minZRadius > radius2 && !isRadZero) {
+                    minZRadius = radius2;
                     periodArray.push_back(period);
                 }
 
-                dex::sub(temps[4], temps[4], temps[1]);
-
-                if ((fpgReference == nullptr && temps[4].sgn() == 1) || temps[0].sgn() == 0 ||
+                if ((fpgReference == nullptr && fpgRadius > fpgLimit) || isRadZero ||
                     (fixedPeriod != 0 && fixedPeriod == period)) {
                     periodArray.push_back(period);
                     fpgReference = std::make_unique<fixed_point_complex>(z);
                     break;
-                }
+                    }
 
-                dex::cpy(fpgBnr, temps[2]);
-                dex::cpy(fpgBni, temps[3]);
+                fpgBnr = fpgBnrTemp;
+                fpgBni = fpgBniTemp;
             }
 
             // strict fpg
@@ -143,26 +132,19 @@ namespace merutilm::rff2 {
 
             // dex value
             if (refSyncRadiusPower == 0 || refSyncInterval == 1) {
-                z.get_real().dex_value(zr);
-                z.get_imag().dex_value(zi);
+                zr = z.get_real().dex_value();
+                zi = z.get_imag().dex_value();
             } else {
-                dex::add(temps[0], zr, zi);
-                dex::sub(temps[1], zr, zi);
-                dex::mul(temps[0], temps[0], temps[1]);
-                dex::add(temps[0], temps[0], cr);
-                dex::mul(temps[1], zr, zi);
-                dex::mul_2exp(temps[1], temps[1], 1);
-                dex::add(temps[1], temps[1], ci);
+                const dex zr2 = (zr + zi) * (zr - zi) + cr;
+                const dex zi2 = two * zr * zi + ci;
+                const dex radius2 = zr2 * zr2 + zi2 * zi2;
 
-                dex_trig::hypot2(temps[2], temps[3], temps[0], temps[1]);
-                dex::sub(temps[2], refSyncRadius2, temps[2]);
-
-                if (temps[2].sgn() == 1 || period % refSyncInterval == 0) {
-                    z.get_real().dex_value(zr);
-                    z.get_imag().dex_value(zi);
+                if (radius2 < refSyncRadius2 || period % refSyncInterval == 0) {
+                    zr = z.get_real().dex_value();
+                    zi = z.get_imag().dex_value();
                 } else {
-                    dex::cpy(zr, temps[0]);
-                    dex::cpy(zi, temps[1]);
+                    zr = zr2;
+                    zi = zi2;
                     zr.try_normalize();
                     zi.try_normalize();
                 }
@@ -170,10 +152,10 @@ namespace merutilm::rff2 {
 
 
             if (zr.sgn() == 0) {
-                dex::cpy(zr, dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER));
+                zr = dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER);
             }
             if (zi.sgn() == 0) {
-                dex::cpy(zi, dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER));
+                zi = dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER);
             }
 
             uint64_t normalizedPeriodForCompCheck = period;
@@ -203,13 +185,9 @@ namespace merutilm::rff2 {
                     const uint64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
                     const bool sr = zr.sgn() == rr[refIndex].sgn() && zr.sgn() == 0;
                     const bool si = zi.sgn() == ri[refIndex].sgn() && zi.sgn() == 0;
-                    if (!sr)
-                        dex::div(temps[0], zr, rr[refIndex]);
-                    if (!si)
-                        dex::div(temps[1], zi, ri[refIndex]);
 
-                    if ((sr || std::fabs(static_cast<double>(temps[0]) - 1) <= compressionThreshold) &&
-                        (si || std::fabs(static_cast<double>(temps[1]) - 1) <= compressionThreshold) && canReuse) {
+                    if ((sr || std::fabs(static_cast<double>(zr / rr[refIndex]) - 1) <= compressionThreshold) &&
+                        (si || std::fabs(static_cast<double>(zi / ri[refIndex]) - 1) <= compressionThreshold) && canReuse) {
                         ++reuseIndex;
                     } else if (reuseIndex != 0) {
                         if (reuseIndex > compressCriteria) {
@@ -238,11 +216,7 @@ namespace merutilm::rff2 {
                 }
             }
 
-            dex_trig::hypot2(temps[1], temps[0], zr, zi),
-            dex::sub(temps[1], bailoutSqr, temps[1]),
-            ++period;
-
-        } while (temps[1].sgn() == 1);
+        }
 
 
         if (!strictFPG)

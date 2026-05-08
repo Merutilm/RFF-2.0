@@ -8,7 +8,7 @@
 #include "../calc/double_exp_math.h"
 
 namespace merutilm::rff2 {
-    DeepPAGenerator::DeepPAGenerator(const DeepMB2Reference &reference, const double epsilon, const dex &dcMax,
+    DeepPAGenerator::DeepPAGenerator(const DeepMB2Reference &reference, const double epsilon, const dex dcMax,
                                                     const uint64_t start, std::array<dex, 8> &temps) : PAGenerator(start, 0, reference.compressor, epsilon), anr(dex::ONE),
                                                                                          ani(dex::ZERO),
                                                                                          bnr(dex::ZERO), bni(dex::ZERO),
@@ -21,24 +21,19 @@ namespace merutilm::rff2 {
 
     void DeepPAGenerator::merge(const PA &pa) {
         const auto &target = static_cast<const DeepPA &>(pa);
-        dex::mul(temps[0], anr, target.anr);
-        dex::mul(temps[1], ani, target.ani);
-        dex::sub(temps[0], temps[0], temps[1]);
-        dex::mul(temps[1], anr, target.ani);
-        dex::mul(temps[2], ani, target.anr);
-        dex::cpy(anr, temps[0]);
-        dex::add(ani, temps[1], temps[2]);
-        dex::mul(temps[0], bnr, target.anr);
-        dex::mul(temps[1], bni, target.ani);
-        dex::sub(temps[0], temps[0], temps[1]);
-        dex::add(temps[0], temps[0], target.bnr);
-        dex::mul(temps[1], bnr, target.ani);
-        dex::mul(temps[2], bni, target.anr);
-        dex::add(temps[1], temps[1], temps[2]);
-        dex::cpy(bnr, temps[0]);
-        dex::add(bni, temps[1], target.bni);
-        dex_std::min(radius, radius, target.radius);
+        const dex anrMerge = target.anr * anr - target.ani * ani;
+        const dex aniMerge = target.anr * ani + target.ani * anr;
+        const dex bnrMerge = target.anr * bnr - target.ani * bni + target.bnr;
+        const dex bniMerge = target.anr * bni + target.ani * bnr + target.bni;
+
+        radius = std::min(radius, target.radius);
         radius.try_normalize();
+
+        anr = anrMerge;
+        ani = aniMerge;
+        bnr = bnrMerge;
+        bni = bniMerge;
+
         anr.try_normalize();
         ani.try_normalize();
         bnr.try_normalize();
@@ -47,37 +42,23 @@ namespace merutilm::rff2 {
     }
 
     void DeepPAGenerator::step() {
-        const uint64_t iter = start + skip++; //n+k
+        const uint64_t iter = start + skip++; // n+k
         const uint64_t index = ArrayCompressor::compress(compressors, iter);
-        dex::mul_2exp(temps[0], refReal[index], 1);
-        dex::mul_2exp(temps[1], refImag[index], 1);
-        dex::mul(temps[2], anr, temps[0]);
-        dex::mul(temps[3], ani, temps[1]);
-        dex::sub(temps[2], temps[2], temps[3]);
-        dex::mul(temps[3], anr, temps[1]);
-        dex::mul(temps[4], ani, temps[0]);
-        dex::add(temps[3], temps[3], temps[4]);
-        dex::mul(temps[4], bnr, temps[0]);
-        dex::mul(temps[5], bni, temps[1]);
-        dex::sub(temps[4], temps[4], temps[5]);
-        dex::cpy(temps[5], dex::ONE);
-        dex::add(temps[4], temps[4], temps[5]);
-        dex::mul(temps[5], bnr, temps[1]);
-        dex::mul(temps[6], bni, temps[0]);
-        dex::add(temps[5], temps[5], temps[6]);
-        dex_trig::hypot_approx(temps[0], temps[6], temps[7], temps[0], temps[1]);
-        dex_trig::hypot_approx(temps[1], temps[6], temps[7], bnr, bni);
-        dex::cpy(bnr, temps[4]);
-        dex::cpy(bni, temps[5]);
-        dex::cpy(temps[7], epsilon);
-        dex::mul(temps[0], temps[0], temps[7]);
-        dex::mul(temps[7], temps[1], dcMax);
-        dex::sub(temps[0], temps[0], temps[7]);
-        dex_trig::hypot_approx(temps[6], temps[4], temps[5], anr, ani);
-        dex::div(temps[0], temps[0], temps[6]);
-        dex_std::min(radius, radius, temps[0], temps[7]);
-        dex::cpy(anr, temps[2]);
-        dex::cpy(ani, temps[3]);
+
+        const dex z2r = dex(2) * refReal[index];
+        const dex z2i = dex(2) * refImag[index];
+        const dex anrStep = anr * z2r - ani * z2i;
+        const dex aniStep = anr * z2i + ani * z2r;
+        const dex bnrStep = bnr * z2r - bni * z2i + dex::ONE;
+        const dex bniStep = bnr * z2i + bni * z2r;
+        const dex z2l = dex_trig::hypot_approx(z2r, z2i);
+        const dex anlOriginal = dex_trig::hypot_approx(anr, ani);
+        const dex bnlOriginal = dex_trig::hypot_approx(bnr, bni);
+        radius = std::min(radius, (dex(epsilon) * z2l - bnlOriginal * dcMax) / anlOriginal);
+        anr = anrStep;
+        ani = aniStep;
+        bnr = bnrStep;
+        bni = bniStep;
 
         radius.try_normalize();
         anr.try_normalize();

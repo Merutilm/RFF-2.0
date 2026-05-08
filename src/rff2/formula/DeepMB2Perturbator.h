@@ -20,19 +20,19 @@ namespace merutilm::rff2 {
     public:
 
         explicit DeepMB2Perturbator(ParallelRenderState &state, const FractalSettings &calc,
-                                           const dex &dcMax, int exp10,
+                                           const dex dcMax, int exp10,
                                            uint64_t refInitialCapacity, uint64_t fixedPeriod, ApproxTableManager &tableRef,
                                            std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                            std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
                                            bool arbitraryPrecisionFPGBn = false,
                                            std::unique_ptr<DeepMB2Reference> reusedReference = nullptr,
                                            std::unique_ptr<DeepMPATable> reusedTable = nullptr,
-                                           const dex &offR = dex::ZERO, const dex &offI = dex::ZERO);
+                                           const dex offR = dex::ZERO, const dex offI = dex::ZERO);
 
 
-        [[nodiscard]] double iterate(const dex &dcr, const dex &dci) const override;
+        [[nodiscard]] double iterate(const dex dcr, const dex dci) const override;
 
-        std::unique_ptr<DeepMB2Perturbator> reuse(const FractalSettings &calc, const dex &dcMax,
+        std::unique_ptr<DeepMB2Perturbator> reuse(const FractalSettings &calc, const dex dcMax,
                                                          ApproxTableManager &tableRef);
 
         [[nodiscard]] const DeepMB2Reference *getReference() const override;

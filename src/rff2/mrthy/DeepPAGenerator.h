@@ -21,7 +21,7 @@ namespace merutilm::rff2 {
         dex dcMax;
 
     public:
-        explicit DeepPAGenerator(const DeepMB2Reference &reference, double epsilon, const dex &dcMax, uint64_t start, std::array<dex, 8> &temps);
+        explicit DeepPAGenerator(const DeepMB2Reference &reference, double epsilon, const dex dcMax, uint64_t start, std::array<dex, 8> &temps);
 
         void merge(const PA &pa) override;
 

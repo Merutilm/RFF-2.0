@@ -179,8 +179,8 @@ namespace merutilm::rff2 {
 
                     fixed_point_complex_i1 &center = settings.fractal.center;
                     center.set_exp10(exp10);
-                    const fixed_point_complex_i1 add(dex::value(static_cast<float>(dx) / m) / getDivisor(settings),
-                                                     dex::value(static_cast<float>(dy) / m) / getDivisor(settings),
+                    const fixed_point_complex_i1 add(dex(static_cast<float>(dx) / m) / getDivisor(settings),
+                                                     dex(static_cast<float>(dy) / m) / getDivisor(settings),
                                                      exp10);
                     fixed_point_complex_i1::add(center, center, add);
 
@@ -215,7 +215,7 @@ namespace merutilm::rff2 {
                     fixed_point_complex_i1 &center = settings.fractal.center;
                     const int exp10 = Perturbator::logZoomToExp10(logZoom);
                     center.set_exp10(exp10);
-                    const fixed_point_complex_i1 add(offset[0] * (1 - mzi), offset[1] * (1 - mzi), exp10);
+                    const fixed_point_complex_i1 add(offset[0] * dex(1 - mzi), offset[1] * dex(1 - mzi), exp10);
                     fixed_point_complex_i1::add(center, center, add);
                 }
                 if (value == -1) {
@@ -229,7 +229,7 @@ namespace merutilm::rff2 {
                     fixed_point_complex_i1 &center = settings.fractal.center;
                     const int exp10 = Perturbator::logZoomToExp10(logZoom);
                     center.set_exp10(exp10);
-                    const fixed_point_complex_i1 add(offset[0] * (1 - mzo), offset[1] * (1 - mzo), exp10);
+                    const fixed_point_complex_i1 add(offset[0] * dex(1 - mzo), offset[1] * dex(1 - mzo), exp10);
                     fixed_point_complex_i1::add(center, center, add);
                 }
 
@@ -248,16 +248,14 @@ namespace merutilm::rff2 {
         const double ox = static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth(settings)) / 2.0;
         const double oy = static_cast<double>(my) - static_cast<double>(getIterationBufferHeight(settings)) / 2.0;
 
-        return {dex::value(std::abs(ox) < INTENTIONAL_ERROR_OFFSET_MIN_PIX ? INTENTIONAL_ERROR_OFFSET_MIN_PIX : ox) /
-                        getDivisor(settings) / settings.render.clarityMultiplier,
-                dex::value(std::abs(oy) < INTENTIONAL_ERROR_OFFSET_MIN_PIX ? INTENTIONAL_ERROR_OFFSET_MIN_PIX : oy) /
-                        getDivisor(settings) / settings.render.clarityMultiplier};
+        return {dex(std::abs(ox) < INTENTIONAL_ERROR_OFFSET_MIN_PIX ? INTENTIONAL_ERROR_OFFSET_MIN_PIX : ox) /
+                        getDivisor(settings) / dex(settings.render.clarityMultiplier),
+                dex(std::abs(oy) < INTENTIONAL_ERROR_OFFSET_MIN_PIX ? INTENTIONAL_ERROR_OFFSET_MIN_PIX : oy) /
+                        getDivisor(settings) / dex(settings.render.clarityMultiplier)};
     }
 
     dex RenderScene::getDivisor(const Settings &settings) {
-        dex v = dex::ZERO;
-        dex_exp::exp10(v, settings.fractal.logZoom);
-        return v;
+        return dex_exp::exp10(settings.fractal.logZoom);
     }
 
     uint16_t RenderScene::getClientWidth() const {
@@ -495,14 +493,13 @@ namespace merutilm::rff2 {
                          std::format(L"Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
         const std::array<dex, 2> offset = offsetConversion(settings, 0, 0);
-        std::array<dex, 2> temp;
 
-        dex dcMax = dex::ZERO;
+        dex dcMax = dex_trig::hypot_approx(offset[0], offset[1]);
         uint64_t capacity = currentPerturbator && currentPerturbator->getReference()
                                     ? currentPerturbator->getReference()->length()
                                     : lastLength;
 
-        dex_trig::hypot_approx(dcMax, temp[0], temp[1], offset[0], offset[1]);
+
         const auto refreshInterval = Utilities::getRefreshInterval(logZoom);
         std::function actionPerRefCalcIteration = [refreshInterval, this, &start](const uint64_t p) {
             if (p % refreshInterval == 0) {

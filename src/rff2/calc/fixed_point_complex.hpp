@@ -30,7 +30,7 @@ namespace merutilm::rff2 {
 
         explicit fixed_point_complex(double re, double im, int dec_exp10, int int_exp10);
 
-        explicit fixed_point_complex(const dex &re, const dex &im, int dec_exp10, int int_exp10);
+        explicit fixed_point_complex(const dex re, const dex im, int dec_exp10, int int_exp10);
 
         explicit fixed_point_complex(const fixed_point_decimal &re, const fixed_point_decimal &im, int dec_exp10,
                                      int int_exp10);
@@ -134,7 +134,7 @@ namespace merutilm::rff2 {
             temp.set_exp10(dec_exp10, int_exp10);
         }
     }
-    inline fixed_point_complex::fixed_point_complex(const dex &re, const dex &im, const int dec_exp10,
+    inline fixed_point_complex::fixed_point_complex(const dex re, const dex im, const int dec_exp10,
                                                     const int int_exp10) :
         real(re, dec_exp10, int_exp10), imag(im, dec_exp10, int_exp10) {
         for (auto &temp: temps) {
@@ -401,7 +401,7 @@ namespace merutilm::rff2 {
         explicit fixed_point_complex_i_locked(const double re, const double im, const int dec_exp10) :
             fixed_point_complex(re, im, dec_exp10, int_exp10) {}
 
-        explicit fixed_point_complex_i_locked(const dex &re, const dex &im,
+        explicit fixed_point_complex_i_locked(const dex re, const dex im,
                                                       const int dec_exp10) :
                     fixed_point_complex(re, im, dec_exp10, int_exp10) {}
 

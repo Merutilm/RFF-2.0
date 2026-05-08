@@ -26,7 +26,7 @@ namespace merutilm::rff2 {
                                    double offR = 0, double offI = 0);
 
 
-        [[nodiscard]] double iterate(const dex &dcr, const dex &dci) const override;
+        [[nodiscard]] double iterate(const dex dcr, const dex dci) const override;
 
         [[nodiscard]] std::unique_ptr<LightMB2Perturbator> reuse(const FractalSettings &calc, double dcMax, ApproxTableManager &tableRef);
 
@@ -54,6 +54,6 @@ namespace merutilm::rff2 {
     }
 
     inline dex LightMB2Perturbator::getDcMaxAsDoubleExp() const {
-        return dex::value(dcMax);
+        return dex(dcMax);
     }
 }

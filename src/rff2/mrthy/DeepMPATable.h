@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
 
 
         explicit DeepMPATable(const ParallelRenderState &state, const DeepMB2Reference &reference,
-                      const FrtMPASettings *mpaSettings, const dex &dcMax, ApproxTableManager &tableRef,
+                      const FrtMPASettings *mpaSettings, const dex dcMax, ApproxTableManager &tableRef,
                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, tableRef, std::move(actionPerCreatingTableIteration)) {
 
         }
@@ -31,7 +31,7 @@ namespace merutilm::rff2 {
 
         DeepMPATable &operator=(DeepMPATable &&) noexcept = delete;
 
-        DeepPA *lookup(uint64_t refIteration, const dex &dzr, const dex &dzi, std::array<dex, 4> &temps) const;
+        DeepPA *lookup(uint64_t refIteration, dex dzr, dex dzi) const;
 
         size_t getLength() override;
     };
@@ -43,7 +43,7 @@ namespace merutilm::rff2 {
     // DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE  DEFINITION OF DEEP MPA TABLE
 
 
-    inline DeepPA *DeepMPATable::lookup(const uint64_t refIteration, const dex &dzr, const dex &dzi, std::array<dex, 4> &temps) const {
+    inline DeepPA *DeepMPATable::lookup(const uint64_t refIteration, const dex dzr, const dex dzi) const {
 
         if (refIteration == 0 || mpaPeriod == nullptr) {
             return nullptr;
@@ -61,7 +61,7 @@ namespace merutilm::rff2 {
             return nullptr;
         }
 
-        dex_trig::hypot_approx(temps[0], temps[1], temps[2], dzr, dzi);
+        const dex r = dex_trig::hypot_approx(dzr, dzi);
 
         switch (mpaSettings.mpaSelectionMethod) {
             using enum FrtMPASelectionMethod;
@@ -69,7 +69,7 @@ namespace merutilm::rff2 {
                 DeepPA *pa = nullptr;
 
                 for (DeepPA &test: table) {
-                    if (test.isValid(&temps[1], temps[0])) {
+                    if (test.isValid(r)) {
                         pa = &test;
                     } else return pa;
                 }
@@ -79,13 +79,13 @@ namespace merutilm::rff2 {
                 DeepPA &pa = table.front();
                 //This table cannot be empty because the pre-processing is done.
 
-                if (!pa.isValid(&temps[1], temps[0])) {
+                if (!pa.isValid(r)) {
                     return nullptr;
                 }
 
                 for (uint64_t j = table.size(); j > 0; --j) {
                     DeepPA &test = table[j - 1];
-                    if (test.isValid(&temps[1], temps[0])) {
+                    if (test.isValid(r)) {
                         return &test;
                     }
                 }

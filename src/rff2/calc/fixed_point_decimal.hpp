@@ -30,7 +30,7 @@ namespace merutilm::rff2 {
 
         explicit fixed_point_decimal(const std::string &str, int dec_exp10, int int_exp10);
 
-        explicit fixed_point_decimal(const dex &v, int dec_exp10, int int_exp10);
+        explicit fixed_point_decimal(const dex v, int dec_exp10, int int_exp10);
 
         ~fixed_point_decimal();
 
@@ -134,7 +134,7 @@ namespace merutilm::rff2 {
 
         double double_value();
 
-        void dex_value(dex &result);
+        dex dex_value();
 
         std::string to_string();
 
@@ -166,7 +166,7 @@ namespace merutilm::rff2 {
         });
     }
 
-    inline fixed_point_decimal::fixed_point_decimal(const dex &v, const int dec_exp10, const int int_exp10) {
+    inline fixed_point_decimal::fixed_point_decimal(const dex v, const int dec_exp10, const int int_exp10) {
         init_data(dec_exp10, int_exp10, [v](mpf_t val, const int exp2div64) {
             mpf_set_d(val, v.get_mantissa());
             return exp2div64 * 64 - v.get_exp2();
@@ -560,10 +560,9 @@ namespace merutilm::rff2 {
         return std::bit_cast<double>(sig | exponent | mantissa_bit);
     }
 
-    inline void fixed_point_decimal::dex_value(dex &result) {
+    inline dex fixed_point_decimal::dex_value() {
         if (sgn == 0) {
-            dex::cpy(result, dex::ZERO);
-            return;
+            return dex::ZERO;
         }
         uint64_t mantissa_bit;
         size_t cnt;
@@ -573,11 +572,9 @@ namespace merutilm::rff2 {
 
         export_value(&exp2, &shift, &mantissa_bit, &cnt, &f_exp2);
 
-        const auto mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
-        dex::cpy(result, mantissa);
-        dex::mul_2exp(result, result, f_exp2);
-        if (sgn == -1)
-            dex::neg(result);
+        const double mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
+
+        return dex(sgn) * dex::mul_2exp(dex(mantissa), f_exp2);
     }
 
 

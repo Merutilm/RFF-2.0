@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
 
         const double dr = dc.clone_real().double_value();
         const double di = dc.clone_imag().double_value();
-        if (const dex dcMax = perturbator->getDcMaxAsDoubleExp(); dr * dr + di * di > dcMax * dcMax) {
+        if (const dex dcMax = perturbator->getDcMaxAsDoubleExp(); dex(dr * dr + di * di) > dcMax * dcMax) {
             return nullptr;
         }
         fixed_point_complex::add(center, center, dc);
@@ -178,7 +178,7 @@ namespace merutilm::rff2 {
     bool MB2Locator::checkMaxIterationOnly(const MB2Perturbator &perturbator,
                                                   const uint64_t maxIteration) {
         return perturbator.iterate(perturbator.getDcMaxAsDoubleExp(),
-                                   perturbator.getDcMaxAsDoubleExp() / Constants::Fractal::INTENTIONAL_ERROR_DCLMB) == static_cast<
+                                   perturbator.getDcMaxAsDoubleExp() / dex(Constants::Fractal::INTENTIONAL_ERROR_DCLMB)) == static_cast<
                    double>(maxIteration);
     }
 }

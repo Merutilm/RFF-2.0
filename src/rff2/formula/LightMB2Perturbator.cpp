@@ -45,7 +45,7 @@ namespace merutilm::rff2 {
     }
 
 
-    double LightMB2Perturbator::iterate(const dex &dcr, const dex &dci) const {
+    double LightMB2Perturbator::iterate(const dex dcr, const dex dci) const {
         if (state.interruptRequested())
             return 0.0;
 

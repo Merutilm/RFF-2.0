@@ -8,12 +8,12 @@ namespace merutilm::rff2 {
 
 
     DeepMB2Perturbator::DeepMB2Perturbator(
-            ParallelRenderState &state, const FractalSettings &calc, const dex &dcMax, const int exp10,
+            ParallelRenderState &state, const FractalSettings &calc, const dex dcMax, const int exp10,
             const uint64_t refInitialCapacity, const uint64_t fixedPeriod, ApproxTableManager &tableRef,
             std::function<void(uint64_t)> &&actionPerRefCalcIteration,
             std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration, const bool arbitraryPrecisionFPGBn,
             std::unique_ptr<DeepMB2Reference> reusedReference, std::unique_ptr<DeepMPATable> reusedTable,
-            const dex &offR, const dex &offI) :
+            const dex offR, const dex offI) :
         MB2Perturbator(state, calc), dcMax(dcMax), offR(offR), offI(offI) {
 
         if (reusedReference == nullptr) {
@@ -39,12 +39,12 @@ namespace merutilm::rff2 {
     }
 
 
-    double DeepMB2Perturbator::iterate(const dex &dcr, const dex &dci) const {
+    double DeepMB2Perturbator::iterate(const dex dcr, const dex dci) const {
         if (state.interruptRequested())
             return 0.0;
 
-        const dex dcr1 = dcr + offR;
-        const dex dci1 = dci + offI;
+        const dex dcr1 = offR.is_zero() ? dcr : dcr + offR;
+        const dex dci1 = offI.is_zero() ? dci : dci + offI;
 
         uint64_t iteration = 0;
         uint64_t refIteration = 0;
@@ -52,12 +52,11 @@ namespace merutilm::rff2 {
         const uint64_t maxRefIteration = reference->longestPeriod();
         dex dzr = dex::ZERO;
         dex dzi = dex::ZERO;
-        dex zr = dex::ZERO;
-        dex zi = dex::ZERO;
 
 
-        const dex zrMin = dex::value(-2);
-        const dex zrMax = dex::value(0.25);
+        constexpr auto two = dex(2);
+        constexpr auto zrMin = dex(-2);
+        constexpr auto zrMax = dex(0.25);
 
         double cd = 0;
         double pd = cd;
@@ -70,24 +69,13 @@ namespace merutilm::rff2 {
 
         while (iteration < maxIteration) {
             if (table != nullptr) {
-                if (const DeepPA *mpaPtr = table->lookup(refIteration, dzr, dzi, temps); mpaPtr != nullptr) {
+                if (const DeepPA *mpaPtr = table->lookup(refIteration, dzr, dzi); mpaPtr != nullptr) {
                     const DeepPA &mpa = *mpaPtr;
+                    const dex dzr1 = mpa.anr * dzr - mpa.ani * dzi + mpa.bnr * dcr1 - mpa.bni * dci1;
+                    const dex dzi1 = mpa.anr * dzi + mpa.ani * dzr + mpa.bnr * dci1 + mpa.bni * dcr1;
 
-                    dex::mul(temps[0], mpa.anr, dzr);
-                    dex::mul(temps[1], mpa.ani, dzi);
-                    dex::sub(temps[0], temps[0], temps[1]);
-                    dex::mul(temps[1], mpa.bnr, dcr1);
-                    dex::add(temps[0], temps[0], temps[1]);
-                    dex::mul(temps[1], mpa.bni, dci1);
-                    dex::sub(temps[0], temps[0], temps[1]);
-                    dex::mul(temps[1], mpa.anr, dzi);
-                    dex::mul(temps[2], mpa.ani, dzr);
-                    dex::add(temps[1], temps[1], temps[2]);
-                    dex::mul(temps[2], mpa.bnr, dci1);
-                    dex::add(temps[1], temps[1], temps[2]);
-                    dex::mul(temps[2], mpa.bni, dcr1);
-                    dex::cpy(dzr, temps[0]);
-                    dex::add(dzi, temps[1], temps[2]);
+                    dzr = dzr1;
+                    dzi = dzi1;
 
                     iteration += mpa.skip;
                     refIteration += mpa.skip;
@@ -102,31 +90,20 @@ namespace merutilm::rff2 {
 
 
             if (refIteration != maxRefIteration) {
-                if (const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration); index == 0) {
-                    dex::cpy(temps[0], dzr);
-                    dex::cpy(temps[1], dzi);
-                } else {
-                    dex::cpy(temps[0], reference->refReal[index]);
-                    dex::cpy(temps[1], reference->refImag[index]);
-                    dex::mul_2exp(temps[0], temps[0], 1);
-                    dex::mul_2exp(temps[1], temps[1], 1);
-                    dex::add(temps[0], temps[0], dzr);
-                    dex::add(temps[1], temps[1], dzi);
-                }
+                const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration);
+                const dex zr1 = index == 0 ? dzr : reference->refReal[index] * two + dzr;
+                const dex zi1 = index == 0 ? dzi : reference->refImag[index] * two + dzi;
 
 
-                if (temps[0].sgn() == 0 && temps[1].sgn() == 0) {
-                    dex::cpy(dzr, dcr1);
-                    dex::cpy(dzi, dci1);
+                if (dzr.is_zero() && dzi.is_zero()) {
+                    dzr = dcr1;
+                    dzi = dci1;
                 } else {
-                    dex::mul(temps[2], temps[0], dzr);
-                    dex::mul(temps[3], temps[1], dzi);
-                    dex::sub(temps[3], temps[2], temps[3]);
-                    dex::mul(temps[2], temps[0], dzi);
-                    dex::mul(temps[0], temps[1], dzr);
-                    dex::add(temps[2], temps[2], temps[0]);
-                    dex::add(dzr, temps[3], dcr1);
-                    dex::add(dzi, temps[2], dci1);
+                    const dex zr2 = zr1 * dzr - zi1 * dzi + dcr1;
+                    const dex zi2 = zr1 * dzi + zi1 * dzr + dci1;
+
+                    dzr = zr2;
+                    dzi = zi2;
                 }
 
 
@@ -136,14 +113,10 @@ namespace merutilm::rff2 {
             }
 
             const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration);
-            dex::add(zr, reference->refReal[index], dzr);
-            dex::add(zi, reference->refImag[index], dzi);
+            dex zr = reference->refReal[index] + dzr;
+            dex zi = reference->refImag[index] + dzi;
 
-
-            dex::sub(temps[0], zr, zrMin);
-            dex::sub(temps[1], zrMax, zr);
-
-            if (zi.sgn() == 0 && temps[0].sgn() != -1 && temps[1].sgn() != -1) {
+            if (zi.is_zero() && (zr.is_zero() || (zr < zrMax && zr >= zrMin))) {
                 // IT IS NOT SATISFIED MPA SKIP RADIUS CONDITION.
                 // WHEN THE MAX ITERATION IS HIGH, REPEATS SEMI-INFINITELY.
                 return static_cast<double>(maxIteration);
@@ -159,8 +132,8 @@ namespace merutilm::rff2 {
 
             if (refIteration == maxRefIteration || cd < dzr0 * dzr0 + dzi0 * dzi0) {
                 refIteration = 0;
-                dex::cpy(dzr, zr);
-                dex::cpy(dzi, zi);
+                dzr = zr;
+                dzi = zi;
             }
 
             dzr.try_normalize();
@@ -187,7 +160,7 @@ namespace merutilm::rff2 {
 
 
     std::unique_ptr<DeepMB2Perturbator>
-    DeepMB2Perturbator::reuse(const FractalSettings &calc, const dex &dcMax, ApproxTableManager &tableRef) {
+    DeepMB2Perturbator::reuse(const FractalSettings &calc, const dex dcMax, ApproxTableManager &tableRef) {
         dex offR = dex::ZERO;
         dex offI = dex::ZERO;
         uint64_t longestPeriod = 1;
@@ -204,8 +177,8 @@ namespace merutilm::rff2 {
             const fixed_point_complex_i1 refCenter = reference->center.create_variant(exp10);
             fixed_point_complex_i1::sub(center, center, refCenter);
 
-            center.get_real().dex_value(offR);
-            center.get_imag().dex_value(offI);
+            offR = center.get_real().dex_value();
+            offI = center.get_imag().dex_value();
             longestPeriod = reference->longestPeriod();
             reusedReference = std::move(reference);
         }
