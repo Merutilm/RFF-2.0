@@ -59,11 +59,11 @@ namespace merutilm::vkh {
             return tm;
         }
 
-        static std::_Put_time<char> current_put_time(const std::tm * const tm) {
+        static std::__iom_t10<char> current_put_time(const std::tm * const tm) {
             return std::put_time(tm, "%Y/%m/%d, %H:%M:%S");
         }
 
-        static std::_Put_time<wchar_t> w_current_put_time(const std::tm * const tm) {
+        static std::__iom_t10<wchar_t> w_current_put_time(const std::tm * const tm) {
             return std::put_time(tm, L"%Y/%m/%d, %H:%M:%S");
         }
     };

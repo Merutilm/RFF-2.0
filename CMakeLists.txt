@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.31)
 project(RFF)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/mingw)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 add_executable(
         RFF
@@ -102,7 +102,7 @@ target_compile_options(RFF PRIVATE
         #Debug options
         $<$<CONFIG:Debug>:-O0>
         #Release options
-        $<$<CONFIG:Release>:-Ofast -funroll-loops -march=native>
+        $<$<CONFIG:Release>:-O3 -ffast-math -funroll-loops -march=native>
 )
 
 target_compile_definitions(RFF
@@ -113,22 +113,22 @@ target_compile_definitions(RFF
 
 find_package(Vulkan REQUIRED)
 
-set(MINGW64_DIRS "D:/merutilm/Developments/cpp/extern/mingw/mingw64")
-set(OPENCV_DIRS "D:/merutilm/Developments/cpp/extern/mingw/home/user/opencv/build")
+set(CLANG64_DIRS "D:/merutilm/Developments/cpp/extern/msys/clang64")
 
 target_include_directories(RFF PRIVATE
         # vulkan sdk directory
         ${Vulkan_INCLUDE_DIRS}
         # extern sources
         ${CMAKE_SOURCE_DIR}/extern
-        # mingw include dirs
-        ${MINGW64_DIRS}/include
-        # opencv dir
-        ${OPENCV_DIRS}/include
+        # clang include dirs
+        ${CLANG64_DIRS}/include
+        # opencv4 include dirs
+        ${CLANG64_DIRS}/include/opencv4
 )
 
+
 target_link_directories(RFF PRIVATE
-        ${CMAKE_SOURCE_DIR}/lib/mingw
+        ${CMAKE_SOURCE_DIR}/lib
 )
 
 
@@ -138,11 +138,11 @@ target_link_libraries(RFF PRIVATE
         # Win32 Linker
         comctl32
         # OpenCV Linkers
-        opencv_core4140
-        opencv_imgcodecs4140
-        opencv_imgproc4140
-        opencv_videoio4140
-        opencv_highgui4140
+        opencv_core
+        opencv_imgcodecs
+        opencv_imgproc
+        opencv_videoio
+        opencv_highgui
         # Vulkan
         Vulkan::Vulkan
 )
