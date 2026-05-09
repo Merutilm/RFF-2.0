@@ -21,10 +21,6 @@ namespace merutilm::rff2 {
         const Settings targetSettings;
         std::unique_ptr<VideoRenderSceneRenderer> renderer = nullptr;
 
-        std::mutex bufferCachedMutex;
-        std::queue<std::unique_ptr<VideoBufferCache>> queuedVbc = {};
-        std::condition_variable bufferCachedCondition;
-
     public:
         explicit VideoRenderScene(vkh::EngineRef engine, vkh::WindowContextRef wc, const VkExtent2D &videoExtent, const Settings &targetSettings);
 
@@ -72,20 +68,8 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] float calculateZoom(float defaultZoomIncrement, float currentFrame) const;
 
-        void queueImage();
+        VideoBufferCache createImage() const;
 
-
-        [[nodiscard]] std::mutex &getBufferCachedMutex() {
-            return bufferCachedMutex;
-        }
-
-        [[nodiscard]] std::condition_variable &getBufferCachedCondition() {
-            return bufferCachedCondition;
-        }
-
-        [[nodiscard]] std::queue<std::unique_ptr<VideoBufferCache>> &getQueuedBuffers() {
-            return queuedVbc;
-        }
 
 
         void init() override;

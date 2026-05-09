@@ -89,15 +89,13 @@ namespace merutilm::rff2 {
         return DefWindowProcW(hwnd, message, wParam, lParam);
     }
 
-
-    void VideoWindow::createVideo(vkh::EngineRef engine,
-                                  const Settings &settings,
-                                  const std::filesystem::path &open,
+    void VideoWindow::createVideo(vkh::EngineRef engine, const Settings &settings, const std::filesystem::path &open,
                                   const std::filesystem::path &save) {
         int imgWidth = 0;
         int imgHeight = 0;
-        HWND wnd = engine.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).getWindow().
-                getWindowHandle();
+        HWND wnd = engine.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX)
+                           .getWindow()
+                           .getWindowHandle();
         wnd = IsWindow(wnd) ? wnd : nullptr;
 
         if (engine.isValidWindowContext(Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX)) {
@@ -135,7 +133,6 @@ namespace merutilm::rff2 {
         auto window = VideoWindow(engine, cw, ch);
         window.createScene(VkExtent2D{static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight)}, settings);
         auto &scene = *window.scene;
-        bool exitFlag = false;
 
 
         const auto &[defaultZoomIncrement, isStatic] = settings.video.data;
@@ -143,64 +140,18 @@ namespace merutilm::rff2 {
         const auto &[fps, bitrate] = settings.video.exportation;
 
 
-
         cv::VideoWriter writer;
-        writer.open(save.string(), cv::VideoWriter::fourcc('a', 'v', 'c', '1'), fps,
-                    cv::Size(imgWidth, imgHeight));
+        writer.open(save.string(), cv::CAP_FFMPEG, cv::VideoWriter::fourcc('a', 'v', 'c', '1'), fps, cv::Size(imgWidth, imgHeight));
 
         if (!writer.isOpened()) {
             MessageBoxW(wnd, L"Cannot open file!!", L"Export failed", MB_TOPMOST | MB_ICONERROR | MB_OK);
             return;
         }
 
-        std::jthread queueResolveThread([&, wnd] {
-            std::unique_ptr<VideoBufferCache> buffer = nullptr;
-            while (!exitFlag || !scene.getQueuedBuffers().empty()) {
-                //MUTEX LOCK SCOPE BEGIN
-                {
-                    std::mutex &mutex = scene.getBufferCachedMutex();
-                    std::unique_lock lock(mutex);
-                    scene.getBufferCachedCondition().wait(lock, [&scene, &exitFlag] {
-                        return !scene.getQueuedBuffers().empty() || exitFlag;
-                    });
-                    if (exitFlag && scene.getQueuedBuffers().empty()) {
-                        buffer = nullptr;
-                        break;
-                    }
-                    buffer = std::move(scene.getQueuedBuffers().front());
-                    scene.getQueuedBuffers().pop();
-                    scene.getBufferCachedCondition().notify_all();
-                }
-                //MUTEX LOCK SCOPE END
-                auto &img = buffer->image;
-                if (showText) {
-                    const int xg = std::max(1, imgWidth / 72);
-                    const int yg = std::max(1, imgWidth / 192);
-                    const int loc = std::max(1, imgWidth / 40);
-                    const float size = std::max(1.0f, static_cast<float>(imgWidth) / 800);
-                    const int off = std::max(1, loc / 15);
-                    const int tkn = std::max(1, off / 2);
-
-                    const std::string zoomStr = std::format("Zoom : {:6f}E{:d}",
-                                                            std::pow(10, std::fmod(buffer->zoom, 1)),
-                                                            static_cast<int>(buffer->zoom));
-                    cv::putText(img, zoomStr, cv::Point(xg + off, loc + yg + off), cv::FONT_HERSHEY_PLAIN, size,
-                                cv::Scalar(0, 0, 0));
-                    cv::putText(img, zoomStr, cv::Point(xg, loc + yg), cv::FONT_HERSHEY_PLAIN, size,
-                                cv::Scalar(255, 255, 255), tkn, cv::LINE_AA);
-                }
-                writer << img;
-            }
-            engine.getCore().getLogicalDevice().waitDeviceIdle();
-            MessageBoxW(IsWindow(wnd) ? wnd : nullptr, L"Render Finished!", L"Done",
-                        MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
-        });
-
         std::jthread imageRenderThread([&, imgWidth, imgHeight] {
             const auto frameInterval = mps / fps;
-            const uint32_t maxNumber = isStatic
-                                           ? IOUtilities::fileNameCount(open, Constants::Extension::STATIC_MAP)
-                                           : IOUtilities::fileNameCount(open, Constants::Extension::DYNAMIC_MAP);
+            const uint32_t maxNumber = isStatic ? IOUtilities::fileNameCount(open, Constants::Extension::STATIC_MAP)
+                                                : IOUtilities::fileNameCount(open, Constants::Extension::DYNAMIC_MAP);
             const float minNumber = -overZoom;
             auto currentFrame = static_cast<float>(maxNumber);
             float currentSec = 0;
@@ -272,15 +223,15 @@ namespace merutilm::rff2 {
 
                 scene.setTime(currentSec);
                 scene.renderOnce();
-                scene.queueImage();
-                scene.getBufferCachedCondition().notify_all();
+                VideoBufferCache buffer = scene.createImage();
+                writer << generateFrame(buffer, imgWidth, showText);
 
-                const float progressRatio = (static_cast<float>(maxNumber) - currentFrame) / (
-                                                static_cast<float>(maxNumber) + overZoom);
+                const float progressRatio =
+                        (static_cast<float>(maxNumber) - currentFrame) / (static_cast<float>(maxNumber) + overZoom);
                 const float spentSec = Utilities::getCurrentTime() - startSec;
                 float remainedSec = (1 - progressRatio) / progressRatio * spentSec;
-                const auto remainedTime = std::chrono::duration_cast<std::chrono::seconds>(
-                    std::chrono::duration<float>(remainedSec));
+                const auto remainedTime =
+                        std::chrono::duration_cast<std::chrono::seconds>(std::chrono::duration<float>(remainedSec));
                 auto hms = std::chrono::hh_mm_ss(remainedTime);
 
                 window.barRatio = progressRatio;
@@ -288,15 +239,37 @@ namespace merutilm::rff2 {
                 InvalidateRect(window.videoWindow, nullptr, FALSE);
             }
 
-            exitFlag = true;
-            scene.getBufferCachedCondition().notify_all();
-            if (queueResolveThread.joinable()) queueResolveThread.join();
             writer.release();
+
+            engine.getCore().getLogicalDevice().waitDeviceIdle();
+            MessageBoxW(IsWindow(wnd) ? wnd : nullptr, L"Render Finished!", L"Done",
+                        MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
             if (IsWindowVisible(window.videoWindow)) {
                 PostMessage(window.videoWindow, WM_CLOSE, 0, 0);
             }
         });
         messageLoop();
+    }
+    cv::Mat VideoWindow::generateFrame(const VideoBufferCache &buffer, const int imgWidth, const bool showText) {
+
+        auto &img = buffer.image;
+        if (showText) {
+            const int xg = std::max(1, imgWidth / 72);
+            const int yg = std::max(1, imgWidth / 192);
+            const int loc = std::max(1, imgWidth / 40);
+            const float size = std::max(1.0f, static_cast<float>(imgWidth) / 800);
+            const int off = std::max(1, loc / 15);
+            const int tkn = std::max(1, off / 2);
+
+            const std::string zoomStr = std::format("Zoom : {:6f}E{:d}",
+                                                    std::pow(10, std::fmod(buffer.zoom, 1)),
+                                                    static_cast<int>(buffer.zoom));
+            cv::putText(img, zoomStr, cv::Point(xg + off, loc + yg + off), cv::FONT_HERSHEY_PLAIN, size,
+                        cv::Scalar(0, 0, 0));
+            cv::putText(img, zoomStr, cv::Point(xg, loc + yg), cv::FONT_HERSHEY_PLAIN, size,
+                        cv::Scalar(255, 255, 255), tkn, cv::LINE_AA);
+        }
+        return img;
     }
 
     void VideoWindow::messageLoop() {

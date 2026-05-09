@@ -203,7 +203,7 @@ namespace merutilm::rff2 {
         }
         const auto f1 = static_cast<int>(currentFrame); // it is smaller
         const auto f2 = f1 + 1;
-        //frame size : f1 = 1x, f2 = 2x
+        // frame size : f1 = 1x, f2 = 2x
         const float r = static_cast<float>(f2) - currentFrame;
 
         if (!zoomed->hasData() || !normal->hasData()) {
@@ -216,7 +216,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void VideoRenderScene::queueImage() {
+    VideoBufferCache VideoRenderScene::createImage() const {
         const uint32_t frameIndex = renderer->getFrameIndex();
         wc.getSyncObject().getFence(frameIndex).waitAndReset();
         const vkh::BufferContext &srcBuffer = renderer->rendererImageRGBA2BGR->getBufferContext(frameIndex);
@@ -237,16 +237,12 @@ namespace merutilm::rff2 {
                                                         srcBuffer, dstBuffer);
         }
         vkh::BufferContext::unmapMemory(wc.core, dstBuffer);
-        std::unique_lock queueLock(bufferCachedMutex);
-        bufferCachedCondition.wait(queueLock, [this] {
-            return queuedVbc.size() < Constants::VideoConfig::MAX_VIDEO_QUEUE_SIZE;
-        });
-        queuedVbc.push(std::make_unique<VideoBufferCache>(wc.core, std::move(dstBuffer),
+        return VideoBufferCache(wc.core, std::move(dstBuffer),
                                                           static_cast<int>(videoExtent.width),
                                                           static_cast<int>(videoExtent.height),
                                                           calculateZoom(
                                                               targetSettings.video.data.defaultZoomIncrement,
-                                                              renderer->currentFrame)));
+                                                              renderer->currentFrame));
     }
 
     void VideoRenderScene::init() {
