@@ -37,13 +37,63 @@ This will be <u>**SIGNIFICANTLY**</u> faster because it <u>**SUPERJUMPS**</u> pr
 download the zip, 
 unzip it and run it from the `bin` directory.
 
-- or you can build manually with following command line.
+- Or you can build manually.
+### Requirements
+
+1. Install MSYS2:
+   https://www.msys2.org/
+
+2. Launch `clang64.exe`
+
+3. Update MSYS2 packages:
+```bash
+pacman -Syu
+```
+
+4. Restart `clang64.exe`
+
+5. Install required packages:
+```bash
+pacman -S mingw-w64-clang-x86_64-make
+pacman -S mingw-w64-clang-x86_64-cmake
+pacman -S mingw-w64-clang-x86_64-ninja
+pacman -S mingw-w64-clang-x86_64-clang
+pacman -S mingw-w64-clang-x86_64-opencv
+pacman -S mingw-w64-clang-x86_64-vulkan
+```
+
+6. Add the following directory to your Windows `Path` environment variable:
+```text
+your-installed-path\clang64\bin
+```
+
+7. Restart the terminal or your PC after updating the `Path`.
+
+---
+
+### Build
+
 ```bash
 mkdir build
-cmake -B build -G "Ninja" -S . -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release
+
+cmake -B build -G "Ninja" -S . \
+-DCMAKE_C_COMPILER=clang \
+-DCMAKE_CXX_COMPILER=clang++ \
+-DCMAKE_BUILD_TYPE=Release
+
 cmake --build build
 ```
 
+---
+
+### Troubleshooting
+
+If the built application cannot be launched:
+
+- Make sure `clang64\bin` is added to your `Path`
+- Restart the terminal or your PC
+- Launch the application from `clang64.exe`
+- Verify required DLLs exist in `clang64\bin`
 
 
 ## Features
