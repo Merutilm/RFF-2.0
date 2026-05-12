@@ -71,12 +71,13 @@ pacman -S mingw-w64-clang-x86_64-vulkan
 pacman -S mingw-w64-clang-x86_64-glm
 ```
 
-6. Add the following directory to your Windows `Path` environment variable:
+6. Add the following directory to your Windows environment variable:
 ```text
-your-installed-path\clang64\bin
+MSYS2_ROOT : your-installed-msys2-path
+Path : %MSYS2_ROOT%\clang64\bin
 ```
 
-7. Restart the terminal or your PC after updating the `Path`.
+7. Restart the terminal or your PC after updating the environment variables.
 
 ### Build
 The dependency [libgmp](https://github.com/sethtroisi/libgmp/tree/master) must also be built.

@@ -75,7 +75,12 @@ target_compile_definitions(RFF
 
 add_subdirectory(src/vulkan_helper)
 
-set(CLANG64_DIRS "D:/merutilm/Developments/cpp/extern/msys/clang64")
+if(NOT DEFINED ENV{MSYS2_ROOT})
+    message(FATAL_ERROR "MSYS2_ROOT not set. Add the your Windows environment variable named MSYS2_ROOT.")
+endif()
+
+set(CLANG64_DIRS "$ENV{MSYS2_ROOT}/clang64")
+set(CLANG64_LIBS "${CLANG64_DIRS}/lib")
 
 target_include_directories(RFF PRIVATE
         # extern sources
@@ -88,24 +93,17 @@ target_include_directories(RFF PRIVATE
         ${CLANG64_DIRS}/include/opencv4
 )
 
-target_link_directories(RFF PRIVATE
-        ${CMAKE_SOURCE_DIR}/lib
-)
-
 target_link_libraries(RFF PRIVATE
         # GMP Linker
-        gmp
+        ${CLANG64_LIBS}/libgmp.a
         # Win32 Linker
         comctl32
         # OpenCV Linkers
-        opencv_core
-        opencv_imgcodecs
-        opencv_imgproc
-        opencv_videoio
-        opencv_highgui
+        ${CLANG64_LIBS}/opencv_core.dll.a
+        ${CLANG64_LIBS}/opencv_imgcodecs.dll.a
+        ${CLANG64_LIBS}/opencv_imgproc.dll.a
+        ${CLANG64_LIBS}/opencv_videoio.dll.a
+        ${CLANG64_LIBS}/opencv_highgui.dll.a
         # Vulkan Helper
         vulkan_helper
 )
-
-add_custom_target(spirv ALL COMMAND powershell -ExecutionPolicy Bypass -File "${CMAKE_CURRENT_SOURCE_DIR}/compile.ps1")
-add_dependencies(RFF spirv)
