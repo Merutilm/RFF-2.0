@@ -5,7 +5,7 @@
 
 **RFF** is an abbreviation for <u>**Ridiculously Fast Fractal**</u>.
 
-- As the name suggests, its priority is ONLY Speed, and defaulted for the fastest settings.
+- As the name suggests, This program is designed to operate as quickly as possible rather than operating stably.
 
 
 ## Overview
