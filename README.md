@@ -7,13 +7,12 @@
 
 - As the name suggests, This program is designed to operate as quickly as possible rather than operating stably.
 
-
 ## Overview
 ### Important : This program is **NOT COMPATIBLE** with **RFF(Java)** file extensions!
 
 - A program that achieves extremely fast `Power-2 MB2 set`.
 
-- The application is built with the Vulkan API.
+- The application is built with the `Vulkan`.
 
 - This program uses `Fast-period-guessing`*(a.k.a. FPG)* which I developed. It automatically generates the `longest period` of the selected location.
 This value is unmodifiable.
@@ -30,21 +29,29 @@ This will be <u>**SIGNIFICANTLY**</u> faster because it <u>**SUPERJUMPS**</u> pr
 
 - Save amazing images using shaders!
 
-
 ## Get Started
 
 - It's very simple. Just go into the `releases`, 
-download the zip, 
+download the zip,
 unzip it and run it from the `bin` directory.
 
 - Or you can build manually.
+
 ### Requirements
+*IMPORTANT : To use this application, the GPU must support `Vulkan`.*
 
-1. Install MSYS2:
-   https://www.msys2.org/
+If the following error occurs even though `Vulkan` is installed correctly, it is caused by the GPU not supporting `Vulkan`. In this case, use version `2.0.12.1`.
+```terminaloutput
+- [INITIALIZE] No suitable physical device found 
 
+- registry lookup failed to get layer manifest file 
+```
+
+### Launch Application
+If it does not run immediately after zip extraction, try the following steps.
+
+1. Install [MSYS2](https://www.msys2.org/)
 2. Launch `clang64.exe`
-
 3. Update MSYS2 packages:
 ```bash
 pacman -Syu
@@ -54,12 +61,14 @@ pacman -Syu
 
 5. Install required packages:
 ```bash
+pacman -S mingw-w64-clang-x86_64-gmp  # If you want to build gmp manually, do not run that command.
 pacman -S mingw-w64-clang-x86_64-make
 pacman -S mingw-w64-clang-x86_64-cmake
 pacman -S mingw-w64-clang-x86_64-ninja
 pacman -S mingw-w64-clang-x86_64-clang
 pacman -S mingw-w64-clang-x86_64-opencv
 pacman -S mingw-w64-clang-x86_64-vulkan
+pacman -S mingw-w64-clang-x86_64-glm
 ```
 
 6. Add the following directory to your Windows `Path` environment variable:
@@ -69,9 +78,8 @@ your-installed-path\clang64\bin
 
 7. Restart the terminal or your PC after updating the `Path`.
 
----
-
 ### Build
+The dependency [libgmp](https://github.com/sethtroisi/libgmp/tree/master) must also be built.
 
 ```bash
 mkdir build
@@ -84,7 +92,6 @@ cmake -B build -G "Ninja" -S . \
 cmake --build build
 ```
 
----
 
 ### Troubleshooting
 
@@ -118,7 +125,6 @@ the extension of `info` file is `.rfsm`.
 - Find the nearest Minibrot with `Locate Minibrot` in `Explore` menu.
 
 - More features will be added soon.
-
 
 ## Known Issues & Problems
 - The program was compiled with -Ofast, so sometimes results incorrect image at some location.
