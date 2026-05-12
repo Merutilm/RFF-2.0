@@ -177,8 +177,11 @@ namespace merutilm::rff2 {
 
     bool MB2Locator::checkMaxIterationOnly(const MB2Perturbator &perturbator,
                                                   const uint64_t maxIteration) {
-        return perturbator.iterate(perturbator.getDcMaxAsDoubleExp(),
-                                   perturbator.getDcMaxAsDoubleExp() / dex(Constants::Fractal::INTENTIONAL_ERROR_DCLMB)) == static_cast<
+        FractalSettings fs = perturbator.calc;
+        fs.maxIteration = maxIteration;
+        return perturbator.iterate(fs, perturbator.getDcMaxAsDoubleExp(),
+                                   perturbator.getDcMaxAsDoubleExp() /
+                                           dex(Constants::Fractal::INTENTIONAL_ERROR_DCLMB)) == static_cast<
                    double>(maxIteration);
     }
 }

@@ -30,7 +30,7 @@ namespace merutilm::rff2 {
                                            const dex offR = dex::ZERO, const dex offI = dex::ZERO);
 
 
-        [[nodiscard]] double iterate(const dex dcr, const dex dci) const override;
+        [[nodiscard]] double iterate(const FractalSettings &calc, dex dcr, dex dci) const override;
 
         std::unique_ptr<DeepMB2Perturbator> reuse(const FractalSettings &calc, const dex dcMax,
                                                          ApproxTableManager &tableRef);

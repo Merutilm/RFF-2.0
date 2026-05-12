@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
 
     void AppLauncher::initWindow() {
         vkh::WindowInitializerSettings wic = {.framerate = Constants::Win32::INIT_RENDER_SCENE_FPS,
-                                              .name = L"RFF",
+                                              .name = L"RFF 2.0",
                                               .icon = L"#1",
                                               .widthInfo = {.min = Constants::Win32::MIN_WINDOW_WIDTH,
                                                             .max = INT_MAX,

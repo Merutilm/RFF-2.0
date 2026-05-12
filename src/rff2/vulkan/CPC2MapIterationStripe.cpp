@@ -67,7 +67,9 @@ namespace merutilm::rff2 {
         paletteSSBOHost.set<float>(DescPalette::TARGET_PALETTE_INTERVAL, palette.iterationInterval);
         paletteSSBOHost.set<double>(DescPalette::TARGET_PALETTE_OFFSET, palette.offsetRatio);
         paletteSSBOHost.set<uint32_t>(DescPalette::TARGET_PALETTE_SMOOTHING,
-                                      static_cast<uint32_t>(palette.colorSmoothing));
+                                      static_cast<uint32_t>(palette.iterationColoring));
+        paletteSSBOHost.set<uint32_t>(DescPalette::TARGET_PALETTE_SINGLE_SMOOTHING,
+                                      static_cast<uint32_t>(palette.singleIterationColoring));
         paletteSSBOHost.set<float>(DescPalette::TARGET_PALETTE_ANIMATION_SPEED, palette.animationSpeed);
         paletteSSBOHost.resizeArray<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, paletteLength);
         paletteSSBOHost.set<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, palette.colors);

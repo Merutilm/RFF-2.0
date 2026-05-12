@@ -50,12 +50,14 @@ namespace merutilm::rff2 {
     inline double dex_exp::log10(const dex v) {
         // log10(v)
         // = w_log(v) / w_log(10)
+#ifndef __FAST_MATH__
         if (v.sgn() == -1) {
             return NAN;
         }
         if (v.is_zero()) {
             return -INFINITY;
         }
+#endif
         return log(v) / Constants::Num::LOG_10;
     }
 
@@ -64,12 +66,15 @@ namespace merutilm::rff2 {
         // = w_log(m * 2^n)
         // = (w_log(m) + w_log(2^n))
         // = (w_log(m) + n * w_log(2))
+
+#ifndef __FAST_MATH__
         if (v.sgn() == -1) {
             return NAN;
         }
         if (v.is_zero()) {
             return -INFINITY;
         }
+#endif
         return std::log(v.mantissa) + v.exp2 * Constants::Num::LOG_2;
     }
 }

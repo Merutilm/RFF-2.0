@@ -6,11 +6,12 @@
 #include <string>
 #include <vector>
 
-#include "ShdPalColorSmoothingMethod.h"
 #include "FrtDecimalizeIterationMethod.h"
 #include "FrtMPACompressionMethod.h"
 #include "FrtMPASelectionMethod.h"
 #include "FrtReuseReferenceMethod.h"
+#include "ShdPalIterationColoringMethod.hpp"
+#include "ShdPalSingleIterationColoringMethod.h"
 #include "ShdStripeType.h"
 
 
@@ -50,8 +51,16 @@ namespace merutilm::rff2 {
                     STRONGEST
                 };
             }
-            if constexpr (std::is_same_v<E, ShdPalColorSmoothingMethod>) {
-                using enum ShdPalColorSmoothingMethod;
+            if constexpr (std::is_same_v<E, ShdPalIterationColoringMethod>) {
+                using enum ShdPalIterationColoringMethod;
+                return {
+                    LINEAR,
+                    SQUARE_ROOT,
+                    LOG
+                };
+            }
+            if constexpr (std::is_same_v<E, ShdPalSingleIterationColoringMethod>) {
+                using enum ShdPalSingleIterationColoringMethod;
                 return {
                     NONE,
                     NORMAL,
@@ -113,9 +122,18 @@ namespace merutilm::rff2 {
                     default: break;
                 }
             }
-            if constexpr (std::is_same_v<E, ShdPalColorSmoothingMethod>) {
+            if constexpr (std::is_same_v<E, ShdPalIterationColoringMethod>) {
                 switch (value) {
-                    using enum ShdPalColorSmoothingMethod;
+                    using enum ShdPalIterationColoringMethod;
+                    case LINEAR: return L"Linear";
+                    case SQUARE_ROOT: return L"Square root";
+                    case LOG: return L"Log";
+                    default: break;
+                }
+            }
+            if constexpr (std::is_same_v<E, ShdPalSingleIterationColoringMethod>) {
+                switch (value) {
+                    using enum ShdPalSingleIterationColoringMethod;
                     case NONE: return L"None";
                     case NORMAL: return L"Normal";
                     case REVERSED: return L"Reversed";

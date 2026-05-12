@@ -12,7 +12,7 @@ namespace merutilm::rff2 {
 
     std::function<void()> CallbackShader::fnPalette(AppRenderManager &arm) {
         return [&arm] {
-            auto &[colors, colorSmoothing, iterationInterval, offsetRatio, animationSpeed] =
+            auto &[colors, iterationColoring, singleIterationColoring,iterationInterval, offsetRatio, animationSpeed] =
                     arm.getSettings().shader.palette;
             auto window = std::make_unique<SettingsWindow>(L"Set Palette");
             window->registerTextInput<float>(
@@ -27,9 +27,12 @@ namespace merutilm::rff2 {
                     L"Animation Speed", &animationSpeed, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
                     [&arm] { arm.getRequests().requestShader(); }, L"Set Animation Speed",
                     L"Color Animation Speed, The colors' offset(iterations) per second.");
-            window->registerRadioButtonInput<ShdPalColorSmoothingMethod>(
-                    L"Color Smoothing", &colorSmoothing, [&arm] { arm.getRequests().requestShader(); },
-                    L"Color Smoothing", L"Color Smoothing method");
+            window->registerRadioButtonInput<ShdPalIterationColoringMethod>(
+                    L"Iteration Coloring", &iterationColoring, [&arm] { arm.getRequests().requestShader(); },
+                    L"Iteration Coloring", L"Iteration Coloring method");
+            window->registerRadioButtonInput<ShdPalSingleIterationColoringMethod>(
+                    L"Single Iteration Coloring", &singleIterationColoring, [&arm] { arm.getRequests().requestShader(); },
+                    L"Single Iteration Coloring", L"Single Iteration Coloring method");
             window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
             arm.setCurrentSettingsWindows(std::move(window));
         };

@@ -3,6 +3,7 @@
 //
 
 #pragma once
+
 #include "../settings/ShdPaletteSettings.h"
 #include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
@@ -11,6 +12,7 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_ITERATION = 0;
         static constexpr uint32_t SET_PALETTE = 1;
         static constexpr uint32_t SET_TIME = 2;
+        static constexpr uint32_t SET_COLORING = 3;
 
         uint32_t iterWidth = 0;
         uint32_t iterHeight = 0;
@@ -43,6 +45,7 @@ namespace merutilm::rff2 {
         void setMaxIteration(double maxIteration) const;
 
         void setPalette(const ShdPaletteSettings &palette) const;
+
 
         void pipelineInitialized() override;
 

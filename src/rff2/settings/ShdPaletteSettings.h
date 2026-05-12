@@ -1,13 +1,15 @@
 #pragma once
-#include <vector>
 #include <glm/glm.hpp>
-#include "ShdPalColorSmoothingMethod.h"
+#include <vector>
+#include "ShdPalIterationColoringMethod.hpp"
+#include "ShdPalSingleIterationColoringMethod.h"
 
 
 namespace merutilm::rff2 {
     struct ShdPaletteSettings {
         std::vector<glm::vec4> colors;
-        ShdPalColorSmoothingMethod colorSmoothing;
+        ShdPalIterationColoringMethod iterationColoring;
+        ShdPalSingleIterationColoringMethod singleIterationColoring;
         float iterationInterval;
         float offsetRatio;
         float animationSpeed;

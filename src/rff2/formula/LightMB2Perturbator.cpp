@@ -44,8 +44,7 @@ namespace merutilm::rff2 {
         }
     }
 
-
-    double LightMB2Perturbator::iterate(const dex dcr, const dex dci) const {
+    double LightMB2Perturbator::iterate(const FractalSettings &calc, const dex dcr, const dex dci) const {
         if (state.interruptRequested())
             return 0.0;
 
@@ -149,7 +148,7 @@ namespace merutilm::rff2 {
         pd = sqrt(pd);
         cd = sqrt(cd);
 
-        return getDoubleValueIteration(iteration, pd, cd, calc.decimalizeIterationMethod, bailout);
+        return FrtDecimalizeIterationMethodUtil::getDoubleValueIteration(iteration, pd, cd, calc.decimalizeIterationMethod, bailout);
     }
 
 

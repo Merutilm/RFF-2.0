@@ -31,6 +31,6 @@ namespace merutilm::rff2 {
 
         virtual dex getDcMaxAsDoubleExp() const = 0;
 
-        virtual double iterate(const dex dcr, const dex dci) const = 0;
+        virtual double iterate(const FractalSettings &calc, dex dcr, dex dci) const = 0;
     };
 }

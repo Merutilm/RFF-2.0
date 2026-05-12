@@ -31,9 +31,12 @@ namespace merutilm::rff2 {
     public:
         static const dex ZERO;
         static const dex ONE;
+
+#ifndef __FAST_MATH__
         static const dex NN;
         static const dex PINF;
         static const dex NINF;
+#endif
 
         static constexpr double NORMALIZE_CONSTANT_MAX = 1e75;
         static constexpr double NORMALIZE_CONSTANT_MIN = 1e-75;
@@ -146,9 +149,11 @@ namespace merutilm::rff2 {
 
         friend std::partial_ordering operator<=>(const dex a, const dex b) {
             const dex v = a - b;
+#ifndef __FAST_MATH__
             if (v.isnan()) {
                 return std::partial_ordering::unordered;
             }
+#endif
             return v.sgn() <=> 0;
         }
 
@@ -157,9 +162,11 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] char sgn() const;
 
+#ifndef __FAST_MATH__
         [[nodiscard]] bool isinf() const;
 
         [[nodiscard]] bool isnan() const;
+#endif
 
         [[nodiscard]] bool is_zero() const;
 
@@ -179,10 +186,12 @@ namespace merutilm::rff2 {
 
     inline const dex dex::ZERO = {0, 0};
     inline const dex dex::ONE = {0, 1};
+
+#ifndef __FAST_MATH__
     inline const dex dex::NN = {0, NAN};
     inline const dex dex::PINF = {0, INFINITY};
     inline const dex dex::NINF = {0, -static_cast<double>(INFINITY)};
-
+#endif
     constexpr dex::dex() : dex(0, 0) {}
 
     constexpr dex::dex(const int exp2, const double mantissa) : exp2(exp2), mantissa(mantissa) {}
@@ -213,6 +222,8 @@ namespace merutilm::rff2 {
             mantissa = ZERO.mantissa;
             return;
         }
+
+#ifndef __FAST_MATH__
         if (isinf()) {
             if (sgn == 1) {
                 exp2 = PINF.exp2;
@@ -228,6 +239,8 @@ namespace merutilm::rff2 {
             mantissa = NN.mantissa;
             return;
         }
+#endif
+
         const auto mts_bits = std::bit_cast<uint64_t>(mantissa);
         mantissa = std::bit_cast<double>(mts_bits & 0x800fffffffffffffULL | 0x3fe0000000000000ULL);
         exp2 += static_cast<int>((mts_bits & 0x7ff0000000000000ULL) >> 52) - 0x03fe;
@@ -235,9 +248,11 @@ namespace merutilm::rff2 {
 
     inline char dex::sgn() const { return static_cast<char>(0 < mantissa) - static_cast<char>(mantissa < 0); }
 
+#ifndef __FAST_MATH__
     inline bool dex::isinf() const { return std::isinf(mantissa); }
 
     inline bool dex::isnan() const { return std::isnan(mantissa); }
+#endif
 
     inline bool dex::is_zero() const { return sgn() == 0; }
 
@@ -247,12 +262,16 @@ namespace merutilm::rff2 {
         // m * 2^n
         // = m * 10^(log10(2) * n)
         // = exp10 = log10(2) * n
+
+#ifndef __FAST_MATH__
         if (isnan()) {
             return "nan";
         }
         if (isinf()) {
             return sgn() > 0 ? "inf" : "-inf";
         }
+#endif
+
         const double raw_exp10 = Constants::Num::LOG10_2 * exp2;
         auto exp10 = static_cast<int>(raw_exp10);
         double mantissa10 = mantissa * std::pow(10, raw_exp10 - exp10);

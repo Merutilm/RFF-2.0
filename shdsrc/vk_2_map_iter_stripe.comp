@@ -1,4 +1,10 @@
 #version 450
+
+#define ISM_LINEAR 0
+#define ISM_SQUARE_ROOT 1
+#define ISM_LOG 2
+
+
 #define SMOOTH_ITER_NONE 0
 #define SMOOTH_ITER_NORMAL 1
 #define SMOOTH_ITER_REVERSED 2
@@ -66,6 +72,19 @@ vec4 get_color(double iteration) {
     if (iteration == 0 || iteration >= iteration_output_info_settings.max_value) {
         return vec4(0, 0, 0, 1);
     }
+
+    switch (palette_settings.smoothing) {
+        case ISM_LINEAR:
+            break;
+        case ISM_SQUARE_ROOT:
+            iteration = sqrt(iteration);
+            break;
+        case ISM_LOG:
+            iteration = log(float(iteration));
+            break;
+    }
+
+
     switch (palette_settings.smoothing) {
         case SMOOTH_ITER_NONE:
             iteration = iteration - mod(iteration, 1);

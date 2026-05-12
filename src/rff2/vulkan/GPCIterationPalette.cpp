@@ -4,11 +4,12 @@
 
 #include "../vulkan/GPCIterationPalette.hpp"
 
-#include "vulkan_helper/util/BufferImageContextUtils.hpp"
-#include "vulkan_helper/util/DescriptorUpdater.hpp"
+#include "../settings/ShdPalIterationColoringMethod.hpp"
 #include "../settings/ShdPaletteSettings.h"
 #include "../ui/Utilities.h"
 #include "SharedDescriptorTemplate.hpp"
+#include "vulkan_helper/util/BufferImageContextUtils.hpp"
+#include "vulkan_helper/util/DescriptorUpdater.hpp"
 
 namespace merutilm::rff2 {
     void GPCIterationPalette::updateQueue(vkh::DescriptorUpdateQueue &queue,
@@ -32,7 +33,6 @@ namespace merutilm::rff2 {
                                                                  DescIteration::BINDING_SSBO_ITERATION_MATRIX);
         return iterSSBO.getBufferContext();
     }
-
 
     void GPCIterationPalette::resetIterationBuffer(const uint32_t width, const uint32_t height) {
         using namespace SharedDescriptorTemplate;
@@ -82,7 +82,9 @@ namespace merutilm::rff2 {
         paletteSSBOHost.set<float>(DescPalette::TARGET_PALETTE_INTERVAL, palette.iterationInterval);
         paletteSSBOHost.set<double>(DescPalette::TARGET_PALETTE_OFFSET, palette.offsetRatio);
         paletteSSBOHost.set<uint32_t>(DescPalette::TARGET_PALETTE_SMOOTHING,
-                                      static_cast<uint32_t>(palette.colorSmoothing));
+                                      static_cast<uint32_t>(palette.iterationColoring));
+        paletteSSBOHost.set<uint32_t>(DescPalette::TARGET_PALETTE_SINGLE_SMOOTHING,
+                                      static_cast<uint32_t>(palette.singleIterationColoring));
         paletteSSBOHost.set<float>(DescPalette::TARGET_PALETTE_ANIMATION_SPEED, palette.animationSpeed);
         paletteSSBOHost.resizeArray<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, paletteLength);
         paletteSSBOHost.set<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, palette.colors);
@@ -95,6 +97,7 @@ namespace merutilm::rff2 {
                 paletteDesc.queue(queue, frameIndex, {}, {DescPalette::BINDING_SSBO_PALETTE});
             });
     }
+
 
     void GPCIterationPalette::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;

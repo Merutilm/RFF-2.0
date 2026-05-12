@@ -1,7 +1,12 @@
 #version 450
-#define NONE 0
-#define NORMAL 1
-#define REVERSED 2
+
+#define ISM_LINEAR 0
+#define ISM_SQUARE_ROOT 1
+#define ISM_LOG 2
+
+#define SISM_NONE 0
+#define SISM_NORMAL 1
+#define SISM_REVERSED 2
 
 layout (set = 0, binding = 0) uniform IterUBO {
     uvec2 extent;
@@ -17,6 +22,7 @@ layout (set = 1, binding = 0) buffer PaletteSSBO {
     float interval;
     double offset;
     uint smoothing;
+    uint single_smoothing;
     float animation_speed;
     vec4 palette[];
 } palette_settings;
@@ -34,15 +40,27 @@ layout (location = 0) out vec4 color;
 vec4 get_color(double iteration) {
 
     if (iteration == 0 || iteration >= iteration_info_settings.max_value) {
-        discard;
+        return vec4(0, 0, 0, 1);
     }
+
     switch (palette_settings.smoothing) {
-        case NONE:
+        case ISM_LINEAR:
+            break;
+        case ISM_SQUARE_ROOT:
+            iteration = sqrt(iteration);
+            break;
+        case ISM_LOG:
+            iteration = log(float(iteration));
+            break;
+    }
+
+    switch (palette_settings.single_smoothing) {
+        case SISM_NONE:
             iteration = iteration - mod(iteration, 1);
             break;
-        case NORMAL:
+        case SISM_NORMAL:
             break;
-        case REVERSED:
+        case SISM_REVERSED:
             iteration = iteration + 1 - 2 * mod(iteration, 1);
             break;
     }

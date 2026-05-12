@@ -100,8 +100,9 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_PALETTE_INTERVAL = 1;
         static constexpr uint32_t TARGET_PALETTE_OFFSET = 2;
         static constexpr uint32_t TARGET_PALETTE_SMOOTHING = 3;
-        static constexpr uint32_t TARGET_PALETTE_ANIMATION_SPEED = 4;
-        static constexpr uint32_t TARGET_PALETTE_COLORS = 5;
+        static constexpr uint32_t TARGET_PALETTE_SINGLE_SMOOTHING = 4;
+        static constexpr uint32_t TARGET_PALETTE_ANIMATION_SPEED = 5;
+        static constexpr uint32_t TARGET_PALETTE_COLORS = 6;
 
         void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
@@ -109,7 +110,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<float>(TARGET_PALETTE_INTERVAL);
             bufferManager.reserve<double>(TARGET_PALETTE_OFFSET);
             bufferManager.reserve<uint32_t>(TARGET_PALETTE_SMOOTHING);
-            bufferManager.reserve<float>(TARGET_PALETTE_ANIMATION_SPEED, 8);
+            bufferManager.reserve<uint32_t>(TARGET_PALETTE_SINGLE_SMOOTHING);
+            bufferManager.reserve<float>(TARGET_PALETTE_ANIMATION_SPEED, 4);
             bufferManager.reserveArray<glm::vec4>(TARGET_PALETTE_COLORS, 0);
 
             auto ssbo = std::make_unique<vkh::ShaderStorage>(core, std::move(bufferManager),

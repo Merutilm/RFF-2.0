@@ -449,12 +449,9 @@ namespace merutilm::rff2 {
         state.createThread([this](const std::stop_token &) {
             Settings settings = this->settings; // clone the settings
             const auto start = std::chrono::high_resolution_clock::now();
-                beforeIterationFill(settings);
             bool success = recomputePerturbator(start, settings);
-
-            if (success) {
-                success = fillIteration(start, settings);
-            }
+            beforeIterationFill(settings);
+            if (success) success = fillIteration(start, settings);
             afterCompute(success);
         });
     }
@@ -522,7 +519,7 @@ namespace merutilm::rff2 {
             }
             case CENTERED_REFERENCE: {
                 uint64_t period = currentPerturbator->getReference()->longestPeriod();
-                auto center = MB2Locator::locateMinibrot(
+                const auto center = MB2Locator::locateMinibrot(
                         state, currentPerturbator.get(), approxTableCache,
                         CallbackExplore::getActionWhileFindingMBCenter(*this, logZoom, period),
                         CallbackExplore::getActionWhileCreatingTable(*this, logZoom),
@@ -609,7 +606,8 @@ namespace merutilm::rff2 {
                                                                     float, const uint32_t i, double) {
             rendered[i] = true;
             const auto dc = offsetConversion(settings, x, y);
-            const double iteration = currentPerturbator->iterate(dc[0], dc[1]);
+            const double iteration = currentPerturbator->iterate(settings.fractal, dc[0], dc[1]);
+
             renderer->iterationStagingBufferContext->set(x, y, iteration);
 
             auto my = static_cast<int16_t>(y + 1);

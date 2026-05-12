@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
     }
 
 
-    double DeepMB2Perturbator::iterate(const dex dcr, const dex dci) const {
+    double DeepMB2Perturbator::iterate(const FractalSettings &calc, const dex dcr, const dex dci) const {
         if (state.interruptRequested())
             return 0.0;
 
@@ -153,7 +153,7 @@ namespace merutilm::rff2 {
         const double fpd = sqrt(pd);
         const double fcd = sqrt(cd);
 
-        return getDoubleValueIteration(iteration, fpd, fcd, calc.decimalizeIterationMethod, bailout);
+        return FrtDecimalizeIterationMethodUtil::getDoubleValueIteration(iteration, fpd, fcd, calc.decimalizeIterationMethod, bailout);
     }
 
 
