@@ -11,8 +11,8 @@
 
 namespace merutilm::rff2 {
 #define PI static_cast<float>(M_PI)
-    std::string ShdPalettePresets::Classic1::getName() const {
-        return "Classic 1";
+    std::wstring ShdPalettePresets::Classic1::getName() const {
+        return L"Classic 1";
     }
 
     ShdPaletteSettings ShdPalettePresets::Classic1::genPalette() const {
@@ -28,8 +28,8 @@ namespace merutilm::rff2 {
         return p;
     }
 
-    std::string ShdPalettePresets::Classic2::getName() const {
-        return "Classic 2";
+    std::wstring ShdPalettePresets::Classic2::getName() const {
+        return L"Classic 2";
     }
 
     ShdPaletteSettings ShdPalettePresets::Classic2::genPalette() const {
@@ -45,8 +45,8 @@ namespace merutilm::rff2 {
         return p;
     }
 
-    std::string ShdPalettePresets::Azure::getName() const {
-        return "Azure";
+    std::wstring ShdPalettePresets::Azure::getName() const {
+        return L"Azure";
     }
 
     ShdPaletteSettings ShdPalettePresets::Azure::genPalette() const {
@@ -63,8 +63,8 @@ namespace merutilm::rff2 {
         return p;
     }
 
-    std::string ShdPalettePresets::Cinematic::getName() const {
-        return "Cinematic";
+    std::wstring ShdPalettePresets::Cinematic::getName() const {
+        return L"Cinematic";
     }
 
     ShdPaletteSettings ShdPalettePresets::Cinematic::genPalette() const {
@@ -82,8 +82,8 @@ namespace merutilm::rff2 {
         return p;
     }
 
-    std::string ShdPalettePresets::Desert::getName() const {
-        return "Desert";
+    std::wstring ShdPalettePresets::Desert::getName() const {
+        return L"Desert";
     }
 
     ShdPaletteSettings ShdPalettePresets::Desert::genPalette() const {
@@ -98,8 +98,8 @@ namespace merutilm::rff2 {
         return p;
     }
 
-    std::string ShdPalettePresets::Flame::getName() const {
-        return "Flame";
+    std::wstring ShdPalettePresets::Flame::getName() const {
+        return L"Flame";
     }
 
     ShdPaletteSettings ShdPalettePresets::Flame::genPalette() const {
@@ -117,8 +117,8 @@ namespace merutilm::rff2 {
     }
 
 
-    std::string ShdPalettePresets::LongRandom64::getName() const {
-        return "Long Random 64";
+    std::wstring ShdPalettePresets::LongRandom64::getName() const {
+        return L"Long Random 64";
     }
 
     ShdPaletteSettings ShdPalettePresets::LongRandom64::genPalette() const {
@@ -170,8 +170,8 @@ namespace merutilm::rff2 {
         return p;
     }
 
-    std::string ShdPalettePresets::LongRainbow7::getName() const {
-        return "Long Rainbow 7";
+    std::wstring ShdPalettePresets::LongRainbow7::getName() const {
+        return L"Long Rainbow 7";
     }
 
     ShdPaletteSettings ShdPalettePresets::LongRainbow7::genPalette() const {
@@ -226,8 +226,8 @@ namespace merutilm::rff2 {
         return p;
     }
 
-    std::string ShdPalettePresets::Rainbow::getName() const {
-        return "Rainbow";
+    std::wstring ShdPalettePresets::Rainbow::getName() const {
+        return L"Rainbow";
     }
 
     ShdPaletteSettings ShdPalettePresets::Rainbow::genPalette() const {

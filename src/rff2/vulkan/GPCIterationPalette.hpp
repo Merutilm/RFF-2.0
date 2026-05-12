@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "../settings/ShdPaletteSettings.h"
+#include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
     struct GPCIterationPalette final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
@@ -15,12 +15,12 @@ namespace merutilm::rff2 {
         uint32_t iterWidth = 0;
         uint32_t iterHeight = 0;
 
-        GPCIterationPalette(vkh::EngineRef engine, const uint32_t windowContextIndex,
-                                             const uint32_t renderContextIndex,
-                                             const uint32_t primarySubpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, primarySubpassIndex,
-            "vk_iteration_palette.frag") {
-        };
+        GPCIterationPalette(vkh::Engine &engine, const uint32_t windowContextIndex, const uint32_t renderContextIndex,
+                            const uint32_t primarySubpassIndex, vkh::VertexBuffer &vertexBufferStaticRef,
+                            vkh::IndexBuffer &indexBufferStaticRef) :
+            GeneralPostProcessGraphicsPipelineConfigurator(engine, windowContextIndex, renderContextIndex,
+                                                           primarySubpassIndex, "vk_iteration_palette.frag",
+                                                           vertexBufferStaticRef, indexBufferStaticRef) {};
 
         ~GPCIterationPalette() override = default;
 
@@ -49,9 +49,8 @@ namespace merutilm::rff2 {
         void renderContextRefreshed() override;
 
     protected:
-        void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
+        void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
 
-        void configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) override;
-
+        void configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) override;
     };
-}
+} // namespace merutilm::rff2

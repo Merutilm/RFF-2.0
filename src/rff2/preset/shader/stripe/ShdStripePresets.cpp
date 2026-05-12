@@ -6,40 +6,40 @@
 
 namespace merutilm::rff2 {
 
-    std::string ShdStripePresets::Disabled::getName() const {
-        return "Disabled";
+    std::wstring ShdStripePresets::Disabled::getName() const {
+        return L"Disabled";
     }
 
     ShdStripeSettings ShdStripePresets::Disabled::genStripe() const {
         return ShdStripeSettings{ShdStripeType::NONE, 10, 50, 1, 0, 0};
     }
 
-    std::string ShdStripePresets::SlowAnimated::getName() const {
-        return "Slow Animated";
+    std::wstring ShdStripePresets::SlowAnimated::getName() const {
+        return L"Slow Animated";
     }
 
     ShdStripeSettings ShdStripePresets::SlowAnimated::genStripe() const {
         return ShdStripeSettings{ShdStripeType::SINGLE_DIRECTION, 10, 50, 1, 0, 0.5f};
     }
 
-    std::string ShdStripePresets::FastAnimated::getName() const {
-        return "Fast Animated";
+    std::wstring ShdStripePresets::FastAnimated::getName() const {
+        return L"Fast Animated";
     }
 
     ShdStripeSettings ShdStripePresets::FastAnimated::genStripe() const {
         return ShdStripeSettings{ShdStripeType::SINGLE_DIRECTION, 100, 500, 1, 0, 5};
     }
 
-    std::string ShdStripePresets::Smooth::getName() const {
-        return "Smooth";
+    std::wstring ShdStripePresets::Smooth::getName() const {
+        return L"Smooth";
     }
 
     ShdStripeSettings ShdStripePresets::Smooth::genStripe() const {
         return ShdStripeSettings{ShdStripeType::SMOOTH, 1, 1, 1, 0, 0.25f};
     }
 
-    std::string ShdStripePresets::SmoothTranslucent::getName() const {
-        return "Smooth Translucent";
+    std::wstring ShdStripePresets::SmoothTranslucent::getName() const {
+        return L"Smooth Translucent";
     }
 
     ShdStripeSettings ShdStripePresets::SmoothTranslucent::genStripe() const {

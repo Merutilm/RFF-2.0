@@ -40,10 +40,8 @@ unzip it and run it from the `bin` directory.
 - or you can build manually with following command line.
 ```bash
 mkdir build
-cd build
-cmake -G "MinGW Makefiles" ..
-mingw32-make
-mingw32-make install
+cmake -B build -G "Ninja" -S . -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release
+cmake --build build
 ```
 
 

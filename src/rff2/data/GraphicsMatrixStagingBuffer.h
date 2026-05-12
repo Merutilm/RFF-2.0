@@ -7,8 +7,8 @@
 #include <vector>
 #include <array>
 
-#include "../../vulkan_helper/context/BufferContext.hpp"
-#include "../../vulkan_helper/handle/CoreHandler.hpp"
+#include "vulkan_helper/engine/context/BufferContext.hpp"
+#include "vulkan_helper/handle/CoreHandler.hpp"
 
 
 namespace merutilm::rff2 {
@@ -21,13 +21,13 @@ namespace merutilm::rff2 {
         VkMemoryPropertyFlags properties;
 
     public:
-        explicit GraphicsMatrixBuffer(vkh::CoreRef core, const uint32_t width,
+        explicit GraphicsMatrixBuffer(vkh::Core &core, const uint32_t width,
                                              const uint32_t height, const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties) : CoreHandler(core), width(width), height(height), usage(usage), properties(properties) {
             GraphicsMatrixBuffer::init();
         }
 
         ~GraphicsMatrixBuffer() override {
-            GraphicsMatrixBuffer::destroy();
+            GraphicsMatrixBuffer::cleanup();
         }
 
         GraphicsMatrixBuffer(const GraphicsMatrixBuffer &) = delete;
@@ -99,7 +99,7 @@ namespace merutilm::rff2 {
             vkh::BufferContext::mapMemory(core, context);
         }
 
-        void destroy() override {
+        void cleanup() override {
             vkh::BufferContext::unmapMemory(core, context);
             vkh::BufferContext::destroyContext(core, context);
         }

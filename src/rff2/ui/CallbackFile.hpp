@@ -5,15 +5,14 @@
 #pragma once
 #include <functional>
 
-#include "RenderScene.hpp"
-#include "SettingsMenu.hpp"
+#include "AppRenderManager.hpp"
 
 namespace merutilm::rff2 {
     struct CallbackFile {
-        static const std::function<void(SettingsMenu &, RenderScene &)> SAVE_MAP;
-        static const std::function<void(SettingsMenu &, RenderScene &)> SAVE_IMAGE;
-        static const std::function<void(SettingsMenu &, RenderScene &)> SAVE_LOCATION;
-        static const std::function<void(SettingsMenu &, RenderScene &)> LOAD_MAP;
-        static const std::function<void(SettingsMenu &, RenderScene &)> LOAD_LOCATION;
+        static std::function<void()> fnSaveMap(AppRenderManager &arm);
+        static std::function<void()> fnSaveImage(AppRenderManager &arm);
+        static std::function<void()> fnSaveLocation(AppRenderManager &arm);
+        static std::function<void()> fnLoadMap(AppRenderManager &arm);
+        static std::function<void()> fnLoadLocation(AppRenderManager &arm);
     };
 }

@@ -43,15 +43,15 @@ namespace merutilm::rff2 {
     }
 
     void GPCBloomThreshold::configurePushConstant(
-        vkh::PipelineLayoutManagerRef pipelineLayoutManager) {
+        vkh::PipelineLayoutManager &pipelineLayoutManager) {
         // no operation
     }
 
 
-    void GPCBloomThreshold::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
+    void GPCBloomThreshold::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
         using namespace SharedDescriptorTemplate;
-        auto descManager = vkh::factory::create<vkh::DescriptorManager>();
-        descManager->appendInputAttachment(BINDING_PREV_RESULT_INPUT, VK_SHADER_STAGE_FRAGMENT_BIT);
+        auto descManager = vkh::DescriptorManager();
+        descManager.appendInputAttachment(BINDING_PREV_RESULT_INPUT, VK_SHADER_STAGE_FRAGMENT_BIT);
 
         appendUniqueDescriptor(SET_BLOOM_THRESHOLD, descriptors, std::move(descManager));
         appendDescriptor<DescBloom>(SET_BLOOM, descriptors);

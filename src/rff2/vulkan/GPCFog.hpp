@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
+#include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "../settings/ShdFogSettings.h"
 
 namespace merutilm::rff2 {
@@ -14,9 +14,9 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t SET_FOG = 1;
 
-        explicit GPCFog(vkh::EngineRef engine, const uint32_t windowContextIndex, const uint32_t renderContextIndex,
-                        const uint32_t subpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, subpassIndex, "vk_fog.frag") {
+        explicit GPCFog(vkh::Engine &engine, const uint32_t windowContextIndex, const uint32_t renderContextIndex,
+                        const uint32_t subpassIndex, vkh::VertexBuffer &vertexBufferStaticRef, vkh::IndexBuffer &indexBufferStaticRef) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, windowContextIndex, renderContextIndex, subpassIndex, "vk_fog.frag", vertexBufferStaticRef, indexBufferStaticRef) {
         }
 
         ~GPCFog() override = default;
@@ -38,8 +38,8 @@ namespace merutilm::rff2 {
         void renderContextRefreshed() override;
 
     protected:
-        void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
+        void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
 
-        void configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) override;
+        void configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) override;
     };
 }

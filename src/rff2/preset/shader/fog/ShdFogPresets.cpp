@@ -5,32 +5,32 @@
 
 namespace merutilm::rff2 {
 
-    std::string ShdFogPresets::Disabled::getName() const {
-        return "Disabled";
+    std::wstring ShdFogPresets::Disabled::getName() const {
+        return L"Disabled";
     }
 
     ShdFogSettings ShdFogPresets::Disabled::genFog() const {
         return ShdFogSettings{0.0, 0.0};
     }
 
-    std::string ShdFogPresets::Low::getName() const {
-        return "Low";
+    std::wstring ShdFogPresets::Low::getName() const {
+        return L"Low";
     }
 
     ShdFogSettings ShdFogPresets::Low::genFog() const {
         return ShdFogSettings{0.1f, 0.2f};
     }
 
-    std::string ShdFogPresets::Medium::getName() const {
-        return "Medium";
+    std::wstring ShdFogPresets::Medium::getName() const {
+        return L"Medium";
     }
 
     ShdFogSettings ShdFogPresets::Medium::genFog() const {
         return ShdFogSettings{0.1f, 0.5f};
     }
 
-    std::string ShdFogPresets::High::getName() const {
-        return "High";
+    std::wstring ShdFogPresets::High::getName() const {
+        return L"High";
     }
 
     ShdFogSettings ShdFogPresets::High::genFog() const {
@@ -38,8 +38,8 @@ namespace merutilm::rff2 {
 
     }
 
-    std::string ShdFogPresets::Ultra::getName() const {
-        return "Ultra";
+    std::wstring ShdFogPresets::Ultra::getName() const {
+        return L"Ultra";
     }
 
     ShdFogSettings ShdFogPresets::Ultra::genFog() const {

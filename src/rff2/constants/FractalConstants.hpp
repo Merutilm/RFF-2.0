@@ -18,5 +18,5 @@ namespace merutilm::rff2::Constants::Fractal {
     constexpr double INTENTIONAL_ERROR_DCLMB = 1e16; //DCmax for Locate Minibrot
     constexpr double INTENTIONAL_ERROR_REFZERO_POWER = 1024; // multiplier of exp10 when zr, zi is zero
     constexpr int EXP10_ADDITION = 15;
-    inline static const unsigned long long INIT_TIME = std::chrono::system_clock::now().time_since_epoch().count();
+    inline static const unsigned long long INIT_TIME = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 }

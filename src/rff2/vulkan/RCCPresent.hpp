@@ -3,19 +3,19 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/configurator/RenderContextConfigurator.hpp"
+#include "vulkan_helper/engine/configurator/RenderContextConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    struct RCCPresent final : public vkh::RenderContextConfiguratorAbstract {
+    struct RCCPresent final : public vkh::RenderContextConfigurator {
         static constexpr uint32_t CONTEXT_INDEX = 7;
 
         static constexpr uint32_t SUBPASS_PRESENT_INDEX = 0;
 
         static constexpr uint32_t PRESENT_ATTACHMENT_INDEX = 0;
 
-        using RenderContextConfiguratorAbstract::RenderContextConfiguratorAbstract;
+        using RenderContextConfigurator::RenderContextConfigurator;
 
-        void configure(vkh::RenderPassManagerRef rpm) override {
+        void configure(vkh::RenderPassManager &rpm) override {
 
             rpm.appendAttachment(PRESENT_ATTACHMENT_INDEX, {
                                      .flags = 0,

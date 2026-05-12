@@ -10,9 +10,7 @@
 #include <fstream>
 
 #include "../calc/rff_math.h"
-#include "../constants/Constants.hpp"
 #include "../mrthy/ArrayCompressor.h"
-#include "../util/profiler.hpp"
 
 namespace merutilm::rff2 {
     LightMB2Reference::LightMB2Reference(fixed_point_complex_i1 &&center, std::vector<double> &&refReal,

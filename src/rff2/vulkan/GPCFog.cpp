@@ -7,7 +7,7 @@
 #include "RCCDownsampleForBlur.hpp"
 #include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
-#include "../../vulkan_helper/repo/GlobalSamplerRepo.hpp"
+#include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 #include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
@@ -19,7 +19,7 @@ namespace merutilm::rff2 {
     void GPCFog::setFog(const ShdFogSettings &fog) const {
         using namespace SharedDescriptorTemplate;
         auto &fogDesc = getDescriptor(SET_FOG);
-        const auto &fogUBO = *fogDesc.get<vkh::Uniform>(0, DescFog::BINDING_UBO_FOG);
+        auto &fogUBO = fogDesc.get<vkh::Uniform>(0, DescFog::BINDING_UBO_FOG);
         auto &fogUBOHost = fogUBO.getHostObject();
         fogUBOHost.set<float>(DescFog::TARGET_FOG_RADIUS, fog.radius);
         fogUBOHost.set<float>(DescFog::TARGET_FOG_OPACITY, fog.opacity);
@@ -39,17 +39,17 @@ namespace merutilm::rff2 {
 
         switch (wc.getAttachmentIndex()) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL)->setImageContextMF(
+                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL).setImageContextMF(
                           sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY));
-                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_BLURRED)->setImageContextMF(
+                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_BLURRED).setImageContextMF(
                     sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
 
                 break;
             }
             case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
-                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL)->setImageContextMF(
+                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL).setImageContextMF(
                          sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_PRIMARY));
-                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_BLURRED)->setImageContextMF(
+                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_BLURRED).setImageContextMF(
                     sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
 
                 break;
@@ -66,14 +66,14 @@ namespace merutilm::rff2 {
     }
 
 
-    void GPCFog::configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) {
+    void GPCFog::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
         //no operation
     }
 
-    void GPCFog::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
+    void GPCFog::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
         using namespace SharedDescriptorTemplate;
 
-        vkh::SamplerRef sampler = pickFromGlobalRepository<vkh::GlobalSamplerRepo, vkh::SamplerRef>(
+        vkh::Sampler &sampler = pickFromGlobalRepository<vkh::GlobalSamplerRepo, vkh::Sampler &>(
             VkSamplerCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,
@@ -94,15 +94,15 @@ namespace merutilm::rff2 {
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
                 .unnormalizedCoordinates = VK_FALSE,
             });
-        auto descManager = vkh::factory::create<vkh::DescriptorManager>();
+        auto descManager = vkh::DescriptorManager();
 
-        descManager->appendCombinedImgSampler(BINDING_FOG_CANVAS_ORIGINAL,
+        descManager.appendCombinedImgSampler(BINDING_FOG_CANVAS_ORIGINAL,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::factory::create<vkh::CombinedImageSampler>(
+                                                        std::make_unique<vkh::CombinedImageSampler>(
                                                             wc.core, sampler, true));
-        descManager->appendCombinedImgSampler(BINDING_FOG_CANVAS_BLURRED,
+        descManager.appendCombinedImgSampler(BINDING_FOG_CANVAS_BLURRED,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::factory::create<vkh::CombinedImageSampler>(
+                                                        std::make_unique<vkh::CombinedImageSampler>(
                                                             wc.core, sampler, true));
         appendUniqueDescriptor(SET_FOG_CANVAS, descriptors, std::move(descManager));
         appendDescriptor<DescFog>(SET_FOG, descriptors);

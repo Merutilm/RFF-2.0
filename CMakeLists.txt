@@ -14,7 +14,6 @@ add_executable(
         src/rff2/formula/LightMB2Perturbator.cpp
         src/rff2/mrthy/MPAPeriod.cpp
         src/rff2/ui/SettingsWindow.cpp
-        src/rff2/ui/SettingsMenu.cpp
         src/rff2/ui/CallbackFile.cpp
         src/rff2/ui/CallbackFractal.cpp
         src/rff2/ui/CallbackRender.cpp
@@ -41,58 +40,22 @@ add_executable(
         src/rff2/io/RFFLocationBinary.cpp
         src/rff2/io/KFRColorLoader.cpp
         extern/stb_image.c
-        src/vulkan_helper/impl/GraphicsContextWindow.cpp
-        src/vulkan_helper/impl/ValidationLayer.cpp
-        src/vulkan_helper/impl/Instance.cpp
-        src/vulkan_helper/impl/Surface.cpp
-        src/vulkan_helper/impl/PhysicalDeviceLoader.cpp
-        src/vulkan_helper/impl/LogicalDevice.cpp
-        src/vulkan_helper/impl/Swapchain.cpp
-        src/vulkan_helper/impl/CommandPool.cpp
-        src/vulkan_helper/impl/CommandBuffer.cpp
-        src/vulkan_helper/impl/Descriptor.cpp
-        src/vulkan_helper/impl/BufferObject.cpp
-        src/vulkan_helper/impl/RenderPass.cpp
-        src/vulkan_helper/impl/DescriptorSetLayout.cpp
-        src/vulkan_helper/impl/PipelineLayout.cpp
-        src/vulkan_helper/impl/ShaderModule.cpp
-        src/vulkan_helper/impl/Core.cpp
-        src/vulkan_helper/impl/Framebuffer.cpp
-        src/vulkan_helper/impl/SyncObject.cpp
-        src/vulkan_helper/executor/RenderPassFullscreenRecorder.cpp
-        src/vulkan_helper/impl/VertexBuffer.cpp
-        src/vulkan_helper/impl/Uniform.cpp
-        src/vulkan_helper/impl/IndexBuffer.cpp
-        src/vulkan_helper/impl/CombinedImageSampler.cpp
-        src/vulkan_helper/configurator/GeneralGraphicsPipelineConfigurator.cpp
-        src/vulkan_helper/impl/Engine.cpp
-        src/vulkan_helper/executor/ScopedNewCommandBufferExecutor.cpp
         src/rff2/vulkan/GPCIterationPalette.cpp
-        src/vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.cpp
-        src/rff2/ui/RenderScene.cpp
-        src/rff2/ui/Application.cpp
-        src/vulkan_helper/impl/Sampler.cpp
-        src/vulkan_helper/impl/ShaderStorage.cpp
+        src/rff2/ui/AppRenderManager.cpp
+        src/rff2/ui/AppLauncher.cpp
         src/rff2/vulkan/GPCStripe.cpp
         src/rff2/vulkan/GPCSlope.cpp
         src/rff2/vulkan/GPCColor.cpp
         src/rff2/vulkan/GPCFog.cpp
         src/rff2/vulkan/GPCDownsampleForBlur.cpp
         src/rff2/vulkan/GPCBloomThreshold.cpp
-        src/vulkan_helper/impl/ComputeShaderPipeline.cpp
-        src/vulkan_helper/impl/GraphicsPipeline.cpp
-        src/vulkan_helper/executor/ScopedCommandBufferExecutor.cpp
-        src/vulkan_helper/configurator/ComputePipelineConfigurator.cpp
         src/rff2/vulkan/CPCBoxBlur.cpp
-        src/vulkan_helper/impl/Fence.cpp
         src/rff2/vulkan/GPCBloom.cpp
         src/rff2/vulkan/GPCLinearInterpolation.cpp
-        src/vulkan_helper/impl/Semaphore.cpp
         src/rff2/vulkan/GPCPresent.cpp
         src/rff2/ui/VideoWindow.cpp
-        src/rff2/ui/VideoRenderScene.cpp
+        src/rff2/ui/VideoWindowRenderManager.cpp
         src/rff2/vulkan/CPC2MapIterationStripe.cpp
-        src/vulkan_helper/context/WindowContext.cpp
         src/rff2/vulkan/GPCStaticImage2Map.cpp
         src/rff2/vulkan/CPCImageRGBA2BGR.cpp
 )
@@ -110,27 +73,24 @@ target_compile_definitions(RFF
         VK_USE_PLATFORM_WIN32_KHR
 )
 
-
-find_package(Vulkan REQUIRED)
+add_subdirectory(src/vulkan_helper)
 
 set(CLANG64_DIRS "D:/merutilm/Developments/cpp/extern/msys/clang64")
 
 target_include_directories(RFF PRIVATE
-        # vulkan sdk directory
-        ${Vulkan_INCLUDE_DIRS}
         # extern sources
         ${CMAKE_SOURCE_DIR}/extern
+        # clang include dirs
+        ${CMAKE_SOURCE_DIR}/include
         # clang include dirs
         ${CLANG64_DIRS}/include
         # opencv4 include dirs
         ${CLANG64_DIRS}/include/opencv4
 )
 
-
 target_link_directories(RFF PRIVATE
         ${CMAKE_SOURCE_DIR}/lib
 )
-
 
 target_link_libraries(RFF PRIVATE
         # GMP Linker
@@ -143,8 +103,8 @@ target_link_libraries(RFF PRIVATE
         opencv_imgproc
         opencv_videoio
         opencv_highgui
-        # Vulkan
-        Vulkan::Vulkan
+        # Vulkan Helper
+        vulkan_helper
 )
 
 add_custom_target(spirv ALL COMMAND powershell -ExecutionPolicy Bypass -File "${CMAKE_CURRENT_SOURCE_DIR}/compile.ps1")

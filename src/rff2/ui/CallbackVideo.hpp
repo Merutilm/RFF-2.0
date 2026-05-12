@@ -5,15 +5,14 @@
 #pragma once
 #include <functional>
 
-#include "RenderScene.hpp"
-#include "SettingsMenu.hpp"
+#include "AppRenderManager.hpp"
 
 namespace merutilm::rff2 {
     struct CallbackVideo {
-        static const std::function<void(SettingsMenu &, RenderScene &)> DATA_SETTINGS;
-        static const std::function<void(SettingsMenu &, RenderScene &)> ANIMATION_SETTINGS;
-        static const std::function<void(SettingsMenu &, RenderScene &)> EXPORT_SETTINGS;
-        static const std::function<void(SettingsMenu &, RenderScene &)> GENERATE_VID_KEYFRAME;
-        static const std::function<void(SettingsMenu &, RenderScene &)> EXPORT_ZOOM_VID;
+        static std::function<void()> fnDataSettings(AppRenderManager &arm);
+        static std::function<void()> fnAnimationSettings(AppRenderManager &arm);
+        static std::function<void()> fnExportSettings(AppRenderManager &arm);
+        static std::function<void()> fnGenerateVidKeyframes(AppRenderManager &arm);
+        static std::function<void()> fnExportZoomVideo(AppRenderManager &arm);
     };
 }

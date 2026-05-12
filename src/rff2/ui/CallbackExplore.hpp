@@ -5,21 +5,22 @@
 #pragma once
 #include <functional>
 
-#include "RenderScene.hpp"
-#include "SettingsMenu.hpp"
+#include "AppRenderManager.hpp"
 
 namespace merutilm::rff2 {
     struct CallbackExplore {
-        static const std::function<void(SettingsMenu &, RenderScene &)> RECOMPUTE;
-        static const std::function<void(SettingsMenu &, RenderScene &)> RESET;
-        static const std::function<void(SettingsMenu &, RenderScene &)> CANCEL_RENDER;
-        static const std::function<void(SettingsMenu &, RenderScene &)> FIND_CENTER;
-        static const std::function<void(SettingsMenu &, RenderScene &)> LOCATE_MINIBROT;
+        static std::function<void()> fnRecompute(AppRenderManager &arm);
+        static std::function<void()> fnReset(AppRenderManager &arm);
+        static std::function<void()> fnCancelRender(AppRenderManager &arm);
+        static std::function<void()> fnFindCenter(AppRenderManager &arm);
+        static std::function<void()> fnLocateMinibrot(AppRenderManager &arm);
 
-        static std::function<void(uint64_t, int)> getActionWhileFindingMinibrotCenter(const RenderScene &scene, float logZoom, uint64_t longestPeriod);
+        static std::function<void(uint64_t, int)>
+        getActionWhileFindingMBCenter(const AppRenderManager &scene, float logZoom, uint64_t longestPeriod);
 
-        static std::function<void(uint64_t, float)> getActionWhileCreatingTable(const RenderScene &scene, float logZoom);
+        static std::function<void(uint64_t, float)> getActionWhileCreatingTable(const AppRenderManager &scene,
+                                                                                float logZoom);
 
-        static std::function<void(float)> getActionWhileFindingZoom(const RenderScene &scene);
+        static std::function<void(float)> getActionWhileFindingZoom(const AppRenderManager &scene);
     };
-}
+} // namespace merutilm::rff2

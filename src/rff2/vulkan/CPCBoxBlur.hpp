@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/configurator/ComputePipelineConfigurator.hpp"
+#include "vulkan_helper/engine/configurator/ComputePipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
     struct CPCBoxBlur final : public vkh::ComputePipelineConfigurator {
@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t BOX_BLUR_COUNT = 3;
 
-        explicit CPCBoxBlur(vkh::EngineRef engine, const uint32_t windowContextIndex) : ComputePipelineConfigurator(
+        explicit CPCBoxBlur(vkh::Engine &engine, const uint32_t windowContextIndex) : ComputePipelineConfigurator(
             engine, windowContextIndex, "vk_box_blur.comp") {
         }
 
@@ -63,8 +63,8 @@ namespace merutilm::rff2 {
     protected:
         void initSize() const;
 
-        void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
+        void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
 
-        void configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) override;
+        void configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) override;
     };
 }

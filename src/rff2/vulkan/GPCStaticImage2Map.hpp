@@ -3,10 +3,10 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "opencv2/core/mat.hpp"
+#include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
-namespace merutilm::rff2{
+namespace merutilm::rff2 {
     struct GPCStaticImage2Map final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
         static constexpr uint32_t SET_IMAGES = 0;
         static constexpr uint32_t BINDING_IMAGES_NORMAL = 0;
@@ -14,12 +14,11 @@ namespace merutilm::rff2{
 
         static constexpr uint32_t SET_VIDEO = 1;
 
-        explicit GPCStaticImage2Map(vkh::EngineRef engine, const uint32_t windowContextIndex,
-                                   const uint32_t renderContextIndex,
-                                   const uint32_t
-                                   subpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, subpassIndex, "vk_static_2_image.frag") {
-        }
+        explicit GPCStaticImage2Map(vkh::Engine &engine, const uint32_t windowContextIndex,
+                                    const uint32_t renderContextIndex, const uint32_t subpassIndex,
+                                    vkh::VertexBuffer &vertexBufferStaticRef, vkh::IndexBuffer &indexBufferStaticRef) :
+            GeneralPostProcessGraphicsPipelineConfigurator(engine, windowContextIndex, renderContextIndex, subpassIndex,
+                                                           "vk_static_2_image.frag", vertexBufferStaticRef, indexBufferStaticRef) {}
 
         ~GPCStaticImage2Map() override = default;
 
@@ -40,8 +39,8 @@ namespace merutilm::rff2{
         void setImages(const cv::Mat &normal, const cv::Mat &zoomed) const;
 
     protected:
-        void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
+        void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
 
-        void configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) override;
+        void configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) override;
     };
-}
+} // namespace merutilm::rff2

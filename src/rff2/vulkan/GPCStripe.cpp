@@ -4,8 +4,8 @@
 
 #include "GPCStripe.hpp"
 
-#include "../../vulkan_helper/repo/GlobalSamplerRepo.hpp"
-#include "../../vulkan_helper/util/DescriptorUpdater.hpp"
+#include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
+#include "vulkan_helper/util/DescriptorUpdater.hpp"
 #include "../constants/VulkanWindowConstants.hpp"
 #include "../settings/ShdStripeSettings.h"
 #include "RCC1.hpp"
@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
     void GPCStripe::setStripe(const ShdStripeSettings &stripe) const {
         using namespace SharedDescriptorTemplate;
         auto &stripeDesc = getDescriptor(SET_STRIPE);
-        const auto &stripeUBO = *stripeDesc.get<vkh::Uniform>(0, DescStripe::BINDING_UBO_STRIPE);
+        auto &stripeUBO = stripeDesc.get<vkh::Uniform>(0, DescStripe::BINDING_UBO_STRIPE);
         auto &stripeUBOHost = stripeUBO.getHostObject();
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_TYPE, static_cast<uint32_t>(stripe.stripeType));
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_FIRST_INTERVAL,
@@ -49,12 +49,12 @@ namespace merutilm::rff2 {
         switch (wc.getAttachmentIndex()) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
                 const auto &sampler = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY);
-                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->setImageContextMF(sampler);
+                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER).setImageContextMF(sampler);
                 break;
             }
             case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
                 const auto &sampler = sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_SECONDARY);
-                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->setImageContextMF(sampler);
+                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER).setImageContextMF(sampler);
                 break;
             }
             default: {
@@ -66,15 +66,15 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCStripe::configurePushConstant(vkh::PipelineLayoutManagerRef  &pipelineLayoutManager) {
+    void GPCStripe::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
         //noop
     }
 
-    void GPCStripe::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
+    void GPCStripe::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
         using namespace SharedDescriptorTemplate;
 
-        auto descManager = vkh::factory::create<vkh::DescriptorManager>();
-        vkh::SamplerRef sampler = pickFromGlobalRepository<vkh::GlobalSamplerRepo, vkh::SamplerRef>(
+        auto descManager = vkh::DescriptorManager();
+        vkh::Sampler &sampler = pickFromGlobalRepository<vkh::GlobalSamplerRepo, vkh::Sampler &>(
             VkSamplerCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,
@@ -95,7 +95,7 @@ namespace merutilm::rff2 {
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
                 .unnormalizedCoordinates = VK_TRUE
             });
-        descManager->appendCombinedImgSampler(BINDING_PREV_RESULT_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, vkh::factory::create<vkh::CombinedImageSampler>(wc.core, sampler, true));
+        descManager.appendCombinedImgSampler(BINDING_PREV_RESULT_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, std::make_unique<vkh::CombinedImageSampler>(wc.core, sampler, true));
         appendUniqueDescriptor(SET_PREV_RESULT, descriptors, std::move(descManager));
         appendDescriptor<DescIteration>(SET_ITERATION, descriptors);
         appendDescriptor<DescStripe>(SET_STRIPE, descriptors);

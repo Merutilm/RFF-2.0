@@ -4,10 +4,10 @@
 
 #pragma once
 #include "SharedImageContextIndices.hpp"
-#include "../../vulkan_helper/configurator/RenderContextConfigurator.hpp"
+#include "vulkan_helper/engine/configurator/RenderContextConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    struct RCCDownsampleForBlur final : public vkh::RenderContextConfiguratorAbstract {
+    struct RCCDownsampleForBlur final : public vkh::RenderContextConfigurator {
 
         static constexpr uint32_t CONTEXT_INDEX = 3;
 
@@ -17,9 +17,9 @@ namespace merutilm::rff2 {
 
 
 
-        using RenderContextConfiguratorAbstract::RenderContextConfiguratorAbstract;
+        using RenderContextConfigurator::RenderContextConfigurator;
 
-        void configure(vkh::RenderPassManagerRef rpm) override {
+        void configure(vkh::RenderPassManager &rpm) override {
             using namespace SharedImageContextIndices;
             rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,

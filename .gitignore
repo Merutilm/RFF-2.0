@@ -13,6 +13,7 @@ cmake-build-release
 cmake-build-relwithdebinfo
 CMakeFiles
 bin
+out
 
 # Precompiled Headers
 *.gch

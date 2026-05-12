@@ -7,8 +7,8 @@
 #include <filesystem>
 #include <fstream>
 
-#include "../../vulkan_helper/util/BufferImageUtils.hpp"
-#include "../../vulkan_helper/core/logger.hpp"
+#include "vulkan_helper/util/BufferImageUtils.hpp"
+#include "vulkan_helper/base/logger.hpp"
 #include "../ui/IOUtilities.h"
 #include "../constants/Constants.hpp"
 

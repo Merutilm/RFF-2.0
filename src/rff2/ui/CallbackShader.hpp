@@ -3,17 +3,16 @@
 //
 
 #pragma once
-#include "RenderScene.hpp"
-#include "SettingsMenu.hpp"
+#include "AppRenderManager.hpp"
 
 namespace merutilm::rff2 {
     struct CallbackShader {
-        static const std::function<void(SettingsMenu &, RenderScene &)> PALETTE;
-        static const std::function<void(SettingsMenu &, RenderScene &)> STRIPE;
-        static const std::function<void(SettingsMenu &, RenderScene &)> SLOPE;
-        static const std::function<void(SettingsMenu &, RenderScene &)> COLOR;
-        static const std::function<void(SettingsMenu &, RenderScene &)> FOG;
-        static const std::function<void(SettingsMenu &, RenderScene &)> BLOOM;
-        static const std::function<void(SettingsMenu &, RenderScene &)> LOAD_KFR_PALETTE;
+        static std::function<void()> fnPalette(AppRenderManager &arm);
+        static std::function<void()> fnStripe(AppRenderManager &arm);
+        static std::function<void()> fnSlope(AppRenderManager &arm);
+        static std::function<void()> fnColor(AppRenderManager &arm);
+        static std::function<void()> fnFog(AppRenderManager &arm);
+        static std::function<void()> fnBloom(AppRenderManager &arm);
+        static std::function<void()> fnLoadKfrPalette(AppRenderManager &arm);
     };
-}
+} // namespace merutilm::rff2

@@ -6,7 +6,7 @@
 #include <chrono>
 #include <unordered_map>
 #include <iostream>
-
+#include <x86intrin.h>
 
 namespace merutilm::rff2 {
     struct profiler {
@@ -25,7 +25,7 @@ namespace merutilm::rff2 {
         static uint64_t get_cycles(F &&func) {
             unsigned int aux;
             _mm_lfence(); //force finish leading codes
-            const auto start = __rdtsc();
+            const auto start = __rdtscp(&aux);
             func(); //measured region
             const auto end = __rdtscp(&aux);
             _mm_lfence(); // prevent trailing codes from leaking into measured region

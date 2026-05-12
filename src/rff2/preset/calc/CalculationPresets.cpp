@@ -6,8 +6,8 @@
 
 
 namespace merutilm::rff2 {
-    std::string CalculationPresets::UltraFast::getName() const {
-        return "Ultra Fast";
+    std::wstring CalculationPresets::UltraFast::getName() const {
+        return L"Ultra Fast";
     }
 
     FrtReferenceSyncSettings CalculationPresets::UltraFast::genRefSync() const {
@@ -23,8 +23,8 @@ namespace merutilm::rff2 {
         return FrtReferenceCompSettings{0, 0, false};
     }
 
-    std::string CalculationPresets::Fast::getName() const {
-        return "Fast";
+    std::wstring CalculationPresets::Fast::getName() const {
+        return L"Fast";
     }
 
 
@@ -45,8 +45,8 @@ namespace merutilm::rff2 {
         return FrtReferenceSyncSettings{8, 2};
     }
 
-    std::string CalculationPresets::Normal::getName() const {
-        return "Normal";
+    std::wstring CalculationPresets::Normal::getName() const {
+        return L"Normal";
     }
 
     FrtMPASettings CalculationPresets::Normal::genMPA() const {
@@ -57,8 +57,8 @@ namespace merutilm::rff2 {
         return FrtReferenceCompSettings{1000000, 11, false};
     }
 
-    std::string CalculationPresets::Best::getName() const {
-        return "Best";
+    std::wstring CalculationPresets::Best::getName() const {
+        return L"Best";
     }
 
 
@@ -74,8 +74,8 @@ namespace merutilm::rff2 {
         return FrtReferenceCompSettings{1000000, 15, false};
     }
 
-    std::string CalculationPresets::UltraBest::getName() const {
-        return "Ultra Best";
+    std::wstring CalculationPresets::UltraBest::getName() const {
+        return L"Ultra Best";
     }
 
     FrtReferenceSyncSettings CalculationPresets::UltraBest::genRefSync() const {
@@ -90,8 +90,8 @@ namespace merutilm::rff2 {
         return FrtReferenceCompSettings{1000000, 19, false};
     }
 
-    std::string CalculationPresets::Stable::getName() const {
-        return "Stable";
+    std::wstring CalculationPresets::Stable::getName() const {
+        return L"Stable";
     }
 
 
@@ -107,8 +107,8 @@ namespace merutilm::rff2 {
         return FrtReferenceCompSettings{1000000, 6, false};
     }
 
-    std::string CalculationPresets::MoreStable::getName() const {
-        return "More Stable";
+    std::wstring CalculationPresets::MoreStable::getName() const {
+        return L"More Stable";
     }
 
     FrtReferenceSyncSettings CalculationPresets::MoreStable::genRefSync() const {
@@ -127,8 +127,8 @@ namespace merutilm::rff2 {
         return FrtReferenceSyncSettings{16, 3};
     }
 
-    std::string CalculationPresets::UltraStable::getName() const {
-        return "Ultra Stable";
+    std::wstring CalculationPresets::UltraStable::getName() const {
+        return L"Ultra Stable";
     }
 
     FrtMPASettings CalculationPresets::UltraStable::genMPA() const {

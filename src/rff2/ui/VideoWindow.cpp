@@ -4,98 +4,69 @@
 
 #include "VideoWindow.hpp"
 
-#include "IOUtilities.h"
 #include "../io/RFFDynamicMapBinary.h"
 #include "../io/RFFStaticMapBinary.h"
+#include "IOUtilities.h"
 #include "opencv2/opencv.hpp"
+#include "vulkan_helper/engine/window/win/NativeWindow.hpp"
 
 namespace merutilm::rff2 {
-    VideoWindow::VideoWindow(vkh::EngineRef engine, const int width,
-                             const int height) : EngineHandler(engine), width(width), height(height) {
+    VideoWindow::VideoWindow(vkh::Engine &engine, vkh::SharedResource &sr, const int width, const int height) :
+        EngineHandler(engine), sr(sr), width(width), height(height) {
         VideoWindow::init();
     }
 
-    VideoWindow::~VideoWindow() {
-        VideoWindow::destroy();
+    VideoWindow::~VideoWindow() { VideoWindow::cleanup(); }
+
+    void VideoWindow::addListeners() const {
+        scene->getWindowContext().getWindow()->eventSystem.applicationLifecycle.onUpdate.add([this] {
+            RECT rc;
+            GetClientRect(bar, &rc);
+
+            const HDC hdcBar = GetDC(bar);
+
+            const auto pos = barRatio;
+
+            RECT prc = rc;
+            prc.right = static_cast<int>(std::lerp(static_cast<float>(prc.left), static_cast<float>(prc.right), pos));
+
+            const HBRUSH pBar = CreateSolidBrush(Constants::Win32::COLOR_PROGRESS_BACKGROUND_PROG);
+            FillRect(hdcBar, &prc, pBar);
+            DeleteObject(pBar);
+
+            RECT brc = rc;
+            brc.left = prc.right;
+            const HBRUSH bBar = CreateSolidBrush(Constants::Win32::COLOR_PROGRESS_BACKGROUND_BACK);
+            FillRect(hdcBar, &brc, bBar);
+            DeleteObject(bBar);
+
+            SetBkMode(hdcBar, TRANSPARENT);
+
+            const HRGN tempRgn = CreateRectRgn(rc.left, rc.top, rc.right, rc.bottom);
+            IntersectClipRect(hdcBar, prc.left, prc.top, prc.right, prc.bottom);
+
+            SetTextColor(hdcBar, Constants::Win32::COLOR_PROGRESS_TEXT_PROG);
+            DrawTextW(hdcBar, barText.data(), -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+            SelectClipRgn(hdcBar, tempRgn);
+            IntersectClipRect(hdcBar, brc.left, brc.top, brc.right, brc.bottom);
+
+            SetTextColor(hdcBar, Constants::Win32::COLOR_PROGRESS_TEXT_BACK);
+            DrawTextW(hdcBar, barText.data(), -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+            SelectClipRgn(hdcBar, nullptr);
+            DeleteObject(tempRgn);
+            ReleaseDC(bar, hdcBar);
+        });
     }
 
-
-    void VideoWindow::setClientSize(const int width, const int height) const {
-        const RECT rect = {0, 0, width, height};
-        RECT adjusted = rect;
-        AdjustWindowRect(&adjusted, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, false);
-
-        SetWindowPos(videoWindow, nullptr, 0, 0, adjusted.right - adjusted.left,
-                     adjusted.bottom - adjusted.top + Constants::Win32::PROGRESS_BAR_HEIGHT, SWP_NOMOVE | SWP_NOZORDER);
-        SetWindowPos(renderWindow, nullptr, 0, 0, rect.right - rect.left, rect.bottom - rect.top,
-                     SWP_NOZORDER);
-        SetWindowPos(bar, nullptr, 0, rect.bottom - rect.top, rect.right - rect.left,
-                     Constants::Win32::PROGRESS_BAR_HEIGHT,
-                     SWP_NOZORDER);
-    }
-
-    LRESULT VideoWindow::videoWindowProc(const HWND hwnd, const UINT message, const WPARAM wParam,
-                                         const LPARAM lParam) {
-        const auto &window = *reinterpret_cast<VideoWindow *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-        switch (message) {
-            case WM_DESTROY: {
-                PostQuitMessage(0);
-                return 0;
-            }
-            case WM_PAINT: {
-                PAINTSTRUCT ps;
-                RECT rc;
-                GetClientRect(window.bar, &rc);
-
-                const HDC hdcBar = BeginPaint(window.bar, &ps);
-
-                const auto pos = window.barRatio;
-
-                RECT prc = rc;
-                prc.right = static_cast<int>(
-                    std::lerp(static_cast<float>(prc.left), static_cast<float>(prc.right), pos));
-
-                const HBRUSH pBar = CreateSolidBrush(Constants::Win32::COLOR_PROGRESS_BACKGROUND_PROG);
-                FillRect(hdcBar, &prc, pBar);
-                DeleteObject(pBar);
-
-                RECT brc = rc;
-                brc.left = prc.right;
-                const HBRUSH bBar = CreateSolidBrush(Constants::Win32::COLOR_PROGRESS_BACKGROUND_BACK);
-                FillRect(hdcBar, &brc, bBar);
-                DeleteObject(bBar);
-
-                SetBkMode(hdcBar, TRANSPARENT);
-
-                const HRGN tempRgn = CreateRectRgn(rc.left, rc.top, rc.right, rc.bottom);
-                IntersectClipRect(hdcBar, prc.left, prc.top, prc.right, prc.bottom);
-
-                SetTextColor(hdcBar, Constants::Win32::COLOR_PROGRESS_TEXT_PROG);
-                DrawTextW(hdcBar, window.barText.data(), -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-
-                SelectClipRgn(hdcBar, tempRgn);
-                IntersectClipRect(hdcBar, brc.left, brc.top, brc.right, brc.bottom);
-
-                SetTextColor(hdcBar, Constants::Win32::COLOR_PROGRESS_TEXT_BACK);
-                DrawTextW(hdcBar, window.barText.data(), -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-
-                EndPaint(window.bar, &ps);
-                SelectClipRgn(hdcBar, nullptr);
-                DeleteObject(tempRgn);
-                return 0;
-            }
-            default: break;
-        }
-        return DefWindowProcW(hwnd, message, wParam, lParam);
-    }
-
-    void VideoWindow::createVideo(vkh::EngineRef engine, const Settings &settings, const std::filesystem::path &open,
-                                  const std::filesystem::path &save) {
+    void VideoWindow::createVideo(vkh::Engine &engine, vkh::SharedResource &sr, const Settings &settings,
+                                  const std::filesystem::path &open, const std::filesystem::path &save) {
         int imgWidth = 0;
         int imgHeight = 0;
-        HWND wnd = engine.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX)
-                           .getWindow()
-                           .getWindowHandle();
+        HWND wnd = dynamic_cast<vkh::NativeWindow *>(
+                           engine.getWindowContext(Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX).getWindow())
+                           ->getMainWindow();
         wnd = IsWindow(wnd) ? wnd : nullptr;
 
         if (engine.isValidWindowContext(Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX)) {
@@ -130,8 +101,8 @@ namespace merutilm::rff2 {
 
         const auto cw = static_cast<uint32_t>(std::min(imgWidth, 1280));
         const auto ch = cw * imgHeight / imgWidth;
-        auto window = VideoWindow(engine, cw, ch);
-        window.createScene(VkExtent2D{static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight)}, settings);
+        auto window = VideoWindow(engine, sr, cw, ch);
+        window.initScene(VkExtent2D{static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight)}, settings);
         auto &scene = *window.scene;
 
 
@@ -141,7 +112,8 @@ namespace merutilm::rff2 {
 
 
         cv::VideoWriter writer;
-        writer.open(save.string(), cv::CAP_FFMPEG, cv::VideoWriter::fourcc('a', 'v', 'c', '1'), fps, cv::Size(imgWidth, imgHeight));
+        writer.open(save.string(), cv::CAP_FFMPEG, cv::VideoWriter::fourcc('a', 'v', 'c', '1'), fps,
+                    cv::Size(imgWidth, imgHeight));
 
         if (!writer.isOpened()) {
             MessageBoxW(wnd, L"Cannot open file!!", L"Export failed", MB_TOPMOST | MB_ICONERROR | MB_OK);
@@ -149,6 +121,8 @@ namespace merutilm::rff2 {
         }
 
         std::jthread imageRenderThread([&, imgWidth, imgHeight] {
+            auto nwh = window.getNativeWindowHandle();
+
             const auto frameInterval = mps / fps;
             const uint32_t maxNumber = isStatic ? IOUtilities::fileNameCount(open, Constants::Extension::STATIC_MAP)
                                                 : IOUtilities::fileNameCount(open, Constants::Extension::DYNAMIC_MAP);
@@ -204,7 +178,7 @@ namespace merutilm::rff2 {
                     }
                 }
 
-                if (!IsWindowVisible(window.videoWindow)) {
+                if (!IsWindowVisible(nwh)) {
                     break;
                 }
 
@@ -236,7 +210,6 @@ namespace merutilm::rff2 {
 
                 window.barRatio = progressRatio;
                 window.barText = std::format(L"Processing... {:2f}% [{:%H:%M:%S}]", progressRatio * 100, hms);
-                InvalidateRect(window.videoWindow, nullptr, FALSE);
             }
 
             writer.release();
@@ -244,11 +217,12 @@ namespace merutilm::rff2 {
             engine.getCore().getLogicalDevice().waitDeviceIdle();
             MessageBoxW(IsWindow(wnd) ? wnd : nullptr, L"Render Finished!", L"Done",
                         MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
-            if (IsWindowVisible(window.videoWindow)) {
-                PostMessage(window.videoWindow, WM_CLOSE, 0, 0);
+            if (IsWindowVisible(nwh)) {
+                PostMessage(nwh, WM_CLOSE, 0, 0);
             }
         });
-        messageLoop();
+
+        scene.getWindowContext().getWindow()->start();
     }
     cv::Mat VideoWindow::generateFrame(const VideoBufferCache &buffer, const int imgWidth, const bool showText) {
 
@@ -261,64 +235,55 @@ namespace merutilm::rff2 {
             const int off = std::max(1, loc / 15);
             const int tkn = std::max(1, off / 2);
 
-            const std::string zoomStr = std::format("Zoom : {:6f}E{:d}",
-                                                    std::pow(10, std::fmod(buffer.zoom, 1)),
+            const std::string zoomStr = std::format("Zoom : {:6f}E{:d}", std::pow(10, std::fmod(buffer.zoom, 1)),
                                                     static_cast<int>(buffer.zoom));
             cv::putText(img, zoomStr, cv::Point(xg + off, loc + yg + off), cv::FONT_HERSHEY_PLAIN, size,
                         cv::Scalar(0, 0, 0));
-            cv::putText(img, zoomStr, cv::Point(xg, loc + yg), cv::FONT_HERSHEY_PLAIN, size,
-                        cv::Scalar(255, 255, 255), tkn, cv::LINE_AA);
+            cv::putText(img, zoomStr, cv::Point(xg, loc + yg), cv::FONT_HERSHEY_PLAIN, size, cv::Scalar(255, 255, 255),
+                        tkn, cv::LINE_AA);
         }
         return img;
     }
 
-    void VideoWindow::messageLoop() {
-        MSG msg;
 
-        while (GetMessage(&msg, nullptr, 0, 0) != 0) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
+    void VideoWindow::initScene(const VkExtent2D &videoExtent, const Settings &targetSettings) {
 
-    void VideoWindow::init() {
-        videoWindow = CreateWindowExW(0,
-                                      Constants::Win32::CLASS_VIDEO_WINDOW,
-                                      L"Preview video",
-                                      WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, CW_USEDEFAULT, CW_USEDEFAULT,
-                                      CW_USEDEFAULT,
-                                      CW_USEDEFAULT, nullptr, nullptr,
-                                      nullptr, nullptr);
+        vkh::WindowInitializerSettings wic{
+                .framerate = 60,
+                .name = L"Video Window",
+                .icon = L"#1",
+                .widthInfo = {.min = width, .max = width, .first = width},
+                .heightInfo = {.min = height, .max = height, .first = height},
+                .useMenubar = false,
+                .resizable = false,
+                .filedrop = false,
+                .paddings = {.top = 0, .left = 0, .bottom = Constants::Win32::PROGRESS_BAR_HEIGHT, .right = 0}};
 
-        renderWindow = CreateWindowExW(0, Constants::Win32::CLASS_VIDEO_RENDER_WINDOW, nullptr,
-                                       WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS, CW_USEDEFAULT,
-                                       CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr,
-                                       nullptr);
+        auto &wc = engine.attachWindowContext(std::move(wic), Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX);
 
+        scene = std::make_unique<VideoWindowRenderManager>(engine, wc, sr, videoExtent, targetSettings);
         bar = CreateWindowExW(0, WC_STATICW, nullptr, WS_CHILD | WS_VISIBLE | WS_BORDER | WS_CLIPSIBLINGS,
-                              CW_USEDEFAULT,
-                              CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT, videoWindow, nullptr, nullptr, nullptr);
+                              0, height, width, Constants::Win32::PROGRESS_BAR_HEIGHT, getNativeWindowHandle(),
+                              nullptr, nullptr, nullptr);
 
-        SetWindowLongPtr(videoWindow, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
-
-        SetWindowPos(videoWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-        setClientSize(width, height);
-        UpdateWindow(videoWindow);
-        ShowWindow(videoWindow, SW_SHOW);
+        addListeners();
     }
 
-    void VideoWindow::createScene(const VkExtent2D &videoExtent, const Settings &targetSettings) {
-        const auto wc = engine.
-                attachWindowContext(renderWindow, Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX);
-        scene = std::make_unique<VideoRenderScene>(engine, *wc, videoExtent, targetSettings);
+
+    HWND VideoWindow::getNativeWindowHandle() const {
+        return dynamic_cast<vkh::NativeWindow *>(scene->getWindowContext().getWindow())->getMainWindow();
     }
 
-    void VideoWindow::destroy() {
+    void VideoWindow::init() {}
+
+
+    void VideoWindow::cleanup() {
         engine.getCore().getLogicalDevice().waitDeviceIdle();
+        const auto nwh = getNativeWindowHandle();
         scene = nullptr;
         engine.detachWindowContext(Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX);
-        if (IsWindow(videoWindow)) {
-            DestroyWindow(videoWindow);
+        if (IsWindow(nwh)) {
+            DestroyWindow(nwh);
         }
     }
-}
+} // namespace merutilm::rff2

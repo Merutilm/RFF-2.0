@@ -8,8 +8,8 @@
 
 
 namespace merutilm::rff2 {
-    std::string RenderPresets::Potato::getName() const {
-        return "Potato";
+    std::wstring RenderPresets::Potato::getName() const {
+        return L"Potato";
     }
 
     RenderSettings RenderPresets::Potato::genRender() const {
@@ -17,40 +17,40 @@ namespace merutilm::rff2 {
     }
 
 
-    std::string RenderPresets::Low::getName() const {
-        return "Low";
+    std::wstring RenderPresets::Low::getName() const {
+        return L"Low";
     }
 
     RenderSettings RenderPresets::Low::genRender() const {
         return RenderSettings{0.3f, 60, true, std::thread::hardware_concurrency()};
     }
 
-    std::string RenderPresets::Medium::getName() const {
-        return "Medium";
+    std::wstring RenderPresets::Medium::getName() const {
+        return L"Medium";
     }
 
     RenderSettings RenderPresets::Medium::genRender() const {
         return RenderSettings{0.5f, 60, true, std::thread::hardware_concurrency()};
     }
 
-    std::string RenderPresets::High::getName() const {
-        return "High";
+    std::wstring RenderPresets::High::getName() const {
+        return L"High";
     }
 
     RenderSettings RenderPresets::High::genRender() const {
         return RenderSettings{1.0f, 60, true, std::thread::hardware_concurrency()};
     }
 
-    std::string RenderPresets::Ultra::getName() const {
-        return "Ultra";
+    std::wstring RenderPresets::Ultra::getName() const {
+        return L"Ultra";
     }
 
     RenderSettings RenderPresets::Ultra::genRender() const {
         return RenderSettings{2.0f, 60, true, std::thread::hardware_concurrency()};
     }
 
-    std::string RenderPresets::Extreme::getName() const {
-        return "Extreme (DANGER)";
+    std::wstring RenderPresets::Extreme::getName() const {
+        return L"Extreme (DANGER)";
     }
 
     RenderSettings RenderPresets::Extreme::genRender() const {

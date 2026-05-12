@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/configurator/ComputePipelineConfigurator.hpp"
+#include <vulkan_helper/engine/configurator/ComputePipelineConfigurator.hpp>
 #include "../settings/ShdPaletteSettings.h"
 #include "../settings/ShdStripeSettings.h"
 
@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_OUTPUT_ITERATION = 5;
         static constexpr uint32_t SET_STRIPE = 6;
 
-        explicit CPC2MapIterationStripe(vkh::EngineRef engine, const uint32_t windowContextIndex)
+        explicit CPC2MapIterationStripe(vkh::Engine &engine, const uint32_t windowContextIndex)
             : ComputePipelineConfigurator(engine, windowContextIndex, "vk_2_map_iter_stripe.comp") {
         }
 
@@ -64,8 +64,8 @@ namespace merutilm::rff2 {
         void setTime(float currentSec, uint32_t frameIndex) const;
 
     protected:
-        void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
+        void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
 
-        void configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) override;
+        void configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) override;
     };
 }

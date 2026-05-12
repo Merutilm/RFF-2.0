@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
+#include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
     struct GPCBloomThreshold final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
@@ -12,11 +12,11 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t SET_BLOOM = 1;
 
-        explicit GPCBloomThreshold(vkh::EngineRef engine, const uint32_t windowContextIndex,
+        explicit GPCBloomThreshold(vkh::Engine &engine, const uint32_t windowContextIndex,
                                    const uint32_t renderContextIndex,
                                    const uint32_t
-                                   subpassIndex) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, subpassIndex, "vk_bloom_threshold.frag") {
+                                   subpassIndex, vkh::VertexBuffer &vertexBufferStaticRef, vkh::IndexBuffer &indexBufferStaticRef) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, windowContextIndex, renderContextIndex, subpassIndex, "vk_bloom_threshold.frag", vertexBufferStaticRef, indexBufferStaticRef) {
         }
 
         ~GPCBloomThreshold() override = default;
@@ -36,8 +36,8 @@ namespace merutilm::rff2 {
         void renderContextRefreshed() override;
 
     protected:
-        void configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) override;
+        void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
 
-        void configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) override;
+        void configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) override;
     };
 }

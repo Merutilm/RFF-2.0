@@ -6,7 +6,7 @@
 
 #include "RCC4.hpp"
 #include "SharedDescriptorTemplate.hpp"
-#include "../../vulkan_helper/repo/GlobalSamplerRepo.hpp"
+#include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 #include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
     void GPCLinearInterpolation::setLinearInterpolation(const bool use) const {
         using namespace SharedDescriptorTemplate;
         auto &interDesc = getDescriptor(SET_LINEAR_INTERPOLATION);
-        const auto &interUBO = *interDesc.get<vkh::Uniform>(
+        auto &interUBO = interDesc.get<vkh::Uniform>(
             0, DescLinearInterpolation::BINDING_UBO_LINEAR_INTERPOLATION);
         auto &interUBOHost = interUBO.getHostObject();
         interUBOHost.set<bool>(DescLinearInterpolation::TARGET_LINEAR_INTERPOLATION_USE, use);
@@ -37,13 +37,13 @@ namespace merutilm::rff2 {
         switch (wc.getAttachmentIndex()) {
             case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
                 const auto &sample = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY);
-                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->
+                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER).
                         setImageContextMF(sample);
                 break;
             }
             case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
                 const auto &sample = sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_PRIMARY);
-                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER)->
+                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER).
                         setImageContextMF(sample);
                 break;
             }
@@ -59,13 +59,13 @@ namespace merutilm::rff2 {
     }
 
     void GPCLinearInterpolation::configurePushConstant(
-        vkh::PipelineLayoutManagerRef pipelineLayoutManager) {
+        vkh::PipelineLayoutManager &pipelineLayoutManager) {
         //noop
     }
 
-    void GPCLinearInterpolation::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
+    void GPCLinearInterpolation::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
         using namespace SharedDescriptorTemplate;
-        vkh::SamplerRef sampler = pickFromGlobalRepository<vkh::GlobalSamplerRepo, vkh::SamplerRef>(
+        vkh::Sampler &sampler = pickFromGlobalRepository<vkh::GlobalSamplerRepo, vkh::Sampler &>(
             VkSamplerCreateInfo{
                 .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
                 .pNext = nullptr,
@@ -86,11 +86,11 @@ namespace merutilm::rff2 {
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
                 .unnormalizedCoordinates = VK_FALSE,
             });
-        auto descManager = vkh::factory::create<vkh::DescriptorManager>();
+        auto descManager = vkh::DescriptorManager();
 
-        descManager->appendCombinedImgSampler(BINDING_PREV_RESULT_SAMPLER,
+        descManager.appendCombinedImgSampler(BINDING_PREV_RESULT_SAMPLER,
                                                         VK_SHADER_STAGE_FRAGMENT_BIT,
-                                                        vkh::factory::create<vkh::CombinedImageSampler>(
+                                                        std::make_unique<vkh::CombinedImageSampler>(
                                                             wc.core, sampler, true));
         appendUniqueDescriptor(SET_PREV_RESULT, descriptors, std::move(descManager));
         appendDescriptor<DescLinearInterpolation>(SET_LINEAR_INTERPOLATION, descriptors);

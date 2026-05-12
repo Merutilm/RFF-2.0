@@ -17,7 +17,7 @@
 #include "LightPAGenerator.h"
 #include "MPAPeriod.h"
 
-#include "../../vulkan_helper/core/logger.hpp"
+#include "vulkan_helper/base/logger.hpp"
 
 namespace merutilm::rff2 {
     template<typename Ref, typename Num>

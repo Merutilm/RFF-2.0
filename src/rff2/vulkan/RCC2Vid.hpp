@@ -3,10 +3,10 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/configurator/RenderContextConfigurator.hpp"
+#include "vulkan_helper/engine/configurator/RenderContextConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    struct RCC2Vid final : public vkh::RenderContextConfiguratorAbstract {
+    struct RCC2Vid final : public vkh::RenderContextConfigurator {
         static constexpr uint32_t CONTEXT_INDEX = 2;
         static constexpr uint32_t SUBPASS_FOG_INDEX = 0;
         static constexpr uint32_t SUBPASS_BLOOM_THRESHOLD_INDEX = 1;
@@ -15,9 +15,9 @@ namespace merutilm::rff2 {
         static constexpr uint32_t RESULT_COLOR_ATTACHMENT_INDEX = 0;
         static constexpr uint32_t BLOOM_THRESHOLD_COLOR_ATTACHMENT_INDEX = 1;
 
-        using RenderContextConfiguratorAbstract::RenderContextConfiguratorAbstract;
+        using RenderContextConfigurator::RenderContextConfigurator;
 
-        void configure(vkh::RenderPassManagerRef rpm) override {
+        void configure(vkh::RenderPassManager &rpm) override {
             using namespace SharedImageContextIndices;
             rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
                                      .flags = 0,

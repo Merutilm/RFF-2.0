@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include "../../vulkan_helper/context/BufferContext.hpp"
-#include "../../vulkan_helper/handle/CoreHandler.hpp"
+#include "vulkan_helper/engine/context/BufferContext.hpp"
+#include "vulkan_helper/handle/CoreHandler.hpp"
 #include "opencv2/core/mat.hpp"
 
 namespace merutilm::rff2 {
@@ -15,13 +15,13 @@ namespace merutilm::rff2 {
         float zoom;
         cv::Mat image;
 
-        explicit VideoBufferCache(vkh::CoreRef core, vkh::BufferContext &&ctx, const int width,
+        explicit VideoBufferCache(vkh::Core &core, vkh::BufferContext &&ctx, const int width,
                                   const int height, const float zoom) : CoreHandler(core), bufferContext(std::move(ctx)), width(width), height(height), zoom(zoom) {
             VideoBufferCache::init();
         }
 
         ~VideoBufferCache() override {
-            VideoBufferCache::destroy();
+            VideoBufferCache::cleanup();
         }
 
         VideoBufferCache(const VideoBufferCache &) = delete;
@@ -37,7 +37,8 @@ namespace merutilm::rff2 {
             image = cv::Mat(height, width, CV_8UC3, bufferContext.mappedMemory);
         }
 
-        void destroy() override {
+        void cleanup() override {
+            core.getLogicalDevice().waitDeviceIdle();
             vkh::BufferContext::destroyContext(core, bufferContext);
         }
     };

@@ -6,7 +6,7 @@
 
 #include <utility>
 
-#include "../../vulkan_helper/core/logger.hpp"
+#include "vulkan_helper/base/logger.hpp"
 #include "../ui/IOUtilities.h"
 
 namespace merutilm::rff2 {

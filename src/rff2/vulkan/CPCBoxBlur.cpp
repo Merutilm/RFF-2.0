@@ -5,8 +5,8 @@
 #include "CPCBoxBlur.hpp"
 
 #include "SharedImageContextIndices.hpp"
-#include "../../vulkan_helper/executor/ScopedCommandBufferExecutor.hpp"
-#include "../../vulkan_helper/util/BarrierUtils.hpp"
+#include <vulkan_helper/engine/executor/ScopedCommandBufferExecutor.hpp>
+#include "vulkan_helper/util/BarrierUtils.hpp"
 #include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
@@ -86,7 +86,7 @@ namespace merutilm::rff2 {
     void CPCBoxBlur::setBlurInfo(uint32_t blurSizeDescIndex, const float blurSize) const {
         auto &desc = getDescriptor(SET_BLUR_RADIUS);
 
-        const auto &ubo = *desc.get<vkh::Uniform>(blurSizeDescIndex, BINDING_BLUR_RADIUS_UBO);
+        auto &ubo = desc.get<vkh::Uniform>(blurSizeDescIndex, BINDING_BLUR_RADIUS_UBO);
         ubo.getHostObject().set<float>(TARGET_BLUR_UBO_BLUR_SIZE, blurSize);
         ubo.update();
 
@@ -121,28 +121,30 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPCBoxBlur::configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) {
+    void CPCBoxBlur::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
         //no operation
     }
 
-    void CPCBoxBlur::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
-        auto imgDesc = std::vector<vkh::DescriptorManager>(BOX_BLUR_COUNT);
+    void CPCBoxBlur::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
+        auto imgDesc = std::vector<vkh::DescriptorManager>();
+        imgDesc.reserve(BOX_BLUR_COUNT);
         for (uint32_t i = 0; i < BOX_BLUR_COUNT; ++i) {
-            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
-            descManager->appendStorageImage(BINDING_BLUR_IMAGE_SRC, VK_SHADER_STAGE_COMPUTE_BIT);
-            descManager->appendStorageImage(BINDING_BLUR_IMAGE_DST, VK_SHADER_STAGE_COMPUTE_BIT);
-            imgDesc[i] = std::move(descManager);
+            auto descManager = vkh::DescriptorManager();
+            descManager.appendStorageImage(BINDING_BLUR_IMAGE_SRC, VK_SHADER_STAGE_COMPUTE_BIT);
+            descManager.appendStorageImage(BINDING_BLUR_IMAGE_DST, VK_SHADER_STAGE_COMPUTE_BIT);
+            imgDesc.emplace_back(std::move(descManager));
         }
 
-        auto radDesc = std::vector<vkh::DescriptorManager>(DESC_COUNT_BLUR_TARGET);
+        auto radDesc = std::vector<vkh::DescriptorManager>();
+        radDesc.reserve(BOX_BLUR_COUNT);
         for (uint32_t i = 0; i < DESC_COUNT_BLUR_TARGET; ++i) {
-            auto descManager = vkh::factory::create<vkh::DescriptorManager>();
-            auto bufferManager = vkh::factory::create<vkh::HostDataObjectManager>();
-            bufferManager->reserve<float>(TARGET_BLUR_UBO_BLUR_SIZE);
-            auto descUBO = vkh::factory::create<vkh::Uniform>(wc.core, std::move(bufferManager),
+            auto descManager = vkh::DescriptorManager();
+            auto bufferManager = vkh::HostDataObjectManager();
+            bufferManager.reserve<float>(TARGET_BLUR_UBO_BLUR_SIZE);
+            auto descUBO = std::make_unique<vkh::Uniform>(wc.core, std::move(bufferManager),
                                                               vkh::BufferLock::LOCK_UNLOCK, false);
-            descManager->appendUBO(BINDING_BLUR_RADIUS_UBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(descUBO));
-            radDesc[i] = std::move(descManager);
+            descManager.appendUBO(BINDING_BLUR_RADIUS_UBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(descUBO));
+            radDesc.emplace_back(std::move(descManager));
         }
 
         appendUniqueDescriptor(SET_BLUR_IMAGE, descriptors, std::move(imgDesc));

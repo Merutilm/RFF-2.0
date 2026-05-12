@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
     void GPCColor::setColor(const ShdColorSettings &color) const {
         using namespace SharedDescriptorTemplate;
         auto &colorDesc = getDescriptor(SET_COLOR);
-        const auto &colorUBO = *colorDesc.get<vkh::Uniform>(0, DescColor::BINDING_UBO_COLOR);
+        auto &colorUBO = colorDesc.get<vkh::Uniform>(0, DescColor::BINDING_UBO_COLOR);
         auto &colorUBOHost = colorUBO.getHostObject();
         colorUBOHost.set<float>(DescColor::TARGET_COLOR_GAMMA, color.gamma);
         colorUBOHost.set<float>(DescColor::TARGET_COLOR_EXPOSURE, color.exposure);
@@ -59,14 +59,14 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCColor::configurePushConstant(vkh::PipelineLayoutManagerRef pipelineLayoutManager) {
+    void GPCColor::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
         //noop
     }
 
-    void GPCColor::configureDescriptors(std::vector<vkh::DescriptorPtr> &descriptors) {
+    void GPCColor::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
         using namespace SharedDescriptorTemplate;
-        auto descManager = vkh::factory::create<vkh::DescriptorManager>();
-        descManager->appendInputAttachment(BINDING_PREV_RESULT_INPUT, VK_SHADER_STAGE_FRAGMENT_BIT);
+        auto descManager = vkh::DescriptorManager();
+        descManager.appendInputAttachment(BINDING_PREV_RESULT_INPUT, VK_SHADER_STAGE_FRAGMENT_BIT);
 
         appendUniqueDescriptor(SET_PREV_RESULT, descriptors, std::move(descManager));
         appendDescriptor<DescColor>(SET_COLOR, descriptors);

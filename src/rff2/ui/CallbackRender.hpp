@@ -4,12 +4,12 @@
 
 #pragma once
 #include <functional>
-#include "RenderScene.hpp"
-#include "SettingsMenu.hpp"
+#include "AppRenderManager.hpp"
 
 namespace merutilm::rff2 {
     struct CallbackRender {
-        static const std::function<void(SettingsMenu &, RenderScene &)> SET_CLARITY;
-        static const std::function<bool*(RenderScene &, bool)> LINEAR_INTERPOLATION;
+        static std::function<void()> fnSetRenderProperties(AppRenderManager &arm);
+        static std::function<bool()> fnGetterLinearInterpolation(AppRenderManager &arm);
+        static std::function<void(bool)> fnLinearInterpolation(AppRenderManager &arm);
     };
 }

@@ -5,15 +5,17 @@
 #pragma once
 #include <functional>
 
-#include "RenderScene.hpp"
-#include "SettingsMenu.hpp"
-
+#include "AppRenderManager.hpp"
 namespace merutilm::rff2 {
     struct CallbackFractal {
-        static const std::function<void(SettingsMenu&, RenderScene&)> REFERENCE;
-        static const std::function<void(SettingsMenu&, RenderScene&)> ITERATIONS;
-        static const std::function<void(SettingsMenu&, RenderScene&)> MPA;
-        static const std::function<bool*(RenderScene&, bool)> AUTOMATIC_ITERATIONS;
-        static const std::function<bool*(RenderScene&, bool)> ABSOLUTE_ITERATION_MODE;
+        static std::function<void()> fnReference(AppRenderManager &arm);
+        static std::function<void()> fnIterations(AppRenderManager &arm);
+        static std::function<void()> fnMpa(AppRenderManager &arm);
+
+        static std::function<bool()> fnGetterAutomaticIterations(AppRenderManager &arm);
+        static std::function<bool()> fnGetterAbsoluteIterationMode(AppRenderManager &arm);
+
+        static std::function<void(bool)> fnAutomaticIterations(AppRenderManager &arm);
+        static std::function<void(bool)> fnAbsoluteIterationMode(AppRenderManager &arm);
     };
-}
+} // namespace merutilm::rff2
