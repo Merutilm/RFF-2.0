@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
     public:
 
         explicit LightMB2Perturbator(ParallelRenderState &state, const FractalSettings &calc, double dcMax, int exp10,
-                                   uint64_t refInitialCapacity, uint64_t fixedPeriod, ApproxTableManager &tableRef, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                                   uint64_t refInitialCapacity, uint64_t fixedPeriod,  std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                    std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
                                    bool arbitraryPrecisionFPGBn = false, std::unique_ptr<LightMB2Reference> reusedReference = nullptr, std::unique_ptr<LightMPATable> reusedTable = nullptr,
                                    double offR = 0, double offI = 0);
@@ -28,7 +28,7 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] double iterate(const FractalSettings &calc, dex dcr, dex dci) const override;
 
-        [[nodiscard]] std::unique_ptr<LightMB2Perturbator> reuse(const FractalSettings &calc, double dcMax, ApproxTableManager &tableRef);
+        [[nodiscard]] std::unique_ptr<LightMB2Perturbator> reuse(const FractalSettings &calc, double dcMax);
 
         [[nodiscard]] const LightMB2Reference *getReference() const override;
 

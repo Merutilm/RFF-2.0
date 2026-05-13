@@ -39,8 +39,6 @@ namespace merutilm::rff2 {
 
         std::atomic<bool> idleCompute = true;
 
-        ApproxTableManager approxTableCache = ApproxTableManager();
-
         std::unique_ptr<SettingsWindow> currentSettingsWindow;
 
         std::array<std::wstring, Constants::Status::LENGTH> *statusMessageRef = nullptr;
@@ -175,10 +173,6 @@ namespace merutilm::rff2 {
 
         void setCurrentPerturbator(std::unique_ptr<MB2Perturbator> perturbator) {
             currentPerturbator = std::move(perturbator);
-        }
-
-        [[nodiscard]] ApproxTableManager &getApproxTableCache() {
-            return approxTableCache;
         }
 
         [[nodiscard]] BackgroundThreads &getBackgroundThreads() {

@@ -20,7 +20,8 @@
 #include "vulkan_helper/base/logger.hpp"
 
 namespace merutilm::rff2 {
-    template<typename Ref, typename Num>
+    template<typename Ref, typename Num, typename PAB>
+        requires std::is_base_of_v<PA, PAB>
     struct MPATable {
         static constexpr int REQUIRED_PERTURBATION = 2;
 
@@ -34,11 +35,10 @@ namespace merutilm::rff2 {
         std::unique_ptr<MPAPeriod> mpaPeriod = nullptr;
 
         // table caches
-        ApproxTableManager &tableRef;
+        std::optional<ApproxTableManager<PAB>> tableManager;
 
         explicit MPATable(const ParallelRenderState &state, const Ref &reference, const FrtMPASettings *mpaSettings,
-                          const Num &dcMax, ApproxTableManager &tableRef,
-                          std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
+                          const Num &dcMax, std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
 
         virtual ~MPATable() = default;
@@ -51,33 +51,27 @@ namespace merutilm::rff2 {
 
         static uint64_t binarySearch(const std::vector<uint64_t> &arr, uint64_t key);
 
-        template<class PAB>
-            requires std::is_base_of_v<PA, PAB>
-        void fitBufferSize(std::unique_ptr<std::pmr::vector<std::pmr::vector<PAB>>> &table);
+        void fitBufferSize();
 
 
-        template<typename PAB, typename PAG>
-            requires std::is_base_of_v<PA, PAB> && std::is_base_of_v<PAGenerator, PAG>
-        bool tryJumpTableGeneration(std::pmr::vector<std::pmr::vector<PAB>> &table, const Ref &reference,
-                                    double epsilon, const Num &dcMax, std::vector<uint64_t> &periodCount,
-                                    std::vector<std::optional<PAG>> &currentPA, uint64_t pulledTableIndex, uint64_t *currentIteration);
+        template<typename PAG>
+            requires std::is_base_of_v<PAGenerator, PAG>
+        bool tryJumpTableGeneration(const Ref &reference, double epsilon, const Num &dcMax,
+                                    std::vector<uint64_t> &periodCount, std::vector<std::optional<PAG>> &currentPA,
+                                    uint64_t pulledTableIndex, uint64_t *currentIteration);
 
-        template<typename PAB, typename PAG>
-            requires std::is_base_of_v<PA, PAB> && std::is_base_of_v<PAGenerator, PAG>
-        void stepOnce(std::pmr::vector<std::pmr::vector<PAB>> &table, const Ref &reference, double epsilon, const Num &dcMax,
-                      std::vector<uint64_t> &periodCount, std::vector<std::optional<PAG>> &currentPA,
-                      uint64_t pulledTableIndex, uint64_t *currentIteration,
+        template<typename PAG>
+            requires std::is_base_of_v<PAGenerator, PAG>
+        void stepOnce(const Ref &reference, double epsilon, const Num &dcMax, std::vector<uint64_t> &periodCount,
+                      std::vector<std::optional<PAG>> &currentPA, uint64_t pulledTableIndex, uint64_t *currentIteration,
                       bool jumped);
 
-        template<typename PAB, typename PAG>
-            requires std::is_base_of_v<PA, PAB> && std::is_base_of_v<PAGenerator, PAG>
+        template<typename PAG>
+            requires std::is_base_of_v<PAGenerator, PAG>
         void generateTable(const ParallelRenderState &state, const Ref &reference, Num dcMax,
-                           std::unique_ptr<std::pmr::vector<std::pmr::vector<PAB>>> &table,
                            std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
-        template<typename PAB>
-        void allocateWithCheckTableSize(std::pmr::vector<std::pmr::vector<PAB>> &table, uint64_t index,
-                                        uint64_t levels);
+        void allocateWithCheckTableSize(uint64_t index, uint64_t levels);
 
         /**
          * Gets the pulled table index of MPA Table.
@@ -108,19 +102,20 @@ namespace merutilm::rff2 {
     // DEFINITION OF MPA TABLE
 
 
-    template<typename Ref, typename Num>
-    MPATable<Ref, Num>::MPATable(const ParallelRenderState &state, const Ref &reference,
-                                 const FrtMPASettings *mpaSettings, const Num &dcMax, ApproxTableManager &tableRef,
-                                 std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) :
-        mpaSettings(*mpaSettings), tableRef(tableRef) {
+    template<typename Ref, typename Num, typename PAB>
+        requires std::is_base_of_v<PA, PAB>
+    MPATable<Ref, Num, PAB>::MPATable(const ParallelRenderState &state, const Ref &reference,
+                                      const FrtMPASettings *mpaSettings, const Num &dcMax,
+                                      std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) :
+        mpaSettings(*mpaSettings) {
 
         if (tryInit(reference)) {
 
             if constexpr (std::is_same_v<Ref, LightMB2Reference>) {
-                generateTable<LightPA, LightPAGenerator>(state, reference, dcMax, tableRef.mpaLightTable,
+                generateTable<LightPAGenerator>(state, reference, dcMax,
                                                          std::move(actionPerCreatingTableIteration));
             } else {
-                generateTable<DeepPA, DeepPAGenerator>(state, reference, dcMax, tableRef.mpaDeepTable,
+                generateTable<DeepPAGenerator>(state, reference, dcMax,
                                                        std::move(actionPerCreatingTableIteration));
             }
         }
@@ -128,8 +123,9 @@ namespace merutilm::rff2 {
 
 
     //[re] init mpa periods and compressors
-    template<typename Ref, typename Num>
-    bool MPATable<Ref, Num>::tryInit(const MB2Reference &reference) {
+    template<typename Ref, typename Num, typename PAB>
+        requires std::is_base_of_v<PA, PAB>
+    bool MPATable<Ref, Num, PAB>::tryInit(const MB2Reference &reference) {
         const auto &referencePeriod = reference.period;
         const uint64_t longestPeriod = reference.longestPeriod();
 
@@ -147,8 +143,9 @@ namespace merutilm::rff2 {
         return true;
     }
 
-    template<typename Ref, typename Num>
-    std::vector<ArrayCompressionTool> MPATable<Ref, Num>::generatePulledMPACompressor(
+    template<typename Ref, typename Num, typename PAB>
+        requires std::is_base_of_v<PA, PAB>
+    std::vector<ArrayCompressionTool> MPATable<Ref, Num, PAB>::generatePulledMPACompressor(
             const std::vector<ArrayCompressionTool> &referenceCompressor) const {
         std::vector<ArrayCompressionTool> mpaTools;
         auto &tablePeriod = mpaPeriod->tablePeriod;
@@ -173,8 +170,9 @@ namespace merutilm::rff2 {
         return mpaTools;
     }
 
-    template<typename Ref, typename Num>
-    uint64_t MPATable<Ref, Num>::binarySearch(const std::vector<uint64_t> &arr, const uint64_t key) {
+    template<typename Ref, typename Num, typename PAB>
+        requires std::is_base_of_v<PA, PAB>
+    uint64_t MPATable<Ref, Num, PAB>::binarySearch(const std::vector<uint64_t> &arr, const uint64_t key) {
         if (arr.empty()) {
             return UINT64_MAX;
         }
@@ -198,10 +196,9 @@ namespace merutilm::rff2 {
     }
 
 
-    template<typename Ref, typename Num>
-    template<typename PAB>
+    template<typename Ref, typename Num, typename PAB>
         requires std::is_base_of_v<PA, PAB>
-    void MPATable<Ref, Num>::fitBufferSize(std::unique_ptr<std::pmr::vector<std::pmr::vector<PAB>>> &table) {
+    void MPATable<Ref, Num, PAB>::fitBufferSize() {
 
 
         // no compression : lastCompIndex > skippableIterationsCount.back()
@@ -215,23 +212,24 @@ namespace merutilm::rff2 {
                                                                  pulledMPACompressor, longestPeriod + 1);
         const uint64_t bufferSize = levels * sizeof(PAB) * std::min(lastCompIndex, skippableIterationsCount) +
                                     lastCompIndex * sizeof(std::pmr::vector<PAB>);
-        tableRef.reinit(lastCompIndex, bufferSize, table);
+        tableManager.emplace(bufferSize, lastCompIndex);
     }
 
-    template<typename Ref, typename Num>
-    template<typename PAB, typename PAG>
-        requires std::is_base_of_v<PA, PAB> && std::is_base_of_v<PAGenerator, PAG>
-    bool MPATable<Ref, Num>::tryJumpTableGeneration(std::pmr::vector<std::pmr::vector<PAB>> &table,
-                                                    const Ref &reference, double epsilon, const Num &dcMax,
-                                                    std::vector<uint64_t> &periodCount,
-                                                    std::vector<std::optional<PAG>> &currentPA,
-                                                    const uint64_t pulledTableIndex,
-                                                    uint64_t *const currentIteration) {
+    template<typename Ref, typename Num, typename PAB>
+        requires std::is_base_of_v<PA, PAB>
+    template<typename PAG>
+        requires std::is_base_of_v<PAGenerator, PAG>
+    bool MPATable<Ref, Num, PAB>::tryJumpTableGeneration(const Ref &reference, double epsilon, const Num &dcMax,
+                                                         std::vector<uint64_t> &periodCount,
+                                                         std::vector<std::optional<PAG>> &currentPA,
+                                                         const uint64_t pulledTableIndex,
+                                                         uint64_t *const currentIteration) {
 
         const ArrayCompressionTool *containedTool = ArrayCompressor::find(pulledMPACompressor, pulledTableIndex + 1);
         if (containedTool == nullptr || containedTool->start != pulledTableIndex + 1) {
             return false;
         }
+        auto &table = *tableManager->mpaTable;
         const auto &tablePeriod = mpaPeriod->tablePeriod;
         const uint64_t levels = tablePeriod.size();
         const std::pmr::vector<PAB> &mainReferenceMPA = table[0];
@@ -242,7 +240,7 @@ namespace merutilm::rff2 {
         const uint64_t compTableIndex = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod,
                                                                   pulledMPACompressor, *currentIteration);
 
-        allocateWithCheckTableSize<PAB>(table, compTableIndex, levels);
+        allocateWithCheckTableSize(compTableIndex, levels);
         auto &pa = table[compTableIndex];
 
         const PAB &mainReferencePA = mainReferenceMPA[level];
@@ -250,15 +248,14 @@ namespace merutilm::rff2 {
 
         for (uint64_t i = level + 1; i < levels; ++i) {
             if (i <= level && periodCount[i] != 0) {
-                vkh::logger::w_log(
-                        L"WARNING : Failed to compress!! \n what : the table period count {} is not zero.",
-                        periodCount[i]);
+                vkh::logger::w_log(L"WARNING : Failed to compress!! \n what : the table period count {} is not zero.",
+                                   periodCount[i]);
                 return false;
             }
             if (periodCount[i] + skip > tablePeriod[i] - REQUIRED_PERTURBATION) {
                 vkh::logger::w_log(L"WARNING : Failed to compress!! \n what : the table period count {} + "
-                                       L"skip {} exceeds its period {}.",
-                                       periodCount[i], skip, tablePeriod[i]);
+                                   L"skip {} exceeds its period {}.",
+                                   periodCount[i], skip, tablePeriod[i]);
                 return false;
             }
         }
@@ -289,18 +286,19 @@ namespace merutilm::rff2 {
     }
 
 
-    template<typename Ref, typename Num>
-    template<typename PAB, typename PAG>
-        requires std::is_base_of_v<PA, PAB> && std::is_base_of_v<PAGenerator, PAG>
-    void MPATable<Ref, Num>::stepOnce(std::pmr::vector<std::pmr::vector<PAB>> &table, const Ref &reference,
-                                      double epsilon, const Num &dcMax, std::vector<uint64_t> &periodCount,
-                                      std::vector<std::optional<PAG>> &currentPA, const uint64_t pulledTableIndex,
-                                      uint64_t *const currentIteration,
-                                      const bool jumped) {
+    template<typename Ref, typename Num, typename PAB>
+        requires std::is_base_of_v<PA, PAB>
+    template<typename PAG>
+        requires std::is_base_of_v<PAGenerator, PAG>
+    void MPATable<Ref, Num, PAB>::stepOnce(const Ref &reference, double epsilon, const Num &dcMax,
+                                           std::vector<uint64_t> &periodCount,
+                                           std::vector<std::optional<PAG>> &currentPA, const uint64_t pulledTableIndex,
+                                           uint64_t *const currentIteration, const bool jumped) {
 
         bool resetLowerLevel = false;
         const bool independent = ArrayCompressor::isIndependent(pulledMPACompressor, pulledTableIndex);
 
+        auto &table = *tableManager->mpaTable;
         const auto &tablePeriod = mpaPeriod->tablePeriod;
         const uint64_t levels = tablePeriod.size();
 
@@ -319,7 +317,8 @@ namespace merutilm::rff2 {
             ++periodCount[level];
 
             if (periodCount[level] == tablePeriod[level]) {
-                if (currentLevel != std::nullopt && currentLevel->getSkip() == tablePeriod[level] - REQUIRED_PERTURBATION) {
+                if (currentLevel != std::nullopt &&
+                    currentLevel->getSkip() == tablePeriod[level] - REQUIRED_PERTURBATION) {
                     const uint64_t compTableIndex =
                             iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
                                                       currentLevel->getStart());
@@ -327,18 +326,20 @@ namespace merutilm::rff2 {
 
                     if (compTableIndex == UINT64_MAX) {
                         vkh::logger::w_log(L"FATAL : FAILED TO CREATING TABLE!!\n what : iteration {} is not "
-                                               L"pullable. aborting the table creation...",
-                                               currentLevel->getStart());
+                                           L"pullable. aborting the table creation...",
+                                           currentLevel->getStart());
                         return;
                     }
 
-                    allocateWithCheckTableSize<PAB>(table, compTableIndex, levels);
+                    allocateWithCheckTableSize(compTableIndex, levels);
                     auto &pa = table[compTableIndex];
 
                     if (pa.empty() || pa.back().skip < currentLevel->getSkip())
                         pa.push_back(currentLevel->build());
                     else {
-                        vkh::logger::w_log(L"WARNING : The insertion of pa generated from compressed index {} is not allowed. It might be a bug!", compTableIndex);
+                        vkh::logger::w_log(L"WARNING : The insertion of pa generated from compressed index {} is not "
+                                           L"allowed. It might be a bug!",
+                                           compTableIndex);
                     }
                 }
                 // Stop all lower level iteration for efficiency
@@ -354,11 +355,12 @@ namespace merutilm::rff2 {
     }
 
 
-    template<typename Ref, typename Num>
-    template<typename PAB, typename PAG>
-        requires std::is_base_of_v<PA, PAB> && std::is_base_of_v<PAGenerator, PAG>
-    void MPATable<Ref, Num>::generateTable(const ParallelRenderState &state, const Ref &reference, Num dcMax,
-                                           std::unique_ptr<std::pmr::vector<std::pmr::vector<PAB>>> &table,
+    template<typename Ref, typename Num, typename PAB>
+        requires std::is_base_of_v<PA, PAB>
+    template<typename PAG>
+        requires std::is_base_of_v<PAGenerator, PAG>
+    void
+    MPATable<Ref, Num, PAB>::generateTable(const ParallelRenderState &state, const Ref &reference, Num dcMax,
                                            std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) {
 
 
@@ -370,7 +372,7 @@ namespace merutilm::rff2 {
             return;
 
         const size_t levels = tablePeriod.size();
-        fitBufferSize(table);
+        fitBufferSize();
 
         const auto func = std::move(actionPerCreatingTableIteration);
         const double epsilon = pow(10, epsilonPower);
@@ -387,20 +389,22 @@ namespace merutilm::rff2 {
             const uint64_t pulledTableIndex = iterationToPulledTableIndex(*mpaPeriod, iteration);
             bool jumped = false;
 
-            if (tryJumpTableGeneration(*table, reference, epsilon, dcMax, periodCount, currentPA, pulledTableIndex, &iteration)) {
+            if (tryJumpTableGeneration(reference, epsilon, dcMax, periodCount, currentPA, pulledTableIndex,
+                                       &iteration)) {
                 jumped = true;
             }
 
-            stepOnce(*table, reference, epsilon, dcMax, periodCount, currentPA, pulledTableIndex,
-                     &iteration, jumped);
+            stepOnce(reference, epsilon, dcMax, periodCount, currentPA, pulledTableIndex, &iteration, jumped);
 
             ++iteration;
             ++absIteration;
         }
     }
 
-    template<typename Ref, typename Num>
-    uint64_t MPATable<Ref, Num>::iterationToPulledTableIndex(const MPAPeriod &mpaPeriod, const uint64_t iteration) {
+    template<typename Ref, typename Num, typename PAB>
+        requires std::is_base_of_v<PA, PAB>
+    uint64_t MPATable<Ref, Num, PAB>::iterationToPulledTableIndex(const MPAPeriod &mpaPeriod,
+                                                                  const uint64_t iteration) {
         //
         // get index <=> Inverse calculation of index compression
         // First approach : check the remainder == 1
@@ -461,11 +465,11 @@ namespace merutilm::rff2 {
     }
 
 
-    template<typename Ref, typename Num>
-    uint64_t MPATable<Ref, Num>::iterationToCompTableIndex(const FrtMPACompressionMethod &mpaCompressionMethod,
-                                                           const MPAPeriod &mpaPeriod,
-                                                           const std::vector<ArrayCompressionTool> &pulledMPACompressor,
-                                                           const uint64_t iteration) {
+    template<typename Ref, typename Num, typename PAB>
+        requires std::is_base_of_v<PA, PAB>
+    uint64_t MPATable<Ref, Num, PAB>::iterationToCompTableIndex(
+            const FrtMPACompressionMethod &mpaCompressionMethod, const MPAPeriod &mpaPeriod,
+            const std::vector<ArrayCompressionTool> &pulledMPACompressor, const uint64_t iteration) {
         switch (mpaCompressionMethod) {
             using enum FrtMPACompressionMethod;
             case NO_COMPRESSION:
@@ -481,10 +485,11 @@ namespace merutilm::rff2 {
         }
     }
 
-    template<typename Ref, typename Num>
-    template<typename PAB>
-    void MPATable<Ref, Num>::allocateWithCheckTableSize(std::pmr::vector<std::pmr::vector<PAB>> &table,
-                                                        const uint64_t index, const uint64_t levels) {
+
+    template<typename Ref, typename Num, typename PAB>
+        requires std::is_base_of_v<PA, PAB>
+    void MPATable<Ref, Num, PAB>::allocateWithCheckTableSize(const uint64_t index, const uint64_t levels) {
+        auto &table = *tableManager->mpaTable;
         if (table.size() <= index) {
             throw vkh::exception_init("index out of range");
         }

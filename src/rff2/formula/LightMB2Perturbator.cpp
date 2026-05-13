@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
 
     LightMB2Perturbator::LightMB2Perturbator(
             ParallelRenderState &state, const FractalSettings &calc, const double dcMax, const int exp10,
-            const uint64_t refInitialCapacity, const uint64_t fixedPeriod, ApproxTableManager &tableRef,
+            const uint64_t refInitialCapacity, const uint64_t fixedPeriod,
             std::function<void(uint64_t)> &&actionPerRefCalcIteration,
             std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration, const bool arbitraryPrecisionFPGBn,
             std::unique_ptr<LightMB2Reference> reusedReference, std::unique_ptr<LightMPATable> reusedTable,
@@ -37,7 +37,7 @@ namespace merutilm::rff2 {
         }
 
         if (reusedTable == nullptr) {
-            table = std::make_unique<LightMPATable>(state, *reference, &calc.mpaSettings, dcMax, tableRef,
+            table = std::make_unique<LightMPATable>(state, *reference, &calc.mpaSettings, dcMax,
                                                     std::move(actionPerCreatingTableIteration));
         } else {
             table = std::move(reusedTable);
@@ -153,7 +153,7 @@ namespace merutilm::rff2 {
 
 
     std::unique_ptr<LightMB2Perturbator>
-    LightMB2Perturbator::reuse(const FractalSettings &calc, const double dcMax, ApproxTableManager &tableRef) {
+    LightMB2Perturbator::reuse(const FractalSettings &calc, const double dcMax) {
 
         const int exp10 = logZoomToExp10(calc.logZoom);
         double offR = 0;
@@ -179,7 +179,7 @@ namespace merutilm::rff2 {
 
 
         return std::make_unique<LightMB2Perturbator>(
-                state, calc, dcMax, exp10, 0, longestPeriod, tableRef,
+                state, calc, dcMax, exp10, 0, longestPeriod,
                 [](uint64_t) {
                     // no action because the reference is already declared
                 },

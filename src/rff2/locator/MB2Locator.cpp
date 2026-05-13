@@ -5,7 +5,6 @@
 #include "MB2Locator.h"
 
 #include "../calc/dex_exp.h"
-#include "../data/ApproxTableManager.h"
 #include "../formula/DeepMB2Perturbator.h"
 #include "../formula/Perturbator.h"
 
@@ -40,7 +39,6 @@ namespace merutilm::rff2 {
 
     std::unique_ptr<MB2Locator> MB2Locator::locateMinibrot(ParallelRenderState &state,
                                                                          const MB2Perturbator *perturbator,
-                                                                         ApproxTableManager &approxTableCache,
                                                                          const std::function<void(uint64_t, int)> &
                                                                          actionWhileFindingMinibrotCenter,
                                                                          const std::function<void (uint64_t, float)> &
@@ -57,7 +55,7 @@ namespace merutilm::rff2 {
 
 
         std::unique_ptr<MB2Perturbator> result = findAccurateCenterPerturbator(
-            state, perturbator, approxTableCache, actionWhileFindingMinibrotCenter, actionWhileCreatingTable);
+            state, perturbator, actionWhileFindingMinibrotCenter, actionWhileCreatingTable);
 
         if (result == nullptr) {
             return nullptr;
@@ -85,10 +83,10 @@ namespace merutilm::rff2 {
             actionWhileFindingMinibrotZoom(resultZoom);
             resultCalc.logZoom = resultZoom;
             if (const auto v = dynamic_cast<LightMB2Perturbator *>(result.get())) {
-                result = v->reuse(resultCalc, static_cast<double>(resultDcMax), approxTableCache);
+                result = v->reuse(resultCalc, static_cast<double>(resultDcMax));
             }
             if (const auto v = dynamic_cast<DeepMB2Perturbator *>(result.get())) {
-                result = v->reuse(resultCalc, resultDcMax, approxTableCache);
+                result = v->reuse(resultCalc, resultDcMax);
             }
             zoomIncrement /= 2;
         }
@@ -101,14 +99,12 @@ namespace merutilm::rff2 {
      * Use the return value instead of this.
      * @param state the state
      * @param perturbator the perturbator to move
-     * @param approxTableCache the cache of table
      * @param actionWhileFindingMinibrotCenter action 1
      * @param actionWhileCreatingTable action 2
      * @return result table
      */
     std::unique_ptr<MB2Perturbator> MB2Locator::findAccurateCenterPerturbator(ParallelRenderState &state,
         const MB2Perturbator *perturbator,
-        ApproxTableManager &approxTableCache,
         const std::function<void(uint64_t, int)> &
         actionWhileFindingMinibrotCenter,
         const std::function<void(uint64_t, float)> &
@@ -157,14 +153,12 @@ namespace merutilm::rff2 {
                 doubledZoomPerturbator = std::make_unique<LightMB2Perturbator>(
                     state, doubledZoomCalc, static_cast<double>(doubledZoomDcMax),
                     Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
-                    approxTableCache,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileCreatingTable, true);
             } else {
                 doubledZoomPerturbator = std::make_unique<DeepMB2Perturbator>(
                     state, doubledZoomCalc, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
-                    approxTableCache,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileCreatingTable, true);
@@ -179,9 +173,12 @@ namespace merutilm::rff2 {
                                                   const uint64_t maxIteration) {
         FractalSettings fs = perturbator.calc;
         fs.maxIteration = maxIteration;
-        return perturbator.iterate(fs, perturbator.getDcMaxAsDoubleExp(),
+        fs.absoluteIterationMode = false;
+        fs.decimalizeIterationMethod = FrtDecimalizeIterationMethod::NONE;
+        const auto it = static_cast<uint64_t>(perturbator.iterate(fs, perturbator.getDcMaxAsDoubleExp(),
                                    perturbator.getDcMaxAsDoubleExp() /
-                                           dex(Constants::Fractal::INTENTIONAL_ERROR_DCLMB)) == static_cast<
-                   double>(maxIteration);
+                                           dex(Constants::Fractal::INTENTIONAL_ERROR_DCLMB)));
+
+        return it == maxIteration;
     }
 }

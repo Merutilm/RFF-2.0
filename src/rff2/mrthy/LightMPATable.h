@@ -12,14 +12,14 @@
 #include "MPATable.h"
 
 namespace merutilm::rff2 {
-    class LightMPATable final : public MPATable<LightMB2Reference, double>{
+    class LightMPATable final : public MPATable<LightMB2Reference, double, LightPA>{
 
     public:
 
 
         explicit LightMPATable(const ParallelRenderState &state, const LightMB2Reference &reference,
-                      const FrtMPASettings *mpaSettings, const double dcMax, ApproxTableManager &tableRef,
-                      std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, tableRef, std::move(actionPerCreatingTableIteration)) {
+                      const FrtMPASettings *mpaSettings, const double dcMax,
+                      std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, std::move(actionPerCreatingTableIteration)) {
 
         };
 
@@ -53,11 +53,11 @@ namespace merutilm::rff2 {
         const uint64_t index = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
                                                          refIteration);
 
-        if (index >= tableRef.mpaLightTable->size()) {
+        if (index >= tableManager->mpaTable->size()) {
             return nullptr;
         }
 
-        std::pmr::vector<LightPA> &table = (*tableRef.mpaLightTable)[index];
+        std::pmr::vector<LightPA> &table = (*tableManager->mpaTable)[index];
         if (table.empty()) {
             return nullptr;
         }
@@ -98,6 +98,6 @@ namespace merutilm::rff2 {
     }
 
     inline size_t LightMPATable::getLength() {
-        return tableRef.mpaLightTable ? tableRef.mpaLightTable->size() : 0;
+        return tableManager && tableManager->mpaTable ? tableManager->mpaTable->size() : 0;
     }
 }

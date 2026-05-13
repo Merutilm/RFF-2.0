@@ -99,11 +99,11 @@ target_link_libraries(RFF PRIVATE
         # Win32 Linker
         comctl32
         # OpenCV Linkers
-        ${CLANG64_LIBS}/opencv_core.dll.a
-        ${CLANG64_LIBS}/opencv_imgcodecs.dll.a
-        ${CLANG64_LIBS}/opencv_imgproc.dll.a
-        ${CLANG64_LIBS}/opencv_videoio.dll.a
-        ${CLANG64_LIBS}/opencv_highgui.dll.a
+        ${CLANG64_LIBS}/libopencv_core.dll.a
+        ${CLANG64_LIBS}/libopencv_imgcodecs.dll.a
+        ${CLANG64_LIBS}/libopencv_imgproc.dll.a
+        ${CLANG64_LIBS}/libopencv_videoio.dll.a
+        ${CLANG64_LIBS}/libopencv_highgui.dll.a
         # Vulkan Helper
         vulkan_helper
 )

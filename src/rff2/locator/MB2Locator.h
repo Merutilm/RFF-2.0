@@ -20,7 +20,6 @@ namespace merutilm::rff2 {
 
         static std::unique_ptr<MB2Locator> locateMinibrot(ParallelRenderState &state,
                                                                  const MB2Perturbator *perturbator,
-                                                                 ApproxTableManager &approxTableCache,
                                                                  const std::function<void(uint64_t, int)> &
                                                                  actionWhileFindingMinibrotCenter,
                                                                  const std::function<void(uint64_t, float)> &actionWhileCreatingTable,
@@ -29,7 +28,6 @@ namespace merutilm::rff2 {
     private:
         static std::unique_ptr<MB2Perturbator> findAccurateCenterPerturbator(ParallelRenderState &state,
             const MB2Perturbator *perturbator,
-            ApproxTableManager &approxTableCache,
             const std::function<void(uint64_t, int)> &
             actionWhileFindingMinibrotCenter, const std::function<void(uint64_t, float)> &
             actionWhileCreatingTable);

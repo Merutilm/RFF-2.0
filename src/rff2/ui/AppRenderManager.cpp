@@ -505,22 +505,22 @@ namespace merutilm::rff2 {
         if (state.interruptRequested())
             return false;
 
+
         switch (calc.reuseReferenceMethod) {
             using enum FrtReuseReferenceMethod;
             case CURRENT_REFERENCE: {
                 if (auto p = dynamic_cast<DeepMB2Perturbator *>(currentPerturbator.get())) {
-                    currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxAsDoubleExp(), approxTableCache);
+                    currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxAsDoubleExp());
                 }
                 if (auto p = dynamic_cast<LightMB2Perturbator *>(currentPerturbator.get())) {
-                    currentPerturbator = p->reuse(calc, static_cast<double>(currentPerturbator->getDcMaxAsDoubleExp()),
-                                                  approxTableCache);
+                    currentPerturbator = p->reuse(calc, static_cast<double>(currentPerturbator->getDcMaxAsDoubleExp()));
                 }
                 break;
             }
             case CENTERED_REFERENCE: {
                 uint64_t period = currentPerturbator->getReference()->longestPeriod();
                 const auto center = MB2Locator::locateMinibrot(
-                        state, currentPerturbator.get(), approxTableCache,
+                        state, currentPerturbator.get(),
                         CallbackExplore::getActionWhileFindingMBCenter(*this, logZoom, period),
                         CallbackExplore::getActionWhileCreatingTable(*this, logZoom),
                         CallbackExplore::getActionWhileFindingZoom(*this));
@@ -536,16 +536,16 @@ namespace merutilm::rff2 {
                     currentPerturbator =
                             std::make_unique<DeepMB2Perturbator>(
                                     state, refCalc, center->perturbator->getDcMaxAsDoubleExp(), refExp10, capacity,
-                                    period, approxTableCache, std::move(actionPerRefCalcIteration),
+                                    period, std::move(actionPerRefCalcIteration),
                                     std::move(actionPerCreatingTableIteration))
-                                    ->reuse(calc, dcMax, approxTableCache);
+                                    ->reuse(calc, dcMax);
                 } else {
                     currentPerturbator =
                             std::make_unique<LightMB2Perturbator>(
                                     state, refCalc, static_cast<double>(center->perturbator->getDcMaxAsDoubleExp()),
-                                    refExp10, capacity, period, approxTableCache, std::move(actionPerRefCalcIteration),
+                                    refExp10, capacity, period, std::move(actionPerRefCalcIteration),
                                     std::move(actionPerCreatingTableIteration))
-                                    ->reuse(calc, static_cast<double>(dcMax), approxTableCache);
+                                    ->reuse(calc, static_cast<double>(dcMax));
                 }
                 break;
             }
@@ -553,11 +553,11 @@ namespace merutilm::rff2 {
                 int exp10 = Perturbator::logZoomToExp10(logZoom);
                 if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
                     currentPerturbator = std::make_unique<DeepMB2Perturbator>(
-                            state, calc, dcMax, exp10, capacity, 0, approxTableCache,
+                            state, calc, dcMax, exp10, capacity, 0,
                             std::move(actionPerRefCalcIteration), std::move(actionPerCreatingTableIteration));
                 } else {
                     currentPerturbator = std::make_unique<LightMB2Perturbator>(
-                            state, calc, static_cast<double>(dcMax), exp10, capacity, 0, approxTableCache,
+                            state, calc, static_cast<double>(dcMax), exp10, capacity, 0,
                             std::move(actionPerRefCalcIteration), std::move(actionPerCreatingTableIteration));
                 }
                 break;

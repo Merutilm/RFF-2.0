@@ -61,7 +61,6 @@ namespace merutilm::rff2 {
 
             arm.getState().createThread(
                     [&arm, logZoom = settings.fractal.logZoom, perturbator, &settings](const std::stop_token &) {
-                        ApproxTableManager &approxTableCache = arm.getApproxTableCache();
                         const auto ref = perturbator->getReference();
 
                         if (ref == nullptr) {
@@ -73,7 +72,7 @@ namespace merutilm::rff2 {
                         const uint64_t longestPeriod = ref->longestPeriod();
 
                         const std::unique_ptr<MB2Locator> locator = MB2Locator::locateMinibrot(
-                                arm.getState(), perturbator, approxTableCache,
+                                arm.getState(), perturbator,
                                 getActionWhileFindingMBCenter(arm, logZoom, longestPeriod),
                                 getActionWhileCreatingTable(arm, logZoom), getActionWhileFindingZoom(arm));
 
