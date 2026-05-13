@@ -138,7 +138,7 @@ namespace merutilm::rff2 {
 
         void beforeIterationFill() const;
 
-        bool recomputePerturbator(const std::chrono::time_point<std::chrono::high_resolution_clock> &start,
+        bool prepareRenderData(const std::chrono::time_point<std::chrono::high_resolution_clock> &start,
                               const Settings &settings);
         bool fillIteration(const std::chrono::time_point<std::chrono::high_resolution_clock> &start,
                                  const Settings &settings);

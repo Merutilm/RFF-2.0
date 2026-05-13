@@ -458,7 +458,7 @@ namespace merutilm::rff2 {
         state.createThread([this](const std::stop_token &) {
             const Settings settings = this->settings; // clone the settings
             const auto start = std::chrono::high_resolution_clock::now();
-            bool success = recomputePerturbator(start, settings);
+            bool success = prepareRenderData(start, settings);
 
             if (success) {
                 beforeIterationFill();
@@ -469,10 +469,10 @@ namespace merutilm::rff2 {
     }
 
     void AppRenderManager::beforeIterationFill() const {
-        renderer->rendererIteration->setMaxIteration(static_cast<double>(renderData->fractalSettings.perturb.maxIteration));
+        renderer->rendererIteration->setMaxIteration(static_cast<double>(renderData->getPerturbator()->ptbSettings.maxIteration));
     }
 
-    bool AppRenderManager::recomputePerturbator(const std::chrono::time_point<std::chrono::high_resolution_clock> &start, const Settings &settings) {
+    bool AppRenderManager::prepareRenderData(const std::chrono::time_point<std::chrono::high_resolution_clock> &start, const Settings &settings) {
 
         if (state.interruptRequested())
             return false;
@@ -518,11 +518,22 @@ namespace merutilm::rff2 {
         switch (frt.reference.reuse) {
             using enum FrtReferenceReuseMethod;
             case CURRENT_REFERENCE: {
-                renderData->translate(frt.general.logZoom, renderData->getPerturbator()->dcMax, frt.perturb.maxIteration,
+                if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
+                    MessageBox(nullptr, "Do not reuse Reference during reference calculation!!!", "Error",
+                               MB_ICONERROR | MB_OK);
+                    return false;
+                }
+                renderData->translate(frt.general.logZoom, renderData->getPerturbator()->dcMax, frt.perturb,
                                       frt.reference.center);
                 break;
             }
             case CENTERED_REFERENCE: {
+
+                if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
+                    MessageBox(nullptr, "Do not reuse Reference during reference calculation!!!", "Error", MB_ICONERROR | MB_OK);
+                    return false;
+                }
+
                 uint64_t period = renderData->getReference()->longestPeriod();
                 const auto center = MB2Locator::locateMinibrot(
                         state, renderData.get(), CallbackExplore::getActionWhileFindingMBCenter(*this, logZoom, period),
@@ -547,7 +558,7 @@ namespace merutilm::rff2 {
                                     period, std::move(actionPerRefCalcIteration),
                                     std::move(actionPerCreatingTableIteration), false);
                 }
-                renderData->translate(frt.general.logZoom, dcMax, frt.perturb.maxIteration, frt.reference.center);
+                renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center);
                 break;
             }
             case DISABLED: {

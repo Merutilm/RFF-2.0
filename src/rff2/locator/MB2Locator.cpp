@@ -82,7 +82,7 @@ namespace merutilm::rff2 {
 
             actionWhileFindingMinibrotZoom(resultZoom);
             logZoom = resultZoom;
-            result->translate(logZoom, resultDcMax, result->fractalSettings.perturb.maxIteration, result->fractalSettings.reference.center);
+            result->translate(logZoom, resultDcMax, result->fractalSettings.perturb, result->fractalSettings.reference.center);
             zoomIncrement /= 2;
         }
 

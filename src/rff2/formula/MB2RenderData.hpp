@@ -43,7 +43,7 @@ namespace merutilm::rff2 {
         [[nodiscard]] virtual MB2Reference *getReference() const = 0;
         [[nodiscard]] virtual MB2Perturbator *getPerturbator() const = 0;
 
-        virtual void translate(float logZoom, dex dcMax, uint64_t maxIteration,
+        virtual void translate(float logZoom, dex dcMax, FrtPerturbSettings ptbSettings,
                                const fixed_point_complex_i1 &newCenter) = 0;
 
         static int logZoomToExp10(const float logZoom) {
@@ -74,8 +74,10 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] MB2Perturbator *getPerturbator() const override { return perturbator.get(); }
 
-        void translate(float logZoom, dex dcMax, uint64_t maxIteration,
+        void translate(float logZoom, dex dcMax, FrtPerturbSettings ptbSettings,
                        const fixed_point_complex_i1 &newCenter) override;
+
+        void applyAutoMaxIteration(FrtPerturbSettings &ptbSettings);
     };
 
     template<typename T>
@@ -94,11 +96,7 @@ namespace merutilm::rff2 {
             return;
         }
 
-        if (fractalSettings.perturb.autoMaxIteration) {
-            fractalSettings.perturb.maxIteration =
-                    reference->longestPeriod() * fractalSettings.perturb.autoIterationMultiplier;
-        }
-
+        applyAutoMaxIteration(fractalSettings.perturb);
         table = std::make_unique<typename MB2Types<T>::Table>(state, *reference, &fractalSettings.mpa, dcMax,
                                                      std::move(actionPerCreatingTableIteration));
         perturbator = std::make_unique<typename MB2Types<T>::Perturbator>(state, dcMax, fractalSettings.general, fractalSettings.perturb, *reference, table.get());
@@ -114,7 +112,8 @@ namespace merutilm::rff2 {
     }
 
     template<typename T>
-    void MB2RenderData<T>::translate(const float logZoom, const dex dcMax, const uint64_t maxIteration, const fixed_point_complex_i1 &newCenter) {
+    void MB2RenderData<T>::translate(const float logZoom, const dex dcMax, const FrtPerturbSettings ptbSettings,
+                                     const fixed_point_complex_i1 &newCenter) {
         if (lastCreationResult != Reference::CreationResult::SUCCESS) {
             // try to use incomplete reference
             MessageBox(nullptr, "Please do not try to use incomplete Reference.", "Warning", MB_OK | MB_ICONWARNING);
@@ -127,8 +126,17 @@ namespace merutilm::rff2 {
             perturbator->offR = center.get_real().dex_value();
             perturbator->offI = center.get_imag().dex_value();
             perturbator->dcMax = dcMax;
-            perturbator->ptbSettings.maxIteration = maxIteration;
+
+            perturbator->ptbSettings = std::move(ptbSettings);
+            applyAutoMaxIteration(perturbator->ptbSettings);
+
             perturbator->generalSettings.logZoom = logZoom;
+        }
+    }
+    template<typename T>
+    void MB2RenderData<T>::applyAutoMaxIteration(FrtPerturbSettings &ptbSettings) {
+        if (ptbSettings.autoMaxIteration) {
+            ptbSettings.maxIteration = std::max(ptbSettings.maxIteration, reference->longestPeriod() * ptbSettings.autoIterationMultiplier);
         }
     }
 
