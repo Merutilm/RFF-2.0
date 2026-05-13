@@ -459,8 +459,11 @@ namespace merutilm::rff2 {
             const Settings settings = this->settings; // clone the settings
             const auto start = std::chrono::high_resolution_clock::now();
             bool success = recomputePerturbator(start, settings);
-            beforeIterationFill();
-            if (success) success = fillIteration(start, settings);
+
+            if (success) {
+                beforeIterationFill();
+                success = fillIteration(start, settings);
+            }
             afterCompute(success);
         });
     }
@@ -485,11 +488,11 @@ namespace merutilm::rff2 {
                          std::format(L"Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
         const std::array<dex, 2> offset = offsetConversion(settings, 0, 0);
-        dex dcMax = dex_trig::hypot_approx(offset[0], offset[1]);
+        const dex dcMax = dex_trig::hypot_approx(offset[0], offset[1]);
 
         uint64_t capacity = renderData && renderData->getReference()
                                     ? renderData->getReference()->length()
-                                    : lastLength;
+                                    : 0;
 
 
         const auto refreshInterval = Utilities::getRefreshInterval(logZoom);
@@ -515,7 +518,8 @@ namespace merutilm::rff2 {
         switch (frt.reference.reuse) {
             using enum FrtReferenceReuseMethod;
             case CURRENT_REFERENCE: {
-                renderData->translate(frt.general.logZoom, renderData->getPerturbator()->dcMax, frt.reference.center);
+                renderData->translate(frt.general.logZoom, renderData->getPerturbator()->dcMax, frt.perturb.maxIteration,
+                                      frt.reference.center);
                 break;
             }
             case CENTERED_REFERENCE: {
@@ -543,7 +547,7 @@ namespace merutilm::rff2 {
                                     period, std::move(actionPerRefCalcIteration),
                                     std::move(actionPerCreatingTableIteration), false);
                 }
-                renderData->translate(frt.general.logZoom, dcMax, frt.reference.center);
+                renderData->translate(frt.general.logZoom, dcMax, frt.perturb.maxIteration, frt.reference.center);
                 break;
             }
             case DISABLED: {
@@ -568,9 +572,6 @@ namespace merutilm::rff2 {
         if (!reference || state.interruptRequested())
             return false;
 
-        lastLogZoom = frt.general.logZoom;
-        lastMaxIteration = frt.perturb.maxIteration;
-        lastPeriod = reference->longestPeriod();
         size_t refLength = reference->length();
         size_t mpaLen;
         if (const auto t = dynamic_cast<MB2RenderData<LightPA> *>(renderData.get())) {
@@ -581,7 +582,7 @@ namespace merutilm::rff2 {
         }
 
         setStatusMessage(Constants::Status::PERIOD_STATUS,
-                         std::format(L"P : {:L} ({:L}, {:L})", lastPeriod, refLength, mpaLen));
+                         std::format(L"P : {:L} ({:L}, {:L})", reference->longestPeriod(), refLength, mpaLen));
         if (state.interruptRequested())
             return false;
 

@@ -115,6 +115,8 @@ namespace merutilm::rff2 {
 
         void set_exp10(int dec_exp10, int int_exp10);
 
+        bool is_strict_zero() const;
+
         std::string to_string();
     };
 
@@ -369,6 +371,9 @@ namespace merutilm::rff2 {
         for (auto &temp: temps) {
             temp.set_exp10(dec_exp10, int_exp10);
         }
+    }
+    inline bool fixed_point_complex::is_strict_zero() const {
+        return real.is_strict_zero() && imag.is_strict_zero();
     }
 
 

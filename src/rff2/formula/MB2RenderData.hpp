@@ -43,14 +43,13 @@ namespace merutilm::rff2 {
         [[nodiscard]] virtual MB2Reference *getReference() const = 0;
         [[nodiscard]] virtual MB2Perturbator *getPerturbator() const = 0;
 
-        virtual void translate(float logZoom, dex dcMax, const fixed_point_complex_i1 &newCenter);
+        virtual void translate(float logZoom, dex dcMax, uint64_t maxIteration,
+                               const fixed_point_complex_i1 &newCenter) = 0;
 
         static int logZoomToExp10(const float logZoom) {
             return -static_cast<int>(logZoom) - Constants::Fractal::EXP10_ADDITION;
         }
     };
-    inline void MB2RenderDataBase::translate(const float logZoom, const dex dcMax,
-                                             const fixed_point_complex_i1 &newCenter) {}
 
     template<typename T>
     struct MB2RenderData final : MB2RenderDataBase {
@@ -75,7 +74,8 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] MB2Perturbator *getPerturbator() const override { return perturbator.get(); }
 
-        void translate(float logZoom, dex dcMax, const fixed_point_complex_i1 &newCenter) override;
+        void translate(float logZoom, dex dcMax, uint64_t maxIteration,
+                       const fixed_point_complex_i1 &newCenter) override;
     };
 
     template<typename T>
@@ -89,6 +89,8 @@ namespace merutilm::rff2 {
                 arbitraryPrecisionFPGBn, std::move(actionPerRefCalcIteration), &reference);
 
         if (this->lastCreationResult != Reference::CreationResult::SUCCESS) {
+            table = nullptr;
+            perturbator = nullptr;
             return;
         }
 
@@ -112,7 +114,7 @@ namespace merutilm::rff2 {
     }
 
     template<typename T>
-    void MB2RenderData<T>::translate(const float logZoom, const dex dcMax, const fixed_point_complex_i1 &newCenter) {
+    void MB2RenderData<T>::translate(const float logZoom, const dex dcMax, const uint64_t maxIteration, const fixed_point_complex_i1 &newCenter) {
         if (lastCreationResult != Reference::CreationResult::SUCCESS) {
             // try to use incomplete reference
             MessageBox(nullptr, "Please do not try to use incomplete Reference.", "Warning", MB_OK | MB_ICONWARNING);
@@ -125,6 +127,7 @@ namespace merutilm::rff2 {
             perturbator->offR = center.get_real().dex_value();
             perturbator->offI = center.get_imag().dex_value();
             perturbator->dcMax = dcMax;
+            perturbator->ptbSettings.maxIteration = maxIteration;
             perturbator->generalSettings.logZoom = logZoom;
         }
     }

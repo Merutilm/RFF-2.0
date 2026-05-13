@@ -60,6 +60,7 @@ namespace merutilm::rff2 {
             GetWindowRect(statusBar, &statusRect);
             statusHeight = statusRect.bottom - statusRect.top;
             wc->getWindow()->initializerSettings.paddings.bottom = statusHeight;
+            getNativeWindow().setRenderWindowSizeWithClientAdjustment(Constants::Win32::INIT_RENDER_SCENE_WIDTH,  Constants::Win32::INIT_RENDER_SCENE_HEIGHT);
         }
     }
 

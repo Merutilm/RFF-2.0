@@ -136,6 +136,8 @@ namespace merutilm::rff2 {
 
         dex dex_value();
 
+        bool is_strict_zero() const;
+
         std::string to_string();
 
         [[nodiscard]] mp_size_t limbs_read_count() const;
@@ -577,6 +579,9 @@ namespace merutilm::rff2 {
         const double mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
 
         return dex(sgn) * dex::mul_2exp(dex(mantissa), f_exp2);
+    }
+    inline bool fixed_point_decimal::is_strict_zero() const {
+        return mpn_zero_p(get_value_ptr(), limbs_read_count());
     }
 
 

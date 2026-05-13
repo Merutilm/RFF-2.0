@@ -63,8 +63,8 @@ namespace merutilm::rff2 {
         }
         dex resultDcMax = result->getPerturbator()->dcMax;
 
-        FrtGeneralSettings resultCalc = result->fractalSettings.general;
-        float resultZoom = resultCalc.logZoom;
+        auto &[bailout, logZoom] = result->fractalSettings.general;
+        float resultZoom = logZoom;
         float zoomIncrement = resultZoom / 4;
 
         while (zoomIncrement > ZOOM_INCREMENT_LIMIT) {
@@ -81,8 +81,8 @@ namespace merutilm::rff2 {
             }
 
             actionWhileFindingMinibrotZoom(resultZoom);
-            resultCalc.logZoom = resultZoom;
-            result->translate(resultCalc.logZoom, resultDcMax, result->fractalSettings.reference.center);
+            logZoom = resultZoom;
+            result->translate(logZoom, resultDcMax, result->fractalSettings.perturb.maxIteration, result->fractalSettings.reference.center);
             zoomIncrement /= 2;
         }
 
@@ -126,21 +126,25 @@ namespace merutilm::rff2 {
 
         std::unique_ptr<MB2RenderDataBase> doubledZoomData = nullptr;
 
-        while (doubledZoomData == nullptr || !checkMaxIterationOnly(*doubledZoomData)) {
+        while (doubledZoomData == nullptr || !doubledZoomData->getPerturbator() || !checkMaxIterationOnly(*doubledZoomData)) {
             if (state.interruptRequested()) {
                 return nullptr;
-                // try to save the vector
             }
 
             auto center = doubledZoomCalc.reference.center.create_variant(doubledExp10);
             auto centerOffset = findCenterOffset(doubledZoomData == nullptr ? *data : *doubledZoomData)->create_variant(doubledExp10);
 
-
             fixed_point_complex::add(center, center, centerOffset);
+
+            if (centerOffset.is_strict_zero()) {
+                MessageBox(nullptr, "No center found", "Error",
+                                       MB_OK | MB_ICONERROR);
+                return nullptr;
+            }
             doubledZoomCalc.reference.center = center;
             ++centerFixCount;
 
-            if (logZoom < Constants::Fractal::ZOOM_DEADLINE / 2) {
+            if (doubledLogZoom < Constants::Fractal::ZOOM_DEADLINE) {
                 doubledZoomData = std::make_unique<MB2RenderData<LightPA>>(
                     state, doubledZoomCalc, doubledZoomDcMax,
                     Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,

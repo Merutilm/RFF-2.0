@@ -29,11 +29,6 @@ namespace merutilm::rff2 {
         uint16_t interactedMX = 0;
         uint16_t interactedMY = 0;
 
-        uint64_t lastMaxIteration = 0;
-        float lastLogZoom = 0;
-        uint64_t lastPeriod = 1;
-        uint64_t lastLength = 1;
-
         RenderSceneRequests requests;
 
         std::atomic<bool> idleCompute = true;
@@ -179,7 +174,7 @@ namespace merutilm::rff2 {
         }
 
         [[nodiscard]] RFFDynamicMapBinary generateMap() const {
-            return {lastLogZoom, lastPeriod, lastMaxIteration, *iterationMatrix};
+            return {renderData->fractalSettings.general.logZoom, renderData->getReference()->longestPeriod(), renderData->fractalSettings.perturb.maxIteration, *iterationMatrix};
         }
 
         [[nodiscard]] RenderSceneRequests &getRequests() {
