@@ -32,14 +32,14 @@ namespace merutilm::rff2 {
     }
     std::function<void()> CallbackExplore::fnFindCenter(AppRenderManager &arm) {
         return [&arm] {
-            const MB2Perturbator *perturbator = arm.getCurrentPerturbator();
-            if (perturbator == nullptr || !perturbator->getReference())
+            const MB2RenderDataBase *data = arm.getCurrentRenderData();
+            if (data == nullptr || !data->getReference())
                 return;
 
-            if (const std::unique_ptr<fixed_point_complex_i1> c = MB2Locator::findCenter(perturbator); c == nullptr) {
+            if (const std::unique_ptr<fixed_point_complex_i1> c = MB2Locator::findCenter(*data); c == nullptr) {
                 MessageBox(nullptr, "No center found!", "Caution", MB_OK | MB_ICONWARNING);
             } else {
-                arm.getSettings().fractal.center = *c;
+                arm.getSettings().fractal.reference.center = *c;
                 arm.getRequests().requestRecompute();
             }
         };
@@ -48,20 +48,20 @@ namespace merutilm::rff2 {
         return [&arm] {
             Settings &settings = arm.getSettings();
 
-            if (settings.fractal.reuseReferenceMethod != FrtReuseReferenceMethod::DISABLED) {
+            if (settings.fractal.reference.reuse != FrtReferenceReuseMethod::DISABLED) {
                 MessageBox(nullptr, "Do not reuse reference!", "Caution", MB_OK | MB_ICONWARNING);
                 return;
             }
 
             arm.getState().cancel();
-            const MB2Perturbator *perturbator = arm.getCurrentPerturbator();
-            if (perturbator == nullptr) {
+            const MB2RenderDataBase *data = arm.getCurrentRenderData();
+            if (data == nullptr) {
                 throw vkh::exception_invalid_state("Perturbator cannot be null");
             }
 
             arm.getState().createThread(
-                    [&arm, logZoom = settings.fractal.logZoom, perturbator, &settings](const std::stop_token &) {
-                        const auto ref = perturbator->getReference();
+                    [&arm, logZoom = settings.fractal.general.logZoom, data, &settings](const std::stop_token &) {
+                        const auto ref = data->getReference();
 
                         if (ref == nullptr) {
                             MessageBox(nullptr, "Please wait until the calculation is complete.", "Caution",
@@ -72,17 +72,16 @@ namespace merutilm::rff2 {
                         const uint64_t longestPeriod = ref->longestPeriod();
 
                         const std::unique_ptr<MB2Locator> locator = MB2Locator::locateMinibrot(
-                                arm.getState(), perturbator,
-                                getActionWhileFindingMBCenter(arm, logZoom, longestPeriod),
+                                arm.getState(), data, getActionWhileFindingMBCenter(arm, logZoom, longestPeriod),
                                 getActionWhileCreatingTable(arm, logZoom), getActionWhileFindingZoom(arm));
 
                         if (locator == nullptr) {
                             vkh::logger::w_log(L"Locate Minibrot Cancelled.");
                             return;
                         }
-                        const FractalSettings &locatorCalc = locator->perturbator->getCalculationSettings();
-                        settings.fractal.center = locatorCalc.center;
-                        settings.fractal.logZoom = locatorCalc.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
+                        const FractalSettings &locatorCalc = locator->data->fractalSettings;
+                        settings.fractal.reference.center = locatorCalc.reference.center;
+                        settings.fractal.general.logZoom = locatorCalc.general.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
                         arm.getRequests().requestRecompute();
                     });
         };

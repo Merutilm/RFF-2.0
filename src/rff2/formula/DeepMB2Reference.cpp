@@ -21,7 +21,7 @@ namespace merutilm::rff2 {
 
 
     Reference::CreationResult
-    DeepMB2Reference::createReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
+    DeepMB2Reference::generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings, const FrtReferenceSettings &refSettings, int exp10,
                                       uint64_t refInitialCapacity, uint64_t fixedPeriod, dex dcMax,
                                       const bool strictFPG, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                       std::unique_ptr<DeepMB2Reference> *result) {
@@ -41,16 +41,16 @@ namespace merutilm::rff2 {
         int strictIntExp10 = -exp10;
         int fpgIntExp10 = strictFPG ? strictIntExp10 : 1;
 
-        fixed_point_complex_i1 center = calc.center;
+        fixed_point_complex_i1 center = refSettings.center;
         fixed_point_complex_i1 c = center.create_variant(exp10);
         auto z = fixed_point_complex_i1(0.0, 0.0, exp10);
         auto temp = z;
         auto fpgBn = fixed_point_complex(0.0, 0.0, exp10, fpgIntExp10);
         auto one = fixed_point_complex_i1(1.0, 0.0, exp10);
-        auto bailoutSqr = dex(calc.bailout * calc.bailout);
+        auto bailoutSqr = dex(generalSettings.bailout * generalSettings.bailout);
 
         op_thread_pool parallelReferenceThreadPool{};
-        bool useParallel = calc.useParallelRefCalculation;
+        bool useParallel = refSettings.useParallelRefCalculation;
 
         dex fpgBnr = dex::ONE;
         dex fpgBni = dex::ZERO;
@@ -71,8 +71,8 @@ namespace merutilm::rff2 {
         auto tools = std::vector<ArrayCompressionTool>();
         uint64_t compressed = 0;
 
-        auto [refSyncInterval, refSyncRadiusPower] = calc.referenceSyncSettings;
-        auto [compressCriteria, compressionThresholdPower, withoutNormalize] = calc.referenceCompSettings;
+        auto [refSyncInterval, refSyncRadiusPower] = refSettings.sync;
+        auto [compressCriteria, compressionThresholdPower, withoutNormalize] = refSettings.compression;
 
         double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
         dex refSyncRadius2 = dex_exp::exp10(-refSyncRadiusPower * 2);

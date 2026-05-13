@@ -4,11 +4,10 @@
 
 #pragma once
 #include <vector>
-#include <windows.h>
 #include <atomic>
 
-#include "../data/ApproxTableManager.h"
 #include "../formula/MB2Perturbator.h"
+#include "../formula/MB2RenderData.hpp"
 #include "../io/RFFDynamicMapBinary.h"
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
@@ -44,7 +43,7 @@ namespace merutilm::rff2 {
         std::array<std::wstring, Constants::Status::LENGTH> *statusMessageRef = nullptr;
         std::unique_ptr<Matrix<double>> iterationMatrix = nullptr;
 
-        std::unique_ptr<MB2Perturbator> currentPerturbator = nullptr;
+        std::unique_ptr<MB2RenderDataBase> renderData = nullptr;
 
         std::unique_ptr<AppRenderer> renderer = nullptr;
 
@@ -142,7 +141,7 @@ namespace merutilm::rff2 {
 
         void recomputeThreaded();
 
-        void beforeIterationFill(Settings &settings) const;
+        void beforeIterationFill() const;
 
         bool recomputePerturbator(const std::chrono::time_point<std::chrono::high_resolution_clock> &start,
                               const Settings &settings);
@@ -163,16 +162,16 @@ namespace merutilm::rff2 {
             return state;
         }
 
-        [[nodiscard]] MB2Perturbator *getCurrentPerturbator() const {
-            return currentPerturbator.get();
+        [[nodiscard]] MB2RenderDataBase *getCurrentRenderData() const {
+            return renderData.get();
         }
 
         void setCurrentSettingsWindows(std::unique_ptr<SettingsWindow> window) {
             currentSettingsWindow = std::move(window);
         }
 
-        void setCurrentPerturbator(std::unique_ptr<MB2Perturbator> perturbator) {
-            currentPerturbator = std::move(perturbator);
+        void setCurrentPerturbator(std::unique_ptr<MB2RenderDataBase> data) {
+            renderData = std::move(data);
         }
 
         [[nodiscard]] BackgroundThreads &getBackgroundThreads() {
@@ -248,9 +247,9 @@ namespace merutilm::rff2 {
     template<typename P> requires std::is_base_of_v<Preset, P>
     void AppRenderManager::applyPreset(P &preset) {
         if constexpr (std::is_base_of_v<Presets::CalculationPreset, P>) {
-            settings.fractal.referenceSyncSettings = preset.genRefSync();
-            settings.fractal.mpaSettings = preset.genMPA();
-            settings.fractal.referenceCompSettings = preset.genRefComp();
+            settings.fractal.reference.sync = preset.genRefSync();
+            settings.fractal.mpa = preset.genMPA();
+            settings.fractal.reference.compression = preset.genRefComp();
             requests.requestRecompute();
         }
         if constexpr (std::is_base_of_v<Presets::RenderPreset, P>) {

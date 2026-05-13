@@ -33,8 +33,8 @@ namespace merutilm::rff2 {
                 return;
             }
             auto settings = arm.getSettings().fractal; // clone the settings
-            auto &center = settings.center;
-            RFFLocationBinary(settings.logZoom, center.real.to_string(), center.imag.to_string(), settings.maxIteration)
+            auto &center = settings.reference.center;
+            RFFLocationBinary(settings.general.logZoom, center.real.to_string(), center.imag.to_string(), settings.perturb.maxIteration)
                     .exportFile(*path);
         };
     }
@@ -58,10 +58,10 @@ namespace merutilm::rff2 {
             }
             const RFFLocationBinary location = RFFLocationBinary::read(*path);
 
-            arm.getSettings().fractal.center = fixed_point_complex_i1(
+            arm.getSettings().fractal.reference.center = fixed_point_complex_i1(
                     location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
-            arm.getSettings().fractal.logZoom = location.getLogZoom();
-            arm.getSettings().fractal.maxIteration = location.getMaxIteration();
+            arm.getSettings().fractal.general.logZoom = location.getLogZoom();
+            arm.getSettings().fractal.perturb.maxIteration = location.getMaxIteration();
             arm.getRequests().requestRecompute();
         };
     }

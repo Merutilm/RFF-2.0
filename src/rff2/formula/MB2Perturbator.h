@@ -5,32 +5,26 @@
 #pragma once
 #include "../mrthy/MPATable.h"
 #include "../parallel/ParallelRenderState.h"
-#include "../settings/FractalSettings.h"
-#include "MB2Reference.h"
 #include "Perturbator.h"
 
 namespace merutilm::rff2 {
+
     struct MB2Perturbator : public Perturbator {
 
         ParallelRenderState &state;
-        const FractalSettings calc;
-        Reference::CreationResult referenceCreationResult = Reference::CreationResult::FAILED;
+        dex dcMax;
+        FrtGeneralSettings generalSettings;
+        FrtPerturbSettings ptbSettings;
+        dex offR = dex::ZERO;
+        dex offI = dex::ZERO;
 
-        explicit MB2Perturbator(ParallelRenderState &state,
-                                       FractalSettings calculationSettings) : state(state),
-            calc(std::move(calculationSettings)) {
+        explicit MB2Perturbator(ParallelRenderState &state, const dex dcMax,
+        FrtGeneralSettings generalSettings,
+        FrtPerturbSettings ptbSettings) : state(state), dcMax(dcMax), generalSettings(std::move(generalSettings)), ptbSettings(std::move(ptbSettings)) {
         }
 
         ~MB2Perturbator() override = default;
 
-        [[nodiscard]] virtual const MB2Reference *getReference() const = 0;
-
-        [[nodiscard]] const FractalSettings &getCalculationSettings() const {
-            return calc;
-        };
-
-        [[nodiscard]] virtual dex getDcMaxAsDoubleExp() const = 0;
-
-        [[nodiscard]] virtual double iterate(const FractalSettings &calc, dex dcr, dex dci) const = 0;
+        virtual double iterate(dex dcr, dex dci) const = 0;
     };
 }

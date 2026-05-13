@@ -9,7 +9,7 @@
 #include "FrtDecimalizeIterationMethod.h"
 #include "FrtMPACompressionMethod.h"
 #include "FrtMPASelectionMethod.h"
-#include "FrtReuseReferenceMethod.h"
+#include "FrtReferenceReuseMethod.h"
 #include "ShdPalIterationColoringMethod.hpp"
 #include "ShdPalSingleIterationColoringMethod.h"
 #include "ShdStripeType.h"
@@ -19,8 +19,8 @@ namespace merutilm::rff2 {
     struct Selectable {
         template<typename E> requires std::is_enum_v<E> || std::is_same_v<E, bool>
         static std::vector<E> values() {
-            if constexpr (std::is_same_v<E, FrtReuseReferenceMethod>) {
-                using enum FrtReuseReferenceMethod;
+            if constexpr (std::is_same_v<E, FrtReferenceReuseMethod>) {
+                using enum FrtReferenceReuseMethod;
                 return {
                     CURRENT_REFERENCE,
                     CENTERED_REFERENCE,
@@ -84,9 +84,9 @@ namespace merutilm::rff2 {
 
         template<typename E> requires std::is_enum_v<E> || std::is_same_v<E, bool>
         static std::wstring toString(const E &value) {
-            if constexpr (std::is_same_v<E, FrtReuseReferenceMethod>) {
+            if constexpr (std::is_same_v<E, FrtReferenceReuseMethod>) {
                 switch (value) {
-                    using enum FrtReuseReferenceMethod;
+                    using enum FrtReferenceReuseMethod;
                     case CURRENT_REFERENCE: return L"Current";
                     case CENTERED_REFERENCE: return L"Centered";
                     case DISABLED: return L"Disabled";

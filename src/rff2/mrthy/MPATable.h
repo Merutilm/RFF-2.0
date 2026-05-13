@@ -21,7 +21,6 @@
 
 namespace merutilm::rff2 {
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
     struct MPATable {
         static constexpr int REQUIRED_PERTURBATION = 2;
 
@@ -63,7 +62,7 @@ namespace merutilm::rff2 {
         template<typename PAG>
             requires std::is_base_of_v<PAGenerator, PAG>
         void stepOnce(const Ref &reference, double epsilon, const Num &dcMax, std::vector<uint64_t> &periodCount,
-                      std::vector<std::optional<PAG>> &currentPA, uint64_t pulledTableIndex, uint64_t *currentIteration,
+                      std::vector<std::optional<PAG>> &currentPA, uint64_t pulledTableIndex, const uint64_t *currentIteration,
                       bool jumped);
 
         template<typename PAG>
@@ -103,7 +102,6 @@ namespace merutilm::rff2 {
 
 
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
     MPATable<Ref, Num, PAB>::MPATable(const ParallelRenderState &state, const Ref &reference,
                                       const FrtMPASettings *mpaSettings, const Num &dcMax,
                                       std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) :
@@ -112,11 +110,9 @@ namespace merutilm::rff2 {
         if (tryInit(reference)) {
 
             if constexpr (std::is_same_v<Ref, LightMB2Reference>) {
-                generateTable<LightPAGenerator>(state, reference, dcMax,
-                                                         std::move(actionPerCreatingTableIteration));
+                generateTable<LightPAGenerator>(state, reference, dcMax, std::move(actionPerCreatingTableIteration));
             } else {
-                generateTable<DeepPAGenerator>(state, reference, dcMax,
-                                                       std::move(actionPerCreatingTableIteration));
+                generateTable<DeepPAGenerator>(state, reference, dcMax, std::move(actionPerCreatingTableIteration));
             }
         }
     }
@@ -124,7 +120,7 @@ namespace merutilm::rff2 {
 
     //[re] init mpa periods and compressors
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
+
     bool MPATable<Ref, Num, PAB>::tryInit(const MB2Reference &reference) {
         const auto &referencePeriod = reference.period;
         const uint64_t longestPeriod = reference.longestPeriod();
@@ -144,7 +140,7 @@ namespace merutilm::rff2 {
     }
 
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
+
     std::vector<ArrayCompressionTool> MPATable<Ref, Num, PAB>::generatePulledMPACompressor(
             const std::vector<ArrayCompressionTool> &referenceCompressor) const {
         std::vector<ArrayCompressionTool> mpaTools;
@@ -171,7 +167,7 @@ namespace merutilm::rff2 {
     }
 
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
+
     uint64_t MPATable<Ref, Num, PAB>::binarySearch(const std::vector<uint64_t> &arr, const uint64_t key) {
         if (arr.empty()) {
             return UINT64_MAX;
@@ -197,7 +193,7 @@ namespace merutilm::rff2 {
 
 
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
+
     void MPATable<Ref, Num, PAB>::fitBufferSize() {
 
 
@@ -216,7 +212,7 @@ namespace merutilm::rff2 {
     }
 
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
+
     template<typename PAG>
         requires std::is_base_of_v<PAGenerator, PAG>
     bool MPATable<Ref, Num, PAB>::tryJumpTableGeneration(const Ref &reference, double epsilon, const Num &dcMax,
@@ -287,13 +283,13 @@ namespace merutilm::rff2 {
 
 
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
+
     template<typename PAG>
         requires std::is_base_of_v<PAGenerator, PAG>
     void MPATable<Ref, Num, PAB>::stepOnce(const Ref &reference, double epsilon, const Num &dcMax,
                                            std::vector<uint64_t> &periodCount,
                                            std::vector<std::optional<PAG>> &currentPA, const uint64_t pulledTableIndex,
-                                           uint64_t *const currentIteration, const bool jumped) {
+                                           const uint64_t *const currentIteration, const bool jumped) {
 
         bool resetLowerLevel = false;
         const bool independent = ArrayCompressor::isIndependent(pulledMPACompressor, pulledTableIndex);
@@ -356,7 +352,7 @@ namespace merutilm::rff2 {
 
 
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
+
     template<typename PAG>
         requires std::is_base_of_v<PAGenerator, PAG>
     void
@@ -402,7 +398,7 @@ namespace merutilm::rff2 {
     }
 
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
+
     uint64_t MPATable<Ref, Num, PAB>::iterationToPulledTableIndex(const MPAPeriod &mpaPeriod,
                                                                   const uint64_t iteration) {
         //
@@ -466,7 +462,7 @@ namespace merutilm::rff2 {
 
 
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
+
     uint64_t MPATable<Ref, Num, PAB>::iterationToCompTableIndex(
             const FrtMPACompressionMethod &mpaCompressionMethod, const MPAPeriod &mpaPeriod,
             const std::vector<ArrayCompressionTool> &pulledMPACompressor, const uint64_t iteration) {
@@ -487,7 +483,7 @@ namespace merutilm::rff2 {
 
 
     template<typename Ref, typename Num, typename PAB>
-        requires std::is_base_of_v<PA, PAB>
+
     void MPATable<Ref, Num, PAB>::allocateWithCheckTableSize(const uint64_t index, const uint64_t levels) {
         auto &table = *tableManager->mpaTable;
         if (table.size() <= index) {

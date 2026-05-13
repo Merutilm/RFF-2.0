@@ -58,6 +58,9 @@ add_executable(
         src/rff2/vulkan/CPC2MapIterationStripe.cpp
         src/rff2/vulkan/GPCStaticImage2Map.cpp
         src/rff2/vulkan/CPCImageRGBA2BGR.cpp
+        src/rff2/settings/FrtReferenceSettings.hpp
+        src/rff2/settings/FrtPerturbSettings.hpp
+        src/rff2/settings/FrtGeneralSettings.hpp
 )
 
 

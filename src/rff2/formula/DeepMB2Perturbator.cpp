@@ -4,42 +4,11 @@
 
 #include "DeepMB2Perturbator.h"
 
+
 namespace merutilm::rff2 {
 
 
-    DeepMB2Perturbator::DeepMB2Perturbator(
-            ParallelRenderState &state, const FractalSettings &calc, const dex dcMax, const int exp10,
-            const uint64_t refInitialCapacity, const uint64_t fixedPeriod,
-            std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-            std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration, const bool arbitraryPrecisionFPGBn,
-            std::unique_ptr<DeepMB2Reference> reusedReference, std::unique_ptr<DeepMPATable> reusedTable,
-            const dex offR, const dex offI) :
-        MB2Perturbator(state, calc), dcMax(dcMax), offR(offR), offI(offI) {
-
-        if (reusedReference == nullptr) {
-            this->referenceCreationResult = DeepMB2Reference::createReference(
-                    state, calc, exp10, refInitialCapacity, fixedPeriod, dcMax, arbitraryPrecisionFPGBn,
-                    std::move(actionPerRefCalcIteration), &reference);
-        } else {
-            reference = std::move(reusedReference);
-            this->referenceCreationResult = Reference::CreationResult::SUCCESS;
-        }
-
-        if (this->referenceCreationResult != Reference::CreationResult::SUCCESS) {
-            reference = nullptr;
-            return;
-        }
-
-        if (reusedTable == nullptr) {
-            table = std::make_unique<DeepMPATable>(state, *reference, &calc.mpaSettings, dcMax,
-                                                   std::move(actionPerCreatingTableIteration));
-        } else {
-            table = std::move(reusedTable);
-        }
-    }
-
-
-    double DeepMB2Perturbator::iterate(const FractalSettings &calc, const dex dcr, const dex dci) const {
+    double DeepMB2Perturbator::iterate(const dex dcr, const dex dci) const {
         if (state.interruptRequested())
             return 0.0;
 
@@ -49,7 +18,7 @@ namespace merutilm::rff2 {
         uint64_t iteration = 0;
         uint64_t refIteration = 0;
         int absIteration = 0;
-        const uint64_t maxRefIteration = reference->longestPeriod();
+        const uint64_t maxRefIteration = reference.longestPeriod();
         dex dzr = dex::ZERO;
         dex dzi = dex::ZERO;
 
@@ -60,10 +29,9 @@ namespace merutilm::rff2 {
 
         double cd = 0;
         double pd = cd;
-        const bool isAbs = calc.absoluteIterationMode;
-        const uint64_t maxIteration = calc.maxIteration;
-        const float bailout = calc.bailout;
-        const float bailout2 = bailout * bailout;
+        const bool isAbs = ptbSettings.absoluteIterationMode;
+        const uint64_t maxIteration = ptbSettings.maxIteration;
+        const float bailout2 = generalSettings.bailout * generalSettings.bailout;
 
         while (iteration < maxIteration) {
             if (table != nullptr) {
@@ -88,9 +56,9 @@ namespace merutilm::rff2 {
 
 
             if (refIteration != maxRefIteration) {
-                const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration);
-                const dex zr1 = index == 0 ? dzr : reference->refReal[index] * two + dzr;
-                const dex zi1 = index == 0 ? dzi : reference->refImag[index] * two + dzi;
+                const uint64_t index = ArrayCompressor::compress(reference.compressor, refIteration);
+                const dex zr1 = index == 0 ? dzr : reference.refReal[index] * two + dzr;
+                const dex zi1 = index == 0 ? dzi : reference.refImag[index] * two + dzi;
 
 
                 if (dzr.is_zero() && dzi.is_zero()) {
@@ -110,9 +78,9 @@ namespace merutilm::rff2 {
                 ++absIteration;
             }
 
-            const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration);
-            dex zr = reference->refReal[index] + dzr;
-            dex zi = reference->refImag[index] + dzi;
+            const uint64_t index = ArrayCompressor::compress(reference.compressor, refIteration);
+            dex zr = reference.refReal[index] + dzr;
+            dex zi = reference.refImag[index] + dzi;
 
             if (zi.is_zero() && (zr.is_zero() || (zr < zrMax && zr >= zrMin))) {
                 // IT IS NOT SATISFIED MPA SKIP RADIUS CONDITION.
@@ -153,43 +121,6 @@ namespace merutilm::rff2 {
         const double fpd = sqrt(pd);
         const double fcd = sqrt(cd);
 
-        return FrtDecimalizeIterationMethodUtil::getDoubleValueIteration(iteration, fpd, fcd, calc.decimalizeIterationMethod, bailout);
-    }
-
-
-    std::unique_ptr<DeepMB2Perturbator>
-    DeepMB2Perturbator::reuse(const FractalSettings &calc, const dex dcMax) {
-        dex offR = dex::ZERO;
-        dex offI = dex::ZERO;
-        uint64_t longestPeriod = 1;
-        std::unique_ptr<DeepMB2Reference> reusedReference = nullptr;
-
-        const int exp10 = logZoomToExp10(calc.logZoom);
-
-        if (this->referenceCreationResult != Reference::CreationResult::SUCCESS) {
-            // try to use incomplete reference
-            MessageBox(nullptr, "Please do not try to use incomplete Reference.", "Warning", MB_OK | MB_ICONWARNING);
-        } else {
-
-            fixed_point_complex_i1 center = calc.center.create_variant(exp10);
-            const fixed_point_complex_i1 refCenter = reference->center.create_variant(exp10);
-            fixed_point_complex_i1::sub(center, center, refCenter);
-
-            offR = center.get_real().dex_value();
-            offI = center.get_imag().dex_value();
-            longestPeriod = reference->longestPeriod();
-            reusedReference = std::move(reference);
-        }
-
-
-        return std::make_unique<DeepMB2Perturbator>(
-                state, calc, dcMax, exp10, 0, longestPeriod,
-                [](uint64_t) {
-                    // no action because the reference is already declared
-                },
-                [](uint64_t, double) {
-                    // same reason
-                },
-                false, std::move(reusedReference), std::move(table), offR, offI);
+        return FrtDecimalizeIterationMethodUtil::getDoubleValueIteration(iteration, fpd, fcd, ptbSettings.decimalizeIterationMethod, generalSettings.bailout);
     }
 } // namespace merutilm::rff2

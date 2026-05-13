@@ -6,18 +6,19 @@
 
 #include "../calc/dex_exp.h"
 #include "../formula/DeepMB2Perturbator.h"
+#include "../formula/MB2RenderData.hpp"
 #include "../formula/Perturbator.h"
 
 
 namespace merutilm::rff2 {
-    std::unique_ptr<fixed_point_complex_i1> MB2Locator::findCenter(const MB2Perturbator *perturbator) {
-        const int exp10 = Perturbator::logZoomToExp10(perturbator->getCalculationSettings().logZoom);
-        fixed_point_complex_i1 center = perturbator->getReference()->center.create_variant(exp10);
-        const fixed_point_complex_i1 dc = findCenterOffset(*perturbator)->create_variant(exp10);
+    std::unique_ptr<fixed_point_complex_i1> MB2Locator::findCenter(const MB2RenderDataBase &data) {
+        const int exp10 = Perturbator::logZoomToExp10(data.fractalSettings.general.logZoom);
+        fixed_point_complex_i1 center = data.getReference()->center.create_variant(exp10);
+        const fixed_point_complex_i1 dc = findCenterOffset(data)->create_variant(exp10);
 
         const double dr = dc.clone_real().double_value();
         const double di = dc.clone_imag().double_value();
-        if (const dex dcMax = perturbator->getDcMaxAsDoubleExp(); dex(dr * dr + di * di) > dcMax * dcMax) {
+        if (const dex dcMax = data.getPerturbator()->dcMax; dex(dr * dr + di * di) > dcMax * dcMax) {
             return nullptr;
         }
         fixed_point_complex::add(center, center, dc);
@@ -25,9 +26,9 @@ namespace merutilm::rff2 {
     }
 
 
-    std::unique_ptr<fixed_point_complex_i1> MB2Locator::findCenterOffset(const MB2Perturbator &perturbator) {
-        const int exp10 = Perturbator::logZoomToExp10(perturbator.getCalculationSettings().logZoom);
-        const MB2Reference *reference = perturbator.getReference();
+    std::unique_ptr<fixed_point_complex_i1> MB2Locator::findCenterOffset(const MB2RenderDataBase &data) {
+        const int exp10 = Perturbator::logZoomToExp10(data.fractalSettings.general.logZoom);
+        const MB2Reference *reference = data.getReference();
         if (!reference) return nullptr;
 
         fixed_point_complex bn = reference->fpgBn.create_variant(exp10, -exp10 * 2);
@@ -38,7 +39,7 @@ namespace merutilm::rff2 {
     }
 
     std::unique_ptr<MB2Locator> MB2Locator::locateMinibrot(ParallelRenderState &state,
-                                                                         const MB2Perturbator *perturbator,
+                                                                         const MB2RenderDataBase *data,
                                                                          const std::function<void(uint64_t, int)> &
                                                                          actionWhileFindingMinibrotCenter,
                                                                          const std::function<void (uint64_t, float)> &
@@ -54,17 +55,16 @@ namespace merutilm::rff2 {
         // specific small number. O(w_log N)
 
 
-        std::unique_ptr<MB2Perturbator> result = findAccurateCenterPerturbator(
-            state, perturbator, actionWhileFindingMinibrotCenter, actionWhileCreatingTable);
+        std::unique_ptr<MB2RenderDataBase> result = findAccurateCenterPerturbator(
+            state, data, actionWhileFindingMinibrotCenter, actionWhileCreatingTable);
 
         if (result == nullptr) {
             return nullptr;
         }
-        dex resultDcMax = result->getDcMaxAsDoubleExp();
-        FractalSettings resultCalc = result->getCalculationSettings();
-        resultCalc.absoluteIterationMode = false;
+        dex resultDcMax = result->getPerturbator()->dcMax;
+
+        FrtGeneralSettings resultCalc = result->fractalSettings.general;
         float resultZoom = resultCalc.logZoom;
-        const uint64_t maxIteration = resultCalc.maxIteration;
         float zoomIncrement = resultZoom / 4;
 
         while (zoomIncrement > ZOOM_INCREMENT_LIMIT) {
@@ -72,7 +72,7 @@ namespace merutilm::rff2 {
                 return nullptr;
             }
 
-            if (checkMaxIterationOnly(*result, maxIteration)) {
+            if (checkMaxIterationOnly(*result)) {
                 resultZoom -= zoomIncrement;
                 resultDcMax = resultDcMax * dex_exp::exp10(zoomIncrement);
             } else {
@@ -82,12 +82,7 @@ namespace merutilm::rff2 {
 
             actionWhileFindingMinibrotZoom(resultZoom);
             resultCalc.logZoom = resultZoom;
-            if (const auto v = dynamic_cast<LightMB2Perturbator *>(result.get())) {
-                result = v->reuse(resultCalc, static_cast<double>(resultDcMax));
-            }
-            if (const auto v = dynamic_cast<DeepMB2Perturbator *>(result.get())) {
-                result = v->reuse(resultCalc, resultDcMax);
-            }
+            result->translate(resultCalc.logZoom, resultDcMax, result->fractalSettings.reference.center);
             zoomIncrement /= 2;
         }
 
@@ -95,90 +90,84 @@ namespace merutilm::rff2 {
     }
 
     /**
-     * This method moves the perturbator, so the paramed perturbator is no longer available.
+     * This method moves the data, so the paramed data is no longer available.
      * Use the return value instead of this.
      * @param state the state
-     * @param perturbator the perturbator to move
+     * @param data the perturbator to move
      * @param actionWhileFindingMinibrotCenter action 1
      * @param actionWhileCreatingTable action 2
      * @return result table
      */
-    std::unique_ptr<MB2Perturbator> MB2Locator::findAccurateCenterPerturbator(ParallelRenderState &state,
-        const MB2Perturbator *perturbator,
-        const std::function<void(uint64_t, int)> &
-        actionWhileFindingMinibrotCenter,
-        const std::function<void(uint64_t, float)> &
-        actionWhileCreatingTable) {
+    std::unique_ptr<MB2RenderDataBase> MB2Locator::findAccurateCenterPerturbator(
+            ParallelRenderState &state, const MB2RenderDataBase *data,
+            const std::function<void(uint64_t, int)> &actionWhileFindingMinibrotCenter,
+            const std::function<void(uint64_t, float)> &actionWhileCreatingTable) {
         // multiply zoom by 2 and find center offset.
         // set the center to center + centerOffset.
 
-        uint64_t longestPeriod = perturbator->getReference()->longestPeriod();
-        uint64_t refLen = perturbator->getReference()->length();
+        uint64_t longestPeriod = data->getReference()->longestPeriod();
+        uint64_t refLen = data->getReference()->length();
 
-        const float logZoom = perturbator->getCalculationSettings().logZoom;
-        const FractalSettings &calc = perturbator->getCalculationSettings();
+        const float logZoom = data->fractalSettings.general.logZoom;
+        const FractalSettings &calc = data->fractalSettings;
         FractalSettings doubledZoomCalc = calc;
-        const uint64_t maxIteration = doubledZoomCalc.maxIteration;
         const float doubledLogZoom = logZoom * 2;
         const int doubledExp10 = Perturbator::logZoomToExp10(doubledLogZoom);
 
+        doubledZoomCalc.general.logZoom = doubledLogZoom;
+        doubledZoomCalc.perturb.absoluteIterationMode = false;
+        doubledZoomCalc.perturb.decimalizeIterationMethod = FrtDecimalizeIterationMethod::NONE;
 
 
-        doubledZoomCalc.absoluteIterationMode = false;
-        doubledZoomCalc.logZoom = doubledLogZoom;
-
-
-        dex doubledZoomDcMax = perturbator->getDcMaxAsDoubleExp() / dex_exp::exp10(logZoom);
+        dex doubledZoomDcMax = data->getPerturbator()->dcMax / dex_exp::exp10(logZoom);
 
 
         int centerFixCount = 0;
 
-        std::unique_ptr<MB2Perturbator> doubledZoomPerturbator = nullptr;
+        std::unique_ptr<MB2RenderDataBase> doubledZoomData = nullptr;
 
-        while (doubledZoomPerturbator == nullptr || !checkMaxIterationOnly(*doubledZoomPerturbator, maxIteration)) {
+        while (doubledZoomData == nullptr || !checkMaxIterationOnly(*doubledZoomData)) {
             if (state.interruptRequested()) {
                 return nullptr;
                 // try to save the vector
             }
 
-            auto center = doubledZoomCalc.center.create_variant(doubledExp10);
-            auto centerOffset = findCenterOffset(doubledZoomPerturbator == nullptr ? *perturbator : *doubledZoomPerturbator)->create_variant(doubledExp10);
+            auto center = doubledZoomCalc.reference.center.create_variant(doubledExp10);
+            auto centerOffset = findCenterOffset(doubledZoomData == nullptr ? *data : *doubledZoomData)->create_variant(doubledExp10);
 
 
             fixed_point_complex::add(center, center, centerOffset);
-            doubledZoomCalc.center = center;
+            doubledZoomCalc.reference.center = center;
             ++centerFixCount;
 
             if (logZoom < Constants::Fractal::ZOOM_DEADLINE / 2) {
-                doubledZoomPerturbator = std::make_unique<LightMB2Perturbator>(
-                    state, doubledZoomCalc, static_cast<double>(doubledZoomDcMax),
+                doubledZoomData = std::make_unique<MB2RenderData<LightPA>>(
+                    state, doubledZoomCalc, doubledZoomDcMax,
                     Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileCreatingTable, true);
             } else {
-                doubledZoomPerturbator = std::make_unique<DeepMB2Perturbator>(
+                doubledZoomData = std::make_unique<MB2RenderData<DeepPA>>(
                     state, doubledZoomCalc, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileCreatingTable, true);
             }
+
+
         }
 
 
-        return doubledZoomPerturbator;
+        return doubledZoomData;
     }
 
-    bool MB2Locator::checkMaxIterationOnly(const MB2Perturbator &perturbator,
-                                                  const uint64_t maxIteration) {
-        FractalSettings fs = perturbator.calc;
-        fs.maxIteration = maxIteration;
-        fs.absoluteIterationMode = false;
-        fs.decimalizeIterationMethod = FrtDecimalizeIterationMethod::NONE;
-        const auto it = static_cast<uint64_t>(perturbator.iterate(fs, perturbator.getDcMaxAsDoubleExp(),
-                                   perturbator.getDcMaxAsDoubleExp() /
-                                           dex(Constants::Fractal::INTENTIONAL_ERROR_DCLMB)));
+    bool MB2Locator::checkMaxIterationOnly(const MB2RenderDataBase &renderData) {
 
-        return it == maxIteration;
+        const auto it = static_cast<uint64_t>(renderData.getPerturbator()->iterate(
+                renderData.getPerturbator()->dcMax,
+                renderData.getPerturbator()->dcMax / dex(Constants::Fractal::INTENTIONAL_ERROR_DCLMB)));
+
+        return it == renderData.fractalSettings.perturb.maxIteration;
     }
 }

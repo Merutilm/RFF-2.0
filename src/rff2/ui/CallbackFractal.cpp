@@ -12,13 +12,13 @@ namespace merutilm::rff2 {
 
     std::function<void()> CallbackFractal::fnReference(AppRenderManager &arm) {
         return [&arm] {
-            auto &calc = arm.getSettings().fractal;
+            auto &frt = arm.getSettings().fractal;
             auto window = std::make_unique<SettingsWindow>(L"Reference");
 
             auto centerPtr = std::make_shared<std::array<std::string, 2>>();
-            *centerPtr = {calc.center.real.to_string(), calc.center.imag.to_string()};
+            *centerPtr = {frt.reference.center.real.to_string(), frt.reference.center.imag.to_string()};
 
-            auto zoomPtr = std::make_shared<float>(calc.logZoom);
+            auto zoomPtr = std::make_shared<float>(frt.general.logZoom);
             auto locationChanged = std::make_shared<bool>(false);
 
 
@@ -46,17 +46,17 @@ namespace merutilm::rff2 {
                     L"Log Zoom", zoomPtr.get(), Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
                     [zoomPtr, locationChanged] { *locationChanged = true; }, L"Log zoom",
                     L"Sets the log scale of zoom.");
-            window->registerRadioButtonInput<FrtReuseReferenceMethod>(L"Reuse Reference", &calc.reuseReferenceMethod,
+            window->registerRadioButtonInput<FrtReferenceReuseMethod>(L"Reuse Reference", &frt.reference.reuse,
                                                                       Callback::NOTHING, L"Reuse Reference method",
                                                                       L"Sets the reuse reference method.");
             window->registerTextInput<uint32_t>(
-                    L"Reference Compression Criteria", &calc.referenceCompSettings.compressCriteria, Unparser::UINT32,
+                    L"Reference Compression Criteria", &frt.reference.compression.compressCriteria, Unparser::UINT32,
                     Parser::UINT32, ValidCondition::ALL_UINT32, Callback::NOTHING, L"Reference Compression Criteria",
                     L"When compressing references, sets the minimum amount of references to compress at one time.\n"
                     L"Reference compression slows down the calculation but frees up memory space.\n"
                     L"set 0 to disable.");
             window->registerTextInput<uint8_t>(
-                    L"Reference Compression Threshold", &calc.referenceCompSettings.compressionThresholdPower,
+                    L"Reference Compression Threshold", &frt.reference.compression.compressionThresholdPower,
                     Unparser::UINT8, Parser::UINT8, ValidCondition::ALL_UINT8, Callback::NOTHING,
                     L"Reference Compression Threshold Power",
                     L"When compressing references, sets the negative exponents of ten of minimum error to be "
@@ -65,13 +65,13 @@ namespace merutilm::rff2 {
                     L"Reference compression slows down the calculation but frees up memory space.\n"
                     L"set 0 to disable.");
             window->registerCheckboxInput(
-                    L"NO Compressor normalization", &calc.referenceCompSettings.noCompressorNormalization,
+                    L"NO Compressor normalization", &frt.reference.compression.noCompressorNormalization,
                     Callback::NOTHING, L"NO Compressor normalization",
                     L"No normalization during reference compression.\n"
                     L"this will accelerates table creation, But may cause table creation to fail in\n"
                     L"the specific locations!!");
             window->registerTextInput<uint32_t>(
-                    L"Reference Synchronization Interval", &calc.referenceSyncSettings.referenceSynchronizationInterval,
+                    L"Reference Synchronization Interval", &frt.reference.sync.referenceSynchronizationInterval,
                     Unparser::UINT32, Parser::UINT32, ValidCondition::POSITIVE_UINT32, Callback::NOTHING,
                     L"Reference Synchronization Interval",
                     L"Sets the synchronization interval between the reference array\n"
@@ -80,7 +80,7 @@ namespace merutilm::rff2 {
                     L"when the value is high, resulting lower quality but is faster. set 1 to fully sync.");
             window->registerTextInput<uint8_t>(
                     L"Reference Synchronization Radius",
-                    &calc.referenceSyncSettings.referenceSynchronizationRadiusPower, Unparser::UINT8, Parser::UINT8,
+                    &frt.reference.sync.referenceSynchronizationRadiusPower, Unparser::UINT8, Parser::UINT8,
                     ValidCondition::ALL_UINT8, Callback::NOTHING, L"Reference Synchronization Radius",
                     L"If only the Reference Synchronization Interval is set,\n"
                     L"when the periodic point is reached and it is not a multiple of its value,\n"
@@ -90,16 +90,16 @@ namespace merutilm::rff2 {
                     L"10^(-value) from the origin to be considered the periodic point.\n"
                     L"set 0 to fully sync.");
 
-            window->registerCheckboxInput(L"Parallel reference calculation", &calc.useParallelRefCalculation,
+            window->registerCheckboxInput(L"Parallel reference calculation", &frt.reference.useParallelRefCalculation,
                                           Callback::NOTHING, L"Use parallel reference calculation",
                                           L"Sets whether or not the reference calculation should be parallel.\n"
                                           L"It is effective for deep-zoom.");
 
-            window->setWindowCloseFunction([centerPtr, zoomPtr, locationChanged, &calc, &arm] {
+            window->setWindowCloseFunction([centerPtr, zoomPtr, locationChanged, &frt, &arm] {
                 const int exp10 = Perturbator::logZoomToExp10(*zoomPtr);
                 if (*locationChanged) {
-                    calc.center = fixed_point_complex_i1((*centerPtr)[0], (*centerPtr)[1], exp10);
-                    calc.logZoom = *zoomPtr;
+                    frt.reference.center = fixed_point_complex_i1((*centerPtr)[0], (*centerPtr)[1], exp10);
+                    frt.general.logZoom = *zoomPtr;
                     arm.getRequests().requestRecompute();
                 }
                 arm.setCurrentSettingsWindows(nullptr);
@@ -114,20 +114,20 @@ namespace merutilm::rff2 {
 
 
             window->registerTextInput<uint64_t>(
-                    L"Max Iteration", &calc.maxIteration, Unparser::UINT64, Parser::UINT64, ValidCondition::ALL_UINT64,
+                    L"Max Iteration", &calc.perturb.maxIteration, Unparser::UINT64, Parser::UINT64, ValidCondition::ALL_UINT64,
                     Callback::NOTHING, L"Set Max Iteration",
                     L"Set maximum iteration. It is disabled when Auto iteration is enabled.");
             window->registerTextInput<uint16_t>(
-                    L"Auto Iteration Multiplier", &calc.autoIterationMultiplier, Unparser::UINT16, Parser::UINT16,
+                    L"Auto Iteration Multiplier", &calc.perturb.autoIterationMultiplier, Unparser::UINT16, Parser::UINT16,
                     ValidCondition::ALL_UINT16, Callback::NOTHING, L"Set Auto Iteration Multiplier",
                     L"Set auto iteration multiplier. It is disabled when Auto iteration is disabled.");
 
             window->registerTextInput<float>(
-                    L"Bailout", &calc.bailout, Unparser::FLOAT, Parser::FLOAT,
+                    L"Bailout", &calc.general.bailout, Unparser::FLOAT, Parser::FLOAT,
                     [](const float &v) { return v >= 2 && v <= 8; }, Callback::NOTHING, L"Set Bailout",
                     L"Sets The Bailout radius");
             window->registerRadioButtonInput<FrtDecimalizeIterationMethod>(
-                    L"Decimalize iteration", &calc.decimalizeIterationMethod, Callback::NOTHING,
+                    L"Decimalize iteration", &calc.perturb.decimalizeIterationMethod, Callback::NOTHING,
                     L"Decimalize Iteration Method", L"Sets the decimalization method of iterations.");
 
 
@@ -138,7 +138,7 @@ namespace merutilm::rff2 {
     std::function<void()> CallbackFractal::fnMpa(AppRenderManager &arm) {
         return [&arm] {
             auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod,
-                   mpaCompressionMethod] = arm.getSettings().fractal.mpaSettings;
+                   mpaCompressionMethod] = arm.getSettings().fractal.mpa;
             auto window = std::make_unique<SettingsWindow>(L"MP-Approximation");
             window->registerTextInput<uint16_t>(
                     L"Min Skip Reference", &minSkipReference, Unparser::UINT16, Parser::UINT16,
@@ -178,16 +178,16 @@ namespace merutilm::rff2 {
         };
     }
     std::function<bool()> CallbackFractal::fnGetterAutomaticIterations(AppRenderManager &arm) {
-        return [&arm] { return arm.getSettings().fractal.autoMaxIteration; };
+        return [&arm] { return arm.getSettings().fractal.perturb.autoMaxIteration; };
     }
     std::function<bool()> CallbackFractal::fnGetterAbsoluteIterationMode(AppRenderManager &arm) {
-        return [&arm] { return arm.getSettings().fractal.absoluteIterationMode; };
+        return [&arm] { return arm.getSettings().fractal.perturb.absoluteIterationMode; };
     }
     std::function<void(bool)> CallbackFractal::fnAutomaticIterations(AppRenderManager &arm) {
-        return [&arm](const bool b) { arm.getSettings().fractal.autoMaxIteration = b; };
+        return [&arm](const bool b) { arm.getSettings().fractal.perturb.autoMaxIteration = b; };
     }
     std::function<void(bool)> CallbackFractal::fnAbsoluteIterationMode(AppRenderManager &arm) {
-        return [&arm](const bool b) { arm.getSettings().fractal.absoluteIterationMode = b; };
+        return [&arm](const bool b) { arm.getSettings().fractal.perturb.absoluteIterationMode = b; };
     }
 
 

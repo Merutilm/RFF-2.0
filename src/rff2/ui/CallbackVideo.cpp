@@ -73,7 +73,7 @@ namespace merutilm::rff2 {
                 const auto &state = arm.getState();
                 const auto dirPtr = IOUtilities::ioDirectoryDialog(L"Folder to generate keyframes");
 
-                float &logZoom = arm.getSettings().fractal.logZoom;
+                float &logZoom = arm.getSettings().fractal.general.logZoom;
                 if (dirPtr == nullptr) {
                     return;
                 }

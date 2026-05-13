@@ -127,18 +127,27 @@ namespace merutilm::rff2 {
     Settings AppRenderManager::genDefaultAttr() {
         return Settings{
                 .fractal =
-                        FractalSettings{.center = fixed_point_complex_i1("-0.85", "0", Perturbator::logZoomToExp10(2)),
-                                        .logZoom = 2,
-                                        .maxIteration = 300,
-                                        .bailout = 2.000001,
-                                        .referenceSyncSettings = CalculationPresets::UltraFast().genRefSync(),
-                                        .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
-                                        .mpaSettings = CalculationPresets::UltraFast().genMPA(),
-                                        .referenceCompSettings = CalculationPresets::UltraFast().genRefComp(),
-                                        .reuseReferenceMethod = FrtReuseReferenceMethod::DISABLED,
-                                        .autoMaxIteration = true,
-                                        .autoIterationMultiplier = 100,
-                                        .absoluteIterationMode = false},
+                        FractalSettings{
+                            .general = {
+                                .bailout = 2.00001f,
+                                .logZoom = 2
+                            },
+                            .reference = {
+                                .center = fixed_point_complex_i1("-0.85", "0", Perturbator::logZoomToExp10(2)),
+                                .useParallelRefCalculation = false,
+                                .sync = CalculationPresets::UltraFast().genRefSync(),
+                                .compression = CalculationPresets::UltraFast().genRefComp(),
+                                .reuse = FrtReferenceReuseMethod::DISABLED,
+                            },
+                            .mpa = CalculationPresets::UltraFast().genMPA(),
+                            .perturb = {
+                                .maxIteration = 300,
+                                .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
+                                .autoMaxIteration = true,
+                                .autoIterationMultiplier = 100,
+                                .absoluteIterationMode = false
+                            }
+                        },
                 .render = RenderPresets::High().genRender(),
                 .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
@@ -183,10 +192,10 @@ namespace merutilm::rff2 {
                 const auto dx = static_cast<int16_t>(interactedMX - x);
                 const auto dy = static_cast<int16_t>(interactedMY - y);
                 const float m = settings.render.clarityMultiplier;
-                const float logZoom = settings.fractal.logZoom;
+                const float logZoom = settings.fractal.general.logZoom;
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
 
-                fixed_point_complex_i1 &center = settings.fractal.center;
+                fixed_point_complex_i1 &center = settings.fractal.reference.center;
                 center.set_exp10(exp10);
                 const fixed_point_complex_i1 add(dex(static_cast<float>(dx) / m) / getDivisor(settings),
                                                  dex(static_cast<float>(dy) / m) / getDivisor(settings), exp10);
@@ -200,7 +209,7 @@ namespace merutilm::rff2 {
         eventSystem.mouseWheel.onMouseScroll.add([this](const int value) {
             constexpr float increment = Constants::Fractal::ZOOM_INTERVAL;
 
-            settings.fractal.logZoom = std::max(Constants::Fractal::ZOOM_MIN, settings.fractal.logZoom);
+            settings.fractal.general.logZoom = std::max(Constants::Fractal::ZOOM_MIN, settings.fractal.general.logZoom);
             int mx;
             int my;
             wc.getWindow()->getMousePosition(&mx, &my);
@@ -208,10 +217,10 @@ namespace merutilm::rff2 {
                 const std::array<dex, 2> offset =
                         offsetConversion(settings, getMouseXOnIterationBuffer(mx), getMouseYOnIterationBuffer(my));
                 const double mzi = 1.0 / pow(10, Constants::Fractal::ZOOM_INTERVAL);
-                float &logZoom = settings.fractal.logZoom;
+                float &logZoom = settings.fractal.general.logZoom;
                 logZoom += increment;
 
-                fixed_point_complex_i1 &center = settings.fractal.center;
+                fixed_point_complex_i1 &center = settings.fractal.reference.center;
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
                 center.set_exp10(exp10);
                 const fixed_point_complex_i1 add(offset[0] * dex(1 - mzi), offset[1] * dex(1 - mzi), exp10);
@@ -220,11 +229,11 @@ namespace merutilm::rff2 {
                 const std::array<dex, 2> offset =
                         offsetConversion(settings, getMouseXOnIterationBuffer(mx), getMouseYOnIterationBuffer(my));
                 const double mzo = 1.0 / pow(10, -Constants::Fractal::ZOOM_INTERVAL);
-                float &logZoom = settings.fractal.logZoom;
+                float &logZoom = settings.fractal.general.logZoom;
                 logZoom -= increment;
 
 
-                fixed_point_complex_i1 &center = settings.fractal.center;
+                fixed_point_complex_i1 &center = settings.fractal.reference.center;
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
                 center.set_exp10(exp10);
                 const fixed_point_complex_i1 add(offset[0] * dex(1 - mzo), offset[1] * dex(1 - mzo), exp10);
@@ -248,7 +257,7 @@ namespace merutilm::rff2 {
                         getDivisor(settings) / dex(settings.render.clarityMultiplier)};
     }
 
-    dex AppRenderManager::getDivisor(const Settings &settings) { return dex_exp::exp10(settings.fractal.logZoom); }
+    dex AppRenderManager::getDivisor(const Settings &settings) { return dex_exp::exp10(settings.fractal.general.logZoom); }
 
     uint16_t AppRenderManager::getRenderWindowWidth() const {
         RECT rect;
@@ -447,20 +456,17 @@ namespace merutilm::rff2 {
 
     void AppRenderManager::recomputeThreaded() {
         state.createThread([this](const std::stop_token &) {
-            Settings settings = this->settings; // clone the settings
+            const Settings settings = this->settings; // clone the settings
             const auto start = std::chrono::high_resolution_clock::now();
             bool success = recomputePerturbator(start, settings);
-            beforeIterationFill(settings);
+            beforeIterationFill();
             if (success) success = fillIteration(start, settings);
             afterCompute(success);
         });
     }
 
-    void AppRenderManager::beforeIterationFill(Settings &settings) const {
-        settings.fractal.maxIteration = settings.fractal.autoMaxIteration
-                                                ? lastPeriod * settings.fractal.autoIterationMultiplier
-                                                : this->settings.fractal.maxIteration;
-        renderer->rendererIteration->setMaxIteration(static_cast<double>(settings.fractal.maxIteration));
+    void AppRenderManager::beforeIterationFill() const {
+        renderer->rendererIteration->setMaxIteration(static_cast<double>(renderData->fractalSettings.perturb.maxIteration));
     }
 
     bool AppRenderManager::recomputePerturbator(const std::chrono::time_point<std::chrono::high_resolution_clock> &start, const Settings &settings) {
@@ -468,9 +474,9 @@ namespace merutilm::rff2 {
         if (state.interruptRequested())
             return false;
 
-        auto &calc = settings.fractal;
+        auto &frt = settings.fractal;
 
-        const float logZoom = calc.logZoom;
+        const float logZoom = frt.general.logZoom;
 
         if (state.interruptRequested())
             return false;
@@ -479,10 +485,10 @@ namespace merutilm::rff2 {
                          std::format(L"Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
         const std::array<dex, 2> offset = offsetConversion(settings, 0, 0);
-
         dex dcMax = dex_trig::hypot_approx(offset[0], offset[1]);
-        uint64_t capacity = currentPerturbator && currentPerturbator->getReference()
-                                    ? currentPerturbator->getReference()->length()
+
+        uint64_t capacity = renderData && renderData->getReference()
+                                    ? renderData->getReference()->length()
                                     : lastLength;
 
 
@@ -506,58 +512,49 @@ namespace merutilm::rff2 {
             return false;
 
 
-        switch (calc.reuseReferenceMethod) {
-            using enum FrtReuseReferenceMethod;
+        switch (frt.reference.reuse) {
+            using enum FrtReferenceReuseMethod;
             case CURRENT_REFERENCE: {
-                if (auto p = dynamic_cast<DeepMB2Perturbator *>(currentPerturbator.get())) {
-                    currentPerturbator = p->reuse(calc, currentPerturbator->getDcMaxAsDoubleExp());
-                }
-                if (auto p = dynamic_cast<LightMB2Perturbator *>(currentPerturbator.get())) {
-                    currentPerturbator = p->reuse(calc, static_cast<double>(currentPerturbator->getDcMaxAsDoubleExp()));
-                }
+                renderData->translate(frt.general.logZoom, renderData->getPerturbator()->dcMax, frt.reference.center);
                 break;
             }
             case CENTERED_REFERENCE: {
-                uint64_t period = currentPerturbator->getReference()->longestPeriod();
+                uint64_t period = renderData->getReference()->longestPeriod();
                 const auto center = MB2Locator::locateMinibrot(
-                        state, currentPerturbator.get(),
-                        CallbackExplore::getActionWhileFindingMBCenter(*this, logZoom, period),
+                        state, renderData.get(), CallbackExplore::getActionWhileFindingMBCenter(*this, logZoom, period),
                         CallbackExplore::getActionWhileCreatingTable(*this, logZoom),
                         CallbackExplore::getActionWhileFindingZoom(*this));
                 if (center == nullptr)
                     return false;
 
-                FractalSettings refCalc = calc;
-                refCalc.center = center->perturbator->calc.center;
-                refCalc.logZoom = center->perturbator->calc.logZoom;
-                int refExp10 = Perturbator::logZoomToExp10(refCalc.logZoom);
+                FractalSettings refCalc = frt;
+                refCalc.reference.center = center->data->fractalSettings.reference.center;
+                refCalc.general.logZoom = center->data->fractalSettings.general.logZoom;
+                int refExp10 = Perturbator::logZoomToExp10(refCalc.general.logZoom);
 
-                if (refCalc.logZoom > Constants::Fractal::ZOOM_DEADLINE) {
-                    currentPerturbator =
-                            std::make_unique<DeepMB2Perturbator>(
-                                    state, refCalc, center->perturbator->getDcMaxAsDoubleExp(), refExp10, capacity,
+                if (refCalc.general.logZoom > Constants::Fractal::ZOOM_DEADLINE) {
+                    renderData = std::make_unique<MB2RenderData<DeepPA>>(
+                                    state, refCalc, center->data->getPerturbator()->dcMax, refExp10, capacity,
                                     period, std::move(actionPerRefCalcIteration),
-                                    std::move(actionPerCreatingTableIteration))
-                                    ->reuse(calc, dcMax);
+                                    std::move(actionPerCreatingTableIteration), false);
                 } else {
-                    currentPerturbator =
-                            std::make_unique<LightMB2Perturbator>(
-                                    state, refCalc, static_cast<double>(center->perturbator->getDcMaxAsDoubleExp()),
-                                    refExp10, capacity, period, std::move(actionPerRefCalcIteration),
-                                    std::move(actionPerCreatingTableIteration))
-                                    ->reuse(calc, static_cast<double>(dcMax));
+                    renderData = std::make_unique<MB2RenderData<LightPA>>(
+                                    state, refCalc, center->data->getPerturbator()->dcMax, refExp10, capacity,
+                                    period, std::move(actionPerRefCalcIteration),
+                                    std::move(actionPerCreatingTableIteration), false);
                 }
+                renderData->translate(frt.general.logZoom, dcMax, frt.reference.center);
                 break;
             }
             case DISABLED: {
-                int exp10 = Perturbator::logZoomToExp10(logZoom);
+                const int exp10 = Perturbator::logZoomToExp10(logZoom);
                 if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
-                    currentPerturbator = std::make_unique<DeepMB2Perturbator>(
-                            state, calc, dcMax, exp10, capacity, 0,
+                    renderData = MB2RenderData<DeepPA>::generateNew(
+                            state, frt, dcMax, exp10, capacity,
                             std::move(actionPerRefCalcIteration), std::move(actionPerCreatingTableIteration));
                 } else {
-                    currentPerturbator = std::make_unique<LightMB2Perturbator>(
-                            state, calc, static_cast<double>(dcMax), exp10, capacity, 0,
+                    renderData = MB2RenderData<LightPA>::generateNew(
+                            state, frt, dcMax, exp10, capacity,
                             std::move(actionPerRefCalcIteration), std::move(actionPerCreatingTableIteration));
                 }
                 break;
@@ -567,20 +564,20 @@ namespace merutilm::rff2 {
             }
         }
 
-        const MB2Reference *reference = currentPerturbator->getReference();
+        const MB2Reference *reference = renderData->getReference();
         if (!reference || state.interruptRequested())
             return false;
 
-        lastLogZoom = calc.logZoom;
-        lastMaxIteration = calc.maxIteration;
+        lastLogZoom = frt.general.logZoom;
+        lastMaxIteration = frt.perturb.maxIteration;
         lastPeriod = reference->longestPeriod();
         size_t refLength = reference->length();
         size_t mpaLen;
-        if (const auto t = dynamic_cast<LightMB2Perturbator *>(currentPerturbator.get())) {
-            mpaLen = t->getTable().getLength();
+        if (const auto t = dynamic_cast<MB2RenderData<LightPA> *>(renderData.get())) {
+            mpaLen = t->table->getLength();
         }
-        if (const auto t = dynamic_cast<DeepMB2Perturbator *>(currentPerturbator.get())) {
-            mpaLen = t->getTable().getLength();
+        if (const auto t = dynamic_cast<MB2RenderData<DeepPA> *>(renderData.get())) {
+            mpaLen = t->table->getLength();
         }
 
         setStatusMessage(Constants::Status::PERIOD_STATUS,
@@ -606,7 +603,7 @@ namespace merutilm::rff2 {
                                                                     float, const uint32_t i, double) {
             rendered[i] = true;
             const auto dc = offsetConversion(settings, x, y);
-            const double iteration = currentPerturbator->iterate(settings.fractal, dc[0], dc[1]);
+            const double iteration = renderData->getPerturbator()->iterate(dc[0], dc[1]);
 
             renderer->iterationStagingBufferContext->set(x, y, iteration);
 
@@ -661,8 +658,8 @@ namespace merutilm::rff2 {
         if (!success) {
             vkh::logger::log("Recompute cancelled.");
         }
-        if (success && settings.fractal.reuseReferenceMethod == FrtReuseReferenceMethod::CENTERED_REFERENCE) {
-            settings.fractal.reuseReferenceMethod = FrtReuseReferenceMethod::CURRENT_REFERENCE;
+        if (success && settings.fractal.reference.reuse == FrtReferenceReuseMethod::CENTERED_REFERENCE) {
+            settings.fractal.reference.reuse = FrtReferenceReuseMethod::CURRENT_REFERENCE;
         }
         idleCompute = true;
         backgroundThreads.notifyAll();

@@ -18,8 +18,11 @@ namespace merutilm::rff2 {
 
 
 
-        enum class CreationResult {
-            SUCCESS, FAILED, TERMINATED
+        enum class CreationResult : uint8_t {
+            SUCCESS = 0,
+            FAILED = 1,
+            TERMINATED = 2,
+            UNDEFINED = 3
         };
 
     };

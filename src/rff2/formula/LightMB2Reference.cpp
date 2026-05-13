@@ -25,7 +25,8 @@ namespace merutilm::rff2 {
     /**
      * Generates Reference of MB2 set.
      * @param state the processor
-     * @param calc calculation settings
+     * @param generalSettings general settings
+     * @param refSettings reference settings
      * @param exp10 the exponent of 10 for arbitrary-precision operation
      * @param refInitialCapacity the initial capacity of the reference
      * @param fixedPeriod the fixed period. default value is 0. i.e. maximum iterations of arbitrary-precision
@@ -38,8 +39,8 @@ namespace merutilm::rff2 {
      * terminated
      */
     Reference::CreationResult
-    LightMB2Reference::generateReference(const ParallelRenderState &state, const FractalSettings &calc,
-                                                int exp10, uint64_t refInitialCapacity, uint64_t fixedPeriod, double dcMax, const bool strictFPG,
+    LightMB2Reference::generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings, const FrtReferenceSettings &refSettings,
+                                                int exp10, uint64_t refInitialCapacity, uint64_t fixedPeriod, dex dcMax, const bool strictFPG,
                                                 std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                                 std::unique_ptr<LightMB2Reference> *result) {
         if (state.interruptRequested()) {
@@ -58,16 +59,16 @@ namespace merutilm::rff2 {
         int strictIntExp10 = -exp10;
         int fpgIntExp10 = strictFPG ? strictIntExp10 : 1;
 
-        fixed_point_complex_i1 center = calc.center;
+        fixed_point_complex_i1 center = refSettings.center;
         fixed_point_complex_i1 c = center.create_variant(exp10);
         auto z = fixed_point_complex_i1(0.0, 0.0, exp10);
         auto temp = z;
         auto fpgBn = fixed_point_complex(0.0, 0.0, exp10, fpgIntExp10);
         auto one = fixed_point_complex_i1(1.0, 0.0, exp10);
-        double bailoutSqr = calc.bailout * calc.bailout;
+        double bailoutSqr = generalSettings.bailout * generalSettings.bailout;
 
         op_thread_pool parallelReferenceThreadPool{};
-        bool useParallel = calc.useParallelRefCalculation;
+        bool useParallel = refSettings.useParallelRefCalculation;
 
         double fpgBnr = 1;
         double fpgBni = 0;
@@ -76,6 +77,7 @@ namespace merutilm::rff2 {
         double zi = 0;
         double cr = c.get_real().double_value();
         double ci = c.get_imag().double_value();
+        auto dcMax1 = static_cast<double>(dcMax);
 
         auto periodArray = std::vector<uint64_t>();
         auto minZRadius = DBL_MAX;
@@ -83,10 +85,9 @@ namespace merutilm::rff2 {
 
         auto tools = std::vector<ArrayCompressionTool>();
         uint64_t compressed = 0;
-        uint64_t maxIteration = calc.maxIteration;
 
-        auto [refSyncInterval, refSyncRadiusPower] = calc.referenceSyncSettings;
-        auto [compressCriteria, compressionThresholdPower, withoutNormalize] = calc.referenceCompSettings;
+        auto [refSyncInterval, refSyncRadiusPower] = refSettings.sync;
+        auto [compressCriteria, compressionThresholdPower, withoutNormalize] = refSettings.compression;
 
         double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
         double refSyncRadius2 = pow(10, -refSyncRadiusPower * 2);
@@ -107,7 +108,7 @@ namespace merutilm::rff2 {
             if (period > 0) {
 
                 double radius2 = zr * zr + zi * zi;
-                double fpgLimit = radius2 / dcMax;
+                double fpgLimit = radius2 / dcMax1;
                 double fpgBnrTemp = fpgBnr * zr * 2 - fpgBni * zi * 2 + 1;
                 double fpgBniTemp = fpgBnr * zi * 2 + fpgBni * zr * 2;
                 double fpgRadius = rff_math::hypot_approx(fpgBnrTemp, fpgBniTemp);

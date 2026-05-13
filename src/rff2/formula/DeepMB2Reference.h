@@ -23,9 +23,13 @@ namespace merutilm::rff2 {
                                          std::vector<ArrayCompressionTool> &&compressor, std::vector<uint64_t> &&period,
                                          fixed_point_complex &&fpgReference, fixed_point_complex &&fpgBn);
 
-        static CreationResult createReference(const ParallelRenderState &state, const FractalSettings &calc, int exp10,
-                                              uint64_t refInitialCapacity, uint64_t fixedPeriod, dex dcMax, bool strictFPG,
-                                              std::function<void(uint64_t)> &&actionPerRefCalcIteration,  std::unique_ptr<DeepMB2Reference> *result);
+        static CreationResult generateReference(const ParallelRenderState &state,
+                                                const FrtGeneralSettings &generalSettings,
+                                                const FrtReferenceSettings &refSettings, int exp10,
+                                                uint64_t refInitialCapacity, uint64_t fixedPeriod, dex dcMax,
+                                                bool strictFPG,
+                                                std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                                                std::unique_ptr<DeepMB2Reference> *result);
 
 
         [[nodiscard]] dex real(uint64_t refIteration) const;

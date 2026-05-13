@@ -18,8 +18,8 @@ namespace merutilm::rff2 {
 
 
         explicit LightMPATable(const ParallelRenderState &state, const LightMB2Reference &reference,
-                      const FrtMPASettings *mpaSettings, const double dcMax,
-                      std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, dcMax, std::move(actionPerCreatingTableIteration)) {
+                      const FrtMPASettings *mpaSettings, const dex dcMax,
+                      std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) : MPATable(state, reference, mpaSettings, static_cast<double>(dcMax), std::move(actionPerCreatingTableIteration)) {
 
         };
 

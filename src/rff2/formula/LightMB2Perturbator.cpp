@@ -13,48 +13,17 @@
 namespace merutilm::rff2 {
 
 
-    LightMB2Perturbator::LightMB2Perturbator(
-            ParallelRenderState &state, const FractalSettings &calc, const double dcMax, const int exp10,
-            const uint64_t refInitialCapacity, const uint64_t fixedPeriod,
-            std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-            std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration, const bool arbitraryPrecisionFPGBn,
-            std::unique_ptr<LightMB2Reference> reusedReference, std::unique_ptr<LightMPATable> reusedTable,
-            const double offR, const double offI) :
-        MB2Perturbator(state, calc), dcMax(dcMax), offR(offR), offI(offI) {
-
-        if (reusedReference == nullptr) {
-            this->referenceCreationResult = LightMB2Reference::generateReference(state, calc, exp10, refInitialCapacity, fixedPeriod, dcMax,
-                                                                  arbitraryPrecisionFPGBn,
-                                                                  std::move(actionPerRefCalcIteration), &reference);
-
-        } else {
-            reference = std::move(reusedReference);
-            this->referenceCreationResult = Reference::CreationResult::SUCCESS;
-        }
-
-        if (this->referenceCreationResult != Reference::CreationResult::SUCCESS) {
-            return;
-        }
-
-        if (reusedTable == nullptr) {
-            table = std::make_unique<LightMPATable>(state, *reference, &calc.mpaSettings, dcMax,
-                                                    std::move(actionPerCreatingTableIteration));
-        } else {
-            table = std::move(reusedTable);
-        }
-    }
-
-    double LightMB2Perturbator::iterate(const FractalSettings &calc, const dex dcr, const dex dci) const {
+    double LightMB2Perturbator::iterate(const dex dcr, const dex dci) const {
         if (state.interruptRequested())
             return 0.0;
 
-        const double dcr1 = static_cast<double>(dcr) + offR;
-        const double dci1 = static_cast<double>(dci) + offI;
+        const double dcr1 = static_cast<double>(dcr) + static_cast<double>(offR);
+        const double dci1 = static_cast<double>(dci) + static_cast<double>(offI);
 
         uint64_t iteration = 0;
         uint64_t refIteration = 0;
         int absIteration = 0;
-        const uint64_t maxRefIteration = reference->longestPeriod();
+        const uint64_t maxRefIteration = reference.longestPeriod();
 
         double dzr = 0; // delta z
         double dzi = 0;
@@ -63,9 +32,9 @@ namespace merutilm::rff2 {
 
         double cd = 0;
         double pd = cd;
-        const bool isAbs = calc.absoluteIterationMode;
-        const uint64_t maxIteration = calc.maxIteration;
-        const float bailout = calc.bailout;
+        const bool isAbs = ptbSettings.absoluteIterationMode;
+        const uint64_t maxIteration = ptbSettings.maxIteration;
+        const float bailout = generalSettings.bailout;
         const float bailout2 = bailout * bailout;
 
 
@@ -92,9 +61,9 @@ namespace merutilm::rff2 {
 
 
             if (refIteration != maxRefIteration) {
-                const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration);
-                const double zr1 = reference->refReal[index] * 2 + dzr;
-                const double zi1 = reference->refImag[index] * 2 + dzi;
+                const uint64_t index = ArrayCompressor::compress(reference.compressor, refIteration);
+                const double zr1 = reference.refReal[index] * 2 + dzr;
+                const double zi1 = reference.refImag[index] * 2 + dzi;
 
                 const double zr2 = zr1 * dzr - zi1 * dzi + dcr1;
                 const double zi2 = zr1 * dzi + zi1 * dzr + dci1;
@@ -108,9 +77,9 @@ namespace merutilm::rff2 {
                 ++absIteration;
             }
 
-            const uint64_t index = ArrayCompressor::compress(reference->compressor, refIteration);
-            zr = reference->refReal[index] + dzr;
-            zi = reference->refImag[index] + dzi;
+            const uint64_t index = ArrayCompressor::compress(reference.compressor, refIteration);
+            zr = reference.refReal[index] + dzr;
+            zi = reference.refImag[index] + dzi;
 
 
             if (zi == 0 && zr < 0.25 && zr >= -2) {
@@ -148,44 +117,6 @@ namespace merutilm::rff2 {
         pd = sqrt(pd);
         cd = sqrt(cd);
 
-        return FrtDecimalizeIterationMethodUtil::getDoubleValueIteration(iteration, pd, cd, calc.decimalizeIterationMethod, bailout);
-    }
-
-
-    std::unique_ptr<LightMB2Perturbator>
-    LightMB2Perturbator::reuse(const FractalSettings &calc, const double dcMax) {
-
-        const int exp10 = logZoomToExp10(calc.logZoom);
-        double offR = 0;
-        double offI = 0;
-        uint64_t longestPeriod = 1;
-        std::unique_ptr<LightMB2Reference> reusedReference = nullptr;
-
-        if (this->referenceCreationResult != Reference::CreationResult::SUCCESS) {
-            // try to use incomplete reference
-            MessageBox(nullptr, "Please do not try to use incomplete Reference.", "Warning",
-                       MB_OK | MB_ICONWARNING);
-        } else {
-            fixed_point_complex_i1 center = calc.center.create_variant(exp10);
-            const fixed_point_complex_i1 refCenter = reference->center.create_variant(exp10);
-
-            fixed_point_complex::sub(center, center, refCenter);
-
-            offR = center.get_real().double_value();
-            offI = center.get_imag().double_value();
-            longestPeriod = reference->longestPeriod();
-            reusedReference = std::move(reference);
-        }
-
-
-        return std::make_unique<LightMB2Perturbator>(
-                state, calc, dcMax, exp10, 0, longestPeriod,
-                [](uint64_t) {
-                    // no action because the reference is already declared
-                },
-                [](uint64_t, double) {
-                    // same reason
-                },
-                false, std::move(reusedReference), std::move(table), offR, offI);
+        return FrtDecimalizeIterationMethodUtil::getDoubleValueIteration(iteration, pd, cd, ptbSettings.decimalizeIterationMethod, bailout);
     }
 } // namespace merutilm::rff2

@@ -5,7 +5,7 @@
 #pragma once
 
 namespace merutilm::rff2 {
-    enum class FrtReuseReferenceMethod {
+    enum class FrtReferenceReuseMethod {
         /**
         * Reuse current reference
         */

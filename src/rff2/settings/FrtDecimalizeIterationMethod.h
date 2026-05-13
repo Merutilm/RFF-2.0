@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "../constants/Constants.hpp"
 
 namespace merutilm::rff2 {
     enum class FrtDecimalizeIterationMethod {
