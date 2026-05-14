@@ -198,8 +198,8 @@ namespace merutilm::vkh {
         }
 
         auto &window = *windowPtr;
-        static int lastX;
-        static int lastY;
+        static int lastX = INT_MAX;
+        static int lastY = INT_MAX;
 
         auto handleMouseUp = [&](const KeyInput::MouseButton btn, MouseState &mouse, int x, int y) {
             if (mouse.isDragging)
@@ -264,6 +264,8 @@ namespace merutilm::vkh {
             case WM_MOUSEMOVE: {
                 const auto xPos = GET_X_LPARAM(lParam);
                 const auto yPos = GET_Y_LPARAM(lParam);
+                const int dx = xPos - lastX;
+                const int dy = yPos - lastY;
 
                 if (!window.mouseHovered) {
                     TRACKMOUSEEVENT tme{};
@@ -282,20 +284,20 @@ namespace merutilm::vkh {
 
                 auto &mouseDragEvent = window.eventSystem.mouseDrag;
 
-                auto dragFunc = [xPos, yPos, &mouseDragEvent](MouseState &mouseState,
+                auto dragFunc = [xPos, yPos, dx, dy, &mouseDragEvent](MouseState &mouseState,
                                                               const KeyInput::MouseButton mouseButton) {
                     if (!mouseState.isPressed)
                         return;
 
-                    const float dx = static_cast<float>(mouseState.pressedX) - xPos;
-                    const float dy = static_cast<float>(mouseState.pressedY) - yPos;
+                    const int accX = mouseState.pressedX - xPos;
+                    const int accY = mouseState.pressedY - yPos;
 
-                    if (!mouseState.isDragging && dx * dx + dy * dy > MOUSE_DRAG_THRESHOLD) {
+                    if (!mouseState.isDragging && accX * accX + accY * accY > MOUSE_DRAG_THRESHOLD) {
                         mouseDragEvent.onMouseDragStart.invoke(mouseButton, xPos, yPos);
                         mouseState.isDragging = true;
                     }
                     if (mouseState.isDragging)
-                        mouseDragEvent.onMouseDrag.invoke(mouseButton, xPos, yPos);
+                        mouseDragEvent.onMouseDrag.invoke(mouseButton, xPos, yPos, dx, dy);
                 };
 
                 dragFunc(window.leftMouse, KeyInput::MouseButton::LEFT);
@@ -519,6 +521,12 @@ namespace merutilm::vkh {
         GetClientRect(renderWindow, &rect);
         return !isResizing && IsWindow(renderWindow) && IsWindowVisible(renderWindow) && !IsIconic(renderWindow) &&
                rect.bottom - rect.top > 0 && rect.right - rect.left > 0;
+    }
+    void NativeWindow::getRenderWindowExtent(uint16_t *x, uint16_t *y) const {
+        RECT rect;
+        GetClientRect(getRenderWindow(), &rect);
+        if (x) *x = static_cast<uint16_t>(rect.right - rect.left);
+        if (y) *y = static_cast<uint16_t>(rect.bottom - rect.top);
     }
 
     void NativeWindow::getMousePosition(int *x, int *y) {

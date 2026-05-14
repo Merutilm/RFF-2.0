@@ -7,8 +7,8 @@
 #include <string>
 
 namespace merutilm::rff2 {
-    struct RenderSceneRequests {
-        std::atomic<bool> defaultAttrRequested = false;
+    struct AppRenderManagerRequests {
+        std::atomic<bool> defaultSettingsRequested = false;
         std::atomic<bool> recomputeRequested = false;
         std::atomic<bool> resizeRequested = false;
         std::atomic<bool> shaderRequested = false;
@@ -16,7 +16,7 @@ namespace merutilm::rff2 {
         std::string createImageRequestedFilename;
 
         void requestDefaultSettings() {
-            defaultAttrRequested = true;
+            defaultSettingsRequested = true;
         };
 
         void requestShader() {
@@ -35,6 +35,5 @@ namespace merutilm::rff2 {
             createImageRequestedFilename = filename;
             createImageRequested = true;
         }
-
     };
 }

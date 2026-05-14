@@ -55,7 +55,13 @@ namespace merutilm::vkh {
 
         virtual bool canRenderable() = 0;
 
+        virtual void getRenderWindowExtent(uint16_t *x, uint16_t *y) const = 0;
+
         virtual void getMousePosition(int *x, int *y) = 0;
+
+        virtual void setRenderWindowSizeWithClientAdjustment(int width, int height) const = 0;
+
+        virtual void setRenderWindowSize(uint32_t width, uint32_t height) const = 0;
 
         [[nodiscard]] virtual VkExtent2D calculateClientSizeFromMainWindow() const = 0;
 

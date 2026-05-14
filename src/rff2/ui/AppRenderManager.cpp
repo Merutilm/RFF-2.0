@@ -53,8 +53,8 @@ namespace merutilm::rff2 {
         refreshRenderContext();
         refreshResizeParams();
         applyShaderAttr(settings);
-        wndRequestFPS();
-        addListeners();
+
+        addMouseListeners();
         requests.requestRecompute();
     }
 
@@ -76,7 +76,7 @@ namespace merutilm::rff2 {
                                            swapchainImageContextGetter);
     }
 
-    void AppRenderManager::resolveWindowResizeEnd() const {
+    void AppRenderManager::resolveWindowResizeEnd() {
         if (!wc.getWindow()->canRenderable()) {
             return;
         }
@@ -84,13 +84,17 @@ namespace merutilm::rff2 {
 
         vkh::Swapchain &swapchain = wc.getSwapchain();
         swapchain.recreate();
+
+        requests.requestResize();
+        requests.requestRecompute();
     }
 
 
     void AppRenderManager::render() {
-        if (requests.defaultAttrRequested) {
-            applyDefaultAttr();
-            requests.defaultAttrRequested.exchange(false);
+
+        if (requests.defaultSettingsRequested) {
+            applyDefaultSettings();
+            requests.defaultSettingsRequested.exchange(false);
             backgroundThreads.notifyAll();
         }
         if (requests.shaderRequested) {
@@ -160,22 +164,20 @@ namespace merutilm::rff2 {
                           .exportation = {.fps = 60, .bitrate = 9000}}};
     }
 
-    void AppRenderManager::addListeners() {
+    void AppRenderManager::addMouseListeners() {
         auto &eventSystem = wc.getWindow()->eventSystem;
-        eventSystem.mouse.onMouseDown.add([this](vkh::KeyInput::MouseButton, const int mx, const int my) {
-            SetCursor(LoadCursor(nullptr, IDC_SIZEALL));
-            interactedMX = getMouseXOnIterationBuffer(mx);
-            interactedMY = getMouseYOnIterationBuffer(my);
-        });
-        eventSystem.mouse.onMouseUp.add([this](vkh::KeyInput::MouseButton, int, int) {
-            SetCursor(LoadCursor(nullptr, IDC_CROSS));
-            interactedMX = 0;
-            interactedMY = 0;
-        });
-        eventSystem.mouse.onMouseMove.add([this](int mx, int my) {
+
+        eventSystem.mouse.onMouseDown.add(
+                [](vkh::KeyInput::MouseButton, int, int) { SetCursor(LoadCursor(nullptr, IDC_SIZEALL)); });
+        eventSystem.mouse.onMouseUp.add(
+                [](vkh::KeyInput::MouseButton, int, int) { SetCursor(LoadCursor(nullptr, IDC_CROSS)); });
+        eventSystem.mouse.onMouseEnter.add([] { SetCursor(LoadCursor(nullptr, IDC_CROSS)); });
+        eventSystem.mouse.onMouseExit.add([] { SetCursor(LoadCursor(nullptr, IDC_ARROW)); });
+
+
+        eventSystem.mouse.onMouseMove.add([this](const int mx, const int my) {
             const uint16_t x = getMouseXOnIterationBuffer(mx);
             const uint16_t y = getMouseYOnIterationBuffer(my);
-            SetCursor(LoadCursor(nullptr, IDC_CROSS));
             if (renderer->iterationStagingBufferContext == nullptr) {
                 return;
             }
@@ -184,13 +186,15 @@ namespace merutilm::rff2 {
                 setStatusMessage(Constants::Status::ITERATION_STATUS, std::format(L"I : {} ({}, {})", it, x, y));
             }
         });
-        eventSystem.mouseDrag.onMouseDrag.add([this](const vkh::KeyInput::MouseButton mb, const int mx, const int my) {
-            const uint16_t x = getMouseXOnIterationBuffer(mx);
-            const uint16_t y = getMouseYOnIterationBuffer(my);
-            if (mb == vkh::KeyInput::MouseButton::LEFT && interactedMX > 0 && interactedMY > 0) {
+
+        eventSystem.mouseDrag.onMouseDrag.add([this](const vkh::KeyInput::MouseButton mb, const int mx, const int my, const int mdx, const int mdy) {
+            const int16_t x = getMouseXOnIterationBuffer(mx);
+            const int16_t y = getMouseYOnIterationBuffer(my);
+            const int16_t dx = getMouseXOnIterationBuffer(mx - mdx) - x;
+            const int16_t dy = getMouseYOnIterationBuffer(my - mdy) - y;
+
+            if (mb == vkh::KeyInput::MouseButton::LEFT) {
                 SetCursor(LoadCursor(nullptr, IDC_SIZEALL));
-                const auto dx = static_cast<int16_t>(interactedMX - x);
-                const auto dy = static_cast<int16_t>(interactedMY - y);
                 const float m = settings.render.clarityMultiplier;
                 const float logZoom = settings.fractal.general.logZoom;
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
@@ -201,8 +205,6 @@ namespace merutilm::rff2 {
                                                  dex(static_cast<float>(dy) / m) / getDivisor(settings), exp10);
                 fixed_point_complex_i1::add(center, center, add);
 
-                interactedMX = x;
-                interactedMY = y;
                 requests.requestRecompute();
             }
         });
@@ -259,31 +261,22 @@ namespace merutilm::rff2 {
 
     dex AppRenderManager::getDivisor(const Settings &settings) { return dex_exp::exp10(settings.fractal.general.logZoom); }
 
-    uint16_t AppRenderManager::getRenderWindowWidth() const {
-        RECT rect;
-        const auto wnd = dynamic_cast<vkh::NativeWindow *>(wc.getWindow());
-        GetClientRect(wnd->getRenderWindow(), &rect);
-        return static_cast<uint16_t>(rect.right - rect.left);
-    }
-
-    uint16_t AppRenderManager::getRenderWindowHeight() const {
-        RECT rect;
-        const auto wnd = dynamic_cast<vkh::NativeWindow *>(wc.getWindow());
-        GetClientRect(wnd->getRenderWindow(), &rect);
-        return static_cast<uint16_t>(rect.bottom - rect.top);
-    }
 
     uint16_t AppRenderManager::getIterationBufferWidth(const Settings &settings) const {
         const float multiplier = settings.render.clarityMultiplier;
-        return static_cast<uint16_t>(static_cast<float>(getRenderWindowWidth()) * multiplier);
+        uint16_t w;
+        wc.getWindow()->getRenderWindowExtent(&w, nullptr);
+        return static_cast<uint16_t>(static_cast<float>(w) * multiplier);
     }
 
     uint16_t AppRenderManager::getIterationBufferHeight(const Settings &settings) const {
         const float multiplier = settings.render.clarityMultiplier;
-        return static_cast<uint16_t>(static_cast<float>(getRenderWindowHeight()) * multiplier);
+        uint16_t h;
+        wc.getWindow()->getRenderWindowExtent(nullptr, &h);
+        return static_cast<uint16_t>(static_cast<float>(h) * multiplier);
     }
 
-    void AppRenderManager::applyDefaultAttr() {
+    void AppRenderManager::applyDefaultSettings() {
         wc.core.getLogicalDevice().waitDeviceIdle();
         settings = genDefaultAttr();
     }
@@ -469,7 +462,7 @@ namespace merutilm::rff2 {
     }
 
     void AppRenderManager::beforeIterationFill() const {
-        renderer->rendererIteration->setMaxIteration(static_cast<double>(renderData->getPerturbator()->ptbSettings.maxIteration));
+        renderer->rendererIteration->setMaxIteration(static_cast<double>(renderData->fractalSettings.perturb.maxIteration));
     }
 
     bool AppRenderManager::prepareRenderData(const std::chrono::time_point<std::chrono::high_resolution_clock> &start, const Settings &settings) {

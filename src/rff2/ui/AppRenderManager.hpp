@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include <vector>
 #include <atomic>
+#include <vector>
 
 #include "../formula/MB2Perturbator.h"
 #include "../formula/MB2RenderData.hpp"
@@ -12,8 +12,8 @@
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
 #include "../settings/Settings.h"
+#include "AppRenderManagerRequests.hpp"
 #include "AppRenderer.hpp"
-#include "RenderSceneRequests.hpp"
 #include "SettingsWindow.hpp"
 #include "vulkan_helper/engine/SharedResource.hpp"
 #include "vulkan_helper/handle/EngineHandler.hpp"
@@ -23,13 +23,10 @@ namespace merutilm::rff2 {
 
         vkh::WindowContext &wc;
         vkh::SharedResource &sr;
+
         ParallelRenderState state;
         Settings settings;
-
-        uint16_t interactedMX = 0;
-        uint16_t interactedMY = 0;
-
-        RenderSceneRequests requests;
+        AppRenderManagerRequests requests;
 
         std::atomic<bool> idleCompute = true;
 
@@ -41,10 +38,6 @@ namespace merutilm::rff2 {
         std::unique_ptr<MB2RenderDataBase> renderData = nullptr;
 
         std::unique_ptr<AppRenderer> renderer = nullptr;
-
-        bool wndFPSRequest = false;
-        uint16_t wndCWRequest = 0;
-        uint16_t wndCHRequest = 0;
 
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
@@ -62,9 +55,7 @@ namespace merutilm::rff2 {
 
         AppRenderManager &operator=(AppRenderManager &&) = delete;
 
-
-
-        void resolveWindowResizeEnd() const;
+        void resolveWindowResizeEnd();
 
         void render();
 
@@ -98,33 +89,29 @@ namespace merutilm::rff2 {
 
         static Settings genDefaultAttr();
 
-        void addListeners();
+        void addMouseListeners();
 
         [[nodiscard]] std::array<dex, 2> offsetConversion(const Settings &settings, int mx, int my) const;
 
         static dex getDivisor(const Settings &settings);
 
-        [[nodiscard]] uint16_t getRenderWindowWidth() const;
-
-        [[nodiscard]] uint16_t getRenderWindowHeight() const;
-
         [[nodiscard]] uint16_t getIterationBufferWidth(const Settings &settings) const;
 
         [[nodiscard]] uint16_t getIterationBufferHeight(const Settings &settings) const;
 
-        void applyDefaultAttr();
+        void applyDefaultSettings();
 
         void applyCreateImage();
 
         void applyShaderAttr(const Settings &settings) const;
+
+        void applyResize();
 
         void refreshResizeParams();
 
         void initRenderer();
 
         void refreshRenderContext() const;
-
-        void applyResize();
 
         void refreshSharedImgContext() const;
 
@@ -149,6 +136,7 @@ namespace merutilm::rff2 {
             (*statusMessageRef)[index] = std::wstring(L"  ").append(message);
         }
 
+
         [[nodiscard]] Settings &getSettings() {
             return settings;
         }
@@ -159,6 +147,10 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] MB2RenderDataBase *getCurrentRenderData() const {
             return renderData.get();
+        }
+
+        [[nodiscard]] AppRenderManagerRequests &getRequests() {
+            return requests;
         }
 
         void setCurrentSettingsWindows(std::unique_ptr<SettingsWindow> window) {
@@ -177,26 +169,10 @@ namespace merutilm::rff2 {
             return {renderData->fractalSettings.general.logZoom, renderData->getReference()->longestPeriod(), renderData->fractalSettings.perturb.maxIteration, *iterationMatrix};
         }
 
-        [[nodiscard]] RenderSceneRequests &getRequests() {
-            return requests;
-        }
-
-        [[nodiscard]] bool isFPSRequested() const {
-            return wndFPSRequest;
-        }
-
         [[nodiscard]] bool isIdleCompute() const {
             return idleCompute;
         }
 
-
-        [[nodiscard]] int getWndCWRequest() const {
-            return wndCWRequest;
-        }
-
-        [[nodiscard]] int getWndCHRequest() const {
-            return wndCHRequest;
-        }
 
         [[nodiscard]] vkh::WindowContext &getWindowContext() const {
             return wc;
@@ -205,25 +181,6 @@ namespace merutilm::rff2 {
         [[nodiscard]] vkh::SharedResource &getSharedResource() const {
             return sr;
         }
-
-        void wndRequestFPS() {
-            wndFPSRequest = true;
-        }
-
-        void wndRequestClientSize(const uint16_t width, const uint16_t height) {
-            wndCWRequest = width;
-            wndCHRequest = height;
-        }
-
-        void wndClientSizeRequestSolved() {
-            wndCWRequest = 0;
-            wndCHRequest = 0;
-        }
-
-        void wndFPSRequestSolved() {
-            wndFPSRequest = false;
-        }
-
 
 
         template<typename P> requires std::is_base_of_v<Preset, P>
@@ -254,7 +211,7 @@ namespace merutilm::rff2 {
         }
         if constexpr (std::is_base_of_v<Presets::ResolutionPreset, P>) {
             auto r = preset.genResolution();
-            wndRequestClientSize(r[0], r[1]);
+            wc.getWindow()->setRenderWindowSizeWithClientAdjustment(r[0], r[1]);
         }
         if constexpr (std::is_base_of_v<Presets::ShaderPreset, P>) {
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::PalettePreset, P>) {

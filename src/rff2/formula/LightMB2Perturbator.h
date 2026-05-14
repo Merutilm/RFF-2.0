@@ -16,8 +16,8 @@ namespace merutilm::rff2 {
     public:
 
         explicit LightMB2Perturbator(ParallelRenderState &state, const dex dcMax,
-        FrtGeneralSettings generalSettings,
-        FrtPerturbSettings ptbSettings, const LightMB2Reference &reference, const LightMPATable *table) : MB2Perturbator(state, dcMax, std::move(generalSettings), std::move(ptbSettings)), reference(reference), table(table) {}
+        const FrtGeneralSettings &generalSettings,
+        const FrtPerturbSettings &ptbSettings, const LightMB2Reference &reference, const LightMPATable *table) : MB2Perturbator(state, dcMax, generalSettings, ptbSettings), reference(reference), table(table) {}
 
         [[nodiscard]] double iterate(dex dcr, dex dci) const override;
 

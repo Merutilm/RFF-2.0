@@ -13,14 +13,17 @@ namespace merutilm::rff2 {
 
         ParallelRenderState &state;
         dex dcMax;
-        FrtGeneralSettings generalSettings;
-        FrtPerturbSettings ptbSettings;
         dex offR = dex::ZERO;
         dex offI = dex::ZERO;
 
+    protected:
+        const FrtGeneralSettings &generalSettings;
+        const FrtPerturbSettings &ptbSettings;
+
+    public:
         explicit MB2Perturbator(ParallelRenderState &state, const dex dcMax,
-        FrtGeneralSettings generalSettings,
-        FrtPerturbSettings ptbSettings) : state(state), dcMax(dcMax), generalSettings(std::move(generalSettings)), ptbSettings(std::move(ptbSettings)) {
+        const FrtGeneralSettings &generalSettings,
+        const FrtPerturbSettings &ptbSettings) : state(state), dcMax(dcMax), generalSettings(generalSettings), ptbSettings(ptbSettings) {
         }
 
         ~MB2Perturbator() override = default;

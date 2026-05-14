@@ -77,7 +77,7 @@ namespace merutilm::rff2 {
         void translate(float logZoom, dex dcMax, FrtPerturbSettings ptbSettings,
                        const fixed_point_complex_i1 &newCenter) override;
 
-        void applyAutoMaxIteration(FrtPerturbSettings &ptbSettings);
+        void applyAutoMaxIteration();
     };
 
     template<typename T>
@@ -96,7 +96,7 @@ namespace merutilm::rff2 {
             return;
         }
 
-        applyAutoMaxIteration(fractalSettings.perturb);
+        applyAutoMaxIteration();
         table = std::make_unique<typename MB2Types<T>::Table>(state, *reference, &fractalSettings.mpa, dcMax,
                                                      std::move(actionPerCreatingTableIteration));
         perturbator = std::make_unique<typename MB2Types<T>::Perturbator>(state, dcMax, fractalSettings.general, fractalSettings.perturb, *reference, table.get());
@@ -127,14 +127,15 @@ namespace merutilm::rff2 {
             perturbator->offI = center.get_imag().dex_value();
             perturbator->dcMax = dcMax;
 
-            perturbator->ptbSettings = std::move(ptbSettings);
-            applyAutoMaxIteration(perturbator->ptbSettings);
+            fractalSettings.perturb = std::move(ptbSettings);
+            fractalSettings.general.logZoom = logZoom;
 
-            perturbator->generalSettings.logZoom = logZoom;
+            applyAutoMaxIteration();
         }
     }
     template<typename T>
-    void MB2RenderData<T>::applyAutoMaxIteration(FrtPerturbSettings &ptbSettings) {
+    void MB2RenderData<T>::applyAutoMaxIteration() {
+        auto &ptbSettings = fractalSettings.perturb;
         if (ptbSettings.autoMaxIteration) {
             ptbSettings.maxIteration = std::max(ptbSettings.maxIteration, reference->longestPeriod() * ptbSettings.autoIterationMultiplier);
         }

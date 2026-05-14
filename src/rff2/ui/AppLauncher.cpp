@@ -60,7 +60,8 @@ namespace merutilm::rff2 {
             GetWindowRect(statusBar, &statusRect);
             statusHeight = statusRect.bottom - statusRect.top;
             wc->getWindow()->initializerSettings.paddings.bottom = statusHeight;
-            getNativeWindow().setRenderWindowSizeWithClientAdjustment(Constants::Win32::INIT_RENDER_SCENE_WIDTH,  Constants::Win32::INIT_RENDER_SCENE_HEIGHT);
+            wc->getWindow()->setRenderWindowSizeWithClientAdjustment(Constants::Win32::INIT_RENDER_SCENE_WIDTH,
+                                                                     Constants::Win32::INIT_RENDER_SCENE_HEIGHT);
         }
     }
 
@@ -71,18 +72,11 @@ namespace merutilm::rff2 {
     }
 
     void AppLauncher::setProcedure() const {
-        const HCURSOR hCursor = LoadCursor(nullptr, IDC_ARROW);
         auto &eventSystem = wc->getWindow()->eventSystem;
-
-        eventSystem.mouse.onMouseMove.add([hCursor](int, int) { SetCursor(hCursor); });
-
-        eventSystem.window.onMaximize.add([this] { resolveWindowResizeEnd(); });
-        // eventSystem.window.onMinimize.add([this] { resolveWindowResizeEnd(); });
-        eventSystem.window.onRestore.add([this] { resolveWindowResizeEnd(); });
-
+        eventSystem.window.onMaximize.add([this] { arm->resolveWindowResizeEnd(); });
+        eventSystem.window.onRestore.add([this] { arm->resolveWindowResizeEnd(); });
         eventSystem.resize.onResizeEnd.add([this](const int w, const int h) {
-            SetWindowPos(statusBar, nullptr, 0, h, w, statusHeight,
-                         SWP_NOZORDER);
+            SetWindowPos(statusBar, nullptr, 0, h, w, statusHeight, SWP_NOZORDER);
 
             auto rightEdges = std::array<int, Constants::Status::LENGTH>{};
 
@@ -94,31 +88,13 @@ namespace merutilm::rff2 {
             }
 
             SendMessageW(statusBar, SB_SETPARTS, Constants::Status::LENGTH, (LPARAM) rightEdges.data());
-            resolveWindowResizeEnd();
+            arm->resolveWindowResizeEnd();
         });
 
         eventSystem.applicationLifecycle.onUpdate.add([this] {
-            resolveWNDRequest();
             arm->render();
             refreshStatusBar();
         });
-    }
-
-    void AppLauncher::resolveWindowResizeEnd() const {
-        arm->resolveWindowResizeEnd();
-        arm->getRequests().requestResize();
-        arm->getRequests().requestRecompute();
-    }
-
-    void AppLauncher::resolveWNDRequest() const {
-        if (arm->getWndCWRequest() != 0) {
-            getNativeWindow().setRenderWindowSizeWithClientAdjustment(arm->getWndCWRequest(), arm->getWndCHRequest());
-            arm->wndClientSizeRequestSolved();
-        }
-        if (arm->isFPSRequested() != 0) {
-            wc->getWindow()->initializerSettings.framerate = arm->getSettings().render.fps;
-            arm->wndFPSRequestSolved();
-        }
     }
 
 

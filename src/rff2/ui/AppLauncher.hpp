@@ -51,10 +51,6 @@ namespace merutilm::rff2 {
 
         void setProcedure() const;
 
-        void resolveWindowResizeEnd() const;
-
-        void resolveWNDRequest() const;
-
         [[nodiscard]] vkh::NativeWindow &getNativeWindow() const {
             return *dynamic_cast<vkh::NativeWindow *>(wc->getWindow());
         }

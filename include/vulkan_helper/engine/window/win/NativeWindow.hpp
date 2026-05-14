@@ -30,7 +30,6 @@ namespace merutilm::vkh {
         [[nodiscard]] HWND getMainWindow() const { return mainWindow;}
         [[nodiscard]] HWND getRenderWindow() const { return renderWindow;}
 
-        void setRenderWindowSizeWithClientAdjustment(int width, int height) const;
 
     private:
 
@@ -41,7 +40,6 @@ namespace merutilm::vkh {
 
         void initMenu();
 
-        void setRenderWindowSize(uint32_t width, uint32_t height) const;
 
         void resolveWindowResizeEnd() const;
 
@@ -55,9 +53,15 @@ namespace merutilm::vkh {
 
         static std::wstring s2ws(std::string_view str);
 
+        void setRenderWindowSizeWithClientAdjustment(int width, int height) const override;
+
+        void setRenderWindowSize(uint32_t width, uint32_t height) const override;
+
         VkExtent2D calculateClientSizeFromMainWindow() const override;
 
         bool canRenderable() override;
+
+        void getRenderWindowExtent(uint16_t *x, uint16_t *y) const override;
 
         void getMousePosition(int *x, int *y) override;
 
@@ -69,7 +73,6 @@ namespace merutilm::vkh {
 
         void generateKeyMapper() override;
 
-    public:
         VkSurfaceKHR createSurface(VkInstance instance) override;
 
         PlatformMenuBase &addMenu(PlatformMenuBase &menu, std::wstring name) override;

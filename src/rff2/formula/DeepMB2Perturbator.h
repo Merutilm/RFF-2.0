@@ -14,10 +14,10 @@ namespace merutilm::rff2 {
         const DeepMPATable *table;
 
     public:
-        explicit DeepMB2Perturbator(ParallelRenderState &state, const dex dcMax, FrtGeneralSettings generalSettings,
-                                    FrtPerturbSettings ptbSettings, const DeepMB2Reference &reference,
+        explicit DeepMB2Perturbator(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
+                                    const FrtPerturbSettings &ptbSettings, const DeepMB2Reference &reference,
                                     const DeepMPATable *table) :
-            MB2Perturbator(state, dcMax, std::move(generalSettings), std::move(ptbSettings)), reference(reference),
+            MB2Perturbator(state, dcMax, generalSettings, ptbSettings), reference(reference),
             table(table) {}
 
         [[nodiscard]] double iterate(dex dcr, dex dci) const override;

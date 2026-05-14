@@ -24,7 +24,9 @@ namespace merutilm::rff2 {
                     L"Clarity Multiplier", L"Sets the clarity multiplier.");
             window->registerTextInput<float>(
                     L"Framerate", &fps, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
-                    [&arm] { arm.wndRequestFPS(); }, L"Framerate per second", L"Sets the Framerate.");
+                    [&arm, &fps] {
+                        arm.getWindowContext().getWindow()->initializerSettings.framerate = fps;
+                    }, L"Framerate per second", L"Sets the Framerate.");
             window->registerTextInput<uint32_t>(L"Threads", &threads, Unparser::UINT32, Parser::UINT32,
                                                 ValidCondition::ALL_UINT32, Callback::NOTHING, L"Threads",
                                                 L"Sets the number of threads while rendering an image.");

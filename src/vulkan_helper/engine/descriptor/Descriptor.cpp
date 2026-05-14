@@ -34,11 +34,7 @@ namespace merutilm::vkh {
             std::iota(bindings.begin(), bindings.end(), 0);
         }
 
-        auto bm = std::move(bindings);
-        std::ranges::unique(bm);
-        std::ranges::sort(bm);
-
-        updateIndices(updateQueue, frameIndex, std::move(descIndices), bm);
+        updateIndices(updateQueue, frameIndex, std::move(descIndices), std::move(bindings));
     }
 
     void Descriptor::updateIndices(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex,
