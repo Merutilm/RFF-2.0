@@ -4,31 +4,10 @@
 
 #pragma once
 #include <utility>
-
-#include "../mrthy/DeepMPATable.h"
-#include "../mrthy/LightMPATable.h"
-#include "../mrthy/LightPA.h"
-#include "DeepMB2Perturbator.h"
-#include "LightMB2Perturbator.h"
-#include "LightMB2Reference.h"
+#include "../settings/FractalSettings.h"
+#include "MB2Perturbator.h"
+#include "MB2Reference.h"
 namespace merutilm::rff2 {
-
-    template<typename T>
-    struct MB2Types;
-
-    template<>
-    struct MB2Types<LightPA> {
-        using Reference = LightMB2Reference;
-        using Table = LightMPATable;
-        using Perturbator = LightMB2Perturbator;
-    };
-
-    template<>
-    struct MB2Types<DeepPA> {
-        using Reference = DeepMB2Reference;
-        using Table = DeepMPATable;
-        using Perturbator = DeepMB2Perturbator;
-    };
 
     struct MB2RenderDataBase {
 
@@ -40,8 +19,8 @@ namespace merutilm::rff2 {
         FractalSettings fractalSettings;
         Reference::CreationResult lastCreationResult = Reference::CreationResult::UNDEFINED;
 
-        [[nodiscard]] virtual MB2Reference *getReference() const = 0;
-        [[nodiscard]] virtual MB2Perturbator *getPerturbator() const = 0;
+        [[nodiscard]] virtual MB2ReferenceBase *getReference() const = 0;
+        [[nodiscard]] virtual MB2PerturbatorBase *getPerturbator() const = 0;
 
         virtual void translate(float logZoom, dex dcMax, FrtPerturbSettings ptbSettings,
                                const fixed_point_complex_i1 &newCenter) = 0;
@@ -51,13 +30,13 @@ namespace merutilm::rff2 {
         }
     };
 
-    template<typename T>
+    template<Number Num>
     struct MB2RenderData final : MB2RenderDataBase {
 
 
-        std::unique_ptr<typename MB2Types<T>::Reference> reference;
-        std::unique_ptr<typename MB2Types<T>::Table> table;
-        std::unique_ptr<typename MB2Types<T>::Perturbator> perturbator;
+        std::unique_ptr<MB2Reference<Num>> reference;
+        std::unique_ptr<MPATable<Num>> table;
+        std::unique_ptr<MB2Perturbator<Num>> perturbator;
 
         explicit MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, dex dcMax, int exp10,
                                uint64_t refInitialCapacity, uint64_t fixedPeriod,
@@ -70,9 +49,9 @@ namespace merutilm::rff2 {
                     uint64_t refInitialCapacity, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                     std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
 
-        [[nodiscard]] MB2Reference *getReference() const override { return reference.get(); }
+        [[nodiscard]] MB2ReferenceBase *getReference() const override { return reference.get(); }
 
-        [[nodiscard]] MB2Perturbator *getPerturbator() const override { return perturbator.get(); }
+        [[nodiscard]] MB2PerturbatorBase *getPerturbator() const override { return perturbator.get(); }
 
         void translate(float logZoom, dex dcMax, FrtPerturbSettings ptbSettings,
                        const fixed_point_complex_i1 &newCenter) override;
@@ -80,13 +59,13 @@ namespace merutilm::rff2 {
         void applyAutoMaxIteration();
     };
 
-    template<typename T>
-    MB2RenderData<T>::MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, const dex dcMax,
+    template<Number Num>
+    MB2RenderData<Num>::MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, const dex dcMax,
                                     const int exp10, const uint64_t refInitialCapacity, const uint64_t fixedPeriod,
                                     std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                     std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
                                     const bool arbitraryPrecisionFPGBn) : MB2RenderDataBase(frt) {
-        this->lastCreationResult = MB2Types<T>::Reference::generateReference(
+        this->lastCreationResult = MB2Reference<Num>::generateReference(
                 state, frt.general, frt.reference, exp10, refInitialCapacity, fixedPeriod, dcMax,
                 arbitraryPrecisionFPGBn, std::move(actionPerRefCalcIteration), &reference);
 
@@ -97,13 +76,13 @@ namespace merutilm::rff2 {
         }
 
         applyAutoMaxIteration();
-        table = std::make_unique<typename MB2Types<T>::Table>(state, *reference, &fractalSettings.mpa, dcMax,
+        table = std::make_unique<MPATable<Num>>(state, *reference, &fractalSettings.mpa, Num(dcMax),
                                                      std::move(actionPerCreatingTableIteration));
-        perturbator = std::make_unique<typename MB2Types<T>::Perturbator>(state, dcMax, fractalSettings.general, fractalSettings.perturb, *reference, table.get());
+        perturbator = std::make_unique<MB2Perturbator<Num>>(state, dcMax, fractalSettings.general, fractalSettings.perturb, *reference, table.get());
     }
-    template<typename T>
-    std::unique_ptr<MB2RenderData<T>>
-    MB2RenderData<T>::generateNew(ParallelRenderState &state, const FractalSettings &frt, dex dcMax, int exp10,
+    template<Number Num>
+    std::unique_ptr<MB2RenderData<Num>>
+    MB2RenderData<Num>::generateNew(ParallelRenderState &state, const FractalSettings &frt, dex dcMax, int exp10,
                                   uint64_t refInitialCapacity,
                                   std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                   std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) {
@@ -111,8 +90,8 @@ namespace merutilm::rff2 {
                              std::move(actionPerCreatingTableIteration), false);
     }
 
-    template<typename T>
-    void MB2RenderData<T>::translate(const float logZoom, const dex dcMax, const FrtPerturbSettings ptbSettings,
+    template<Number Num>
+    void MB2RenderData<Num>::translate(const float logZoom, const dex dcMax, const FrtPerturbSettings ptbSettings,
                                      const fixed_point_complex_i1 &newCenter) {
         if (lastCreationResult != Reference::CreationResult::SUCCESS) {
             // try to use incomplete reference
@@ -133,12 +112,15 @@ namespace merutilm::rff2 {
             applyAutoMaxIteration();
         }
     }
-    template<typename T>
-    void MB2RenderData<T>::applyAutoMaxIteration() {
+    template<Number Num>
+    void MB2RenderData<Num>::applyAutoMaxIteration() {
         auto &ptbSettings = fractalSettings.perturb;
         if (ptbSettings.autoMaxIteration) {
             ptbSettings.maxIteration = std::max(ptbSettings.maxIteration, reference->longestPeriod() * ptbSettings.autoIterationMultiplier);
         }
     }
+
+    using LightMB2RenderData = MB2RenderData<double>;
+    using DeepMB2RenderData = MB2RenderData<dex>;
 
 } // namespace merutilm::rff2

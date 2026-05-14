@@ -5,7 +5,7 @@
 #include "MB2Locator.h"
 
 #include "../calc/dex_exp.h"
-#include "../formula/DeepMB2Perturbator.h"
+#include "../formula/MB2Reference.h"
 #include "../formula/MB2RenderData.hpp"
 #include "../formula/Perturbator.h"
 
@@ -28,7 +28,7 @@ namespace merutilm::rff2 {
 
     std::unique_ptr<fixed_point_complex_i1> MB2Locator::findCenterOffset(const MB2RenderDataBase &data) {
         const int exp10 = Perturbator::logZoomToExp10(data.fractalSettings.general.logZoom);
-        const MB2Reference *reference = data.getReference();
+        const MB2ReferenceBase *reference = data.getReference();
         if (!reference) return nullptr;
 
         fixed_point_complex bn = reference->fpgBn.create_variant(exp10, -exp10 * 2);
@@ -145,14 +145,14 @@ namespace merutilm::rff2 {
             ++centerFixCount;
 
             if (doubledLogZoom < Constants::Fractal::ZOOM_DEADLINE) {
-                doubledZoomData = std::make_unique<MB2RenderData<LightPA>>(
+                doubledZoomData = std::make_unique<LightMB2RenderData>(
                     state, doubledZoomCalc, doubledZoomDcMax,
                     Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileCreatingTable, true);
             } else {
-                doubledZoomData = std::make_unique<MB2RenderData<DeepPA>>(
+                doubledZoomData = std::make_unique<DeepMB2RenderData>(
                     state, doubledZoomCalc, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);

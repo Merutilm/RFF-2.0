@@ -9,9 +9,7 @@ add_executable(
         res/resources.rc
         src/rff2/ui/Main.cpp
         src/rff2/io/RFFDynamicMapBinary.cpp
-        src/rff2/formula/LightMB2Reference.cpp
         src/rff2/parallel/ParallelRenderState.cpp
-        src/rff2/formula/LightMB2Perturbator.cpp
         src/rff2/mrthy/MPAPeriod.cpp
         src/rff2/ui/SettingsWindow.cpp
         src/rff2/ui/CallbackFile.cpp
@@ -20,10 +18,6 @@ add_executable(
         src/rff2/ui/CallbackShader.cpp
         src/rff2/locator/MB2Locator.cpp
         src/rff2/ui/CallbackExplore.cpp
-        src/rff2/formula/DeepMB2Reference.cpp
-        src/rff2/formula/DeepMB2Perturbator.cpp
-        src/rff2/mrthy/LightPAGenerator.cpp
-        src/rff2/mrthy/DeepPAGenerator.cpp
         src/rff2/preset/shader/palette/ShdPalettePresets.cpp
         src/rff2/preset/shader/fog/ShdFogPresets.cpp
         src/rff2/preset/shader/color/ShdColorPresets.cpp
@@ -61,6 +55,7 @@ add_executable(
         src/rff2/settings/FrtReferenceSettings.hpp
         src/rff2/settings/FrtPerturbSettings.hpp
         src/rff2/settings/FrtGeneralSettings.hpp
+        src/rff2/calc/calculatable.hpp
 )
 
 
@@ -68,7 +63,7 @@ target_compile_options(RFF PRIVATE
         #Debug options
         $<$<CONFIG:Debug>:-O0>
         #Release options
-        $<$<CONFIG:Release>:-O3 -ffast-math -funroll-loops -march=native>
+        $<$<CONFIG:Release>:-O3 -ffast-math -funroll-loops -march=native -mllvm -inline-threshold=800>
 )
 
 target_compile_definitions(RFF

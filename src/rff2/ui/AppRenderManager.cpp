@@ -5,8 +5,6 @@
 #include "AppRenderManager.hpp"
 
 #include "../calc/dex_exp.h"
-#include "../formula/DeepMB2Perturbator.h"
-#include "../formula/LightMB2Perturbator.h"
 #include "../locator/MB2Locator.h"
 #include "../parallel/ParallelArrayDispatcher.h"
 #include "../parallel/ParallelDispatcher.h"
@@ -541,12 +539,12 @@ namespace merutilm::rff2 {
                 int refExp10 = Perturbator::logZoomToExp10(refCalc.general.logZoom);
 
                 if (refCalc.general.logZoom > Constants::Fractal::ZOOM_DEADLINE) {
-                    renderData = std::make_unique<MB2RenderData<DeepPA>>(
+                    renderData = std::make_unique<DeepMB2RenderData>(
                                     state, refCalc, center->data->getPerturbator()->dcMax, refExp10, capacity,
                                     period, std::move(actionPerRefCalcIteration),
                                     std::move(actionPerCreatingTableIteration), false);
                 } else {
-                    renderData = std::make_unique<MB2RenderData<LightPA>>(
+                    renderData = std::make_unique<LightMB2RenderData>(
                                     state, refCalc, center->data->getPerturbator()->dcMax, refExp10, capacity,
                                     period, std::move(actionPerRefCalcIteration),
                                     std::move(actionPerCreatingTableIteration), false);
@@ -557,11 +555,11 @@ namespace merutilm::rff2 {
             case DISABLED: {
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
                 if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
-                    renderData = MB2RenderData<DeepPA>::generateNew(
+                    renderData = DeepMB2RenderData::generateNew(
                             state, frt, dcMax, exp10, capacity,
                             std::move(actionPerRefCalcIteration), std::move(actionPerCreatingTableIteration));
                 } else {
-                    renderData = MB2RenderData<LightPA>::generateNew(
+                    renderData = LightMB2RenderData::generateNew(
                             state, frt, dcMax, exp10, capacity,
                             std::move(actionPerRefCalcIteration), std::move(actionPerCreatingTableIteration));
                 }
@@ -572,16 +570,16 @@ namespace merutilm::rff2 {
             }
         }
 
-        const MB2Reference *reference = renderData->getReference();
+        const MB2ReferenceBase *reference = renderData->getReference();
         if (!reference || state.interruptRequested())
             return false;
 
         size_t refLength = reference->length();
         size_t mpaLen;
-        if (const auto t = dynamic_cast<MB2RenderData<LightPA> *>(renderData.get())) {
+        if (const auto t = dynamic_cast<LightMB2RenderData *>(renderData.get())) {
             mpaLen = t->table->getLength();
         }
-        if (const auto t = dynamic_cast<MB2RenderData<DeepPA> *>(renderData.get())) {
+        if (const auto t = dynamic_cast<DeepMB2RenderData *>(renderData.get())) {
             mpaLen = t->table->getLength();
         }
 

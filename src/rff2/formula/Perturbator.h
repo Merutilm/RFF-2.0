@@ -4,7 +4,6 @@
 
 #pragma once
 #include "../constants/Constants.hpp"
-#include "../settings/FrtDecimalizeIterationMethod.h"
 
 namespace merutilm::rff2 {
     struct Perturbator {
