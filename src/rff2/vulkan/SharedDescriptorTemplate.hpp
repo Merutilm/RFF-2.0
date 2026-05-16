@@ -135,7 +135,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_STRIPE_OPACITY = 3;
         static constexpr uint32_t TARGET_STRIPE_OFFSET = 4;
         static constexpr uint32_t TARGET_STRIPE_ANIMATION_SPEED = 5;
-        static constexpr uint32_t TARGET_ITERATION_COLORING = 6;
+        static constexpr uint32_t TARGET_STRIPE_ITERATION_COLORING = 6;
 
 
         void configure(vkh::Core &core,
@@ -147,7 +147,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<float>(TARGET_STRIPE_OPACITY);
             bufferManager.reserve<float>(TARGET_STRIPE_OFFSET);
             bufferManager.reserve<float>(TARGET_STRIPE_ANIMATION_SPEED);
-            bufferManager.reserve<uint32_t>(TARGET_ITERATION_COLORING);
+            bufferManager.reserve<uint32_t>(TARGET_STRIPE_ITERATION_COLORING);
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, false);
             auto descManager = vkh::DescriptorManager();
             descManager.appendUBO(BINDING_UBO_STRIPE, STAGE, std::move(ubo));

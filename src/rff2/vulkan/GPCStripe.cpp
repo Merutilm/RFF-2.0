@@ -31,7 +31,7 @@ namespace merutilm::rff2 {
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_OFFSET, stripe.offset);
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_ANIMATION_SPEED,
                           stripe.animationSpeed);
-        stripeUBOHost.set(DescStripe::TARGET_ITERATION_COLORING,
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_ITERATION_COLORING,
                           stripe.iterationColoring);
         stripeUBO.update();
 

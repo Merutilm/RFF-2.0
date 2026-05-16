@@ -11,7 +11,7 @@ namespace merutilm::rff2 {
     }
 
     ShdStripeSettings ShdStripePresets::Disabled::genStripe() const {
-        return ShdStripeSettings{ShdStripeType::NONE, 10, 50, 1, 0, 0};
+        return ShdStripeSettings{ShdStripeType::NONE, 10, 50, 1, 0, 0, ShdIterationColoringMethod::LINEAR};
     }
 
     std::wstring ShdStripePresets::SlowAnimated::getName() const {
@@ -19,7 +19,7 @@ namespace merutilm::rff2 {
     }
 
     ShdStripeSettings ShdStripePresets::SlowAnimated::genStripe() const {
-        return ShdStripeSettings{ShdStripeType::SINGLE_DIRECTION, 10, 50, 1, 0, 0.5f};
+        return ShdStripeSettings{ShdStripeType::SINGLE_DIRECTION, 10, 50, 1, 0, 0.5f, ShdIterationColoringMethod::LINEAR};
     }
 
     std::wstring ShdStripePresets::FastAnimated::getName() const {
@@ -27,7 +27,7 @@ namespace merutilm::rff2 {
     }
 
     ShdStripeSettings ShdStripePresets::FastAnimated::genStripe() const {
-        return ShdStripeSettings{ShdStripeType::SINGLE_DIRECTION, 100, 500, 1, 0, 5};
+        return ShdStripeSettings{ShdStripeType::SINGLE_DIRECTION, 100, 500, 1, 0, 5, ShdIterationColoringMethod::LINEAR};
     }
 
     std::wstring ShdStripePresets::Smooth::getName() const {
@@ -35,7 +35,7 @@ namespace merutilm::rff2 {
     }
 
     ShdStripeSettings ShdStripePresets::Smooth::genStripe() const {
-        return ShdStripeSettings{ShdStripeType::SMOOTH, 1, 1, 1, 0, 0.25f};
+        return ShdStripeSettings{ShdStripeType::SMOOTH, 1, 1, 1, 0, 0.25f, ShdIterationColoringMethod::LINEAR};
     }
 
     std::wstring ShdStripePresets::SmoothTranslucent::getName() const {
@@ -43,6 +43,6 @@ namespace merutilm::rff2 {
     }
 
     ShdStripeSettings ShdStripePresets::SmoothTranslucent::genStripe() const {
-        return ShdStripeSettings{ShdStripeType::SQUARED, 1, 1, 0.5f, 0, 1};
+        return ShdStripeSettings{ShdStripeType::SQUARED, 1, 1, 0.5f, 0, 1, ShdIterationColoringMethod::LINEAR};
     }
 }

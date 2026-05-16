@@ -148,8 +148,6 @@ float get_stripe_mul(double iteration){
     }
 
     double iter_curr = iteration - (stripe_settings.offset + stripe_settings.animation_speed * time_settings.time);
-
-
     float black;
     float rat1 = float(mod(iter_curr, stripe_settings.first_interval)) / stripe_settings.first_interval;
     float rat2 = float(mod(iter_curr, stripe_settings.second_interval)) / stripe_settings.second_interval;

@@ -10,7 +10,7 @@
 
 namespace merutilm::rff2 {
     void CPC2MapIterationStripe::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
-        //noop
+        // noop
     }
 
 
@@ -20,7 +20,8 @@ namespace merutilm::rff2 {
         auto &stripeDesc = getDescriptor(SET_STRIPE);
         auto &timeDesc = getDescriptor(SET_TIME);
         auto &vidDesc = getDescriptor(SET_VIDEO);
-        writeDescriptorMF([&iterDesc, &stripeDesc, &timeDesc, &vidDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        writeDescriptorMF([&iterDesc, &stripeDesc, &timeDesc, &vidDesc](vkh::DescriptorUpdateQueue &queue,
+                                                                        const uint32_t frameIndex) {
             iterDesc.queue(queue, frameIndex, {}, {DescIteration::BINDING_UBO_ITERATION_INFO});
             stripeDesc.queue(queue, frameIndex, {}, {DescStripe::BINDING_UBO_STRIPE});
             timeDesc.queue(queue, frameIndex, {}, {DescTime::BINDING_UBO_TIME});
@@ -33,10 +34,9 @@ namespace merutilm::rff2 {
         auto &outDesc = getDescriptor(SET_OUTPUT_IMAGE);
         auto &[outImg] = outDesc.get<vkh::StorageImage>(0, BINDING_OUTPUT_MERGED_IMAGE);
         outImg = wc.getSharedImageContext().getImageContextMF(MF_VIDEO_RENDER_IMAGE_PRIMARY);
-        writeDescriptorMF(
-            [&outDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-                outDesc.queue(queue, frameIndex, {}, {BINDING_OUTPUT_MERGED_IMAGE});
-            });
+        writeDescriptorMF([&outDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            outDesc.queue(queue, frameIndex, {}, {BINDING_OUTPUT_MERGED_IMAGE});
+        });
     }
 
 
@@ -53,8 +53,7 @@ namespace merutilm::rff2 {
     void CPC2MapIterationStripe::setPalette(const ShdPaletteSettings &palette) const {
         using namespace SharedDescriptorTemplate;
         auto &paletteDesc = getDescriptor(SET_PALETTE);
-        auto &paletteSSBO = paletteDesc.get<vkh::ShaderStorage>(0,
-                                                                 DescPalette::BINDING_SSBO_PALETTE);
+        auto &paletteSSBO = paletteDesc.get<vkh::ShaderStorage>(0, DescPalette::BINDING_SSBO_PALETTE);
         auto &paletteSSBOHost = paletteSSBO.getHostObject();
 
         if (paletteSSBO.isLocked()) {
@@ -77,10 +76,9 @@ namespace merutilm::rff2 {
         paletteSSBO.update();
         paletteSSBO.lock(wc.getCommandPool());
 
-        writeDescriptorMF(
-            [&paletteDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-                paletteDesc.queue(queue, frameIndex, {}, {DescPalette::BINDING_SSBO_PALETTE});
-            });
+        writeDescriptorMF([&paletteDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            paletteDesc.queue(queue, frameIndex, {}, {DescPalette::BINDING_SSBO_PALETTE});
+        });
     }
 
     void CPC2MapIterationStripe::setStripe(const ShdStripeSettings &stripe) const {
@@ -89,17 +87,14 @@ namespace merutilm::rff2 {
         auto &stripeUBO = stripeDesc.get<vkh::Uniform>(0, DescStripe::BINDING_UBO_STRIPE);
         auto &stripeUBOHost = stripeUBO.getHostObject();
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_TYPE, static_cast<uint32_t>(stripe.stripeType));
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_FIRST_INTERVAL,
-                          stripe.firstInterval);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_SECOND_INTERVAL,
-                          stripe.secondInterval);
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_FIRST_INTERVAL, stripe.firstInterval);
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_SECOND_INTERVAL, stripe.secondInterval);
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_OPACITY, stripe.opacity);
         stripeUBOHost.set(DescStripe::TARGET_STRIPE_OFFSET, stripe.offset);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_ANIMATION_SPEED,
-                          stripe.animationSpeed);
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_ANIMATION_SPEED, stripe.animationSpeed);
+        stripeUBOHost.set(DescStripe::TARGET_STRIPE_ITERATION_COLORING, stripe.iterationColoring);
         stripeUBO.update();
     }
-
 
 
     void CPC2MapIterationStripe::setDefaultZoomIncrement(const float defaultZoomIncrement) const {
@@ -108,22 +103,18 @@ namespace merutilm::rff2 {
         auto &vidUBO = vidDesc.get<vkh::Uniform>(0, DescVideo::BINDING_UBO_VIDEO);
         auto &vidUBOHost = vidUBO.getHostObject();
         vidUBOHost.set<float>(DescVideo::TARGET_VIDEO_DEFAULT_ZOOM_INCREMENT, defaultZoomIncrement);
-        updateBufferMF([&vidUBO](const uint32_t frameIndex) {
-            vidUBO.updateMF(frameIndex);
-        });
+        updateBufferMF([&vidUBO](const uint32_t frameIndex) { vidUBO.updateMF(frameIndex); });
     }
 
 
     void CPC2MapIterationStripe::setAllIterations(const std::vector<double> &normal,
-                                                   const std::vector<double> &zoomed) const {
+                                                  const std::vector<double> &zoomed) const {
         using namespace SharedDescriptorTemplate;
         auto &map2Desc = getDescriptor(SET_I2MAP);
         auto &map2DescNormalSSBO = map2Desc.get<vkh::ShaderStorage>(0, BINDING_I2MAP_SSBO_NORMAL);
-        map2DescNormalSSBO.getHostObject().set<double>(
-            TARGET_I2MAP_SSBO_NORMAL_ITERATION, normal);
+        map2DescNormalSSBO.getHostObject().set<double>(TARGET_I2MAP_SSBO_NORMAL_ITERATION, normal);
         auto &map2DescZoomedSSBO = map2Desc.get<vkh::ShaderStorage>(0, BINDING_I2MAP_SSBO_ZOOMED);
-        map2DescZoomedSSBO.getHostObject().set<double>(
-            TARGET_I2MAP_SSBO_ZOOMED_ITERATION, zoomed);
+        map2DescZoomedSSBO.getHostObject().set<double>(TARGET_I2MAP_SSBO_ZOOMED_ITERATION, zoomed);
 
         map2DescNormalSSBO.update();
         map2DescZoomedSSBO.update();
@@ -158,7 +149,8 @@ namespace merutilm::rff2 {
 
         writeDescriptorMF([&iter, &iterOut](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             iter.queue(queue, frameIndex, {}, {BINDING_I2MAP_SSBO_NORMAL, BINDING_I2MAP_SSBO_ZOOMED});
-            iterOut.queue(queue, frameIndex, {}, {DescIteration::BINDING_UBO_ITERATION_INFO, DescIteration::BINDING_SSBO_ITERATION_MATRIX});
+            iterOut.queue(queue, frameIndex, {},
+                          {DescIteration::BINDING_UBO_ITERATION_INFO, DescIteration::BINDING_SSBO_ITERATION_MATRIX});
         });
     }
 
@@ -178,11 +170,10 @@ namespace merutilm::rff2 {
         auto &timeUBO = time.get<vkh::Uniform>(0, DescTime::BINDING_UBO_TIME);
         timeUBO.getHostObject().set<float>(DescTime::TARGET_TIME_CURRENT, currentSec);
         timeUBO.updateMF(frameIndex, DescTime::TARGET_TIME_CURRENT);
-
     }
 
-    void CPC2MapIterationStripe::configurePushConstant(vkh::PipelineLayoutManager & pipelineLayoutManager) {
-        //noop
+    void CPC2MapIterationStripe::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
+        // noop
     }
 
     void CPC2MapIterationStripe::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
@@ -190,11 +181,11 @@ namespace merutilm::rff2 {
         auto normal = vkh::HostDataObjectManager();
         normal.reserveArray<double>(TARGET_I2MAP_SSBO_NORMAL_ITERATION, 1);
         auto normalSSBO = std::make_unique<vkh::ShaderStorage>(wc.core, std::move(normal),
-                                                                   vkh::BufferLock::ALWAYS_MUTABLE, false);
+                                                               vkh::BufferLock::ALWAYS_MUTABLE, false);
         auto zoomed = vkh::HostDataObjectManager();
         zoomed.reserveArray<double>(TARGET_I2MAP_SSBO_ZOOMED_ITERATION, 1);
         auto zoomedSSBO = std::make_unique<vkh::ShaderStorage>(wc.core, std::move(zoomed),
-                                                                   vkh::BufferLock::ALWAYS_MUTABLE, false);
+                                                               vkh::BufferLock::ALWAYS_MUTABLE, false);
 
         auto i2mapManager = vkh::DescriptorManager();
         i2mapManager.appendSSBO(BINDING_I2MAP_SSBO_NORMAL, VK_SHADER_STAGE_COMPUTE_BIT, std::move(normalSSBO));
@@ -210,4 +201,4 @@ namespace merutilm::rff2 {
         appendDescriptor<DescIteration>(SET_OUTPUT_ITERATION, descriptors);
         appendDescriptor<DescStripe>(SET_STRIPE, descriptors);
     }
-}
+} // namespace merutilm::rff2

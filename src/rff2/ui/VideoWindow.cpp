@@ -216,7 +216,7 @@ namespace merutilm::rff2 {
                 auto hms = std::chrono::hh_mm_ss(remainedTime);
 
                 window.barRatio = progressRatio;
-                window.barText = std::format(L"Processing... {:2f}% [{:%H:%M:%S}]", progressRatio * 100, hms);
+                window.barText = std::format(L"Processing... {:2f}% [{:%H:%M:%S}]", std::clamp(progressRatio, 0.0f, 1.0f) * 100, hms);
             }
 
             writer.release();
