@@ -1,5 +1,10 @@
 #version 450
 
+#define ICM_LINEAR 0
+#define ICM_SQUARE_ROOT 1
+#define ICM_LOG 2
+
+
 #define DOUBLE_PI 6.2831853071795864
 #define NONE 0
 #define SINGLE_DIRECTION 1
@@ -24,6 +29,7 @@ layout (set = 2, binding = 0) uniform StripeUBO {
     float opacity;
     float offset;
     float animation_speed;
+    uint coloring;
 } stripe_settings;
 
 layout (set = 3, binding = 0) uniform TimeUBO {
@@ -50,6 +56,17 @@ void main() {
     if (stripe_settings.type == NONE || iteration == 0) {
         color = texelFetch(canvas, ivec2(gl_FragCoord.xy), 0);
         return;
+    }
+
+    switch (stripe_settings.coloring) {
+        case ICM_LINEAR:
+            break;
+        case ICM_SQUARE_ROOT:
+            iteration = sqrt(iteration);
+            break;
+        case ICM_LOG:
+            iteration = log(float(iteration));
+            break;
     }
 
     double iter_curr = iteration - (stripe_settings.offset + stripe_settings.animation_speed * time_settings.time);

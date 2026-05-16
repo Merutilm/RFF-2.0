@@ -211,6 +211,8 @@ namespace merutilm::rff2 {
             vkh::BufferImageContextUtils::cmdCopyBuffer(wc.getCommandBuffer().getCommandBufferHandle(frameIndex),
                                                         srcBuffer, dstBuffer);
         }
+        wc.getSyncObject().getFence(frameIndex).wait();
+
         vkh::BufferContext::unmapMemory(wc.core, dstBuffer);
         return VideoBufferCache(wc.core, std::move(dstBuffer), static_cast<int>(videoExtent.width),
                                 static_cast<int>(videoExtent.height),

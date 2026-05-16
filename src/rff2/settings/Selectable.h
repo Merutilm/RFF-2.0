@@ -10,7 +10,7 @@
 #include "FrtMPACompressionMethod.h"
 #include "FrtMPASelectionMethod.h"
 #include "FrtReferenceReuseMethod.h"
-#include "ShdPalIterationColoringMethod.hpp"
+#include "ShdIterationColoringMethod.hpp"
 #include "ShdPalSingleIterationColoringMethod.h"
 #include "ShdStripeType.h"
 
@@ -51,8 +51,8 @@ namespace merutilm::rff2 {
                     STRONGEST
                 };
             }
-            if constexpr (std::is_same_v<E, ShdPalIterationColoringMethod>) {
-                using enum ShdPalIterationColoringMethod;
+            if constexpr (std::is_same_v<E, ShdIterationColoringMethod>) {
+                using enum ShdIterationColoringMethod;
                 return {
                     LINEAR,
                     SQUARE_ROOT,
@@ -122,9 +122,9 @@ namespace merutilm::rff2 {
                     default: break;
                 }
             }
-            if constexpr (std::is_same_v<E, ShdPalIterationColoringMethod>) {
+            if constexpr (std::is_same_v<E, ShdIterationColoringMethod>) {
                 switch (value) {
-                    using enum ShdPalIterationColoringMethod;
+                    using enum ShdIterationColoringMethod;
                     case LINEAR: return L"Linear";
                     case SQUARE_ROOT: return L"Square root";
                     case LOG: return L"Log";

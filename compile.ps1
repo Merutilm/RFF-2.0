@@ -1,8 +1,8 @@
 [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
 
 
-$dirIn = "../shdsrc"
-$dirOut = "../shaders"
+$dirIn = "shdsrc"
+$dirOut = "shaders"
 $filesIn = Get-ChildItem -Path $dirIn -File;
 $len = $filesIn.Length;
 

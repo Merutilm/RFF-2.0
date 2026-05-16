@@ -4,13 +4,15 @@
 
 #include "KFRColorLoader.hpp"
 #include <fstream>
-
+#include <windows.h>
+#include "../constants/Constants.hpp"
 #include "../ui/IOUtilities.h"
+#include "../ui/Utilities.h"
 
 namespace merutilm::rff2 {
     std::vector<glm::vec4> KFRColorLoader::loadPaletteSettings() {
-        const auto pFile = IOUtilities::ioFileDialog(L"Open KFR Palette", Constants::Extension::DESC_KFR,
-                                                     IOUtilities::OPEN_FILE, Constants::Extension::KFR);
+        const auto pFile = IOUtilities::ioFileDialog(L"Open KFR Palette", Constants::File::DESC_KFR,
+                                                     IOUtilities::OPEN_FILE, Constants::File::EXT_KFR);
         if (pFile == nullptr) {
             return {};
         }

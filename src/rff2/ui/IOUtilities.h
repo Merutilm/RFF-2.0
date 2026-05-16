@@ -5,13 +5,10 @@
 #pragma once
 #include <algorithm>
 #include <array>
-#include <cstring>
 #include <filesystem>
-#include <format>
 #include <fstream>
 #include <string>
 #include <vector>
-#include "Utilities.h"
 
 namespace merutilm::rff2 {
     struct IOUtilities {
@@ -27,9 +24,8 @@ namespace merutilm::rff2 {
 
         static std::wstring fileNameFormat(unsigned int n, std::wstring_view extension);
 
-        static std::filesystem::path generateFileName(const std::filesystem::path &dir, std::wstring_view extension);
-
-        static uint32_t fileNameCount(const std::filesystem::path &dir, std::wstring_view extension);
+        static std::filesystem::path generateFilename(const std::filesystem::path &dir, std::wstring_view extension,
+                                                      uint32_t *cnt);
 
         template<typename T> requires std::is_arithmetic_v<T>
         static void encodeAndWrite(std::ofstream &out, const T &t);

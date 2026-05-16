@@ -53,12 +53,12 @@ namespace merutilm::rff2 {
     }
 
     RFFDynamicMapBinary RFFDynamicMapBinary::readByID(const std::filesystem::path& dir, const uint32_t id) {
-        return read(dir / IOUtilities::fileNameFormat(id, Constants::Extension::DYNAMIC_MAP));
+        return read(dir / IOUtilities::fileNameFormat(id, Constants::File::EXT_DYNAMIC_MAP));
     }
 
 
     void RFFDynamicMapBinary::exportAsKeyframe(const std::filesystem::path &dir) const {
-        exportFile(IOUtilities::generateFileName(dir, Constants::Extension::DYNAMIC_MAP));
+        exportFile(IOUtilities::generateFilename(dir, Constants::File::EXT_DYNAMIC_MAP, nullptr));
     }
 
     void RFFDynamicMapBinary::exportFile(const std::filesystem::path &path) const {

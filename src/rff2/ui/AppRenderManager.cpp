@@ -28,6 +28,7 @@
 #include "../vulkan/SharedImageContextIndices.hpp"
 #include "CallbackExplore.hpp"
 #include "IOUtilities.h"
+#include "Utilities.h"
 #include "opencv2/opencv.hpp"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
 #include "vulkan_helper/engine/executor/ScopedNewCommandBufferExecutor.hpp"
@@ -285,8 +286,8 @@ namespace merutilm::rff2 {
         wc.getSyncObject().getFence(frameIndex).wait();
 
         if (requests.createImageRequestedFilename.empty()) {
-            const auto path = IOUtilities::ioFileDialog(L"Save image", Constants::Extension::DESC_IMAGE,
-                                                        IOUtilities::SAVE_FILE, Constants::Extension::IMAGE);
+            const auto path = IOUtilities::ioFileDialog(L"Save image", Constants::File::DESC_IMAGE,
+                                                        IOUtilities::SAVE_FILE, Constants::File::EXT_IMAGE);
 
             if (path == nullptr)
                 return;

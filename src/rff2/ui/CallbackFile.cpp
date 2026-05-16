@@ -14,8 +14,8 @@ namespace merutilm::rff2 {
 
     std::function<void()> CallbackFile::fnSaveMap(AppRenderManager &arm) {
         return [&arm] {
-            const auto path = IOUtilities::ioFileDialog(L"Save Map", Constants::Extension::DESC_DYNAMIC_MAP,
-                                                        IOUtilities::SAVE_FILE, Constants::Extension::DYNAMIC_MAP);
+            const auto path = IOUtilities::ioFileDialog(L"Save Map", Constants::File::DESC_DYNAMIC_MAP,
+                                                        IOUtilities::SAVE_FILE, Constants::File::EXT_DYNAMIC_MAP);
             if (path == nullptr) {
                 return;
             }
@@ -27,8 +27,8 @@ namespace merutilm::rff2 {
     }
     std::function<void()> CallbackFile::fnSaveLocation(AppRenderManager &arm) {
         return [&arm] {
-            const auto path = IOUtilities::ioFileDialog(L"Save Location", Constants::Extension::DESC_LOCATION,
-                                                        IOUtilities::SAVE_FILE, Constants::Extension::LOCATION);
+            const auto path = IOUtilities::ioFileDialog(L"Save Location", Constants::File::DESC_LOCATION,
+                                                        IOUtilities::SAVE_FILE, Constants::File::EXT_LOCATION);
             if (path == nullptr) {
                 return;
             }
@@ -40,8 +40,8 @@ namespace merutilm::rff2 {
     }
     std::function<void()> CallbackFile::fnLoadMap(AppRenderManager &arm) {
         return [&arm] {
-            const auto path = IOUtilities::ioFileDialog(L"Load Map", Constants::Extension::DESC_DYNAMIC_MAP,
-                                                        IOUtilities::OPEN_FILE, Constants::Extension::DYNAMIC_MAP);
+            const auto path = IOUtilities::ioFileDialog(L"Load Map", Constants::File::DESC_DYNAMIC_MAP,
+                                                        IOUtilities::OPEN_FILE, Constants::File::EXT_DYNAMIC_MAP);
             if (path == nullptr) {
                 return;
             }
@@ -51,8 +51,8 @@ namespace merutilm::rff2 {
 
     std::function<void()> CallbackFile::fnLoadLocation(AppRenderManager &arm) {
         return [&arm] {
-            const auto path = IOUtilities::ioFileDialog(L"Load Location", Constants::Extension::DESC_LOCATION,
-                                                        IOUtilities::OPEN_FILE, Constants::Extension::LOCATION);
+            const auto path = IOUtilities::ioFileDialog(L"Load Location", Constants::File::DESC_LOCATION,
+                                                        IOUtilities::OPEN_FILE, Constants::File::EXT_LOCATION);
             if (path == nullptr) {
                 return;
             }

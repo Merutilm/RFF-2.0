@@ -5,6 +5,7 @@
 #include "CallbackVideo.hpp"
 
 #include "../constants/Constants.hpp"
+#include "../io/RFFLocationBinary.h"
 #include "../io/RFFStaticMapBinary.h"
 #include "../preset/shader/bloom/ShdBloomPresets.h"
 #include "../preset/shader/fog/ShdFogPresets.h"
@@ -78,7 +79,8 @@ namespace merutilm::rff2 {
                     return;
                 }
 
-                if (const HWND hwnd = dynamic_cast<vkh::NativeWindow *>(arm.getWindowContext().getWindow())->getMainWindow();
+                if (const HWND hwnd =
+                            dynamic_cast<vkh::NativeWindow *>(arm.getWindowContext().getWindow())->getMainWindow();
                     !IsWindow(hwnd) || !IsWindowVisible(hwnd)) {
                     MessageBoxW(nullptr, L"Target Window already been destroyed", L"FATAL", MB_OK | MB_ICONERROR);
                     return;
@@ -99,19 +101,22 @@ namespace merutilm::rff2 {
                 }
                 const float increment = std::log10(videoSettings.data.defaultZoomIncrement);
                 while (logZoom > Constants::Fractal::ZOOM_MIN) {
-                    if (state.interruptRequested() || nextFrame) {
+                    if (nextFrame || state.interruptRequested()) {
                         // incomplete frame
                         arm.getRequests().requestRecompute();
-                        thread.waitUntil(
-                                [&arm] { return !arm.getRequests().recomputeRequested && arm.isIdleCompute(); });
+                        thread.waitUntil([&arm, &state] {
+                            return !arm.getRequests().recomputeRequested &&
+                                   (state.interruptRequested() || arm.isIdleCompute());
+                        });
                     }
                     if (state.interruptRequested()) {
+                        vkh::logger::w_log(L"Keyframe generation cancelled.");
                         return;
                     }
+
+
                     if (videoSettings.data.isStatic) {
-                        const std::string &path =
-                                IOUtilities::generateFileName(dir, Constants::Extension::IMAGE).string();
-                        arm.getRequests().requestCreateImage(path);
+                        arm.getRequests().requestCreateImage(IOUtilities::generateFilename(dir, Constants::File::EXT_IMAGE, nullptr).string());
                         thread.waitUntil([&arm] { return !arm.getRequests().createImageRequested; });
                         RFFStaticMapBinary(logZoom, arm.getIterationBufferWidth(settings),
                                            arm.getIterationBufferHeight(settings))
@@ -119,12 +124,13 @@ namespace merutilm::rff2 {
                     } else {
                         arm.generateMap().exportAsKeyframe(dir);
                     }
+
+                    auto &center = settings.fractal.reference.center;
+                    RFFLocationBinary(settings.fractal.general.logZoom, center.real.to_string(),
+                                      center.imag.to_string(), settings.fractal.perturb.maxIteration)
+                            .exportFile(IOUtilities::generateFilename(dir, Constants::File::EXT_LOCATION, nullptr).string());
                     logZoom -= increment;
                     nextFrame = true;
-                }
-
-                if (state.interruptRequested()) {
-                    vkh::logger::w_log(L"Keyframe generation cancelled.");
                 }
             });
         };
@@ -138,8 +144,8 @@ namespace merutilm::rff2 {
                     return;
                 }
                 const auto &open = *openPtr;
-                const auto savePtr = IOUtilities::ioFileDialog(L"Save Video Location", Constants::Extension::DESC_VIDEO,
-                                                               IOUtilities::SAVE_FILE, Constants::Extension::VIDEO);
+                const auto savePtr = IOUtilities::ioFileDialog(L"Save Video Location", Constants::File::DESC_VIDEO,
+                                                               IOUtilities::SAVE_FILE, Constants::File::EXT_VIDEO);
                 if (savePtr == nullptr) {
                     return;
                 }

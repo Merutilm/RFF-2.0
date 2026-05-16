@@ -4,7 +4,7 @@
 
 #include "../vulkan/GPCIterationPalette.hpp"
 
-#include "../settings/ShdPalIterationColoringMethod.hpp"
+#include "../settings/ShdIterationColoringMethod.hpp"
 #include "../settings/ShdPaletteSettings.h"
 #include "../ui/Utilities.h"
 #include "SharedDescriptorTemplate.hpp"

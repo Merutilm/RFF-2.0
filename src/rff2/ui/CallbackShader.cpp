@@ -27,7 +27,7 @@ namespace merutilm::rff2 {
                     L"Animation Speed", &animationSpeed, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
                     [&arm] { arm.getRequests().requestShader(); }, L"Set Animation Speed",
                     L"Color Animation Speed, The colors' offset(iterations) per second.");
-            window->registerRadioButtonInput<ShdPalIterationColoringMethod>(
+            window->registerRadioButtonInput<ShdIterationColoringMethod>(
                     L"Iteration Coloring", &iterationColoring, [&arm] { arm.getRequests().requestShader(); },
                     L"Iteration Coloring", L"Iteration Coloring method");
             window->registerRadioButtonInput<ShdPalSingleIterationColoringMethod>(
@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
     }
     std::function<void()> CallbackShader::fnStripe(AppRenderManager &arm) {
         return [&arm] {
-            auto &[stripeType, firstInterval, secondInterval, opacity, offset, animationSpeed] =
+            auto &[stripeType, firstInterval, secondInterval, opacity, offset, animationSpeed, iterationColoring] =
                     arm.getSettings().shader.stripe;
             auto window = std::make_unique<SettingsWindow>(L"Set Stripe");
             window->registerRadioButtonInput<ShdStripeType>(
@@ -64,6 +64,10 @@ namespace merutilm::rff2 {
                     L"Animation Speed", &animationSpeed, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
                     [&arm] { arm.getRequests().requestShader(); }, L"Set Animation Speed",
                     L"Sets the stripe animation speed.");
+
+            window->registerRadioButtonInput<ShdIterationColoringMethod>(
+                   L"Iteration Coloring", &iterationColoring, [&arm] { arm.getRequests().requestShader(); },
+                   L"Iteration Coloring", L"Iteration Coloring method");
             window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
             arm.setCurrentSettingsWindows(std::move(window));
         };

@@ -85,23 +85,15 @@ namespace merutilm::rff2 {
         return std::format(L"{:04d}.{}", n, extension);
     }
 
-    std::filesystem::path IOUtilities::generateFileName(const std::filesystem::path &dir, const std::wstring_view extension) {
-        unsigned int n = 0;
-        std::filesystem::path p = dir;
-        do {
-            ++n;
-            p = dir / fileNameFormat(n, extension);
-        } while (std::filesystem::exists(p));
-        return p;
-    }
 
-    uint32_t IOUtilities::fileNameCount(const std::filesystem::path &dir, const std::wstring_view extension) {
+    std::filesystem::path IOUtilities::generateFilename(const std::filesystem::path &dir, const std::wstring_view extension, uint32_t *cnt = nullptr) {
         unsigned int n = 0;
         std::filesystem::path p = dir;
         do {
             ++n;
             p = dir / fileNameFormat(n, extension);
         } while (std::filesystem::exists(p));
-        return n - 1;
+        if (cnt) *cnt = n;
+        return p;
     }
 }

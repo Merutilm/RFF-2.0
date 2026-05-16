@@ -1,13 +1,13 @@
 #version 450
 
-#define ISM_LINEAR 0
-#define ISM_SQUARE_ROOT 1
-#define ISM_LOG 2
+#define ICM_LINEAR 0
+#define ICM_SQUARE_ROOT 1
+#define ICM_LOG 2
 
 
-#define SMOOTH_ITER_NONE 0
-#define SMOOTH_ITER_NORMAL 1
-#define SMOOTH_ITER_REVERSED 2
+#define SICM_NONE 0
+#define SICM_NORMAL 1
+#define SICM_REVERSED 2
 
 #define DOUBLE_PI 6.2831853071795864
 #define STRIPE_NONE 0
@@ -34,7 +34,8 @@ layout (set = 2, binding = 0) buffer PaletteSSBO {
     uint size;
     float interval;
     double offset;
-    uint smoothing;
+    uint coloring;
+    uint single_coloring;
     float animation_speed;
     vec4 palette[];
 } palette_settings;
@@ -62,6 +63,7 @@ layout (set = 6, binding = 0) uniform StripeUBO {
     float opacity;
     float offset;
     float animation_speed;
+    uint coloring;
 } stripe_settings;
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
@@ -73,25 +75,25 @@ vec4 get_color(double iteration) {
         return vec4(0, 0, 0, 1);
     }
 
-    switch (palette_settings.smoothing) {
-        case ISM_LINEAR:
+    switch (palette_settings.coloring) {
+        case ICM_LINEAR:
             break;
-        case ISM_SQUARE_ROOT:
+        case ICM_SQUARE_ROOT:
             iteration = sqrt(iteration);
             break;
-        case ISM_LOG:
+        case ICM_LOG:
             iteration = log(float(iteration));
             break;
     }
 
 
-    switch (palette_settings.smoothing) {
-        case SMOOTH_ITER_NONE:
+    switch (palette_settings.single_coloring) {
+        case SICM_NONE:
             iteration = iteration - mod(iteration, 1);
             break;
-        case SMOOTH_ITER_NORMAL:
+        case SICM_NORMAL:
             break;
-        case SMOOTH_ITER_REVERSED:
+        case SICM_REVERSED:
             iteration = iteration + 1 - 2 * mod(iteration, 1);
             break;
     }
@@ -133,7 +135,21 @@ float get_stripe_mul(double iteration){
         return 1;
     }
 
+
+    switch (stripe_settings.coloring) {
+        case ICM_LINEAR:
+            break;
+        case ICM_SQUARE_ROOT:
+            iteration = sqrt(iteration);
+            break;
+        case ICM_LOG:
+            iteration = log(float(iteration));
+            break;
+    }
+
     double iter_curr = iteration - (stripe_settings.offset + stripe_settings.animation_speed * time_settings.time);
+
+
     float black;
     float rat1 = float(mod(iter_curr, stripe_settings.first_interval)) / stripe_settings.first_interval;
     float rat2 = float(mod(iter_curr, stripe_settings.second_interval)) / stripe_settings.second_interval;

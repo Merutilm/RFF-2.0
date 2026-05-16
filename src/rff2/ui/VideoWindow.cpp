@@ -7,6 +7,7 @@
 #include "../io/RFFDynamicMapBinary.h"
 #include "../io/RFFStaticMapBinary.h"
 #include "IOUtilities.h"
+#include "Utilities.h"
 #include "opencv2/opencv.hpp"
 #include "vulkan_helper/engine/window/win/NativeWindow.hpp"
 
@@ -124,8 +125,14 @@ namespace merutilm::rff2 {
             auto nwh = window.getNativeWindowHandle();
 
             const auto frameInterval = mps / fps;
-            const uint32_t maxNumber = isStatic ? IOUtilities::fileNameCount(open, Constants::Extension::STATIC_MAP)
-                                                : IOUtilities::fileNameCount(open, Constants::Extension::DYNAMIC_MAP);
+            uint32_t maxNumber;
+            if (isStatic) {
+                IOUtilities::generateFilename(open, Constants::File::EXT_STATIC_MAP, &maxNumber);
+            }else {
+                IOUtilities::generateFilename(open, Constants::File::EXT_DYNAMIC_MAP, &maxNumber);
+            }
+            --maxNumber;
+
             const float minNumber = -overZoom;
             auto currentFrame = static_cast<float>(maxNumber);
             float currentSec = 0;

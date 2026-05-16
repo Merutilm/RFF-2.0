@@ -4,11 +4,11 @@
 
 #include "RFFStaticMapBinary.h"
 
-#include "vulkan_helper/base/logger.hpp"
+#include "../constants/FileConstants.hpp"
 #include "../ui/IOUtilities.h"
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/imgproc.hpp"
 #include "opencv2/core/mat.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "vulkan_helper/base/logger.hpp"
 
 namespace merutilm::rff2 {
 
@@ -44,16 +44,16 @@ namespace merutilm::rff2 {
     }
 
     RFFStaticMapBinary RFFStaticMapBinary::readByID(const std::filesystem::path& dir, const uint32_t id) {
-        return read(dir / IOUtilities::fileNameFormat(id, Constants::Extension::STATIC_MAP));
+        return read(dir / IOUtilities::fileNameFormat(id, Constants::File::EXT_STATIC_MAP));
     }
     cv::Mat RFFStaticMapBinary::loadImageByID(const std::filesystem::path &dir, const uint32_t id) {
-        cv::Mat result = cv::imread((dir / IOUtilities::fileNameFormat(id, Constants::Extension::IMAGE)).string(), cv::IMREAD_UNCHANGED);
+        cv::Mat result = cv::imread((dir / IOUtilities::fileNameFormat(id, Constants::File::EXT_IMAGE)).string(), cv::IMREAD_UNCHANGED);
         return result;
     }
 
 
     void RFFStaticMapBinary::exportAsKeyframe(const std::filesystem::path &dir) const {
-        exportFile(IOUtilities::generateFileName(dir, Constants::Extension::STATIC_MAP));
+        exportFile(IOUtilities::generateFilename(dir, Constants::File::EXT_STATIC_MAP, nullptr));
     }
 
     void RFFStaticMapBinary::exportFile(const std::filesystem::path &path) const {

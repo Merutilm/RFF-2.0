@@ -1,6 +1,6 @@
 #pragma once
 #include "ShdStripeType.h"
-
+#include "ShdIterationColoringMethod.hpp"
 
 namespace merutilm::rff2 {
     struct ShdStripeSettings {
@@ -10,5 +10,6 @@ namespace merutilm::rff2 {
         float opacity;
         float offset;
         float animationSpeed;
+        ShdIterationColoringMethod iterationColoring;
     };
 }

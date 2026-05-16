@@ -4,6 +4,6 @@
 
 #pragma once
 namespace merutilm::rff2 {
-    enum class ShdPalIterationColoringMethod { LINEAR, SQUARE_ROOT, LOG };
+    enum class ShdIterationColoringMethod { LINEAR, SQUARE_ROOT, LOG };
 
 } // namespace merutilm::rff2

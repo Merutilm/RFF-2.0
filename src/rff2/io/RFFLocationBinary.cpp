@@ -6,8 +6,9 @@
 
 #include <utility>
 
-#include "vulkan_helper/base/logger.hpp"
+#include "../constants/FileConstants.hpp"
 #include "../ui/IOUtilities.h"
+#include "vulkan_helper/base/logger.hpp"
 
 namespace merutilm::rff2 {
     inline const RFFLocationBinary RFFLocationBinary::DEFAULT = RFFLocationBinary(0, "", "", 0);
@@ -54,7 +55,7 @@ namespace merutilm::rff2 {
 
 
     void RFFLocationBinary::exportAsKeyframe(const std::filesystem::path &dir) const {
-        exportFile(IOUtilities::generateFileName(dir, Constants::Extension::LOCATION));
+        exportFile(IOUtilities::generateFilename(dir, Constants::File::EXT_LOCATION, nullptr));
     }
 
 
