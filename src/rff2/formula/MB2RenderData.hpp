@@ -11,13 +11,12 @@ namespace merutilm::rff2 {
 
     struct MB2RenderDataBase {
 
+        FractalSettings fractalSettings;
+        Reference::CreationResult lastCreationResult = Reference::CreationResult::UNDEFINED;
 
         explicit MB2RenderDataBase(FractalSettings frt) : fractalSettings(std::move(frt)) {}
 
         virtual ~MB2RenderDataBase() = default;
-
-        FractalSettings fractalSettings;
-        Reference::CreationResult lastCreationResult = Reference::CreationResult::UNDEFINED;
 
         [[nodiscard]] virtual MB2ReferenceBase *getReference() const = 0;
         [[nodiscard]] virtual MB2PerturbatorBase *getPerturbator() const = 0;

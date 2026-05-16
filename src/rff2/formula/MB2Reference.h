@@ -16,7 +16,6 @@
 
 namespace merutilm::rff2 {
 
-
     struct MB2ReferenceBase {
         const fixed_point_complex_i1 center;
         const std::vector<ArrayCompressionTool> compressor;

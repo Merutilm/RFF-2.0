@@ -19,15 +19,18 @@ namespace merutilm::rff2 {
         dex offR = dex::ZERO;
         dex offI = dex::ZERO;
 
+    protected:
+        const FrtGeneralSettings &generalSettings;
+        const FrtPerturbSettings &ptbSettings;
+
+    public:
         MB2PerturbatorBase(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings, const FrtPerturbSettings &ptbSettings) :
         state(state), dcMax(dcMax), generalSettings(generalSettings), ptbSettings(ptbSettings) {}
 
         virtual ~MB2PerturbatorBase() = default;
 
         [[nodiscard]] virtual double iterate(dex dcr, dex dci) const = 0;
-    protected:
-        const FrtGeneralSettings &generalSettings;
-        const FrtPerturbSettings &ptbSettings;
+
     };
 
     template<Number Num>
@@ -42,7 +45,7 @@ namespace merutilm::rff2 {
 
         ~MB2Perturbator() override = default;
 
-        double iterate(dex dcr, dex dci) const override {
+        [[nodiscard]] double iterate(dex dcr, dex dci) const override {
             if (state.interruptRequested())
                 return 0.0;
 

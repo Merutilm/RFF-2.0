@@ -30,7 +30,7 @@ namespace merutilm::rff2 {
         pattern.push_back(L'\0');
         wchar_t fileNameBuffer[MAX_PATH];
         fileNameBuffer[0] = L'\0';
-        fn.lStructSize = sizeof(OPENFILENAME);
+        fn.lStructSize = sizeof(OPENFILENAMEW);
         fn.lpstrFile = fileNameBuffer;
         fn.lpstrFilter = pattern.data();
         fn.nMaxFile = MAX_PATH;
