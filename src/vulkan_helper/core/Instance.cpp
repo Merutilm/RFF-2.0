@@ -49,7 +49,7 @@ namespace merutilm::vkh {
             .ppEnabledExtensionNames = extensions.data(),
         };
 
-        if (vkCreateInstance(&instanceCreateInfo, nullptr, &instance)) {
+        if (vkCreateInstance(&instanceCreateInfo, nullptr, &instance) != VK_SUCCESS) {
             throw exception_init("Failed to create instance!");
         }
 

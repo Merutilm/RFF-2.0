@@ -20,7 +20,6 @@
 #include "CallbackRender.hpp"
 #include "CallbackShader.hpp"
 #include "CallbackVideo.hpp"
-#include "SettingsWindow.hpp"
 
 namespace merutilm::rff2::SettingsMenuGenerator {
 

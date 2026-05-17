@@ -210,13 +210,9 @@ namespace merutilm::rff2 {
                 const float progressRatio =
                         (static_cast<float>(maxNumber) - currentFrame) / (static_cast<float>(maxNumber) + overZoom);
                 const float spentSec = Utilities::getCurrentTime() - startSec;
-                float remainedSec = (1 - progressRatio) / progressRatio * spentSec;
-                const auto remainedTime =
-                        std::chrono::duration_cast<std::chrono::seconds>(std::chrono::duration<float>(remainedSec));
-                auto hms = std::chrono::hh_mm_ss(remainedTime);
-
+                const auto remainedSec = static_cast<uint32_t>((1 - progressRatio) / progressRatio * spentSec);
                 window.barRatio = progressRatio;
-                window.barText = std::format(L"Processing... {:2f}% [{:%H:%M:%S}]", std::clamp(progressRatio, 0.0f, 1.0f) * 100, hms);
+                window.barText = std::format(L"Processing... {:.2f}% [{}]", std::clamp(progressRatio, 0.0f, 1.0f) * 100, Utilities::formatTime(remainedSec));
             }
 
             writer.release();
@@ -231,6 +227,9 @@ namespace merutilm::rff2 {
 
         scene.getWindowContext().getWindow()->start();
     }
+
+
+
     cv::Mat VideoWindow::generateFrame(const VideoBufferCache &buffer, const int imgWidth, const bool showText) {
 
         auto &img = buffer.image;

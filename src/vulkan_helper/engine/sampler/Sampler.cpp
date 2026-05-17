@@ -14,7 +14,7 @@ namespace merutilm::vkh {
     }
 
     void Sampler::init() {
-        if (vkCreateSampler(core.getLogicalDevice().getLogicalDeviceHandle(), &samplerInfo, nullptr, &sampler)) {
+        if (vkCreateSampler(core.getLogicalDevice().getLogicalDeviceHandle(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
             throw exception_init("Failed to create sampler!");
         }
     }

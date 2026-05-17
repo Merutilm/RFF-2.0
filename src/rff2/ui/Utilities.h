@@ -10,19 +10,34 @@
 
 namespace merutilm::rff2::Utilities {
 
+    static std::wstring formatTime(const float seconds) {
+        const auto secondsI = static_cast<uint32_t>(seconds);
+        const auto millis = static_cast<uint32_t>(std::fmodf(seconds, 1) * 1000);
+        const auto sec = secondsI % 60;
+        const auto min = secondsI / 60 % 60;
+        const auto hour = secondsI / 3600;
+        return std::format(L"{:02}:{:02}:{:02}:{:03}", hour, min, sec, millis);
+    }
+
+    static std::wstring formatTime(const uint32_t seconds) {
+        const auto sec = seconds % 60;
+        const auto min = seconds / 60 % 60;
+        const auto hour = seconds / 3600;
+        return std::format(L"{:02}:{:02}:{:02}", hour, min, sec);
+    }
+
     static std::wstring elapsed_time(const std::chrono::time_point<std::chrono::high_resolution_clock> start) {
         const auto current = std::chrono::high_resolution_clock::now();
-        const auto elapsed = std::chrono::milliseconds((current - start).count() / 1000000);
-        const auto hms = std::chrono::hh_mm_ss(elapsed);
-        return std::format(L"T : {:02d}:{:02d}:{:02d}:{:03d}", hms.hours().count(), hms.minutes().count(),
-                           hms.seconds().count(), hms.subseconds().count());
+        const auto elapsed = std::chrono::duration<float>(current - start).count();
+        return std::format(L"T : {}", formatTime(elapsed));
     }
+
 
     static float getCurrentTime() {
         using namespace std::chrono;
         const float time = static_cast<float>(high_resolution_clock::now().time_since_epoch().count() -
                                               Constants::Fractal::INIT_TIME) /
-                           1e9;
+                           1e9f;
         return time;
     }
 

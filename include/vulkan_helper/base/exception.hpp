@@ -3,7 +3,8 @@
 //
 
 #pragma once
-
+#include <exception>
+#include <string>
 namespace merutilm::vkh {
     struct exception : std::exception {
         std::string message;

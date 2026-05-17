@@ -45,7 +45,7 @@ namespace merutilm::vkh {
             .pQueueFamilyIndices = nullptr,
             .initialLayout = iii.initialLayout,
         };
-        if (vkCreateImage(device, &imageInfo, nullptr, image)) {
+        if (vkCreateImage(device, &imageInfo, nullptr, image) != VK_SUCCESS) {
             throw exception_init("Failed to create image!");
         }
     }
@@ -63,7 +63,7 @@ namespace merutilm::vkh {
         };
         *capacity = memRequirements.size;
         if (vkAllocateMemory(device, &allocInfo, nullptr,
-                              imageMemory)) {
+                              imageMemory) != VK_SUCCESS) {
             throw exception_init("Failed to allocate memory!");
                               }
     }
@@ -91,7 +91,7 @@ namespace merutilm::vkh {
                 .layerCount = 1
             }
         };
-        if (vkCreateImageView(device, &viewInfo, nullptr, writeImageView)) {
+        if (vkCreateImageView(device, &viewInfo, nullptr, writeImageView) != VK_SUCCESS) {
             throw exception_init("Failed to create image view!");
         }
     }
@@ -120,7 +120,7 @@ namespace merutilm::vkh {
                 .layerCount = 1
             }
         };
-        if (vkCreateImageView(device, &viewInfo, nullptr, mipmappedImageView)) {
+        if (vkCreateImageView(device, &viewInfo, nullptr, mipmappedImageView) != VK_SUCCESS) {
             throw exception_init("Failed to create image view!");
         }
     }
@@ -190,7 +190,7 @@ namespace merutilm::vkh {
     uint32_t BufferImageUtils::findMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties &memProperties,
         const uint32_t memoryTypeBits, const VkMemoryPropertyFlags properties) {
         for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-            if ((memoryTypeBits & 1 << i) != 0 && //check memory type is equal
+            if ((memoryTypeBits & 1u << i) != 0 && //check memory type is equal
                 (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
                 //check the "propertyFlags" is completely contains "properties"
                 return i;

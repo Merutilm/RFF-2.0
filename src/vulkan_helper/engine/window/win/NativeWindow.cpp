@@ -39,6 +39,14 @@ namespace merutilm::vkh {
         auto &window = *windowPtr;
 
         switch (message) {
+            case WM_GETMINMAXINFO: {
+                const auto info = reinterpret_cast<LPMINMAXINFO>(lParam);
+                info->ptMinTrackSize.x = window.initializerSettings.widthInfo.min;
+                info->ptMinTrackSize.y = window.initializerSettings.heightInfo.min;
+                info->ptMaxTrackSize.x = window.initializerSettings.widthInfo.max;
+                info->ptMaxTrackSize.y = window.initializerSettings.heightInfo.max;
+                return 0;
+            }
             case WM_INITMENUPOPUP: {
                 const auto popup = reinterpret_cast<HMENU>(wParam);
                 const int count = GetMenuItemCount(popup);
@@ -209,14 +217,6 @@ namespace merutilm::vkh {
         };
 
         switch (message) {
-            case WM_GETMINMAXINFO: {
-                const auto info = reinterpret_cast<LPMINMAXINFO>(lParam);
-                info->ptMinTrackSize.x = window.initializerSettings.widthInfo.min;
-                info->ptMinTrackSize.y = window.initializerSettings.heightInfo.min;
-                info->ptMaxTrackSize.x = window.initializerSettings.widthInfo.max;
-                info->ptMaxTrackSize.y = window.initializerSettings.heightInfo.max;
-                return 0;
-            }
             case WM_MOUSELEAVE: {
 
                 window.eventSystem.mouse.onMouseExit.invoke();
