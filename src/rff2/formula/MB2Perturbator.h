@@ -122,15 +122,12 @@ namespace merutilm::rff2 {
                     return static_cast<double>(maxIteration);
                 }
 
-                const auto zr0 = static_cast<double>(zr);
-                const auto zi0 = static_cast<double>(zi);
-                const auto dzr0 = static_cast<double>(dzr);
-                const auto dzi0 = static_cast<double>(dzi);
 
                 pd = cd;
-                cd = zr0 * zr0 + zi0 * zi0;
+                Num cd1 = zr * zr + zi * zi;
+                cd = static_cast<double>(cd1);
 
-                if (refIteration == maxRefIteration || cd < dzr0 * dzr0 + dzi0 * dzi0) {
+                if (refIteration == maxRefIteration || cd1 < dzr * dzr + dzi * dzi) {
                     refIteration = 0;
                     dzr = zr;
                     dzi = zi;
