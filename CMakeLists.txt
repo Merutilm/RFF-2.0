@@ -71,6 +71,9 @@ target_compile_definitions(RFF
         VK_USE_PLATFORM_WIN32_KHR
 )
 
+
+
+
 add_subdirectory(src/vulkan_helper)
 
 if(NOT DEFINED ENV{MSYS2_ROOT})
@@ -105,3 +108,16 @@ target_link_libraries(RFF PRIVATE
         # Vulkan Helper
         vulkan_helper
 )
+
+
+macro(RFF_DEFINITION def str flag)
+    option(${def} ${str} ${flag})
+    if(${def})
+        message(STATUS "${def} is Enabled. ${str}")
+        target_compile_definitions(RFF PUBLIC ${def})
+    else()
+        message(STATUS "${def} is Disabled. Skipping")
+    endif ()
+endmacro()
+
+RFF_DEFINITION(SAFE_DEX_OPERATOR "Better Quality, Slower Speed for Deep Zoom" OFF)

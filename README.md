@@ -80,7 +80,7 @@ Path : %MSYS2_ROOT%\clang64\bin
 7. Restart the terminal or your PC after updating the environment variables.
 
 ### Build
-The dependency [libgmp](https://github.com/sethtroisi/libgmp/tree/master) must also be built.
+The dependency [libgmp](https://github.com/sethtroisi/libgmp/tree/master) must be built separately.
 
 ```bash
 mkdir build
@@ -96,12 +96,28 @@ cmake --build build
 
 ### Troubleshooting
 
-If the built application cannot be launched:
+If the built application does not launch:
 
 - Make sure `clang64\bin` is added to your `Path`
 - Restart the terminal or your PC
 - Launch the application from `clang64.exe`
 - Verify required DLLs exist in `clang64\bin`
+
+A black crosshair appears when zooming in or out
+- Safety checks for zero-value operations are disabled by default for maximum performance.
+- Enable `-DSAFE_DEX_OPERATOR=ON` for safer and more accurate behavior with a slight performance cost.
+
+```bash
+mkdir build
+
+cmake -B build -G "Ninja" -S . \
+-DCMAKE_C_COMPILER=clang \
+-DCMAKE_CXX_COMPILER=clang++ \
+-DCMAKE_BUILD_TYPE=Release \
+-DSAFE_DEX_OPERATOR=ON
+
+cmake --build build
+```
 
 
 ## Features

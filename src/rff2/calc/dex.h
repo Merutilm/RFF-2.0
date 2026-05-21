@@ -9,7 +9,6 @@
 
 #include "../constants/Constants.hpp"
 
-
 namespace merutilm::rff2 {
 
 
@@ -32,7 +31,7 @@ namespace merutilm::rff2 {
         static const dex ZERO;
         static const dex ONE;
 
-#ifndef __FAST_MATH__
+#ifdef SAFE_DEX_OPERATOR
         static const dex NN;
         static const dex PINF;
         static const dex NINF;
@@ -64,6 +63,7 @@ namespace merutilm::rff2 {
         friend dex operator+(const dex a, const dex b) {
 
 #ifdef SAFE_DEX_OPERATOR
+
             if (a.isnan() || b.isnan()) {
                 return NN;
             }
@@ -149,7 +149,7 @@ namespace merutilm::rff2 {
 
         friend std::partial_ordering operator<=>(const dex a, const dex b) {
             const dex v = a - b;
-#ifndef __FAST_MATH__
+#ifdef SAFE_DEX_OPERATOR
             if (v.isnan()) {
                 return std::partial_ordering::unordered;
             }
@@ -162,7 +162,7 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] char sgn() const;
 
-#ifndef __FAST_MATH__
+#ifdef SAFE_DEX_OPERATOR
         [[nodiscard]] bool isinf() const;
 
         [[nodiscard]] bool isnan() const;
@@ -187,7 +187,7 @@ namespace merutilm::rff2 {
     inline const dex dex::ZERO = {0, 0};
     inline const dex dex::ONE = {0, 1};
 
-#ifndef __FAST_MATH__
+#ifdef SAFE_DEX_OPERATOR
     inline const dex dex::NN = {0, NAN};
     inline const dex dex::PINF = {0, INFINITY};
     inline const dex dex::NINF = {0, -static_cast<double>(INFINITY)};
@@ -223,7 +223,7 @@ namespace merutilm::rff2 {
             return;
         }
 
-#ifndef __FAST_MATH__
+#ifdef SAFE_DEX_OPERATOR
         if (isinf()) {
             if (sgn == 1) {
                 exp2 = PINF.exp2;
@@ -248,7 +248,7 @@ namespace merutilm::rff2 {
 
     inline char dex::sgn() const { return static_cast<char>(0 < mantissa) - static_cast<char>(mantissa < 0); }
 
-#ifndef __FAST_MATH__
+#ifdef SAFE_DEX_OPERATOR
     inline bool dex::isinf() const { return std::isinf(mantissa); }
 
     inline bool dex::isnan() const { return std::isnan(mantissa); }
@@ -263,7 +263,7 @@ namespace merutilm::rff2 {
         // = m * 10^(log10(2) * n)
         // = exp10 = log10(2) * n
 
-#ifndef __FAST_MATH__
+#ifdef SAFE_DEX_OPERATOR
         if (isnan()) {
             return "nan";
         }
