@@ -76,7 +76,6 @@ namespace merutilm::rff2 {
 
                         dzr = dzr1;
                         dzi = dzi1;
-
                         iteration += pa.skip;
                         refIteration += pa.skip;
                         ++absIteration;
@@ -121,7 +120,6 @@ namespace merutilm::rff2 {
                     // WHEN THE MAX ITERATION IS HIGH, REPEATS SEMI-INFINITELY.
                     return static_cast<double>(maxIteration);
                 }
-
 
                 pd = cd;
                 Num cd1 = zr * zr + zi * zi;

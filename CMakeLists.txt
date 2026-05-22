@@ -1,8 +1,19 @@
 cmake_minimum_required(VERSION 3.31)
 project(RFF)
 
+
+if(NOT DEFINED ENV{MSYS2_ROOT})
+    message(FATAL_ERROR "MSYS2_ROOT not set. Add the your Windows environment variable named MSYS2_ROOT.")
+endif()
+
+set(CLANG64_DIRS "$ENV{MSYS2_ROOT}/clang64")
+set(CLANG64_LIBS "${CLANG64_DIRS}/lib")
+
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(CMAKE_RC_COMPILER ${CLANG64_DIRS}/bin/windres.exe)
+
 
 add_executable(
         RFF
@@ -63,7 +74,7 @@ target_compile_options(RFF PRIVATE
         #Debug options
         $<$<CONFIG:Debug>:-O0>
         #Release options
-        $<$<CONFIG:Release>:-O3 -ffast-math -funroll-loops -march=native -mllvm -inline-threshold=800>
+        $<$<CONFIG:Release>:-O3 -ffast-math -fno-associative-math -funroll-loops -march=native -mllvm -inline-threshold=4000>
 )
 
 target_compile_definitions(RFF
@@ -71,17 +82,8 @@ target_compile_definitions(RFF
         VK_USE_PLATFORM_WIN32_KHR
 )
 
-
-
-
 add_subdirectory(src/vulkan_helper)
 
-if(NOT DEFINED ENV{MSYS2_ROOT})
-    message(FATAL_ERROR "MSYS2_ROOT not set. Add the your Windows environment variable named MSYS2_ROOT.")
-endif()
-
-set(CLANG64_DIRS "$ENV{MSYS2_ROOT}/clang64")
-set(CLANG64_LIBS "${CLANG64_DIRS}/lib")
 
 target_include_directories(RFF PRIVATE
         # extern sources

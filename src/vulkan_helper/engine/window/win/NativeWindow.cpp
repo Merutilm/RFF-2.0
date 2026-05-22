@@ -95,7 +95,7 @@ namespace merutilm::vkh {
                 if (wParam == VK_SHIFT)
                     window.shiftKeyPressed = true;
 
-                const auto key = window.findEquivalentKey(wParam);
+                const auto key = window.findEquivalentKey(static_cast<uint32_t>(wParam));
                 window.pressedKeys.emplace(key);
                 window.eventSystem.keyboard.onKeyDown.invoke(key);
                 return 0;
@@ -109,7 +109,7 @@ namespace merutilm::vkh {
                     window.altKeyPressed = false;
                 if (wParam == VK_SHIFT)
                     window.shiftKeyPressed = false;
-                const auto key = window.findEquivalentKey(wParam);
+                const auto key = window.findEquivalentKey(static_cast<uint32_t>(wParam));
                 window.pressedKeys.erase(key);
                 window.eventSystem.keyboard.onKeyUp.invoke(key);
                 return 0;
@@ -346,6 +346,7 @@ namespace merutilm::vkh {
 
     void NativeWindow::generateKeyMapper() {
         using namespace KeyInput;
+        using enum Key;
 
         for (int i = VK_F1; i <= VK_F24; ++i) {
             keyMapper[i] = static_cast<Key>(static_cast<int>(KeyCategory::FUNCTION) + i - VK_F1);
@@ -357,62 +358,62 @@ namespace merutilm::vkh {
             keyMapper[i] = static_cast<Key>(static_cast<int>(KeyCategory::NUMPAD) + i - VK_NUMPAD0);
         }
 
-        keyMapper[VK_MULTIPLY] = Key::KEY_NUMPAD_MULTIPLY;
-        keyMapper[VK_ADD] = Key::KEY_NUMPAD_ADD;
-        keyMapper[VK_SEPARATOR] = Key::KEY_NUMPAD_SEPARATOR;
-        keyMapper[VK_SUBTRACT] = Key::KEY_NUMPAD_SUBTRACT;
-        keyMapper[VK_DECIMAL] = Key::KEY_NUMPAD_DECIMAL;
-        keyMapper[VK_DIVIDE] = Key::KEY_NUMPAD_DIVIDE;
+        keyMapper[VK_MULTIPLY] = KEY_NUMPAD_MULTIPLY;
+        keyMapper[VK_ADD] = KEY_NUMPAD_ADD;
+        keyMapper[VK_SEPARATOR] = KEY_NUMPAD_SEPARATOR;
+        keyMapper[VK_SUBTRACT] = KEY_NUMPAD_SUBTRACT;
+        keyMapper[VK_DECIMAL] = KEY_NUMPAD_DECIMAL;
+        keyMapper[VK_DIVIDE] = KEY_NUMPAD_DIVIDE;
 
-        keyMapper[VK_OEM_3] = Key::KEY_BACKQUOTE;
-        keyMapper[VK_OEM_MINUS] = Key::KEY_MINUS_UNDERLINE;
-        keyMapper[VK_OEM_PLUS] = Key::KEY_PLUS_EQUAL;
-        keyMapper[VK_OEM_4] = Key::KEY_LEFTBRACKET;
-        keyMapper[VK_OEM_6] = Key::KEY_RIGHTBRACKET;
-        keyMapper[VK_OEM_5] = Key::KEY_BACKSLASH; // ansi backslash
-        keyMapper[VK_OEM_102] = Key::KEY_BACKSLASH; // iso backslash
-        keyMapper[VK_OEM_1] = Key::KEY_SEMICOLON_COLON;
-        keyMapper[VK_OEM_7] = Key::KEY_QUOTE;
-        keyMapper[VK_OEM_COMMA] = Key::KEY_COMMA;
-        keyMapper[VK_OEM_PERIOD] = Key::KEY_PERIOD;
-        keyMapper[VK_OEM_2] = Key::KEY_SLASH;
+        keyMapper[VK_OEM_3] = KEY_BACKQUOTE;
+        keyMapper[VK_OEM_MINUS] = KEY_MINUS_UNDERLINE;
+        keyMapper[VK_OEM_PLUS] = KEY_PLUS_EQUAL;
+        keyMapper[VK_OEM_4] = KEY_LEFTBRACKET;
+        keyMapper[VK_OEM_6] = KEY_RIGHTBRACKET;
+        keyMapper[VK_OEM_5] = KEY_BACKSLASH; // ansi backslash
+        keyMapper[VK_OEM_102] = KEY_BACKSLASH; // iso backslash
+        keyMapper[VK_OEM_1] = KEY_SEMICOLON_COLON;
+        keyMapper[VK_OEM_7] = KEY_QUOTE;
+        keyMapper[VK_OEM_COMMA] = KEY_COMMA;
+        keyMapper[VK_OEM_PERIOD] = KEY_PERIOD;
+        keyMapper[VK_OEM_2] = KEY_SLASH;
 
-        keyMapper[VK_UP] = Key::KEY_UP;
-        keyMapper[VK_DOWN] = Key::KEY_DOWN;
-        keyMapper[VK_LEFT] = Key::KEY_LEFT;
-        keyMapper[VK_RIGHT] = Key::KEY_RIGHT;
+        keyMapper[VK_UP] = KEY_UP;
+        keyMapper[VK_DOWN] = KEY_DOWN;
+        keyMapper[VK_LEFT] = KEY_LEFT;
+        keyMapper[VK_RIGHT] = KEY_RIGHT;
 
-        keyMapper[VK_LSHIFT] = Key::KEY_LEFT_SHIFT;
-        keyMapper[VK_RSHIFT] = Key::KEY_RIGHT_SHIFT;
-        keyMapper[VK_LCONTROL] = Key::KEY_LEFT_CONTROL;
-        keyMapper[VK_RCONTROL] = Key::KEY_RIGHT_CONTROL;
-        keyMapper[VK_LMENU] = Key::KEY_LEFT_ALT;
-        keyMapper[VK_RMENU] = Key::KEY_RIGHT_ALT;
-        keyMapper[VK_LWIN] = Key::KEY_LEFT_SUPER;
-        keyMapper[VK_RWIN] = Key::KEY_RIGHT_SUPER;
+        keyMapper[VK_LSHIFT] = KEY_LEFT_SHIFT;
+        keyMapper[VK_RSHIFT] = KEY_RIGHT_SHIFT;
+        keyMapper[VK_LCONTROL] = KEY_LEFT_CONTROL;
+        keyMapper[VK_RCONTROL] = KEY_RIGHT_CONTROL;
+        keyMapper[VK_LMENU] = KEY_LEFT_ALT;
+        keyMapper[VK_RMENU] = KEY_RIGHT_ALT;
+        keyMapper[VK_LWIN] = KEY_LEFT_SUPER;
+        keyMapper[VK_RWIN] = KEY_RIGHT_SUPER;
 
-        keyMapper[VK_TAB] = Key::KEY_TAB;
-        keyMapper[VK_CAPITAL] = Key::KEY_CAPS_LOCK;
-        keyMapper[VK_SPACE] = Key::KEY_SPACE;
-        keyMapper[VK_BACK] = Key::KEY_BACKSPACE;
-        keyMapper[VK_RETURN] = Key::KEY_ENTER;
-        keyMapper[VK_ESCAPE] = Key::KEY_ESCAPE;
-        keyMapper[VK_INSERT] = Key::KEY_INSERT;
-        keyMapper[VK_DELETE] = Key::KEY_DELETE;
-        keyMapper[VK_HOME] = Key::KEY_HOME;
-        keyMapper[VK_END] = Key::KEY_END;
-        keyMapper[VK_PRIOR] = Key::KEY_PAGE_UP;
-        keyMapper[VK_NEXT] = Key::KEY_PAGE_DOWN;
-        keyMapper[VK_NUMLOCK] = Key::KEY_NUM_LOCK;
+        keyMapper[VK_TAB] = KEY_TAB;
+        keyMapper[VK_CAPITAL] = KEY_CAPS_LOCK;
+        keyMapper[VK_SPACE] = KEY_SPACE;
+        keyMapper[VK_BACK] = KEY_BACKSPACE;
+        keyMapper[VK_RETURN] = KEY_ENTER;
+        keyMapper[VK_ESCAPE] = KEY_ESCAPE;
+        keyMapper[VK_INSERT] = KEY_INSERT;
+        keyMapper[VK_DELETE] = KEY_DELETE;
+        keyMapper[VK_HOME] = KEY_HOME;
+        keyMapper[VK_END] = KEY_END;
+        keyMapper[VK_PRIOR] = KEY_PAGE_UP;
+        keyMapper[VK_NEXT] = KEY_PAGE_DOWN;
+        keyMapper[VK_NUMLOCK] = KEY_NUM_LOCK;
 
 
         for (int i = 'A'; i <= 'Z'; ++i) {
             keyMapper[i] = static_cast<Key>(static_cast<int>(KeyCategory::ALPHABET) + i - 'A');
         }
 
-        keyMapper[VK_PRINT] = Key::KEY_PRINT_SCREEN;
-        keyMapper[VK_SCROLL] = Key::KEY_SCROLL_LOCK;
-        keyMapper[VK_PAUSE] = Key::KEY_PAUSE;
+        keyMapper[VK_PRINT] = KEY_PRINT_SCREEN;
+        keyMapper[VK_SCROLL] = KEY_SCROLL_LOCK;
+        keyMapper[VK_PAUSE] = KEY_PAUSE;
     }
 
 
@@ -431,7 +432,7 @@ namespace merutilm::vkh {
 
     void NativeWindow::setRenderWindowSize(const uint32_t width, const uint32_t height) const {
         const auto &paddings = initializerSettings.paddings;
-        SetWindowPos(renderWindow, nullptr, paddings.left, paddings.top, width, height, SWP_NOZORDER);
+        SetWindowPos(renderWindow, nullptr, paddings.left, paddings.top, static_cast<int>(width), static_cast<int>(height), SWP_NOZORDER);
     }
 
     VkExtent2D NativeWindow::calculateClientSizeFromMainWindow() const {
@@ -557,13 +558,13 @@ namespace merutilm::vkh {
     }
 
     PlatformMenuItemBase &NativeWindow::addMenuItem(PlatformMenuBase &menu, std::wstring name) {
-        auto &m = static_cast<NativeMenuItem &>(PlatformWindowBase::addMenuItem(menu, std::move(name)));
+        auto &m = dynamic_cast<NativeMenuItem &>(PlatformWindowBase::addMenuItem(menu, std::move(name)));
         nativeMenuMap[m.id] = &m;
         return m;
     }
 
     PlatformCheckboxMenuItemBase &NativeWindow::addCheckboxMenuItem(PlatformMenuBase &menu, std::wstring name) {
-        auto &m = static_cast<NativeCheckboxMenuItem &>(PlatformWindowBase::addCheckboxMenuItem(menu, std::move(name)));
+        auto &m = dynamic_cast<NativeCheckboxMenuItem &>(PlatformWindowBase::addCheckboxMenuItem(menu, std::move(name)));
         nativeMenuMap[m.id] = &m;
         return m;
     }

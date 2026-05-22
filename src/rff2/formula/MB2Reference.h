@@ -31,7 +31,7 @@ namespace merutilm::rff2 {
 
         virtual ~MB2ReferenceBase() = default;
 
-        virtual size_t length() const = 0;
+        [[nodiscard]] virtual size_t length() const = 0;
 
         [[nodiscard]] uint64_t longestPeriod() const { return period.back(); }
     };

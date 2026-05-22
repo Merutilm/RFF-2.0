@@ -22,9 +22,6 @@ namespace merutilm::rff2 {
             const double min = std::min(x, y);
             const double max = std::max(x, y);
 
-            if (min == 0) {
-                return max;
-            }
             if (max == 0) {
                 return 0;
             }
