@@ -162,7 +162,6 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-
     uint64_t MPATable<Num>::binarySearch(const std::vector<uint64_t> &arr, const uint64_t key) {
         if (arr.empty()) {
             return UINT64_MAX;

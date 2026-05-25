@@ -43,11 +43,6 @@ namespace merutilm::rff2 {
                                std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
                                bool arbitraryPrecisionFPGBn);
 
-        static std::unique_ptr<MB2RenderData>
-        generateNew(ParallelRenderState &state, const FractalSettings &frt, dex dcMax, int exp10,
-                    uint64_t refInitialCapacity, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                    std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
-
         [[nodiscard]] MB2ReferenceBase *getReference() const override { return reference.get(); }
 
         [[nodiscard]] MB2PerturbatorBase *getPerturbator() const override { return perturbator.get(); }
@@ -78,15 +73,6 @@ namespace merutilm::rff2 {
         table = std::make_unique<MPATable<Num>>(state, *reference, &fractalSettings.mpa, Num(dcMax),
                                                      std::move(actionPerCreatingTableIteration));
         perturbator = std::make_unique<MB2Perturbator<Num>>(state, dcMax, fractalSettings.general, fractalSettings.perturb, *reference, table.get());
-    }
-    template<Number Num>
-    std::unique_ptr<MB2RenderData<Num>>
-    MB2RenderData<Num>::generateNew(ParallelRenderState &state, const FractalSettings &frt, dex dcMax, int exp10,
-                                  uint64_t refInitialCapacity,
-                                  std::function<void(uint64_t)> &&actionPerRefCalcIteration,
-                                  std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) {
-        return std::make_unique<MB2RenderData>(state, frt, dcMax, exp10, refInitialCapacity, 0, std::move(actionPerRefCalcIteration),
-                             std::move(actionPerCreatingTableIteration), false);
     }
 
     template<Number Num>

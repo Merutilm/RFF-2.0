@@ -91,19 +91,19 @@ namespace merutilm::rff2 {
 
         void addMouseListeners();
 
-        [[nodiscard]] std::array<dex, 2> offsetConversion(const Settings &settings, int mx, int my) const;
+        [[nodiscard]] std::array<dex, 2> offsetConversion(const Settings &s, int mx, int my) const;
 
         static dex getDivisor(const Settings &settings);
 
-        [[nodiscard]] uint16_t getIterationBufferWidth(const Settings &settings) const;
+        [[nodiscard]] uint16_t getIterationBufferWidth(const Settings &s) const;
 
-        [[nodiscard]] uint16_t getIterationBufferHeight(const Settings &settings) const;
+        [[nodiscard]] uint16_t getIterationBufferHeight(const Settings &s) const;
 
         void applyDefaultSettings();
 
         void applyCreateImage();
 
-        void applyShaderAttr(const Settings &settings) const;
+        void applyShaderAttr(const Settings &s) const;
 
         void applyResize();
 
@@ -117,18 +117,18 @@ namespace merutilm::rff2 {
 
         void overwriteMatrixFromMap(const RFFDynamicMapBinary &map) const;
 
-        [[nodiscard]] uint16_t getMouseXOnIterationBuffer(int mx) const;
+        [[nodiscard]] int16_t getMouseXOnIterationBuffer(int mx) const;
 
-        [[nodiscard]] uint16_t getMouseYOnIterationBuffer(int my) const;
+        [[nodiscard]] int16_t getMouseYOnIterationBuffer(int my) const;
 
         void recomputeThreaded();
 
         void beforeIterationFill() const;
 
         bool prepareRenderData(const std::chrono::time_point<std::chrono::high_resolution_clock> &start,
-                              const Settings &settings);
+                              const Settings &s);
         bool fillIteration(const std::chrono::time_point<std::chrono::high_resolution_clock> &start,
-                                 const Settings &settings);
+                                 const Settings &s);
 
         void afterCompute(bool success);
 
@@ -185,8 +185,6 @@ namespace merutilm::rff2 {
 
         template<typename P> requires std::is_base_of_v<Preset, P>
         void applyPreset(P &preset);
-
-    private:
 
         void init() override;
 

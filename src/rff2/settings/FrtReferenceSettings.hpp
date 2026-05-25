@@ -11,9 +11,9 @@
 namespace merutilm::rff2 {
     struct FrtReferenceSettings {
         fixed_point_complex_i1 center;
-        bool useParallelRefCalculation;
-        FrtReferenceSyncSettings sync;
-        FrtReferenceCompSettings compression;
-        FrtReferenceReuseMethod reuse;
+        bool useParallelRefCalculation{};
+        FrtReferenceSyncSettings sync{};
+        FrtReferenceCompSettings compression{};
+        FrtReferenceReuseMethod reuse{};
     };
 }

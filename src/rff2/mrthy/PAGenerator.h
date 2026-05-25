@@ -68,16 +68,16 @@ namespace merutilm::rff2 {
         const uint64_t iter = start + skip++; // n+k
         const uint64_t index = ArrayCompressor::compress(compressors, iter);
 
-        const Num z2r = Num(2) * refReal[index];
-        const Num z2i = Num(2) * refImag[index];
-        const Num anrStep = anr * z2r - ani * z2i;
-        const Num aniStep = anr * z2i + ani * z2r;
-        const Num bnrStep = bnr * z2r - bni * z2i + Num(1);
-        const Num bniStep = bnr * z2i + bni * z2r;
-        const Num z2l = calculatable::hypot_approx(z2r, z2i);
+        const Num zr2 = Num(2) * refReal[index];
+        const Num zi2 = Num(2) * refImag[index];
+        const Num anrStep = anr * zr2 - ani * zi2;
+        const Num aniStep = anr * zi2 + ani * zr2;
+        const Num bnrStep = bnr * zr2 - bni * zi2 + Num(1);
+        const Num bniStep = bnr * zi2 + bni * zr2;
+        const Num zl2 = calculatable::hypot_approx(zr2, zi2);
         const Num anlOriginal = calculatable::hypot_approx(anr, ani);
         const Num bnlOriginal = calculatable::hypot_approx(bnr, bni);
-        radius = calculatable::try_normalized_value(std::min(radius, (Num(epsilon) * z2l - bnlOriginal * dcMax) / anlOriginal));
+        radius = calculatable::try_normalized_value(std::min(radius, (Num(epsilon) * zl2 - bnlOriginal * dcMax) / anlOriginal));
         anr = calculatable::try_normalized_value(anrStep);
         ani = calculatable::try_normalized_value(aniStep);
         bnr = calculatable::try_normalized_value(bnrStep);

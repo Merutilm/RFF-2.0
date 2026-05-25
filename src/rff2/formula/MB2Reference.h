@@ -46,6 +46,12 @@ namespace merutilm::rff2 {
                               std::vector<ArrayCompressionTool> &&compressor, std::vector<uint64_t> &&period,
                               fixed_point_complex &&fpgReference, fixed_point_complex &&fpgBn);
 
+        static void syncReference(fixed_point_complex_i1 &z, uint64_t intervalCounter, uint32_t refSyncInterval,
+                                  uint8_t refSyncRadiusPower, Num refSyncRadius2, int exp10, Num &zr, Num &zi, Num cr,
+                                  Num ci);
+        static void applyFormula(fixed_point_complex_i1 &z, const fixed_point_complex_i1 &c,
+                      const std::function<void(uint64_t)> &stepFunc, op_thread_pool *tp, uint64_t invoker);
+
         static CreationResult generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                                          const FrtReferenceSettings &refSettings, int exp10,
                                          uint64_t refInitialCapacity, uint64_t fixedPeriod, dex dcMax, bool strictFPG,
@@ -69,6 +75,43 @@ namespace merutilm::rff2 {
         MB2ReferenceBase(std::move(center), std::move(compressor), std::move(period), std::move(fpgReference),
                          std::move(fpgBn)),
         refReal(std::move(refReal)), refImag(std::move(refImag)) {}
+
+
+    template<Number Num>
+    void MB2Reference<Num>::syncReference(fixed_point_complex_i1 &z, const uint64_t intervalCounter, const uint32_t refSyncInterval, const uint8_t refSyncRadiusPower, const Num refSyncRadius2, const int exp10, Num &zr, Num&zi, Num cr, Num ci) {
+
+        if (refSyncRadiusPower == 0 || refSyncInterval == 1) {
+            zr = calculatable::from_fixed_point_decimal<Num>(z.get_real());
+            zi = calculatable::from_fixed_point_decimal<Num>(z.get_imag());
+        } else {
+            const Num zr2 = (zr + zi) * (zr - zi) + cr;
+            const Num zi2 = Num(2) * zr * zi + ci;
+            const Num radius2 = zr2 * zr2 + zi2 * zi2;
+
+            if (radius2 < refSyncRadius2 || intervalCounter % refSyncInterval == 0) {
+                zr = calculatable::from_fixed_point_decimal<Num>(z.get_real());
+                zi = calculatable::from_fixed_point_decimal<Num>(z.get_imag());
+            } else {
+                zr = calculatable::try_normalized_value(zr2);
+                zi = calculatable::try_normalized_value(zi2);
+            }
+        }
+
+        if constexpr(std::is_same_v<dex, Num>) {
+            if (calculatable::is_zero(zr)) {
+                zr = dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER);
+            }
+            if (calculatable::is_zero(zi)) {
+                zi = dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER);
+            }
+        }
+    }
+    template<Number Num>
+    void MB2Reference<Num>::applyFormula(fixed_point_complex_i1 &z, const fixed_point_complex_i1 &c, const std::function<void(uint64_t)> &stepFunc, op_thread_pool *tp, const uint64_t invoker) {
+        stepFunc(invoker);
+        fixed_point_complex::sqr(z, z, tp);
+        fixed_point_complex::add(z, z, c);
+    }
 
 
     template<Number Num>
@@ -102,7 +145,7 @@ namespace merutilm::rff2 {
         auto bailoutSqr = Num(generalSettings.bailout * generalSettings.bailout);
 
         op_thread_pool parallelReferenceThreadPool{};
-        bool useParallel = refSettings.useParallelRefCalculation;
+        op_thread_pool *tp = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPool : nullptr;
 
         Num fpgBnr = Num(1);
         Num fpgBni = Num(0);
@@ -170,45 +213,17 @@ namespace merutilm::rff2 {
             // strict fpg
             if (strictFPG) {
                 fixed_point_complex::dbl(temp, z);
-                fixed_point_complex::mul(fpgBn, fpgBn, temp, useParallel ? &parallelReferenceThreadPool : nullptr);
+                fixed_point_complex::mul(fpgBn, fpgBn, temp, tp);
                 fixed_point_complex::add(fpgBn, fpgBn, one);
             }
-            // listener invocation
-            func(period);
-            fixed_point_complex::sqr(z, z, useParallel ? &parallelReferenceThreadPool : nullptr);
-            fixed_point_complex::add(z, z, c);
 
-            // num value
-            if (refSyncRadiusPower == 0 || refSyncInterval == 1) {
-                zr = calculatable::from_fixed_point_decimal<Num>(z.get_real());
-                zi = calculatable::from_fixed_point_decimal<Num>(z.get_imag());
-            } else {
-                const Num zr2 = (zr + zi) * (zr - zi) + cr;
-                const Num zi2 = Num(2) * zr * zi + ci;
-                const Num radius2 = zr2 * zr2 + zi2 * zi2;
+            applyFormula(z, c, func, tp, period);
+            syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, exp10, zr, zi, cr, ci);
 
-                if (radius2 < refSyncRadius2 || period % refSyncInterval == 0) {
-                    zr = calculatable::from_fixed_point_decimal<Num>(z.get_real());
-                    zi = calculatable::from_fixed_point_decimal<Num>(z.get_imag());
-                } else {
-                    zr = calculatable::try_normalized_value(zr2);
-                    zi = calculatable::try_normalized_value(zi2);
-                }
-            }
-
-
-            if constexpr(std::is_same_v<dex, Num>) {
-                if (calculatable::is_zero(zr)) {
-                    zr = dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER);
-                }
-                if (calculatable::is_zero(zi)) {
-                    zi = dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER);
-                }
-            }
-
-            uint64_t normalizedPeriodForCompCheck = period;
 
             if (compressCriteria > 0) {
+                uint64_t normalizedPeriodForCompCheck = period;
+
                 if (!withoutNormalize) {
                     for (uint64_t i = periodArray.size(); i > 0; --i) {
                         if (compressCriteria >= periodArray[i - 1]) {
@@ -265,7 +280,6 @@ namespace merutilm::rff2 {
                 }
             }
         }
-
 
         if (!strictFPG)
             fpgBn = fixed_point_complex(fpgBnr, fpgBni, exp10, strictIntExp10);
