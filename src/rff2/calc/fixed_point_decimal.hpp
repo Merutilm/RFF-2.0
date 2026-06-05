@@ -551,7 +551,7 @@ namespace merutilm::rff2 {
         // 0100 0000 0000 : 2^1
         // 0000 0000 0000 : 2^-1023
         // 0111 1111 1111 : 2^1024
-#ifndef __FAST_MATH__
+#ifndef __FINITE_MATH_ONLY__
         if (f_exp2 > 0x03ff) {
             return sgn == 1 ? INFINITY : -static_cast<double>(INFINITY);
         }

@@ -70,12 +70,12 @@ namespace merutilm::rff2 {
         return min * min * dex(0.428) / max + max;
     }
 
-    inline dex dex_trig::hypot(dex a, dex b) {
+    inline dex dex_trig::hypot(const dex a, const dex b) {
         return dex::sqrt(hypot2(a, b));
     }
 
 
-    inline dex dex_trig::hypot2(dex a, dex b){
+    inline dex dex_trig::hypot2(const dex a, const dex b){
         return a * a + b * b;
     }
 

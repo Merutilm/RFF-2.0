@@ -168,9 +168,10 @@ namespace merutilm::rff2 {
 
     bool MB2Locator::checkMaxIterationOnly(const MB2RenderDataBase &renderData) {
 
-        const auto it = static_cast<uint64_t>(renderData.getPerturbator()->iterate(
-                renderData.getPerturbator()->dcMax,
-                renderData.getPerturbator()->dcMax / dex(Constants::Fractal::INTENTIONAL_ERROR_DCLMB)));
+        const auto it = static_cast<uint64_t>(renderData.getPerturbator()->iterate( {
+            renderData.getPerturbator()->dcMax,
+           renderData.getPerturbator()->dcMax / dex(Constants::Fractal::INTENTIONAL_ERROR_DCLMB)
+        }));
 
         return it == renderData.fractalSettings.perturb.maxIteration;
     }

@@ -38,17 +38,16 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     struct MB2Reference final : public Reference, public MB2ReferenceBase {
-        const std::vector<Num> refReal;
-        const std::vector<Num> refImag;
+        const std::vector<complex<Num>> refOrbit;
 
 
-        explicit MB2Reference(fixed_point_complex_i1 &&center, std::vector<Num> &&refReal, std::vector<Num> &&refImag,
+        explicit MB2Reference(fixed_point_complex_i1 &&center, std::vector<complex<Num>> &&orbit,
                               std::vector<ArrayCompressionTool> &&compressor, std::vector<uint64_t> &&period,
                               fixed_point_complex &&fpgReference, fixed_point_complex &&fpgBn);
 
         static void syncReference(fixed_point_complex_i1 &z, uint64_t intervalCounter, uint32_t refSyncInterval,
-                                  uint8_t refSyncRadiusPower, Num refSyncRadius2, int exp10, Num &zr, Num &zi, Num cr,
-                                  Num ci);
+                                  uint8_t refSyncRadiusPower, Num refSyncRadius2, int exp10, complex<Num> &z0, complex<Num>&c0);
+
         static void applyFormula(fixed_point_complex_i1 &z, const fixed_point_complex_i1 &c,
                       const std::function<void(uint64_t)> &stepFunc, op_thread_pool *tp, uint64_t invoker);
 
@@ -59,50 +58,40 @@ namespace merutilm::rff2 {
                                          std::unique_ptr<MB2Reference> *result);
 
 
-        [[nodiscard]] Num real(uint64_t refIteration) const;
-
-        [[nodiscard]] Num imag(uint64_t refIteration) const;
+        [[nodiscard]] complex<Num> orbit(uint64_t refIteration) const;
 
         [[nodiscard]] size_t length() const override;
     };
 
 
     template<Number Num>
-    MB2Reference<Num>::MB2Reference(fixed_point_complex_i1 &&center, std::vector<Num> &&refReal,
-                                    std::vector<Num> &&refImag, std::vector<ArrayCompressionTool> &&compressor,
+    MB2Reference<Num>::MB2Reference(fixed_point_complex_i1 &&center, std::vector<complex<Num>> &&orbit, std::vector<ArrayCompressionTool> &&compressor,
                                     std::vector<uint64_t> &&period, fixed_point_complex &&fpgReference,
                                     fixed_point_complex &&fpgBn) :
         MB2ReferenceBase(std::move(center), std::move(compressor), std::move(period), std::move(fpgReference),
                          std::move(fpgBn)),
-        refReal(std::move(refReal)), refImag(std::move(refImag)) {}
+        refOrbit(std::move(orbit)) {}
 
 
     template<Number Num>
-    void MB2Reference<Num>::syncReference(fixed_point_complex_i1 &z, const uint64_t intervalCounter, const uint32_t refSyncInterval, const uint8_t refSyncRadiusPower, const Num refSyncRadius2, const int exp10, Num &zr, Num&zi, Num cr, Num ci) {
+    void MB2Reference<Num>::syncReference(fixed_point_complex_i1 &z, const uint64_t intervalCounter, const uint32_t refSyncInterval, const uint8_t refSyncRadiusPower, const Num refSyncRadius2, const int exp10, complex<Num> &z0, complex<Num>&c0) {
 
         if (refSyncRadiusPower == 0 || refSyncInterval == 1) {
-            zr = calculatable::from_fixed_point_decimal<Num>(z.get_real());
-            zi = calculatable::from_fixed_point_decimal<Num>(z.get_imag());
+            z0 = {
+                calculatable::from_fixed_point_decimal<Num>(z.get_real()),
+                calculatable::from_fixed_point_decimal<Num>(z.get_imag())
+            };
         } else {
-            const Num zr2 = (zr + zi) * (zr - zi) + cr;
-            const Num zi2 = Num(2) * zr * zi + ci;
-            const Num radius2 = zr2 * zr2 + zi2 * zi2;
+            const complex<Num> zsq = z0 * z0 + c0;
+            const Num radius2 = zsq.norm_sqr();
 
             if (radius2 < refSyncRadius2 || intervalCounter % refSyncInterval == 0) {
-                zr = calculatable::from_fixed_point_decimal<Num>(z.get_real());
-                zi = calculatable::from_fixed_point_decimal<Num>(z.get_imag());
+                z0 = {
+                    calculatable::from_fixed_point_decimal<Num>(z.get_real()),
+                    calculatable::from_fixed_point_decimal<Num>(z.get_imag())
+                };
             } else {
-                zr = calculatable::try_normalized_value(zr2);
-                zi = calculatable::try_normalized_value(zi2);
-            }
-        }
-
-        if constexpr(std::is_same_v<dex, Num>) {
-            if (calculatable::is_zero(zr)) {
-                zr = dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER);
-            }
-            if (calculatable::is_zero(zi)) {
-                zi = dex_exp::exp10(exp10 * Constants::Fractal::INTENTIONAL_ERROR_REFZERO_POWER);
+                z0 = zsq.try_normalized_value();
             }
         }
     }
@@ -124,14 +113,11 @@ namespace merutilm::rff2 {
             return CreationResult::TERMINATED;
         }
 
-        auto rr = std::vector<Num>();
-        auto ri = std::vector<Num>();
+        auto ref = std::vector<complex<Num>>();
 
-        rr.reserve(refInitialCapacity);
-        ri.reserve(refInitialCapacity);
+        ref.reserve(refInitialCapacity);
 
-        rr.push_back(Num(0));
-        ri.push_back(Num(0));
+        ref.push_back(complex<Num>::ZERO);
 
         int strictIntExp10 = -exp10;
         int fpgIntExp10 = strictFPG ? strictIntExp10 : 1;
@@ -147,15 +133,13 @@ namespace merutilm::rff2 {
         op_thread_pool parallelReferenceThreadPool{};
         op_thread_pool *tp = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPool : nullptr;
 
-        Num fpgBnr = Num(1);
-        Num fpgBni = Num(0);
+        complex<Num> fpgBn0 = complex<Num>::ONE;
 
-        Num zr = Num(0);
-        Num zi = Num(0);
-        Num cr;
-        Num ci;
-        cr = calculatable::from_fixed_point_decimal<Num>(c.get_real());
-        ci = calculatable::from_fixed_point_decimal<Num>(c.get_imag());
+        complex<Num> z0 = complex<Num>::ZERO;
+        complex<Num> c0 = {
+            calculatable::from_fixed_point_decimal<Num>(c.get_real()),
+            calculatable::from_fixed_point_decimal<Num>(c.get_imag())
+        };
 
         auto periodArray = std::vector<uint64_t>();
 
@@ -177,7 +161,7 @@ namespace merutilm::rff2 {
 
         uint64_t period = 0;
 
-        for (period = 0; period == 0 || zr * zr + zi * zi < bailoutSqr; ++period) {
+        for (period = 0; period == 0 || z0.norm_sqr() < bailoutSqr; ++period) {
             if (state.interruptRequested()) {
                 return CreationResult::TERMINATED;
             }
@@ -185,13 +169,11 @@ namespace merutilm::rff2 {
             // use Fast-Period-Guessing to prepare MPA Table creation
             // fpg
             if (period > 0) {
-                Num radius2 = zr * zr + zi * zi;
+                Num radius2 = z0.norm_sqr();
                 Num fpgLimit = radius2 / Num(dcMax);
-                Num fpgBnrTemp = calculatable::try_normalized_value(fpgBnr * zr * Num(2) - fpgBni * zi * Num(2) + Num(1));
-                Num fpgBniTemp = calculatable::try_normalized_value(fpgBnr * zi * Num(2) + fpgBni * zr * Num(2));
+                complex<Num> fpgBnTemp = fpgBn0 * z0 * Num(2) + Num(1);
 
-
-                Num fpgRadius = calculatable::hypot_approx(fpgBnrTemp, fpgBniTemp);
+                Num fpgRadius = fpgBnTemp.norm_approx();
                 bool isRadZero = calculatable::is_zero(radius2);
 
                 if (minZRadius > radius2 && !isRadZero) {
@@ -206,8 +188,7 @@ namespace merutilm::rff2 {
                     break;
                 }
 
-                fpgBnr = fpgBnrTemp;
-                fpgBni = fpgBniTemp;
+                fpgBn0 = fpgBnTemp.try_normalized_value();
             }
 
             // strict fpg
@@ -218,7 +199,7 @@ namespace merutilm::rff2 {
             }
 
             applyFormula(z, c, func, tp, period);
-            syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, exp10, zr, zi, cr, ci);
+            syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, exp10, z0, c0);
 
 
             if (compressCriteria > 0) {
@@ -246,11 +227,11 @@ namespace merutilm::rff2 {
 
                 if (period >= 1) {
                     const uint64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
-                    const bool sr = calculatable::is_zero(zr) && calculatable::is_zero(rr[refIndex]);
-                    const bool si = calculatable::is_zero(zi) == calculatable::is_zero(ri[refIndex]);
+                    const bool sr = calculatable::is_zero(z0.re) && calculatable::is_zero(ref[refIndex].re);
+                    const bool si = calculatable::is_zero(z0.im) && calculatable::is_zero(ref[refIndex].im);
 
-                    if ((sr || std::fabs(static_cast<double>(zr / rr[refIndex]) - 1) <= compressionThreshold) &&
-                        (si || std::fabs(static_cast<double>(zi / ri[refIndex]) - 1) <= compressionThreshold) &&
+                    if ((sr || std::fabs(static_cast<double>(z0.re / ref[refIndex].re) - 1) <= compressionThreshold) &&
+                        (si || std::fabs(static_cast<double>(z0.im / ref[refIndex].im) - 1) <= compressionThreshold) &&
                         canReuse) {
                         ++reuseIndex;
                     } else if (reuseIndex != 0) {
@@ -271,46 +252,38 @@ namespace merutilm::rff2 {
 
             if (compressCriteria == 0 || reuseIndex <= compressCriteria) {
                 const uint64_t index = period - compressed + 1;
-                if (index == rr.size()) {
-                    rr.push_back(zr);
-                    ri.push_back(zi);
+                if (index == ref.size()) {
+                    ref.push_back(z0);
                 } else {
-                    rr[index] = zr;
-                    ri[index] = zi;
+                    ref[index] = z0;
                 }
             }
         }
 
         if (!strictFPG)
-            fpgBn = fixed_point_complex(fpgBnr, fpgBni, exp10, strictIntExp10);
+            fpgBn = fixed_point_complex(fpgBn0.re, fpgBn0.im, exp10, strictIntExp10);
         if (fpgReference == nullptr)
             fpgReference = std::make_unique<fixed_point_complex>(z);
 
-        rr.resize(period - compressed + 1);
-        ri.resize(period - compressed + 1);
-        rr.shrink_to_fit();
-        ri.shrink_to_fit();
+        ref.resize(period - compressed + 1);
+        ref.shrink_to_fit();
         periodArray = periodArray.empty() ? std::vector(1, period) : periodArray;
 
         *result =
-                std::make_unique<MB2Reference>(std::move(center), std::move(rr), std::move(ri), std::move(tools),
+                std::make_unique<MB2Reference>(std::move(center), std::move(ref), std::move(tools),
                                                    std::move(periodArray), std::move(*fpgReference), std::move(fpgBn));
 
         return CreationResult::SUCCESS;
     }
 
     template<Number Num>
-    Num MB2Reference<Num>::real(const uint64_t refIteration) const {
-        return refReal[ArrayCompressor::compress(compressor, refIteration)];
-    }
-    template<Number Num>
-    Num MB2Reference<Num>::imag(const uint64_t refIteration) const {
-        return refImag[ArrayCompressor::compress(compressor, refIteration)];
+    complex<Num> MB2Reference<Num>::orbit(const uint64_t refIteration) const {
+        return refOrbit[ArrayCompressor::compress(compressor, refIteration)];
     }
 
     template<Number Num>
     size_t MB2Reference<Num>::length() const {
-        return refReal.size();
+        return refOrbit.size();
     }
 
     using LightMB2Reference = MB2Reference<double>;

@@ -4,103 +4,224 @@
 
 #pragma once
 
+#include "../calc/calculatable.hpp"
+#include "../calc/complex.hpp"
 #include "../formula/MB2Reference.h"
 #include "ArrayCompressionTool.h"
 #include "PA.h"
-#include "../calc/calculatable.hpp"
+#include "vulkan_helper/base/exception.hpp"
 
 namespace merutilm::rff2 {
-    template<Number Num>
-    struct PAGenerator {
 
+    template<Number Num>
+    struct PAGeneratorBase {
         uint64_t start;
-        uint64_t skip;
+        uint64_t skip = 0;
         const std::vector<ArrayCompressionTool> &compressors;
         double epsilon;
+        Num radius = Num(HUGE_VAL);
 
-        Num anr = Num(1);
-        Num ani = Num(0);
-        Num bnr = Num(0);
-        Num bni = Num(0);
-        Num radius;
-
-        const std::vector<Num> &refReal;
-        const std::vector<Num> &refImag;
+        const std::vector<complex<Num>> &orbit;
         Num dcMax;
 
-        explicit PAGenerator(const MB2Reference<Num> &reference, double epsilon, Num dcMax, uint64_t start);
-
-        [[nodiscard]] uint64_t getStart() const;
-
-        [[nodiscard]] uint64_t getSkip() const;
-
-
-        void merge(const PA<Num> &pa);
-
-        void step();
-
-        [[nodiscard]] PA<Num> build() const{
-            return PA<Num>{skip, anr, ani, bnr, bni,  radius};
+        explicit PAGeneratorBase(const MB2Reference<Num> &reference, const double epsilon, const Num dcMax,
+                                 const uint64_t start) :
+            start(start), compressors(reference.compressor), epsilon(epsilon), orbit(reference.refOrbit), dcMax(dcMax) {
         }
 
+        virtual ~PAGeneratorBase() = default;
 
     };
 
+
+    template<Number Num, uint32_t MAX_DEGREE = PABase<Num>::MAX_DEGREE>
+    struct PAGenerator : public PAGeneratorBase<Num> {
+
+        /**
+         * Generated in the order (1, 0), (0, 1), (2, 0), (1, 1), (0, 2), (3, 0), (2, 1), (1, 2), (0, 3) ...
+         */
+        std::vector<complex<dex>> tn;
+        dex dcMaxPow = dex::ONE;
+        Num origRadiusTest = Num(HUGE_VAL);
+
+        explicit PAGenerator(const MB2Reference<Num> &reference, double epsilon, Num dcMax, uint64_t start);
+
+
+        void merge(const PA<Num, MAX_DEGREE> &pa);
+
+        void step();
+
+        [[nodiscard]] PA<Num, MAX_DEGREE> build(std::pmr::monotonic_buffer_resource *const resource) {
+            std::pmr::vector<complex<dex>> tnm(PABase<Num>::getLen(MAX_DEGREE), resource);
+            memcpy(tnm.data(), tn.data(), tnm.size() * sizeof(complex<dex>));
+            return PA<Num, MAX_DEGREE>{this->skip, std::move(tnm), this->radius};
+        }
+
+
+        [[nodiscard]] complex<dex> tnGet(uint32_t u, uint32_t v) const;
+    };
+
+    template<Number Num, uint32_t MAX_DEGREE>
+    PAGenerator<Num, MAX_DEGREE>::PAGenerator(const MB2Reference<Num> &reference, const double epsilon, Num dcMax,
+                                              const uint64_t start) :
+        PAGeneratorBase<Num>(reference, epsilon, dcMax, start),
+        tn(PABase<Num>::getLen(MAX_DEGREE + 1)) {
+        tn[0] = complex<dex>::ONE;
+        for (int i = 0; i < MAX_DEGREE; ++i) {
+            dcMaxPow *= dex(dcMax);
+        }
+    }
+
+    template<Number Num, uint32_t MAX_DEGREE>
+    void PAGenerator<Num, MAX_DEGREE>::merge(const PA<Num, MAX_DEGREE> &pa) {
+        // TODO merge
+        throw vkh::exception_invalid_state("unsupported operation now");
+    }
+
+    template<Number Num, uint32_t MAX_DEGREE>
+    void PAGenerator<Num, MAX_DEGREE>::step() {
+
+
+        // tn list
+        //  0      1      2      3      4      5      6      7      8      9      10     11
+        // (1, 0) (0, 1) (2, 0) (1, 1) (0, 2) (3, 0) (2, 1) (1, 2) (0, 3) (4, 0) (3, 1) (2, 2)
+        // if u = 3, v = 2,
+        // find
+        // (1, 0) (2, 2)
+        // (0, 1) (3, 1)
+        // (2, 0) (1, 2)
+        // (1, 1) (2, 1)
+        // (0, 2) (3, 0)
+        // (3, 0) (0, 2)
+        // (2, 1) (1, 1)
+        // (1, 2) (2, 0)
+        // (3, 1) (0, 1)
+        // (2, 2) (1, 0)
+
+        const uint64_t iter = this->start + this->skip++; // k+n
+        const uint64_t index = ArrayCompressor::compress(this->compressors, iter);
+
+        const complex<Num> z2 = Num(2) * this->orbit[index];
+        const complex z2x = { dex(z2.re), dex(z2.im) };
+
+        origRadiusTest = calculatable::try_normalized_value(std::min(origRadiusTest, (Num(this->epsilon) * z2.norm_approx() - Num(tn[1].norm_approx()) * Num(this->dcMax)) / Num(tn[0].norm_approx())));
+
+        uint16_t u = 0;
+        uint16_t v = MAX_DEGREE + 1;
+
+
+        for (int i = tn.size() - 1; i >= 0; --i) {
+
+            complex<dex> term = z2x * tn[i];
+            uint16_t su = 1;
+            uint16_t sv = 0;
+
+            for (int si = 0; si < tn.size(); ++si) {
+
+                if (u + v < su + sv || (u == su && v == sv)) break;
+
+                if (u >= su && v >= sv) {
+                    const uint16_t cu = u - su;
+                    const uint16_t cv = v - sv;
+
+                    term += tn[si] * tnGet(cu, cv);
+                }
+                if (su == 0) {
+                    su = sv + 1;
+                    sv = 0;
+                }else {
+                    --su;
+                    ++sv;
+                }
+            }
+
+            if (u == 0 && v == 1) term += complex<dex>::ONE;
+            tn[i] = term.try_normalized_value();
+
+
+            if (v == 0) {
+                v = u - 1;
+                u = 0;
+            }else {
+                ++u;
+                --v;
+            }
+        }
+
+
+
+        const dex numerator = std::max(dex::ZERO, dex(this->epsilon) - dex(MAX_DEGREE) * tnGet(1, MAX_DEGREE).norm_approx() * dcMaxPow);
+        const dex denominator = dex(MAX_DEGREE) * tnGet(MAX_DEGREE + 1, 0).norm_approx();
+        this->radius = std::min(this->radius, Num(calculatable::try_normalized_value(dex::nthRoot(numerator / denominator, MAX_DEGREE))));
+
+
+        if (this->radius < origRadiusTest) {
+            // std::cout << this->skip << " " << static_cast<double>(this->radius) << " " << static_cast<double>(origRadiusTest) << std::endl;
+            // this->radius = origRadiusTest * Num(100000);
+        }
+
+
+
+
+    }
+
+    template<Number Num, uint32_t MAX_DEGREE>
+    complex<dex> PAGenerator<Num, MAX_DEGREE>::tnGet(const uint32_t u, const uint32_t v) const {
+        const uint32_t degree = u + v;
+#ifndef NDEBUG
+        if (degree == 0)
+            throw std::invalid_argument("degree cannot be zero");
+#endif
+        return tn[(degree * (degree + 1) >> 1) - 1 + v];
+    }
+
+
     template<Number Num>
-    void PAGenerator<Num>::merge(const PA<Num> &pa) {
+    struct PAGenerator<Num, 1> : PAGeneratorBase<Num> {
+
+        complex<Num> an = {Num(1), Num(0)};
+        complex<Num> bn = {Num(0), Num(0)};
+
+        explicit PAGenerator(const MB2Reference<Num> &reference, double epsilon, Num dcMax, uint64_t start);
+
+        void merge(const PA<Num, 1> &pa);
+
+        void step();
+
+        [[nodiscard]] PA<Num, 1> build([[maybe_unused]] std::pmr::monotonic_buffer_resource *const resource) { return PA<Num, 1>{this->skip, an, bn, this->radius}; }
+    };
+
+    template<Number Num>
+    PAGenerator<Num, 1>::PAGenerator(const MB2Reference<Num> &reference, const double epsilon, Num dcMax,
+                                  const uint64_t start) : PAGeneratorBase<Num>(reference, epsilon, dcMax, start) {}
+    template<Number Num>
+    void PAGenerator<Num, 1>::merge(const PA<Num, 1> &pa) {
         const auto &target = pa;
-        const Num anrMerge = target.anr * anr - target.ani * ani;
-        const Num aniMerge = target.anr * ani + target.ani * anr;
-        const Num bnrMerge = target.anr * bnr - target.ani * bni + target.bnr;
-        const Num bniMerge = target.anr * bni + target.ani * bnr + target.bni;
+        const complex<Num> anMerge = target.an * an;
+        const complex<Num> bnMerge = target.an * bn + target.bn;
 
-        radius = calculatable::try_normalized_value(std::min(radius, target.radius));
+        this->radius = calculatable::try_normalized_value(std::min(this->radius, target.radius));
 
-        anr = calculatable::try_normalized_value(anrMerge);
-        ani = calculatable::try_normalized_value(aniMerge);
-        bnr = calculatable::try_normalized_value(bnrMerge);
-        bni = calculatable::try_normalized_value(bniMerge);
+        an = anMerge.try_normalized_value();
+        bn = bnMerge.try_normalized_value();
 
-        skip += target.skip;
-    }
-    template<Number Num>
-    void PAGenerator<Num>::step() {
-        const uint64_t iter = start + skip++; // n+k
-        const uint64_t index = ArrayCompressor::compress(compressors, iter);
-
-        const Num zr2 = Num(2) * refReal[index];
-        const Num zi2 = Num(2) * refImag[index];
-        const Num anrStep = anr * zr2 - ani * zi2;
-        const Num aniStep = anr * zi2 + ani * zr2;
-        const Num bnrStep = bnr * zr2 - bni * zi2 + Num(1);
-        const Num bniStep = bnr * zi2 + bni * zr2;
-        const Num zl2 = calculatable::hypot_approx(zr2, zi2);
-        const Num anlOriginal = calculatable::hypot_approx(anr, ani);
-        const Num bnlOriginal = calculatable::hypot_approx(bnr, bni);
-        radius = calculatable::try_normalized_value(std::min(radius, (Num(epsilon) * zl2 - bnlOriginal * dcMax) / anlOriginal));
-        anr = calculatable::try_normalized_value(anrStep);
-        ani = calculatable::try_normalized_value(aniStep);
-        bnr = calculatable::try_normalized_value(bnrStep);
-        bni = calculatable::try_normalized_value(bniStep);
+        this->skip += target.skip;
     }
 
     template<Number Num>
-    PAGenerator<Num>::PAGenerator(const MB2Reference<Num> &reference, const double epsilon, Num dcMax, const uint64_t start) :
-    start(start), skip(0), compressors(reference.compressor), epsilon(epsilon), radius(Num(HUGE_VAL)),
-                                                                          refReal(reference.refReal), refImag(reference.refImag),
-                                                                          dcMax(dcMax) {
+    void PAGenerator<Num, 1>::step() {
+        const uint64_t iter = this->start + this->skip++; // k+n
+        const uint64_t index = ArrayCompressor::compress(this->compressors, iter);
+        const complex<Num> z2 = Num(2) * this->orbit[index];
+
+        this->radius = calculatable::try_normalized_value(
+                std::min(this->radius, (Num(this->epsilon) * z2.norm_approx() - bn.norm_approx() * this->dcMax) / an.norm_approx()));
+
+        an = (an * z2).try_normalized_value();
+        bn = (bn * z2 + Num(1)).try_normalized_value();
     }
 
-    template<Number Num>
-    uint64_t PAGenerator<Num>::getStart() const {
-        return start;
-    }
-
-    template<Number Num>
-    uint64_t PAGenerator<Num>::getSkip() const {
-        return skip;
-    }
 
     using DeepPAGenerator = PAGenerator<dex>;
     using LightPAGenerator = PAGenerator<double>;
-}
+} // namespace merutilm::rff2

@@ -67,6 +67,7 @@ add_executable(
         src/rff2/settings/FrtPerturbSettings.hpp
         src/rff2/settings/FrtGeneralSettings.hpp
         src/rff2/calc/calculatable.hpp
+        src/rff2/calc/complex.hpp
 )
 
 

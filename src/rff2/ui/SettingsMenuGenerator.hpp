@@ -46,6 +46,9 @@ namespace merutilm::rff2::SettingsMenuGenerator {
         currentMenu = &window.addMenu(*window.menubar, L"Fractal");
         window.addMenuItemWithListener(*currentMenu, L"Reference", CallbackFractal::fnReference(appRenderManager));
         window.addMenuItemWithListener(*currentMenu, L"Iterations", CallbackFractal::fnIterations(appRenderManager));
+#ifdef ENABLE_SERIES_APPROXIMATION
+        window.addMenuItemWithListener(*currentMenu, L"Series Approximation", CallbackFractal::fnSa(appRenderManager));
+#endif
         window.addMenuItemWithListener(*currentMenu, L"MP-Approximation", CallbackFractal::fnMpa(appRenderManager));
         window.addCheckboxMenuItemWithListener(*currentMenu, L"Automatic Iterations",
                                                CallbackFractal::fnGetterAutomaticIterations(appRenderManager),

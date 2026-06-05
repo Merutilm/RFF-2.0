@@ -141,6 +141,7 @@ namespace merutilm::rff2 {
                                                         .compression = CalculationPresets::UltraFast().genRefComp(),
                                                         .reuse = FrtReferenceReuseMethod::DISABLED,
                                                 },
+                                        .sa = {.appliedTermsCount = 8, .validatedTermsCount = 1, .epsilonPower = -5},
                                         .mpa = CalculationPresets::UltraFast().genMPA(),
                                         .perturb = {.maxIteration = 300,
                                                     .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
@@ -170,6 +171,7 @@ namespace merutilm::rff2 {
                                                         .compression = CalculationPresets::UltraFast().genRefComp(),
                                                         .reuse = FrtReferenceReuseMethod::DISABLED,
                                                 },
+                                        .sa = {.appliedTermsCount = 8, .validatedTermsCount = 1, .epsilonPower = -5},
                                         .mpa = CalculationPresets::UltraFast().genMPA(),
                                         .perturb = {.maxIteration = 300,
                                                     .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
@@ -242,7 +244,7 @@ namespace merutilm::rff2 {
             int my;
             wc.getWindow()->getMousePosition(&mx, &my);
             if (value > 0) {
-                const std::array<dex, 2> offset =
+                const complex<dex> offset =
                         offsetConversion(settings, getMouseXOnIterationBuffer(mx), getMouseYOnIterationBuffer(my));
                 const double mzi = 1.0 / pow(10, Constants::Fractal::ZOOM_INTERVAL);
                 float &logZoom = settings.fractal.general.logZoom;
@@ -251,10 +253,10 @@ namespace merutilm::rff2 {
                 fixed_point_complex_i1 &center = settings.fractal.reference.center;
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
                 center.set_exp10(exp10);
-                const fixed_point_complex_i1 add(offset[0] * dex(1 - mzi), offset[1] * dex(1 - mzi), exp10);
+                const fixed_point_complex_i1 add(offset.re * dex(1 - mzi), offset.im * dex(1 - mzi), exp10);
                 fixed_point_complex_i1::add(center, center, add);
             } else if (value < 0) {
-                const std::array<dex, 2> offset =
+                const complex<dex> offset =
                         offsetConversion(settings, getMouseXOnIterationBuffer(mx), getMouseYOnIterationBuffer(my));
                 const double mzo = 1.0 / pow(10, -Constants::Fractal::ZOOM_INTERVAL);
                 float &logZoom = settings.fractal.general.logZoom;
@@ -264,7 +266,7 @@ namespace merutilm::rff2 {
                 fixed_point_complex_i1 &center = settings.fractal.reference.center;
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
                 center.set_exp10(exp10);
-                const fixed_point_complex_i1 add(offset[0] * dex(1 - mzo), offset[1] * dex(1 - mzo), exp10);
+                const fixed_point_complex_i1 add(offset.re * dex(1 - mzo), offset.im * dex(1 - mzo), exp10);
                 fixed_point_complex_i1::add(center, center, add);
             }
 
@@ -274,7 +276,7 @@ namespace merutilm::rff2 {
     }
 
 
-    std::array<dex, 2> AppRenderManager::offsetConversion(const Settings &s, const int mx, const int my) const {
+    complex<dex> AppRenderManager::offsetConversion(const Settings &s, const int mx, const int my) const {
         using namespace Constants::Fractal;
         const double ox = static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth(s)) / 2.0;
         const double oy = static_cast<double>(my) - static_cast<double>(getIterationBufferHeight(s)) / 2.0;
@@ -510,8 +512,8 @@ namespace merutilm::rff2 {
         setStatusMessage(Constants::Status::ZOOM_STATUS,
                          std::format(L"Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
-        const std::array<dex, 2> offset = offsetConversion(s, 0, 0);
-        const dex dcMax = dex_trig::hypot_approx(offset[0], offset[1]);
+        const complex<dex> offset = offsetConversion(s, 0, 0);
+        const dex dcMax = offset.norm_approx();
 
         uint64_t capacity = renderData && renderData->getReference() ? renderData->getReference()->length() : 0;
 
@@ -585,13 +587,13 @@ namespace merutilm::rff2 {
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
 
                 if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
-                    renderData = std::make_unique<DeepMB2RenderData>(
-                            state, frt, dcMax, exp10, capacity, 0,
-                            std::move(actionPerRefCalcIteration), std::move(actionPerCreatingTableIteration), false);
+                    renderData = std::make_unique<DeepMB2RenderData>(state, frt, dcMax, exp10, capacity, 0,
+                                                                     std::move(actionPerRefCalcIteration),
+                                                                     std::move(actionPerCreatingTableIteration), false);
                 } else {
                     renderData = std::make_unique<LightMB2RenderData>(
-                            state, frt, dcMax, exp10, capacity, 0,
-                            std::move(actionPerRefCalcIteration), std::move(actionPerCreatingTableIteration), false);
+                            state, frt, dcMax, exp10, capacity, 0, std::move(actionPerRefCalcIteration),
+                            std::move(actionPerCreatingTableIteration), false);
                 }
                 break;
             }
@@ -637,7 +639,7 @@ namespace merutilm::rff2 {
                                                              double) {
             rendered[i] = true;
             const auto dc = offsetConversion(s, x, y);
-            const double iteration = renderData->getPerturbator()->iterate(dc[0], dc[1]);
+            const double iteration = renderData->getPerturbator()->iterate(dc);
 
             renderer->iterationStagingBufferContext->set(x, y, iteration);
 

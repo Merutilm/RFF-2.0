@@ -135,6 +135,30 @@ namespace merutilm::rff2 {
             arm.setCurrentSettingsWindows(std::move(window));
         };
     }
+    std::function<void()> CallbackFractal::fnSa(AppRenderManager &arm) {
+        return [&arm] {
+            auto &[appliedTermsCount, validatedTermsCount, epsilonPower] = arm.getSettings().fractal.sa;
+            auto window = std::make_unique<SettingsWindow>(L"Series Approximation");
+            window->registerTextInput<uint16_t>(
+                    L"Applied Terms Count", &appliedTermsCount, Unparser::UINT16, Parser::UINT16,
+                    [](const unsigned short &v) { return v >= 1 && v <= 1024; }, Callback::NOTHING, L"Applied Terms Count",
+                    L"Set the number of terms to approximate the orbit in the first iteration.");
+            window->registerTextInput<uint16_t>(
+                    L"Validated Terms Count", &validatedTermsCount, Unparser::UINT16, Parser::UINT16,
+                    [](const unsigned short &v) { return v >= 1 && v <= 1024; }, Callback::NOTHING,
+                    L"Validated Terms Count",
+                    L"Set the number of terms for the escape condition when generating the series approximation.");
+            window->registerTextInput<float>(
+                    L"Precision Level", &epsilonPower, Unparser::FLOAT, Parser::FLOAT, ValidCondition::NEGATIVE_FLOAT,
+                    Callback::NOTHING, L"Set the precision level based on powers of ten (epsilon).",
+                    L"Useful for glitch reduction. you can set this value -15 to -1. if this value is small (-15),\n"
+                    L"The fractal will be rendered glitch-less but slow,\n"
+                    L"and is large (-1), It will be fast, but maybe shown visible glitches.");
+
+            window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
+            arm.setCurrentSettingsWindows(std::move(window));
+        };
+    }
     std::function<void()> CallbackFractal::fnMpa(AppRenderManager &arm) {
         return [&arm] {
             auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod,
@@ -157,7 +181,7 @@ namespace merutilm::rff2 {
                     Callback::NOTHING, L"Set the precision level based on powers of ten (epsilon).",
                     L"Useful for glitch reduction. you can set this value -15 to -1. if this value is small (-15),\n"
                     L"The fractal will be rendered glitch-less but slow,\n"
-                    L"and is large (-1), It will be fast, but maybe shown visible glitches. Default value is -3.");
+                    L"and is large (-1), It will be fast, but maybe shown visible glitches.");
             window->registerRadioButtonInput<FrtMPASelectionMethod>(
                     L"Selection Method", &mpaSelectionMethod, Callback::NOTHING, L"Set the selection method of MPA.",
                     L"The first target PA is always the front element.");

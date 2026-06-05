@@ -94,7 +94,7 @@ namespace merutilm::rff2 {
 
 
     public:
-        [[nodiscard]] PA<Num> *lookup(uint64_t refIteration, Num dzr, Num dzi) const;
+        [[nodiscard]] PA<Num> *lookup(uint64_t refIteration, complex<Num> dz) const;
         [[nodiscard]] size_t getLength();
     };
 
@@ -200,7 +200,7 @@ namespace merutilm::rff2 {
         const uint64_t skippableIterationsCount = mpaPeriod->skippableIterationsCount.back();
         const uint64_t lastCompIndex = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod,
                                                                  pulledMPACompressor, longestPeriod + 1);
-        const uint64_t bufferSize = levels * sizeof(PA<Num>) * std::min(lastCompIndex, skippableIterationsCount) +
+        const uint64_t bufferSize = levels * PA<Num>::size() * std::min(lastCompIndex, skippableIterationsCount) +
                                     lastCompIndex * sizeof(std::pmr::vector<PA<Num>>);
         tableManager.emplace(bufferSize, lastCompIndex);
     }
@@ -303,24 +303,24 @@ namespace merutilm::rff2 {
 
             if (periodCount[level] == tablePeriod[level]) {
                 if (currentLevel != std::nullopt &&
-                    currentLevel->getSkip() == tablePeriod[level] - REQUIRED_PERTURBATION) {
+                    currentLevel->skip == tablePeriod[level] - REQUIRED_PERTURBATION) {
                     const uint64_t compTableIndex =
                             iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor,
-                                                      currentLevel->getStart());
+                                                      currentLevel->start);
 
 
                     if (compTableIndex == UINT64_MAX) {
                         vkh::logger::w_log(L"FATAL : FAILED TO CREATING TABLE!!\n what : iteration {} is not "
                                            L"pullable. aborting the table creation...",
-                                           currentLevel->getStart());
+                                           currentLevel->start);
                         return;
                     }
 
                     allocateWithCheckTableSize(compTableIndex, levels);
                     auto &pa = table[compTableIndex];
 
-                    if (pa.empty() || pa.back().skip < currentLevel->getSkip())
-                        pa.push_back(currentLevel->build());
+                    if (pa.empty() || pa.back().skip < currentLevel->skip)
+                        pa.push_back(currentLevel->build(tableManager->strictTableResource.get()));
                     else {
                         vkh::logger::w_log(L"WARNING : The insertion of pa generated from compressed index {} is not "
                                            L"allowed. It might be a bug!",
@@ -481,7 +481,7 @@ namespace merutilm::rff2 {
 
 
     template<Number Num>
-    PA<Num> *MPATable<Num>::lookup(const uint64_t refIteration, const Num dzr, const Num dzi) const {
+    PA<Num> *MPATable<Num>::lookup(const uint64_t refIteration, const complex<Num> dz) const {
 
         if (refIteration == 0 || mpaPeriod == nullptr) {
             return nullptr;
@@ -499,7 +499,7 @@ namespace merutilm::rff2 {
             return nullptr;
         }
 
-        const Num r = calculatable::hypot_approx(dzr, dzi);
+        const Num r = dz.norm_approx();
 
         switch (mpaSettings.mpaSelectionMethod) {
             using enum FrtMPASelectionMethod;

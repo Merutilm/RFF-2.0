@@ -91,7 +91,7 @@ namespace merutilm::rff2 {
 
         void addMouseListeners();
 
-        [[nodiscard]] std::array<dex, 2> offsetConversion(const Settings &s, int mx, int my) const;
+        [[nodiscard]] complex<dex> offsetConversion(const Settings &s, int mx, int my) const;
 
         static dex getDivisor(const Settings &settings);
 

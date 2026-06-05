@@ -103,10 +103,6 @@ If the built application does not launch:
 - Launch the application from `clang64.exe`
 - Verify required DLLs exist in `clang64\bin`
 
-A black crosshair appears when zooming in or out
-- Safety checks for zero-value operations are disabled by default for maximum performance.
-- Enable `-DSAFE_DEX_OPERATOR=ON` for safer and more accurate behavior with a slight performance cost.
-
 ```bash
 mkdir build
 

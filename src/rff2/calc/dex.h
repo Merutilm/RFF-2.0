@@ -50,6 +50,8 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] static dex sqrt(dex v);
 
+        [[nodiscard]] static dex nthRoot(dex v, int d);
+
         static dex mul_2exp(dex v, int exp2);
 
         static dex div_2exp(dex v, int exp2);
@@ -79,6 +81,13 @@ namespace merutilm::rff2 {
             if (b.isinf() || a.is_zero()) {
                 return b;
             }
+#else
+            if (b.is_zero()) [[unlikely]] {
+                return a;
+            }
+            if (a.is_zero()) [[unlikely]] {
+                return b;
+            }
 #endif
             const int d_exp2 = a.exp2 - b.exp2;
             return {std::max(a.exp2, b.exp2),
@@ -102,6 +111,14 @@ namespace merutilm::rff2 {
             if (b.isinf() || a.is_zero()) {
                 return -b;
             }
+#else
+
+            if (b.is_zero()) [[unlikely]] {
+                return a;
+            }
+            if (a.is_zero()) [[unlikely]] {
+                return -b;
+            }
 #endif
             const int d_exp2 = a.exp2 - b.exp2;
             return {std::max(a.exp2, b.exp2),
@@ -110,10 +127,11 @@ namespace merutilm::rff2 {
 
 
         friend dex operator*(const dex a, const dex b) {
-#ifdef SAFE_DEX_OPERATOR
-            if (a.is_zero() || b.is_zero()) {
+
+            if (a.is_zero() || b.is_zero()) [[unlikely]] {
                 return ZERO;
             }
+#ifdef SAFE_DEX_OPERATOR
             if (a.isnan() || b.isnan()) {
                 return NN;
             }
@@ -209,6 +227,14 @@ namespace merutilm::rff2 {
 
     inline dex dex::sqrt(const dex v) { return {v.exp2 >> 1, v.sgn() * std::sqrt(std::abs(v.mantissa))}; }
 
+    inline dex dex::nthRoot(const dex v, const int d) {
+        //valid when d < 32, v.mantissa > 0
+        const int k = (v.exp2 % d + d) % d;
+        const int exp2 = v.exp2 - k;
+        double mantissa = pow(v.mantissa * (1u << k), 1.0 / d);
+        return {exp2 / d, mantissa};
+    }
+
     inline dex dex::mul_2exp(const dex v, const int exp2) { return {v.exp2 + exp2, v.mantissa}; }
 
     inline dex dex::div_2exp(const dex v, const int exp2) { return {v.exp2 - exp2, v.mantissa}; }
@@ -216,14 +242,13 @@ namespace merutilm::rff2 {
 
     inline void dex::normalize() {
 
-        const char sgn = dex::sgn();
-        if (sgn == 0) {
+        if (mantissa == 0) {
             exp2 = ZERO.exp2;
-            mantissa = ZERO.mantissa;
             return;
         }
 
 #ifdef SAFE_DEX_OPERATOR
+        const char sgn = dex::sgn();
         if (isinf()) {
             if (sgn == 1) {
                 exp2 = PINF.exp2;
@@ -254,7 +279,9 @@ namespace merutilm::rff2 {
     inline bool dex::isnan() const { return std::isnan(mantissa); }
 #endif
 
-    inline bool dex::is_zero() const { return sgn() == 0; }
+    inline bool dex::is_zero() const {
+        return mantissa == 0;
+    }
 
     inline dex::operator double() const { return ldexp(mantissa, exp2); }
 

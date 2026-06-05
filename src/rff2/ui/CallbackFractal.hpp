@@ -10,6 +10,7 @@ namespace merutilm::rff2 {
     struct CallbackFractal {
         static std::function<void()> fnReference(AppRenderManager &arm);
         static std::function<void()> fnIterations(AppRenderManager &arm);
+        static std::function<void()> fnSa(AppRenderManager &arm);
         static std::function<void()> fnMpa(AppRenderManager &arm);
 
         static std::function<bool()> fnGetterAutomaticIterations(AppRenderManager &arm);
