@@ -8,7 +8,7 @@
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtPerturbSettings.hpp"
 #include "Perturbator.h"
-#include "SeriesApproxImationData.hpp"
+#include "SeriesApproximationData.hpp"
 
 namespace merutilm::rff2 {
 
@@ -31,7 +31,7 @@ namespace merutilm::rff2 {
 
         virtual ~MB2PerturbatorBase() = default;
 
-        [[nodiscard]] virtual double iterate(complex<dex> dci) const = 0;
+        [[nodiscard]] virtual double iterate(const complex<dex> &dc) const = 0;
     };
 
     template<Number Num>
@@ -52,21 +52,31 @@ namespace merutilm::rff2 {
             if (calculatable::is_zero(c.im) && c.re < Num(0.25) && c.re >= Num(-2))
                 return true;
 
-            const double crm = static_cast<double>(c.re) - 0.25;
-            const double cid = static_cast<double>(c.im);
-            if (crm * crm + cid * cid < 0.5 * (-crm + std::sqrt(crm * crm + cid * cid)))
+            const auto cr = static_cast<double>(c.re);
+            const auto ci = static_cast<double>(c.im);
+
+            
+            //fast calculation of main bulb
+            if (const auto crm025 = cr - 0.25;
+                crm025 * crm025 + ci * ci < 0.5 * (-crm025 + std::sqrt(crm025 * crm025 + ci * ci)))
                 return true;
+
+            if (const auto crp100 = cr + 1;
+                crp100 * crp100 + ci * ci < 0.0625)
+                return true;
+
+
 
             return false;
         }
 
 
         ;
-        [[nodiscard]] double iterate(const complex<dex> dc) const override {
+        [[nodiscard]] double iterate(const complex<dex> &dc) const override {
             if (state.interruptRequested())
                 return 0.0;
 
-            const complex<Num> dc0 = static_cast<complex<Num>>(dc + off);
+            const auto dc0 = static_cast<complex<Num>>(dc + off);
 #ifdef ENABLE_SERIES_APPROXIMATION
             // PROCESS SERIES APPROXIMATION (DEPRECATED)
             const complex dcSa = {dex{dc0.re}, dex{dc0.im}};

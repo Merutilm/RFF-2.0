@@ -7,7 +7,7 @@
 #include "../settings/FractalSettings.h"
 #include "MB2Perturbator.h"
 #include "MB2Reference.h"
-#include "SeriesApproxImationData.hpp"
+#include "SeriesApproximationData.hpp"
 namespace merutilm::rff2 {
 
     struct MB2RenderDataBase {
@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
         [[nodiscard]] virtual MB2ReferenceBase *getReference() const = 0;
         [[nodiscard]] virtual MB2PerturbatorBase *getPerturbator() const = 0;
 
-        virtual void translate(float logZoom, dex dcMax, FrtPerturbSettings ptbSettings,
+        virtual void translate(float logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
                                const fixed_point_complex_i1 &newCenter) = 0;
 
         static int logZoomToExp10(const float logZoom) {
@@ -52,7 +52,7 @@ namespace merutilm::rff2 {
 
         void generateSeriesApproxTerms(dex dcMax);
 
-        void translate(float logZoom, dex dcMax, FrtPerturbSettings ptbSettings,
+        void translate(float logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
                        const fixed_point_complex_i1 &newCenter) override;
 
         void applyAutoMaxIteration();
@@ -144,7 +144,7 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    void MB2RenderData<Num>::translate(const float logZoom, const dex dcMax, const FrtPerturbSettings ptbSettings,
+    void MB2RenderData<Num>::translate(const float logZoom, const dex dcMax, const FrtPerturbSettings &ptbSettings,
                                        const fixed_point_complex_i1 &newCenter) {
         if (lastCreationResult != Reference::CreationResult::SUCCESS) {
             // try to use incomplete reference
@@ -158,7 +158,7 @@ namespace merutilm::rff2 {
             perturbator->off = {center.get_real().dex_value(), center.get_imag().dex_value()};
             perturbator->dcMax = dcMax;
 
-            fractalSettings.perturb = std::move(ptbSettings);
+            fractalSettings.perturb = ptbSettings;
             fractalSettings.general.logZoom = logZoom;
 
             applyAutoMaxIteration();
