@@ -25,6 +25,7 @@ namespace merutilm::vkh {
 
         ScopedCommandBufferExecutor &operator=(ScopedCommandBufferExecutor &&) = delete;
 
+    protected:
         void init() override;
 
         void cleanup() override;

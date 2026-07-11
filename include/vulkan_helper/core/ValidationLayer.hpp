@@ -26,10 +26,13 @@ namespace merutilm::vkh {
         ValidationLayer &operator=(ValidationLayer &&) = delete;
 
 
+    protected:
+        void init() override;
+
+        void cleanup() override;
+
     private:
         static void checkValidationLayerSupport();
-
-        void init() override;
 
         void setupDebugMessenger();
 
@@ -43,7 +46,6 @@ namespace merutilm::vkh {
                                                   const VkAllocationCallbacks *pAllocator);
 
 
-        void cleanup() override;
     };
 
 

@@ -3,6 +3,8 @@
 //
 
 #include <vulkan_helper/core/ValidationLayer.hpp>
+
+#include <cstring>
 #include <vulkan_helper/base/vkh_base.hpp>
 #include <vulkan_helper/util/Debugger.hpp>
 

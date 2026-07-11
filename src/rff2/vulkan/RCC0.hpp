@@ -3,40 +3,50 @@
 //
 
 #pragma once
+#include "GPCIterationPalette.hpp"
 #include "SharedImageContextIndices.hpp"
-#include "vulkan_helper/engine/configurator/RenderContextConfigurator.hpp"
-#include "vulkan_helper/util/BufferImageContextUtils.hpp"
+#include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
-    struct RCC0 final : public vkh::RenderContextConfigurator {
-        static constexpr uint32_t CONTEXT_INDEX = 0;
-        static constexpr uint32_t SUBPASS_ITERATION_INDEX = 0;
-        static constexpr uint32_t RESULT_COLOR_ATTACHMENT_INDEX = 0;
+    class RCC0 final : public vkh::RenderPassGraphGenerator {
 
+        vkh::RenderPassAttachment *resultAttachment;
 
-        using RenderContextConfigurator::RenderContextConfigurator;
+    public:
+        GPCIterationPalette *iterationPalette;
 
+        using RenderPassGraphGenerator::RenderPassGraphGenerator;
 
-        void configure(vkh::RenderPassManager &rpm) override {
+    protected:
+        void configureAttachments() override {
             using namespace SharedImageContextIndices;
-            rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
-                                     .flags = 0,
-                                     .format = sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY)[0].
-                                     imageFormat,
-                                     .samples = VK_SAMPLE_COUNT_1_BIT,
-                                     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                     .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 }, sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY));
+            resultAttachment = &appendAttachment(
+                    {
+                            .flags = 0,
+                            .format = wc.getSharedImageContext()
+                                              .getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY)[0]
+                                              .imageFormat,
+                            .samples = VK_SAMPLE_COUNT_1_BIT,
+                            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                            .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    },
+                    wc.getSharedImageContext().getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY));
+        }
 
 
-            rpm.appendSubpass(SUBPASS_ITERATION_INDEX);
-            rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR,
-                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        void configurePipelines() override {
 
+            registerPipeline<GPCIterationPalette>(
+                    &iterationPalette, {},
+                    {resultAttachment,
+                     {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+                     vkh::SubpassDependency::none(),
+                     vkh::RenderPassAttachmentReference::none()},
+                    [] { return vkh::DescIndexPicker{}; });
         }
     };
-}
+} // namespace merutilm::rff2

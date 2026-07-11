@@ -12,8 +12,8 @@ namespace merutilm::rff2{
         static constexpr uint32_t BINDING_OUTPUT_SSBO = 1;
         static constexpr uint32_t TARGET_OUTPUT_SSBO_DATA = 0;
 
-        explicit CPCImageRGBA2BGR(vkh::Engine &engine, const uint32_t windowContextIndex) : ComputePipelineConfigurator(
-            engine, windowContextIndex, "vk_image_rgba2bgr.comp") {
+        explicit CPCImageRGBA2BGR(vkh::Engine &engine, vkh::WindowContext &wc) : ComputePipelineConfigurator(
+            engine, wc, "vk_image_rgba2bgr.comp") {
         }
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;

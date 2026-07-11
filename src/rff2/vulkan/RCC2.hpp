@@ -3,67 +3,79 @@
 //
 
 #pragma once
+#include <vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp>
+
+#include "GPCColor.hpp"
+#include "GPCSlope.hpp"
 #include "SharedImageContextIndices.hpp"
-#include "vulkan_helper/engine/configurator/RenderContextConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    struct RCC2 final : public vkh::RenderContextConfigurator {
-        static constexpr uint32_t CONTEXT_INDEX = 2;
+    class RCC2 final : public vkh::RenderPassGraphGenerator {
 
-        static constexpr uint32_t SUBPASS_SLOPE_INDEX = 0;
-        static constexpr uint32_t SUBPASS_COLOR_INDEX = 1;
+        vkh::RenderPassAttachment *resultAttachment;
+        vkh::RenderPassAttachment *tempAttachment;
 
-        static constexpr uint32_t RESULT_COLOR_ATTACHMENT_INDEX = 0;
-        static constexpr uint32_t TEMP_COLOR_ATTACHMENT_INDEX = 1;
+    public:
+        GPCSlope *slope;
+        GPCColor *color;
+
+        using RenderPassGraphGenerator::RenderPassGraphGenerator;
 
 
-        using RenderContextConfigurator::RenderContextConfigurator;
-
-
-        void configure(vkh::RenderPassManager &rpm) override {
+    protected:
+        void configureAttachments() override {
             using namespace SharedImageContextIndices;
-            rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
-                                     .flags = 0,
-                                     .format = sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY)[0].imageFormat,
-                                     .samples = VK_SAMPLE_COUNT_1_BIT,
-                                     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                     .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 }, sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY));
+            resultAttachment = &appendAttachment(
+                    {
+                            .flags = 0,
+                            .format = wc.getSharedImageContext()
+                                              .getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY)[0]
+                                              .imageFormat,
+                            .samples = VK_SAMPLE_COUNT_1_BIT,
+                            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                            .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    },
+                    wc.getSharedImageContext().getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY));
 
-            rpm.appendAttachment(TEMP_COLOR_ATTACHMENT_INDEX, {
-                                     .flags = 0,
-                                     .format = sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY)[0].imageFormat,
-                                     .samples = VK_SAMPLE_COUNT_1_BIT,
-                                     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                     .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                 }, sharedImageContext.getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY));
+            tempAttachment = &appendAttachment(
+                    {
+                            .flags = 0,
+                            .format = wc.getSharedImageContext()
+                                              .getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY)[0]
+                                              .imageFormat,
+                            .samples = VK_SAMPLE_COUNT_1_BIT,
+                            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                            .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    },
+                    wc.getSharedImageContext().getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY));
+        }
 
+        void configurePipelines() override {
 
+            vkh::GraphicsPipelineNode *slopeNode = registerPipeline<GPCSlope>(
+                    &slope, {},
+                    {tempAttachment,
+                     {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+                     {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                      VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
+                      VK_DEPENDENCY_BY_REGION_BIT},
+                     {vkh::RenderPassAttachmentType::INPUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}},
+                    [] { return vkh::DescIndexPicker{}; });
 
-            rpm.appendSubpass(SUBPASS_SLOPE_INDEX);
-            rpm.appendReference(TEMP_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-            rpm.appendSubpass(SUBPASS_COLOR_INDEX);
-            rpm.appendReference(TEMP_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::INPUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-            rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-            rpm.appendDependency({
-                .srcSubpass = SUBPASS_SLOPE_INDEX,
-                .dstSubpass = SUBPASS_COLOR_INDEX,
-                .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-                .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-            });
+            registerPipeline<GPCColor>(&color, {slopeNode},
+                                   {resultAttachment,
+                                    {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+                                    vkh::SubpassDependency::none(),
+                                    vkh::RenderPassAttachmentReference::none()},
+                                   [] { return vkh::DescIndexPicker{}; });
         }
     };
-}
+} // namespace merutilm::rff2

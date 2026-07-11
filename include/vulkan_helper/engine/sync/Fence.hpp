@@ -40,7 +40,7 @@ namespace merutilm::vkh {
             reset();
         }
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

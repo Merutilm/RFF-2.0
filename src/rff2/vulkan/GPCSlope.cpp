@@ -7,7 +7,6 @@
 #include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
-#include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
     void GPCSlope::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
@@ -39,22 +38,9 @@ namespace merutilm::rff2 {
     void GPCSlope::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &inputDesc = getDescriptor(SET_PREV_RESULT);
+        const auto &input = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY);
+        inputDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER).setImageContextMF(input);
 
-        switch (wc.getAttachmentIndex()) {
-            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                const auto &input = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY);
-                inputDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER).setImageContextMF(input);
-                break;
-            }
-            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
-                const auto &input = sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_PRIMARY);
-                inputDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER).setImageContextMF(input);
-                break;
-            }
-            default: {
-                //noop
-            }
-        }
 
         writeDescriptorMF([&inputDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             inputDesc.queue(queue, frameIndex, {}, {BINDING_PREV_RESULT_SAMPLER});

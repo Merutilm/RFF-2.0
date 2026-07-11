@@ -6,19 +6,20 @@
 
 #include <vulkan_helper/engine/graphics/Framebuffer.hpp>
 #include <vulkan_helper/engine/graphics/RenderPass.hpp>
-#include <vulkan_helper/engine/configurator/RenderContextConfigurator.hpp>
+
+#include "vulkan_helper/engine/graphics/RenderPassGraphGeneratorBase.hpp"
 
 namespace merutilm::vkh {
 
     class RenderContext final {
         Core &core;
-        std::unique_ptr<RenderContextConfigurator> renderContextConfigurator;
+        std::unique_ptr<RenderPassGraphGeneratorBase> renderPassGraphGenerator;
         std::optional<RenderPass> renderPass = std::nullopt;
         std::optional<Framebuffer> framebuffer = std::nullopt;
         std::function<VkExtent2D()> extentGetter;
 
     public:
-        explicit RenderContext(Core &core, std::function<VkExtent2D()> &&extentGetter, std::unique_ptr<RenderContextConfigurator> &&renderContextConfigurator);
+        explicit RenderContext(Core &core, std::function<VkExtent2D()> &&extentGetter, std::unique_ptr<RenderPassGraphGeneratorBase> &&renderPassGraphGenerator);
 
         ~RenderContext() = default;
 
@@ -32,13 +33,11 @@ namespace merutilm::vkh {
 
         void recreate();
 
-        [[nodiscard]] RenderContextConfigurator *getConfigurator() const { return renderContextConfigurator.get(); }
+        [[nodiscard]] RenderPassGraphGeneratorBase *getGenerator() const { return renderPassGraphGenerator.get(); }
 
         [[nodiscard]] RenderPass *getRenderPass() { return &*renderPass; }
 
         [[nodiscard]] Framebuffer *getFramebuffer() { return &*framebuffer; }
-
-
 
     };
 

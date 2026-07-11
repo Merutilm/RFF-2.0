@@ -50,7 +50,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] Sampler & getSampler() const { return sampler; }
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

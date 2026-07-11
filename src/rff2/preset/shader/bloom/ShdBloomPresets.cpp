@@ -5,32 +5,32 @@
 
 namespace merutilm::rff2 {
 
-    std::wstring BloomPresets::Disabled::getName() const {
-        return L"Disabled";
+    std::string BloomPresets::Disabled::getName() const {
+        return "Disabled";
     }
 
     ShdBloomSettings BloomPresets::Disabled::genBloom() const {
         return ShdBloomSettings{0, 0.0f, 0, 0};
     }
 
-    std::wstring BloomPresets::Highlighted::getName() const {
-        return L"Highlighted";
+    std::string BloomPresets::Highlighted::getName() const {
+        return "Highlighted";
     }
 
     ShdBloomSettings BloomPresets::Highlighted::genBloom() const {
         return ShdBloomSettings{0, 0.05f, 0.2f, 1};
     }
 
-    std::wstring BloomPresets::HighlightedStrong::getName() const {
-        return L"Highlighted Strong";
+    std::string BloomPresets::HighlightedStrong::getName() const {
+        return "Highlighted Strong";
     }
 
     ShdBloomSettings BloomPresets::HighlightedStrong::genBloom() const {
         return ShdBloomSettings{0, 0.08f, 0.4f, 1.5f};
     }
 
-    std::wstring BloomPresets::Weak::getName() const {
-        return L"Weak";
+    std::string BloomPresets::Weak::getName() const {
+        return "Weak";
     }
 
     ShdBloomSettings BloomPresets::Weak::genBloom() const {
@@ -39,16 +39,16 @@ namespace merutilm::rff2 {
     }
 
 
-    std::wstring BloomPresets::Normal::getName() const {
-        return L"Normal";
+    std::string BloomPresets::Normal::getName() const {
+        return "Normal";
     }
 
     ShdBloomSettings BloomPresets::Normal::genBloom() const {
         return ShdBloomSettings{0, 0.1f, 0, 1};
     }
 
-    std::wstring BloomPresets::Strong::getName() const {
-        return L"Strong";
+    std::string BloomPresets::Strong::getName() const {
+        return "Strong";
     }
 
     ShdBloomSettings BloomPresets::Strong::genBloom() const {

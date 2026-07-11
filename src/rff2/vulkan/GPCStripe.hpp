@@ -16,10 +16,8 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_STRIPE = 2;
         static constexpr uint32_t SET_TIME = 3;
 
-        explicit GPCStripe(vkh::Engine &engine, const uint32_t windowContextIndex,
-                                   const uint32_t renderContextIndex,
-                                   const uint32_t primarySubpassIndex, vkh::VertexBuffer &vertexBufferStaticRef, vkh::IndexBuffer &indexBufferStaticRef) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, primarySubpassIndex, "vk_stripe.frag", vertexBufferStaticRef, indexBufferStaticRef) {
+        explicit GPCStripe(vkh::Engine &engine, vkh::WindowContext &wc) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, wc, "vk_stripe.frag") {
         }
 
         ~GPCStripe() override = default;

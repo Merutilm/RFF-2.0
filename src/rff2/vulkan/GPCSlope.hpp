@@ -14,12 +14,8 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_ITERATION = 1;
         static constexpr uint32_t SET_SLOPE = 2;
 
-        explicit GPCSlope(vkh::Engine &engine, const uint32_t windowContextIndex, const uint32_t renderContextIndex,
-                          const uint32_t primarySubpassIndex, vkh::VertexBuffer &vertexBufferStaticRef,
-                          vkh::IndexBuffer &indexBufferStaticRef) :
-            GeneralPostProcessGraphicsPipelineConfigurator(engine, windowContextIndex, renderContextIndex,
-                                                           primarySubpassIndex, "vk_slope.frag", vertexBufferStaticRef,
-                                                           indexBufferStaticRef) {}
+        explicit GPCSlope(vkh::Engine &engine, vkh::WindowContext &wc) :
+            GeneralPostProcessGraphicsPipelineConfigurator(engine, wc, "vk_slope.frag") {}
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 

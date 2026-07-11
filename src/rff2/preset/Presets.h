@@ -21,7 +21,7 @@ namespace merutilm::rff2 {
     struct Preset {
         virtual ~Preset() = default;
 
-        virtual std::wstring getName() const = 0;
+        virtual std::string getName() const = 0;
     };
 
 

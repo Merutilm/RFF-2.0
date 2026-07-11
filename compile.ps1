@@ -48,4 +48,4 @@ Write-Host -NoNewLine "Success $success" -ForegroundColor Cyan
 Write-Host -NoNewLine " | "
 Write-Host -NoNewline "Fail $fail" -ForegroundColor Red
 Write-Host -NoNewLine " | "
-Write-HOst "Total $len"
+Write-Host "Total $len"

@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "../calc/dex.h"
 #include "../constants/Constants.hpp"
 
 namespace merutilm::rff2 {
@@ -31,24 +32,9 @@ namespace merutilm::rff2 {
 
 
     namespace FrtDecimalizeIterationMethodUtil {
-        inline double getDoubleValueIteration(const uint64_t iteration, const double prevIterDistance,
-        const double currIterDistance, const FrtDecimalizeIterationMethod &decimalizeIterationMethod, const float bailout) {
-            // prevIterDistance = p
-            // currIterDistance = c
-            // bailout = b
-            //
-            // a = b - p (p < b)
-            // b = c - b (c > b)
-            // 0 dec 1 decimal value
-            // a : b ratio
-            // ratio = a / (a + b) = (b - p) / (c - p)
-
-            if (prevIterDistance == currIterDistance) {
-                return static_cast<double>(iteration);
-            }
-            double ratio = (bailout - prevIterDistance) / (currIterDistance - prevIterDistance);
 
 
+        inline double applyDecimalize(const FrtDecimalizeIterationMethod decimalizeIterationMethod, double ratio) {
             switch (decimalizeIterationMethod) {
                 using enum FrtDecimalizeIterationMethod;
                 case NONE : {
@@ -73,8 +59,26 @@ namespace merutilm::rff2 {
                 }
                 default : break;
             }
+            return ratio;
+        }
 
-            return static_cast<double>(iteration) + ratio;
+        inline double getExteriorDoubleValueIterationRatio(const double prevIterDistance, const double currIterDistance,
+                                                           const FrtDecimalizeIterationMethod decimalizeIterationMethod,
+                                                           const float bailout) {
+            // prevIterDistance = p
+            // currIterDistance = c
+            // bailout = b
+            //
+            // a = b - p (p < b)
+            // b = c - b (c > b)
+            // 0 dec 1 decimal value
+            // a : b ratio
+            // ratio = a / (a + b) = (b - p) / (c - p)
+
+            if (prevIterDistance == currIterDistance) {
+                return 0.0;
+            }
+            return applyDecimalize(decimalizeIterationMethod, (bailout - prevIterDistance) / (currIterDistance - prevIterDistance));
         }
     }
 }

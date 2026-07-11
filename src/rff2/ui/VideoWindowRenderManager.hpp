@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include <queue>
+#ifdef _WIN32
 
 #include "../io/RFFDynamicMapBinary.h"
 #include "../settings/Settings.h"
@@ -83,3 +83,4 @@ namespace merutilm::rff2 {
         void cleanup() override;
     };
 }
+#endif

@@ -6,7 +6,7 @@
 #include <vulkan_helper/engine/executor/ScopedCommandBufferExecutor.hpp>
 
 namespace merutilm::vkh {
-    Renderer::Renderer(Engine & engine, WindowContext &wc, VertexBuffer &vertexBufferPP, IndexBuffer &indexBufferPP): EngineHandler(engine), wc(wc), vertexBufferPP(vertexBufferPP), indexBufferPP(indexBufferPP){
+    Renderer::Renderer(Engine & engine, WindowContext &wc): EngineHandler(engine), wc(wc){
     }
 
     Renderer::~Renderer() = default;
@@ -21,14 +21,8 @@ namespace merutilm::vkh {
         }
     }
 
-    void Renderer::execute() {
+    void Renderer::render() {
         SwapchainUtils::tryRenderFrame(wc, &frameIndex, [this](const uint32_t swapchainImageIndex) {
-            if (frameIndex == 0) {
-                for (auto &rc: wc.getRenderContexts()) {
-                    //first frame ended
-                    rc->getConfigurator()->allFrameInitialized();
-                }
-            }
             DescriptorUpdateQueue queue = DescriptorUpdater::createQueue();
             const VkDevice device = wc.core.getLogicalDevice().getLogicalDeviceHandle();
 

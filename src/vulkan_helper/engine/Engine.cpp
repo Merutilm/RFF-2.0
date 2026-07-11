@@ -8,13 +8,6 @@
 #include <vulkan_helper/engine/repo/GlobalPipelineLayoutRepo.hpp>
 #include <vulkan_helper/engine/repo/GlobalSamplerRepo.hpp>
 
-#ifdef _WIN32
-#include <vulkan_helper/engine/window/win/NativeWindow.hpp>
-#elif __APPLE__
-#include <vulkan_helper/engine/window/mac/NativeWindow.hpp>
-#elif __linux__
-#include <vulkan_helper/engine/window/linux/NativeWindow.hpp>
-#endif
 
 namespace merutilm::vkh {
     Engine::Engine() {
@@ -38,9 +31,9 @@ namespace merutilm::vkh {
             throw exception_invalid_args(std::format("given window context {} is already using", windowAttachmentIndexExpected));
         }
 
-        auto window = std::make_unique<NativeWindow>(std::move(wic));
+        auto window = std::make_unique<PlatformWindow>(std::move(wic));
 
-        windowContexts[windowAttachmentIndexExpected] = std::make_unique<WindowContext>(core, windowAttachmentIndexExpected, std::move(window));
+        windowContexts[windowAttachmentIndexExpected] = std::make_unique<WindowContext>(core, *commandPool, windowAttachmentIndexExpected, std::move(window));
         return *windowContexts[windowAttachmentIndexExpected];
     }
 
@@ -58,6 +51,8 @@ namespace merutilm::vkh {
 
 
     void Engine::init() {
+        commandPool = std::make_unique<CommandPool>(core);
+        sharedResource = std::make_unique<SharedResource>(core);
         configureRepositories();
     }
 
@@ -72,5 +67,7 @@ namespace merutilm::vkh {
     void Engine::cleanup() {
         windowContexts.clear();
         globalRepositories.clear();
+        sharedResource.reset();
+        commandPool.reset();
     }
 }

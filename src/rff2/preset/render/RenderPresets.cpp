@@ -8,52 +8,52 @@
 
 
 namespace merutilm::rff2 {
-    std::wstring RenderPresets::Potato::getName() const {
-        return L"Potato";
+    std::string RenderPresets::Potato::getName() const {
+        return "Potato";
     }
 
     RenderSettings RenderPresets::Potato::genRender() const {
-        return RenderSettings{0.1f, 60, true, std::thread::hardware_concurrency()};
+        return RenderSettings{0.1f, 60, true, std::thread::hardware_concurrency() - 1};
     }
 
 
-    std::wstring RenderPresets::Low::getName() const {
-        return L"Low";
+    std::string RenderPresets::Low::getName() const {
+        return "Low";
     }
 
     RenderSettings RenderPresets::Low::genRender() const {
-        return RenderSettings{0.3f, 60, true, std::thread::hardware_concurrency()};
+        return RenderSettings{0.3f, 60, true, std::thread::hardware_concurrency() - 1};
     }
 
-    std::wstring RenderPresets::Medium::getName() const {
-        return L"Medium";
+    std::string RenderPresets::Medium::getName() const {
+        return "Medium";
     }
 
     RenderSettings RenderPresets::Medium::genRender() const {
-        return RenderSettings{0.5f, 60, true, std::thread::hardware_concurrency()};
+        return RenderSettings{0.5f, 60, true, std::thread::hardware_concurrency() - 1};
     }
 
-    std::wstring RenderPresets::High::getName() const {
-        return L"High";
+    std::string RenderPresets::High::getName() const {
+        return "High";
     }
 
     RenderSettings RenderPresets::High::genRender() const {
-        return RenderSettings{1.0f, 60, true, std::thread::hardware_concurrency()};
+        return RenderSettings{1.0f, 60, true, std::thread::hardware_concurrency() - 1};
     }
 
-    std::wstring RenderPresets::Ultra::getName() const {
-        return L"Ultra";
+    std::string RenderPresets::Ultra::getName() const {
+        return "Ultra";
     }
 
     RenderSettings RenderPresets::Ultra::genRender() const {
-        return RenderSettings{2.0f, 60, true, std::thread::hardware_concurrency()};
+        return RenderSettings{2.0f, 60, true, std::thread::hardware_concurrency() - 1};
     }
 
-    std::wstring RenderPresets::Extreme::getName() const {
-        return L"Extreme (DANGER)";
+    std::string RenderPresets::Extreme::getName() const {
+        return "Extreme (DANGER)";
     }
 
     RenderSettings RenderPresets::Extreme::genRender() const {
-        return RenderSettings{4.0f,  60, true, std::thread::hardware_concurrency()};
+        return RenderSettings{4.0f,  60, true, std::thread::hardware_concurrency() - 1};
     }
 }

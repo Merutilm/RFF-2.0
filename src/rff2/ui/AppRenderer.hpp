@@ -5,16 +5,6 @@
 #pragma once
 #include "../data/GraphicsMatrixStagingBuffer.h"
 #include "../vulkan/CPCBoxBlur.hpp"
-#include "../vulkan/GPCBloom.hpp"
-#include "../vulkan/GPCBloomThreshold.hpp"
-#include "../vulkan/GPCColor.hpp"
-#include "../vulkan/GPCDownsampleForBlur.hpp"
-#include "../vulkan/GPCFog.hpp"
-#include "../vulkan/GPCIterationPalette.hpp"
-#include "../vulkan/GPCLinearInterpolation.hpp"
-#include "../vulkan/GPCPresent.hpp"
-#include "../vulkan/GPCSlope.hpp"
-#include "../vulkan/GPCStripe.hpp"
 #include "../vulkan/RCC0.hpp"
 #include "../vulkan/RCC1.hpp"
 #include "../vulkan/RCC2.hpp"
@@ -24,33 +14,46 @@
 #include "../vulkan/RCCDownsampleForBlur.hpp"
 #include "../vulkan/RCCPresent.hpp"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
-#include "vulkan_helper/engine/graphics/Renderer.hpp"
+#include "vulkan_helper/engine/internal/RendererImGui.hpp"
 #include "vulkan_helper/util/BarrierUtils.hpp"
+#include "vulkan_helper/util/RenderContextUtils.hpp"
 
 namespace merutilm::rff2 {
-    struct AppRenderer final : public vkh::Renderer {
+    struct AppRenderer final : public vkh::RendererImGui {
 
-        GPCIterationPalette *rendererIteration = nullptr;
-        GPCStripe *rendererStripe = nullptr;
-        GPCSlope *rendererSlope = nullptr;
-        GPCColor *rendererColor = nullptr;
-        GPCDownsampleForBlur *rendererDownsampleForBlur = nullptr;
-        CPCBoxBlur *rendererBoxBlur = nullptr;
-        GPCFog *rendererFog = nullptr;
-        GPCBloomThreshold *rendererBloomThreshold = nullptr;
-        GPCBloom *rendererBloom = nullptr;
-        GPCLinearInterpolation *rendererLinearInterpolation = nullptr;
-        GPCPresent *rendererPresent = nullptr;
 
-        std::unique_ptr<GraphicsMatrixBuffer<double> > iterationStagingBufferContext = nullptr;
+        Settings &settings;
 
-        explicit AppRenderer(vkh::Engine &engine, vkh::WindowContext &wc, vkh::VertexBuffer &vertexBufferPP, vkh::IndexBuffer &indexBufferPP) : Renderer(engine, wc, vertexBufferPP, indexBufferPP) {
+        vkh::RenderContext *rc0;
+        vkh::RenderContext *rc1;
+        vkh::RenderContext *rc2;
+        vkh::RenderContext *rcDownsample;
+        vkh::RenderContext *rc3;
+        vkh::RenderContext *rc4;
+        vkh::RenderContext *rc5;
+        vkh::RenderContext *rcPresent;
+
+        RCC0 *rcc0;
+        RCC1 *rcc1;
+        RCC2 *rcc2;
+        RCCDownsampleForBlur *rccDownsample;
+        RCC3 *rcc3;
+        RCC4 *rcc4;
+        RCC5 *rcc5;
+        RCCPresent *rccPresent;
+
+        CPCBoxBlur *computeBoxBlur;
+
+        std::unique_ptr<GraphicsMatrixBuffer<double>> iterationStagingBufferContext = nullptr;
+
+        template<typename F>
+            requires std::is_invocable_v<F>
+        explicit AppRenderer(vkh::Engine &engine, vkh::WindowContext &wc, Settings &settings, F &&renderFunc) :
+            RendererImGui(engine, wc, std::forward<F>(renderFunc)), settings(settings) {
             AppRenderer::init();
         }
 
-        ~AppRenderer() override {
-            AppRenderer::cleanup();
-        }
+        ~AppRenderer() override { AppRenderer::cleanup(); }
 
         AppRenderer(const AppRenderer &) = delete;
 
@@ -61,77 +64,93 @@ namespace merutilm::rff2 {
         AppRenderer &operator=(AppRenderer &&) = delete;
 
 
-    private:
-        void init() override {
-
-            rendererIteration = vkh::PipelineConfigurator::create<
-                GPCIterationPalette>(
-                configurators, engine, wc.getAttachmentIndex(),
-                RCC0::CONTEXT_INDEX,
-                RCC0::SUBPASS_ITERATION_INDEX, vertexBufferPP, indexBufferPP);
-
-            rendererStripe = vkh::PipelineConfigurator::create<GPCStripe>(
-                configurators, engine, wc.getAttachmentIndex(),
-                RCC1::CONTEXT_INDEX,
-                RCC1::SUBPASS_STRIPE_INDEX, vertexBufferPP, indexBufferPP);
-
-            rendererSlope = vkh::PipelineConfigurator::create<GPCSlope>(
-                configurators, engine, wc.getAttachmentIndex(),
-                RCC2::CONTEXT_INDEX,
-                RCC2::SUBPASS_SLOPE_INDEX, vertexBufferPP, indexBufferPP);
-
-            rendererColor = vkh::PipelineConfigurator::create<GPCColor>(
-                configurators, engine, wc.getAttachmentIndex(),
-                RCC2::CONTEXT_INDEX,
-                RCC2::SUBPASS_COLOR_INDEX, vertexBufferPP, indexBufferPP);
-
-
-            rendererDownsampleForBlur = vkh::PipelineConfigurator::create<GPCDownsampleForBlur>(
-                configurators, engine, wc.getAttachmentIndex(),
-                RCCDownsampleForBlur::CONTEXT_INDEX,
-                RCCDownsampleForBlur::SUBPASS_DOWNSAMPLE_INDEX, vertexBufferPP, indexBufferPP
-            );
-
-            rendererBoxBlur = vkh::PipelineConfigurator::create<CPCBoxBlur>(
-                configurators, engine, wc.getAttachmentIndex()
-            );
-
-            rendererFog = vkh::PipelineConfigurator::create<GPCFog>(
-                configurators, engine, wc.getAttachmentIndex(),
-                RCC3::CONTEXT_INDEX,
-                RCC3::SUBPASS_FOG_INDEX, vertexBufferPP, indexBufferPP
-            );
-
-            rendererBloomThreshold = vkh::PipelineConfigurator::create<GPCBloomThreshold>(
-                configurators, engine, wc.getAttachmentIndex(),
-                RCC3::CONTEXT_INDEX,
-                RCC3::SUBPASS_BLOOM_THRESHOLD_INDEX, vertexBufferPP, indexBufferPP
-            );
-
-            rendererBloom = vkh::PipelineConfigurator::create<GPCBloom>(
-                configurators, engine, wc.getAttachmentIndex(),
-                RCC4::CONTEXT_INDEX,
-                RCC4::SUBPASS_BLOOM_INDEX, vertexBufferPP, indexBufferPP
-            );
-
-            rendererLinearInterpolation = vkh::PipelineConfigurator::create<
-                GPCLinearInterpolation>(
-                configurators, engine, wc.getAttachmentIndex(),
-                RCC5::CONTEXT_INDEX,
-                RCC5::SUBPASS_LINEAR_INTERPOLATION_INDEX, vertexBufferPP, indexBufferPP
-            );
-            rendererPresent = vkh::PipelineConfigurator::create<GPCPresent>(
-                configurators, engine, wc.getAttachmentIndex(),
-                RCCPresent::CONTEXT_INDEX,
-                RCCPresent::SUBPASS_PRESENT_INDEX, vertexBufferPP, indexBufferPP
-            );
-
-            finishPipelineInitialization();
-
+        [[nodiscard]] static VkExtent2D getInternalImageExtent(VkExtent2D swapchainExtent,
+                                                               const float clarityMultiplier) {
+            const auto [width, height] = swapchainExtent;
+            return {static_cast<uint32_t>(static_cast<float>(width) * clarityMultiplier),
+                    static_cast<uint32_t>(static_cast<float>(height) * clarityMultiplier)};
         }
 
+        [[nodiscard]] static VkExtent2D getBlurredImageExtent(const VkExtent2D swapchainExtent,
+                                                              const float clarityMultiplier) {
+            const VkExtent2D blurredExtent = getInternalImageExtent(swapchainExtent, clarityMultiplier);
+            if (const float rat = Constants::Fractal::GAUSSIAN_MAX_WIDTH / static_cast<float>(blurredExtent.width);
+                rat < 1) {
+                return {Constants::Fractal::GAUSSIAN_MAX_WIDTH,
+                        static_cast<uint32_t>(static_cast<float>(blurredExtent.height) * rat)};
+            }
+            return blurredExtent;
+        }
+
+    protected:
+        void init() override {
+
+            const auto swapchainImageContextGetter = [this] {
+                auto &swapchain = wc.getSwapchain();
+                return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
+            };
+            computeBoxBlur =
+                    vkh::ComputePipelineConfigurator::createComputePipeline<CPCBoxBlur>(configurators, engine, wc);
+            rc0 = vkh::RenderContextUtils::attachRenderContext<RCC0>(
+                    &rcc0, configurators, engine, wc,
+                    [this] {
+                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                                                      settings.render.clarityMultiplier);
+                    },
+                    swapchainImageContextGetter);
+            rc1 = vkh::RenderContextUtils::attachRenderContext<RCC1>(
+                    &rcc1, configurators, engine, wc,
+                    [this] {
+                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                                                      settings.render.clarityMultiplier);
+                    },
+                    swapchainImageContextGetter);
+            rc2 = vkh::RenderContextUtils::attachRenderContext<RCC2>(
+                    &rcc2, configurators, engine, wc,
+                    [this] {
+                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                                                      settings.render.clarityMultiplier);
+                    },
+                    swapchainImageContextGetter);
+            rcDownsample = vkh::RenderContextUtils::attachRenderContext<RCCDownsampleForBlur>(
+                    &rccDownsample, configurators, engine, wc,
+                    [this] {
+                        return getBlurredImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                                                     settings.render.clarityMultiplier);
+                    },
+                    swapchainImageContextGetter);
+            rc3 = vkh::RenderContextUtils::attachRenderContext<RCC3>(
+                    &rcc3, configurators, engine, wc,
+                    [this] {
+                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                                                      settings.render.clarityMultiplier);
+                    },
+                    swapchainImageContextGetter);
+            rc4 = vkh::RenderContextUtils::attachRenderContext<RCC4>(
+                    &rcc4, configurators, engine, wc,
+                    [this] {
+                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                                                      settings.render.clarityMultiplier);
+                    },
+                    swapchainImageContextGetter);
+            rc5 = vkh::RenderContextUtils::attachRenderContext<RCC5>(
+                    &rcc5, configurators, engine, wc,
+                    [this] {
+                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                                                      settings.render.clarityMultiplier);
+                    },
+                    swapchainImageContextGetter);
+            rcPresent = vkh::RenderContextUtils::attachRenderContext<RCCPresent>(
+                    &rccPresent, configurators, engine, wc, [this] { return wc.getSwapchain().getSwapchainExtent(); },
+                    swapchainImageContextGetter);
+
+            finishPipelineInitialization();
+        }
+
+
         void beforeCmdRender() override {
-            vkh::BufferContext::flush(wc.core.getLogicalDevice().getLogicalDeviceHandle(), iterationStagingBufferContext->getContext());
+            vkh::BufferContext::flush(wc.core.getLogicalDevice().getLogicalDeviceHandle(),
+                                      iterationStagingBufferContext->getContext());
         }
 
 
@@ -143,110 +162,83 @@ namespace merutilm::rff2 {
             };
 
 
+            rcc0->iterationPalette->cmdRefreshIterations(wc.getCommandBuffer().getCommandBufferHandle(frameIndex),
+                                                         iterationStagingBufferContext->getContext());
 
-            rendererIteration->cmdRefreshIterations(
-                wc.getCommandBuffer().getCommandBufferHandle(frameIndex), iterationStagingBufferContext->getContext());
-
-            auto &ctx = rendererIteration->getResultIterationBuffer();
-            vkh::BarrierUtils::cmdBufferMemoryBarrier(cbh, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, ctx.buffer, 0, ctx.bufferSize,
-                                                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            auto &ctx = rcc0->iterationPalette->getResultIterationBuffer();
+            vkh::BarrierUtils::cmdBufferMemoryBarrier(cbh, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                                                      ctx.buffer, 0, ctx.bufferSize, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                                      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
             // [BARRIER] Safe-copy iteration buffer
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC0>(
-                wc, frameIndex, {rendererIteration}, {{}});
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc0, frameIndex);
 
             // [IN] EXTERNAL
             // [SUBPASS OUT] SECONDARY (iteration)
 
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                              mfg(
-                                                                  SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
-                                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                              0, 1,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
             // [BARRIER] SECONDARY
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC1>(
-                           wc, frameIndex, {
-                               rendererStripe
-                           }, {{}});
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc1, frameIndex);
 
 
             // [IN] SECONDARY
             // [OUT] PRIMARY
 
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                                          mfg(
-                                                                              SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                                                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                                          0, 1,
-                                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
             // [BARRIER] PRIMARY
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC2>(
-                wc, frameIndex, {
-                    rendererSlope, rendererColor
-                }, {{}, {}});
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(
+                    wc, *rc2, frameIndex);
 
             // [IN] PRIMARY
             // [SUBPASS OUT] SECONDARY (slope)
             // [SUBPASS IN] SECONDARY
             // [OUT] PRIMARY (color)
 
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                              mfg(
-                                                                  SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                              0, 1,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
             // [BARRIER] PRIMARY
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<
-                RCCDownsampleForBlur>(
-                wc, frameIndex, {rendererDownsampleForBlur}, {
-                    {GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG}
-                });
+            rccDownsample->descIndexer = RCCDownsampleForBlur::DescIndexer::FOG;
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rcDownsample, frameIndex);
 
             // [IN] PRIMARY
             // [OUT] DOWNSAMPLED_PRIMARY
 
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                              mfg(
-                                                                  SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
-                                                              VK_IMAGE_LAYOUT_GENERAL,
-                                                              0, 1,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                              VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
+                    VK_IMAGE_LAYOUT_GENERAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 
             // [BARRIER] DOWNSAMPLED_PRIMARY
 
-            rendererBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG);
+            computeBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG);
 
             // [IN] DOWNSAMPLED_PRIMARY
             // [OUT] DOWNSAMPLED_SECONDARY
 
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                              mfg(
-                                                                  SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                              0, 1,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
             vkh::BarrierUtils::cmdImageMemoryBarrier(
-                cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
-                VK_ACCESS_SHADER_WRITE_BIT,
-                VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
-                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1,
-                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
+                    VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
             // [BARRIER] PRIMARY
             // [BARRIER] DOWNSAMPLED_SECONDARY
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC3>(
-                wc, frameIndex, {rendererFog, rendererBloomThreshold}, {{}, {}});
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc3, frameIndex);
 
             // [IN] PRIMARY
             // [IN] DOWNSAMPLED_SECONDARY
@@ -254,96 +246,78 @@ namespace merutilm::rff2 {
             // [SUBPASS IN] SECONDARY
             // [OUT] PRIMARY (Threshold Masked)
 
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                              mfg(
-                                                                  SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                              0, 1,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
             // [BARRIER] PRIMARY
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCDownsampleForBlur>(
-                wc, frameIndex, {rendererDownsampleForBlur}, {
-                    {GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM}
-                });
+            rccDownsample->descIndexer = RCCDownsampleForBlur::DescIndexer::BLOOM;
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rcDownsample, frameIndex);
             // [IN] PRIMARY
             // [OUT] DOWNSAMPLED_PRIMARY
 
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                              mfg(
-                                                                  SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
-                                                              VK_IMAGE_LAYOUT_GENERAL,
-                                                              0, 1,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                              VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
+                    VK_IMAGE_LAYOUT_GENERAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
             // [BARRIER] DOWNSAMPLED_PRIMARY
 
-            rendererBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM);
+            computeBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM);
 
             // [IN] DOWNSAMPLED_PRIMARY
             // [OUT] DOWNSAMPLED_SECONDARY
 
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                              mfg(
-                                                                  SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
-                                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                              0, 1,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
             vkh::BarrierUtils::cmdImageMemoryBarrier(
-                cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
-                VK_ACCESS_SHADER_WRITE_BIT,
-                VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
-                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1,
-                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY),
+                    VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL,
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
             // [BARRIER] SECONDARY
             // [BARRIER] DOWNSAMPLED_SECONDARY
 
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC4>(
-                wc, frameIndex, {rendererBloom}, {{}});
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc4, frameIndex);
 
             // [IN] SECONDARY
             // [IN] DOWNSAMPLED_SECONDARY
             // [OUT] PRIMARY
 
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                              mfg(
-                                                                  SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                              0, 1,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC5>(
-                wc, frameIndex, {rendererLinearInterpolation}, {{}});
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc5, frameIndex);
 
             // [IN] PRIMARY
             // [OUT] SECONDARY
 
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh,
-                                                              mfg(
-                                                                  SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
-                                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                                                              0, 1,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
             // [BARRIER] SECONDARY
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenPresentOnlyRenderPass<RCCPresent>(
-                wc, frameIndex, swapchainImageIndex, {rendererPresent}, {{}});
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenForSwapchainRenderPass(wc, *rcPresent, frameIndex,
+                                                                                   swapchainImageIndex);
 
             // [IN] SECONDARY
             // [OUT] EXTERNAL
+
+            vkh::BarrierUtils::cmdOverlaySwapchain(wc.getCommandBuffer().getCommandBufferHandle(frameIndex),
+                                                   wc.getSwapchain().getSwapchainImages()[swapchainImageIndex]);
+
+            RendererImGui::cmdRender(swapchainImageIndex);
         }
 
-        void cleanup() override {
-            iterationStagingBufferContext = nullptr;
-        }
+        void cleanup() override { iterationStagingBufferContext = nullptr; }
     };
-}
+} // namespace merutilm::rff2

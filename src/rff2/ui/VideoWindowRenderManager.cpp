@@ -2,9 +2,10 @@
 // Created by Merutilm on 2025-09-06.
 //
 
+#ifdef _WIN32
 #include "VideoWindowRenderManager.hpp"
 
-#include "../vulkan/RCCPresentVid.hpp"
+#include "../vulkan/RCCPresent.hpp"
 #include "opencv2/imgproc.hpp"
 #include "vulkan_helper/engine/executor/ScopedCommandBufferExecutor.hpp"
 #include "vulkan_helper/util/BufferImageContextUtils.hpp"
@@ -87,13 +88,13 @@ namespace merutilm::rff2 {
     }
 
     void VideoWindowRenderManager::initRenderer() {
-        renderer = std::make_unique<VideoWindowRenderer>(engine, wc, *sr.vertexBufferPP, *sr.indexBufferPP);
+        renderer = std::make_unique<VideoWindowRenderer>(engine, wc);
         applySize();
         applyShader();
     }
 
     void VideoWindowRenderManager::applySize() const {
-        auto [sWidth, sHeight] = wc.getSwapchain().populateSwapchainExtent();
+        auto [sWidth, sHeight] = wc.getSwapchain().getSwapchainExtent();
         auto [bWidth, bHeight] = getBlurredImageExtent();
 
         for (const auto &sp: renderer->configurators) {
@@ -138,22 +139,22 @@ namespace merutilm::rff2 {
         const auto blurredImageExtent = getBlurredImageExtent();
 
         sharedImg.appendMultiframeImageContext(
-                MF_VIDEO_RENDER_IMAGE_PRIMARY,
+                MF_MAIN_RENDER_IMAGE_PRIMARY,
                 iiiGetter(videoExtent, VK_FORMAT_R8G8B8A8_UNORM,
                           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
                                   VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT));
         sharedImg.appendMultiframeImageContext(
-                MF_VIDEO_RENDER_IMAGE_SECONDARY,
+                MF_MAIN_RENDER_IMAGE_SECONDARY,
                 iiiGetter(videoExtent, VK_FORMAT_R8G8B8A8_UNORM,
                           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
                                   VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT |
                                   VK_IMAGE_USAGE_STORAGE_BIT));
-        sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
+        sharedImg.appendMultiframeImageContext(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
                                                iiiGetter(blurredImageExtent, VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                                  VK_IMAGE_USAGE_SAMPLED_BIT |
                                                                  VK_IMAGE_USAGE_STORAGE_BIT));
-        sharedImg.appendMultiframeImageContext(MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_SECONDARY,
+        sharedImg.appendMultiframeImageContext(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY,
                                                iiiGetter(blurredImageExtent, VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                                  VK_IMAGE_USAGE_SAMPLED_BIT |
@@ -227,3 +228,4 @@ namespace merutilm::rff2 {
 
     void VideoWindowRenderManager::cleanup() { engine.getCore().getLogicalDevice().waitDeviceIdle(); }
 } // namespace merutilm::rff2
+#endif

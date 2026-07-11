@@ -34,15 +34,15 @@ namespace merutilm::rff2 {
         [[nodiscard]] virtual double iterate(const complex<dex> &dc) const = 0;
     };
 
-    template<Number Num>
+    template<Number Num, uint8_t MAX_DEGREE>
     struct MB2Perturbator final : public Perturbator, public MB2PerturbatorBase {
 
         const MB2Reference<Num> &reference;
-        const MPATable<Num> *table;
+        const MPATable<Num, MAX_DEGREE> *table;
 
         explicit MB2Perturbator(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
                                 const FrtPerturbSettings &ptbSettings, const SeriesApproximationData &seriesApproximationData, const MB2Reference<Num> &reference,
-                                const MPATable<Num> *table) :
+                                const MPATable<Num, MAX_DEGREE> *table) :
             MB2PerturbatorBase(state, dcMax, generalSettings, ptbSettings, seriesApproximationData), reference(reference), table(table) {}
 
         ~MB2Perturbator() override = default;
@@ -55,7 +55,6 @@ namespace merutilm::rff2 {
             const auto cr = static_cast<double>(c.re);
             const auto ci = static_cast<double>(c.im);
 
-            
             //fast calculation of main bulb
             if (const auto crm025 = cr - 0.25;
                 crm025 * crm025 + ci * ci < 0.5 * (-crm025 + std::sqrt(crm025 * crm025 + ci * ci)))
@@ -101,6 +100,7 @@ namespace merutilm::rff2 {
             int absIteration = 0;
             Num currDistance2 = Num(0);
             Num prevDistance2 = currDistance2;
+            // auto minDistance2 = dex(generalSettings.bailout);
             const bool isAbs = ptbSettings.absoluteIterationMode;
             const uint64_t maxIteration = ptbSettings.maxIteration;
             const float bailout2 = generalSettings.bailout * generalSettings.bailout;
@@ -114,8 +114,8 @@ namespace merutilm::rff2 {
 
             while (iteration < maxIteration) {
                 if (table != nullptr) {
-                    if (PA<Num> *paPtr = table->lookup(refIteration, dz); paPtr != nullptr) {
-                        PA<Num> &pa = *paPtr;
+                    if (PA<Num, MAX_DEGREE> *paPtr = table->lookup(refIteration, dz); paPtr != nullptr) {
+                        PA<Num, MAX_DEGREE> &pa = *paPtr;
 
                         dz = pa.apply(dz, dc0);
                         iteration += pa.skip;
@@ -145,6 +145,7 @@ namespace merutilm::rff2 {
 
                 prevDistance2 = currDistance2;
                 currDistance2 = ptbz.norm_sqr();
+                // minDistance2 = std::min(dex(currDistance2), minDistance2);
 
                 if (refIteration == maxRefIteration || currDistance2 < dz.norm_sqr()) {
                     refIteration = 0;
@@ -155,7 +156,7 @@ namespace merutilm::rff2 {
 
                 if (static_cast<double>(currDistance2) > bailout2)
                     break;
-                if (absIteration % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested())
+                if (absIteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested())
                     return 0.0;
             }
 
@@ -164,17 +165,16 @@ namespace merutilm::rff2 {
             }
 
             if (iteration >= maxIteration) {
-                return static_cast<double>(maxIteration);
+                return static_cast<double>(maxIteration);//std::sqrt(static_cast<double>(dex(dcMax) / minDistance2) );
             }
 
             const double prevDistance = sqrt(static_cast<double>(prevDistance2));
             const double currDistance = sqrt(static_cast<double>(currDistance2));
 
-            return FrtDecimalizeIterationMethodUtil::getDoubleValueIteration(iteration, prevDistance, currDistance,
+            return static_cast<double>(iteration) + FrtDecimalizeIterationMethodUtil::getExteriorDoubleValueIterationRatio(prevDistance, currDistance,
                                                                              ptbSettings.decimalizeIterationMethod,
                                                                              generalSettings.bailout);
         }
-        using LightMB2Perturbator = MB2Perturbator<double>;
-        using DeepMB2Perturbator = MB2Perturbator<dex>;
+
     };
 } // namespace merutilm::rff2

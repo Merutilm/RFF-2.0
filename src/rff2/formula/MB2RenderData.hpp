@@ -16,7 +16,8 @@ namespace merutilm::rff2 {
         FractalSettings fractalSettings;
         Reference::CreationResult lastCreationResult = Reference::CreationResult::UNDEFINED;
 
-        explicit MB2RenderDataBase(ParallelRenderState &state, FractalSettings frt) : state(state), fractalSettings(std::move(frt)) {}
+        explicit MB2RenderDataBase(ParallelRenderState &state, FractalSettings frt) :
+            state(state), fractalSettings(std::move(frt)) {}
 
         virtual ~MB2RenderDataBase() = default;
 
@@ -36,15 +37,18 @@ namespace merutilm::rff2 {
 
 
         std::unique_ptr<MB2Reference<Num>> reference;
-        std::unique_ptr<MPATable<Num>> table;
+        std::unique_ptr<MPATableBase> table;
         std::unique_ptr<SeriesApproximationData> seriesApproxData;
-        std::unique_ptr<MB2Perturbator<Num>> perturbator;
+        std::unique_ptr<MB2PerturbatorBase> perturbator;
 
         explicit MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, dex dcMax, int exp10,
                                uint64_t refInitialCapacity, uint64_t fixedPeriod,
                                std::function<void(uint64_t)> &&actionPerRefCalcIteration,
                                std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration,
                                bool arbitraryPrecisionFPGBn);
+
+        void createByDegree(dex dcMax, std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
+
 
         [[nodiscard]] MB2ReferenceBase *getReference() const override { return reference.get(); }
 
@@ -79,11 +83,62 @@ namespace merutilm::rff2 {
         seriesApproxData = std::make_unique<SeriesApproximationData>();
         generateSeriesApproxTerms(dcMax);
 
-        table = std::make_unique<MPATable<Num>>(state, *reference, &fractalSettings.mpa, Num(dcMax),
-                                                std::move(actionPerCreatingTableIteration));
-        perturbator = std::make_unique<MB2Perturbator<Num>>(state, dcMax, fractalSettings.general,
-                                                            fractalSettings.perturb, *seriesApproxData, *reference, table.get());
+        createByDegree(dcMax, std::move(actionPerCreatingTableIteration));
     }
+
+
+    template<Number Num>
+    void MB2RenderData<Num>::createByDegree(const dex dcMax,
+                                            std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) {
+
+         auto func = [this, dcMax, actionPerCreatingTableIteration = std::move(actionPerCreatingTableIteration)] <uint8_t D>() mutable {
+             table = std::make_unique<MPATable<Num, D>>(state, *reference, &fractalSettings.mpa, Num(dcMax),
+                                                           std::move(actionPerCreatingTableIteration));
+             perturbator = std::make_unique<MB2Perturbator<Num, D>>(
+                     state, dcMax, fractalSettings.general, fractalSettings.perturb, *seriesApproxData, *reference,
+                     dynamic_cast<MPATable<Num, D> *>(table.get()));
+         };
+
+
+        switch (fractalSettings.mpa.maxDegree) {
+            using enum FrtMPADegree;
+            case P1_STANDARD: {
+                func.template operator()<static_cast<uint8_t>(P1_STANDARD)>();
+                break;
+            }
+            case P2: {
+                func.template operator()<static_cast<uint8_t>(P2)>();
+                break;
+            }
+            case P4: {
+                func.template operator()<static_cast<uint8_t>(P4)>();
+                break;
+            }
+            case P8: {
+                func.template operator()<static_cast<uint8_t>(P8)>();
+                break;
+            }
+            case P16: {
+                func.template operator()<static_cast<uint8_t>(P16)>();
+                break;
+            }
+            case P32: {
+                func.template operator()<static_cast<uint8_t>(P32)>();
+                break;
+            }
+            case P64: {
+                func.template operator()<static_cast<uint8_t>(P64)>();
+                break;
+            }
+            case P128: {
+                func.template operator()<static_cast<uint8_t>(P128)>();
+                break;
+            }
+            default:
+                throw vkh::exception_invalid_args("unsupported parameter");
+        }
+    }
+
 
     template<Number Num>
     void MB2RenderData<Num>::generateSeriesApproxTerms(const dex dcMax) {
@@ -101,7 +156,8 @@ namespace merutilm::rff2 {
 
 
         for (skip = 0; skip < reference->longestPeriod(); ++skip) {
-            if (state.interruptRequested()) return;
+            if (state.interruptRequested())
+                return;
 
             const complex<Num> zn = reference->orbit(skip);
             const complex z2 = {dex(zn.re) * two, dex(zn.im) * two};
@@ -134,7 +190,8 @@ namespace merutilm::rff2 {
                 }
                 dcMaxNs *= dcMax;
             }
-            if (lSum.norm_approx() * epsilon < rSum) break;
+            if (lSum.norm_approx() * epsilon < rSum)
+                break;
 
             std::copy_n(termsTemp.begin(), terms.size(), terms.begin());
         }
@@ -148,7 +205,7 @@ namespace merutilm::rff2 {
                                        const fixed_point_complex_i1 &newCenter) {
         if (lastCreationResult != Reference::CreationResult::SUCCESS) {
             // try to use incomplete reference
-            MessageBox(nullptr, "Please do not try to use incomplete Reference.", "Warning", MB_OK | MB_ICONWARNING);
+            vkh::logger::log_warn("Please do not try to use incomplete Reference.");
         } else {
             const int exp10 = logZoomToExp10(logZoom);
             fixed_point_complex_i1 center = newCenter.create_variant(exp10);

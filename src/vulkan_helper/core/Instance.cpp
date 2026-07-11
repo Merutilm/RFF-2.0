@@ -9,7 +9,7 @@
 
 namespace merutilm::vkh {
 
-    Instance::Instance() {
+    Instance::Instance(std::vector<const char *> &&additionalExtensions) : additionalExtensions(std::move(additionalExtensions)) {
         Instance::init();
     }
 
@@ -34,9 +34,23 @@ namespace merutilm::vkh {
             .engineVersion = VK_MAKE_VERSION(1, 0, 0),
             .apiVersion = VK_API_VERSION_1_0,
         };
+
+
+        std::vector<const char *> extensions = {}; //clone
+
+        uint32_t count;
+        const char** extension = glfwGetRequiredInstanceExtensions(&count);
+        for (uint32_t i = 0; i < count; ++i) {
+            extensions.push_back(extension[i]);
+        }
+
         if constexpr (config::ENABLE_VALIDATION) {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
+
+        extensions.insert(extensions.end(), additionalExtensions.begin(), additionalExtensions.end());
+
+
         VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo = Debugger::populateDebugMessengerCreateInfo();
         const VkInstanceCreateInfo instanceCreateInfo = {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,

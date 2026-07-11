@@ -4,7 +4,7 @@
 #include <vulkan_helper/engine/window/PlatformMenuItemBase.hpp>
 namespace merutilm::vkh {
 
-    PlatformMenuItemBase::PlatformMenuItemBase(std::wstring name, PlatformMenuBase* parent) : PlatformMenuBase(std::move(name), parent) {
+    PlatformMenuItemBase::PlatformMenuItemBase(std::string name, const PlatformMenuBase * parent) : PlatformMenuBase(std::move(name), parent) {
         PlatformMenuItemBase::init();
     }
     PlatformMenuItemBase::~PlatformMenuItemBase() {

@@ -12,18 +12,18 @@
 
 namespace merutilm::rff2 {
 
-    template<Number Num>
+    template<Number Num, uint8_t MAX_DEGREE>
     struct ApproxTableManager {
 
         std::unique_ptr<single_alloc_permitted_memory_resource> strictResourceUpstream;
         std::unique_ptr<std::pmr::monotonic_buffer_resource>
                 strictTableResource; // throws an exception when the capacity exceeds its size
-        std::unique_ptr<std::pmr::vector<std::pmr::vector<PA<Num>>>> mpaTable;
+        std::unique_ptr<std::pmr::vector<std::pmr::vector<PA<Num, MAX_DEGREE>>>> mpaTable;
 
         explicit ApproxTableManager(size_t bufferSize, size_t tableWidth) {
             strictResourceUpstream = std::make_unique<single_alloc_permitted_memory_resource>();
             strictTableResource = std::make_unique<std::pmr::monotonic_buffer_resource>(bufferSize, strictResourceUpstream.get());
-            mpaTable = std::make_unique<std::pmr::vector<std::pmr::vector<PA<Num>>>>(
+            mpaTable = std::make_unique<std::pmr::vector<std::pmr::vector<PA<Num, MAX_DEGREE>>>>(
                     tableWidth, std::pmr::polymorphic_allocator(strictTableResource.get()));
         };
 

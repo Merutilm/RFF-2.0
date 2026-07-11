@@ -11,14 +11,15 @@
 namespace merutilm::vkh {
     class Swapchain final : public CoreHandler {
 
-        Surface & surface;
+        Surface &surface;
         VkSwapchainKHR swapchain = nullptr;
         VkSwapchainKHR oldSwapchain = nullptr;
         std::vector<VkImage> swapchainImages = {};
         std::vector<VkImageView> swapchainImageViews = {};
+        VkExtent2D swapchainExtent = {};
 
     public:
-        explicit Swapchain(Core & core, Surface & surface);
+        explicit Swapchain(Core &core, Surface &surface);
 
         ~Swapchain() override;
 
@@ -30,7 +31,7 @@ namespace merutilm::vkh {
 
         Swapchain &operator=(Swapchain &&) = delete;
 
-        void recreate();
+        void recreate(VkExtent2D extent);
 
         [[nodiscard]] VkSwapchainKHR getSwapchainHandle() const { return swapchain; }
 
@@ -38,19 +39,23 @@ namespace merutilm::vkh {
 
         [[nodiscard]] std::span<const VkImageView> getSwapchainImageViews() const { return swapchainImageViews; }
 
-        [[nodiscard]] VkExtent2D populateSwapchainExtent() const;
 
-    private:
-        void init() override;
+        [[nodiscard]] VkExtent2D getSwapchainExtent() const { return swapchainExtent; }
 
-        void createSwapchain(VkSwapchainKHR *target, VkSwapchainKHR old) const;
+        void updateSwapchainExtent(VkExtent2D extent);
+
+
+        void createSwapchain(VkSwapchainKHR *target, VkSwapchainKHR old, VkExtent2D extent);
 
         void setupSwapchainImages();
 
-        void cleanup() override;
-
         void destroyImageViews() const;
+
+    protected:
+        void init() override;
+
+        void cleanup() override;
     };
 
 
-}
+} // namespace merutilm::vkh

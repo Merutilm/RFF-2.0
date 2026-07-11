@@ -29,11 +29,11 @@ namespace merutilm::vkh {
                                                          sizeof(Vertex) * element));
             }
             bindingDescriptions.emplace_back(i, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX);
-            vertexInputAttributeDescriptions.emplace_back(0, i, getFormat<decltype(Vertex::position)>(),
+            vertexInputAttributeDescriptions.emplace_back(0, i, findFormat<decltype(Vertex::position)>(),
                                                           offset + offsetof(Vertex, position));
-            vertexInputAttributeDescriptions.emplace_back(1, i, getFormat<decltype(Vertex::color)>(),
+            vertexInputAttributeDescriptions.emplace_back(1, i, findFormat<decltype(Vertex::color)>(),
             offset + offsetof(Vertex, color));
-            vertexInputAttributeDescriptions.emplace_back(2, i, getFormat<decltype(Vertex::texcoord)>(),
+            vertexInputAttributeDescriptions.emplace_back(2, i, findFormat<decltype(Vertex::texcoord)>(),
                                                           offset + offsetof(Vertex, texcoord));
         }
     }

@@ -2,16 +2,16 @@
 // Created by Merutilm on 2025-07-11.
 //
 
-#include <vulkan_helper/engine/graphics/RenderPass.hpp>
 #include <vulkan_helper/base/exception.hpp>
+#include <vulkan_helper/engine/graphics/RenderPass.hpp>
 #include <vulkan_helper/engine/manage/RenderPassManager.hpp>
 
 namespace merutilm::vkh {
-    RenderPass::RenderPass(Core &core, RenderPassManager &&manager) :
-        CoreHandler(core), attachments(std::move(manager.attachments)),
-        preserveIndices(std::move(manager.preserveIndices)),
-        attachmentReferences(std::move(manager.attachmentReferences)),
-        subpassDependencies(std::move(manager.subpassDependencies)), subpassCount(manager.subpassCount) {
+    RenderPass::RenderPass(Core &core, RenderPassManager &manager) :
+        CoreHandler(core), attachments(manager.attachments),
+        preserveIndices(manager.preserveIndices),
+        attachmentReferences(manager.attachmentReferences),
+        subpassDependencies(manager.subpassDependencies), subpassCount(manager.subpassCount) {
         RenderPass::init();
     }
 
@@ -30,41 +30,42 @@ namespace merutilm::vkh {
             auto &resolveRef = getAttachmentReferences(i, RESOLVE);
             auto &depthStencilRef = getAttachmentReferences(i, DEPTH_STENCIL);
 
-
+#ifndef NDEBUG
             if (!resolveRef.empty() && colorRef.size() != resolveRef.size()) {
                 throw exception_init(std::format(
                         "SUBPASS {}: the size of color attachment and resolve attachment doesn't match ", i));
             }
+#endif
             subpassDescription[i] = {
                     .flags = 0,
                     .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
                     .inputAttachmentCount = static_cast<uint32_t>(inputRef.size()),
-                    .pInputAttachments = inputRef.data(),
+                    .pInputAttachments = inputRef.empty() ? nullptr : inputRef.data(),
                     .colorAttachmentCount = static_cast<uint32_t>(colorRef.size()),
-                    .pColorAttachments = colorRef.data(),
-                    .pResolveAttachments = resolveRef.data(),
-                    .pDepthStencilAttachment = depthStencilRef.data(),
-                    .preserveAttachmentCount = getPreserveIndicesCount(i),
-                    .pPreserveAttachments = getPreserveIndices(i),
+                    .pColorAttachments = colorRef.empty() ? nullptr : colorRef.data(),
+                    .pResolveAttachments = colorRef.empty() ? nullptr : resolveRef.data(),
+                    .pDepthStencilAttachment = colorRef.empty() ? nullptr : depthStencilRef.data(),
+                    .preserveAttachmentCount = static_cast<uint32_t>(preserveIndices[i].size()),
+                    .pPreserveAttachments = preserveIndices[i].empty() ? nullptr : preserveIndices[i].data(),
             };
         }
         auto &attachments = getAttachments();
         auto attachmentDesc = std::vector<VkAttachmentDescription>(attachments.size());
         std::ranges::transform(attachments, attachmentDesc.begin(),
-                               [](const RenderPassAttachment &v) { return v.attachment; });
+                               [](const std::unique_ptr<RenderPassAttachment> &v) { return v->attachment; });
         const VkRenderPassCreateInfo renderPassInfo = {
                 .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
                 .attachmentCount = static_cast<uint32_t>(attachmentDesc.size()),
-                .pAttachments = attachmentDesc.data(),
+                .pAttachments = attachmentDesc.empty()  ? nullptr : attachmentDesc.data(),
                 .subpassCount = static_cast<uint32_t>(subpassDescription.size()),
-                .pSubpasses = subpassDescription.data(),
+                .pSubpasses = subpassDescription.empty() ? nullptr : subpassDescription.data(),
                 .dependencyCount = static_cast<uint32_t>(dependencies.size()),
-                .pDependencies = dependencies.data(),
+                .pDependencies = dependencies.empty() ? nullptr : dependencies.data(),
         };
-        if (vkCreateRenderPass(core.getLogicalDevice().getLogicalDeviceHandle(), &renderPassInfo,
-                              nullptr, &renderPass) != VK_SUCCESS) {
+        if (vkCreateRenderPass(core.getLogicalDevice().getLogicalDeviceHandle(), &renderPassInfo, nullptr,
+                               &renderPass) != VK_SUCCESS) {
             throw exception_init("Failed to create render pass!");
         }
     }

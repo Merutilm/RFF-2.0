@@ -10,22 +10,22 @@
 #include <vulkan_helper/engine/wrapped/DescriptorTemplate.hpp>
 #include <vulkan_helper/util/DescriptorUpdater.hpp>
 
+#include "vulkan_helper/engine/Engine.hpp"
+
 namespace merutilm::vkh {
-
-    struct PipelineConfigurator;
-
-    template<typename Tp, typename... Args>
-    concept PipelineCreatable = std::is_base_of_v<PipelineConfigurator, Tp> && std::is_constructible_v<Tp, Engine &, uint32_t, Args...>;
 
 
     struct PipelineConfigurator {
+        // Derived classes are usually using
         Engine &engine;
         WindowContext &wc;
+
+
         std::unique_ptr<Pipeline> pipeline = nullptr;
         std::vector<std::unique_ptr<Descriptor>> uniqueDescriptors = {};
 
-        explicit PipelineConfigurator(Engine &engine, const uint32_t windowContextIndex) :
-            engine(engine), wc(engine.getWindowContext(windowContextIndex)) {}
+        explicit PipelineConfigurator(Engine &engine, WindowContext &wc) :
+            engine(engine), wc(wc) {}
 
         virtual ~PipelineConfigurator() = default;
 
@@ -36,16 +36,6 @@ namespace merutilm::vkh {
         PipelineConfigurator &operator=(const PipelineConfigurator &) = delete;
 
         PipelineConfigurator &operator=(PipelineConfigurator &&) = delete;
-
-
-        template<typename Tp, typename... Args> requires PipelineCreatable<Tp, Args...>
-        static Tp *create(std::vector<std::unique_ptr<PipelineConfigurator>> &currentPipelineConfigurators, Engine &engine,
-                          const uint32_t windowContextIndex, Args &&...args) {
-            auto pipeline = std::make_unique<Tp>(engine, windowContextIndex, std::forward<Args>(args)...);
-            pipeline->configure();
-            currentPipelineConfigurators.emplace_back(std::move(pipeline));
-            return dynamic_cast<Tp *>(currentPipelineConfigurators.back().get());
-        }
 
 
         [[nodiscard]] Descriptor &getDescriptor(const uint32_t setIndex) const {
@@ -74,7 +64,7 @@ namespace merutilm::vkh {
             requires std::is_invocable_r_v<void, F, DescriptorUpdateQueue &, uint32_t>
         void writeDescriptorMF(F &&func) const {
             auto queue = DescriptorUpdater::createQueue();
-            for (uint32_t i = 0; i < wc.core.getPhysicalDevice().getMaxFramesInFlight(); ++i) {
+            for (uint32_t i = 0; i < wc.core.getPhysicalDeviceLoader().getMaxFramesInFlight(); ++i) {
                 func(queue, i);
             }
             DescriptorUpdater::write(wc.core.getLogicalDevice().getLogicalDeviceHandle(), queue);
@@ -83,7 +73,7 @@ namespace merutilm::vkh {
         template<typename F>
             requires std::is_invocable_r_v<void, F, uint32_t>
         void updateBufferMF(F &&func) const {
-            for (uint32_t i = 0; i < wc.core.getPhysicalDevice().getMaxFramesInFlight(); ++i) {
+            for (uint32_t i = 0; i < wc.core.getPhysicalDeviceLoader().getMaxFramesInFlight(); ++i) {
                 func(i);
             }
         }
@@ -95,7 +85,7 @@ namespace merutilm::vkh {
                     *wc.getWindowLocalRepositories().getRepository<WindowLocalDescriptorRepo>();
 
             safe_array::check_index_equal(setExpected, static_cast<uint32_t>(descriptors.size()),
-                                          "Unique Descriptor Add");
+                                          "Descriptor Add");
             descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), layoutRepo));
         }
 
@@ -129,9 +119,9 @@ namespace merutilm::vkh {
 
         virtual void renderContextRefreshed() = 0;
 
-    protected:
-        virtual void configure() = 0;
+        virtual void configure(RenderPass *rp, uint32_t subpass) = 0;
 
+    protected:
         virtual void configurePushConstant(PipelineLayoutManager &pipelineLayoutManager) = 0;
 
         virtual void configureDescriptors(std::vector<Descriptor *> &descriptors) = 0;

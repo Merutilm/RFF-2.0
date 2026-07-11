@@ -30,7 +30,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] const VkExtent2D &getExtent() const { return extent; }
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

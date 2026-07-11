@@ -21,13 +21,13 @@ namespace merutilm::rff2 {
         using namespace SharedImageContextIndices;
         auto &desc = getDescriptor(SET_INFO);
         auto &prevImg = desc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_IMAGE_SAMPLER);
-        prevImg.setImageContextMF(wc.getSharedImageContext().getImageContextMF(MF_VIDEO_RENDER_IMAGE_SECONDARY));
+        prevImg.setImageContextMF(wc.getSharedImageContext().getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY));
         const auto &extent = prevImg.getImageContextMF()[0].extent;
         auto &ssbo = desc.get<vkh::ShaderStorage>(0, BINDING_OUTPUT_SSBO);
         ssbo.getHostObject().resizeAndClear<uint32_t>(TARGET_OUTPUT_SSBO_DATA,
                                                       extent.width * extent.height * 3 / 4 + 1);
         ssbo.reloadBuffer();
-        ssbo.lock(wc.getCommandPool());
+        ssbo.lock(engine.getCommandPool());
         setExtent(extent);
         writeDescriptorMF(
             [&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {

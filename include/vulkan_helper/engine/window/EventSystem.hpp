@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-#include "KeyInput.hpp"
 #include "Listener.hpp"
 #include "PlatformMenuBase.hpp"
 
@@ -17,8 +16,8 @@ namespace merutilm::vkh {
         struct MouseEvents {
             Listener<> onMouseEnter;
             Listener<> onMouseExit;
-            Listener<KeyInput::MouseButton, int, int> onMouseDown;
-            Listener<KeyInput::MouseButton, int, int> onMouseUp;
+            Listener<int, int, int> onMouseDown;
+            Listener<int, int, int> onMouseUp;
             Listener<int, int> onMouseMove;
         };
 
@@ -27,14 +26,14 @@ namespace merutilm::vkh {
         };
 
         struct MouseDragEvents {
-            Listener<KeyInput::MouseButton, int, int> onMouseDragStart;
-            Listener<KeyInput::MouseButton, int, int, int, int> onMouseDrag;
-            Listener<KeyInput::MouseButton, int, int> onMouseDragEnd;
+            Listener<int, int, int> onMouseDragStart;
+            Listener<int, int, int, int, int> onMouseDrag;
+            Listener<int, int, int> onMouseDragEnd;
         };
 
         struct KeyboardEvents {
-            Listener<KeyInput::Key> onKeyDown;
-            Listener<KeyInput::Key> onKeyUp;
+            Listener<int> onKeyDown;
+            Listener<int> onKeyUp;
         };
 
         struct FocusEvents {
@@ -43,9 +42,7 @@ namespace merutilm::vkh {
         };
 
         struct ResizeEvents {
-            Listener<> onResizeBegin;
-            Listener<uint32_t, uint32_t> onResizing;
-            Listener<uint32_t, uint32_t> onResizeEnd;
+            Listener<int, int> onResize;
         };
 
         struct WindowEvents {

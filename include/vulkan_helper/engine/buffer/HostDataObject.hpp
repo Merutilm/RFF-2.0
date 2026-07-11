@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstring>
 #include <vulkan_helper/base/vkh_base.hpp>
 
 #include <vulkan_helper/engine/manage/HostDataObjectManager.hpp>

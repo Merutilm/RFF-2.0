@@ -4,6 +4,8 @@
 
 #include <vulkan_helper/engine/executor/ScopedNewCommandBufferExecutor.hpp>
 #include <vulkan_helper/util/BufferImageContextUtils.hpp>
+
+#include <cstring>
 #include <vulkan_helper/util/BarrierUtils.hpp>
 
 namespace merutilm::vkh {

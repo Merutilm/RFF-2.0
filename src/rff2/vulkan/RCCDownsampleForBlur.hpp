@@ -3,40 +3,55 @@
 //
 
 #pragma once
+#include "GPCDownsampleForBlur.hpp"
 #include "SharedImageContextIndices.hpp"
-#include "vulkan_helper/engine/configurator/RenderContextConfigurator.hpp"
+#include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
-    struct RCCDownsampleForBlur final : public vkh::RenderContextConfigurator {
+    class RCCDownsampleForBlur final : public vkh::RenderPassGraphGenerator {
 
-        static constexpr uint32_t CONTEXT_INDEX = 3;
+        vkh::RenderPassAttachment *resultAttachment;
 
-        static constexpr uint32_t SUBPASS_DOWNSAMPLE_INDEX = 0;
+    public:
+        enum class DescIndexer : uint8_t { FOG, BLOOM };
 
-        static constexpr uint32_t RESULT_COLOR_ATTACHMENT_INDEX = 0;
+        GPCDownsampleForBlur *downsample;
+        DescIndexer descIndexer;
 
+        using RenderPassGraphGenerator::RenderPassGraphGenerator;
 
-
-        using RenderContextConfigurator::RenderContextConfigurator;
-
-        void configure(vkh::RenderPassManager &rpm) override {
+    protected:
+        void configureAttachments() override {
             using namespace SharedImageContextIndices;
-            rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
-                                     .flags = 0,
-                                     .format = sharedImageContext.getImageContextMF(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY)[0].imageFormat,
-                                     .samples = VK_SAMPLE_COUNT_1_BIT,
-                                     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                     .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
-                                 }, sharedImageContext.getImageContextMF(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY));
+            resultAttachment = &appendAttachment(
+                    {
+                            .flags = 0,
+                            .format = wc.getSharedImageContext()
+                                              .getImageContextMF(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY)[0]
+                                              .imageFormat,
+                            .samples = VK_SAMPLE_COUNT_1_BIT,
+                            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                            .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
+                    },
+                    wc.getSharedImageContext().getImageContextMF(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY));
+        }
+        void configurePipelines() override {
 
-
-            rpm.appendSubpass(SUBPASS_DOWNSAMPLE_INDEX);
-            rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
+            registerPipeline<GPCDownsampleForBlur>(
+                    &downsample, {},
+                    {resultAttachment,
+                     {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+                     vkh::SubpassDependency::none(),
+                     vkh::RenderPassAttachmentReference::none()},
+                    [this] {
+                        return vkh::DescIndexPicker{descIndexer == DescIndexer::FOG
+                                                            ? GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG
+                                                            : GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM};
+                    });
         }
     };
-}
+} // namespace merutilm::rff2

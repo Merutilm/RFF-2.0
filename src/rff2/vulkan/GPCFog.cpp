@@ -4,11 +4,9 @@
 
 #include "GPCFog.hpp"
 
-#include "RCCDownsampleForBlur.hpp"
 #include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
-#include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
     void GPCFog::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
@@ -36,28 +34,10 @@ namespace merutilm::rff2 {
     void GPCFog::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &fogDesc = getDescriptor(SET_FOG_CANVAS);
-
-        switch (wc.getAttachmentIndex()) {
-            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL).setImageContextMF(
-                          sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY));
-                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_BLURRED).setImageContextMF(
-                    sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
-
-                break;
-            }
-            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
-                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL).setImageContextMF(
-                         sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_PRIMARY));
-                fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_BLURRED).setImageContextMF(
-                    sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
-
-                break;
-            }
-            default: {
-                //noop
-            }
-        }
+        fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_ORIGINAL).setImageContextMF(
+                                  sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY));
+        fogDesc.get<vkh::CombinedImageSampler>(0, BINDING_FOG_CANVAS_BLURRED).setImageContextMF(
+            sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
 
 
         writeDescriptorMF([&fogDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {

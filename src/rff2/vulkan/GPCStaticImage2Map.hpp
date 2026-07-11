@@ -14,11 +14,9 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t SET_VIDEO = 1;
 
-        explicit GPCStaticImage2Map(vkh::Engine &engine, const uint32_t windowContextIndex,
-                                    const uint32_t renderContextIndex, const uint32_t subpassIndex,
-                                    vkh::VertexBuffer &vertexBufferStaticRef, vkh::IndexBuffer &indexBufferStaticRef) :
-            GeneralPostProcessGraphicsPipelineConfigurator(engine, windowContextIndex, renderContextIndex, subpassIndex,
-                                                           "vk_static_2_image.frag", vertexBufferStaticRef, indexBufferStaticRef) {}
+        explicit GPCStaticImage2Map(vkh::Engine &engine, vkh::WindowContext &wc) :
+            GeneralPostProcessGraphicsPipelineConfigurator(engine, wc,
+                                                           "vk_static_2_image.frag") {}
 
         ~GPCStaticImage2Map() override = default;
 

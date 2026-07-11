@@ -2,23 +2,20 @@
 // Created by Merutilm on 2025-07-09.
 //
 
-#include <memory>
 #include <vulkan_helper/core/PhysicalDeviceLoader.hpp>
 
 #include <vulkan_helper/base/vkh_base.hpp>
 #include <vulkan_helper/util/PhysicalDeviceUtils.hpp>
 
-#include "vulkan_helper/engine/window/PlatformWindowBase.hpp"
+#include "vulkan_helper/engine/window/PlatformWindow.hpp"
 
 namespace merutilm::vkh {
 
-    PhysicalDeviceLoader::PhysicalDeviceLoader(Instance & instance) : instance(instance) {
+    PhysicalDeviceLoader::PhysicalDeviceLoader(Instance &instance) : instance(instance) {
         PhysicalDeviceLoader::init();
     }
 
-    PhysicalDeviceLoader::~PhysicalDeviceLoader() {
-        PhysicalDeviceLoader::cleanup();
-    }
+    PhysicalDeviceLoader::~PhysicalDeviceLoader() { PhysicalDeviceLoader::cleanup(); }
 
     VkSurfaceCapabilitiesKHR PhysicalDeviceLoader::populateSurfaceCapabilities(const VkSurfaceKHR surface) const {
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -28,56 +25,27 @@ namespace merutilm::vkh {
 
     void PhysicalDeviceLoader::init() {
 
-
-
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+        GLFWwindow *dummyWindow = glfwCreateWindow(1, 1, "", nullptr, nullptr);
         VkSurfaceKHR surface = VK_NULL_HANDLE;
-
-#ifdef _WIN32
-
-        static constexpr auto dummyClassName = L"VKH_DUMMY";
-        const WNDCLASSEX wcex = {
-            .cbSize = sizeof(WNDCLASSEX),
-            .style = CS_OWNDC,
-            .lpfnWndProc = DefWindowProc,
-            .cbClsExtra = 0,
-            .cbWndExtra = 0,
-            .hInstance = GetModuleHandle(nullptr),
-            .hIcon = nullptr,
-            .hCursor = nullptr,
-            .hbrBackground = nullptr,
-            .lpszMenuName = nullptr,
-            .lpszClassName = dummyClassName,
-            .hIconSm = nullptr
-        };
-        RegisterClassEx(&wcex);
-        const HWND dummyWindow = CreateWindowEx(0, dummyClassName, L"", 0, 0, 0, 100, 100, nullptr, nullptr, nullptr, nullptr);
-
-        const VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {
-            .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-            .pNext = nullptr,
-            .flags = 0,
-            .hinstance = nullptr,
-            .hwnd = dummyWindow,
-        };
-
-        vkCreateWin32SurfaceKHR(instance.getInstanceHandle(), &surfaceCreateInfo, nullptr, &surface);
-
+        if (!dummyWindow ||
+            glfwCreateWindowSurface(instance.getInstanceHandle(), dummyWindow, nullptr, &surface) != VK_SUCCESS) {
+            throw exception_init("failed to create dummy window surface");
+        }
         initToSuitablePhysicalDevice(surface);
+        initToSuitableSurfaceFormat(surface);
         vkDestroySurfaceKHR(instance.getInstanceHandle(), surface, nullptr);
-        UnregisterClassW(config::DUMMY_WINDOW_CLASS, nullptr);
-
-#elif __APPLE__
-
-#elif __linux__
-
-#else
-#endif
+        glfwDestroyWindow(dummyWindow);
+        glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 
         if (physicalDevice == nullptr) {
             throw exception_init("No suitable physical device found");
         }
     }
 
+    void PhysicalDeviceLoader::cleanup() {
+        // nothing to do
+    }
 
     void PhysicalDeviceLoader::initToSuitablePhysicalDevice(const VkSurfaceKHR surface) {
         uint32_t physicalDeviceCount = 0;
@@ -102,7 +70,45 @@ namespace merutilm::vkh {
     }
 
 
-    void PhysicalDeviceLoader::cleanup() {
-        //nothing to do
+    void PhysicalDeviceLoader::initToSuitableSurfaceFormat(const VkSurfaceKHR surface) {
+        uint32_t cnt;
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &cnt, nullptr);
+        surfaceFormats = std::vector<VkSurfaceFormatKHR>(cnt);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &cnt, surfaceFormats.data());
+
+        std::unordered_set<VkFormat> availableFormats;
+        for (const auto &[format, colorSpace]: surfaceFormats) {
+            availableFormats.insert(format);
+        }
+        if (availableFormats.contains(VK_FORMAT_UNDEFINED)) {
+            primarySurfaceFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            return;
+        }
+
+        if (availableFormats.contains(VK_FORMAT_R8G8B8A8_UNORM)) {
+            primarySurfaceFormat = VK_FORMAT_R8G8B8A8_UNORM;
+            logger::log("Selected Surface Format : VK_FORMAT_R8G8B8A8_UNORM");
+            return;
+        }
+
+        if (availableFormats.contains(VK_FORMAT_R8G8B8A8_SRGB)) {
+            primarySurfaceFormat = VK_FORMAT_R8G8B8A8_SRGB;
+            logger::log("Selected Surface Format : VK_FORMAT_R8G8B8A8_SRGB");
+            return;
+        }
+
+        if (availableFormats.contains(VK_FORMAT_B8G8R8A8_UNORM)) {
+            primarySurfaceFormat = VK_FORMAT_B8G8R8A8_UNORM;
+            logger::log("Selected Surface Format : VK_FORMAT_B8G8R8A8_UNORM");
+            return;
+        }
+
+        if (availableFormats.contains(VK_FORMAT_B8G8R8A8_SRGB)) {
+            primarySurfaceFormat = VK_FORMAT_B8G8R8A8_SRGB;
+            logger::log("Selected Surface Format : VK_FORMAT_B8G8R8A8_SRGB");
+            return;
+        }
+
+        throw exception_init("no suitable surface format are found");
     }
-}
+} // namespace merutilm::vkh

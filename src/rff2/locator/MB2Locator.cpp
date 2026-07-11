@@ -137,8 +137,7 @@ namespace merutilm::rff2 {
             fixed_point_complex::add(center, center, centerOffset);
 
             if (centerOffset.is_strict_zero()) {
-                MessageBox(nullptr, "No center found", "Error",
-                                       MB_OK | MB_ICONERROR);
+                vkh::logger::log_err("No center found", "Error");
                 return nullptr;
             }
             doubledZoomCalc.reference.center = center;

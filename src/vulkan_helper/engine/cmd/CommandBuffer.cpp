@@ -17,7 +17,7 @@ namespace merutilm::vkh {
 
     void CommandBuffer::init() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+        const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
         commandBuffers.resize(maxFramesInFlight);
 
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
@@ -36,7 +36,7 @@ namespace merutilm::vkh {
 
     void CommandBuffer::cleanup() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+        const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             vkFreeCommandBuffers(device, commandPool.getCommandPoolHandle(), 1, &commandBuffers[i]);
         }

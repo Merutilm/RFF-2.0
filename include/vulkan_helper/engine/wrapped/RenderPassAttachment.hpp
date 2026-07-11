@@ -7,6 +7,7 @@
 
 namespace merutilm::vkh {
     struct RenderPassAttachment {
+        uint32_t attachmentIndex;
         VkAttachmentDescription attachment;
         MultiframeImageContext imageContext;
     };

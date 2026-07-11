@@ -5,88 +5,74 @@
 #include "IOUtilities.h"
 
 #include <filesystem>
-#include <shlobj.h>
+#include <nfd.hpp>
 
-#include "../data/ApproxTableManager.h"
 #include "Utilities.h"
 
 
 namespace merutilm::rff2 {
-    std::unique_ptr<std::filesystem::path> IOUtilities::ioFileDialog(const std::wstring_view title,
-                                                                     const std::wstring_view desc,
-                                                                     const char type,
-                                                                     const std::wstring_view extension) {
-        OPENFILENAMEW fn;
-        ZeroMemory(&fn, sizeof(fn));
+    std::unique_ptr<std::filesystem::path> IOUtilities::ioFileDialog(const std::string_view desc, const char type,
+                                                                     const std::string_view extension) {
 
-        auto display = std::format(L"{}(*.{})", desc, extension);
-        auto pattern = std::vector<wchar_t>();
-        pattern.insert(pattern.end(), display.begin(), display.end());
-        pattern.push_back(L'\0');
+        NFD::UniquePath outPath;
 
-        const auto filter = std::format(L"*.{}", extension);
-        pattern.insert(pattern.end(), filter.begin(), filter.end());
-        pattern.push_back(L'\0');
-        pattern.push_back(L'\0');
-        wchar_t fileNameBuffer[MAX_PATH];
-        fileNameBuffer[0] = L'\0';
-        fn.lStructSize = sizeof(OPENFILENAMEW);
-        fn.lpstrFile = fileNameBuffer;
-        fn.lpstrFilter = pattern.data();
-        fn.nMaxFile = MAX_PATH;
-        fn.lpstrFile[0] = '\0';
-        fn.lpstrTitle = title.data();
-        fn.Flags = OFN_PATHMUSTEXIST;
-        const std::wstring end = std::format(L".{}", extension.data());
+        const nfdfilteritem_t filterItem[] = {
+            { desc.data(), extension.data() }
+        };
 
-        switch (type) {
-            case OPEN_FILE: {
-                fn.Flags |= OFN_FILEMUSTEXIST;
-                if (GetOpenFileNameW(&fn)) {
-                    std::wstring result = fn.lpstrFile;
-                    if (!Utilities::endsWith(result, end)) {
-                        result.append(end);
-                    }
-                    return std::make_unique<std::filesystem::path>(result);
-                }
+        nfdresult_t result;
+
+        switch (type)
+        {
+            case OPEN_FILE:
+                result = NFD::OpenDialog(
+                    outPath,
+                    filterItem,
+                    1,
+                    nullptr);
                 break;
-            }
-            case SAVE_FILE: {
-                fn.Flags |= OFN_OVERWRITEPROMPT;
-                if (GetSaveFileNameW(&fn)) {
-                    std::wstring result = fn.lpstrFile;
-                    if (!Utilities::endsWith(result, end)) {
-                        result.append(end);
-                    }
-                    return std::make_unique<std::filesystem::path>(result);
-                }
+
+            case SAVE_FILE:
+                result = NFD::SaveDialog(
+                    outPath,
+                    filterItem,
+                    1,
+                    nullptr,
+                    nullptr);
                 break;
-            }
-            default: break;
+
+            default:
+                return nullptr;
         }
-        return nullptr;
+
+        if (result != NFD_OKAY)
+            return nullptr;
+
+        std::filesystem::path path(outPath.get());
+
+        if (!path.has_extension())
+            path.replace_extension(extension);
+
+        return std::make_unique<std::filesystem::path>(std::move(path));
     }
 
-    std::unique_ptr<std::filesystem::path> IOUtilities::ioDirectoryDialog(const std::wstring_view title) {
-        BROWSEINFOW bi = {};
-        bi.lpszTitle = title.data();
-        bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+    std::unique_ptr<std::filesystem::path> IOUtilities::ioDirectoryDialog(const std::string_view title) {
+        NFD::UniquePath outPath;
 
-        if (const LPITEMIDLIST item = SHBrowseForFolderW(&bi)) {
-            char path[MAX_PATH];
-            SHGetPathFromIDList(item, path);
-            CoTaskMemFree(item);
-            return std::make_unique<std::filesystem::path>(path);
-        }
-        return nullptr;
+        const nfdresult_t result = NFD::PickFolder(outPath);
+
+        if (result != NFD_OKAY)
+            return nullptr;
+
+        return std::make_unique<std::filesystem::path>(outPath.get());
     }
 
-    std::wstring IOUtilities::fileNameFormat(const unsigned int n, const std::wstring_view extension) {
-        return std::format(L"{:04d}.{}", n, extension);
+    std::string IOUtilities::fileNameFormat(const unsigned int n, const std::string_view extension) {
+        return std::format("{:04d}.{}", n, extension);
     }
 
 
-    std::filesystem::path IOUtilities::generateFilename(const std::filesystem::path &dir, const std::wstring_view extension, uint32_t *cnt = nullptr) {
+    std::filesystem::path IOUtilities::generateFilename(const std::filesystem::path &dir, const std::string_view extension, uint32_t *cnt = nullptr) {
         unsigned int n = 0;
         std::filesystem::path p = dir;
         do {

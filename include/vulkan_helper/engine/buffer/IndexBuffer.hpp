@@ -21,7 +21,7 @@ namespace merutilm::vkh {
 
         IndexBuffer &operator=(IndexBuffer &&) = delete;
 
-    private:
+    protected:
 
         void init() override;
 

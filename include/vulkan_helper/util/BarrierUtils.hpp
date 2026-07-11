@@ -20,6 +20,7 @@ namespace merutilm::vkh {
                                                    VkImageLayout currentLayout, uint32_t mipLevel,
                                                    uint32_t mipLevelCount, VkPipelineStageFlags srcStageMask,
                                                    VkPipelineStageFlags dstStageMask);
+        static void cmdOverlaySwapchain(VkCommandBuffer commandBuffer, VkImage swapchainImage);
 
         static void cmdImageMemoryBarrier(VkCommandBuffer commandBuffer, VkImage image, VkAccessFlags srcAccessMask,
                                           VkAccessFlags dstAccessMask, VkImageLayout oldLayout, VkImageLayout newLayout,

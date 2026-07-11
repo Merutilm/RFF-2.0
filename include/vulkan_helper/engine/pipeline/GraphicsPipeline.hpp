@@ -5,22 +5,23 @@
 #pragma once
 #include <vulkan_helper/engine/buffer/VertexBuffer.hpp>
 #include <vulkan_helper/engine/buffer/IndexBuffer.hpp>
+#include <vulkan_helper/engine/graphics/RenderPass.hpp>
 #include "Pipeline.hpp"
 
 namespace merutilm::vkh {
  
     class GraphicsPipeline final : public Pipeline {
 
-        const uint32_t renderContextIndex;
+        RenderPass &rp;
         const uint32_t primarySubpassIndex;
         VertexBuffer & vertexBuffer;
         IndexBuffer & indexBuffer;
 
     public:
-        explicit GraphicsPipeline(WindowContext & wc, PipelineLayout & pipelineLayout,
+        explicit GraphicsPipeline(Core &core, PipelineLayout & pipelineLayout,
                           VertexBuffer & vertexBuffer,
                           IndexBuffer & indexBuffer,
-                          uint32_t renderContextIndex,
+                          RenderPass &rp,
                           uint32_t primarySubpassIndex,
                           PipelineManager &&pipelineManager);
 
@@ -40,7 +41,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] IndexBuffer & getIndexBuffer() const { return indexBuffer; }
 
-    private:
+    protected:
         void init() override;
     };
 

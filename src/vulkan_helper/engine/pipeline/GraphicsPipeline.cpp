@@ -5,10 +5,10 @@
 #include <vulkan_helper/engine/pipeline/GraphicsPipeline.hpp>
 
 namespace merutilm::vkh {
-    GraphicsPipeline::GraphicsPipeline(WindowContext &wc, PipelineLayout &pipelineLayout, VertexBuffer &vertexBuffer,
-                                       IndexBuffer &indexBuffer, const uint32_t renderContextIndex,
+    GraphicsPipeline::GraphicsPipeline(Core &core, PipelineLayout &pipelineLayout, VertexBuffer &vertexBuffer,
+                                       IndexBuffer &indexBuffer, RenderPass &rp,
                                        const uint32_t primarySubpassIndex, PipelineManager &&pipelineManager) :
-        Pipeline(wc, pipelineLayout, std::move(pipelineManager)), renderContextIndex(renderContextIndex),
+        Pipeline(core, pipelineLayout, std::move(pipelineManager)), rp(rp),
         primarySubpassIndex(primarySubpassIndex), vertexBuffer(vertexBuffer), indexBuffer(indexBuffer) {
         GraphicsPipeline::init();
     }
@@ -155,13 +155,13 @@ namespace merutilm::vkh {
                 .pColorBlendState = &colorBlendStateCreateInfo,
                 .pDynamicState = &dynamicState,
                 .layout = pipelineLayout.getLayoutHandle(),
-                .renderPass = wc.getRenderContext(renderContextIndex).getRenderPass()->getRenderPassHandle(),
+                .renderPass = rp.getRenderPassHandle(),
                 .subpass = primarySubpassIndex,
                 .basePipelineHandle = nullptr,
                 .basePipelineIndex = -1};
 
 
-        if (vkCreateGraphicsPipelines(wc.core.getLogicalDevice().getLogicalDeviceHandle(), nullptr,
+        if (vkCreateGraphicsPipelines(core.getLogicalDevice().getLogicalDeviceHandle(), nullptr,
                               1, &info, nullptr, &pipeline) != VK_SUCCESS) {
             throw exception_init("Failed to create graphics pipeline!");
         }

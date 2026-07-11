@@ -18,6 +18,8 @@ void main() {
         color = texelFetch(canvas, coord, 0);
         return;
     }
+
+
     vec4 c1 = texelFetch(canvas, coord + ivec2(1, 0), 0);
     vec4 c2 = texelFetch(canvas, coord + ivec2(0, 1), 0);
     vec4 c3 = texelFetch(canvas, coord + ivec2(-1, 0), 0);

@@ -10,7 +10,8 @@
 .idea
 cmake-build-debug
 cmake-build-release
-cmake-build-relwithdebinfo
+
+extern/imgui
 CMakeFiles
 bin
 out

@@ -37,7 +37,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] PushConstant * getPushConstant(uint32_t pushIndex) const;
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

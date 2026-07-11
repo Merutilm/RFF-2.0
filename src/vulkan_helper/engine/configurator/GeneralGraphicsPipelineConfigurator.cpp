@@ -10,7 +10,7 @@
 namespace merutilm::vkh {
 
 
-    void GeneralGraphicsPipelineConfigurator::configure() {
+    void GeneralGraphicsPipelineConfigurator::configure(RenderPass *rp, uint32_t subpass) {
         PipelineLayoutManager pipelineLayoutManager{};
 
         std::vector<Descriptor *> descriptors = {};
@@ -40,7 +40,7 @@ namespace merutilm::vkh {
         vertexBuffer.emplace(wc.core, std::move(vertManager), BufferLock::LOCK_UNLOCK, true);
         indexBuffer.emplace(wc.core, std::move(indexManager), BufferLock::LOCK_UNLOCK, true);
 
-        pipeline = std::make_unique<GraphicsPipeline>(wc, pipelineLayout, *vertexBuffer, *indexBuffer, renderContextIndex, primarySubpassIndex,
+        pipeline = std::make_unique<GraphicsPipeline>(wc.core, pipelineLayout, *vertexBuffer, *indexBuffer, *rp, subpass,
                                               std::move(pipelineManager));
     }
 

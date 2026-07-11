@@ -3,10 +3,12 @@
 //
 
 #pragma once
+#ifdef _WIN32
 #include <opencv2/videoio.hpp>
 
 
 #include "../settings/Settings.h"
+#include "VideoBufferCache.hpp"
 #include "VideoWindowRenderManager.hpp"
 #include "vulkan_helper/handle/EngineHandler.hpp"
 
@@ -18,7 +20,7 @@ namespace merutilm::rff2 {
         vkh::SharedResource &sr;
         HWND bar = nullptr;
         float barRatio = 0;
-        std::wstring barText = L"";
+        std::string barText = L"";
         std::unique_ptr<VideoWindowRenderManager> scene = nullptr;
         const int width;
         const int height;
@@ -54,3 +56,4 @@ namespace merutilm::rff2 {
         void cleanup() override;
     };
 } // namespace merutilm::rff2
+#endif

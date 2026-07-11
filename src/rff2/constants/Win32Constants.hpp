@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#ifdef _WIN32
 #include <windows.h>
 #include <commctrl.h>
 
@@ -50,3 +51,4 @@ namespace merutilm::rff2::Constants::Win32 {
         constexpr COLORREF COLOR_TEXT_DEFAULT = RGB(0, 0, 0);
         constexpr COLORREF COLOR_LABEL_BACKGROUND = RGB(255, 255, 255);
 }
+#endif

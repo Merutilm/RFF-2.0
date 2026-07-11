@@ -7,15 +7,13 @@
 
 #include "buffer/IndexBuffer.hpp"
 #include "buffer/VertexBuffer.hpp"
-#include "context/WindowContext.hpp"
 namespace merutilm::vkh {
 
-    struct SharedResource final : Handler {
-        WindowContext &wc;
-        std::unique_ptr<VertexBuffer> vertexBufferPP;
-        std::unique_ptr<IndexBuffer> indexBufferPP;
+    struct SharedResource final : CoreHandler {
+        std::unique_ptr<VertexBuffer> vertexBufferIdentity;
+        std::unique_ptr<IndexBuffer> indexBufferIdentity;
 
-        explicit SharedResource(WindowContext &wc);
+        explicit SharedResource(Core &core);
 
         ~SharedResource() override;
         SharedResource(const SharedResource &) = delete;
@@ -23,12 +21,13 @@ namespace merutilm::vkh {
         SharedResource(SharedResource &&) = delete;
         SharedResource &operator=(SharedResource &&) = delete;
 
-    private:
+    protected:
         void init() override;
 
-        void createPPBuffer();
-
         void cleanup() override;
+
+    private:
+        void createIdentityBuffer();
     };
 
 } // namespace merutilm::vkh

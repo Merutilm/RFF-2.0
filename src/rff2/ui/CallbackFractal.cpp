@@ -10,10 +10,11 @@
 
 namespace merutilm::rff2 {
 
+#ifdef _WIN32
     std::function<void()> CallbackFractal::fnReference(AppRenderManager &arm) {
         return [&arm] {
             auto &frt = arm.getSettings().fractal;
-            auto window = std::make_unique<SettingsWindow>(L"Reference");
+            auto window = std::make_unique<SettingsWindow>("Reference");
 
             auto centerPtr = std::make_shared<std::array<std::string, 2>>();
             *centerPtr = {frt.reference.center.real.to_string(), frt.reference.center.imag.to_string()};
@@ -23,77 +24,77 @@ namespace merutilm::rff2 {
 
 
             window->registerTextInput<std::string>(
-                    L"Real", &(*centerPtr)[0], Unparser::STRING, Parser::STRING,
+                    "Real", &(*centerPtr)[0], Unparser::STRING, Parser::STRING,
                     [](const std::string &v) {
                         mpf_t t;
                         const bool valid = mpf_init_set_str(t, v.data(), 10) == 0;
                         mpf_clear(t);
                         return valid;
                     },
-                    [centerPtr, locationChanged] { *locationChanged = true; }, L"Real",
-                    L"Sets the real part of center.");
+                    [centerPtr, locationChanged] { *locationChanged = true; }, "Real",
+                    "Sets the real part of center.");
             window->registerTextInput<std::string>(
-                    L"Imag", &(*centerPtr)[1], Unparser::STRING, Parser::STRING,
+                    "Imag", &(*centerPtr)[1], Unparser::STRING, Parser::STRING,
                     [](const std::string &v) {
                         mpf_t t;
                         const bool valid = mpf_init_set_str(t, v.data(), 10) == 0;
                         mpf_clear(t);
                         return valid;
                     },
-                    [centerPtr, locationChanged] { *locationChanged = true; }, L"Imag",
-                    L"Sets the imaginary part of center.");
+                    [centerPtr, locationChanged] { *locationChanged = true; }, "Imag",
+                    "Sets the imaginary part of center.");
             window->registerTextInput<float>(
-                    L"Log Zoom", zoomPtr.get(), Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
-                    [zoomPtr, locationChanged] { *locationChanged = true; }, L"Log zoom",
-                    L"Sets the log scale of zoom.");
-            window->registerRadioButtonInput<FrtReferenceReuseMethod>(L"Reuse Reference", &frt.reference.reuse,
-                                                                      Callback::NOTHING, L"Reuse Reference method",
-                                                                      L"Sets the reuse reference method.");
+                    "Log Zoom", zoomPtr.get(), Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
+                    [zoomPtr, locationChanged] { *locationChanged = true; }, "Log zoom",
+                    "Sets the log scale of zoom.");
+            window->registerRadioButtonInput<FrtReferenceReuseMethod>("Reuse Reference", &frt.reference.reuse,
+                                                                      Callback::NOTHING, "Reuse Reference method",
+                                                                      "Sets the reuse reference method.");
             window->registerTextInput<uint32_t>(
-                    L"Reference Compression Criteria", &frt.reference.compression.compressCriteria, Unparser::UINT32,
-                    Parser::UINT32, ValidCondition::ALL_UINT32, Callback::NOTHING, L"Reference Compression Criteria",
-                    L"When compressing references, sets the minimum amount of references to compress at one time.\n"
-                    L"Reference compression slows down the calculation but frees up memory space.\n"
-                    L"set 0 to disable.");
+                    "Reference Compression Criteria", &frt.reference.compression.compressCriteria, Unparser::UINT32,
+                    Parser::UINT32, ValidCondition::ALL_UINT32, Callback::NOTHING, "Reference Compression Criteria",
+                    "When compressing references, sets the minimum amount of references to compress at one time.\n"
+                    "Reference compression slows down the calculation but frees up memory space.\n"
+                    "set 0 to disable.");
             window->registerTextInput<uint8_t>(
-                    L"Reference Compression Threshold", &frt.reference.compression.compressionThresholdPower,
+                    "Reference Compression Threshold", &frt.reference.compression.compressionThresholdPower,
                     Unparser::UINT8, Parser::UINT8, ValidCondition::ALL_UINT8, Callback::NOTHING,
-                    L"Reference Compression Threshold Power",
-                    L"When compressing references, sets the negative exponents of ten of minimum error to be "
-                    L"considered "
-                    L"equal.\n"
-                    L"Reference compression slows down the calculation but frees up memory space.\n"
-                    L"set 0 to disable.");
+                    "Reference Compression Threshold Power",
+                    "When compressing references, sets the negative exponents of ten of minimum error to be "
+                    "considered "
+                    "equal.\n"
+                    "Reference compression slows down the calculation but frees up memory space.\n"
+                    "set 0 to disable.");
             window->registerCheckboxInput(
-                    L"NO Compressor normalization", &frt.reference.compression.noCompressorNormalization,
-                    Callback::NOTHING, L"NO Compressor normalization",
-                    L"No normalization during reference compression.\n"
-                    L"this will accelerates table creation, But may cause table creation to fail in\n"
-                    L"the specific locations!!");
+                    "NO Compressor normalization", &frt.reference.compression.noCompressorNormalization,
+                    Callback::NOTHING, "NO Compressor normalization",
+                    "No normalization during reference compression.\n"
+                    "this will accelerates table creation, But may cause table creation to fail in\n"
+                    "the specific locations!!");
             window->registerTextInput<uint32_t>(
-                    L"Reference Synchronization Interval", &frt.reference.sync.referenceSynchronizationInterval,
+                    "Reference Synchronization Interval", &frt.reference.sync.referenceSynchronizationInterval,
                     Unparser::UINT32, Parser::UINT32, ValidCondition::POSITIVE_UINT32, Callback::NOTHING,
-                    L"Reference Synchronization Interval",
-                    L"Sets the synchronization interval between the reference array\n"
-                    L"and arbitrary-precision operation when calculating references. When the value is small,\n"
-                    L"it guarantees high quality but is slow because the synchronization happens every iterations.\n"
-                    L"when the value is high, resulting lower quality but is faster. set 1 to fully sync.");
+                    "Reference Synchronization Interval",
+                    "Sets the synchronization interval between the reference array\n"
+                    "and arbitrary-precision operation when calculating references. When the value is small,\n"
+                    "it guarantees high quality but is slow because the synchronization happens every iterations.\n"
+                    "when the value is high, resulting lower quality but is faster. set 1 to fully sync.");
             window->registerTextInput<uint8_t>(
-                    L"Reference Synchronization Radius",
+                    "Reference Synchronization Radius",
                     &frt.reference.sync.referenceSynchronizationRadiusPower, Unparser::UINT8, Parser::UINT8,
-                    ValidCondition::ALL_UINT8, Callback::NOTHING, L"Reference Synchronization Radius",
-                    L"If only the Reference Synchronization Interval is set,\n"
-                    L"when the periodic point is reached and it is not a multiple of its value,\n"
-                    L"the calculation will be resulted so weird due to significant mismatch with\n"
-                    L"arbitrary-precision operations caused by precision loss. This setting determines within the "
-                    L"radius : \n"
-                    L"10^(-value) from the origin to be considered the periodic point.\n"
-                    L"set 0 to fully sync.");
+                    ValidCondition::ALL_UINT8, Callback::NOTHING, "Reference Synchronization Radius",
+                    "If only the Reference Synchronization Interval is set,\n"
+                    "when the periodic point is reached and it is not a multiple of its value,\n"
+                    "the calculation will be resulted so weird due to significant mismatch with\n"
+                    "arbitrary-precision operations caused by precision loss. This setting determines within the "
+                    "radius : \n"
+                    "10^(-value) from the origin to be considered the periodic point.\n"
+                    "set 0 to fully sync.");
 
-            window->registerCheckboxInput(L"Parallel reference calculation", &frt.reference.useParallelRefCalculation,
-                                          Callback::NOTHING, L"Use parallel reference calculation",
-                                          L"Sets whether or not the reference calculation should be parallel.\n"
-                                          L"It is effective for deep-zoom.");
+            window->registerCheckboxInput("Parallel reference calculation", &frt.reference.useParallelRefCalculation,
+                                          Callback::NOTHING, "Use parallel reference calculation",
+                                          "Sets whether or not the reference calculation should be parallel.\n"
+                                          "It is effective for deep-zoom.");
 
             window->setWindowCloseFunction([centerPtr, zoomPtr, locationChanged, &frt, &arm] {
                 const int exp10 = Perturbator::logZoomToExp10(*zoomPtr);
@@ -110,25 +111,25 @@ namespace merutilm::rff2 {
     std::function<void()> CallbackFractal::fnIterations(AppRenderManager &arm) {
         return [&arm] {
             auto &calc = arm.getSettings().fractal;
-            auto window = std::make_unique<SettingsWindow>(L"Iterations");
+            auto window = std::make_unique<SettingsWindow>("Iterations");
 
 
             window->registerTextInput<uint64_t>(
-                    L"Max Iteration", &calc.perturb.maxIteration, Unparser::UINT64, Parser::UINT64, ValidCondition::ALL_UINT64,
-                    Callback::NOTHING, L"Set Max Iteration",
-                    L"Set maximum iteration. It is disabled when Auto iteration is enabled.");
+                    "Max Iteration", &calc.perturb.maxIteration, Unparser::UINT64, Parser::UINT64, ValidCondition::ALL_UINT64,
+                    Callback::NOTHING, "Set Max Iteration",
+                    "Set maximum iteration. It is disabled when Auto iteration is enabled.");
             window->registerTextInput<uint16_t>(
-                    L"Auto Iteration Multiplier", &calc.perturb.autoIterationMultiplier, Unparser::UINT16, Parser::UINT16,
-                    ValidCondition::ALL_UINT16, Callback::NOTHING, L"Set Auto Iteration Multiplier",
-                    L"Set auto iteration multiplier. It is disabled when Auto iteration is disabled.");
+                    "Auto Iteration Multiplier", &calc.perturb.autoIterationMultiplier, Unparser::UINT16, Parser::UINT16,
+                    ValidCondition::ALL_UINT16, Callback::NOTHING, "Set Auto Iteration Multiplier",
+                    "Set auto iteration multiplier. It is disabled when Auto iteration is disabled.");
 
             window->registerTextInput<float>(
-                    L"Bailout", &calc.general.bailout, Unparser::FLOAT, Parser::FLOAT,
-                    [](const float &v) { return v >= 2 && v <= 8; }, Callback::NOTHING, L"Set Bailout",
-                    L"Sets The Bailout radius");
+                    "Bailout", &calc.general.bailout, Unparser::FLOAT, Parser::FLOAT,
+                    [](const float &v) { return v >= 2 && v <= 8; }, Callback::NOTHING, "Set Bailout",
+                    "Sets The Bailout radius");
             window->registerRadioButtonInput<FrtDecimalizeIterationMethod>(
-                    L"Decimalize iteration", &calc.perturb.decimalizeIterationMethod, Callback::NOTHING,
-                    L"Decimalize Iteration Method", L"Sets the decimalization method of iterations.");
+                    "Decimalize iteration", &calc.perturb.decimalizeIterationMethod, Callback::NOTHING,
+                    "Decimalize Iteration Method", "Sets the decimalization method of iterations.");
 
 
             window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
@@ -138,22 +139,22 @@ namespace merutilm::rff2 {
     std::function<void()> CallbackFractal::fnSa(AppRenderManager &arm) {
         return [&arm] {
             auto &[appliedTermsCount, validatedTermsCount, epsilonPower] = arm.getSettings().fractal.sa;
-            auto window = std::make_unique<SettingsWindow>(L"Series Approximation");
+            auto window = std::make_unique<SettingsWindow>("Series Approximation");
             window->registerTextInput<uint16_t>(
-                    L"Applied Terms Count", &appliedTermsCount, Unparser::UINT16, Parser::UINT16,
-                    [](const unsigned short &v) { return v >= 1 && v <= 1024; }, Callback::NOTHING, L"Applied Terms Count",
-                    L"Set the number of terms to approximate the orbit in the first iteration.");
+                    "Applied Terms Count", &appliedTermsCount, Unparser::UINT16, Parser::UINT16,
+                    [](const unsigned short &v) { return v >= 1 && v <= 1024; }, Callback::NOTHING, "Applied Terms Count",
+                    "Set the number of terms to approximate the orbit in the first iteration.");
             window->registerTextInput<uint16_t>(
-                    L"Validated Terms Count", &validatedTermsCount, Unparser::UINT16, Parser::UINT16,
+                    "Validated Terms Count", &validatedTermsCount, Unparser::UINT16, Parser::UINT16,
                     [](const unsigned short &v) { return v >= 1 && v <= 1024; }, Callback::NOTHING,
-                    L"Validated Terms Count",
-                    L"Set the number of terms for the escape condition when generating the series approximation.");
+                    "Validated Terms Count",
+                    "Set the number of terms for the escape condition when generating the series approximation.");
             window->registerTextInput<float>(
-                    L"Precision Level", &epsilonPower, Unparser::FLOAT, Parser::FLOAT, ValidCondition::NEGATIVE_FLOAT,
-                    Callback::NOTHING, L"Set the precision level based on powers of ten (epsilon).",
-                    L"Useful for glitch reduction. you can set this value -15 to -1. if this value is small (-15),\n"
-                    L"The fractal will be rendered glitch-less but slow,\n"
-                    L"and is large (-1), It will be fast, but maybe shown visible glitches.");
+                    "Precision Level", &epsilonPower, Unparser::FLOAT, Parser::FLOAT, ValidCondition::NEGATIVE_FLOAT,
+                    Callback::NOTHING, "Set the precision level based on powers of ten (epsilon).",
+                    "Useful for glitch reduction. you can set this value -15 to -1. if this value is small (-15),\n"
+                    "The fractal will be rendered glitch-less but slow,\n"
+                    "and is large (-1), It will be fast, but maybe shown visible glitches.");
 
             window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
             arm.setCurrentSettingsWindows(std::move(window));
@@ -161,56 +162,61 @@ namespace merutilm::rff2 {
     }
     std::function<void()> CallbackFractal::fnMpa(AppRenderManager &arm) {
         return [&arm] {
-            auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod,
+            auto &[maxDegree, minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod,
                    mpaCompressionMethod] = arm.getSettings().fractal.mpa;
-            auto window = std::make_unique<SettingsWindow>(L"MP-Approximation");
+            auto window = std::make_unique<SettingsWindow>("MP-Approximation");
+            window->registerSelectionInput<FrtMPADegree>(
+                    "Max Degree (Experimental)", &maxDegree, Callback::NOTHING, "Max Degree",
+                    "Set max degree of PA, Setting this to high value can accelerate the calculation of spiral patterns but slows down the pre-calculation."
+                    " Excluding standard option, it is currently inefficient.");
             window->registerTextInput<uint16_t>(
-                    L"Min Skip Reference", &minSkipReference, Unparser::UINT16, Parser::UINT16,
-                    [](const unsigned short &v) { return v >= 4; }, Callback::NOTHING, L"Min Skip Reference",
-                    L"Set minimum skipping reference iteration when creating a table.");
+                    "Min Skip Reference", &minSkipReference, Unparser::UINT16, Parser::UINT16,
+                    [](const unsigned short &v) { return v >= 4; }, Callback::NOTHING, "Min Skip Reference",
+                    "Set minimum skipping reference iteration when creating a table.");
             window->registerTextInput<uint8_t>(
-                    L"Max Multiplier Between Level", &maxMultiplierBetweenLevel, Unparser::UINT8, Parser::UINT8,
+                    "Max Multiplier Between Level", &maxMultiplierBetweenLevel, Unparser::UINT8, Parser::UINT8,
                     ValidCondition::POSITIVE_UINT8, Callback::NOTHING,
-                    L"Set maximum multiplier between adjacent skipping levels.",
-                    L"This means the maximum multiplier of two adjacent periods for the new period that inserts "
-                    L"between "
-                    L"them,\n"
-                    L"So the multiplier between the two periods may in the worst case be the square of this.");
+                    "Set maximum multiplier between adjacent skipping levels.",
+                    "This means the maximum multiplier of two adjacent periods for the new period that inserts "
+                    "between "
+                    "them,\n"
+                    "So the multiplier between the two periods may in the worst case be the square of this.");
             window->registerTextInput<float>(
-                    L"Precision Level", &epsilonPower, Unparser::FLOAT, Parser::FLOAT, ValidCondition::NEGATIVE_FLOAT,
-                    Callback::NOTHING, L"Set the precision level based on powers of ten (epsilon).",
-                    L"Useful for glitch reduction. you can set this value -15 to -1. if this value is small (-15),\n"
-                    L"The fractal will be rendered glitch-less but slow,\n"
-                    L"and is large (-1), It will be fast, but maybe shown visible glitches.");
+                    "Precision Level", &epsilonPower, Unparser::FLOAT, Parser::FLOAT, ValidCondition::NEGATIVE_FLOAT,
+                    Callback::NOTHING, "Set the precision level based on powers of ten (epsilon).",
+                    "Useful for glitch reduction. you can set this value -15 to -1. if this value is small (-15),\n"
+                    "The fractal will be rendered glitch-less but slow,\n"
+                    "and is large (-1), It will be fast, but maybe shown visible glitches.");
             window->registerRadioButtonInput<FrtMPASelectionMethod>(
-                    L"Selection Method", &mpaSelectionMethod, Callback::NOTHING, L"Set the selection method of MPA.",
-                    L"The first target PA is always the front element.");
+                    "Selection Method", &mpaSelectionMethod, Callback::NOTHING, "Set the selection method of MPA.",
+                    "The first target PA is always the front element.");
 
             window->registerRadioButtonInput<FrtMPACompressionMethod>(
-                    L"Compression Method", &mpaCompressionMethod, Callback::NOTHING,
-                    L"Set the compression method of MPA.",
-                    L"\"Little Compression\" maybe slowing down for table creation, but allocates the memory "
-                    L"efficiently.\n"
-                    L"\"Strongest\" works based on the Reference Compressor, so if it is disabled, it will behave the "
-                    L"same "
-                    L"as \"Little Compression\".\n L"
-                    L"It uses acceleration when possible, and can accelerate table creation by 10x~100x of times.");
+                    "Compression Method", &mpaCompressionMethod, Callback::NOTHING,
+                    "Set the compression method of MPA.",
+                    "\"Little Compression\" maybe slowing down for table creation, but allocates the memory "
+                    "efficiently.\n"
+                    "\"Strongest\" works based on the Reference Compressor, so if it is disabled, it will behave the "
+                    "same "
+                    "as \"Little Compression\".\n "
+                    "It uses acceleration when possible, and can accelerate table creation by 10x~100x of times.");
 
 
             window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
             arm.setCurrentSettingsWindows(std::move(window));
         };
     }
-    std::function<bool()> CallbackFractal::fnGetterAutomaticIterations(AppRenderManager &arm) {
+#endif
+    std::function<bool()> CallbackFractal::fnGetterAutomaticIterations(RFFApplication &arm) {
         return [&arm] { return arm.getSettings().fractal.perturb.autoMaxIteration; };
     }
-    std::function<bool()> CallbackFractal::fnGetterAbsoluteIterationMode(AppRenderManager &arm) {
+    std::function<bool()> CallbackFractal::fnGetterAbsoluteIterationMode(RFFApplication &arm) {
         return [&arm] { return arm.getSettings().fractal.perturb.absoluteIterationMode; };
     }
-    std::function<void(bool)> CallbackFractal::fnAutomaticIterations(AppRenderManager &arm) {
+    std::function<void(bool)> CallbackFractal::fnAutomaticIterations(RFFApplication &arm) {
         return [&arm](const bool b) { arm.getSettings().fractal.perturb.autoMaxIteration = b; };
     }
-    std::function<void(bool)> CallbackFractal::fnAbsoluteIterationMode(AppRenderManager &arm) {
+    std::function<void(bool)> CallbackFractal::fnAbsoluteIterationMode(RFFApplication &arm) {
         return [&arm](const bool b) { arm.getSettings().fractal.perturb.absoluteIterationMode = b; };
     }
 

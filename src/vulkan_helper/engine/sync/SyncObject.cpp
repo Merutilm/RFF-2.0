@@ -15,7 +15,7 @@ namespace merutilm::vkh {
 
     void SyncObject::init() {
 
-        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+        const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
 
         fences.reserve(maxFramesInFlight);
         semaphores.reserve(maxFramesInFlight);

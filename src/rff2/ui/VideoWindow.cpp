@@ -1,7 +1,7 @@
 //
 // Created by Merutilm on 2025-09-06.
 //
-
+#ifdef _WIN32
 #include "VideoWindow.hpp"
 
 #include "../io/RFFDynamicMapBinary.h"
@@ -293,3 +293,4 @@ namespace merutilm::rff2 {
         }
     }
 } // namespace merutilm::rff2
+#endif

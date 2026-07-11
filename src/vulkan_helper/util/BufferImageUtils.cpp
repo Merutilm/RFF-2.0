@@ -7,7 +7,7 @@ namespace merutilm::vkh {
     void BufferImageUtils::initImage(Core & core, const ImageInitInfo &iii, VkImage*image,
         VkDeviceMemory*imageMemory, VkImageView*imageView, VkImageView*mipmappedImageView, VkDeviceSize *capacity) {
         initImage(core.getLogicalDevice().getLogicalDeviceHandle(),
-                  core.getPhysicalDevice().getPhysicalDeviceMemoryProperties(), iii, image, imageMemory, imageView, mipmappedImageView, capacity);
+                  core.getPhysicalDeviceLoader().getPhysicalDeviceMemoryProperties(), iii, image, imageMemory, imageView, mipmappedImageView, capacity);
     }
 
     void BufferImageUtils::initImage(const VkDevice device,
@@ -136,19 +136,21 @@ namespace merutilm::vkh {
         return VK_IMAGE_ASPECT_COLOR_BIT;
     }
 
-    void BufferImageUtils::initBuffer(Core & core, const BufferInitInfo &bii, VkBuffer*buffer,
-        VkDeviceMemory*bufferMemory) {
-        initBuffer(core.getLogicalDevice().getLogicalDeviceHandle(),
-                   core.getPhysicalDevice().getPhysicalDeviceMemoryProperties(), bii, buffer, bufferMemory);
+    VkDeviceSize BufferImageUtils::initBuffer(Core &core, const BufferInitInfo &bii, VkBuffer *buffer,
+                                              VkDeviceMemory *bufferMemory) {
+        return initBuffer(core.getLogicalDevice().getLogicalDeviceHandle(),
+                   core.getPhysicalDeviceLoader().getPhysicalDeviceMemoryProperties(), bii, buffer, bufferMemory);
     }
 
-    void BufferImageUtils::initBuffer(const VkDevice device,
-        const VkPhysicalDeviceMemoryProperties &memProperties, const BufferInitInfo &bii, VkBuffer*buffer,
-        VkDeviceMemory*bufferMemory) {
+    VkDeviceSize BufferImageUtils::initBuffer(const VkDevice device,
+                                              const VkPhysicalDeviceMemoryProperties &memProperties,
+                                              const BufferInitInfo &bii, VkBuffer *buffer,
+                                              VkDeviceMemory *bufferMemory) {
         createBuffer(device, bii.size, bii.usage, buffer);
-        allocateBufferMemory(device, memProperties, bii.properties, *buffer,
+        const VkDeviceSize alloc = allocateBufferMemory(device, memProperties, bii.properties, *buffer,
                              bufferMemory);
         vkBindBufferMemory(device, *buffer, *bufferMemory, 0);
+        return alloc;
     }
 
     void BufferImageUtils::createBuffer(const VkDevice device, const VkDeviceSize size,
@@ -169,9 +171,10 @@ namespace merutilm::vkh {
             }
     }
 
-    void BufferImageUtils::allocateBufferMemory(const VkDevice device,
-        const VkPhysicalDeviceMemoryProperties &memProperties, const VkMemoryPropertyFlags properties,
-        const VkBuffer buffer, VkDeviceMemory*bufferMemory) {
+    VkDeviceSize BufferImageUtils::allocateBufferMemory(const VkDevice device,
+                                                        const VkPhysicalDeviceMemoryProperties &memProperties,
+                                                        const VkMemoryPropertyFlags properties, const VkBuffer buffer,
+                                                        VkDeviceMemory *bufferMemory) {
         VkMemoryRequirements memRequirements;
         vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
         const VkMemoryAllocateInfo allocInfo = {
@@ -185,6 +188,7 @@ namespace merutilm::vkh {
                               bufferMemory) != VK_SUCCESS) {
             throw exception_init("failed to allocate memory!");
                               }
+        return memRequirements.size;
     }
 
     uint32_t BufferImageUtils::findMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties &memProperties,

@@ -2,7 +2,6 @@
 // Created by Merutilm on 2025-07-07.
 //
 #pragma once
-#include <mutex>
 
 namespace merutilm::vkh {
 
@@ -10,6 +9,7 @@ namespace merutilm::vkh {
 
         virtual ~Handler() = default;
 
+    protected:
         virtual void init() = 0;
 
         virtual void cleanup() = 0;

@@ -28,7 +28,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] VkCommandBuffer getCommandBufferHandle() const { return commandBuffer; }
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

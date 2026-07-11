@@ -12,15 +12,12 @@ namespace merutilm::rff2 {
     template<Number Num>
     struct PABase {
 
-        static constexpr uint32_t MAX_DEGREE = 1;
-
         uint64_t skip;
         Num radius;
 
         PABase(const uint64_t skip, const Num radius) : skip(skip), radius(radius) {}
-        virtual ~PABase() = default;
 
-        bool isValid(const Num dzRad) const {
+        [[nodiscard]] bool isValid(const Num dzRad) const {
             return dzRad < radius;
         }
 
@@ -29,7 +26,7 @@ namespace merutilm::rff2 {
         }
     };
 
-    template<Number Num, uint32_t MAX_DEGREE = PABase<Num>::MAX_DEGREE>
+    template<Number Num, uint8_t MAX_DEGREE>
     struct PA : PABase<Num>{
 
         std::pmr::vector<complex<dex>> tn;
@@ -73,7 +70,7 @@ namespace merutilm::rff2 {
             return complex<Num>{Num(result.re), Num(result.im)};
         }
 
-        static constexpr size_t size() {
+        static constexpr size_t memoryUsage() {
             return sizeof(PA) + PABase<Num>::getLen(MAX_DEGREE) * sizeof(complex<dex>);
         }
     };
@@ -91,11 +88,14 @@ namespace merutilm::rff2 {
             return an * dz + bn * dc;
         };
 
-        static constexpr size_t size() {
+        static constexpr size_t memoryUsage() {
             return sizeof(PA);
         }
     };
 
-    using LightPA = PA<double>;
-    using DeepPA = PA<dex>;
+    template<uint8_t MAX_DEGREE>
+    using LightPA = PA<double, MAX_DEGREE>;
+
+    template<uint8_t MAX_DEGREE>
+    using DeepPA = PA<dex, MAX_DEGREE>;
 }

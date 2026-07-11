@@ -2,7 +2,6 @@
 // Created by Merutilm on 2025-05-19.
 //
 #pragma once
-#include <windows.h>
 #include <string>
 #include <format>
 #include <cstdint>
@@ -56,44 +55,30 @@ namespace merutilm::rff2 {
     }
 
     namespace Parser {
-        inline static const auto STRING = [](const std::wstring &s) {
-            const int32_t size = WideCharToMultiByte(CP_UTF8, 0, s.data(), -1, nullptr, 0, nullptr, nullptr);
-            std::string str(size, 0);
-            WideCharToMultiByte(CP_UTF8, 0, s.data(), -1, &str[0], size, nullptr, nullptr);
-            str.pop_back();
-            return str;
-        };
-        inline static const auto WSTRING = [](const std::wstring &s) { return s; };
-        inline static const auto INT8 = [](const std::wstring &s) { return static_cast<int8_t>(std::stoll(s) & 0xFF); };
-        inline static const auto UINT8 = [](const std::wstring &s) { return static_cast<uint8_t>(std::stoull(s) & 0xFF); };
-        inline static const auto INT16 = [](const std::wstring &s) { return static_cast<int16_t>(std::stoll(s) & 0xFFFF); };
-        inline static const auto UINT16 = [](const std::wstring &s) {return static_cast<uint16_t>(std::stoull(s) & 0xFFFF);};
-        inline static const auto INT32 = [](const std::wstring &s) { return static_cast<int32_t>(std::stoll(s)); };
-        inline static const auto UINT32 = [](const std::wstring &s) { return static_cast<uint32_t>(std::stoull(s)); };
-        inline static const auto INT64 = [](const std::wstring &s) { return static_cast<int64_t>(std::stoll(s)); };
-        inline static const auto UINT64 = [](const std::wstring &s) { return static_cast<uint64_t>(std::stoull(s)); };
-        inline static const auto FLOAT = [](const std::wstring &s) { return std::stof(s); };
-        inline static const auto DOUBLE = [](const std::wstring &s) { return std::stod(s); };
+        inline static const auto STRING = [](const std::string &s) { return s; };
+        inline static const auto INT8 = [](const std::string &s) { return static_cast<int8_t>(std::stoll(s) & 0xFF); };
+        inline static const auto UINT8 = [](const std::string &s) { return static_cast<uint8_t>(std::stoull(s) & 0xFF); };
+        inline static const auto INT16 = [](const std::string &s) { return static_cast<int16_t>(std::stoll(s) & 0xFFFF); };
+        inline static const auto UINT16 = [](const std::string &s) {return static_cast<uint16_t>(std::stoull(s) & 0xFFFF);};
+        inline static const auto INT32 = [](const std::string &s) { return static_cast<int32_t>(std::stoll(s)); };
+        inline static const auto UINT32 = [](const std::string &s) { return static_cast<uint32_t>(std::stoull(s)); };
+        inline static const auto INT64 = [](const std::string &s) { return static_cast<int64_t>(std::stoll(s)); };
+        inline static const auto UINT64 = [](const std::string &s) { return static_cast<uint64_t>(std::stoull(s)); };
+        inline static const auto FLOAT = [](const std::string &s) { return std::stof(s); };
+        inline static const auto DOUBLE = [](const std::string &s) { return std::stod(s); };
     }
 
     namespace Unparser {
-        inline static const auto STRING = [](const std::string &s) {
-            const int32_t size = MultiByteToWideChar(CP_UTF8, 0, s.data(), -1, nullptr, 0);
-            std::wstring str(size, 0);
-            MultiByteToWideChar(CP_UTF8, 0, s.data(), -1, &str[0], size);
-            str.pop_back();
-            return str;
-        };
-        inline static const auto WSTRING = [](const std::wstring &s) { return s; };
-        inline static const auto INT8 = [](const uint8_t &s) { return std::format(L"{}", s); };
-        inline static const auto UINT8 = [](const uint8_t &s) { return std::format(L"{}", s); };
-        inline static const auto INT16 = [](const uint16_t &s) { return std::format(L"{}", s); };
-        inline static const auto UINT16 = [](const uint16_t &s) { return std::format(L"{}", s); };
-        inline static const auto INT32 = [](const int32_t &s) { return std::format(L"{}", s); };
-        inline static const auto UINT32 = [](const uint32_t &s) { return std::format(L"{}", s); };
-        inline static const auto INT64 = [](const int64_t &s) { return std::format(L"{}", s); };
-        inline static const auto UINT64 = [](const uint64_t &s) { return std::format(L"{}", s); };
-        inline static const auto FLOAT = [](const float &s) { return std::format(L"{}", s); };
-        inline static const auto DOUBLE = [](const double &s) { return std::format(L"{}", s); };
+        inline static const auto STRING = [](const std::string &s) { return s; };
+        inline static const auto INT8 = [](const uint8_t &s) { return std::format("{}", s); };
+        inline static const auto UINT8 = [](const uint8_t &s) { return std::format("{}", s); };
+        inline static const auto INT16 = [](const uint16_t &s) { return std::format("{}", s); };
+        inline static const auto UINT16 = [](const uint16_t &s) { return std::format("{}", s); };
+        inline static const auto INT32 = [](const int32_t &s) { return std::format("{}", s); };
+        inline static const auto UINT32 = [](const uint32_t &s) { return std::format("{}", s); };
+        inline static const auto INT64 = [](const int64_t &s) { return std::format("{}", s); };
+        inline static const auto UINT64 = [](const uint64_t &s) { return std::format("{}", s); };
+        inline static const auto FLOAT = [](const float &s) { return std::format("{}", s); };
+        inline static const auto DOUBLE = [](const double &s) { return std::format("{}", s); };
     }
 }

@@ -4,7 +4,6 @@
 
 #include <vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp>
 
-#include <vulkan_helper/base/vkh_base.hpp>
 #include <vulkan_helper/engine/pipeline/GraphicsPipeline.hpp>
 #include <vulkan_helper/engine/repo/GlobalPipelineLayoutRepo.hpp>
 #include <vulkan_helper/engine/wrapped/Vertex.hpp>
@@ -24,7 +23,7 @@ namespace merutilm::vkh {
     void GeneralPostProcessGraphicsPipelineConfigurator::configureIndexBuffer(HostDataObjectManager &som) {
     }
 
-    void GeneralPostProcessGraphicsPipelineConfigurator::configure() {
+    void GeneralPostProcessGraphicsPipelineConfigurator::configure(RenderPass *rp, uint32_t subpass) {
 
 
         PipelineLayoutManager pipelineLayoutManager{};
@@ -47,8 +46,8 @@ namespace merutilm::vkh {
         pipelineManager.attachShader(&vertexShader);
         pipelineManager.attachShader(&fragmentShader);
 
-        pipeline = std::make_unique<GraphicsPipeline>(wc, pipelineLayout, vertexBufferStaticRef, indexBufferStaticRef,
-            renderContextIndex, primarySubpassIndex,
+        pipeline = std::make_unique<GraphicsPipeline>(wc.core, pipelineLayout, *engine.getSharedResource().vertexBufferIdentity, *engine.getSharedResource().indexBufferIdentity,
+            *rp, subpass,
             std::move(pipelineManager));
 
     }

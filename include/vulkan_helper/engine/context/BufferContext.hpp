@@ -15,7 +15,8 @@ namespace merutilm::vkh {
     struct BufferContext {
         VkBuffer buffer = VK_NULL_HANDLE;
         VkDeviceMemory bufferMemory = VK_NULL_HANDLE;
-        VkDeviceSize bufferSize;
+        VkDeviceSize bufferSize = 0;
+        VkDeviceSize allocationSize = 0;
         std::byte *mappedMemory = nullptr;
 
         static BufferContext createContext(Core & core, const BufferInitInfo &bufferInitInfo);

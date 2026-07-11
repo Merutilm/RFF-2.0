@@ -4,32 +4,34 @@
 
 #pragma once
 
+#include <cmath>
 #include <filesystem>
 #include <string>
 #include "../constants/Constants.hpp"
+#include "vulkan_helper/util/ExecutableUtils.hpp"
 
 namespace merutilm::rff2::Utilities {
 
-    static std::wstring formatTime(const float seconds) {
+    static std::string formatTime(const float seconds) {
         const auto secondsI = static_cast<uint32_t>(seconds);
-        const auto millis = static_cast<uint32_t>(std::fmodf(seconds, 1) * 1000);
+        const auto millis = static_cast<uint32_t>(std::fmod(seconds, 1) * 1000);
         const auto sec = secondsI % 60;
         const auto min = secondsI / 60 % 60;
         const auto hour = secondsI / 3600;
-        return std::format(L"{:02}:{:02}:{:02}:{:03}", hour, min, sec, millis);
+        return std::format("{:02}:{:02}:{:02}:{:03}", hour, min, sec, millis);
     }
 
-    static std::wstring formatTime(const uint32_t seconds) {
+    static std::string formatTime(const uint32_t seconds) {
         const auto sec = seconds % 60;
         const auto min = seconds / 60 % 60;
         const auto hour = seconds / 3600;
-        return std::format(L"{:02}:{:02}:{:02}", hour, min, sec);
+        return std::format("{:02}:{:02}:{:02}", hour, min, sec);
     }
 
-    static std::wstring elapsed_time(const std::chrono::time_point<std::chrono::high_resolution_clock> start) {
+    static std::string elapsed_time(const std::chrono::time_point<std::chrono::high_resolution_clock> start) {
         const auto current = std::chrono::high_resolution_clock::now();
         const auto elapsed = std::chrono::duration<float>(current - start).count();
-        return std::format(L"T : {}", formatTime(elapsed));
+        return std::format("T : {}", formatTime(elapsed));
     }
 
 
@@ -41,19 +43,16 @@ namespace merutilm::rff2::Utilities {
         return time;
     }
 
-
     static std::filesystem::path getDefaultPath() {
-        std::array<wchar_t, MAX_PATH> buffer;
-        GetModuleFileNameW(nullptr, buffer.data(), buffer.size());
-        return std::filesystem::path(buffer.data()).parent_path().parent_path();
+        return std::filesystem::path(vkh::ExecutableUtils::getExecutablePath()).parent_path().parent_path();
     }
 
-    static bool endsWith(const std::wstring &str, const std::wstring &suffix) {
+    static bool endsWith(const std::string &str, const std::string &suffix) {
         return str.size() >= suffix.size() && std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
     }
 
-    static std::wstring joinString(const std::wstring &delimiter, const std::vector<std::wstring> &arr) {
-        std::wostringstream v;
+    static std::string joinString(const std::string &delimiter, const std::vector<std::string> &arr) {
+        std::ostringstream v;
         for (int i = 0; i < arr.size(); ++i) {
             if (i > 0) {
                 v << delimiter;
@@ -63,10 +62,10 @@ namespace merutilm::rff2::Utilities {
         return v.str();
     }
 
-    static std::vector<std::wstring> split(const std::wstring &input, const wchar_t delimiter) {
-        std::vector<std::wstring> split;
-        std::wstringstream ss(input);
-        std::wstring val;
+    static std::vector<std::string> split(const std::string &input, const char delimiter) {
+        std::vector<std::string> split;
+        std::stringstream ss(input);
+        std::string val;
 
         while (getline(ss, val, delimiter)) {
             split.push_back(val);

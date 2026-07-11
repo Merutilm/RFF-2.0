@@ -5,7 +5,6 @@
 #pragma once
 #include <concepts>
 #include "dex.h"
-#include "dex_exp.h"
 #include "dex_trig.h"
 #include "fixed_point_decimal.hpp"
 #include "rff_math.h"

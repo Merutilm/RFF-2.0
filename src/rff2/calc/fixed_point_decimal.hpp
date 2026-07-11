@@ -5,7 +5,7 @@
 #include <cmath>
 #include <gmp.h>
 #include <stdexcept>
-
+#include <cstring>
 #include "dex.h"
 
 

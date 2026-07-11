@@ -7,51 +7,47 @@
 
 #include <vulkan_helper/engine/context/RenderContext.hpp>
 
+#include "vulkan_helper/engine/configurator/GraphicsPipelineConfigurator.hpp"
+#include "vulkan_helper/engine/pipeline/GraphicsPipelineNode.hpp"
+
 namespace merutilm::vkh {
-    RenderPassFullscreenRecorder::RenderPassFullscreenRecorder(WindowContext & wc,
-                                                               const uint32_t renderContextIndex,
+    RenderPassFullscreenRecorder::RenderPassFullscreenRecorder(WindowContext &wc, RenderContext &rc,
                                                                const uint32_t frameIndex,
-                                                               const uint32_t swapchainImageIndex) : WindowContextHandler(wc),
-        renderContextIndex(renderContextIndex),
-        frameIndex(frameIndex), swapchainImageIndex(swapchainImageIndex) {
+                                                               const uint32_t swapchainImageIndex) :
+        WindowContextHandler(wc), rc(rc), frameIndex(frameIndex),
+        swapchainImageIndex(swapchainImageIndex) {
         RenderPassFullscreenRecorder::init();
     }
 
-    RenderPassFullscreenRecorder::~RenderPassFullscreenRecorder() {
-        RenderPassFullscreenRecorder::cleanup();
-    }
+    RenderPassFullscreenRecorder::~RenderPassFullscreenRecorder() { RenderPassFullscreenRecorder::cleanup(); }
 
-    void RenderPassFullscreenRecorder::execute(const uint32_t frameIndex,
-                                               const std::span<PipelineConfigurator * const> shaderPrograms,
-                                               std::vector<DescIndexPicker> &&descIndices) const {
-        safe_array::check_size_equal(shaderPrograms.size(), descIndices.size(),
-                                     "Execution of the Render Pass Fullscreen Recorder");
+    void RenderPassFullscreenRecorder::execute(const uint32_t frameIndex) const {
+
         const auto cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
-        for (int i = 0; i < shaderPrograms.size(); ++i) {
-            shaderPrograms[i]->cmdRender(cbh, frameIndex, std::move(descIndices[i]));
-            if (i < shaderPrograms.size() - 1) {
+        uint32_t prevSubpass = 0;
+        for (const auto &gpn : rc.getGenerator()->pipelines) {
+            const uint32_t currentSubpass = gpn->getSubpass();
+            if (currentSubpass - prevSubpass >= 2) throw exception_invalid_state("empty subpass");
+            if (currentSubpass > prevSubpass) {
                 vkCmdNextSubpass(cbh, VK_SUBPASS_CONTENTS_INLINE);
             }
+            gpn->getPipelineConfigurator().cmdRender(cbh, frameIndex, gpn->genPicker());
+            prevSubpass = currentSubpass;
         }
     }
 
 
     void RenderPassFullscreenRecorder::cmdMatchViewportAndScissor() const {
         const auto cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
-        const VkExtent2D extent = wc.getRenderContext(renderContextIndex).getFramebuffer()->getExtent();
+        const VkExtent2D extent = rc.getFramebuffer()->getExtent();
         const auto [width, height] = extent;
-        const VkViewport viewport = {
-            .x = 0,
-            .y = 0,
-            .width = static_cast<float>(width),
-            .height = static_cast<float>(height),
-            .minDepth = 0,
-            .maxDepth = 1
-        };
-        const VkRect2D scissor = {
-            .offset = {0, 0},
-            .extent = {width, height}
-        };
+        const VkViewport viewport = {.x = 0,
+                                     .y = 0,
+                                     .width = static_cast<float>(width),
+                                     .height = static_cast<float>(height),
+                                     .minDepth = 0,
+                                     .maxDepth = 1};
+        const VkRect2D scissor = {.offset = {0, 0}, .extent = {width, height}};
 
 
         vkCmdSetViewport(cbh, 0, 1, &viewport);
@@ -63,26 +59,23 @@ namespace merutilm::vkh {
         std::array<VkClearValue, 2> clearValues = {};
         clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
         clearValues[1].depthStencil = {1.0f, 0};
-        RenderContext & context = wc.getRenderContext(renderContextIndex);
 
         const VkRenderPassBeginInfo renderPassBeginInfo = {
-            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-            .pNext = nullptr,
-            .renderPass = context.getRenderPass()->getRenderPassHandle(),
-            .framebuffer = context.getFramebuffer()->getFramebufferHandle(
-                swapchainImageIndex == UINT32_MAX ? frameIndex : swapchainImageIndex),
-            .renderArea = {
-                .offset = {0, 0},
-                .extent = context.getFramebuffer()->getExtent()
-            },
-            .clearValueCount = static_cast<uint32_t>(clearValues.size()),
-            .pClearValues = clearValues.data()
-        };
+                .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                .pNext = nullptr,
+                .renderPass = rc.getRenderPass()->getRenderPassHandle(),
+                .framebuffer = rc.getFramebuffer()->getFramebufferHandle(
+                        swapchainImageIndex == UINT32_MAX ? frameIndex : swapchainImageIndex),
+                .renderArea = {.offset = {0, 0}, .extent = rc.getFramebuffer()->getExtent()},
+                .clearValueCount = static_cast<uint32_t>(clearValues.size()),
+                .pClearValues = clearValues.data()};
         vkCmdBeginRenderPass(wc.getCommandBuffer().getCommandBufferHandle(frameIndex), &renderPassBeginInfo,
                              VK_SUBPASS_CONTENTS_INLINE);
+
+        cmdMatchViewportAndScissor();
     }
 
     void RenderPassFullscreenRecorder::cleanup() {
         vkCmdEndRenderPass(wc.getCommandBuffer().getCommandBufferHandle(frameIndex));
     }
-}
+} // namespace merutilm::vkh

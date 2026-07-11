@@ -15,10 +15,8 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t TARGET_PRESENT_UBO_EXTENT = 0;
 
-        explicit GPCPresent(vkh::Engine &engine, const uint32_t windowContextIndex,
-                             const uint32_t renderContextIndex,
-                             const uint32_t primarySubpassIndex, vkh::VertexBuffer &vertexBufferStaticRef, vkh::IndexBuffer &indexBufferStaticRef) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, primarySubpassIndex, "vk_resample.frag", vertexBufferStaticRef, indexBufferStaticRef) {
+        explicit GPCPresent(vkh::Engine &engine, vkh::WindowContext &wc) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, wc, "vk_resample.frag") {
         }
 
         ~GPCPresent() override = default;

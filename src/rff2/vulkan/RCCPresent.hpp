@@ -3,44 +3,46 @@
 //
 
 #pragma once
-#include "vulkan_helper/engine/configurator/RenderContextConfigurator.hpp"
+#include "GPCPresent.hpp"
+#include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
-    struct RCCPresent final : public vkh::RenderContextConfigurator {
-        static constexpr uint32_t CONTEXT_INDEX = 7;
+    class RCCPresent final : public vkh::RenderPassGraphGenerator {
 
-        static constexpr uint32_t SUBPASS_PRESENT_INDEX = 0;
+        vkh::RenderPassAttachment *swapchainAttachment;
 
-        static constexpr uint32_t PRESENT_ATTACHMENT_INDEX = 0;
+    public:
+        GPCPresent *present;
 
-        using RenderContextConfigurator::RenderContextConfigurator;
+        using RenderPassGraphGenerator::RenderPassGraphGenerator;
 
-        void configure(vkh::RenderPassManager &rpm) override {
+    protected:
+        void configureAttachments() override {
 
-            rpm.appendAttachment(PRESENT_ATTACHMENT_INDEX, {
-                                     .flags = 0,
-                                     .format = vkh::config::SWAPCHAIN_IMAGE_FORMAT,
-                                     .samples = VK_SAMPLE_COUNT_1_BIT,
-                                     .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                     .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-                                 }, swapchainImageContextGetter());
+            swapchainAttachment =
+                    &appendAttachment({.flags = 0,
+                                       .format = wc.core.getPhysicalDeviceLoader().getPrimarySurfaceFormat(),
+                                       .samples = VK_SAMPLE_COUNT_1_BIT,
+                                       .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                       .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                                       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                       .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                                       .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}, //imgui rendering requires color attachment for swapchain
+                                      swapchainImageContextGetter());
+        }
 
-            rpm.appendSubpass(SUBPASS_PRESENT_INDEX);
-            rpm.appendReference(PRESENT_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        void configurePipelines() override {
 
-            rpm.appendDependency({
-                .srcSubpass = SUBPASS_PRESENT_INDEX,
-                .dstSubpass = VK_SUBPASS_EXTERNAL,
-                .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-                .dstAccessMask = 0,
-                .dependencyFlags = 0
-            });
+            registerPipeline<GPCPresent>(
+                    &present, {},
+                    {swapchainAttachment,
+                     {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+                     vkh::SubpassDependency::none(),
+                     vkh::RenderPassAttachmentReference::none()},
+                    [] {
+                        return vkh::DescIndexPicker{};
+                    });
         }
     };
-}
+} // namespace merutilm::rff2

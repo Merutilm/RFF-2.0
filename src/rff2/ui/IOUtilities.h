@@ -7,7 +7,7 @@
 #include <array>
 #include <filesystem>
 #include <fstream>
-#include <string>
+#include <cstring>
 #include <vector>
 
 namespace merutilm::rff2 {
@@ -17,14 +17,14 @@ namespace merutilm::rff2 {
         static constexpr char OPEN_FILE = 0;
         static constexpr char SAVE_FILE = 1;
 
-        static std::unique_ptr<std::filesystem::path> ioFileDialog(std::wstring_view title, std::wstring_view desc,
-                                                                   char type, std::wstring_view extension);
+        static std::unique_ptr<std::filesystem::path> ioFileDialog(std::string_view desc, char type,
+                                                                   std::string_view extension);
 
-        static std::unique_ptr<std::filesystem::path> ioDirectoryDialog(std::wstring_view title);
+        static std::unique_ptr<std::filesystem::path> ioDirectoryDialog(std::string_view title);
 
-        static std::wstring fileNameFormat(unsigned int n, std::wstring_view extension);
+        static std::string fileNameFormat(unsigned int n, std::string_view extension);
 
-        static std::filesystem::path generateFilename(const std::filesystem::path &dir, std::wstring_view extension,
+        static std::filesystem::path generateFilename(const std::filesystem::path &dir, std::string_view extension,
                                                       uint32_t *cnt);
 
         template<typename T> requires std::is_arithmetic_v<T>
@@ -90,7 +90,7 @@ namespace merutilm::rff2 {
 
         for (uint32_t i = 0; i < it.size(); i += sizeof(T)) {
             auto iSubArr = std::array<char, sizeof(T)>();
-            std::memcpy(&iSubArr, &it[i], sizeof(T));
+            memcpy(&iSubArr, &it[i], sizeof(T));
             fromBinaryArray(iSubArr, &(*t)[i / sizeof(T)]);
         }
     }
@@ -98,12 +98,12 @@ namespace merutilm::rff2 {
     template<typename T> requires std::is_arithmetic_v<T>
     std::array<char, sizeof(T)> IOUtilities::toBinaryArray(const T &v) {
         std::array<char, sizeof(T)> arr;
-        std::memcpy(arr.data(), &v, sizeof(T));
+        memcpy(arr.data(), &v, sizeof(T));
         return arr;
     }
 
     template<typename T> requires std::is_arithmetic_v<T>
     void IOUtilities::fromBinaryArray(const std::array<char, sizeof(T)> &arr, T *result) {
-        std::memcpy(result, arr.data(), sizeof(T));
+        memcpy(result, arr.data(), sizeof(T));
     }
 };

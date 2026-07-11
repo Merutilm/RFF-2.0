@@ -9,16 +9,13 @@
 
 namespace merutilm::vkh {
     struct GraphicsPipelineConfigurator : PipelineConfigurator {
-        const uint32_t renderContextIndex;
-        const uint32_t primarySubpassIndex;
+
         ShaderModule &vertexShader;
         ShaderModule &fragmentShader;
 
-        explicit GraphicsPipelineConfigurator(Engine &engine, const uint32_t windowContextIndex,
-                                              const uint32_t renderContextIndex, const uint32_t primarySubpassIndex,
+        explicit GraphicsPipelineConfigurator(Engine &engine, WindowContext &wc,
                                               const std::string &vertName, const std::string &fragName) :
-            PipelineConfigurator(engine, windowContextIndex), renderContextIndex(renderContextIndex),
-            primarySubpassIndex(primarySubpassIndex),
+            PipelineConfigurator(engine, wc),
             vertexShader(pickFromGlobalRepository<GlobalShaderModuleRepo, ShaderModule &>(vertName)),
             fragmentShader(pickFromGlobalRepository<GlobalShaderModuleRepo, ShaderModule &>(fragName)) {}
 

@@ -30,7 +30,7 @@ namespace merutilm::vkh {
             return commandPool;
         }
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

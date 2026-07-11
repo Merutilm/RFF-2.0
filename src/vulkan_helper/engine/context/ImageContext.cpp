@@ -13,7 +13,7 @@ namespace merutilm::vkh {
     }
 
     MultiframeImageContext ImageContext::createMultiframeContext(Core & core, const ImageInitInfo &imageInitInfo) {
-        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+        const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
         std::vector<ImageContext> result(maxFramesInFlight);
 
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
@@ -39,17 +39,17 @@ namespace merutilm::vkh {
         }
     }
 
-    MultiframeImageContext ImageContext::fromSwapchain(Core & core, Swapchain & swapchain) {
+    MultiframeImageContext ImageContext::fromSwapchain(Core & core, const Swapchain & swapchain) {
         const auto images = swapchain.getSwapchainImages();
         const auto imageViews = swapchain.getSwapchainImageViews();
-        const auto maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
-        const auto extent = swapchain.populateSwapchainExtent();
+        const auto maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
+        const auto extent = swapchain.getSwapchainExtent();
 
         std::vector<ImageContext> result(maxFramesInFlight);
 
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             result[i].image = images[i];
-            result[i].imageFormat = config::SWAPCHAIN_IMAGE_FORMAT,
+            result[i].imageFormat = core.getPhysicalDeviceLoader().getPrimarySurfaceFormat(),
                     result[i].imageMemory = VK_NULL_HANDLE;
             result[i].imageView = imageViews[i];
             result[i].mipmappedImageView = imageViews[i];

@@ -8,7 +8,7 @@
 
 namespace merutilm::vkh {
 
-    SharedResource::SharedResource(WindowContext &wc) : wc(wc) {
+    SharedResource::SharedResource(Core &core) : CoreHandler(core) {
         SharedResource::init();
     }
 
@@ -17,10 +17,10 @@ namespace merutilm::vkh {
     };
 
     void SharedResource::init() {
-        createPPBuffer();
+        createIdentityBuffer();
     }
 
-    void SharedResource::createPPBuffer() {
+    void SharedResource::createIdentityBuffer() {
 
         HostDataObjectManager vertManager;
         HostDataObjectManager indexManager;
@@ -33,15 +33,18 @@ namespace merutilm::vkh {
                                 });
         indexManager.addArray(0, std::vector<uint32_t>{0, 1, 2, 2, 3, 0});
 
-        vertexBufferPP = std::make_unique<VertexBuffer>(wc.core, std::move(vertManager), BufferLock::LOCK_ONLY, false);
-        indexBufferPP = std::make_unique<IndexBuffer>(wc.core, std::move(indexManager), BufferLock::LOCK_ONLY, false);
-        vertexBufferPP->update();
-        indexBufferPP->update();
-        vertexBufferPP->lock(wc.getCommandPool());
-        indexBufferPP->lock(wc.getCommandPool());
+        vertexBufferIdentity = std::make_unique<VertexBuffer>(core, std::move(vertManager), BufferLock::LOCK_ONLY, false);
+        indexBufferIdentity = std::make_unique<IndexBuffer>(core, std::move(indexManager), BufferLock::LOCK_ONLY, false);
+        vertexBufferIdentity->update();
+        indexBufferIdentity->update();
+
+        CommandPool temp(core);
+        vertexBufferIdentity->lock(temp);
+        indexBufferIdentity->lock(temp);
+
     }
     void SharedResource::cleanup() {
-        indexBufferPP = nullptr;
-        vertexBufferPP = nullptr;
+        indexBufferIdentity = nullptr;
+        vertexBufferIdentity = nullptr;
     }
 } // namespace merutilm::vkh

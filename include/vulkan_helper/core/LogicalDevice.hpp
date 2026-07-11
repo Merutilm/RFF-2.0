@@ -6,6 +6,7 @@
 #include <vulkan_helper/handle/Handler.hpp>
 #include "Instance.hpp"
 #include "PhysicalDeviceLoader.hpp"
+#include "vulkan_helper/base/logger.hpp"
 
 namespace merutilm::vkh {
     class LogicalDevice final : public Handler {
@@ -38,15 +39,20 @@ namespace merutilm::vkh {
 
         void queueSubmit(const uint32_t submitCount, const VkSubmitInfo *pSubmits, const VkFence fence) {
             std::scoped_lock lock(mutex);
-            if (vkQueueSubmit(graphicsQueue, submitCount, pSubmits, fence) != VK_SUCCESS) {
-                throw exception_invalid_state("Failed to submit queue!");
+            VkResult result;
+            if ((result = vkQueueSubmit(graphicsQueue, submitCount, pSubmits, fence)) != VK_SUCCESS) {
+                throw exception_invalid_state("Failed to submit queue! "  + std::to_string(result));
             }
         }
 
         void queuePresent(const VkPresentInfoKHR *presentInfo) {
             std::scoped_lock lock(mutex);
-            if (vkQueuePresentKHR(presentQueue, presentInfo) != VK_SUCCESS) {
-                throw exception_invalid_state("Failed to present queue!");
+            const VkResult result = vkQueuePresentKHR(presentQueue, presentInfo);
+            if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) {
+                logger::log("warning : the surface is suboptimal or out of date. your window resizing request is so fast!");
+            }
+            else if (result != VK_SUCCESS) {
+                throw exception_invalid_state("Failed to present queue! " + std::to_string(result));
             }
         }
 
@@ -55,7 +61,7 @@ namespace merutilm::vkh {
             vkDeviceWaitIdle(logicalDevice);
         }
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

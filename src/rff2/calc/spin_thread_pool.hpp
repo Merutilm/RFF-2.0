@@ -21,57 +21,34 @@ namespace merutilm::rff2 {
         spin_thread_pool& operator=(spin_thread_pool&&) = delete;
 
         template<typename F> requires std::is_invocable_r_v<void, F, Args...>
-        void add_func(F &&func);
+        void add_func(F &&func) {
+            pool.emplace_back(std::make_unique<spin_thread<Args...>>(std::forward<F>(func)));
+        }
 
-        void run_all(Args&&... args) const;
+        void run_all(Args&&... args) const {
+            for (auto &t: pool) {
+                t->run_request(std::forward<Args>(args)...);
+            }
+        }
 
-        void run_ranged(int start, int len, Args&&... args) const;
+        void run_ranged(int start, int len, Args&&... args) const {
+            for (int i = 0; i < len; ++i) {
+                pool[start + i]->run_request(std::forward<Args>(args)...);
+            }
+        };
 
-        void clear_all_task();
+        void clear_all_task() {
+            pool.clear();
+        }
 
-        void wait_all() const;
+        void wait_all() const {
+            for (auto &t: pool) {
+                t->wait();
+            }
+        };
         
-        bool is_empty() const;
+        bool is_empty() const {
+            return pool.empty();
+        };
     };
-
-    
-    template<typename... Args>
-    template<typename F> requires std::is_invocable_r_v<void, F, Args...>
-    void spin_thread_pool<Args...>::add_func(F &&func) {
-        pool.emplace_back(std::make_unique<spin_thread<Args...>>(std::forward<F>(func)));
-    }
-
-
-    template<typename... Args>
-    void spin_thread_pool<Args...>::run_all(Args&&... args) const {
-        for (auto &t: pool) {
-            t->run_request(std::forward<Args>(args)...);
-        }
-    }
-
-    template<typename... Args>
-    void spin_thread_pool<Args...>::run_ranged(const int start, const int len, Args&&... args) const {
-        for (int i = 0; i < len; ++i) {
-            pool[start + i]->run_request(std::forward<Args>(args)...);
-        }
-    }
-
-
-    template<typename... Args>
-    void spin_thread_pool<Args...>::clear_all_task() {
-        pool.clear();
-    }
-
-    template<typename... Args>
-    void spin_thread_pool<Args...>::wait_all() const {
-        for (auto &t: pool) {
-            t->wait();
-        }
-    }
-
-
-    template<typename... Args>
-    bool spin_thread_pool<Args...>::is_empty() const {
-        return pool.empty();
-    }
 }

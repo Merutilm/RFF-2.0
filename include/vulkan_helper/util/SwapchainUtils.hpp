@@ -25,9 +25,6 @@ namespace merutilm::vkh {
     template<typename F>
         requires std::is_invocable_r_v<void, F, unsigned>
     void SwapchainUtils::tryRenderFrame(WindowContext &wc, uint32_t *frameIndex, F &&renderer) {
-        if (!wc.getWindow()->canRenderable()) {
-            return;
-        }
         changeFrameIndex(wc.core, frameIndex);
         auto swapchainImageIndex = begin(wc, *frameIndex);
         renderer(swapchainImageIndex);

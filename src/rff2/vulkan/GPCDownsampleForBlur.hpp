@@ -18,11 +18,8 @@ namespace merutilm::rff2 {
         static constexpr uint32_t BINDING_RESAMPLE_UBO = 1;
         static constexpr uint32_t TARGET_RESAMPLE_UBO_EXTENT = 0;
 
-        explicit GPCDownsampleForBlur(vkh::Engine &engine, const uint32_t windowContextIndex,
-                             const uint32_t renderContextIndex,
-                             const uint32_t primarySubpassIndex, vkh::VertexBuffer &vertexBufferStaticRef, vkh::IndexBuffer &indexBufferStaticRef) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, primarySubpassIndex, "vk_resample.frag", vertexBufferStaticRef, indexBufferStaticRef) {
-        }
+        explicit GPCDownsampleForBlur(vkh::Engine &engine, vkh::WindowContext &wc) :
+            GeneralPostProcessGraphicsPipelineConfigurator(engine, wc, "vk_resample.frag") {}
 
         ~GPCDownsampleForBlur() override = default;
 
@@ -47,4 +44,4 @@ namespace merutilm::rff2 {
 
         void configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) override;
     };
-}
+} // namespace merutilm::rff2

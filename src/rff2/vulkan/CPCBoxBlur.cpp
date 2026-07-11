@@ -7,7 +7,6 @@
 #include "SharedImageContextIndices.hpp"
 #include <vulkan_helper/engine/executor/ScopedCommandBufferExecutor.hpp>
 #include "vulkan_helper/util/BarrierUtils.hpp"
-#include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
     void CPCBoxBlur::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
@@ -60,7 +59,7 @@ namespace merutilm::rff2 {
 
     void CPCBoxBlur::initSize() const {
         auto &desc = getDescriptor(SET_BLUR_IMAGE);
-        const uint32_t maxFramesInFlight = wc.core.getPhysicalDevice().getMaxFramesInFlight();
+        const uint32_t maxFramesInFlight = wc.core.getPhysicalDeviceLoader().getMaxFramesInFlight();
         for (uint32_t i = 0; i < BOX_BLUR_COUNT; ++i) {
             desc.get<vkh::StorageImage>(i, BINDING_BLUR_IMAGE_SRC).ctx = std::vector<vkh::ImageContext>(
                 maxFramesInFlight);
@@ -103,21 +102,8 @@ namespace merutilm::rff2 {
     void CPCBoxBlur::renderContextRefreshed() {
         using namespace SharedImageContextIndices;
         auto &sic = wc.getSharedImageContext();
-        switch (wc.getAttachmentIndex()) {
-            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                setGaussianBlur(sic.getImageContextMF(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
+        setGaussianBlur(sic.getImageContextMF(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
                                 sic.getImageContextMF(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
-                break;
-            }
-            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
-                setGaussianBlur(sic.getImageContextMF(MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_PRIMARY),
-                                sic.getImageContextMF(MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_SECONDARY));
-                break;
-            }
-            default: {
-                //noop
-            }
-        }
     }
 
 

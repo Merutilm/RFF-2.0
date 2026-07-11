@@ -39,7 +39,7 @@ layout (location = 0) out vec4 color;
 
 vec4 get_color(double iteration) {
 
-    if (iteration == 0 || iteration >= iteration_info_settings.max_value) {
+    if (iteration >= iteration_info_settings.max_value) {
         return vec4(0, 0, 0, 1);
     }
 
@@ -81,7 +81,7 @@ vec4 get_color(double iteration) {
 }
 
 double get_iteration(uvec2 iterCoord) {
-    iterCoord.y = iteration_info_settings.extent.y - iterCoord.y;
+    iterCoord.y = iteration_info_settings.extent.y - iterCoord.y - 1;
     return iteration_settings.iterations[iterCoord.y * iteration_info_settings.extent.x + iterCoord.x];
 }
 

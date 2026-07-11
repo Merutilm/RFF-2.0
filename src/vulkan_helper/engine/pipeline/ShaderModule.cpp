@@ -6,18 +6,25 @@
 
 #include <algorithm>
 
+#include <filesystem>
 #include <fstream>
+#include <stdexcept>
+#include <string>
 #include <vulkan_helper/base/vkh_base.hpp>
 
+#include "vulkan_helper/util/ExecutableUtils.hpp"
+
+
 namespace merutilm::vkh {
+
     ShaderModule::ShaderModule(Core &core, const std::string &filename) :
-        CoreHandler(core), shaderStage(getShaderStage(filename)), filename(SHADER_PATH_PREFIX + filename + ".spv") {
+        CoreHandler(core), shaderStage(findShaderStageForName(filename)), filename(SHADER_PATH_PREFIX + filename + ".spv") {
         ShaderModule::init();
     }
 
     ShaderModule::~ShaderModule() { ShaderModule::cleanup(); }
 
-    VkShaderStageFlagBits ShaderModule::getShaderStage(const std::string &filename) {
+    VkShaderStageFlagBits ShaderModule::findShaderStageForName(const std::string &filename) {
         std::string filenameLower = filename;
         std::ranges::transform(filename, filenameLower.begin(), tolower);
 
@@ -34,29 +41,28 @@ namespace merutilm::vkh {
     }
 
 
+
     void ShaderModule::init() {
-        std::array<wchar_t, MAX_PATH> modulePath;
-        GetModuleFileNameW(nullptr, modulePath.data(), modulePath.size());
-        std::ifstream file(std::filesystem::path(modulePath.data()) / ".." / filename, std::ios::binary);
+
+        std::ifstream file(ExecutableUtils::getExecutableDirectory()/ ".." / filename, std::ios::binary);
         if (!file.is_open()) {
             throw exception_invalid_args("invalid filename : " + filename);
         }
-        auto code = std::vector(std::istreambuf_iterator(file), {});
+        auto codeStr = std::vector(std::istreambuf_iterator(file), {});
         const VkShaderModuleCreateInfo info = {
                 .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
-                .codeSize = code.size(),
-                .pCode = reinterpret_cast<uint32_t *>(code.data()),
+                .codeSize = codeStr.size(),
+                .pCode = reinterpret_cast<uint32_t *>(codeStr.data()),
         };
-        if (vkCreateShaderModule(core.getLogicalDevice().getLogicalDeviceHandle(), &info, nullptr,
-                              &shaderModule) != VK_SUCCESS) {
+        if (vkCreateShaderModule(core.getLogicalDevice().getLogicalDeviceHandle(), &info, nullptr, &shaderModule) !=
+            VK_SUCCESS) {
             throw exception_init("Failed to create shader module!");
         }
     }
 
     void ShaderModule::cleanup() {
-       vkDestroyShaderModule(core.getLogicalDevice().getLogicalDeviceHandle(), shaderModule,
-                          nullptr);
+        vkDestroyShaderModule(core.getLogicalDevice().getLogicalDeviceHandle(), shaderModule, nullptr);
     }
 } // namespace merutilm::vkh

@@ -10,29 +10,31 @@
 
 namespace merutilm::rff2 {
 
+#ifdef _WIN32
     std::function<void()> CallbackShader::fnPalette(AppRenderManager &arm) {
         return [&arm] {
+
             auto &[colors, iterationColoring, singleIterationColoring,iterationInterval, offsetRatio, animationSpeed] =
                     arm.getSettings().shader.palette;
-            auto window = std::make_unique<SettingsWindow>(L"Set Palette");
+            auto window = std::make_unique<SettingsWindow>("Set Palette");
             window->registerTextInput<float>(
-                    L"Iteration Interval", &iterationInterval, Unparser::FLOAT, Parser::FLOAT,
+                    "Iteration Interval", &iterationInterval, Unparser::FLOAT, Parser::FLOAT,
                     ValidCondition::POSITIVE_FLOAT, [&arm] { arm.getRequests().requestShader(); },
-                    L"Set Iteration Interval", L"Required iterations for the palette to cycle once");
+                    "Set Iteration Interval", "Required iterations for the palette to cycle once");
             window->registerTextInput<float>(
-                    L"Offset Ratio", &offsetRatio, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Offset Ratio",
-                    L"Start offset ratio of cycling palette. 0.0 ~ 1.0 value required.");
+                    "Offset Ratio", &offsetRatio, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Offset Ratio",
+                    "Start offset ratio of cycling palette. 0.0 ~ 1.0 value required.");
             window->registerTextInput<float>(
-                    L"Animation Speed", &animationSpeed, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Animation Speed",
-                    L"Color Animation Speed, The colors' offset(iterations) per second.");
+                    "Animation Speed", &animationSpeed, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Animation Speed",
+                    "Color Animation Speed, The colors' offset(iterations) per second.");
             window->registerRadioButtonInput<ShdIterationColoringMethod>(
-                    L"Iteration Coloring", &iterationColoring, [&arm] { arm.getRequests().requestShader(); },
-                    L"Iteration Coloring", L"Iteration Coloring method");
+                    "Iteration Coloring", &iterationColoring, [&arm] { arm.getRequests().requestShader(); },
+                    "Iteration Coloring", "Iteration Coloring method");
             window->registerRadioButtonInput<ShdPalSingleIterationColoringMethod>(
-                    L"Single Iteration Coloring", &singleIterationColoring, [&arm] { arm.getRequests().requestShader(); },
-                    L"Single Iteration Coloring", L"Single Iteration Coloring method");
+                    "Single Iteration Coloring", &singleIterationColoring, [&arm] { arm.getRequests().requestShader(); },
+                    "Single Iteration Coloring", "Single Iteration Coloring method");
             window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
             arm.setCurrentSettingsWindows(std::move(window));
         };
@@ -41,33 +43,33 @@ namespace merutilm::rff2 {
         return [&arm] {
             auto &[stripeType, firstInterval, secondInterval, opacity, offset, animationSpeed, iterationColoring] =
                     arm.getSettings().shader.stripe;
-            auto window = std::make_unique<SettingsWindow>(L"Set Stripe");
+            auto window = std::make_unique<SettingsWindow>("Set Stripe");
             window->registerRadioButtonInput<ShdStripeType>(
-                    L"Stripe Type", &stripeType, [&arm] { arm.getRequests().requestShader(); }, L"Set Stripe Type",
-                    L"Sets the stripe type");
+                    "Stripe Type", &stripeType, [&arm] { arm.getRequests().requestShader(); }, "Set Stripe Type",
+                    "Sets the stripe type");
             window->registerTextInput<float>(
-                    L"Interval 1", &firstInterval, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set interval 1",
-                    L"Sets the first Stripe Interval");
+                    "Interval 1", &firstInterval, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set interval 1",
+                    "Sets the first Stripe Interval");
             window->registerTextInput<float>(
-                    L"Interval 2", &secondInterval, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set interval 2",
-                    L"Sets the second Stripe Interval");
+                    "Interval 2", &secondInterval, Unparser::FLOAT, Parser::FLOAT, ValidCondition::POSITIVE_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set interval 2",
+                    "Sets the second Stripe Interval");
             window->registerTextInput<float>(
-                    L"Opacity", &opacity, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set opacity", L"Sets the opacity of stripes.");
+                    "Opacity", &opacity, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set opacity", "Sets the opacity of stripes.");
             window->registerTextInput<float>(
-                    L"Offset", &offset, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set offset ratio",
-                    L"Start offset iteration of stripes.");
+                    "Offset", &offset, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set offset ratio",
+                    "Start offset iteration of stripes.");
             window->registerTextInput<float>(
-                    L"Animation Speed", &animationSpeed, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Animation Speed",
-                    L"Sets the stripe animation speed.");
+                    "Animation Speed", &animationSpeed, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Animation Speed",
+                    "Sets the stripe animation speed.");
 
             window->registerRadioButtonInput<ShdIterationColoringMethod>(
-                   L"Iteration Coloring", &iterationColoring, [&arm] { arm.getRequests().requestShader(); },
-                   L"Iteration Coloring", L"Iteration Coloring method");
+                   "Iteration Coloring", &iterationColoring, [&arm] { arm.getRequests().requestShader(); },
+                   "Iteration Coloring", "Iteration Coloring method");
             window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
             arm.setCurrentSettingsWindows(std::move(window));
         };
@@ -75,29 +77,29 @@ namespace merutilm::rff2 {
     std::function<void()> CallbackShader::fnSlope(AppRenderManager &arm) {
         return [&arm] {
             auto &[depth, reflectionRatio, opacity, zenith, azimuth] = arm.getSettings().shader.slope;
-            auto window = std::make_unique<SettingsWindow>(L"Set Slope");
+            auto window = std::make_unique<SettingsWindow>("Set Slope");
             window->registerTextInput<float>(
-                    L"Depth", &depth, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Depth", L"Sets the depth of slope.");
+                    "Depth", &depth, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Depth", "Sets the depth of slope.");
 
             window->registerTextInput<float>(
-                    L"Reflection Ratio", &reflectionRatio, Unparser::FLOAT, Parser::FLOAT,
+                    "Reflection Ratio", &reflectionRatio, Unparser::FLOAT, Parser::FLOAT,
                     ValidCondition::FLOAT_ZERO_TO_ONE, [&arm] { arm.getRequests().requestShader(); },
-                    L"Set Reflection Ratio", L"Sets the reflection ratio of the slope. same as minimum brightness.");
+                    "Set Reflection Ratio", "Sets the reflection ratio of the slope. same as minimum brightness.");
 
             window->registerTextInput<float>(
-                    L"Opacity", &opacity, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Opacity", L"Sets the opacity of the slope.");
+                    "Opacity", &opacity, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Opacity", "Sets the opacity of the slope.");
 
             window->registerTextInput<float>(
-                    L"Zenith", &zenith, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_DEGREE,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Zenith",
-                    L"Sets the zenith of the slope. 0 ~ 360 value is required.");
+                    "Zenith", &zenith, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_DEGREE,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Zenith",
+                    "Sets the zenith of the slope. 0 ~ 360 value is required.");
 
             window->registerTextInput<float>(
-                    L"Azimuth", &azimuth, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_DEGREE,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Azimuth",
-                    L"Sets the azimuth of the slope. 0 ~ 360 value is required.");
+                    "Azimuth", &azimuth, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_DEGREE,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Azimuth",
+                    "Sets the azimuth of the slope. 0 ~ 360 value is required.");
             window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
             arm.setCurrentSettingsWindows(std::move(window));
 
@@ -106,25 +108,25 @@ namespace merutilm::rff2 {
     std::function<void()> CallbackShader::fnColor(AppRenderManager &arm) {
         return [&arm] {
             auto &[gamma, exposure, hue, saturation, brightness, contrast] = arm.getSettings().shader.color;
-            auto window = std::make_unique<SettingsWindow>(L"Set Color");
+            auto window = std::make_unique<SettingsWindow>("Set Color");
             window->registerTextInput<float>(
-                    L"Gamma", &gamma, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Gamma", L"Sets the gamma.");
+                    "Gamma", &gamma, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Gamma", "Sets the gamma.");
             window->registerTextInput<float>(
-                    L"Exposure", &exposure, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Exposure", L"Sets the exposure.");
+                    "Exposure", &exposure, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Exposure", "Sets the exposure.");
             window->registerTextInput<float>(
-                    L"Hue", &hue, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set hue", L"Sets the hue.");
+                    "Hue", &hue, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set hue", "Sets the hue.");
             window->registerTextInput<float>(
-                    L"Saturation", &saturation, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Saturation", L"Sets the saturation.");
+                    "Saturation", &saturation, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Saturation", "Sets the saturation.");
             window->registerTextInput<float>(
-                    L"Brightness", &brightness, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Brightness", L"Sets the brightness.");
+                    "Brightness", &brightness, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Brightness", "Sets the brightness.");
             window->registerTextInput<float>(
-                    L"Contrast", &contrast, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Contrast", L"Sets the contrast.");
+                    "Contrast", &contrast, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Contrast", "Sets the contrast.");
             window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
             arm.setCurrentSettingsWindows(std::move(window));
         };
@@ -132,13 +134,13 @@ namespace merutilm::rff2 {
     std::function<void()> CallbackShader::fnFog(AppRenderManager &arm) {
         return [&arm] {
             auto &[radius, opacity] = arm.getSettings().shader.fog;
-            auto window = std::make_unique<SettingsWindow>(L"Set Fog");
+            auto window = std::make_unique<SettingsWindow>("Set Fog");
             window->registerTextInput<float>(
-                    L"Radius", &radius, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Radius", L"Sets the radius of the fog.");
+                    "Radius", &radius, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Radius", "Sets the radius of the fog.");
             window->registerTextInput<float>(
-                    L"Opacity", &opacity, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Opacity", L"Sets the opacity of the fog.");
+                    "Opacity", &opacity, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Opacity", "Sets the opacity of the fog.");
             window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
             arm.setCurrentSettingsWindows(std::move(window));
         };
@@ -146,28 +148,29 @@ namespace merutilm::rff2 {
     std::function<void()> CallbackShader::fnBloom(AppRenderManager &arm) {
         return [&arm] {
             auto &[threshold, radius, softness, intensity] = arm.getSettings().shader.bloom;
-            auto window = std::make_unique<SettingsWindow>(L"Set Bloom");
+            auto window = std::make_unique<SettingsWindow>("Set Bloom");
             window->registerTextInput<float>(
-                    L"Threshold", &threshold, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Threshold", L"Sets the threshold of the bloom.");
+                    "Threshold", &threshold, Unparser::FLOAT, Parser::FLOAT, ValidCondition::FLOAT_ZERO_TO_ONE,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Threshold", "Sets the threshold of the bloom.");
             window->registerTextInput<float>(
-                    L"Radius", &radius, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Radius", L"Sets the radius of the bloom.");
+                    "Radius", &radius, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Radius", "Sets the radius of the bloom.");
             window->registerTextInput<float>(
-                    L"Softness", &softness, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Softness", L"Sets the softness of the bloom.");
+                    "Softness", &softness, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Softness", "Sets the softness of the bloom.");
             window->registerTextInput<float>(
-                    L"Intensity", &intensity, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
-                    [&arm] { arm.getRequests().requestShader(); }, L"Set Intensity", L"Sets the intensity of the bloom.");
+                    "Intensity", &intensity, Unparser::FLOAT, Parser::FLOAT, ValidCondition::ALL_FLOAT,
+                    [&arm] { arm.getRequests().requestShader(); }, "Set Intensity", "Sets the intensity of the bloom.");
             window->setWindowCloseFunction([&arm] { arm.setCurrentSettingsWindows(nullptr); });
             arm.setCurrentSettingsWindows(std::move(window));
         };
     }
-    std::function<void()> CallbackShader::fnLoadKfrPalette(AppRenderManager &arm) {
+#endif
+    std::function<void()> CallbackShader::fnLoadKfrPalette(RFFApplication &arm) {
         return [&arm] {
             const auto colors = KFRColorLoader::loadPaletteSettings();
             if (colors.empty()) {
-                MessageBoxW(nullptr, L"No colors found", L"Error", MB_OK | MB_ICONERROR);
+                vkh::logger::log_err("No colors found");
                 return;
             }
             arm.getSettings().shader.palette.colors = colors;

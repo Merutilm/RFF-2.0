@@ -6,7 +6,6 @@
 #include "RCC3.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
-#include "../constants/VulkanWindowConstants.hpp"
 
 namespace merutilm::rff2 {
     void GPCBloom::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
@@ -20,7 +19,7 @@ namespace merutilm::rff2 {
         auto &bloomUBOHost = bloomUBO.getHostObject();
 
         if (bloomUBO.isLocked()) {
-            bloomUBO.unlock(wc.getCommandPool());
+            bloomUBO.unlock(engine.getCommandPool());
         }
 
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_THRESHOLD, bloom.threshold);
@@ -28,7 +27,7 @@ namespace merutilm::rff2 {
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_SOFTNESS, bloom.softness);
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_INTENSITY, bloom.intensity);
         bloomUBO.update();
-        bloomUBO.lock(wc.getCommandPool());
+        bloomUBO.lock(engine.getCommandPool());
 
         writeDescriptorMF([&bloomDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             bloomDesc.queue(queue, frameIndex, {}, {DescBloom::BINDING_UBO_BLOOM});
@@ -43,32 +42,13 @@ namespace merutilm::rff2 {
         using namespace SharedDescriptorTemplate;
         auto &sic = wc.getSharedImageContext();
         auto &bloomDesc = getDescriptor(SET_BLOOM_CANVAS);
-
-        switch (wc.getAttachmentIndex()) {
-            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                bloomDesc.get<vkh::CombinedImageSampler>(0, BINDING_BLOOM_CANVAS_ORIGINAL).setImageContextMF(
-                    sic.getImageContextMF(
-                        SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY));
-                bloomDesc.get<vkh::CombinedImageSampler>(0, BINDING_BLOOM_CANVAS_BLURRED).setImageContextMF(
-                    sic.getImageContextMF(
-                        SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY)
-                );
-                break;
-            }
-            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
-                bloomDesc.get<vkh::CombinedImageSampler>(0, BINDING_BLOOM_CANVAS_ORIGINAL).setImageContextMF(
-                    sic.getImageContextMF(
-                        SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_SECONDARY));
-                bloomDesc.get<vkh::CombinedImageSampler>(0, BINDING_BLOOM_CANVAS_BLURRED).setImageContextMF(
-                    sic.getImageContextMF(
-                        SharedImageContextIndices::MF_VIDEO_RENDER_DOWNSAMPLED_IMAGE_SECONDARY)
-                );
-                break;
-            }
-            default: {
-                //noop
-            }
-        }
+        bloomDesc.get<vkh::CombinedImageSampler>(0, BINDING_BLOOM_CANVAS_ORIGINAL).setImageContextMF(
+                            sic.getImageContextMF(
+                                SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY));
+        bloomDesc.get<vkh::CombinedImageSampler>(0, BINDING_BLOOM_CANVAS_BLURRED).setImageContextMF(
+            sic.getImageContextMF(
+                SharedImageContextIndices::MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_SECONDARY)
+        );
 
 
         writeDescriptorMF([&bloomDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {

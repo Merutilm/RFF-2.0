@@ -8,7 +8,7 @@
 namespace merutilm::vkh {
 
     void SwapchainUtils::changeFrameIndex(Core &core, uint32_t *frameIndex) {
-        ++*frameIndex %= core.getPhysicalDevice().getMaxFramesInFlight();
+        ++*frameIndex %= core.getPhysicalDeviceLoader().getMaxFramesInFlight();
     }
 
     uint32_t SwapchainUtils::begin(WindowContext &wc, const uint32_t frameIndex) {
@@ -21,8 +21,11 @@ namespace merutilm::vkh {
         wc.getSyncObject().getFence(frameIndex).waitAndReset();
 
         uint32_t swapchainImageIndex = 0;
-        vkAcquireNextImageKHR(device, swapchainHandle, UINT64_MAX, imageAvailableSemaphore, nullptr,
-                          &swapchainImageIndex);
+        VkResult result;
+        if ((result = vkAcquireNextImageKHR(device, swapchainHandle, UINT64_MAX, imageAvailableSemaphore, nullptr,
+                                            &swapchainImageIndex)) != VK_SUCCESS) {
+            throw exception_invalid_state("Failed to acquire swapchain image! " + std::to_string(result));
+        }
         return swapchainImageIndex;
     }
     void SwapchainUtils::end(WindowContext &wc, const uint32_t frameIndex, uint32_t swapchainImageIndex) {
@@ -36,6 +39,7 @@ namespace merutilm::vkh {
                                               .pSwapchains = &swapchainHandle,
                                               .pImageIndices = &swapchainImageIndex,
                                               .pResults = nullptr};
+
         wc.core.getLogicalDevice().queuePresent(&presentInfo);
     }
 

@@ -29,6 +29,6 @@ namespace merutilm::vkh {
 
         static void destroyContext(Core & core, const MultiframeImageContext & imgCtx);
 
-        static MultiframeImageContext fromSwapchain(Core & core, Swapchain & swapchain);
+        static MultiframeImageContext fromSwapchain(Core & core, const Swapchain & swapchain);
     };
 }

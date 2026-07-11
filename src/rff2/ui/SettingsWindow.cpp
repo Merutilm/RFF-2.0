@@ -2,12 +2,13 @@
 // Created by Merutilm on 2025-05-13.
 //
 
+#ifdef _WIN32
 #include "SettingsWindow.hpp"
 #include "../constants/Constants.hpp"
 
 
 namespace merutilm::rff2 {
-    SettingsWindow::SettingsWindow(const std::wstring &name) {
+    SettingsWindow::SettingsWindow(const std::string &name) {
         window = CreateWindowExW(Constants::Win32::STYLE_EX_SETTINGS_WINDOW, Constants::Win32::CLASS_SETTINGS_WINDOW,
                                  name.data(),
                                  WS_SYSMENU, 0, 0,
@@ -77,8 +78,8 @@ namespace merutilm::rff2 {
                Constants::Win32::GAP_SETTINGS_INPUT;
     }
 
-    void SettingsWindow::createLabel(const std::wstring &settingsName, const std::wstring &descriptionTitle,
-                                     const std::wstring &descriptionDetail, const int nw) {
+    void SettingsWindow::createLabel(const std::string &settingsName, const std::string &descriptionTitle,
+                                     const std::string &descriptionDetail, const int nw) {
         const HWND text = CreateWindowExW(0, WC_STATICW, settingsName.data(),
                                           Constants::Win32::STYLE_LABEL, 0,
                                           getYOffset(), nw,
@@ -196,7 +197,7 @@ namespace merutilm::rff2 {
             }
             if (wParam == VK_RETURN && wnd.checkIndex(index)) {
                 const int length = GetWindowTextLengthW(window) + 1; //include NULL character
-                std::wstring buf(length, '\0');
+                std::string buf(length, '\0');
                 GetWindowTextW(window, buf.data(), length);
 
                 const HDC hdc = GetDC(window);
@@ -229,7 +230,7 @@ namespace merutilm::rff2 {
     }
 
 
-    std::wstring SettingsWindow::currValueToString(const int index) const {
+    std::string SettingsWindow::currValueToString(const int index) const {
         return (*unparsers[index])(references[index]);
     }
 
@@ -238,3 +239,4 @@ namespace merutilm::rff2 {
         this->windowCloseFunction = std::move(function);
     }
 }
+#endif

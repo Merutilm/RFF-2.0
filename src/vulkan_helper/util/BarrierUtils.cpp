@@ -43,6 +43,15 @@ namespace merutilm::vkh {
                               currentLayout, currentLayout, mipLevel, mipLevelCount, srcStageMask, dstStageMask);
     }
 
+    void BarrierUtils::cmdOverlaySwapchain(const VkCommandBuffer commandBuffer, const VkImage swapchainImage) {
+        cmdImageMemoryBarrier(
+                commandBuffer,
+                swapchainImage, VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+                VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+    }
+
     void BarrierUtils::cmdImageMemoryBarrier(const VkCommandBuffer commandBuffer, const VkImage image,
         const VkAccessFlags srcAccessMask, const VkAccessFlags dstAccessMask, const VkImageLayout oldLayout,
         const VkImageLayout newLayout, const uint32_t mipLevel, const uint32_t mipLevelCount,

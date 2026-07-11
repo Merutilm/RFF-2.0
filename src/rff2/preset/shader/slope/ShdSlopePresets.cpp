@@ -7,24 +7,24 @@
 
 namespace merutilm::rff2 {
 
-    std::wstring ShdSlopePresets::Disabled::getName() const {
-        return L"Disabled";
+    std::string ShdSlopePresets::Disabled::getName() const {
+        return "Disabled";
     }
 
     ShdSlopeSettings ShdSlopePresets::Disabled::genSlope() const {
         return ShdSlopeSettings{0, 0, 1.0f, 60, 135};
     }
 
-    std::wstring ShdSlopePresets::NoReflection::getName() const {
-        return L"No Reflection";
+    std::string ShdSlopePresets::NoReflection::getName() const {
+        return "No Reflection";
     }
 
     ShdSlopeSettings ShdSlopePresets::NoReflection::genSlope() const {
         return ShdSlopeSettings{300, 0, 1.0f, 60, 135};
     }
 
-    std::wstring ShdSlopePresets::Reflective::getName() const {
-        return L"Reflective";
+    std::string ShdSlopePresets::Reflective::getName() const {
+        return "Reflective";
     }
 
     ShdSlopeSettings ShdSlopePresets::Reflective::genSlope() const {
@@ -32,32 +32,32 @@ namespace merutilm::rff2 {
     }
 
 
-    std::wstring ShdSlopePresets::Translucent::getName() const {
-        return L"Translucent";
+    std::string ShdSlopePresets::Translucent::getName() const {
+        return "Translucent";
     }
 
     ShdSlopeSettings ShdSlopePresets::Translucent::genSlope() const {
         return ShdSlopeSettings{300, 0, 0.5f, 60, 135};
     }
 
-    std::wstring ShdSlopePresets::Reversed::getName() const {
-        return L"Reversed";
+    std::string ShdSlopePresets::Reversed::getName() const {
+        return "Reversed";
     }
 
     ShdSlopeSettings ShdSlopePresets::Reversed::genSlope() const {
         return ShdSlopeSettings{-300, 0, 0.5f, 60, 135};
     }
 
-    std::wstring ShdSlopePresets::Micro::getName() const {
-        return L"Micro";
+    std::string ShdSlopePresets::Micro::getName() const {
+        return "Micro";
     }
 
     ShdSlopeSettings ShdSlopePresets::Micro::genSlope() const {
         return ShdSlopeSettings{3, 0, 0.5f, 60, 135};
     }
 
-    std::wstring ShdSlopePresets::Nano::getName() const {
-        return L"Nano";
+    std::string ShdSlopePresets::Nano::getName() const {
+        return "Nano";
     }
 
     ShdSlopeSettings ShdSlopePresets::Nano::genSlope() const {

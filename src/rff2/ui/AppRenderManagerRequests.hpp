@@ -10,22 +10,18 @@ namespace merutilm::rff2 {
     struct AppRenderManagerRequests {
         std::atomic<bool> defaultSettingsRequested = false;
         std::atomic<bool> recomputeRequested = false;
-        std::atomic<bool> resizeRequested = false;
         std::atomic<bool> shaderRequested = false;
         std::atomic<bool> createImageRequested = false;
         std::string createImageRequestedFilename;
 
         void requestDefaultSettings() {
             defaultSettingsRequested = true;
-        };
+        }
 
         void requestShader() {
             shaderRequested = true;
         }
 
-        void requestResize() {
-            resizeRequested = true;
-        }
 
         void requestRecompute() {
             recomputeRequested = true;

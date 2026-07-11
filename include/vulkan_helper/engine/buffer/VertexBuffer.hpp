@@ -32,20 +32,21 @@ namespace merutilm::vkh {
             return bindingDescriptions;
         }
 
-    private:
+    protected:
 
         void init() override;
 
         void cleanup() override;
 
+    private:
         template<typename T>
-        static VkFormat getFormat();
+        static VkFormat findFormat();
     };
 
 
 
     template<typename T>
-    VkFormat VertexBuffer::getFormat() {
+    VkFormat VertexBuffer::findFormat() {
         if constexpr (std::is_same_v<T, float>) {
             return VK_FORMAT_R32_SFLOAT;
         }

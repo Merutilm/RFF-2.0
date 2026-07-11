@@ -7,9 +7,11 @@
 #include <vulkan_helper/engine/wrapped/RenderPassAttachment.hpp>
 #include <vulkan_helper/engine/wrapped/RenderPassAttachmentType.hpp>
 
+#include "vulkan_helper/engine/wrapped/RenderPassAttachmentReferenceDetail.hpp"
+
 namespace merutilm::vkh {
     struct RenderPassManager {
-        std::vector<RenderPassAttachment> attachments = {};
+        std::vector<std::unique_ptr<RenderPassAttachment>> attachments = {};
         std::vector<std::vector<uint32_t> > preserveIndices = {};
         std::vector<std::unordered_map<RenderPassAttachmentType, std::vector<VkAttachmentReference> > >attachmentReferences{};
         std::vector<VkSubpassDependency> subpassDependencies = {};
@@ -28,24 +30,21 @@ namespace merutilm::vkh {
         RenderPassManager &operator=(RenderPassManager &&) = delete;
 
 
-        void setPreserved(uint32_t attachmentIndex);
+        void setPreserved(const RenderPassAttachment &attachment, uint32_t subpassIndex = UINT32_MAX);
+
+        void appendSubpass();
 
 
-        void unsetPreserved(uint32_t attachmentIndex);
+        void appendReference(const RenderPassAttachment * targetAttachment, const RenderPassAttachmentReference &attachmentReference,
+                             uint32_t subpassIndex = UINT32_MAX);
 
-
-        void appendSubpass(uint32_t subpassIndexExpected);
-
-
-        void appendReference(uint32_t attachmentIndex,
-                             RenderPassAttachmentType attachmentType, VkImageLayout layoutToUse);
-
-        void appendAttachment(uint32_t attachmentIndexExpected,
-                              const VkAttachmentDescription &attachmentDescription,
-                              const MultiframeImageContext &imageContext);
+        RenderPassAttachment &appendAttachment(const VkAttachmentDescription &attachmentDescription,
+                                               const MultiframeImageContext &imageContext);
 
 
         void appendDependency(const VkSubpassDependency &subpassDependency);
+
+        [[nodiscard]] uint32_t subpassIndexToIndex(uint32_t subpassIndex) const;
     };
 
 }

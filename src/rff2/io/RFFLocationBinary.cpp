@@ -72,7 +72,7 @@ namespace merutilm::rff2 {
             IOUtilities::encodeAndWrite(out, imag.data(), imag.length());
             out.close();
         } else {
-            vkh::logger::w_log(L"ERROR : Cannot save file");
+            vkh::logger::log_err("ERROR : Cannot save file");
         }
     }
 

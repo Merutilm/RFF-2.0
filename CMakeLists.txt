@@ -2,22 +2,19 @@ cmake_minimum_required(VERSION 3.31)
 project(RFF)
 
 
-if(NOT DEFINED ENV{MSYS2_ROOT})
-    message(FATAL_ERROR "MSYS2_ROOT not set. Add the your Windows environment variable named MSYS2_ROOT.")
-endif()
-
-set(CLANG64_DIRS "$ENV{MSYS2_ROOT}/clang64")
-set(CLANG64_LIBS "${CLANG64_DIRS}/lib")
+if (NOT UNIX)
+    if (NOT DEFINED ENV{MSYS2_ROOT})
+        set(CLANG64_DIRS "$ENV{MSYS2_ROOT}/clang64")
+        set(CLANG64_LIBS "${CLANG64_DIRS}/lib")
+    endif ()
+endif ()
 
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set(CMAKE_RC_COMPILER ${CLANG64_DIRS}/bin/windres.exe)
-
 
 add_executable(
         RFF
-        res/resources.rc
         src/rff2/ui/Main.cpp
         src/rff2/io/RFFDynamicMapBinary.cpp
         src/rff2/parallel/ParallelRenderState.cpp
@@ -46,8 +43,7 @@ add_executable(
         src/rff2/io/KFRColorLoader.cpp
         extern/stb_image.c
         src/rff2/vulkan/GPCIterationPalette.cpp
-        src/rff2/ui/AppRenderManager.cpp
-        src/rff2/ui/AppLauncher.cpp
+        src/rff2/ui/RFFApplication.cpp
         src/rff2/vulkan/GPCStripe.cpp
         src/rff2/vulkan/GPCSlope.cpp
         src/rff2/vulkan/GPCColor.cpp
@@ -70,7 +66,6 @@ add_executable(
         src/rff2/calc/complex.hpp
 )
 
-
 target_compile_options(RFF PRIVATE
         #Debug options
         $<$<CONFIG:Debug>:-O0>
@@ -78,13 +73,13 @@ target_compile_options(RFF PRIVATE
         $<$<CONFIG:Release>:-O3 -ffast-math -fno-associative-math -funroll-loops -march=native -mllvm -inline-threshold=4000>
 )
 
-target_compile_definitions(RFF
-        PRIVATE
-        VK_USE_PLATFORM_WIN32_KHR
-)
-
 add_subdirectory(src/vulkan_helper)
 
+
+target_link_libraries(RFF PRIVATE
+        # Vulkan Helper
+        vulkan_helper
+)
 
 target_include_directories(RFF PRIVATE
         # extern sources
@@ -94,33 +89,91 @@ target_include_directories(RFF PRIVATE
         # clang include dirs
         ${CLANG64_DIRS}/include
         # opencv4 include dirs
-        ${CLANG64_DIRS}/include/opencv4
 )
+if (WIN32)
+    target_link_libraries(
+            RFF PRIVATE
+            # GMP Linker
+            ${CLANG64_LIBS}/libgmp.a
+            # OpenCV Linkers
+            ${CLANG64_LIBS}/libopencv_core.dll.a
+            ${CLANG64_LIBS}/libopencv_imgcodecs.dll.a
+            ${CLANG64_LIBS}/libopencv_imgproc.dll.a
+            ${CLANG64_LIBS}/libopencv_videoio.dll.a
+            ${CLANG64_LIBS}/libopencv_highgui.dll.a
+    )
 
-target_link_libraries(RFF PRIVATE
-        # GMP Linker
-        ${CLANG64_LIBS}/libgmp.a
-        # Win32 Linker
-        comctl32
-        # OpenCV Linkers
-        ${CLANG64_LIBS}/libopencv_core.dll.a
-        ${CLANG64_LIBS}/libopencv_imgcodecs.dll.a
-        ${CLANG64_LIBS}/libopencv_imgproc.dll.a
-        ${CLANG64_LIBS}/libopencv_videoio.dll.a
-        ${CLANG64_LIBS}/libopencv_highgui.dll.a
-        # Vulkan Helper
-        vulkan_helper
-)
 
+    target_include_directories(RFF PRIVATE
+            # opencv4 include dirs
+            ${CLANG64_DIRS}/include/opencv4
+    )
+elseif (APPLE)
+    target_link_libraries(RFF PRIVATE "-framework Cocoa")
+    # TODO non compilable
+elseif (UNIX)
+
+    macro(find_static_library OUT_VAR LIB_NAME)
+        find_library(${OUT_VAR}
+                NAMES lib${LIB_NAME}.a
+                PATHS
+                /usr/lib
+                /usr/lib/x86_64-linux-gnu
+                /usr/local/lib
+                REQUIRED
+        )
+    endmacro()
+
+
+    find_package(OpenCV REQUIRED)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+
+
+    find_static_library(GMP_STATIC gmp)
+
+    target_link_directories(RFF PRIVATE ${GTK3_LIBRARY_DIRS})
+    target_compile_options(RFF PRIVATE ${GTK3_CFLAGS_OTHER})
+
+    target_link_libraries(RFF PRIVATE
+            # GMP Linker
+            ${GMP_STATIC}
+            # gtk libraries
+            ${GTK3_LIBRARIES}
+            # OpenCV Linkers
+            ${OpenCV_LIBS}
+    )
+    target_include_directories(RFF PRIVATE
+            # opencv4 include dirs
+            ${OpenCV_INCLUDE_DIRS}
+            # gtk
+            ${GTK3_INCLUDE_DIRS}
+    )
+
+endif ()
 
 macro(RFF_DEFINITION def str flag)
     option(${def} ${str} ${flag})
-    if(${def})
+    if (${def})
         message(STATUS "${def} is Enabled. ${str}")
         target_compile_definitions(RFF PUBLIC ${def})
-    else()
+    else ()
         message(STATUS "${def} is Disabled. Skipping")
     endif ()
 endmacro()
+
+
+
+include(FetchContent)
+
+FetchContent_Declare(
+        nfd
+        GIT_REPOSITORY https://github.com/btzy/nativefiledialog-extended.git
+        GIT_TAG master
+)
+
+FetchContent_MakeAvailable(nfd)
+
+target_link_libraries(RFF PRIVATE nfd)
 
 RFF_DEFINITION(SAFE_DEX_OPERATOR "Better Quality, Slower Speed for Deep Zoom" OFF)

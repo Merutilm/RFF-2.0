@@ -32,24 +32,10 @@ namespace merutilm::rff2 {
     void GPCPresent::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &resampleDesc = getDescriptor(SET_PRESENT);
+        resampleDesc.get<vkh::CombinedImageSampler>(0, BINDING_PRESENT_SAMPLER)
+                .setImageContextMF(
+                        sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY));
 
-        switch (wc.getAttachmentIndex()) {
-            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                resampleDesc.get<vkh::CombinedImageSampler>(0, BINDING_PRESENT_SAMPLER)
-                        .setImageContextMF(
-                                sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY));
-                break;
-            }
-            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
-                resampleDesc.get<vkh::CombinedImageSampler>(0, BINDING_PRESENT_SAMPLER)
-                        .setImageContextMF(
-                                sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_SECONDARY));
-                break;
-            }
-            default: {
-                // noop
-            }
-        }
 
         writeDescriptorMF([&resampleDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             resampleDesc.queue(queue, frameIndex, {}, {BINDING_PRESENT_SAMPLER});

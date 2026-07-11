@@ -161,7 +161,7 @@ namespace merutilm::vkh {
     }
 
     void Descriptor::init() {
-        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+        const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
         const uint32_t ubo = getElementCount<Uniform>();
         const uint32_t ssbo = getElementCount<ShaderStorage>();
         const uint32_t sampler = getElementCount<CombinedImageSampler>();
@@ -231,7 +231,7 @@ namespace merutilm::vkh {
         if (getDescriptorElements() == 0) {
             return;
         }
-        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+        const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
 
         for (int i = 0; i < maxFramesInFlight; ++i) {
             vkDestroyDescriptorPool(core.getLogicalDevice().getLogicalDeviceHandle(),

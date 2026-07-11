@@ -15,7 +15,7 @@ namespace merutilm::vkh {
         Listener<bool> onClick;
         bool checked = false;
 
-        explicit PlatformCheckboxMenuItemBase(std::wstring name, const PlatformMenuBase * parent);
+        explicit PlatformCheckboxMenuItemBase(std::string name, const PlatformMenuBase * parent);
         ~PlatformCheckboxMenuItemBase() override;
         PlatformCheckboxMenuItemBase(const PlatformCheckboxMenuItemBase &) = delete;
         PlatformCheckboxMenuItemBase &operator=(const PlatformCheckboxMenuItemBase &) = delete;

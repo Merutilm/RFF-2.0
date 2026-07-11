@@ -12,11 +12,8 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t SET_BLOOM = 1;
 
-        explicit GPCBloomThreshold(vkh::Engine &engine, const uint32_t windowContextIndex,
-                                   const uint32_t renderContextIndex,
-                                   const uint32_t
-                                   subpassIndex, vkh::VertexBuffer &vertexBufferStaticRef, vkh::IndexBuffer &indexBufferStaticRef) : GeneralPostProcessGraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, subpassIndex, "vk_bloom_threshold.frag", vertexBufferStaticRef, indexBufferStaticRef) {
+        explicit GPCBloomThreshold(vkh::Engine &engine, vkh::WindowContext &wc) : GeneralPostProcessGraphicsPipelineConfigurator(
+            engine, wc, "vk_bloom_threshold.frag") {
         }
 
         ~GPCBloomThreshold() override = default;

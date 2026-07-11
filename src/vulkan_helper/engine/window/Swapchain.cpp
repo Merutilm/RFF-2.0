@@ -7,14 +7,6 @@
 #include <vulkan_helper/base/vkh_base.hpp>
 #include <vulkan_helper/util/BufferImageUtils.hpp>
 
-#ifdef _WIN32
-#include <vulkan_helper/engine/window/win/NativeWindow.hpp>
-#elif __APPLE__
-#include <vulkan_helper/engine/window/mac/NativeWindow.hpp>
-#elif __linux__
-#include <vulkan_helper/engine/window/linux/NativeWindow.hpp>
-#endif
-
 namespace merutilm::vkh {
     Swapchain::Swapchain(Core & core, Surface & surface) : CoreHandler(core), surface(surface) {
         Swapchain::init();
@@ -25,54 +17,40 @@ namespace merutilm::vkh {
     }
 
 
-    void Swapchain::recreate() {
+    void Swapchain::recreate(const VkExtent2D extent) {
         destroyImageViews();
         oldSwapchain = swapchain;
-        createSwapchain(&swapchain, oldSwapchain);
+        createSwapchain(&swapchain, oldSwapchain, extent);
         vkDestroySwapchainKHR(core.getLogicalDevice().getLogicalDeviceHandle(), oldSwapchain, nullptr);
         setupSwapchainImages();
     }
 
 
     void Swapchain::init() {
-        createSwapchain(&swapchain, nullptr);
+        createSwapchain(&swapchain, nullptr, surface.getTargetWindow()->calcCurrentExtent());
         setupSwapchainImages();
     }
 
 
-    VkExtent2D Swapchain::populateSwapchainExtent() const {
+    void Swapchain::updateSwapchainExtent(const VkExtent2D extent) {
         const auto capabilities =
-                core.getPhysicalDevice().populateSurfaceCapabilities(surface.getSurfaceHandle());
+                core.getPhysicalDeviceLoader().populateSurfaceCapabilities(surface.getSurfaceHandle());
+
         if (capabilities.currentExtent.width == UINT32_MAX) {
-            return capabilities.currentExtent;
+            swapchainExtent = extent;
+        }else {
+            swapchainExtent = capabilities.currentExtent;
         }
-
-#ifdef _WIN32
-        const HWND window = dynamic_cast<NativeWindow *>(surface.getTargetWindow())->getRenderWindow();
-        RECT rect;
-        GetClientRect(window, &rect);
-        const VkExtent2D extent = {
-            .width = std::clamp(static_cast<uint32_t>(rect.right - rect.left), capabilities.minImageExtent.width,
-                                capabilities.maxImageExtent.width),
-            .height = std::clamp(static_cast<uint32_t>(rect.bottom - rect.top), capabilities.minImageExtent.height,
-                                 capabilities.maxImageExtent.height),
-
-        };
-        return extent;
-#elif __APPLE__
-
-#elif __linux__
-
-#else
-
-#endif
     }
-    void Swapchain::createSwapchain(VkSwapchainKHR *target, const VkSwapchainKHR old) const {
-        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
-        const auto &[graphicsFamily, presentFamily] = core.getPhysicalDevice().getQueueFamilyIndices();
+
+
+    void Swapchain::createSwapchain(VkSwapchainKHR *target, const VkSwapchainKHR old, const VkExtent2D extent) {
+        const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
+        const auto &[graphicsFamily, presentFamily] = core.getPhysicalDeviceLoader().getQueueFamilyIndices();
         std::array queueFamilyIndices = {graphicsFamily.value(), presentFamily.value()};
 
-        const VkSurfaceCapabilitiesKHR capabilities = core.getPhysicalDevice().populateSurfaceCapabilities(surface.getSurfaceHandle());
+        const VkSurfaceCapabilitiesKHR capabilities = core.getPhysicalDeviceLoader().populateSurfaceCapabilities(surface.getSurfaceHandle());
+        updateSwapchainExtent(extent);
 
         if (const VkSwapchainCreateInfoKHR createInfo = {
             .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -80,9 +58,9 @@ namespace merutilm::vkh {
             .flags = 0,
             .surface = surface.getSurfaceHandle(),
             .minImageCount = maxFramesInFlight,
-            .imageFormat = config::SWAPCHAIN_IMAGE_FORMAT,
+            .imageFormat = core.getPhysicalDeviceLoader().getPrimarySurfaceFormat(),
             .imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
-            .imageExtent = populateSwapchainExtent(),
+            .imageExtent = swapchainExtent,
             .imageArrayLayers = 1,
             .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
             .imageSharingMode = graphicsFamily == presentFamily
@@ -104,15 +82,17 @@ namespace merutilm::vkh {
     }
 
     void Swapchain::setupSwapchainImages() {
-        uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+        uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
         swapchainImages.resize(maxFramesInFlight);
         swapchainImageViews.resize(maxFramesInFlight);
 
         vkGetSwapchainImagesKHR(core.getLogicalDevice().getLogicalDeviceHandle(), swapchain, &maxFramesInFlight,
                                 swapchainImages.data());
+
+
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             BufferImageUtils::createImageView(core.getLogicalDevice().getLogicalDeviceHandle(), swapchainImages[i],
-                                         VK_IMAGE_VIEW_TYPE_2D, config::SWAPCHAIN_IMAGE_FORMAT, &swapchainImageViews[i]);
+                                         VK_IMAGE_VIEW_TYPE_2D, core.getPhysicalDeviceLoader().getPrimarySurfaceFormat(), &swapchainImageViews[i]);
         }
     }
 
@@ -123,7 +103,7 @@ namespace merutilm::vkh {
     }
 
     void Swapchain::destroyImageViews() const {
-        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+        const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             vkDestroyImageView(core.getLogicalDevice().getLogicalDeviceHandle(), swapchainImageViews[i], nullptr);
         }

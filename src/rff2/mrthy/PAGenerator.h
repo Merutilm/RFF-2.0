@@ -29,12 +29,10 @@ namespace merutilm::rff2 {
             start(start), compressors(reference.compressor), epsilon(epsilon), orbit(reference.refOrbit), dcMax(dcMax) {
         }
 
-        virtual ~PAGeneratorBase() = default;
-
     };
 
 
-    template<Number Num, uint32_t MAX_DEGREE = PABase<Num>::MAX_DEGREE>
+    template<Number Num, uint8_t MAX_DEGREE>
     struct PAGenerator : public PAGeneratorBase<Num> {
 
         /**
@@ -61,7 +59,7 @@ namespace merutilm::rff2 {
         [[nodiscard]] complex<dex> tnGet(uint32_t u, uint32_t v) const;
     };
 
-    template<Number Num, uint32_t MAX_DEGREE>
+    template<Number Num, uint8_t MAX_DEGREE>
     PAGenerator<Num, MAX_DEGREE>::PAGenerator(const MB2Reference<Num> &reference, const double epsilon, Num dcMax,
                                               const uint64_t start) :
         PAGeneratorBase<Num>(reference, epsilon, dcMax, start),
@@ -72,13 +70,13 @@ namespace merutilm::rff2 {
         }
     }
 
-    template<Number Num, uint32_t MAX_DEGREE>
+    template<Number Num, uint8_t MAX_DEGREE>
     void PAGenerator<Num, MAX_DEGREE>::merge(const PA<Num, MAX_DEGREE> &pa) {
         // TODO merge
         throw vkh::exception_invalid_state("unsupported operation now");
     }
 
-    template<Number Num, uint32_t MAX_DEGREE>
+    template<Number Num, uint8_t MAX_DEGREE>
     void PAGenerator<Num, MAX_DEGREE>::step() {
 
 
@@ -156,8 +154,9 @@ namespace merutilm::rff2 {
 
 
         if (this->radius < origRadiusTest) {
+            //TODO experimental
             // std::cout << this->skip << " " << static_cast<double>(this->radius) << " " << static_cast<double>(origRadiusTest) << std::endl;
-            // this->radius = origRadiusTest * Num(100000);
+            this->radius = origRadiusTest;
         }
 
 
@@ -165,7 +164,7 @@ namespace merutilm::rff2 {
 
     }
 
-    template<Number Num, uint32_t MAX_DEGREE>
+    template<Number Num, uint8_t MAX_DEGREE>
     complex<dex> PAGenerator<Num, MAX_DEGREE>::tnGet(const uint32_t u, const uint32_t v) const {
         const uint32_t degree = u + v;
 #ifndef NDEBUG
@@ -222,6 +221,9 @@ namespace merutilm::rff2 {
     }
 
 
-    using DeepPAGenerator = PAGenerator<dex>;
-    using LightPAGenerator = PAGenerator<double>;
+    template<uint8_t MAX_DEGREE>
+    using DeepPAGenerator = PAGenerator<dex, MAX_DEGREE>;
+
+    template<uint8_t MAX_DEGREE>
+    using LightPAGenerator = PAGenerator<double, MAX_DEGREE>;
 } // namespace merutilm::rff2

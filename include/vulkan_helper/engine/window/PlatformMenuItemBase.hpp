@@ -14,7 +14,7 @@ namespace merutilm::vkh {
         std::vector<Keybinding> keybindings;
         Listener<> onClick;
 
-        explicit PlatformMenuItemBase(std::wstring name, PlatformMenuBase* parent);
+        explicit PlatformMenuItemBase(std::string name, const PlatformMenuBase * parent);
         ~PlatformMenuItemBase() override;
         PlatformMenuItemBase(const PlatformMenuItemBase &) = delete;
         PlatformMenuItemBase &operator=(const PlatformMenuItemBase &) = delete;

@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include <memory>
+#include <string>
 #include <vector>
 
 #include "vulkan_helper/handle/Handler.hpp"
@@ -13,18 +15,18 @@ namespace merutilm::vkh {
     struct PlatformMenuBase : Handler {
 
 
-        const std::wstring name;
+        const std::string name;
         const PlatformMenuBase * const parent;
         std::vector<std::unique_ptr<PlatformMenuBase>> items;
 
-        explicit PlatformMenuBase(std::wstring name, const PlatformMenuBase *parent);
+        explicit PlatformMenuBase(std::string name, const PlatformMenuBase *parent);
         ~PlatformMenuBase() override;
         PlatformMenuBase(const PlatformMenuBase &) = delete;
         PlatformMenuBase &operator=(const PlatformMenuBase &) = delete;
         PlatformMenuBase(PlatformMenuBase &&other) = delete;
         PlatformMenuBase &operator=(PlatformMenuBase &&other) = delete;
 
-        size_t getItemCount() const {
+        [[nodiscard]] size_t getItemCount() const {
             return items.size();
         }
 

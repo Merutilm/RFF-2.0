@@ -6,18 +6,18 @@
 
 namespace merutilm::vkh {
     struct MouseState {
-        bool isPressed;
-        bool isDragging;
-        int pressedX;
-        int pressedY;
+        bool isDragging{};
+        int lastX{};
+        int lastY{};
+        int pressedX{};
+        int pressedY{};
 
-        MouseState() { reset(); }
-
-        void reset() {
-            isPressed = false;
+        explicit MouseState(const int x, const int y) {
+            lastX = x;
+            lastY = y;
+            pressedX = x;
+            pressedY = y;
             isDragging = false;
-            pressedX = 0;
-            pressedY = 0;
         }
     };
 } // namespace merutilm::vkh

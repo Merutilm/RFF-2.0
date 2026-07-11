@@ -30,7 +30,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] const DescriptorSetLayoutBuilder &getBuilder() const {return layoutBuilder;}
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

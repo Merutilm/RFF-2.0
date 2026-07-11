@@ -4,7 +4,6 @@
 
 #include "GPCDownsampleForBlur.hpp"
 
-#include "../constants/VulkanWindowConstants.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
@@ -32,30 +31,13 @@ namespace merutilm::rff2 {
     void GPCDownsampleForBlur::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &resampleDesc = getDescriptor(SET_RESAMPLE);
-        switch (wc.getAttachmentIndex()) {
-            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                resampleDesc.get<vkh::CombinedImageSampler>(DESC_INDEX_RESAMPLE_IMAGE_FOG, BINDING_RESAMPLE_SAMPLER)
-                        .setImageContextMF(
-                                sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY));
-                resampleDesc.get<vkh::CombinedImageSampler>(DESC_INDEX_RESAMPLE_IMAGE_BLOOM, BINDING_RESAMPLE_SAMPLER)
-                        .setImageContextMF(
-                                sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY));
 
-                break;
-            }
-            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
-                resampleDesc.get<vkh::CombinedImageSampler>(DESC_INDEX_RESAMPLE_IMAGE_FOG, BINDING_RESAMPLE_SAMPLER)
-                        .setImageContextMF(
-                                sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_PRIMARY));
-                resampleDesc.get<vkh::CombinedImageSampler>(DESC_INDEX_RESAMPLE_IMAGE_BLOOM, BINDING_RESAMPLE_SAMPLER)
-                        .setImageContextMF(
-                                sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_PRIMARY));
-                break;
-            }
-            default: {
-                // noop
-            }
-        }
+        resampleDesc.get<vkh::CombinedImageSampler>(DESC_INDEX_RESAMPLE_IMAGE_FOG, BINDING_RESAMPLE_SAMPLER)
+                       .setImageContextMF(
+                               sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY));
+        resampleDesc.get<vkh::CombinedImageSampler>(DESC_INDEX_RESAMPLE_IMAGE_BLOOM, BINDING_RESAMPLE_SAMPLER)
+                .setImageContextMF(
+                        sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY));
 
         writeDescriptorMF([&resampleDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             resampleDesc.queue(queue, frameIndex, {}, {BINDING_RESAMPLE_SAMPLER});

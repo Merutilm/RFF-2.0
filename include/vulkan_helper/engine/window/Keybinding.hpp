@@ -3,10 +3,10 @@
 //
 
 #pragma once
-#include "KeyInput.hpp"
+
 namespace merutilm::vkh {
     struct Keybinding {
-        KeyInput::Key key;
-        KeyInput::Modifier mod;
+        int key;
+        int mod;
     };
 }

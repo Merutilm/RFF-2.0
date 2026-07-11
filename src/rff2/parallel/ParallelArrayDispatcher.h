@@ -3,8 +3,9 @@
 //
 
 #pragma once
-#include "ParallelRenderState.h"
+#include "../constants/FractalConstants.hpp"
 #include "../data/Matrix.h"
+#include "ParallelRenderState.h"
 namespace merutilm::rff2 {
     template<typename T>
     using ParallelArrayRenderer = std::function<T(uint16_t x, uint16_t y, uint16_t xRes, uint16_t yRes, float xRat, float yRat, uint32_t index,
@@ -125,7 +126,7 @@ namespace merutilm::rff2 {
         }
 
         for (uint16_t x = 0; x < xRes; ++x) {
-            if (x % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            if (x % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
 
@@ -143,7 +144,7 @@ namespace merutilm::rff2 {
     void ParallelArrayDispatcher<T>::renderBackward(const uint16_t xRes, const uint16_t yRes, const uint32_t len,
                                                     std::vector<std::atomic<bool> > &rendered) {
         for (uint32_t i = len - 1; i > 0; --i) {
-            if (i % Constants::Fractal::EXIT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            if (i % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
             const auto [px, py] = matrix.getLocation(i);

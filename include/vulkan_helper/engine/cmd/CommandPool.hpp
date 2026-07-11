@@ -27,7 +27,7 @@ namespace merutilm::vkh {
         }
 
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

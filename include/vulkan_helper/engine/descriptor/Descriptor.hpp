@@ -82,13 +82,16 @@ namespace merutilm::vkh {
         void queue(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, DescIndexPicker &&descIndices,
                    DescIndexPicker &&bindings);
 
+
+    protected:
+        void init() override;
+
+        void cleanup() override;
+
     private:
         void updateIndices(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex,
                            const std::vector<uint32_t> &descIndices, const std::vector<uint32_t> &bindings);
 
-        void init() override;
-
-        void cleanup() override;
     };
 
 

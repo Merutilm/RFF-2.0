@@ -2,17 +2,19 @@
 // Created by Merutilm on 2026-02-03.
 //
 #include <vulkan_helper/engine/context/BufferContext.hpp>
+
+#include <cstring>
 #include <vulkan_helper/util/BufferImageUtils.hpp>
 namespace merutilm::vkh {
     BufferContext BufferContext::createContext(Core & core, const BufferInitInfo &bufferInitInfo) {
         BufferContext result = {};
-        BufferImageUtils::initBuffer(core, bufferInitInfo, &result.buffer, &result.bufferMemory);
+        result.allocationSize = BufferImageUtils::initBuffer(core, bufferInitInfo, &result.buffer, &result.bufferMemory);
         result.bufferSize = bufferInitInfo.size;
         return result;
     }
 
     MultiframeBufferContext BufferContext::createMultiframeContext(Core & core, const BufferInitInfo &bufferInitInfo) {
-        const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+        const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
         std::vector<BufferContext> result(maxFramesInFlight);
 
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
@@ -29,7 +31,7 @@ namespace merutilm::vkh {
     }
 
     void BufferContext::mapMemory(Core & core, BufferContext &context) {
-        vkMapMemory(core.getLogicalDevice().getLogicalDeviceHandle(), context.bufferMemory, 0, context.bufferSize,
+        vkMapMemory(core.getLogicalDevice().getLogicalDeviceHandle(), context.bufferMemory, 0, context.allocationSize,
                     0, reinterpret_cast<void **>(&context.mappedMemory));
     }
 
@@ -50,7 +52,7 @@ namespace merutilm::vkh {
             .pNext = nullptr,
             .memory = bufCtx.bufferMemory,
             .offset = 0,
-            .size = bufCtx.bufferSize
+            .size = bufCtx.allocationSize
 
         };
         vkFlushMappedMemoryRanges(device, 1, &mappedMemoryRange);
@@ -70,7 +72,7 @@ namespace merutilm::vkh {
 
     void BufferContext::destroyContext(Core & core, const MultiframeBufferContext &bufCtx) {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
-        for (const auto &[buffer, bufferMemory, bufferSize, mappedMemory]: bufCtx) {
+        for (const auto &[buffer, bufferMemory, bufferSize, allocationSize, mappedMemory]: bufCtx) {
             vkDestroyBuffer(device, buffer, nullptr);
             vkFreeMemory(device, bufferMemory, nullptr);
         }

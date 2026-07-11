@@ -20,7 +20,7 @@ namespace merutilm::vkh {
 
         ShaderStorage operator=(ShaderStorage &&) = delete;
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

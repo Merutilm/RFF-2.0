@@ -19,12 +19,12 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t DESC_COUNT_BLUR_TARGET = 2;
         static constexpr uint32_t DESC_INDEX_BLUR_TARGET_FOG = 0;
-        static constexpr uint32_t DESC_INDEX_BLUR_TARGET_BLOOM = 0;
+        static constexpr uint32_t DESC_INDEX_BLUR_TARGET_BLOOM = 1;
 
         static constexpr uint32_t BOX_BLUR_COUNT = 3;
 
-        explicit CPCBoxBlur(vkh::Engine &engine, const uint32_t windowContextIndex) : ComputePipelineConfigurator(
-            engine, windowContextIndex, "vk_box_blur.comp") {
+        explicit CPCBoxBlur(vkh::Engine &engine, vkh::WindowContext &wc) : ComputePipelineConfigurator(
+           engine, wc, "vk_box_blur.comp") {
         }
 
         ~CPCBoxBlur() override = default;
@@ -51,8 +51,8 @@ namespace merutilm::rff2 {
 
         void setBlurInfo(uint32_t blurSizeDescIndex, float blurSize) const;
 
-        void configure() override {
-            ComputePipelineConfigurator::configure();
+        void configure(vkh::RenderPass *rp, const uint32_t subpass) override {
+            ComputePipelineConfigurator::configure(rp, subpass);
             initSize();
         }
 

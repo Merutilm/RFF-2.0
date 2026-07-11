@@ -4,6 +4,7 @@
 
 #pragma once
 
+#ifdef _WIN32
 #include "../preset/calc/CalculationPresets.h"
 #include "../preset/render/RenderPresets.h"
 #include "../preset/resolution/ResolutionPresets.h"
@@ -13,7 +14,7 @@
 #include "../preset/shader/palette/ShdPalettePresets.h"
 #include "../preset/shader/slope/ShdSlopePresets.h"
 #include "../preset/shader/stripe/ShdStripePresets.h"
-#include "AppRenderManager.hpp"
+#include "RFFApplication.hpp"
 #include "CallbackExplore.hpp"
 #include "CallbackFile.hpp"
 #include "CallbackFractal.hpp"
@@ -161,3 +162,4 @@ namespace merutilm::rff2::SettingsMenuGenerator {
 
 
 } // namespace merutilm::rff2::SettingsMenuGenerator
+#endif

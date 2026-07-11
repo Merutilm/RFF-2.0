@@ -6,7 +6,6 @@
 
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 #include "vulkan_helper/util/DescriptorUpdater.hpp"
-#include "../constants/VulkanWindowConstants.hpp"
 #include "../settings/ShdStripeSettings.h"
 #include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
@@ -47,22 +46,9 @@ namespace merutilm::rff2 {
     void GPCStripe::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &samplerDesc = getDescriptor(SET_PREV_RESULT);
+        const auto &sampler = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY);
+        samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER).setImageContextMF(sampler);
 
-        switch (wc.getAttachmentIndex()) {
-            case Constants::VulkanWindow::MAIN_WINDOW_ATTACHMENT_INDEX: {
-                const auto &sampler = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY);
-                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER).setImageContextMF(sampler);
-                break;
-            }
-            case Constants::VulkanWindow::VIDEO_WINDOW_ATTACHMENT_INDEX: {
-                const auto &sampler = sic.getImageContextMF(SharedImageContextIndices::MF_VIDEO_RENDER_IMAGE_SECONDARY);
-                samplerDesc.get<vkh::CombinedImageSampler>(0, BINDING_PREV_RESULT_SAMPLER).setImageContextMF(sampler);
-                break;
-            }
-            default: {
-                //noop
-            }
-        }
         writeDescriptorMF([&samplerDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             samplerDesc.queue(queue, frameIndex, {}, {BINDING_PREV_RESULT_SAMPLER});
         });

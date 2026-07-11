@@ -18,6 +18,8 @@ namespace merutilm::vkh {
         VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties = {};
         VkPhysicalDeviceFeatures physicalDeviceFeatures = {};
         QueueFamilyIndices queueFamilyIndices;
+        std::vector<VkSurfaceFormatKHR> surfaceFormats;
+        VkFormat primarySurfaceFormat;
         uint32_t maxFramesInFlight;
 
     public:
@@ -55,12 +57,25 @@ namespace merutilm::vkh {
 
         [[nodiscard]] uint32_t getMaxFramesInFlight() const {return maxFramesInFlight;}
 
-    private:
+        [[nodiscard]] const std::vector<VkSurfaceFormatKHR> &getSupportedSurfaceFormats() const {
+            return surfaceFormats;
+        }
 
+        [[nodiscard]] VkFormat getPrimarySurfaceFormat() const {
+            return primarySurfaceFormat;
+        }
+
+
+    protected:
         void init() override;
-        void initToSuitablePhysicalDevice(VkSurfaceKHR surface);
 
         void cleanup() override;
+
+    private:
+        void initToSuitableSurfaceFormat(VkSurfaceKHR surface);
+
+        void initToSuitablePhysicalDevice(VkSurfaceKHR surface);
+
     };
 
 

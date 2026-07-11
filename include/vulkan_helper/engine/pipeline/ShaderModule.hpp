@@ -8,7 +8,7 @@
 namespace merutilm::vkh {
     class ShaderModule final : public CoreHandler {
 
-        static constexpr auto SHADER_PATH_PREFIX = "../shaders/";
+        static constexpr auto SHADER_PATH_PREFIX = "shaders/";
 
         VkShaderStageFlagBits shaderStage;
         VkShaderModule shaderModule = nullptr;
@@ -34,12 +34,14 @@ namespace merutilm::vkh {
 
         [[nodiscard]] const std::vector<char> &getCode() const { return code; }
 
-    private:
-        [[nodiscard]] static VkShaderStageFlagBits getShaderStage(const std::string &filename);
+    protected:
 
         void init() override;
 
         void cleanup() override;
+
+    private:
+        [[nodiscard]] static VkShaderStageFlagBits findShaderStageForName(const std::string &filename);
     };
 
     

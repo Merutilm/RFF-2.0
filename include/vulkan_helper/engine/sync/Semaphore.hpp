@@ -27,7 +27,7 @@ namespace merutilm::vkh {
 
         VkSemaphore getRenderFinished() const { return renderFinished; }
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

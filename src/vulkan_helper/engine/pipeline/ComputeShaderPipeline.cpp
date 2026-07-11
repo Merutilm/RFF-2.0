@@ -5,9 +5,9 @@
 #include <vulkan_helper/engine/pipeline/ComputeShaderPipeline.hpp>
 
 namespace merutilm::vkh {
-    ComputeShaderPipeline::ComputeShaderPipeline(WindowContext &wc, PipelineLayout &pipelineLayout,
+    ComputeShaderPipeline::ComputeShaderPipeline(Core &core, PipelineLayout &pipelineLayout,
                                                  PipelineManager &&pipelineManager) :
-        Pipeline(wc, pipelineLayout, std::move(pipelineManager)) {
+        Pipeline(core, pipelineLayout, std::move(pipelineManager)) {
         ComputeShaderPipeline::init();
     }
 
@@ -41,7 +41,7 @@ namespace merutilm::vkh {
                 .basePipelineHandle = nullptr,
                 .basePipelineIndex = -1};
 
-        if (vkCreateComputePipelines(wc.core.getLogicalDevice().getLogicalDeviceHandle(), nullptr, 1,
+        if (vkCreateComputePipelines(core.getLogicalDevice().getLogicalDeviceHandle(), nullptr, 1,
                               &info, nullptr, &pipeline) != VK_SUCCESS) {
             throw exception_init("Failed to create compute pipeline!");
         }

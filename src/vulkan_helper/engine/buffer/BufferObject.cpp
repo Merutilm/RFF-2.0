@@ -4,6 +4,7 @@
 
 #include <vulkan_helper/engine/buffer/BufferObject.hpp>
 
+#include <cstring>
 #include <vulkan_helper/base/logger.hpp>
 #include <vulkan_helper/engine/executor/ScopedNewCommandBufferExecutor.hpp>
 #include <vulkan_helper/util/BarrierUtils.hpp>
@@ -129,7 +130,7 @@ namespace merutilm::vkh {
             MultiframeBufferContext lockedBuffer = BufferContext::createMultiframeContext(core, info);
             // NEW COMMAND BUFFER
             {
-                const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+                const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
                 BufferContext::unmapMemory(core, getBufferContextMF());
                 const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
 
@@ -180,7 +181,7 @@ namespace merutilm::vkh {
 
     void BufferObject::unlock(CommandPool &commandPool, Fence *const fence) {
         if (!locked) {
-            logger::w_log_err_silent(L"Double-call of BufferObject::unlock()");
+            logger::log_err_silent("Double-call of BufferObject::unlock()");
             return;
         }
         VkBufferUsageFlags lockFlags = 0;
@@ -192,7 +193,7 @@ namespace merutilm::vkh {
                 break;
             case LOCK_ONLY:
             case ALWAYS_MUTABLE: {
-                logger::w_log_err_silent(L"Unlock is not allowed : BufferLock is not LOCK_UNLOCK");
+                logger::log_err_silent("Unlock is not allowed : BufferLock is not LOCK_UNLOCK");
                 return;
             }
         }
@@ -214,7 +215,7 @@ namespace merutilm::vkh {
 
             MultiframeBufferContext unlockedBuffer = BufferContext::createMultiframeContext(core, info);
             {
-                const uint32_t maxFramesInFlight = core.getPhysicalDevice().getMaxFramesInFlight();
+                const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
                 const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
                 for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
                     BarrierUtils::cmdBufferMemoryBarrier(

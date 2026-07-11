@@ -11,13 +11,11 @@
 namespace merutilm::vkh {
     class GeneralPostProcessGraphicsPipelineConfigurator : public GraphicsPipelineConfigurator {
         static constexpr auto VERTEX_MODULE_PATH = "vk_post_process.vert";
-        VertexBuffer & vertexBufferStaticRef;
-        IndexBuffer & indexBufferStaticRef;
 
     public:
 
-        explicit GeneralPostProcessGraphicsPipelineConfigurator(Engine & engine, const uint32_t windowContextIndex, const uint32_t renderContextIndex, const uint32_t primarySubpassIndex, const std::string &fragName, VertexBuffer &vertexBufferStaticRef, IndexBuffer &indexBufferStaticRef) : GraphicsPipelineConfigurator(
-            engine, windowContextIndex, renderContextIndex, primarySubpassIndex, VERTEX_MODULE_PATH, fragName) , vertexBufferStaticRef(vertexBufferStaticRef), indexBufferStaticRef(indexBufferStaticRef){
+        explicit GeneralPostProcessGraphicsPipelineConfigurator(Engine &engine, WindowContext &wc, const std::string &fragName) : GraphicsPipelineConfigurator(
+            engine, wc, VERTEX_MODULE_PATH, fragName){
         }
         ~GeneralPostProcessGraphicsPipelineConfigurator() override = default;
 
@@ -29,15 +27,16 @@ namespace merutilm::vkh {
 
         GeneralPostProcessGraphicsPipelineConfigurator &operator=(GeneralPostProcessGraphicsPipelineConfigurator &&) = delete;
 
-
-        void configure() override;
-
         void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices) override;
 
-    protected:
-        [[nodiscard]] VertexBuffer & getVertexBuffer() override { return vertexBufferStaticRef; }
+        void configure(RenderPass *rp, uint32_t subpass) override;
 
-        [[nodiscard]] IndexBuffer & getIndexBuffer() override { return indexBufferStaticRef; }
+
+
+    protected:
+        [[nodiscard]] VertexBuffer & getVertexBuffer() override { return *engine.getSharedResource().vertexBufferIdentity; }
+
+        [[nodiscard]] IndexBuffer & getIndexBuffer() override { return *engine.getSharedResource().indexBufferIdentity; }
 
         void configureVertexBuffer(HostDataObjectManager & som) override;
 

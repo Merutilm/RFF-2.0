@@ -5,14 +5,14 @@
 #pragma once
 #include <functional>
 
-#include "AppRenderManager.hpp"
+#include "RFFApplication.hpp"
 
 namespace merutilm::rff2 {
     struct CallbackVideo {
-        static std::function<void()> fnDataSettings(AppRenderManager &arm);
-        static std::function<void()> fnAnimationSettings(AppRenderManager &arm);
-        static std::function<void()> fnExportSettings(AppRenderManager &arm);
-        static std::function<void()> fnGenerateVidKeyframes(AppRenderManager &arm);
-        static std::function<void()> fnExportZoomVideo(AppRenderManager &arm);
+        static std::function<void()> fnDataSettings(RFFApplication &arm){return []{};}
+        static std::function<void()> fnAnimationSettings(RFFApplication &arm){return []{};}
+        static std::function<void()> fnExportSettings(RFFApplication &arm){return []{};}
+        static std::function<void()> fnGenerateVidKeyframes(RFFApplication &arm){return []{};}
+        static std::function<void()> fnExportZoomVideo(RFFApplication &arm){return []{};}
     };
 }

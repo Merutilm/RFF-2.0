@@ -11,11 +11,12 @@
 
 #include "../constants/Constants.hpp"
 #include "../locator/MB2Locator.h"
-#include "AppRenderManager.hpp"
+#include "RFFApplication.hpp"
 
 namespace merutilm::rff2 {
 
 
+#ifdef _WIN32
     std::function<void()> CallbackExplore::fnRecompute(AppRenderManager &arm) {
         return [&arm] { arm.getRequests().requestRecompute(); };
     };
@@ -37,7 +38,7 @@ namespace merutilm::rff2 {
                 return;
 
             if (const std::unique_ptr<fixed_point_complex_i1> c = MB2Locator::findCenter(*data); c == nullptr) {
-                MessageBox(nullptr, "No center found!", "Caution", MB_OK | MB_ICONWARNING);
+                vkh::logger::log_warn("No center found!");
             } else {
                 arm.getSettings().fractal.reference.center = *c;
                 arm.getRequests().requestRecompute();
@@ -49,7 +50,7 @@ namespace merutilm::rff2 {
             Settings &settings = arm.getSettings();
 
             if (settings.fractal.reference.reuse != FrtReferenceReuseMethod::DISABLED) {
-                MessageBox(nullptr, "Do not reuse reference!", "Caution", MB_OK | MB_ICONWARNING);
+                vkh::logger::log_warn("Do not reuse reference!");
                 return;
             }
 
@@ -64,19 +65,18 @@ namespace merutilm::rff2 {
                         const auto ref = data->getReference();
 
                         if (ref == nullptr) {
-                            MessageBox(nullptr, "Please wait until the calculation is complete.", "Caution",
-                                       MB_OK | MB_ICONWARNING);
+                            vkh::logger::log_warn("Please wait until the calculation is complete.", "Caution");
                             return;
                         }
 
                         const uint64_t longestPeriod = ref->longestPeriod();
 
                         const std::unique_ptr<MB2Locator> locator = MB2Locator::locateMinibrot(
-                                arm.getState(), data, getActionWhileFindingMBCenter(arm, logZoom, longestPeriod),
-                                getActionWhileCreatingTable(arm, logZoom), getActionWhileFindingZoom(arm));
+                                arm.getState(), data, getActionWhileFindingMBCenter(arm, longestPeriod),
+                                getActionWhileCreatingTable(arm), getActionWhileFindingZoom(arm));
 
                         if (locator == nullptr) {
-                            vkh::logger::w_log(L"Locate Minibrot Cancelled.");
+                            vkh::logger::log("Locate Minibrot Cancelled.");
                             return;
                         }
                         const FractalSettings &locatorCalc = locator->data->fractalSettings;
@@ -87,31 +87,36 @@ namespace merutilm::rff2 {
         };
     }
 
+#endif
     std::function<void(uint64_t, int)>
-    CallbackExplore::getActionWhileFindingMBCenter(const AppRenderManager &scene, const float logZoom,
-                                                         const uint64_t longestPeriod) {
-        return [&scene, logZoom, longestPeriod](const uint64_t p, int i) {
-            if (p % Utilities::getRefreshInterval(logZoom) == 0) {
-                scene.setStatusMessage(Constants::Status::RENDER_STATUS,
-                                       std::format(L"L : {:.3f}%[{}]",
+    CallbackExplore::getActionWhileFindingMBCenter(RFFApplication &app, const uint64_t longestPeriod) {
+        return [&app, longestPeriod](const uint64_t p, int i) {
+            static float time = Utilities::getCurrentTime();
+            const float elapsed = Utilities::getCurrentTime() - time;
+            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
+                time = Utilities::getCurrentTime();
+                app.setStatusMessage(Constants::Status::RENDER_STATUS,
+                                       std::format("L : {:.3f}%[{}]",
                                                    static_cast<float>(100 * p) / static_cast<float>(longestPeriod), i));
             }
         };
     }
 
-    std::function<void(uint64_t, float)> CallbackExplore::getActionWhileCreatingTable(const AppRenderManager &scene,
-                                                                                      const float logZoom) {
-        return [&scene, logZoom](const uint64_t p, const float i) {
-            if (p % Utilities::getRefreshInterval(logZoom) == 0) {
-                scene.setStatusMessage(Constants::Status::RENDER_STATUS, std::format(L"A : {:.3f}%", i * 100));
+    std::function<void(uint64_t, float)> CallbackExplore::getActionWhileCreatingTable(RFFApplication &scene) {
+        return [&scene](const uint64_t, const float i) {
+            static float time = Utilities::getCurrentTime();
+            const float elapsed = Utilities::getCurrentTime() - time;
+            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
+                time = Utilities::getCurrentTime();
+                scene.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("A : {:.3f}%", i * 100));
             }
         };
     }
 
 
-    std::function<void(float)> CallbackExplore::getActionWhileFindingZoom(const AppRenderManager &scene) {
+    std::function<void(float)> CallbackExplore::getActionWhileFindingZoom(RFFApplication &scene) {
         return [&scene](float zoom) {
-            scene.setStatusMessage(Constants::Status::RENDER_STATUS, std::format(L"Z : 10^{}", zoom));
+            scene.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Z : 10^{}", zoom));
         };
     }
 } // namespace merutilm::rff2

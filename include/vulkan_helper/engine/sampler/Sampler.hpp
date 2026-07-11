@@ -26,7 +26,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] VkSampler getSamplerHandle() const { return sampler; }
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

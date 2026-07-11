@@ -19,46 +19,43 @@ namespace merutilm::vkh {
                               VkImageView *imageView, VkImageView *mipmappedImageView, VkDeviceSize *capacity);
 
 
-        static void initImage(const VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
+        static void initImage(VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
                               const ImageInitInfo &iii, VkImage *image,
                               VkDeviceMemory *imageMemory,
                               VkImageView *imageView, VkImageView *mipmappedImageView, VkDeviceSize *capacity);
 
 
-        static void createImage(const VkDevice device, const ImageInitInfo &iii, const uint32_t mipLevels, VkImage *image);
+        static void createImage(VkDevice device, const ImageInitInfo &iii, uint32_t mipLevels, VkImage *image);
 
 
-        static void allocateImageMemory(const VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
-                                        const ImageInitInfo &iii,
-                                        const VkImage image, VkDeviceMemory *imageMemory, VkDeviceSize *capacity);
+        static void allocateImageMemory(VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
+                                        const ImageInitInfo &iii, VkImage image, VkDeviceMemory *imageMemory, VkDeviceSize *capacity);
 
-        static void createImageView(const VkDevice device, const VkImage image,
-                                    const VkImageViewType imageViewType,
-                                    const VkFormat imageFormat, VkImageView *writeImageView);
+        static void createImageView(VkDevice device, VkImage image, VkImageViewType imageViewType, VkFormat imageFormat, VkImageView *writeImageView);
 
-        static void createMipmappedImageView(const VkDevice device, const VkImage image,
-                                             const VkImageViewType imageViewType,
-                                             const VkFormat imageFormat, const uint32_t mipLevels, VkImageView *mipmappedImageView);
+        static void createMipmappedImageView(VkDevice device, VkImage image, VkImageViewType imageViewType,
+                                             VkFormat imageFormat, uint32_t mipLevels, VkImageView *mipmappedImageView);
 
-        static VkImageAspectFlags getAspectMask(const VkFormat format);
+        static VkImageAspectFlags getAspectMask(VkFormat format);
 
-        static void initBuffer(Core & core, const BufferInitInfo &bii, VkBuffer *buffer, VkDeviceMemory *bufferMemory);
+        static VkDeviceSize initBuffer(Core &core, const BufferInitInfo &bii, VkBuffer *buffer,
+                                       VkDeviceMemory *bufferMemory);
 
-        static void initBuffer(const VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
-                               const BufferInitInfo &bii, VkBuffer *buffer, VkDeviceMemory *bufferMemory);
+        static VkDeviceSize initBuffer(VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
+                                       const BufferInitInfo &bii, VkBuffer *buffer, VkDeviceMemory *bufferMemory);
 
-        static void createBuffer(const VkDevice device, const VkDeviceSize size, const VkBufferUsageFlags usage,
+        static void createBuffer(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage,
                                  VkBuffer *buffer);
 
 
-        static void allocateBufferMemory(const VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
-                                         const VkMemoryPropertyFlags properties,
-                                         const VkBuffer buffer, VkDeviceMemory *bufferMemory);
+        static VkDeviceSize allocateBufferMemory(VkDevice device,
+                                                 const VkPhysicalDeviceMemoryProperties &memProperties,
+                                                 VkMemoryPropertyFlags properties, VkBuffer buffer,
+                                                 VkDeviceMemory *bufferMemory);
 
 
         static uint32_t findMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties &memProperties,
-                                            const uint32_t memoryTypeBits,
-                                            const VkMemoryPropertyFlags properties);
+                                            uint32_t memoryTypeBits, VkMemoryPropertyFlags properties);
 
         static uint32_t genMipLevels(const ImageInitInfo &iii);
 

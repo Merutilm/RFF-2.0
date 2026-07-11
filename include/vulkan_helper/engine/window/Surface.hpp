@@ -6,19 +6,19 @@
 #include <vulkan_helper/core/Instance.hpp>
 #include <vulkan_helper/handle/Handler.hpp>
 
-#include "PlatformWindowBase.hpp"
+#include "PlatformWindow.hpp"
 
 
 namespace merutilm::vkh {
     class Surface final : public Handler {
 
         Instance & instance;
-        PlatformWindowBase * const window;
+        PlatformWindow * const window;
 
         VkSurfaceKHR surface = nullptr;
 
     public:
-        explicit Surface(Instance & instance, PlatformWindowBase * window);
+        explicit Surface(Instance & instance, PlatformWindow * window);
 
         ~Surface() override;
 
@@ -30,7 +30,7 @@ namespace merutilm::vkh {
 
         Surface &operator=(Surface &&) = delete;
 
-        [[nodiscard]] PlatformWindowBase * getTargetWindow() const { return window; }
+        [[nodiscard]] PlatformWindow * getTargetWindow() const { return window; }
 
         [[nodiscard]] VkSurfaceKHR getSurfaceHandle() const { return surface; }
 

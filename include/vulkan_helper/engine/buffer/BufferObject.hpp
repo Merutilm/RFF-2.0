@@ -80,6 +80,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] bool isMultiframe() const { return multiframeEnabled; }
 
+
     protected:
         void init() override;
 

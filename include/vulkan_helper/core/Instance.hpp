@@ -11,14 +11,10 @@ namespace merutilm::vkh {
     class Instance final : public Handler {
         VkInstance instance = nullptr;
         std::unique_ptr<ValidationLayer> validationLayer;
-
-        std::vector<const char *> extensions = {
-            VK_KHR_SURFACE_EXTENSION_NAME,
-            VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-        };
+        std::vector<const char *> additionalExtensions;
 
     public:
-        explicit Instance();
+        explicit Instance(std::vector<const char *> &&additionalExtensions = {});
 
         ~Instance() override;
 
@@ -32,13 +28,13 @@ namespace merutilm::vkh {
 
         [[nodiscard]] VkInstance getInstanceHandle() const { return instance; }
 
-
-    private:
+    protected:
         void init() override;
 
-        void createInstance();
-
         void cleanup() override;
+
+    private:
+        void createInstance();
     };
 
 

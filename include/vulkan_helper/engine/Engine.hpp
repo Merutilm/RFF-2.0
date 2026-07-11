@@ -7,11 +7,14 @@
 
 #include <vulkan_helper/engine/context/WindowContext.hpp>
 #include <vulkan_helper/core/Core.hpp>
+#include "SharedResource.hpp"
 
 namespace merutilm::vkh {
     class Engine final : public Handler {
         Core core;
         Repositories globalRepositories;
+        std::unique_ptr<CommandPool> commandPool;
+        std::unique_ptr<SharedResource> sharedResource;
         std::vector<std::unique_ptr<WindowContext>> windowContexts = {};
 
     public:
@@ -33,6 +36,7 @@ namespace merutilm::vkh {
 
         std::unique_ptr<WindowContext> detachWindowContext(uint32_t windowAttachmentIndex);
 
+
         [[nodiscard]] Core & getCore() { return core; }
 
         [[nodiscard]] WindowContext & getWindowContext(const uint32_t windowContextIndex) const {
@@ -43,14 +47,23 @@ namespace merutilm::vkh {
             return globalRepositories;
         }
 
+        [[nodiscard]] CommandPool & getCommandPool() const {
+            return *commandPool;
+        }
+
+        [[nodiscard]] SharedResource & getSharedResource() const {
+            return *sharedResource;
+        }
+
         [[nodiscard]] uint32_t getWindowContextCount() const { return windowContexts.size(); }
 
-    private:
+    protected:
         void init() override;
 
-        void configureRepositories();
-
         void cleanup() override;
+
+    private:
+        void configureRepositories();
     };
 
 

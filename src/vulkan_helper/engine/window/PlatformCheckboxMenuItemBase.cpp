@@ -8,7 +8,7 @@
 
 namespace merutilm::vkh {
 
-    PlatformCheckboxMenuItemBase::PlatformCheckboxMenuItemBase(std::wstring name, const PlatformMenuBase *parent) : PlatformMenuBase(std::move(name), parent) {
+    PlatformCheckboxMenuItemBase::PlatformCheckboxMenuItemBase(std::string name, const PlatformMenuBase *parent) : PlatformMenuBase(std::move(name), parent) {
         PlatformCheckboxMenuItemBase::init();
     }
     PlatformCheckboxMenuItemBase::~PlatformCheckboxMenuItemBase() {

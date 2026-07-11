@@ -30,14 +30,14 @@ namespace merutilm::vkh {
 
         [[nodiscard]] Instance & getInstance() { return instance; }
 
-        [[nodiscard]] PhysicalDeviceLoader & getPhysicalDevice() { return physicalDevice; }
+        [[nodiscard]] PhysicalDeviceLoader & getPhysicalDeviceLoader() { return physicalDevice; }
 
         [[nodiscard]] LogicalDevice & getLogicalDevice() { return logicalDevice; }
 
 
         [[nodiscard]] float getTime() const;
 
-    private:
+    protected:
         void init() override;
 
         void cleanup() override;

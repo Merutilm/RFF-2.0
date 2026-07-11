@@ -5,14 +5,14 @@
 #pragma once
 #include <functional>
 
-#include "AppRenderManager.hpp"
+#include "RFFApplication.hpp"
 
 namespace merutilm::rff2 {
     struct CallbackFile {
-        static std::function<void()> fnSaveMap(AppRenderManager &arm);
-        static std::function<void()> fnSaveImage(AppRenderManager &arm);
-        static std::function<void()> fnSaveLocation(AppRenderManager &arm);
-        static std::function<void()> fnLoadMap(AppRenderManager &arm);
-        static std::function<void()> fnLoadLocation(AppRenderManager &arm);
+        static std::function<void()> fnSaveMap(RFFApplication &arm){return []{};}
+        static std::function<void()> fnSaveImage(RFFApplication &arm){return []{};}
+        static std::function<void()> fnSaveLocation(RFFApplication &arm){return []{};}
+        static std::function<void()> fnLoadMap(RFFApplication &arm){return []{};}
+        static std::function<void()> fnLoadLocation(RFFApplication &arm){return []{};}
     };
 }

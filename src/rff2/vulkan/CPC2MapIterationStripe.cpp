@@ -33,7 +33,7 @@ namespace merutilm::rff2 {
         using namespace SharedImageContextIndices;
         auto &outDesc = getDescriptor(SET_OUTPUT_IMAGE);
         auto &[outImg] = outDesc.get<vkh::StorageImage>(0, BINDING_OUTPUT_MERGED_IMAGE);
-        outImg = wc.getSharedImageContext().getImageContextMF(MF_VIDEO_RENDER_IMAGE_PRIMARY);
+        outImg = wc.getSharedImageContext().getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY);
         writeDescriptorMF([&outDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             outDesc.queue(queue, frameIndex, {}, {BINDING_OUTPUT_MERGED_IMAGE});
         });
@@ -57,7 +57,7 @@ namespace merutilm::rff2 {
         auto &paletteSSBOHost = paletteSSBO.getHostObject();
 
         if (paletteSSBO.isLocked()) {
-            paletteSSBO.unlock(wc.getCommandPool());
+            paletteSSBO.unlock(engine.getCommandPool());
         }
 
         const auto paletteLength = static_cast<uint32_t>(palette.colors.size());
@@ -74,7 +74,7 @@ namespace merutilm::rff2 {
         paletteSSBOHost.set<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, palette.colors);
         paletteSSBO.reloadBuffer();
         paletteSSBO.update();
-        paletteSSBO.lock(wc.getCommandPool());
+        paletteSSBO.lock(engine.getCommandPool());
 
         writeDescriptorMF([&paletteDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             paletteDesc.queue(queue, frameIndex, {}, {DescPalette::BINDING_SSBO_PALETTE});
@@ -136,11 +136,11 @@ namespace merutilm::rff2 {
         auto &iterOut = getDescriptor(SET_OUTPUT_ITERATION);
         auto &iterOutSSBO = iterOut.get<vkh::ShaderStorage>(0, DescIteration::BINDING_SSBO_ITERATION_MATRIX);
         if (iterOutSSBO.isLocked()) {
-            iterOutSSBO.unlock(wc.getCommandPool());
+            iterOutSSBO.unlock(engine.getCommandPool());
         }
         iterOutSSBO.getHostObject().resizeAndClear<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, width * height);
         iterOutSSBO.reloadBuffer();
-        iterOutSSBO.lock(wc.getCommandPool());
+        iterOutSSBO.lock(engine.getCommandPool());
 
         auto &iterOutUBO = iterOut.get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
         iterOutUBO.getHostObject().set<glm::uvec2>(DescIteration::TARGET_UBO_ITERATION_EXTENT, {width, height});

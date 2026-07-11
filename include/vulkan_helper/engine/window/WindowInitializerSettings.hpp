@@ -6,13 +6,6 @@ namespace merutilm::vkh {
 
     struct WindowInitializerSettings {
 
-        struct Paddings {
-            int top = 0;
-            int left = 0;
-            int bottom = 0;
-            int right = 0;
-        };
-
         struct Range {
             int min = 0;
             int max = INT_MAX;
@@ -20,15 +13,13 @@ namespace merutilm::vkh {
         };
 
         float framerate = 60;
-        const std::wstring name = L"VulkanHelperApplication";
-        const std::wstring icon;
+        const std::string name = "VulkanHelperApplication";
+        const std::string icon;
 
         Range widthInfo;
         Range heightInfo;
-        bool useMenubar = false;
         bool resizable = true;
         bool filedrop = false;
-        Paddings paddings {};
 
     };
 }

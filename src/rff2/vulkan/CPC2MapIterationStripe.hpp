@@ -23,8 +23,8 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_OUTPUT_ITERATION = 5;
         static constexpr uint32_t SET_STRIPE = 6;
 
-        explicit CPC2MapIterationStripe(vkh::Engine &engine, const uint32_t windowContextIndex)
-            : ComputePipelineConfigurator(engine, windowContextIndex, "vk_2_map_iter_stripe.comp") {
+        explicit CPC2MapIterationStripe(vkh::Engine &engine, vkh::WindowContext &wc)
+            : ComputePipelineConfigurator(engine, wc, "vk_2_map_iter_stripe.comp") {
         }
 
         ~CPC2MapIterationStripe() override = default;

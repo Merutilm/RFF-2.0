@@ -4,39 +4,40 @@
 
 #pragma once
 #include "SharedImageContextIndices.hpp"
-#include "vulkan_helper/engine/configurator/RenderContextConfigurator.hpp"
-#include "vulkan_helper/util/BufferImageContextUtils.hpp"
+#include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
-    struct RCCStatic2Image final : public vkh::RenderContextConfigurator {
-        static constexpr uint32_t CONTEXT_INDEX = 6;
-        static constexpr uint32_t SUBPASS_STATIC_IMAGE_INDEX = 0;
-        static constexpr uint32_t RESULT_COLOR_ATTACHMENT_INDEX = 0;
+    class RCCStatic2Image final : public vkh::RenderPassGraphGenerator {
+        vkh::RenderPassAttachment *resultAttachment;
 
+    public:
+        using RenderPassGraphGenerator::RenderPassGraphGenerator;
 
-        using RenderContextConfigurator::RenderContextConfigurator;
-
-
-        void configure(vkh::RenderPassManager &rpm) override {
+    protected:
+        void configureAttachments() override {
             using namespace SharedImageContextIndices;
-            rpm.appendAttachment(RESULT_COLOR_ATTACHMENT_INDEX, {
-                                     .flags = 0,
-                                     .format = sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_SECONDARY)[0].
-                                     imageFormat,
-                                     .samples = VK_SAMPLE_COUNT_1_BIT,
-                                     .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-                                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                     .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
-                                 }, sharedImageContext.getImageContextMF(MF_VIDEO_RENDER_IMAGE_SECONDARY));
+            resultAttachment = &appendAttachment(
+                    {
+                            .flags = 0,
+                            .format = wc.getSharedImageContext()
+                                              .getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY)[0]
+                                              .imageFormat,
+                            .samples = VK_SAMPLE_COUNT_1_BIT,
+                            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                            .finalLayout = VK_IMAGE_LAYOUT_GENERAL,
+                    },
+                    wc.getSharedImageContext().getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY));
+        }
 
+        void configurePipelines() override {
 
-            rpm.appendSubpass(SUBPASS_STATIC_IMAGE_INDEX);
-            rpm.appendReference(RESULT_COLOR_ATTACHMENT_INDEX, vkh::RenderPassAttachmentType::COLOR,
-                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
+            rpm.appendSubpass();
+            rpm.appendReference(resultAttachment,
+                                {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
         }
     };
-}
+} // namespace merutilm::rff2
