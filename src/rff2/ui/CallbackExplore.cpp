@@ -91,10 +91,10 @@ namespace merutilm::rff2 {
     std::function<void(uint64_t, int)>
     CallbackExplore::getActionWhileFindingMBCenter(RFFApplication &app, const uint64_t longestPeriod) {
         return [&app, longestPeriod](const uint64_t p, int i) {
-            static float time = Utilities::getCurrentTime();
-            const float elapsed = Utilities::getCurrentTime() - time;
+            static float time = app.rootWindowContext->getWindow()->getTime();
+            const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = Utilities::getCurrentTime();
+                time = app.rootWindowContext->getWindow()->getTime();
                 app.setStatusMessage(Constants::Status::RENDER_STATUS,
                                        std::format("L : {:.3f}%[{}]",
                                                    static_cast<float>(100 * p) / static_cast<float>(longestPeriod), i));
@@ -102,13 +102,13 @@ namespace merutilm::rff2 {
         };
     }
 
-    std::function<void(uint64_t, float)> CallbackExplore::getActionWhileCreatingTable(RFFApplication &scene) {
-        return [&scene](const uint64_t, const float i) {
-            static float time = Utilities::getCurrentTime();
-            const float elapsed = Utilities::getCurrentTime() - time;
+    std::function<void(uint64_t, float)> CallbackExplore::getActionWhileCreatingTable(RFFApplication &app) {
+        return [&app](const uint64_t, const float i) {
+            static float time = app.rootWindowContext->getWindow()->getTime();
+            const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = Utilities::getCurrentTime();
-                scene.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("A : {:.3f}%", i * 100));
+                time = app.rootWindowContext->getWindow()->getTime();
+                app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("A : {:.3f}%", i * 100));
             }
         };
     }

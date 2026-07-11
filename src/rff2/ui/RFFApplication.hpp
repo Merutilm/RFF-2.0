@@ -94,10 +94,8 @@ namespace merutilm::rff2 {
 
         void beforeIterationFill() const;
 
-        bool prepareRenderData(const std::chrono::time_point<std::chrono::high_resolution_clock> &start,
-                              const Settings &s);
-        bool fillIteration(const std::chrono::time_point<std::chrono::high_resolution_clock> &start,
-                                 const Settings &s);
+        bool prepareRenderData(float startTime, const Settings &s);
+        bool fillIteration(float startTime, const Settings &s);
 
         void afterCompute(bool success);
 

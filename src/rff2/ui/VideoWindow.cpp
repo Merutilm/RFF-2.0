@@ -137,7 +137,7 @@ namespace merutilm::rff2 {
             auto currentFrame = static_cast<float>(maxNumber);
             float currentSec = 0;
             uint32_t pf1 = UINT32_MAX;
-            const float startSec = Utilities::getCurrentTime();
+            const float startSec = rootWindowContext->getWindow()->getTime();
 
             RFFDynamicMapBinary zoomedDynamic = RFFDynamicMapBinary::DEFAULT;
             RFFDynamicMapBinary normalDynamic = RFFDynamicMapBinary::DEFAULT;
@@ -209,7 +209,7 @@ namespace merutilm::rff2 {
 
                 const float progressRatio =
                         (static_cast<float>(maxNumber) - currentFrame) / (static_cast<float>(maxNumber) + overZoom);
-                const float spentSec = Utilities::getCurrentTime() - startSec;
+                const float spentSec = rootWindowContext->getWindow()->getTime() - startSec;
                 const auto remainedSec = static_cast<uint32_t>((1 - progressRatio) / progressRatio * spentSec);
                 window.barRatio = progressRatio;
                 window.barText = std::format(L"Processing... {:.2f}% [{}]", std::clamp(progressRatio, 0.0f, 1.0f) * 100, Utilities::formatTime(remainedSec));

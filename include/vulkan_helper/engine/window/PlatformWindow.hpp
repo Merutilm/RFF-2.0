@@ -16,6 +16,8 @@ namespace merutilm::vkh {
     class PlatformWindow : Handler {
 
         GLFWwindow *window = nullptr;
+        std::chrono::high_resolution_clock::time_point startTime;
+        float time;
 
     protected:
         bool mouseHovered = false;
@@ -92,6 +94,10 @@ namespace merutilm::vkh {
         static void processWindowFocus(GLFWwindow *window, int focused);
 
         void setIcon() const;
+
+        void updateTime();
+
+        float getTime() const {return time;}
 
     protected:
         void init() override;

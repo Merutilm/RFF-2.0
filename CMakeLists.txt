@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.30)
 project(RFF)
 
 
@@ -117,13 +117,12 @@ elseif (UNIX)
         find_library(${OUT_VAR}
                 NAMES lib${LIB_NAME}.a
                 PATHS
+                /usr/local/lib
                 /usr/lib
                 /usr/lib/x86_64-linux-gnu
-                /usr/local/lib
                 REQUIRED
         )
     endmacro()
-
 
     find_package(OpenCV REQUIRED)
     find_package(PkgConfig REQUIRED)

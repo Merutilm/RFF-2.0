@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
         auto &timeDesc = getDescriptor(SET_TIME);
         auto &timeBinding = timeDesc.get<vkh::Uniform>(0, DescTime::BINDING_UBO_TIME);
 
-        timeBinding.getHostObject().set(DescTime::TARGET_TIME_CURRENT, Utilities::getCurrentTime());
+        timeBinding.getHostObject().set(DescTime::TARGET_TIME_CURRENT, wc.getWindow()->getTime());
         timeBinding.updateMF(frameIndex);
     }
 

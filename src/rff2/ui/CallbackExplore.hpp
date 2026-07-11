@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
         static std::function<void(uint64_t, int)> getActionWhileFindingMBCenter(RFFApplication &app,
                                                                                 uint64_t longestPeriod);
 
-        static std::function<void(uint64_t, float)> getActionWhileCreatingTable(RFFApplication &scene);
+        static std::function<void(uint64_t, float)> getActionWhileCreatingTable(RFFApplication &app);
 
         static std::function<void(float)> getActionWhileFindingZoom(RFFApplication &scene);
     };

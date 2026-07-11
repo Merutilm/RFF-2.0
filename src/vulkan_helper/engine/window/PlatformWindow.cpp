@@ -18,18 +18,19 @@ namespace merutilm::vkh {
 
     void PlatformWindow::start() {
         using namespace std::chrono;
-
+        startTime = high_resolution_clock::now();
         eventSystem.applicationLifecycle.onStart.invoke();
-        auto started = high_resolution_clock::now();
+        updateTime();
+        auto started = getTime();
         while (!glfwWindowShouldClose(window)) {
 
             glfwPollEvents();
+            updateTime();
+            const auto now = getTime();
+            const auto elapsed = now - started;
 
-            auto now = high_resolution_clock::now();
-            const auto elapsed = duration_cast<milliseconds>(now - started);
 
-
-            if (static_cast<float>(elapsed.count()) > 1000 / initializerSettings.framerate) {
+            if (elapsed > 1.0f / initializerSettings.framerate) {
                 if (canRenderNow()) {
                     started = now;
                     eventSystem.applicationLifecycle.onUpdate.invoke();
@@ -84,7 +85,8 @@ namespace merutilm::vkh {
     void PlatformWindow::processKeyInput(GLFWwindow *window, const int key, int scancode, const int action, int mods) {
 
 #ifdef VKH_USE_IMGUI
-        if (ImGui::GetIO().WantCaptureKeyboard) return;
+        if (ImGui::GetIO().WantCaptureKeyboard)
+            return;
 #endif
         const auto pwb = static_cast<PlatformWindow *>(glfwGetWindowUserPointer(window));
         if (action == GLFW_PRESS) {
@@ -143,7 +145,8 @@ namespace merutilm::vkh {
 
     void PlatformWindow::processMouseButton(GLFWwindow *window, int button, int action, int mods) {
 #ifdef VKH_USE_IMGUI
-        if (ImGui::GetIO().WantCaptureMouse) return;
+        if (ImGui::GetIO().WantCaptureMouse)
+            return;
 #endif
 
         const auto pwb = static_cast<PlatformWindow *>(glfwGetWindowUserPointer(window));
@@ -170,7 +173,8 @@ namespace merutilm::vkh {
 
     void PlatformWindow::processScroll(GLFWwindow *window, double xoffset, double yoffset) {
 #ifdef VKH_USE_IMGUI
-        if (ImGui::GetIO().WantCaptureMouse) return;
+        if (ImGui::GetIO().WantCaptureMouse)
+            return;
 #endif
 
         const auto pwb = static_cast<PlatformWindow *>(glfwGetWindowUserPointer(window));
@@ -220,11 +224,11 @@ namespace merutilm::vkh {
     }
 
     void PlatformWindow::setIcon() const {
-        if (initializerSettings.icon.empty()) return;
+        if (initializerSettings.icon.empty())
+            return;
 
         int width, height, channels;
-        if (unsigned char *pixels = stbi_load(initializerSettings.icon.data(), &width, &height, &channels, 4))
-        {
+        if (unsigned char *pixels = stbi_load(initializerSettings.icon.data(), &width, &height, &channels, 4)) {
             GLFWimage image;
             image.width = width;
             image.height = height;
@@ -232,8 +236,15 @@ namespace merutilm::vkh {
             glfwSetWindowIcon(window, 1, &image);
             stbi_image_free(pixels);
         }
-
     }
+    void PlatformWindow::updateTime() {
+
+        using namespace std::chrono;
+        const time_point<high_resolution_clock> currentTime = high_resolution_clock::now();
+        time = std::chrono::duration_cast<duration<float>>(currentTime - startTime).count();
+    }
+
+
 
     void PlatformWindow::init() {
         window = glfwCreateWindow(initializerSettings.widthInfo.first, initializerSettings.heightInfo.first,

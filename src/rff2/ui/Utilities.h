@@ -28,20 +28,10 @@ namespace merutilm::rff2::Utilities {
         return std::format("{:02}:{:02}:{:02}", hour, min, sec);
     }
 
-    static std::string elapsed_time(const std::chrono::time_point<std::chrono::high_resolution_clock> start) {
-        const auto current = std::chrono::high_resolution_clock::now();
-        const auto elapsed = std::chrono::duration<float>(current - start).count();
+    static std::string elapsed_time(const float elapsed) {
         return std::format("T : {}", formatTime(elapsed));
     }
 
-
-    static float getCurrentTime() {
-        using namespace std::chrono;
-        const float time = static_cast<float>(high_resolution_clock::now().time_since_epoch().count() -
-                                              Constants::Fractal::INIT_TIME) /
-                           1e9f;
-        return time;
-    }
 
     static std::filesystem::path getDefaultPath() {
         return std::filesystem::path(vkh::ExecutableUtils::getExecutablePath()).parent_path().parent_path();

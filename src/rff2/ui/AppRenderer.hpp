@@ -149,6 +149,7 @@ namespace merutilm::rff2 {
 
 
         void beforeCmdRender() override {
+            RendererImGui::beforeCmdRender();
             vkh::BufferContext::flush(wc.core.getLogicalDevice().getLogicalDeviceHandle(),
                                       iterationStagingBufferContext->getContext());
         }

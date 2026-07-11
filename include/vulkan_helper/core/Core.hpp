@@ -13,8 +13,6 @@ namespace merutilm::vkh {
         PhysicalDeviceLoader physicalDevice;
         LogicalDevice logicalDevice;
 
-        std::chrono::high_resolution_clock::time_point startTime;
-
     public:
         explicit Core();
 
@@ -34,8 +32,6 @@ namespace merutilm::vkh {
 
         [[nodiscard]] LogicalDevice & getLogicalDevice() { return logicalDevice; }
 
-
-        [[nodiscard]] float getTime() const;
 
     protected:
         void init() override;

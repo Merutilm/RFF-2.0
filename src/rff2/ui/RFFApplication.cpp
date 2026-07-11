@@ -17,12 +17,12 @@
 #include "../preset/shader/slope/ShdSlopePresets.h"
 #include "../preset/shader/stripe/ShdStripePresets.h"
 #include "../vulkan/GPCDownsampleForBlur.hpp"
-#include "../vulkan/RCCStatic2Image.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 #include "../vulkan/SharedImageContextIndices.hpp"
 #include "CallbackExplore.hpp"
 #include "IOUtilities.h"
 #include "Utilities.h"
+#include "imgui.h"
 #include "opencv2/opencv.hpp"
 #include "vulkan_helper/engine/executor/ScopedNewCommandBufferExecutor.hpp"
 #include "vulkan_helper/engine/window/PlatformWindow.hpp"
@@ -40,7 +40,7 @@ namespace merutilm::rff2 {
         if (w <= 0 || h <= 0) {
             return;
         }
-        //swapchain recreation is already processed in the application level
+        // swapchain recreation is already processed in the application level
 
         refreshResizeParams({w, h});
         requests.requestRecompute();
@@ -161,22 +161,19 @@ namespace merutilm::rff2 {
 
     uint16_t RFFApplication::calcIterationBufferWidth(const Settings &s) const {
         const float multiplier = s.render.clarityMultiplier;
-        return static_cast<uint16_t>(static_cast<float>(rootWindowContext->getSwapchain().getSwapchainExtent().width) * multiplier);
+        return static_cast<uint16_t>(static_cast<float>(rootWindowContext->getSwapchain().getSwapchainExtent().width) *
+                                     multiplier);
     }
 
     uint16_t RFFApplication::calcIterationBufferHeight(const Settings &s) const {
         const float multiplier = s.render.clarityMultiplier;
-        return static_cast<uint16_t>(static_cast<float>(rootWindowContext->getSwapchain().getSwapchainExtent().height) * multiplier);
+        return static_cast<uint16_t>(static_cast<float>(rootWindowContext->getSwapchain().getSwapchainExtent().height) *
+                                     multiplier);
     }
 
-    uint16_t RFFApplication::getIterationBufferWidth() const {
-        return renderer->rcc0->iterationPalette->iterWidth;
-    }
+    uint16_t RFFApplication::getIterationBufferWidth() const { return renderer->rcc0->iterationPalette->iterWidth; }
 
-    uint16_t RFFApplication::getIterationBufferHeight() const {
-        return renderer->rcc0->iterationPalette->iterHeight;
-    }
-
+    uint16_t RFFApplication::getIterationBufferHeight() const { return renderer->rcc0->iterationPalette->iterHeight; }
 
 
     void RFFApplication::addListeners() {
@@ -195,9 +192,7 @@ namespace merutilm::rff2 {
             glfwGetWindowSize(rootWindowContext->getWindow()->getWindow(), &w, &h);
             resolveWindowResize(w, h);
         });
-        eventSystem.resize.onResize.add([this](const int w, const int h) {
-            resolveWindowResize(w, h);
-        });
+        eventSystem.resize.onResize.add([this](const int w, const int h) { resolveWindowResize(w, h); });
 
         eventSystem.mouse.onMouseDown.add([this](int, int, int) {
             GLFWwindow *window = rootWindowContext->getWindow()->getWindow();
@@ -292,7 +287,6 @@ namespace merutilm::rff2 {
     }
 
 
-
     void RFFApplication::applyDefaultSettings() {
         rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
         settings = genDefaultAttr();
@@ -315,17 +309,18 @@ namespace merutilm::rff2 {
         const auto &imgCtx = rootWindowContext->getSharedImageContext().getImageContextMF(
                 SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY)[frameIndex];
 
-        vkh::BufferContext bufCtx =
-                vkh::BufferContext::createContext(rootWindowContext->core, {
-                                                                   .size = imgCtx.capacity,
-                                                                   .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                                                   .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                                                                 VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                                           });
+        vkh::BufferContext bufCtx = vkh::BufferContext::createContext(
+                rootWindowContext->core,
+                {
+                        .size = imgCtx.capacity,
+                        .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                        .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                });
         vkh::BufferContext::mapMemory(rootWindowContext->core, bufCtx);
         // NEW COMMAND BUFFER
         {
-            const auto executor = vkh::ScopedNewCommandBufferExecutor(rootWindowContext->core, engine->getCommandPool());
+            const auto executor =
+                    vkh::ScopedNewCommandBufferExecutor(rootWindowContext->core, engine->getCommandPool());
             vkh::BarrierUtils::cmdImageMemoryBarrier(
                     executor.getCommandBufferHandle(), imgCtx.image, VK_ACCESS_SHADER_WRITE_BIT,
                     VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -358,11 +353,14 @@ namespace merutilm::rff2 {
     void RFFApplication::refreshResizeParams(const VkExtent2D swapchainExtent) {
         const uint16_t iw = calcIterationBufferWidth(settings);
         const uint16_t ih = calcIterationBufferHeight(settings);
-        const auto &[dWidth, dHeight] = AppRenderer::getBlurredImageExtent(swapchainExtent, settings.render.clarityMultiplier);
+        const auto &[dWidth, dHeight] =
+                AppRenderer::getBlurredImageExtent(swapchainExtent, settings.render.clarityMultiplier);
         const auto &[sWidth, sHeight] = rootWindowContext->getSwapchain().getSwapchainExtent();
 
-        renderer->rccDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG, {dWidth, dHeight});
-        renderer->rccDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM, {dWidth, dHeight});
+        renderer->rccDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG,
+                                                                   {dWidth, dHeight});
+        renderer->rccDownsample->downsample->setRescaledResolution(
+                GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM, {dWidth, dHeight});
         renderer->rccPresent->present->setRescaledResolution({sWidth, sHeight});
         renderer->rcc0->iterationPalette->resetIterationBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double>>(iw, ih);
@@ -371,7 +369,7 @@ namespace merutilm::rff2 {
     }
 
     void RFFApplication::registerRenderers() {
-        renderer = registerRenderer<AppRenderer>(*engine, *rootWindowContext, settings, [this]{renderImGui(); });
+        renderer = registerRenderer<AppRenderer>(*engine, *rootWindowContext, settings, [this] { renderImGui(); });
         createImGuiContext(renderer->imguiRenderContext);
     }
 
@@ -382,10 +380,15 @@ namespace merutilm::rff2 {
         requests.requestRecompute();
     }
     void RFFApplication::renderImGui() {
+        ImGui::Begin("Status");
+        for (auto &statusMessage: statusMessages) {
+            ImGui::Text("%s", statusMessage.data());
+        }
 
+        ImGui::End();
     }
 
-    void RFFApplication::refreshSharedImgContexts(VkExtent2D extent) {
+    void RFFApplication::refreshSharedImgContexts(const VkExtent2D extent) {
         using namespace SharedImageContextIndices;
         auto &sharedImg = rootWindowContext->getSharedImageContext();
         sharedImg.cleanupContexts();
@@ -428,7 +431,6 @@ namespace merutilm::rff2 {
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                                                                  VK_IMAGE_USAGE_SAMPLED_BIT |
                                                                  VK_IMAGE_USAGE_STORAGE_BIT));
-
     }
 
     void RFFApplication::overwriteMatrixFromMap(const RFFDynamicMapBinary &map) const {
@@ -459,7 +461,7 @@ namespace merutilm::rff2 {
     void RFFApplication::recomputeThreaded() {
         state.createThread([this](const std::stop_token &) {
             const Settings s = this->settings; // clone the settings
-            const auto start = std::chrono::high_resolution_clock::now();
+            const auto start = rootWindowContext->getWindow()->getTime();
             bool success = prepareRenderData(start, s);
 
             if (success) {
@@ -475,8 +477,8 @@ namespace merutilm::rff2 {
                 static_cast<double>(renderData->fractalSettings.perturb.maxIteration));
     }
 
-    bool RFFApplication::prepareRenderData(const std::chrono::time_point<std::chrono::high_resolution_clock> &start,
-                                             const Settings &s) {
+    bool RFFApplication::prepareRenderData(const float startTime,
+                                           const Settings &s) {
 
         if (state.interruptRequested())
             return false;
@@ -492,22 +494,22 @@ namespace merutilm::rff2 {
 
         uint64_t capacity = renderData && renderData->getReference() ? renderData->getReference()->length() : 0;
 
-        std::function actionPerRefCalcIteration = [this, &start](const uint64_t p) {
-            static float time = Utilities::getCurrentTime();
-            const float elapsed = Utilities::getCurrentTime() - time;
+        std::function actionPerRefCalcIteration = [this, startTime](const uint64_t p) mutable {
+            static float time = rootWindowContext->getWindow()->getTime();
+            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = Utilities::getCurrentTime();
+                time = rootWindowContext->getWindow()->getTime();
                 setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "P : {:L}", p));
-                setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(start));
+                setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(time - startTime));
             }
         };
-        std::function actionPerCreatingTableIteration = [this, &start](const uint64_t p, const double i) {
-            static float time = Utilities::getCurrentTime();
-            const float elapsed = Utilities::getCurrentTime() - time;
+        std::function actionPerCreatingTableIteration = [this, startTime](const uint64_t p, const double i) mutable {
+            static float time = rootWindowContext->getWindow()->getTime();
+            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = Utilities::getCurrentTime();
+                time = rootWindowContext->getWindow()->getTime();
                 setStatusMessage(Constants::Status::RENDER_STATUS, std::format("A : {:.3f}%", i * 100));
-                setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(start));
+                setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(time - startTime));
             }
         };
 
@@ -601,8 +603,8 @@ namespace merutilm::rff2 {
     }
 
 
-    bool RFFApplication::fillIteration(const std::chrono::time_point<std::chrono::high_resolution_clock> &start,
-                                         const Settings &s) {
+    bool RFFApplication::fillIteration(const float startTime,
+                                       const Settings &s) {
         std::atomic renderPixelsCount = 0;
         const uint16_t w = getIterationBufferWidth();
         const uint16_t h = getIterationBufferHeight();
@@ -611,8 +613,8 @@ namespace merutilm::rff2 {
         auto rendered = std::vector<bool>(len);
 
         auto func = [&s, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y, const uint16_t xRes,
-                                                             const uint16_t yRes, float, float, const uint32_t i,
-                                                             double) {
+                                                              const uint16_t yRes, float, float, const uint32_t i,
+                                                              double) {
             assert(i < rendered.size());
             rendered[i] = true;
             const auto dc = offsetConversion(s, x, y);
@@ -633,14 +635,14 @@ namespace merutilm::rff2 {
 
         renderer->iterationStagingBufferContext->fillZero();
 
-        auto statusThread = std::jthread([&renderPixelsCount, len, this, &start](const std::stop_token &stop) {
-            static float time = Utilities::getCurrentTime();
+        auto statusThread = std::jthread([&renderPixelsCount, len, this, startTime](const std::stop_token &stop) {
+            static float time = rootWindowContext->getWindow()->getTime();
             while (!stop.stop_requested()) {
-                const float elapsed = Utilities::getCurrentTime() - time;
+                const float elapsed = rootWindowContext->getWindow()->getTime() - time;
                 if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                    time = Utilities::getCurrentTime();
+                    time = rootWindowContext->getWindow()->getTime();
                     float ratio = static_cast<float>(renderPixelsCount.load()) / static_cast<float>(len) * 100;
-                    setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(start));
+                    setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(time - startTime));
                     setStatusMessage(Constants::Status::RENDER_STATUS, std::format("C : {:.3f}%", ratio));
                 }
             }

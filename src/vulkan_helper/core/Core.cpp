@@ -14,15 +14,7 @@ namespace merutilm::vkh {
         Core::cleanup();
     }
 
-    float Core::getTime() const {
-        using namespace std::chrono;
-        const time_point<high_resolution_clock> currentTime = high_resolution_clock::now();
-        return std::chrono::duration_cast<duration<float> >(currentTime - startTime).count();
-    }
-
-
     void Core::init() {
-        startTime = std::chrono::high_resolution_clock::now();
     }
 
 
