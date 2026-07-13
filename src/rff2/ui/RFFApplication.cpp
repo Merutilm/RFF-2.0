@@ -19,10 +19,17 @@
 #include "../vulkan/GPCDownsampleForBlur.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 #include "../vulkan/SharedImageContextIndices.hpp"
-#include "CallbackExplore.hpp"
+#include "Callback.hpp"
+#include "FnExplore.hpp"
+#include "FnFile.hpp"
+#include "FnFractal.hpp"
+#include "FnPreset.hpp"
+#include "FnRender.hpp"
+#include "FnShader.hpp"
 #include "IOUtilities.h"
 #include "Utilities.h"
 #include "imgui.h"
+#include "nfd.hpp"
 #include "opencv2/opencv.hpp"
 #include "vulkan_helper/engine/executor/ScopedNewCommandBufferExecutor.hpp"
 #include "vulkan_helper/engine/window/PlatformWindow.hpp"
@@ -33,20 +40,33 @@
 namespace merutilm::rff2 {
 
 
-    void RFFApplication::resolveWindowResize(const uint32_t w, const uint32_t h) {
-        state.cancel();
-        engine->getCore().getLogicalDevice().waitDeviceIdle();
+    void RFFApplication::onStart() {
+        cursorManager = std::make_unique<CursorManager>(rootWindowContext->getWindow()->getWindow());
 
-        if (w <= 0 || h <= 0) {
-            return;
-        }
-        // swapchain recreation is already processed in the application level
-
-        refreshResizeParams({w, h});
+        applyShaderSettings(settings);
+        refreshResizeParams(rootWindowContext->getSwapchain().getSwapchainExtent());
         requests.requestRecompute();
-        backgroundThreads.notifyAll();
+        initImGui();
+        NFD::Init();
     }
 
+    void RFFApplication::onResize(const VkExtent2D newExtent) {
+        Application::onResize(newExtent);
+        if (newExtent.width > 0 || newExtent.height > 0) {
+            engine->getCore().getLogicalDevice().waitDeviceIdle();
+            state.cancel();
+            refreshResizeParams(newExtent);
+            requests.requestRecompute();
+            backgroundThreads.notifyAll();
+        }
+    }
+
+
+    void RFFApplication::onQuit() {
+        state.cancel();
+        renderer = nullptr;
+        NFD::Quit();
+    }
 
     void RFFApplication::update() {
 
@@ -55,9 +75,16 @@ namespace merutilm::rff2 {
             requests.defaultSettingsRequested.exchange(false);
             backgroundThreads.notifyAll();
         }
+
         if (requests.shaderRequested) {
             applyShaderSettings(settings);
             requests.shaderRequested.exchange(false);
+            backgroundThreads.notifyAll();
+        }
+
+        if (requests.resizeRequested) {
+            onResize(requests.resizeRequestedExtent);
+            requests.resizeRequested.exchange(false);
             backgroundThreads.notifyAll();
         }
 
@@ -180,36 +207,9 @@ namespace merutilm::rff2 {
         Application::addListeners();
         auto &eventSystem = rootWindowContext->getWindow()->eventSystem;
 
-        eventSystem.window.onMaximize.add([this] {
-            int w;
-            int h;
-            glfwGetWindowSize(rootWindowContext->getWindow()->getWindow(), &w, &h);
-            resolveWindowResize(w, h);
-        });
-        eventSystem.window.onRestore.add([this] {
-            int w;
-            int h;
-            glfwGetWindowSize(rootWindowContext->getWindow()->getWindow(), &w, &h);
-            resolveWindowResize(w, h);
-        });
-        eventSystem.resize.onResize.add([this](const int w, const int h) { resolveWindowResize(w, h); });
-
-        eventSystem.mouse.onMouseDown.add([this](int, int, int) {
-            GLFWwindow *window = rootWindowContext->getWindow()->getWindow();
-            glfwSetCursor(window, cursorManager->arrowCursor);
-        });
-        eventSystem.mouse.onMouseUp.add([this](int, int, int) {
-            GLFWwindow *window = rootWindowContext->getWindow()->getWindow();
-            glfwSetCursor(window, cursorManager->crosshairCursor);
-        });
-        eventSystem.mouse.onMouseEnter.add([this] {
-            GLFWwindow *window = rootWindowContext->getWindow()->getWindow();
-            glfwSetCursor(window, cursorManager->crosshairCursor);
-        });
-        eventSystem.mouse.onMouseExit.add([this] {
-            GLFWwindow *window = rootWindowContext->getWindow()->getWindow();
-            glfwSetCursor(window, nullptr);
-        });
+        eventSystem.mouse.onMouseEnter.add(
+                [this] { glfwSetCursor(cursorManager->window, cursorManager->crosshairCursor); });
+        eventSystem.mouse.onMouseExit.add([this] { glfwSetCursor(cursorManager->window, nullptr); });
 
 
         eventSystem.mouse.onMouseMove.add([this](const int mx, const int my) {
@@ -219,7 +219,8 @@ namespace merutilm::rff2 {
                 return;
             }
             auto it = static_cast<uint64_t>((*renderer->iterationStagingBufferContext)(x, y));
-            setStatusMessage(Constants::Status::ITERATION_STATUS, std::format("I : {} ({}, {})", it, x, y));
+            setStatusMessage(Constants::Status::ITERATION_STATUS,
+                             std::format(std::locale("en_US.UTF-8"), "Iterations : {:L}", it, x, y));
         });
 
         eventSystem.mouseDrag.onMouseDrag.add(
@@ -230,8 +231,6 @@ namespace merutilm::rff2 {
                     const auto dy = static_cast<int16_t>(getMouseYOnIterationBuffer(my - mdy) - y);
 
                     if (mb == GLFW_MOUSE_BUTTON_LEFT) {
-                        GLFWwindow *window = rootWindowContext->getWindow()->getWindow();
-                        glfwSetCursor(window, cursorManager->arrowCursor);
                         const float m = settings.render.clarityMultiplier;
                         const float logZoom = settings.fractal.general.logZoom;
                         const int exp10 = Perturbator::logZoomToExp10(logZoom);
@@ -373,17 +372,115 @@ namespace merutilm::rff2 {
         createImGuiContext(renderer->imguiRenderContext);
     }
 
-    void RFFApplication::onStart() {
-        cursorManager = std::make_unique<CursorManager>(rootWindowContext->getWindow()->getWindow());
-        applyShaderSettings(settings);
-        refreshResizeParams(rootWindowContext->getSwapchain().getSwapchainExtent());
-        requests.requestRecompute();
+    void RFFApplication::initImGui() {
+
+        const ImGuiIO &io = ImGui::GetIO();
+        const std::filesystem::path path =
+                vkh::ExecutableUtils::getExecutableDirectory() / ".." / "res" / "IBMPlexSansKR-Medium.ttf";
+        io.Fonts->AddFontFromFileTTF(path.string().data(), 20.0f, nullptr, io.Fonts->GetGlyphRangesKorean());
+
+        ImGuiStyle &style = ImGui::GetStyle();
+
+        style.Colors[ImGuiCol_WindowBg] = ImVec4(0.08f, 0.09f, 0.11f, .8f);
+        style.Colors[ImGuiCol_TitleBg] = ImVec4(0.06f, 0.07f, 0.08f, .8f);
+        style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.12f, 0.14f, 0.18f, .9f);
+        style.Colors[ImGuiCol_Border] = ImVec4(0.25f, 0.25f, 0.28f, .8f);
+        style.Colors[ImGuiCol_Button] = ImVec4(0.24f, 0.24f, 0.24f, .9f);
+        style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.34f, 0.34f, 0.34f, 1.0f);
+        style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.18f, 0.32f, 0.56f, 1.0f);
+        style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.24f, 0.50f, 0.95f, 1.0f);
+        style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.34f, 0.60f, 1.00f, 1.0f);
+        style.Colors[ImGuiCol_CheckMark] = ImVec4(0.24f, 0.50f, 0.95f, 1.0f);
+
+        style.Colors[ImGuiCol_Tab] = ImVec4(0.18f, 0.18f, 0.20f, 1.0f);
+        style.Colors[ImGuiCol_TabHovered] = ImVec4(0.24f, 0.50f, 0.95f, 1.0f);
+        style.Colors[ImGuiCol_TabSelected] = ImVec4(0.24f, 0.50f, 0.95f, 0.85f);
+        style.Colors[ImGuiCol_TabDimmed] = ImVec4(0.16f, 0.16f, 0.17f, 1.0f);
+        style.Colors[ImGuiCol_TabDimmedSelected] = ImVec4(0.20f, 0.20f, 0.22f, 1.0f);
+
+        style.WindowRounding = 8.0f;
+        style.ChildRounding = 4.0f;
+        style.FrameRounding = 6.0f;
+        style.GrabRounding = 6.0f;
+        style.PopupRounding = 8.0f;
+        style.TabRounding = 6.0f;
+        style.ScrollbarRounding = 8.0f;
+
+        style.FrameBorderSize = 0.0f;
+        style.WindowBorderSize = 0.0f;
+        style.ChildBorderSize = 0.0f;
     }
+
+
     void RFFApplication::renderImGui() {
         ImGui::Begin("Status");
+        if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {
+            glfwSetCursor(cursorManager->window, cursorManager->handCursor);
+        } else {
+            glfwSetCursor(cursorManager->window, cursorManager->crosshairCursor);
+        }
         for (auto &statusMessage: statusMessages) {
             ImGui::Text("%s", statusMessage.data());
         }
+        ImGui::End();
+
+        ImGui::Begin("Control");
+        if (ImGui::BeginTabBar("Control")) {
+            if (ImGui::BeginTabItem("File")) {
+                FnFile::saveMap(*this);
+                FnFile::saveImage(*this);
+                FnFile::saveLocation(*this);
+                FnFile::loadMap(*this);
+                FnFile::loadLocation(*this);
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Fractal")) {
+                FnFractal::reference(*this);
+                FnFractal::iterations(*this);
+#ifdef ENABLE_SERIES_APPROXIMATION
+                FnFractal::sa(*this);
+#endif
+                FnFractal::mpa(*this);
+                FnFractal::automaticIterations(*this);
+                FnFractal::absoluteIterationMode(*this);
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Render")) {
+                FnRender::setRenderProperties(*this);
+                FnRender::linearInterpolation(*this);
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Presets")) {
+                FnPreset::calculation(*this);
+                FnPreset::render(*this);
+                FnPreset::resolution(*this);
+                FnPreset::shader(*this);
+
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Shader")) {
+                FnShader::palette(*this);
+                FnShader::stripe(*this);
+                FnShader::slope(*this);
+                FnShader::color(*this);
+                FnShader::fog(*this);
+                FnShader::bloom(*this);
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Video")) {
+                ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Explore")) {
+                FnExplore::recompute(*this);
+                FnExplore::reset(*this);
+                FnExplore::cancelRender(*this);
+                FnExplore::findCenter(*this);
+                FnExplore::locateMinibrot(*this);
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+
 
         ImGui::End();
     }
@@ -459,7 +556,7 @@ namespace merutilm::rff2 {
     }
 
     void RFFApplication::recomputeThreaded() {
-        state.createThread([this](const std::stop_token &) {
+        state.createThread([this] {
             const Settings s = this->settings; // clone the settings
             const auto start = rootWindowContext->getWindow()->getTime();
             bool success = prepareRenderData(start, s);
@@ -477,8 +574,7 @@ namespace merutilm::rff2 {
                 static_cast<double>(renderData->fractalSettings.perturb.maxIteration));
     }
 
-    bool RFFApplication::prepareRenderData(const float startTime,
-                                           const Settings &s) {
+    bool RFFApplication::prepareRenderData(const float startTime, const Settings &s) {
 
         if (state.interruptRequested())
             return false;
@@ -487,7 +583,7 @@ namespace merutilm::rff2 {
         const float logZoom = frt.general.logZoom;
 
         setStatusMessage(Constants::Status::ZOOM_STATUS,
-                         std::format("Z : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
+                         std::format("Zoom : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
         const complex<dex> offset = offsetConversion(s, 0, 0);
         const dex dcMax = offset.norm_approx();
@@ -499,8 +595,9 @@ namespace merutilm::rff2 {
             const float elapsed = rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "P : {:L}", p));
-                setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(time - startTime));
+                setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "Period : {:L}", p));
+                setStatusMessage(Constants::Status::TIME_STATUS,
+                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }
         };
         std::function actionPerCreatingTableIteration = [this, startTime](const uint64_t p, const double i) mutable {
@@ -508,8 +605,9 @@ namespace merutilm::rff2 {
             const float elapsed = rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("A : {:.3f}%", i * 100));
-                setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(time - startTime));
+                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Approximation : {:.3f}%", i * 100));
+                setStatusMessage(Constants::Status::TIME_STATUS,
+                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }
         };
 
@@ -538,9 +636,9 @@ namespace merutilm::rff2 {
 
                 uint64_t period = renderData->getReference()->longestPeriod();
                 const auto center = MB2Locator::locateMinibrot(
-                        state, renderData.get(), CallbackExplore::getActionWhileFindingMBCenter(*this, period),
-                        CallbackExplore::getActionWhileCreatingTable(*this),
-                        CallbackExplore::getActionWhileFindingZoom(*this));
+                        state, renderData.get(), FnExplore::getActionWhileFindingMBCenter(*this, period),
+                        FnExplore::getActionWhileCreatingTable(*this),
+                        FnExplore::getActionWhileFindingZoom(*this));
                 if (center == nullptr)
                     return false;
 
@@ -594,7 +692,7 @@ namespace merutilm::rff2 {
         }
 
         setStatusMessage(Constants::Status::PERIOD_STATUS,
-                         std::format("P : {:L} ({:L}, {:L})", reference->longestPeriod(), refLength, mpaLen));
+                         std::format("Period : {:L} ({:L}, {:L})", reference->longestPeriod(), refLength, mpaLen));
         if (state.interruptRequested())
             return false;
 
@@ -603,8 +701,7 @@ namespace merutilm::rff2 {
     }
 
 
-    bool RFFApplication::fillIteration(const float startTime,
-                                       const Settings &s) {
+    bool RFFApplication::fillIteration(const float startTime, const Settings &s) {
         std::atomic renderPixelsCount = 0;
         const uint16_t w = getIterationBufferWidth();
         const uint16_t h = getIterationBufferHeight();
@@ -642,8 +739,9 @@ namespace merutilm::rff2 {
                 if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                     time = rootWindowContext->getWindow()->getTime();
                     float ratio = static_cast<float>(renderPixelsCount.load()) / static_cast<float>(len) * 100;
-                    setStatusMessage(Constants::Status::TIME_STATUS, Utilities::elapsed_time(time - startTime));
-                    setStatusMessage(Constants::Status::RENDER_STATUS, std::format("C : {:.3f}%", ratio));
+                    setStatusMessage(Constants::Status::TIME_STATUS,
+                                     std::format("Time : {}", Utilities::formatTime(time - startTime)));
+                    setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Calculation : {:.3f}%", ratio));
                 }
             }
         });
@@ -680,11 +778,5 @@ namespace merutilm::rff2 {
         }
         idleCompute = true;
         backgroundThreads.notifyAll();
-    }
-
-
-    void RFFApplication::onQuit() {
-        state.cancel();
-        renderer = nullptr;
     }
 } // namespace merutilm::rff2

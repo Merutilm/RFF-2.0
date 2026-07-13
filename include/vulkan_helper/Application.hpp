@@ -65,11 +65,15 @@ namespace merutilm::vkh {
             rootWindowContext->getWindow()->start();
         }
 
-    protected:
 
         virtual void onStart() = 0;
 
+        virtual void onResize(VkExtent2D newExtent);
+
         virtual void onQuit() = 0;
+
+    protected:
+
 
         void init() override;
 

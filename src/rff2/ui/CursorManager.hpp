@@ -8,17 +8,20 @@ namespace merutilm::rff2 {
     struct CursorManager {
         GLFWwindow *window;
         GLFWcursor *arrowCursor = nullptr;
+        GLFWcursor *handCursor = nullptr;
         GLFWcursor *crosshairCursor = nullptr;
 
         explicit CursorManager(GLFWwindow *window) {
             this->window = window;
             arrowCursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+            handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
             crosshairCursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
         }
 
         ~CursorManager() {
             glfwSetCursor(window, nullptr);
             glfwDestroyCursor(arrowCursor);
+            glfwDestroyCursor(handCursor);
             glfwDestroyCursor(crosshairCursor);
         }
 

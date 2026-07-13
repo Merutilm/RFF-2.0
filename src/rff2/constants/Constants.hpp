@@ -6,4 +6,3 @@
 #include "StatusConstants.hpp"
 #include "VideoConstants.hpp"
 #include "VulkanWindowConstants.hpp"
-#include "Win32Constants.hpp"

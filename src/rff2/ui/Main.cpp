@@ -4,13 +4,10 @@
 #include <fstream>
 #endif
 
-// #include "vulkan_helper/util/GraphicsContextWindowProc.hpp"
 #include <filesystem>
 
 
-#include "../util/profiler.hpp"
 #include "RFFApplication.hpp"
-#include "SettingsWindow.hpp"
 #include "VideoWindow.hpp"
 
 
@@ -48,7 +45,7 @@ int main() {
 #ifndef NDEBUG
     countLines();
 #endif
-    Application::start<RFFApplication>({.framerate = 60,
+    Application::start<RFFApplication>({.framerate = 100,
                                      .name = "RFF 2.0",
                                      .icon = "../res/icon.png",
                                      .widthInfo = {.min = 100,

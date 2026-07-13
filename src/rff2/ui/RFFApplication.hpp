@@ -14,7 +14,6 @@
 #include "AppRenderManagerRequests.hpp"
 #include "AppRenderer.hpp"
 #include "CursorManager.hpp"
-#include "SettingsWindow.hpp"
 #include "vulkan_helper/Application.hpp"
 
 namespace merutilm::rff2 {
@@ -50,8 +49,6 @@ namespace merutilm::rff2 {
         RFFApplication(RFFApplication &&) = delete;
 
         RFFApplication &operator=(RFFApplication &&) = delete;
-
-        void resolveWindowResize(uint32_t w, uint32_t h);
 
         void update() override;
 
@@ -121,9 +118,6 @@ namespace merutilm::rff2 {
             return requests;
         }
 
-        // void setCurrentSettingsWindows(std::unique_ptr<SettingsWindow> window) {
-        //     currentSettingsWindow = std::move(window);
-        // }
 
         void setCurrentPerturbator(std::unique_ptr<MB2RenderDataBase> data) {
             renderData = std::move(data);
@@ -150,13 +144,19 @@ namespace merutilm::rff2 {
         template<typename P> requires std::is_base_of_v<Preset, P>
         void applyPreset(P &preset);
 
-    protected:
-
         void onStart() override;
+
+        void onResize(VkExtent2D newExtent) override;
 
         void onQuit() override;
 
+    protected:
+
+
         void renderImGui() override;
+
+    private:
+        static void initImGui();
 
     };
 
@@ -171,10 +171,7 @@ namespace merutilm::rff2 {
         }
         if constexpr (std::is_base_of_v<Presets::RenderPreset, P>) {
             settings.render = preset.genRender();
-            int w;
-            int h;
-            glfwGetWindowSize(rootWindowContext->getWindow()->getWindow(), &w, &h);
-            resolveWindowResize(static_cast<uint32_t>(w), static_cast<uint32_t>(h));
+            requests.requestResize(rootWindowContext->getSwapchain().getSwapchainExtent());
             requests.requestRecompute();
         }
         if constexpr (std::is_base_of_v<Presets::ResolutionPreset, P>) {

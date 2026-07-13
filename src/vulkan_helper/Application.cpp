@@ -43,16 +43,8 @@ namespace merutilm::vkh {
         rootWindowContext->getWindow()->eventSystem.applicationLifecycle.onUpdate.add([this] { update(); });
 
         rootWindowContext->getWindow()->eventSystem.resize.onResize.add([this](const int w, const int h) {
-            if (w > 0 && h > 0) {
-                const VkExtent2D extent = {static_cast<uint32_t>(w), static_cast<uint32_t>(h)};
-                rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
-                rootWindowContext->getSwapchain().recreate(extent);
-                refreshSharedImgContexts(rootWindowContext->getSwapchain().getSwapchainExtent());
-                for (const auto &rc: rootWindowContext->getRenderContexts())
-                    rc->recreate();
-
-                callRenderContextRefreshed();
-            }
+            const auto extent = VkExtent2D(w, h);
+            onResize(extent);
         });
 
         rootWindowContext->getWindow()->eventSystem.applicationLifecycle.onStart.add([this] {
@@ -107,6 +99,18 @@ namespace merutilm::vkh {
     void Application::imguiVkResultConsumer(const VkResult result) {
         if (result != VK_SUCCESS) {
             throw exception_invalid_state("Failed to render imgui context!");
+        }
+    }
+
+    void Application::onResize(const VkExtent2D newExtent) {
+        if (newExtent.width > 0 && newExtent.height > 0) {
+            rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
+            rootWindowContext->getSwapchain().recreate(newExtent);
+            refreshSharedImgContexts(rootWindowContext->getSwapchain().getSwapchainExtent());
+            for (const auto &rc: rootWindowContext->getRenderContexts())
+                rc->recreate();
+
+            callRenderContextRefreshed();
         }
     }
 

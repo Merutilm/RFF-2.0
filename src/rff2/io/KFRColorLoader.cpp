@@ -11,8 +11,8 @@
 
 namespace merutilm::rff2 {
     std::vector<glm::vec4> KFRColorLoader::loadPaletteSettings() {
-        const auto pFile = IOUtilities::ioFileDialog(Constants::File::DESC_KFR,
-                                                     IOUtilities::OPEN_FILE, Constants::File::EXT_KFR);
+        const auto pFile =
+                IOUtilities::ioFileDialog(Constants::File::DESC_KFR, IOUtilities::OPEN_FILE, Constants::File::EXT_KFR);
         if (pFile == nullptr) {
             return {};
         }
@@ -34,11 +34,17 @@ namespace merutilm::rff2 {
             if (split.empty()) {
                 return {};
             }
-            auto result = std::vector<float>(split.size());
-            std::ranges::transform(split, result.begin(), [](std::string str) {
-                std::erase(str, ' ');
-                return std::stof(str) / 255.0f;
-            });
+            auto result = std::vector<float>();
+            result.reserve(split.size());
+            for (auto &str: split) {
+                str.erase(std::ranges::remove_if(str, [](const unsigned char c) { return std::isspace(c); }).begin(),
+                          str.end());
+
+                if (!str.empty()) {
+                    result.push_back(std::stof(str) / 255.0f);
+                }
+            }
+
             auto out = std::vector<glm::vec4>();
             for (uint32_t i = 0; i < result.size(); i += 3) {
                 out.emplace_back(result[i + 2], result[i + 1], result[i + 0], 1);
@@ -47,4 +53,4 @@ namespace merutilm::rff2 {
         }
         return {};
     }
-}
+} // namespace merutilm::rff2

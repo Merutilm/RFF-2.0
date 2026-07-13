@@ -3,9 +3,8 @@
 //
 
 #pragma once
-#include "../calc/dex.h"
 #include "../constants/Constants.hpp"
-
+#include <cmath>
 namespace merutilm::rff2 {
     enum class FrtDecimalizeIterationMethod {
         /**

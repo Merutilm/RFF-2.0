@@ -18,7 +18,7 @@
 
 namespace merutilm::rff2 {
     struct Selectable {
-        template<typename E> requires std::is_enum_v<E> || std::is_same_v<E, bool>
+        template<typename E> requires std::is_enum_v<E>
         static std::vector<E> values() {
             if constexpr (std::is_same_v<E, FrtReferenceReuseMethod>) {
                 using enum FrtReferenceReuseMethod;
@@ -31,6 +31,7 @@ namespace merutilm::rff2 {
             if constexpr (std::is_same_v<E, FrtDecimalizeIterationMethod>) {
                 using enum FrtDecimalizeIterationMethod;
                 return {
+                    NONE,
                     LINEAR,
                     SQUARE_ROOT,
                     LOG,
@@ -90,14 +91,11 @@ namespace merutilm::rff2 {
                     P128
                 };
             }
-            if constexpr (std::is_same_v<E, bool>) {
-                return {true, false};
-            }
             return {};
         }
 
-        template<typename E> requires std::is_enum_v<E> || std::is_same_v<E, bool>
-        static std::string toString(const E &value) {
+        template<typename E> requires std::is_enum_v<E>
+        static const char * toString(const E &value) {
             if constexpr (std::is_same_v<E, FrtReferenceReuseMethod>) {
                 switch (value) {
                     using enum FrtReferenceReuseMethod;
@@ -177,9 +175,6 @@ namespace merutilm::rff2 {
                     case P128: return "128";
                     default: break;
                 }
-            }
-            if constexpr (std::is_same_v<E, bool>)  {
-                return value ? L"O" : L"X";
             }
 
             return "Unknown Symbol";

@@ -15,17 +15,17 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 add_executable(
         RFF
+        extern/imgui/misc/cpp/imgui_stdlib.cpp
         src/rff2/ui/Main.cpp
         src/rff2/io/RFFDynamicMapBinary.cpp
         src/rff2/parallel/ParallelRenderState.cpp
         src/rff2/mrthy/MPAPeriod.cpp
-        src/rff2/ui/SettingsWindow.cpp
-        src/rff2/ui/CallbackFile.cpp
-        src/rff2/ui/CallbackFractal.cpp
-        src/rff2/ui/CallbackRender.cpp
-        src/rff2/ui/CallbackShader.cpp
+        src/rff2/ui/FnFile.cpp
+        src/rff2/ui/FnFractal.cpp
+        src/rff2/ui/FnRender.cpp
+        src/rff2/ui/FnShader.cpp
         src/rff2/locator/MB2Locator.cpp
-        src/rff2/ui/CallbackExplore.cpp
+        src/rff2/ui/FnExplore.cpp
         src/rff2/preset/shader/palette/ShdPalettePresets.cpp
         src/rff2/preset/shader/fog/ShdFogPresets.cpp
         src/rff2/preset/shader/color/ShdColorPresets.cpp
@@ -64,6 +64,8 @@ add_executable(
         src/rff2/settings/FrtGeneralSettings.hpp
         src/rff2/calc/calculatable.hpp
         src/rff2/calc/complex.hpp
+        src/rff2/ui/FnPreset.cpp
+        src/rff2/ui/FnPreset.hpp
 )
 
 target_compile_options(RFF PRIVATE

@@ -7,6 +7,8 @@
 #include <mutex>
 #include <thread>
 
+#include "vulkan_helper/base/logger.hpp"
+
 namespace merutilm::rff2 {
     class ParallelRenderState final {
         std::mutex mutex;
@@ -18,8 +20,20 @@ namespace merutilm::rff2 {
     public:
         ParallelRenderState() = default;
 
-        template<typename T> requires std::is_invocable_r_v<void, T, const std::stop_token &>
-        void createThread(T &&func);
+        template<typename T> requires std::is_invocable_r_v<void, T>
+        void createThread(T &&func) {
+            std::scoped_lock lock(mutex);
+
+            cancelUnsafe();
+            thread = std::jthread([this, f = std::forward<T>(func)]() mutable {
+                {
+                    //wait until jthread allocation
+                    std::scoped_lock lock2(mutex);
+                }
+
+                f();
+            });
+        }
 
         [[nodiscard]] std::stop_token stopToken() const;
 
@@ -33,12 +47,5 @@ namespace merutilm::rff2 {
         void cancelUnsafe();
     };
 
-    template<typename T> requires std::is_invocable_r_v<void, T, const std::stop_token &>
-    void ParallelRenderState::createThread(T &&func) {
-        std::scoped_lock lock(mutex);
-        cancelUnsafe();
-        thread = std::jthread([f = std::forward<T>(func)](const std::stop_token &interrupted) mutable {
-            f(interrupted);
-        });
-    }
+
 }
