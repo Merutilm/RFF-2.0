@@ -17,7 +17,7 @@
 - This program uses `Fast-period-guessing`*(a.k.a. FPG)* which I developed. It automatically generates the `longest period` of the selected location.
 This value is unmodifiable.
 
-- This program uses an `Multilevel Periodic Approximation` algorithm which I developed.
+- This program uses an `Multi-level Periodic Approximation` algorithm which I developed.
 It completely replaces traditional `BLA`, achieving speedups of more than 2 times. \
 To put it simply, it skips to the `Periodic point` directly.
 
@@ -48,6 +48,7 @@ If the following error occurs even though `Vulkan` is installed correctly, it is
 ```
 
 ### Launch Application
+#### for Windows
 If it does not run immediately after zip extraction, try the following steps.
 
 1. Install [MSYS2](https://www.msys2.org/)
@@ -79,10 +80,39 @@ Path : %MSYS2_ROOT%\clang64\bin
 
 7. Restart the terminal or your PC after updating the environment variables.
 
+
+#### for Linux (Ubuntu 24.04)
+
+
+```bash
+sudo apt install -y clang clang-tools make cmake libopencv-dev libvulkan-dev libglm-dev ninja-build libgtk-3-dev git wget xz-utils
+
+wget https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz
+# You can get any version from https://gmplib.org/download/snapshot/gmp-next/
+tar -xf gmp-6.3.0.tar.xz
+cd gmp-6.3.0
+mkdir build
+cd build
+
+
+../configure CFLAGS="-O3 -march=native"
+make -j$(nproc)
+sudo make install
+cd ~
+
+sudo ldconfig
+
+```
+
+
 ### Build
 The dependency [libgmp](https://github.com/sethtroisi/libgmp/tree/master) must be built separately.
 
 ```bash
+
+git clone https://github.com/Merutilm/RFF-2.0
+cd RFF-2.0
+
 mkdir build
 
 cmake -B build -G "Ninja" -S . \
@@ -90,12 +120,15 @@ cmake -B build -G "Ninja" -S . \
 -DCMAKE_CXX_COMPILER=clang++ \
 -DCMAKE_BUILD_TYPE=Release
 
-cmake --build build
+cmake --build build -j$(nproc)
+
+./build/bin/RFF
 ```
 
 
-### Troubleshooting
 
+### Troubleshooting
+#### for Windows
 If the built application does not launch:
 
 - Make sure `clang64\bin` is added to your `Path`

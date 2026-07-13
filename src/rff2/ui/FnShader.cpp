@@ -118,7 +118,9 @@ namespace merutilm::rff2 {
                 page = std::clamp(page, 0, pageCount - 1);
 
                 int jump = page + 1;
-                ImGui::SetNextItemWidth(200);
+
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(100);
                 if (ImGui::InputInt("##page", &jump, 0, 0)) {
                     jump = std::clamp(jump, 1, pageCount);
                     page = jump - 1;
