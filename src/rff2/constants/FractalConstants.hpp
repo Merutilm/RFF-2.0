@@ -20,6 +20,5 @@ namespace merutilm::rff2::Constants::Fractal {
     constexpr double MAX_LOC_LEN = 5;
     constexpr int EXP10_ADDITION = 15;
     constexpr std::size_t MAX_PALETTE_LEN = 1000000;
-    constexpr int PALETTE_COLORS_PER_PAGE = 100;
     inline static const unsigned long long INIT_TIME = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 } // namespace merutilm::rff2::Constants::Fractal

@@ -23,7 +23,9 @@ namespace merutilm::rff2 {
             auto &[colors, iterationColoring, singleIterationColoring, iterationInterval, offsetRatio, animationSpeed] =
                     app.getSettings().shader.palette;
 
-            if (ImGui::SliderFloat("Iteration Interval", &iterationInterval, 1.0f, 1000.0f)) {
+            if (ImGui::DragFloat("Iteration Interval", &iterationInterval, Constants::UI::UNLIMITED_DRAG_SPEED,
+                                 Constants::UI::UNLIMITED_MIN_DRAG_SCALAR, Constants::UI::UNLIMITED_MAX_DRAG,
+                                 Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
                 iterationInterval = std::max(iterationInterval, FLT_MIN);
                 app.getRequests().requestShader();
             }
@@ -35,7 +37,8 @@ namespace merutilm::rff2 {
                 static int selectRequest = -1;
                 static int page = 0;
 
-                if (selected >= 0) selected = std::clamp(selected, 0, static_cast<int>(colors.size()) - 1);
+                if (selected >= 0)
+                    selected = std::clamp(selected, 0, static_cast<int>(colors.size()) - 1);
 
                 const bool addCheck = colors.size() < Constants::Fractal::MAX_PALETTE_LEN;
                 const bool removeCheck = selected != -1 && colors.size() > 1;
@@ -49,7 +52,7 @@ namespace merutilm::rff2 {
 
                 if (ImGui::Button("Add", ImVec2(-FLT_MIN, 0))) {
                     colors.emplace_back(1, 1, 1, 1);
-                    page = (colors.size() - 1) / Constants::Fractal::PALETTE_COLORS_PER_PAGE;
+                    page = (colors.size() - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE;
                     selectRequest = colors.size() - 1;
                     app.getRequests().requestShader();
                 }
@@ -92,7 +95,7 @@ namespace merutilm::rff2 {
                 ImGui::EndTable();
 
 
-                const int pageCount = (colors.size() - 1) / Constants::Fractal::PALETTE_COLORS_PER_PAGE + 1;
+                const int pageCount = (colors.size() - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE + 1;
 
                 if (ImGui::ArrowButton("##prev", ImGuiDir_Left)) {
                     if (ImGui::GetIO().KeyCtrl) {
@@ -123,11 +126,11 @@ namespace merutilm::rff2 {
 
                 ImGui::Separator();
 
-                ImGui::BeginChild("##ColorList", ImVec2(-FLT_MIN, 150), true);
+                ImGui::BeginChild("##ColorList", ImVec2(-FLT_MIN, Constants::UI::PALETTE_LIST_HEIGHT), true);
 
-                const int begin = page * Constants::Fractal::PALETTE_COLORS_PER_PAGE;
+                const int begin = page * Constants::UI::PALETTE_COLORS_PER_PAGE;
                 const int end =
-                        std::min(begin + Constants::Fractal::PALETTE_COLORS_PER_PAGE, static_cast<int>(colors.size()));
+                        std::min(begin + Constants::UI::PALETTE_COLORS_PER_PAGE, static_cast<int>(colors.size()));
 
                 if (selectRequest >= 0) {
                     selected = -1;
@@ -157,8 +160,9 @@ namespace merutilm::rff2 {
                     if (selected == i) {
 
                         ImDrawList *draw = ImGui::GetWindowDrawList();
-                        draw->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 255, 0, 255),
-                                      0.0f, 0, 2.0f);
+                        draw->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+                                      Constants::UI::SELECTED_COLOR_HIGHLIGHT, 0.0f, 0,
+                                      Constants::UI::SELECTED_COLOR_THICKNESS);
                     }
 
                     ImGui::SameLine();
@@ -189,7 +193,9 @@ namespace merutilm::rff2 {
             Utilities::imguiHelpMarker("Start offset ratio of cycling palette.");
 
 
-            if (ImGui::SliderFloat("Animation Speed", &animationSpeed, -10.0f, 10.0f)) {
+            if (ImGui::DragFloat("Animation Speed", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
+                                 Constants::UI::UNLIMITED_MIN_DRAG_ANIM, Constants::UI::UNLIMITED_MAX_DRAG,
+                                 Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
                 app.getRequests().requestShader();
             }
             Utilities::imguiHelpMarker("Color Animation Speed, The colors' offset(iterations) per second.");
@@ -221,13 +227,19 @@ namespace merutilm::rff2 {
                 app.getRequests().requestShader();
             }
 
-            if (ImGui::SliderFloat("Interval 1", &firstInterval, 0.0f, 1000.0f)) {
+            if (ImGui::DragFloat("Interval 1", &firstInterval, Constants::UI::UNLIMITED_DRAG_SPEED,
+                                 Constants::UI::UNLIMITED_MIN_DRAG_SCALAR, Constants::UI::UNLIMITED_MAX_DRAG,
+                                 Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
+                firstInterval = std::max(firstInterval, FLT_MIN);
                 app.getRequests().requestShader();
             }
             Utilities::imguiHelpMarker("Sets the first Stripe Interval");
 
 
-            if (ImGui::SliderFloat("Interval 2", &secondInterval, 0.0f, 1000.0f)) {
+            if (ImGui::DragFloat("Interval 2", &secondInterval, Constants::UI::UNLIMITED_DRAG_SPEED,
+                                 Constants::UI::UNLIMITED_MIN_DRAG_SCALAR, Constants::UI::UNLIMITED_MAX_DRAG,
+                                 Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
+                secondInterval = std::max(secondInterval, FLT_MIN);
                 app.getRequests().requestShader();
             }
             Utilities::imguiHelpMarker("Sets the second Stripe Interval");
@@ -239,12 +251,16 @@ namespace merutilm::rff2 {
             Utilities::imguiHelpMarker("Sets the opacity of stripes.");
 
 
-            if (ImGui::SliderFloat("Offset", &offset, 0.0f, 1000.0f)) {
+            if (ImGui::DragFloat("Offset", &offset, Constants::UI::UNLIMITED_DRAG_SPEED,
+                                 Constants::UI::UNLIMITED_MIN_DRAG_SCALAR, Constants::UI::UNLIMITED_MAX_DRAG,
+                                 Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
                 app.getRequests().requestShader();
             }
             Utilities::imguiHelpMarker("Start offset iteration of stripes.");
 
-            if (ImGui::SliderFloat("Animation Speed", &animationSpeed, 0.0f, 10.0f)) {
+            if (ImGui::DragFloat("Animation Speed", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
+                                 Constants::UI::UNLIMITED_MIN_DRAG_ANIM, Constants::UI::UNLIMITED_MAX_DRAG,
+                                 Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
                 app.getRequests().requestShader();
             }
             Utilities::imguiHelpMarker("Sets the stripe animation speed.");
@@ -266,7 +282,9 @@ namespace merutilm::rff2 {
             auto &[depth, reflectionRatio, opacity, zenith, azimuth] = app.getSettings().shader.slope;
 
 
-            if (ImGui::SliderFloat("Depth", &depth, 0, 300)) {
+            if (ImGui::DragFloat("Depth", &depth, Constants::UI::DRAG_SPEED_SLOPE, Constants::UI::MIN_DRAG_SLOPE,
+                                 Constants::UI::MAX_DRAG_SLOPE, Constants::UI::FMT_SLOPE,
+                                 ImGuiSliderFlags_Logarithmic)) {
                 app.getRequests().requestShader();
             }
             Utilities::imguiHelpMarker("Sets the depth of slope.");

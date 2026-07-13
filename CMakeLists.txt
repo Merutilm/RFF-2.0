@@ -66,6 +66,7 @@ add_executable(
         src/rff2/calc/complex.hpp
         src/rff2/ui/FnPreset.cpp
         src/rff2/ui/FnPreset.hpp
+        src/rff2/constants/UIConstants.hpp
 )
 
 target_compile_options(RFF PRIVATE
