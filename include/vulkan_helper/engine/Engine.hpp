@@ -13,7 +13,6 @@ namespace merutilm::vkh {
     class Engine final : public Handler {
         Core core;
         Repositories globalRepositories;
-        std::unique_ptr<CommandPool> commandPool;
         std::unique_ptr<SharedResource> sharedResource;
         std::vector<std::unique_ptr<WindowContext>> windowContexts = {};
 
@@ -45,10 +44,6 @@ namespace merutilm::vkh {
 
         [[nodiscard]] Repositories & getGlobalRepositories()  {
             return globalRepositories;
-        }
-
-        [[nodiscard]] CommandPool & getCommandPool() const {
-            return *commandPool;
         }
 
         [[nodiscard]] SharedResource & getSharedResource() const {

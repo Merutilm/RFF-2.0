@@ -3,20 +3,17 @@
 //
 
 #pragma once
-#ifdef _WIN32
 
 #include "../io/RFFDynamicMapBinary.h"
 #include "../settings/Settings.h"
 #include "VideoBufferCache.hpp"
 #include "VideoWindowRenderer.hpp"
-#include "vulkan_helper/engine/SharedResource.hpp"
 #include "vulkan_helper/handle/EngineHandler.hpp"
 
 namespace merutilm::rff2 {
     class VideoWindowRenderManager final : vkh::EngineHandler {
 
         vkh::WindowContext &wc;
-        vkh::SharedResource &sr;
         RFFBinary *normal = nullptr;
         RFFBinary *zoomed = nullptr;
         const VkExtent2D videoExtent;
@@ -24,7 +21,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<VideoWindowRenderer> renderer = nullptr;
 
     public:
-        explicit VideoWindowRenderManager(vkh::Engine &engine, vkh::WindowContext &wc, vkh::SharedResource &sr, const VkExtent2D &videoExtent, const Settings &targetSettings);
+        explicit VideoWindowRenderManager(vkh::Engine &engine, vkh::WindowContext &wc, const VkExtent2D &videoExtent, const Settings &targetSettings);
 
         ~VideoWindowRenderManager() override;
 
@@ -52,13 +49,9 @@ namespace merutilm::rff2 {
 
         void applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const;
 
-        void initRenderContext() const;
-
         void initRenderer();
 
         void applySize() const;
-
-        VkExtent2D getBlurredImageExtent() const;
 
         void refreshSharedImgContext() const;
 
@@ -83,4 +76,3 @@ namespace merutilm::rff2 {
         void cleanup() override;
     };
 }
-#endif

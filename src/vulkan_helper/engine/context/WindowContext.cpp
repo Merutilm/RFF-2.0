@@ -8,8 +8,8 @@
 #include <vulkan_helper/util/PhysicalDeviceUtils.hpp>
 
 namespace merutilm::vkh {
-    WindowContext::WindowContext(Core &core, CommandPool &commandPool, const uint32_t index, std::unique_ptr<PlatformWindow> &&window) :
-        CoreHandler(core), attachmentIndex(index), commandPool(commandPool), window(std::move(window)) {
+    WindowContext::WindowContext(Core &core, const uint32_t index, std::unique_ptr<PlatformWindow> &&window) :
+        CoreHandler(core), attachmentIndex(index),  window(std::move(window)) {
         WindowContext::init();
     }
 
@@ -26,7 +26,8 @@ namespace merutilm::vkh {
         swapchain.emplace(core, *surface);
         windowLocalRepositories.emplace();
         configureRepositories();
-        commandBuffer.emplace(core, commandPool);
+        commandPool.emplace(core);
+        commandBuffer.emplace(core, *commandPool);
         syncObject.emplace(core);
         sharedImageContext.emplace(core);
     }
@@ -40,6 +41,7 @@ namespace merutilm::vkh {
         sharedImageContext.reset();
         syncObject.reset();
         commandBuffer.reset();
+        commandPool.reset();
         windowLocalRepositories.reset();
         swapchain.reset();
         surface.reset();

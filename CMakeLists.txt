@@ -35,7 +35,7 @@ add_executable(
         src/rff2/preset/resolution/ResolutionPresets.cpp
         src/rff2/preset/render/RenderPresets.cpp
         src/rff2/preset/calc/CalculationPresets.cpp
-        src/rff2/ui/CallbackVideo.cpp
+        src/rff2/ui/FnVideo.cpp
         src/rff2/ui/IOUtilities.cpp
         src/rff2/io/RFFStaticMapBinary.cpp
         src/rff2/io/RFFBinary.cpp
@@ -67,6 +67,7 @@ add_executable(
         src/rff2/ui/FnPreset.cpp
         src/rff2/ui/FnPreset.hpp
         src/rff2/constants/UIConstants.hpp
+        src/rff2/util/RendererUtils.hpp
 )
 
 target_compile_options(RFF PRIVATE

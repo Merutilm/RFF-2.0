@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "GPCStaticImage2Map.hpp"
 #include "SharedImageContextIndices.hpp"
 #include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
@@ -11,6 +12,7 @@ namespace merutilm::rff2 {
         vkh::RenderPassAttachment *resultAttachment;
 
     public:
+        GPCStaticImage2Map *static2Image = nullptr;
         using RenderPassGraphGenerator::RenderPassGraphGenerator;
 
     protected:
@@ -35,9 +37,13 @@ namespace merutilm::rff2 {
 
         void configurePipelines() override {
 
-            rpm.appendSubpass();
-            rpm.appendReference(resultAttachment,
-                                {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+            registerPipeline<GPCStaticImage2Map>(
+                    &static2Image, {},
+                    {resultAttachment,
+                     {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+                     vkh::SubpassDependency::none(),
+                     vkh::RenderPassAttachmentReference::none()},
+                    [] { return vkh::DescIndexPicker{}; });
         }
     };
 } // namespace merutilm::rff2

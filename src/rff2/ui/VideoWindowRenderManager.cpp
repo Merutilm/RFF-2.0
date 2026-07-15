@@ -2,18 +2,17 @@
 // Created by Merutilm on 2025-09-06.
 //
 
-#ifdef _WIN32
 #include "VideoWindowRenderManager.hpp"
 
-#include "../vulkan/RCCPresent.hpp"
+#include "../vulkan/RCCPresentPrepareImgui.hpp"
 #include "opencv2/imgproc.hpp"
 #include "vulkan_helper/engine/executor/ScopedCommandBufferExecutor.hpp"
 #include "vulkan_helper/util/BufferImageContextUtils.hpp"
 
 namespace merutilm::rff2 {
-    VideoWindowRenderManager::VideoWindowRenderManager(vkh::Engine &engine, vkh::WindowContext &wc, vkh::SharedResource &sr, const VkExtent2D &videoExtent,
+    VideoWindowRenderManager::VideoWindowRenderManager(vkh::Engine &engine, vkh::WindowContext &wc, const VkExtent2D &videoExtent,
                                        const Settings &targetSettings) :
-        EngineHandler(engine), wc(wc), sr(sr), videoExtent(videoExtent), targetSettings(targetSettings) {
+        EngineHandler(engine), wc(wc), videoExtent(videoExtent), targetSettings(targetSettings) {
         VideoWindowRenderManager::init();
     }
 
@@ -26,31 +25,31 @@ namespace merutilm::rff2 {
         auto &normalI = normal.getMatrix();
         if (currentFrame < 1) {
             const std::vector<double> zoomedDefault(normalI.getLength());
-            renderer->renderer2MapIterationStripe->setAllIterations(normalI.getCanvas(), zoomedDefault);
+            renderer->compute2MapIterationStripe->setAllIterations(normalI.getCanvas(), zoomedDefault);
         } else {
             auto &zoomedI = zoomed.getMatrix();
-            renderer->renderer2MapIterationStripe->setAllIterations(normalI.getCanvas(), zoomedI.getCanvas());
+            renderer->compute2MapIterationStripe->setAllIterations(normalI.getCanvas(), zoomedI.getCanvas());
         }
     }
 
     void VideoWindowRenderManager::setMaxIterationDynamic(const double maxIteration) const {
-        renderer->renderer2MapIterationStripe->setInfo(maxIteration);
+        renderer->compute2MapIterationStripe->setInfo(maxIteration);
     }
 
     void VideoWindowRenderManager::applyShader() const {
         engine.getCore().getLogicalDevice().waitDeviceIdle();
-        renderer->renderer2MapIterationStripe->setPalette(targetSettings.shader.palette);
-        renderer->renderer2MapIterationStripe->set2MapSize(videoExtent);
-        renderer->renderer2MapIterationStripe->setDefaultZoomIncrement(targetSettings.video.data.defaultZoomIncrement);
-        renderer->renderer2MapIterationStripe->setStripe(targetSettings.shader.stripe);
-        renderer->rendererSlope->setSlope(targetSettings.shader.slope);
-        renderer->rendererColor->setColor(targetSettings.shader.color);
-        renderer->rendererFog->setFog(targetSettings.shader.fog);
-        renderer->rendererBloom->setBloom(targetSettings.shader.bloom);
-        renderer->rendererLinearInterpolation->setLinearInterpolation(targetSettings.render.linearInterpolation);
-        renderer->rendererBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
+        renderer->compute2MapIterationStripe->setPalette(targetSettings.shader.palette);
+        renderer->compute2MapIterationStripe->set2MapSize(videoExtent);
+        renderer->compute2MapIterationStripe->setDefaultZoomIncrement(targetSettings.video.data.defaultZoomIncrement);
+        renderer->compute2MapIterationStripe->setStripe(targetSettings.shader.stripe);
+        renderer->rcc2->slope->setSlope(targetSettings.shader.slope);
+        renderer->rcc2->color->setColor(targetSettings.shader.color);
+        renderer->rcc3->fog->setFog(targetSettings.shader.fog);
+        renderer->rcc4->bloom->setBloom(targetSettings.shader.bloom);
+        renderer->rcc5->linearInterpolation->setLinearInterpolation(targetSettings.render.linearInterpolation);
+        renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
                                                targetSettings.shader.fog.radius);
-        renderer->rendererBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM,
+        renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM,
                                                targetSettings.shader.bloom.radius);
     }
 
@@ -68,51 +67,29 @@ namespace merutilm::rff2 {
 
     void VideoWindowRenderManager::applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const {
         wc.core.getLogicalDevice().waitDeviceIdle();
-        renderer->rendererStaticImage->setImages(normal, zoomed);
+        renderer->rccStatic2->static2Image->setImages(normal, zoomed);
     }
 
-    void VideoWindowRenderManager::initRenderContext() const {
-        const auto swapchainImageContextGetter = [this] {
-            auto &swapchain = wc.getSwapchain();
-            return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
-        };
-        wc.attachRenderContext<RCC1Vid>([this] { return videoExtent; }, swapchainImageContextGetter);
-        wc.attachRenderContext<RCCDownsampleForBlurVid>([this] { return getBlurredImageExtent(); },
-                                                        swapchainImageContextGetter);
-        wc.attachRenderContext<RCC2Vid>([this] { return videoExtent; }, swapchainImageContextGetter);
-        wc.attachRenderContext<RCC3Vid>([this] { return videoExtent; }, swapchainImageContextGetter);
-        wc.attachRenderContext<RCC4Vid>([this] { return videoExtent; }, swapchainImageContextGetter);
-        wc.attachRenderContext<RCCPresentVid>([this] { return wc.getSwapchain().populateSwapchainExtent(); },
-                                              swapchainImageContextGetter);
-        wc.attachRenderContext<RCCStatic2Image>([this] { return videoExtent; }, swapchainImageContextGetter);
-    }
 
     void VideoWindowRenderManager::initRenderer() {
-        renderer = std::make_unique<VideoWindowRenderer>(engine, wc);
+        renderer = std::make_unique<VideoWindowRenderer>(engine, wc, videoExtent);
         applySize();
         applyShader();
     }
 
     void VideoWindowRenderManager::applySize() const {
         auto [sWidth, sHeight] = wc.getSwapchain().getSwapchainExtent();
-        auto [bWidth, bHeight] = getBlurredImageExtent();
+        auto [bWidth, bHeight] = RendererUtils::getBlurredImageExtent(videoExtent, 1);
 
         for (const auto &sp: renderer->configurators) {
             sp->renderContextRefreshed();
         }
 
-        renderer->rendererDownsampleForBlur->setRescaledResolution(0, {bWidth, bHeight});
-        renderer->rendererDownsampleForBlur->setRescaledResolution(1, {bWidth, bHeight});
-        renderer->rendererPresent->setRescaledResolution({sWidth, sHeight});
+        renderer->rccDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG, {bWidth, bHeight});
+        renderer->rccDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM, {bWidth, bHeight});
+        renderer->rccPresent->present->setRescaledResolution({sWidth, sHeight});
     }
 
-    VkExtent2D VideoWindowRenderManager::getBlurredImageExtent() const {
-        if (const float rat = Constants::Fractal::GAUSSIAN_MAX_WIDTH / static_cast<float>(videoExtent.width); rat < 1) {
-            return {Constants::Fractal::GAUSSIAN_MAX_WIDTH,
-                    static_cast<uint32_t>(static_cast<float>(videoExtent.height) * rat)};
-        }
-        return videoExtent;
-    }
 
 
     void VideoWindowRenderManager::refreshSharedImgContext() const {
@@ -136,7 +113,7 @@ namespace merutilm::rff2 {
                     .properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             };
         };
-        const auto blurredImageExtent = getBlurredImageExtent();
+        const auto blurredImageExtent = RendererUtils::getBlurredImageExtent(videoExtent, 1);
 
         sharedImg.appendMultiframeImageContext(
                 MF_MAIN_RENDER_IMAGE_PRIMARY,
@@ -163,7 +140,7 @@ namespace merutilm::rff2 {
 
 
     void VideoWindowRenderManager::renderOnce() const {
-        renderer->execute();
+        renderer->render();
     }
 
     float VideoWindowRenderManager::calculateZoom(const float defaultZoomIncrement, const float currentFrame) const {
@@ -195,7 +172,7 @@ namespace merutilm::rff2 {
     VideoBufferCache VideoWindowRenderManager::createImage() const {
         const uint32_t frameIndex = renderer->getFrameIndex();
         wc.getSyncObject().getFence(frameIndex).waitAndReset();
-        const vkh::BufferContext &srcBuffer = renderer->rendererImageRGBA2BGR->getBufferContext(frameIndex);
+        const vkh::BufferContext &srcBuffer = renderer->computeImageRGBA2BGR->getBufferContext(frameIndex);
         vkh::BufferContext dstBuffer =
                 vkh::BufferContext::createContext(wc.core, {
                                                                    .size = srcBuffer.bufferSize,
@@ -222,10 +199,8 @@ namespace merutilm::rff2 {
 
     void VideoWindowRenderManager::init() {
         refreshSharedImgContext();
-        initRenderContext();
         initRenderer();
     }
 
     void VideoWindowRenderManager::cleanup() { engine.getCore().getLogicalDevice().waitDeviceIdle(); }
 } // namespace merutilm::rff2
-#endif

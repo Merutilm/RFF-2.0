@@ -16,6 +16,29 @@ namespace merutilm::vkh {
 
     LogicalDevice::~LogicalDevice() { LogicalDevice::cleanup(); }
 
+    void LogicalDevice::queueSubmit(const uint32_t submitCount, const VkSubmitInfo *pSubmits, const VkFence fence) {
+        std::scoped_lock lock(queueMutex);
+        VkResult result;
+        if ((result = vkQueueSubmit(graphicsQueue, submitCount, pSubmits, fence)) != VK_SUCCESS) {
+            throw exception_invalid_state("Failed to submit queue! " + std::to_string(result));
+        }
+    }
+
+    void LogicalDevice::queuePresent(const VkPresentInfoKHR *presentInfo) {
+        std::scoped_lock lock(queueMutex);
+        const VkResult result = vkQueuePresentKHR(presentQueue, presentInfo);
+        if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) {
+            logger::log("warning : the surface is suboptimal or out of date. your window resizing request is so fast!");
+        } else if (result != VK_SUCCESS) {
+            throw exception_invalid_state("Failed to present queue! " + std::to_string(result));
+        }
+    }
+
+    void LogicalDevice::waitDeviceIdle() {
+        std::scoped_lock lock(queueMutex);
+        vkDeviceWaitIdle(logicalDevice);
+    }
+
     void LogicalDevice::init() {
         float queuePriority = 1;
         VkDeviceQueueCreateInfo queueCreateInfo = {
@@ -50,7 +73,7 @@ namespace merutilm::vkh {
 
 
     void LogicalDevice::cleanup() {
-        std::scoped_lock lock(mutex);
+        std::scoped_lock lock(queueMutex);
         vkDeviceWaitIdle(logicalDevice);
         vkDestroyDevice(logicalDevice, nullptr);
     }

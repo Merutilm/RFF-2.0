@@ -33,7 +33,7 @@ namespace merutilm::vkh {
 
         auto window = std::make_unique<PlatformWindow>(std::move(wic));
 
-        windowContexts[windowAttachmentIndexExpected] = std::make_unique<WindowContext>(core, *commandPool, windowAttachmentIndexExpected, std::move(window));
+        windowContexts[windowAttachmentIndexExpected] = std::make_unique<WindowContext>(core, windowAttachmentIndexExpected, std::move(window));
         return *windowContexts[windowAttachmentIndexExpected];
     }
 
@@ -51,7 +51,6 @@ namespace merutilm::vkh {
 
 
     void Engine::init() {
-        commandPool = std::make_unique<CommandPool>(core);
         sharedResource = std::make_unique<SharedResource>(core);
         configureRepositories();
     }
@@ -68,6 +67,5 @@ namespace merutilm::vkh {
         windowContexts.clear();
         globalRepositories.clear();
         sharedResource.reset();
-        commandPool.reset();
     }
 }

@@ -14,6 +14,7 @@
 #include "AppRenderManagerRequests.hpp"
 #include "AppRenderer.hpp"
 #include "CursorManager.hpp"
+#include "VideoProgressInfo.hpp"
 #include "vulkan_helper/Application.hpp"
 
 namespace merutilm::rff2 {
@@ -33,6 +34,7 @@ namespace merutilm::rff2 {
 
         std::unique_ptr<CursorManager> cursorManager = nullptr;
 
+        VideoProgressInfo videoProgressInfo = {};
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
     public:
@@ -149,6 +151,8 @@ namespace merutilm::rff2 {
         void onResize(VkExtent2D newExtent) override;
 
         void onQuit() override;
+
+        VideoProgressInfo &getVideoProgressInfo() { return videoProgressInfo; }
 
     protected:
 

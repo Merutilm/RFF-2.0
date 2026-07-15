@@ -16,7 +16,7 @@ namespace merutilm::vkh {
         VkQueue graphicsQueue = nullptr;
         VkQueue presentQueue = nullptr;
 
-        std::mutex mutex;
+        std::mutex queueMutex;
 
     public:
         explicit LogicalDevice(Instance &instance, PhysicalDeviceLoader &physicalDevice);
@@ -37,29 +37,13 @@ namespace merutilm::vkh {
 
         [[nodiscard]] VkQueue getPresentQueue() const { return presentQueue; }
 
-        void queueSubmit(const uint32_t submitCount, const VkSubmitInfo *pSubmits, const VkFence fence) {
-            std::scoped_lock lock(mutex);
-            VkResult result;
-            if ((result = vkQueueSubmit(graphicsQueue, submitCount, pSubmits, fence)) != VK_SUCCESS) {
-                throw exception_invalid_state("Failed to submit queue! "  + std::to_string(result));
-            }
-        }
+        std::mutex &getQueueMutex() { return queueMutex; }
 
-        void queuePresent(const VkPresentInfoKHR *presentInfo) {
-            std::scoped_lock lock(mutex);
-            const VkResult result = vkQueuePresentKHR(presentQueue, presentInfo);
-            if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) {
-                logger::log("warning : the surface is suboptimal or out of date. your window resizing request is so fast!");
-            }
-            else if (result != VK_SUCCESS) {
-                throw exception_invalid_state("Failed to present queue! " + std::to_string(result));
-            }
-        }
+        void queueSubmit(uint32_t submitCount, const VkSubmitInfo *pSubmits, VkFence fence);
 
-        void waitDeviceIdle() {
-            std::scoped_lock lock(mutex);
-            vkDeviceWaitIdle(logicalDevice);
-        }
+        void queuePresent(const VkPresentInfoKHR *presentInfo);
+
+        void waitDeviceIdle();
 
     protected:
         void init() override;

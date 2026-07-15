@@ -19,7 +19,7 @@ namespace merutilm::rff2 {
         auto &bloomUBOHost = bloomUBO.getHostObject();
 
         if (bloomUBO.isLocked()) {
-            bloomUBO.unlock(engine.getCommandPool());
+            bloomUBO.unlock(wc.getCommandPool());
         }
 
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_THRESHOLD, bloom.threshold);
@@ -27,7 +27,7 @@ namespace merutilm::rff2 {
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_SOFTNESS, bloom.softness);
         bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_INTENSITY, bloom.intensity);
         bloomUBO.update();
-        bloomUBO.lock(engine.getCommandPool());
+        bloomUBO.lock(wc.getCommandPool());
 
         writeDescriptorMF([&bloomDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             bloomDesc.queue(queue, frameIndex, {}, {DescBloom::BINDING_UBO_BLOOM});

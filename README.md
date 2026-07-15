@@ -40,7 +40,8 @@ unzip it and run it from the `bin` directory.
 ### Requirements
 *IMPORTANT : To use this application, the GPU must support `Vulkan`.*
 
-If the following error occurs even though `Vulkan` is installed correctly, it is caused by the GPU not supporting `Vulkan`. In this case, use version `2.0.12.1`.
+If the following error occurs even though `Vulkan` is installed correctly, it is caused by the GPU not supporting `Vulkan`. 
+In this case, use version `2.0.12.1`. Supported OS of this version is only Windows.
 ```terminaloutput
 - [INITIALIZE] No suitable physical device found 
 

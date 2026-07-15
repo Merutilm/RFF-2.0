@@ -3,53 +3,62 @@
 //
 
 #pragma once
-#ifdef _WIN32
 #include "../vulkan/CPC2MapIterationStripe.hpp"
 #include "../vulkan/CPCBoxBlur.hpp"
 #include "../vulkan/CPCImageRGBA2BGR.hpp"
-#include "../vulkan/GPCBloom.hpp"
-#include "../vulkan/GPCBloomThreshold.hpp"
-#include "../vulkan/GPCColor.hpp"
-#include "../vulkan/GPCDownsampleForBlur.hpp"
-#include "../vulkan/GPCFog.hpp"
-#include "../vulkan/GPCLinearInterpolation.hpp"
-#include "../vulkan/GPCPresent.hpp"
-#include "../vulkan/GPCSlope.hpp"
-#include "../vulkan/GPCStaticImage2Map.hpp"
-#include "../vulkan/RCCStatic2Image.hpp"
-#include "../vulkan/SharedDescriptorTemplate.hpp"
+#include "../vulkan/RCC0.hpp"
+#include "../vulkan/RCC1.hpp"
 #include "../vulkan/RCC2.hpp"
 #include "../vulkan/RCC3.hpp"
 #include "../vulkan/RCC4.hpp"
 #include "../vulkan/RCC5.hpp"
 #include "../vulkan/RCCDownsampleForBlur.hpp"
 #include "../vulkan/RCCPresent.hpp"
+#include "../vulkan/RCCStatic2Image.hpp"
+#include "../vulkan/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/base/vkh.hpp"
 #include "vulkan_helper/engine/configurator/PipelineConfigurator.hpp"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
 #include "vulkan_helper/engine/graphics/Renderer.hpp"
+#include <vulkan_helper/util/RenderContextUtils.hpp>
 #include "vulkan_helper/util/BarrierUtils.hpp"
+#include "../util/RendererUtils.hpp"
 
 namespace merutilm::rff2 {
     struct VideoWindowRenderer final : public vkh::Renderer {
-        GPCStaticImage2Map *rendererStaticImage = nullptr;
-        CPC2MapIterationStripe *renderer2MapIterationStripe = nullptr;
-        GPCSlope *rendererSlope = nullptr;
-        GPCColor *rendererColor = nullptr;
-        GPCDownsampleForBlur *rendererDownsampleForBlur = nullptr;
-        CPCBoxBlur *rendererBoxBlur = nullptr;
-        GPCFog *rendererFog = nullptr;
-        GPCBloomThreshold *rendererBloomThreshold = nullptr;
-        GPCBloom *rendererBloom = nullptr;
-        GPCLinearInterpolation *rendererLinearInterpolation = nullptr;
-        CPCImageRGBA2BGR *rendererImageRGBA2BGR = nullptr;
-        GPCPresent *rendererPresent = nullptr;
+
+        vkh::RenderContext *rcStatic2;
+        vkh::RenderContext *rc0;
+        vkh::RenderContext *rc1;
+        vkh::RenderContext *rc2;
+        vkh::RenderContext *rcDownsample;
+        vkh::RenderContext *rc3;
+        vkh::RenderContext *rc4;
+        vkh::RenderContext *rc5;
+        vkh::RenderContext *rcPresent;
+
+        RCCStatic2Image *rccStatic2;
+        RCC0 *rcc0;
+        RCC1 *rcc1;
+        RCC2 *rcc2;
+        RCCDownsampleForBlur *rccDownsample;
+        RCC3 *rcc3;
+        RCC4 *rcc4;
+        RCC5 *rcc5;
+        RCCPresent *rccPresent;
+
+        CPC2MapIterationStripe *compute2MapIterationStripe = nullptr;
+        CPCBoxBlur *computeBoxBlur = nullptr;
+        CPCImageRGBA2BGR *computeImageRGBA2BGR = nullptr;
+
+        const VkExtent2D &videoExtent;
+
         bool isStaticImages = false;
         float currentSec = 0.0f;
         float currentFrame = 0.0f;
 
-        explicit VideoWindowRenderer(vkh::Engine &engine, vkh::WindowContext &wc) :
-            Renderer(engine, wc) {
+        explicit VideoWindowRenderer(vkh::Engine &engine, vkh::WindowContext &wc, const VkExtent2D &videoExtent) :
+            Renderer(engine, wc), videoExtent(videoExtent) {
             VideoWindowRenderer::init();
         }
 
@@ -63,57 +72,78 @@ namespace merutilm::rff2 {
 
         VideoWindowRenderer &operator=(VideoWindowRenderer &&) = delete;
 
-    private:
+    protected:
         void init() override {
-            rendererStaticImage = vkh::PipelineConfigurator::create<GPCStaticImage2Map>(
-                    configurators, engine, wc.getAttachmentIndex(), RCCStatic2Image::CONTEXT_INDEX,
-                    RCCStatic2Image::SUBPASS_STATIC_IMAGE_INDEX);
+            const auto swapchainImageContextGetter = [this] {
+                const auto &swapchain = wc.getSwapchain();
+                return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
+            };
+            compute2MapIterationStripe = vkh::ComputePipelineConfigurator::createComputePipeline<CPC2MapIterationStripe>(
+                  configurators, engine, wc);
 
-            renderer2MapIterationStripe = vkh::PipelineConfigurator::create<CPC2MapIterationStripe>(
-                    configurators, engine, wc.getAttachmentIndex());
+            computeImageRGBA2BGR =
+                    vkh::ComputePipelineConfigurator::createComputePipeline<CPCImageRGBA2BGR>(configurators, engine, wc);
+            computeBoxBlur =
+                    vkh::ComputePipelineConfigurator::createComputePipeline<CPCBoxBlur>(configurators, engine, wc);
 
-            rendererSlope = vkh::PipelineConfigurator::create<GPCSlope>(
-                    configurators, engine, wc.getAttachmentIndex(), RCC2::CONTEXT_INDEX,
-                    RCC2::SUBPASS_SLOPE_INDEX);
+            rcStatic2 = vkh::RenderContextUtils::attachRenderContext<RCCStatic2Image>(
+                &rccStatic2,
+                configurators, engine, wc, [this] {
+                    return videoExtent;
+                }, swapchainImageContextGetter);
+            rc0 = vkh::RenderContextUtils::attachRenderContext<RCC0>(
+                    &rcc0, configurators, engine, wc,
+                    [this] {
+                        return videoExtent;
+                    },
+                    swapchainImageContextGetter);
+            rc1 = vkh::RenderContextUtils::attachRenderContext<RCC1>(
+                    &rcc1, configurators, engine, wc,
+                    [this] {
+                        return videoExtent;
+                    },
+                    swapchainImageContextGetter);
+            rc2 = vkh::RenderContextUtils::attachRenderContext<RCC2>(
+                    &rcc2, configurators, engine, wc,
+                    [this] {
+                        return videoExtent;
+                    },
+                    swapchainImageContextGetter);
+            rcDownsample = vkh::RenderContextUtils::attachRenderContext<RCCDownsampleForBlur>(
+                    &rccDownsample, configurators, engine, wc,
+                    [this] {
+                        return RendererUtils::getBlurredImageExtent(videoExtent, 1);
+                    },
+                    swapchainImageContextGetter);
+            rc3 = vkh::RenderContextUtils::attachRenderContext<RCC3>(
+                    &rcc3, configurators, engine, wc,
+                    [this] {
+                        return videoExtent;
+                    },
+                    swapchainImageContextGetter);
+            rc4 = vkh::RenderContextUtils::attachRenderContext<RCC4>(
+                    &rcc4, configurators, engine, wc,
+                    [this] {
+                        return videoExtent;
+                    },
+                    swapchainImageContextGetter);
+            rc5 = vkh::RenderContextUtils::attachRenderContext<RCC5>(
+                    &rcc5, configurators, engine, wc,
+                    [this] {
+                        return videoExtent;
+                    },
+                    swapchainImageContextGetter);
+            rcPresent = vkh::RenderContextUtils::attachRenderContext<RCCPresent>(
+                    &rccPresent, configurators, engine, wc, [this] { return wc.getSwapchain().getSwapchainExtent(); },
+                    swapchainImageContextGetter);
 
-            rendererColor = vkh::PipelineConfigurator::create<GPCColor>(
-                    configurators, engine, wc.getAttachmentIndex(), RCC2::CONTEXT_INDEX,
-                    RCC2::SUBPASS_COLOR_INDEX);
-
-            rendererDownsampleForBlur = vkh::PipelineConfigurator::create<GPCDownsampleForBlur>(
-                    configurators, engine, wc.getAttachmentIndex(), RCCDownsampleForBlur::CONTEXT_INDEX,
-                    RCCDownsampleForBlur::SUBPASS_DOWNSAMPLE_INDEX);
-
-            rendererBoxBlur =
-                    vkh::PipelineConfigurator::create<CPCBoxBlur>(configurators, engine, wc.getAttachmentIndex());
-
-            rendererFog = vkh::PipelineConfigurator::create<GPCFog>(configurators, engine, wc.getAttachmentIndex(),
-                                                                    RCC3::CONTEXT_INDEX, RCC3::SUBPASS_FOG_INDEX,
-                                                                    vertexBufferPP, indexBufferPP);
-
-            rendererBloomThreshold = vkh::PipelineConfigurator::create<GPCBloomThreshold>(
-                    configurators, engine, wc.getAttachmentIndex(), RCC3::CONTEXT_INDEX,
-                    RCC3::SUBPASS_BLOOM_THRESHOLD_INDEX);
-
-            rendererBloom = vkh::PipelineConfigurator::create<GPCBloom>(
-                    configurators, engine, wc.getAttachmentIndex(), RCC4::CONTEXT_INDEX,
-                    RCC4::SUBPASS_BLOOM_INDEX);
-
-            rendererLinearInterpolation = vkh::PipelineConfigurator::create<GPCLinearInterpolation>(
-                    configurators, engine, wc.getAttachmentIndex(), RCC5::CONTEXT_INDEX,
-                    RCC5::SUBPASS_LINEAR_INTERPOLATION_INDEX);
-            rendererImageRGBA2BGR =
-                    vkh::PipelineConfigurator::create<CPCImageRGBA2BGR>(configurators, engine, wc.getAttachmentIndex());
-            rendererPresent = vkh::PipelineConfigurator::create<GPCPresent>(
-                    configurators, engine, wc.getAttachmentIndex(), RCCPresent::CONTEXT_INDEX,
-                    RCCPresent::SUBPASS_PRESENT_INDEX);
             finishPipelineInitialization();
+
         }
 
-
         void beforeCmdRender() override {
-            renderer2MapIterationStripe->setTime(currentSec, frameIndex);
-            renderer2MapIterationStripe->setCurrentFrame(currentFrame, frameIndex);
+            compute2MapIterationStripe->setTime(currentSec, frameIndex);
+            compute2MapIterationStripe->setCurrentFrame(currentFrame, frameIndex);
         }
 
 
@@ -123,8 +153,7 @@ namespace merutilm::rff2 {
                 return wc.getSharedImageContext().getImageContextMF(index)[frameIndex].image;
             };
             if (isStaticImages) {
-                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCStatic2Image>(
-                        wc, frameIndex, {rendererStaticImage}, {{}});
+                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rcStatic2, frameIndex);
 
                 vkh::BarrierUtils::cmdImageMemoryBarrier(
                         cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
@@ -138,14 +167,14 @@ namespace merutilm::rff2 {
                         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
                 // [BARRIER] Init image
 
-                renderer2MapIterationStripe->cmdRender(cbh, frameIndex, {});
+                compute2MapIterationStripe->cmdRender(cbh, frameIndex, {});
 
                 // [IN] EXTERNAL
                 // [OUT] SSBO (Iteration Buffer)
                 // [OUT] PRIMARY
 
                 const auto &outputBuffer =
-                        renderer2MapIterationStripe->getDescriptor(CPC2MapIterationStripe::SET_OUTPUT_ITERATION)
+                        compute2MapIterationStripe->getDescriptor(CPC2MapIterationStripe::SET_OUTPUT_ITERATION)
                                 .get<vkh::ShaderStorage>(
                                         0, SharedDescriptorTemplate::DescIteration::BINDING_SSBO_ITERATION_MATRIX)
                                 .getBufferContext();
@@ -162,8 +191,8 @@ namespace merutilm::rff2 {
                 // [BARRIER] SSBO (Result Iteration Buffer)
                 // [BARRIER] PRIMARY (Result Image)
 
-                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC2>(
-                        wc, frameIndex, {rendererSlope, rendererColor}, {{}, {}});
+                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(
+                        wc, *rc2, frameIndex);
 
                 // [IN] SSBO (Iteration Buffer)
                 // [IN] SECONDARY
@@ -179,9 +208,9 @@ namespace merutilm::rff2 {
                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
                 // [BARRIER] PRIMARY
 
-                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCDownsampleForBlur>(
-                        wc, frameIndex, {rendererDownsampleForBlur},
-                        {{GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG}});
+                rccDownsample->descIndexer = RCCDownsampleForBlur::DescIndexer::FOG;
+                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(
+                        wc, *rcDownsample, frameIndex);
 
                 // [IN] PRIMARY
                 // [OUT] DOWNSAMPLED_PRIMARY
@@ -193,7 +222,7 @@ namespace merutilm::rff2 {
 
                 // [BARRIER] DOWNSAMPLED_PRIMARY
 
-                rendererBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG);
+                computeBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG);
 
                 // [IN] DOWNSAMPLED_PRIMARY
                 // [OUT] DOWNSAMPLED_SECONDARY
@@ -210,8 +239,8 @@ namespace merutilm::rff2 {
                 // [BARRIER] PRIMARY
                 // [BARRIER] DOWNSAMPLED_SECONDARY
 
-                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC3>(
-                        wc, frameIndex, {rendererFog, rendererBloomThreshold}, {{}, {}});
+                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(
+                        wc,  *rc3, frameIndex);
 
                 // [IN] PRIMARY
                 // [IN] DOWNSAMPLED_SECONDARY
@@ -226,9 +255,8 @@ namespace merutilm::rff2 {
 
                 // [BARRIER] PRIMARY
 
-                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCCDownsampleForBlur>(
-                        wc, frameIndex, {rendererDownsampleForBlur},
-                        {{GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM}});
+                rccDownsample->descIndexer = RCCDownsampleForBlur::DescIndexer::BLOOM;
+                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rcDownsample, frameIndex);
                 // [IN] PRIMARY
                 // [OUT] DOWNSAMPLED_PRIMARY
 
@@ -238,7 +266,7 @@ namespace merutilm::rff2 {
                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
                 // [BARRIER] DOWNSAMPLED_PRIMARY
 
-                rendererBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM);
+                computeBoxBlur->cmdGaussianBlur(frameIndex, CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM);
 
                 // [IN] DOWNSAMPLED_PRIMARY
                 // [OUT] DOWNSAMPLED_SECONDARY
@@ -257,8 +285,7 @@ namespace merutilm::rff2 {
                 // [BARRIER] DOWNSAMPLED_SECONDARY
 
 
-                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC4>(wc, frameIndex,
-                                                                                            {rendererBloom}, {{}});
+                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc4, frameIndex);
 
                 // [IN] SECONDARY
                 // [IN] DOWNSAMPLED_SECONDARY
@@ -269,8 +296,8 @@ namespace merutilm::rff2 {
                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
-                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass<RCC5>(
-                        wc, frameIndex, {rendererLinearInterpolation}, {{}});
+                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(
+                        wc, *rc5, frameIndex);
 
                 // [IN] PRIMARY
                 // [OUT] SECONDARY
@@ -284,11 +311,9 @@ namespace merutilm::rff2 {
 
             // [BARRIER] SECONDARY
 
-            rendererImageRGBA2BGR->cmdRender(cbh, frameIndex, {});
+            computeImageRGBA2BGR->cmdRender(cbh, frameIndex, {});
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenPresentOnlyRenderPass<RCCPresent>(
-                    wc, frameIndex, swapchainImageIndex, {rendererPresent}, {{}});
-
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenForSwapchainRenderPass(wc, *rcPresent, frameIndex,  swapchainImageIndex);
 
             // [IN] SECONDARY
             // [OUT] EXTERNAL
@@ -299,4 +324,3 @@ namespace merutilm::rff2 {
         }
     };
 } // namespace merutilm::rff2
-#endif

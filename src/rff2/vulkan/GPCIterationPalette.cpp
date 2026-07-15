@@ -48,7 +48,7 @@ namespace merutilm::rff2 {
 
         iterSSBOHost.resizeArray<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, width * height);
         iterSSBO.reloadBuffer();
-        iterSSBO.lock(engine.getCommandPool());
+        iterSSBO.lock(wc.getCommandPool());
         writeDescriptorMF(
             [&iterDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
                 iterDesc.queue(queue, frameIndex, {}, {DescIteration::BINDING_SSBO_ITERATION_MATRIX});
@@ -72,7 +72,7 @@ namespace merutilm::rff2 {
         auto &paletteSSBOHost = paletteSSBO.getHostObject();
 
         if (paletteSSBO.isLocked()) {
-            paletteSSBO.unlock(engine.getCommandPool());
+            paletteSSBO.unlock(wc.getCommandPool());
         }
 
         const auto paletteLength = static_cast<uint32_t>(palette.colors.size());
@@ -89,7 +89,7 @@ namespace merutilm::rff2 {
         paletteSSBOHost.set<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, palette.colors);
         paletteSSBO.reloadBuffer();
         paletteSSBO.update();
-        paletteSSBO.lock(engine.getCommandPool());
+        paletteSSBO.lock(wc.getCommandPool());
 
         writeDescriptorMF(
             [&paletteDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {

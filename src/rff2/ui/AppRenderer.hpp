@@ -4,6 +4,7 @@
 
 #pragma once
 #include "../data/GraphicsMatrixStagingBuffer.h"
+#include "../util/RendererUtils.hpp"
 #include "../vulkan/CPCBoxBlur.hpp"
 #include "../vulkan/RCC0.hpp"
 #include "../vulkan/RCC1.hpp"
@@ -12,7 +13,7 @@
 #include "../vulkan/RCC4.hpp"
 #include "../vulkan/RCC5.hpp"
 #include "../vulkan/RCCDownsampleForBlur.hpp"
-#include "../vulkan/RCCPresent.hpp"
+#include "../vulkan/RCCPresentPrepareImgui.hpp"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
 #include "vulkan_helper/engine/internal/RendererImGui.hpp"
 #include "vulkan_helper/util/BarrierUtils.hpp"
@@ -40,7 +41,7 @@ namespace merutilm::rff2 {
         RCC3 *rcc3;
         RCC4 *rcc4;
         RCC5 *rcc5;
-        RCCPresent *rccPresent;
+        RCCPresentPrepareImgui *rccPresentPrepare;
 
         CPCBoxBlur *computeBoxBlur;
 
@@ -64,24 +65,6 @@ namespace merutilm::rff2 {
         AppRenderer &operator=(AppRenderer &&) = delete;
 
 
-        [[nodiscard]] static VkExtent2D getInternalImageExtent(VkExtent2D swapchainExtent,
-                                                               const float clarityMultiplier) {
-            const auto [width, height] = swapchainExtent;
-            return {static_cast<uint32_t>(static_cast<float>(width) * clarityMultiplier),
-                    static_cast<uint32_t>(static_cast<float>(height) * clarityMultiplier)};
-        }
-
-        [[nodiscard]] static VkExtent2D getBlurredImageExtent(const VkExtent2D swapchainExtent,
-                                                              const float clarityMultiplier) {
-            const VkExtent2D blurredExtent = getInternalImageExtent(swapchainExtent, clarityMultiplier);
-            if (const float rat = Constants::Fractal::GAUSSIAN_MAX_WIDTH / static_cast<float>(blurredExtent.width);
-                rat < 1) {
-                return {Constants::Fractal::GAUSSIAN_MAX_WIDTH,
-                        static_cast<uint32_t>(static_cast<float>(blurredExtent.height) * rat)};
-            }
-            return blurredExtent;
-        }
-
     protected:
         void init() override {
 
@@ -94,54 +77,54 @@ namespace merutilm::rff2 {
             rc0 = vkh::RenderContextUtils::attachRenderContext<RCC0>(
                     &rcc0, configurators, engine, wc,
                     [this] {
-                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                        return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
             rc1 = vkh::RenderContextUtils::attachRenderContext<RCC1>(
                     &rcc1, configurators, engine, wc,
                     [this] {
-                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                        return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
             rc2 = vkh::RenderContextUtils::attachRenderContext<RCC2>(
                     &rcc2, configurators, engine, wc,
                     [this] {
-                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                        return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
             rcDownsample = vkh::RenderContextUtils::attachRenderContext<RCCDownsampleForBlur>(
                     &rccDownsample, configurators, engine, wc,
                     [this] {
-                        return getBlurredImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                        return RendererUtils::getBlurredImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                      settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
             rc3 = vkh::RenderContextUtils::attachRenderContext<RCC3>(
                     &rcc3, configurators, engine, wc,
                     [this] {
-                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                        return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
             rc4 = vkh::RenderContextUtils::attachRenderContext<RCC4>(
                     &rcc4, configurators, engine, wc,
                     [this] {
-                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                        return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
             rc5 = vkh::RenderContextUtils::attachRenderContext<RCC5>(
                     &rcc5, configurators, engine, wc,
                     [this] {
-                        return getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                        return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
-            rcPresent = vkh::RenderContextUtils::attachRenderContext<RCCPresent>(
-                    &rccPresent, configurators, engine, wc, [this] { return wc.getSwapchain().getSwapchainExtent(); },
+            rcPresent = vkh::RenderContextUtils::attachRenderContext<RCCPresentPrepareImgui>(
+                    &rccPresentPrepare, configurators, engine, wc, [this] { return wc.getSwapchain().getSwapchainExtent(); },
                     swapchainImageContextGetter);
 
             finishPipelineInitialization();

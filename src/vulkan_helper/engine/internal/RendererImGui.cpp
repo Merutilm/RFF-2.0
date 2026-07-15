@@ -24,6 +24,7 @@ namespace merutilm::vkh {
 
     }
     void RendererImGui::beforeCmdRender() {
+        std::scoped_lock lock(engine.getCore().getLogicalDevice().getQueueMutex());
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -31,7 +32,7 @@ namespace merutilm::vkh {
         ImGui::Render();
     }
     void RendererImGui::cmdRender(const uint32_t swapchainImageIndex) {
-
+        std::scoped_lock lock(engine.getCore().getLogicalDevice().getQueueMutex());
         ImDrawData* drawData = ImGui::GetDrawData();
         const auto renderPassRecorder = RenderPassFullscreenRecorder(
                 wc, *imguiRenderContext, frameIndex, swapchainImageIndex);

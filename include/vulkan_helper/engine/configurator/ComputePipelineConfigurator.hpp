@@ -43,6 +43,7 @@ namespace merutilm::vkh {
 
     private:
         void cmdDispatch(const VkCommandBuffer cbh) const {
+
             const auto [width, height] = extent;
             vkCmdDispatch(cbh, (width + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE,
                           (height + WORK_GROUP_SIZE - 1) / WORK_GROUP_SIZE, 1);

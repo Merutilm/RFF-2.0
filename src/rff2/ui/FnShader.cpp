@@ -52,8 +52,8 @@ namespace merutilm::rff2 {
 
                 if (ImGui::Button("Add", ImVec2(-FLT_MIN, 0))) {
                     colors.emplace_back(1, 1, 1, 1);
-                    page = (colors.size() - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE;
-                    selectRequest = colors.size() - 1;
+                    page = (static_cast<int>(colors.size()) - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE;
+                    selectRequest = static_cast<int>(colors.size()) - 1;
                     app.getRequests().requestShader();
                 }
                 if (!addCheck) {
@@ -70,7 +70,7 @@ namespace merutilm::rff2 {
                     app.getRequests().requestShader();
 
                     if (selected >= colors.size())
-                        selectRequest = (int) colors.size() - 1;
+                        selectRequest = static_cast<int>(colors.size()) - 1;
                 }
 
                 if (!removeCheck) {
@@ -95,7 +95,7 @@ namespace merutilm::rff2 {
                 ImGui::EndTable();
 
 
-                const int pageCount = (colors.size() - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE + 1;
+                const int pageCount = (static_cast<int>(colors.size()) - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE + 1;
 
                 if (ImGui::ArrowButton("##prev", ImGuiDir_Left)) {
                     if (ImGui::GetIO().KeyCtrl) {

@@ -17,18 +17,18 @@ namespace merutilm::vkh {
 
     class WindowContext final : public CoreHandler {
         const uint32_t attachmentIndex;
-        CommandPool &commandPool;
         std::unique_ptr<PlatformWindow> window;
         std::optional<Surface> surface;
         std::optional<Swapchain> swapchain;
         std::optional<Repositories> windowLocalRepositories;
+        std::optional<CommandPool> commandPool;
         std::optional<CommandBuffer> commandBuffer;
         std::optional<SyncObject> syncObject;
         std::optional<SharedImageContext> sharedImageContext;
         std::vector<std::unique_ptr<RenderContext>> renderContexts = {};
 
     public:
-        explicit WindowContext(Core &core, CommandPool &commandPool, uint32_t index, std::unique_ptr<PlatformWindow> &&window);
+        explicit WindowContext(Core &core, uint32_t index, std::unique_ptr<PlatformWindow> &&window);
 
         ~WindowContext() override;
 
@@ -50,6 +50,8 @@ namespace merutilm::vkh {
         [[nodiscard]] Swapchain &getSwapchain() { return *swapchain; }
 
         [[nodiscard]] Repositories &getWindowLocalRepositories() { return *windowLocalRepositories; }
+
+        [[nodiscard]] CommandPool &getCommandPool() { return *commandPool; }
 
         [[nodiscard]] CommandBuffer &getCommandBuffer() { return *commandBuffer; }
 

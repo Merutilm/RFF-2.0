@@ -23,9 +23,9 @@ namespace merutilm::rff2 {
     }
 
     void GPCStaticImage2Map::setImages(const cv::Mat &normal, const cv::Mat &zoomed) const {
-        const auto n = vkh::BufferImageContextUtils::imageFromByteColorArray(wc.core, engine.getCommandPool(), VK_FORMAT_R16G16B16A16_UNORM, static_cast<uint32_t>(normal.cols), static_cast<uint32_t>(normal.rows),
+        const auto n = vkh::BufferImageContextUtils::imageFromByteColorArray(wc.core, wc.getCommandPool(), VK_FORMAT_R16G16B16A16_UNORM, static_cast<uint32_t>(normal.cols), static_cast<uint32_t>(normal.rows),
         4, 16, false, reinterpret_cast<std::byte*>(normal.data));
-        const auto z = vkh::BufferImageContextUtils::imageFromByteColorArray(wc.core, engine.getCommandPool(), VK_FORMAT_R16G16B16A16_UNORM, static_cast<uint32_t>(normal.cols), static_cast<uint32_t>(normal.rows),
+        const auto z = vkh::BufferImageContextUtils::imageFromByteColorArray(wc.core, wc.getCommandPool(), VK_FORMAT_R16G16B16A16_UNORM, static_cast<uint32_t>(normal.cols), static_cast<uint32_t>(normal.rows),
         4, 16, false, reinterpret_cast<std::byte*>(zoomed.data));
         auto &imageDesc = getDescriptor(SET_IMAGES);
         imageDesc.get<vkh::CombinedImageSampler>(0, BINDING_IMAGES_NORMAL).setUniqueImageContext(n);

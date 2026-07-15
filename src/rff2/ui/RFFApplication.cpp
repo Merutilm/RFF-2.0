@@ -26,6 +26,7 @@
 #include "FnPreset.hpp"
 #include "FnRender.hpp"
 #include "FnShader.hpp"
+#include "FnVideo.hpp"
 #include "IOUtilities.h"
 #include "Utilities.h"
 #include "imgui.h"
@@ -127,7 +128,7 @@ namespace merutilm::rff2 {
                                                     .autoMaxIteration = true,
                                                     .autoIterationMultiplier = 100,
                                                     .absoluteIterationMode = true}},
-                .render = {.clarityMultiplier = 1.0f, .fps = 60, .linearInterpolation = true, .threads = 1},
+                .render = {.clarityMultiplier = 0.25f, .fps = 60, .linearInterpolation = true, .threads = 1},
                 .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .slope = ShdSlopePresets::Disabled().genSlope(),
@@ -319,7 +320,7 @@ namespace merutilm::rff2 {
         // NEW COMMAND BUFFER
         {
             const auto executor =
-                    vkh::ScopedNewCommandBufferExecutor(rootWindowContext->core, engine->getCommandPool());
+                    vkh::ScopedNewCommandBufferExecutor(rootWindowContext->core, rootWindowContext->getCommandPool());
             vkh::BarrierUtils::cmdImageMemoryBarrier(
                     executor.getCommandBufferHandle(), imgCtx.image, VK_ACCESS_SHADER_WRITE_BIT,
                     VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -353,14 +354,14 @@ namespace merutilm::rff2 {
         const uint16_t iw = calcIterationBufferWidth(settings);
         const uint16_t ih = calcIterationBufferHeight(settings);
         const auto &[dWidth, dHeight] =
-                AppRenderer::getBlurredImageExtent(swapchainExtent, settings.render.clarityMultiplier);
+                RendererUtils::getBlurredImageExtent(swapchainExtent, settings.render.clarityMultiplier);
         const auto &[sWidth, sHeight] = rootWindowContext->getSwapchain().getSwapchainExtent();
 
         renderer->rccDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG,
                                                                    {dWidth, dHeight});
         renderer->rccDownsample->downsample->setRescaledResolution(
                 GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM, {dWidth, dHeight});
-        renderer->rccPresent->present->setRescaledResolution({sWidth, sHeight});
+        renderer->rccPresentPrepare->presentPrepare->setRescaledResolution({sWidth, sHeight});
         renderer->rcc0->iterationPalette->resetIterationBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double>>(iw, ih);
         renderer->iterationStagingBufferContext = std::make_unique<GraphicsMatrixBuffer<double>>(
@@ -468,6 +469,11 @@ namespace merutilm::rff2 {
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Video")) {
+                FnVideo::dataSettings(*this);
+                FnVideo::animationSettings(*this);
+                FnVideo::exportSettings(*this);
+                FnVideo::generateVidKeyframes(*this);
+                FnVideo::exportZoomVideo(*this);
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Explore")) {
@@ -505,8 +511,9 @@ namespace merutilm::rff2 {
             };
         };
 
-        const auto internalImageExtent = AppRenderer::getInternalImageExtent(extent, settings.render.clarityMultiplier);
-        const auto blurredImageExtent = AppRenderer::getBlurredImageExtent(extent, settings.render.clarityMultiplier);
+        const auto internalImageExtent =
+                RendererUtils::getInternalImageExtent(extent, settings.render.clarityMultiplier);
+        const auto blurredImageExtent = RendererUtils::getBlurredImageExtent(extent, settings.render.clarityMultiplier);
 
         sharedImg.appendMultiframeImageContext(MF_MAIN_RENDER_IMAGE_PRIMARY,
                                                iiiGetter(internalImageExtent, VK_FORMAT_R16G16B16A16_UNORM,
@@ -637,8 +644,7 @@ namespace merutilm::rff2 {
                 uint64_t period = renderData->getReference()->longestPeriod();
                 const auto center = MB2Locator::locateMinibrot(
                         state, renderData.get(), FnExplore::getActionWhileFindingMBCenter(*this, period),
-                        FnExplore::getActionWhileCreatingTable(*this),
-                        FnExplore::getActionWhileFindingZoom(*this));
+                        FnExplore::getActionWhileCreatingTable(*this), FnExplore::getActionWhileFindingZoom(*this));
                 if (center == nullptr)
                     return false;
 

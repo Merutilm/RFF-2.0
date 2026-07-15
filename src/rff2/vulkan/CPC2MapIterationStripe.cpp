@@ -57,7 +57,7 @@ namespace merutilm::rff2 {
         auto &paletteSSBOHost = paletteSSBO.getHostObject();
 
         if (paletteSSBO.isLocked()) {
-            paletteSSBO.unlock(engine.getCommandPool());
+            paletteSSBO.unlock(wc.getCommandPool());
         }
 
         const auto paletteLength = static_cast<uint32_t>(palette.colors.size());
@@ -74,7 +74,7 @@ namespace merutilm::rff2 {
         paletteSSBOHost.set<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, palette.colors);
         paletteSSBO.reloadBuffer();
         paletteSSBO.update();
-        paletteSSBO.lock(engine.getCommandPool());
+        paletteSSBO.lock(wc.getCommandPool());
 
         writeDescriptorMF([&paletteDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             paletteDesc.queue(queue, frameIndex, {}, {DescPalette::BINDING_SSBO_PALETTE});
@@ -136,11 +136,11 @@ namespace merutilm::rff2 {
         auto &iterOut = getDescriptor(SET_OUTPUT_ITERATION);
         auto &iterOutSSBO = iterOut.get<vkh::ShaderStorage>(0, DescIteration::BINDING_SSBO_ITERATION_MATRIX);
         if (iterOutSSBO.isLocked()) {
-            iterOutSSBO.unlock(engine.getCommandPool());
+            iterOutSSBO.unlock(wc.getCommandPool());
         }
         iterOutSSBO.getHostObject().resizeAndClear<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, width * height);
         iterOutSSBO.reloadBuffer();
-        iterOutSSBO.lock(engine.getCommandPool());
+        iterOutSSBO.lock(wc.getCommandPool());
 
         auto &iterOutUBO = iterOut.get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
         iterOutUBO.getHostObject().set<glm::uvec2>(DescIteration::TARGET_UBO_ITERATION_EXTENT, {width, height});

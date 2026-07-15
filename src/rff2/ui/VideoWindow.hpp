@@ -3,11 +3,11 @@
 //
 
 #pragma once
-#ifdef _WIN32
 #include <opencv2/videoio.hpp>
 
 
 #include "../settings/Settings.h"
+#include "RFFApplication.hpp"
 #include "VideoBufferCache.hpp"
 #include "VideoWindowRenderManager.hpp"
 #include "vulkan_helper/handle/EngineHandler.hpp"
@@ -15,19 +15,16 @@
 namespace merutilm::rff2 {
 
 
-    class VideoWindow final : public vkh::EngineHandler {
+    class VideoWindow final : vkh::Handler{
 
-        vkh::SharedResource &sr;
-        HWND bar = nullptr;
-        float barRatio = 0;
-        std::string barText = L"";
+        RFFApplication &app;
         std::unique_ptr<VideoWindowRenderManager> scene = nullptr;
         const int width;
         const int height;
 
 
     public:
-        explicit VideoWindow(vkh::Engine &engine, vkh::SharedResource &sr, int width, int height);
+        explicit VideoWindow(RFFApplication &app, int width, int height);
 
         ~VideoWindow() override;
 
@@ -39,21 +36,17 @@ namespace merutilm::rff2 {
 
         VideoWindow &operator=(VideoWindow &&) = delete;
 
-        void addListeners() const;
 
-        static void createVideo(vkh::Engine &engine, vkh::SharedResource &sr,const Settings &settings, const std::filesystem::path &open,
+        static void createVideo(RFFApplication &app, const std::filesystem::path &open,
                                 const std::filesystem::path &save);
 
         static cv::Mat generateFrame(const VideoBufferCache &buffer, int imgWidth, bool showText);
 
-    private:
-
+    protected:
         void initScene(const VkExtent2D &videoExtent, const Settings &targetSettings);
-        HWND getNativeWindowHandle() const;
 
         void init() override;
 
         void cleanup() override;
     };
 } // namespace merutilm::rff2
-#endif

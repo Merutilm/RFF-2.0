@@ -7,12 +7,12 @@
 #include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
-    class RCCPresent final : public vkh::RenderPassGraphGenerator {
+    class RCCPresentPrepareImgui final : public vkh::RenderPassGraphGenerator {
 
         vkh::RenderPassAttachment *swapchainAttachment;
 
     public:
-        GPCPresent *present;
+        GPCPresent *presentPrepare;
 
         using RenderPassGraphGenerator::RenderPassGraphGenerator;
 
@@ -28,14 +28,14 @@ namespace merutilm::rff2 {
                                        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                                        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                       .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR}, //skip imgui render
+                                       .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}, //imgui rendering requires color attachment for swapchain
                                       swapchainImageContextGetter());
         }
 
         void configurePipelines() override {
 
             registerPipeline<GPCPresent>(
-                    &present, {},
+                    &presentPrepare, {},
                     {swapchainAttachment,
                      {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
                      vkh::SubpassDependency::none(),

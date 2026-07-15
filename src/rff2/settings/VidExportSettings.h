@@ -7,6 +7,6 @@
 namespace merutilm::rff2 {
     struct VidExportSettings {
         float fps;
-        uint32_t bitrate;
+        uint16_t bitrate;
     };
 }

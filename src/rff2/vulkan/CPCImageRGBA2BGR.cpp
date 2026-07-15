@@ -27,7 +27,7 @@ namespace merutilm::rff2 {
         ssbo.getHostObject().resizeAndClear<uint32_t>(TARGET_OUTPUT_SSBO_DATA,
                                                       extent.width * extent.height * 3 / 4 + 1);
         ssbo.reloadBuffer();
-        ssbo.lock(engine.getCommandPool());
+        ssbo.lock(wc.getCommandPool());
         setExtent(extent);
         writeDescriptorMF(
             [&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
