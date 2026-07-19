@@ -77,11 +77,11 @@ namespace merutilm::vkh {
 
         static void processMouseEnter(GLFWwindow *window, int entered);
 
-        static void processMousePos(GLFWwindow *window, double xpos, double ypos);
+        static void processMousePos(GLFWwindow *window, double x, double y);
 
         static void processMouseButton(GLFWwindow *window, int button, int action, int mods);
 
-        static void processScroll(GLFWwindow *window, double xoffset, double yoffset);
+        static void processScroll(GLFWwindow *window, double x, double y);
 
         static void processWindowSize(GLFWwindow *window, int width, int height);
 

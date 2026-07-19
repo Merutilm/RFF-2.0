@@ -82,7 +82,7 @@ namespace merutilm::vkh {
 
     bool PlatformWindow::isKeyPressed(const int key) const { return pressedKeys.contains(key); }
 
-    void PlatformWindow::processKeyInput(GLFWwindow *window, const int key, int scancode, const int action, int mods) {
+    void PlatformWindow::processKeyInput(GLFWwindow *window, const int key, [[maybe_unused]] int scancode, const int action, [[maybe_unused]] int mods) {
 
 #ifdef VKH_USE_IMGUI
         if (ImGui::GetIO().WantCaptureKeyboard)
@@ -113,15 +113,15 @@ namespace merutilm::vkh {
         }
     }
 
-    void PlatformWindow::processMousePos(GLFWwindow *window, double xpos, double ypos) {
+    void PlatformWindow::processMousePos(GLFWwindow *window, double x, double y) {
 #ifdef VKH_USE_IMGUI
         if (ImGui::GetIO().WantCaptureMouse)
             return;
 #endif
 
         const auto pwb = static_cast<PlatformWindow *>(glfwGetWindowUserPointer(window));
-        const int ix = static_cast<int>(xpos);
-        const int iy = static_cast<int>(ypos);
+        const int ix = static_cast<int>(x);
+        const int iy = static_cast<int>(y);
 
         pwb->eventSystem.mouse.onMouseMove.invoke(ix, iy);
         for (auto &[fst, snd]: pwb->mouseStates) {
@@ -171,14 +171,14 @@ namespace merutilm::vkh {
         }
     }
 
-    void PlatformWindow::processScroll(GLFWwindow *window, double xoffset, double yoffset) {
+    void PlatformWindow::processScroll(GLFWwindow *window, double x, double y) {
 #ifdef VKH_USE_IMGUI
         if (ImGui::GetIO().WantCaptureMouse)
             return;
 #endif
 
         const auto pwb = static_cast<PlatformWindow *>(glfwGetWindowUserPointer(window));
-        pwb->eventSystem.mouseWheel.onMouseScroll.invoke(static_cast<float>(yoffset));
+        pwb->eventSystem.mouseWheel.onMouseScroll.invoke(static_cast<float>(y));
     }
 
     void PlatformWindow::processWindowSize(GLFWwindow *window, int width, int height) {
@@ -208,9 +208,12 @@ namespace merutilm::vkh {
 
         const auto pwb = static_cast<PlatformWindow *>(glfwGetWindowUserPointer(window));
         std::vector<std::string> pathString;
+        pathString.reserve(pathCount);
+
         for (int i = 0; i < pathCount; i++) {
             pathString.emplace_back(paths[i]);
         }
+
         pwb->eventSystem.dnd.onFileDrop.invoke(pathString);
     }
 
@@ -245,7 +248,6 @@ namespace merutilm::vkh {
     }
 
 
-
     void PlatformWindow::init() {
         window = glfwCreateWindow(initializerSettings.widthInfo.first, initializerSettings.heightInfo.first,
                                   initializerSettings.name.c_str(), nullptr, nullptr);
@@ -262,6 +264,7 @@ namespace merutilm::vkh {
         glfwSetWindowIconifyCallback(window, processWindowMinimize);
         glfwSetDropCallback(window, processDropCallback);
         glfwSetWindowFocusCallback(window, processWindowFocus);
+        glfwSetWindowAttrib(window, GLFW_RESIZABLE, initializerSettings.resizable ? GLFW_TRUE : GLFW_FALSE);
         setIcon();
     }
 

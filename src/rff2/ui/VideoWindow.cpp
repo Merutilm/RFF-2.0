@@ -60,7 +60,7 @@ namespace merutilm::rff2 {
 
         const auto cw = static_cast<uint32_t>(std::min(imgWidth, 1280));
         const auto ch = cw * imgHeight / imgWidth;
-        auto window = VideoWindow(app, cw, ch);
+        auto window = VideoWindow(app, static_cast<int>(cw), static_cast<int>(ch));
         window.initScene(VkExtent2D{static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight)},
                          app.getSettings());
         auto &scene = *window.scene;
@@ -159,7 +159,10 @@ namespace merutilm::rff2 {
                     }
                 }
 
-
+                while (!scene.getWindowContext().getWindow()->canRenderNow()) {
+                    //noop, TODO - busy waiting anti pattern, use wait and notify via conditional variable
+                    _mm_pause();
+                }
                 scene.setTime(currentSec);
                 scene.renderOnce();
                 VideoBufferCache buffer = scene.createImage();
