@@ -113,7 +113,10 @@ The dependency [libgmp](https://github.com/sethtroisi/libgmp/tree/master) must b
 
 git clone https://github.com/Merutilm/RFF-2.0
 cd RFF-2.0
-
+mkdir extern
+cd extern
+git clone https://github.com/ocornut/imgui
+cd ..
 mkdir build
 
 cmake -B build -G "Ninja" -S . \

@@ -82,8 +82,8 @@ namespace merutilm::rff2 {
                 calculatable::from_fixed_point_decimal<Num>(z.get_imag())
             };
         } else {
-            const complex<Num> zsq = z0 * z0 + c0;
-            const Num radius2 = zsq.norm_sqr();
+            const complex<Num> next = z0 * z0 + c0;
+            const Num radius2 = next.norm_sqr();
 
 
 
@@ -94,7 +94,7 @@ namespace merutilm::rff2 {
                 };
             } else {
 
-                z0 = zsq.try_normalized_value();
+                z0 = next.try_normalized_value();
 
                 // if constexpr(std::is_same_v<Num, double>) {
                 //     complex<Num> z2 = {

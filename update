@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -e
+
+version="$1"
+desc="$2"
+
+if [[ ! "$version" == v* ]]; then
+    echo -e "\033[31mIllegal Version selection : '$version'\033[0m"
+    exit 1
+fi
+
+if [[ -z "$desc" || "$desc" =~ ^[[:space:]]*$ ]]; then
+    echo -e "\033[31mIllegal Description : '$version'\033[0m"
+    exit 1
+fi
+
+echo -e "\033[36mCommitting with message: '$desc' and tagging version: '$version'\033[0m"
+
+git add .
+
+git commit -m "\"$desc\""
+
+git push
+
+git tag "$version"
+
+git push --tags
+
+gh release create "$version" "installer.sh" "installer.ps1" --generate-notes --latest
