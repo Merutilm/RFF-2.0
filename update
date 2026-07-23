@@ -27,4 +27,14 @@ git tag "$version"
 
 git push --tags
 
-gh release create "$version" "installer.sh" "installer.ps1" --generate-notes --latest
+archive="RFF.zip"
+
+if [[ -f "$archive" ]]; then
+    rm "$archive"
+fi
+
+zip -r "$archive" "installer.sh" "installer.ps1"
+
+gh release create "$version" "$archive" --generate-notes --latest
+
+rm "$archive"
