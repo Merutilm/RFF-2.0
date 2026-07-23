@@ -9,7 +9,7 @@ namespace merutilm::rff2 {
     std::string CalculationPresets::UltraFast::getName() const { return "Ultra Fast"; }
 
     FrtReferenceSyncSettings CalculationPresets::UltraFast::genRefSync() const {
-        return FrtReferenceSyncSettings{32, 3};
+        return FrtReferenceSyncSettings{16, 3};
     }
 
 

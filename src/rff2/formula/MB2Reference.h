@@ -85,13 +85,27 @@ namespace merutilm::rff2 {
             const complex<Num> zsq = z0 * z0 + c0;
             const Num radius2 = zsq.norm_sqr();
 
+
+
             if (radius2 < refSyncRadius2 || intervalCounter % refSyncInterval == 0) {
                 z0 = {
                     calculatable::from_fixed_point_decimal<Num>(z.get_real()),
                     calculatable::from_fixed_point_decimal<Num>(z.get_imag())
                 };
             } else {
+
                 z0 = zsq.try_normalized_value();
+
+                // if constexpr(std::is_same_v<Num, double>) {
+                //     complex<Num> z2 = {
+                //         calculatable::from_fixed_point_decimal<Num>(z.get_real()),
+                //         calculatable::from_fixed_point_decimal<Num>(z.get_imag())
+                //     };
+                //
+                //     // if (z0.re/z2.re <0.99 || z0.re/z2.re >1.01 || z0.im/z2.im <0.99 || z0.im/z2.im >1.01) {
+                //         std::cout << intervalCounter % refSyncInterval << " | " << z0.re - z2.re  << " " << z0.im - z2.im << "i" << std::endl;
+                //     // }
+                // }
             }
         }
     }
