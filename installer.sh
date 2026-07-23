@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 path="$(dirname "$0")"
 cd "$path" || exit
 
@@ -39,10 +41,11 @@ fi
 rm -rf RFF-2.0
 git clone https://github.com/Merutilm/RFF-2.0
 cd RFF-2.0 || exit
+mapfile -t externRepos < <(grep -vE '^\s*(#|$)' "extern_sources")
+
 mkdir -p extern
 cd extern || exit
 
-mapfile -t externRepos < <(grep -vE '^\s*(#|$)' "RFF-2.0/extern_sources")
 for url in "${externRepos[@]}"; do
     git clone "$url"
 done
