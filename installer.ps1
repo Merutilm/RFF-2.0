@@ -1,11 +1,12 @@
-$RepoUrl = "https://github.com/Merutilm/RFF-2.0",
+$RepoUrl = "https://github.com/Merutilm/RFF-2.0"
 
-$ExternRepos = @("https://github.com/ocornut/imgui")
+
 
 $ErrorActionPreference = "Stop"
 $WorkDir = (Get-Location).Path   # powershell executed dir
 
-function Write-Step($msg) {
+function Write-Step($msg)
+{
     Write-Host ""
     Write-Host "==== $msg ====" -ForegroundColor Cyan
 }
@@ -18,11 +19,13 @@ Write-Step "MSYS2 Installation"
 $msys2Root = "C:\msys64"
 $msys2Bash = Join-Path $msys2Root "clang64.exe"
 
-if (-not (Test-Path $msys2Bash)) {
+if (-not (Test-Path $msys2Bash))
+{
     winget install -e --id MSYS2.MSYS2 --accept-package-agreements --accept-source-agreements
 }
 
-if (-not (Test-Path $msys2Bash)) {
+if (-not (Test-Path $msys2Bash))
+{
     throw "MSYS2 installation failed: $msys2Bash"
 }
 
@@ -55,7 +58,7 @@ $packages = @(
 Write-Step "set PATH"
 
 $clang64Bin = Join-Path $msys2Root "clang64\bin"
-$usrBin     = Join-Path $msys2Root "usr\bin"
+$usrBin = Join-Path $msys2Root "usr\bin"
 $env:PATH = "$clang64Bin;$usrBin;$env:PATH"
 
 # ---------------------------------------------------------------------------
@@ -63,9 +66,13 @@ $env:PATH = "$clang64Bin;$usrBin;$env:PATH"
 # ---------------------------------------------------------------------------
 Write-Step "Check Version"
 
-function Get-RemoteHeadSha($url) {
+function Get-RemoteHeadSha($url)
+{
     $line = (git ls-remote $url HEAD) | Select-Object -First 1
-    if (-not $line) { throw "Failed to load remote sha: $url" }
+    if (-not $line)
+    {
+        throw "Failed to load remote sha: $url"
+    }
     return ($line -split "\s+")[0]
 }
 
@@ -75,15 +82,18 @@ $VersionFile = Join-Path $WorkDir "version.config"
 $upToDate = $false
 $newestSha = Get-RemoteHeadSha $RepoUrl
 
-if (Test-Path $VersionFile) {
+if (Test-Path $VersionFile)
+{
     $installedSha = Get-Content $VersionFile
-    if ($installedSha -eq $newestSha) {
+    if ($installedSha -eq $newestSha)
+    {
         $upToDate = $true
     }
 }
 
-if ($upToDate) {
-    Read-Host "Already up to date. Press any key to exit..." -ForegroundColor Green
+if ($upToDate)
+{
+    Read-Host "Already up to date. Press any key to exit..."
     Exit
 }
 
@@ -96,7 +106,8 @@ Write-Step "Clone Repository"
 
 $repoDir = Join-Path $WorkDir "RFF-2.0"
 
-if (Test-Path $repoDir) {
+if (Test-Path $repoDir)
+{
     Remove-Item $repoDir -Recurse -Force
 }
 
@@ -109,12 +120,25 @@ git clone $RepoUrl
 Write-Step "Cloning extern sources"
 
 $externDir = Join-Path $repoDir "extern"
-if (-not (Test-Path $externDir)) {
+if (-not (Test-Path $externDir))
+{
     New-Item -ItemType Directory -Path $externDir | Out-Null
 }
 
-foreach ($url in $ExternRepos) {
-    git clone $url $externDir
+$ExternRepos = Get-Content (Join-Path $repoDir "extern_sources") |
+        Where-Object { $_.Trim() -and -not $_.Trim().StartsWith("#") }
+
+Push-Location $externDir
+try
+{
+    foreach ($url in $ExternRepos)
+    {
+        git clone $url
+    }
+}
+finally
+{
+    Pop-Location
 }
 
 # ---------------------------------------------------------------------------
@@ -136,14 +160,16 @@ cmake --build $BuildDir
 # ---------------------------------------------------------------------------
 Write-Step "RFF2 Installation"
 
-$targetDirs = @("res", bin", "shaders")
+$targetDirs = @("res", "bin", "shaders")
 
-foreach ($name in $targetDirs) {
+foreach ($name in $targetDirs)
+{
 
     $item = Join-Path $repoDir $name
     $dest = Join-Path $WorkDir $name
 
-    if (Test-Path $dest) {
+    if (Test-Path $dest)
+    {
         Remove-Item -Path $dest -Recurse -Force
     }
 
@@ -155,5 +181,3 @@ Set-Content -Path $VersionFile -Value $newestSha
 
 Write-Step "Installation Finished"
 Write-Host "Location: $WorkDir"
-
-

@@ -42,9 +42,11 @@ cd RFF-2.0 || exit
 mkdir -p extern
 cd extern || exit
 
-if [[ ! -d imgui ]]; then
-    git clone https://github.com/ocornut/imgui
-fi
+mapfile -t externRepos < <(grep -vE '^\s*(#|$)' "RFF-2.0/extern_sources")
+for url in "${externRepos[@]}"; do
+    git clone "$url"
+done
+
 
 cd ..
 mkdir -p build
@@ -56,7 +58,7 @@ cmake -B build -G "Ninja" -S . \
 
 cmake --build build -j"$(nproc)"
 
-rm -rf ../bin ../shaders
+rm -rf ../res ../bin ../shaders
 mv res ../res
 mv bin ../bin
 mv shaders ../shaders
