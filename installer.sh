@@ -57,6 +57,7 @@ cmake -B build -G "Ninja" -S . \
 cmake --build build -j"$(nproc)"
 
 rm -rf ../bin ../shaders
+mv res ../res
 mv bin ../bin
 mv shaders ../shaders
 cd ..

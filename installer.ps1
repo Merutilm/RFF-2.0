@@ -136,7 +136,7 @@ cmake --build $BuildDir
 # ---------------------------------------------------------------------------
 Write-Step "RFF2 Installation"
 
-$targetDirs = @("bin", "shaders")
+$targetDirs = @("res", bin", "shaders")
 
 foreach ($name in $targetDirs) {
 
