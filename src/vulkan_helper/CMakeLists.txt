@@ -4,6 +4,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(USE_IMGUI "Enable Dear ImGui" ON)
 
 
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+
 add_subdirectory(dependency)
 add_subdirectory(core)
 add_subdirectory(engine)
@@ -29,8 +31,6 @@ add_library(vulkan_helper SHARED
         $<TARGET_OBJECTS:engine_sync>
         $<TARGET_OBJECTS:engine_window>
 )
-
-
 
 target_link_directories(vulkan_helper PRIVATE ${CMAKE_SOURCE_DIR}/lib)
 
