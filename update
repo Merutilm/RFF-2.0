@@ -33,7 +33,7 @@ if [[ -f "$archive" ]]; then
     rm "$archive"
 fi
 
-zip -r "$archive" "installer.sh" "installer.ps1"
+zip -r "$archive" "installer_linux_ubuntu2404.sh" "installer_windows.ps1"
 
 gh release create "$version" "$archive" --generate-notes --latest
 
