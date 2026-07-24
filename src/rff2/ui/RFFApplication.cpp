@@ -126,6 +126,7 @@ namespace merutilm::rff2 {
                                         .perturb = {.maxIteration = 300,
                                                     .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
                                                     .autoMaxIteration = true,
+                                                    .interiorDetectRadiusPower = 7,
                                                     .autoIterationMultiplier = 100,
                                                     .absoluteIterationMode = true}},
                 .render = {.clarityMultiplier = 0.25f, .fps = 60, .linearInterpolation = true, .threads = 1},
@@ -156,6 +157,7 @@ namespace merutilm::rff2 {
                                         .perturb = {.maxIteration = 300,
                                                     .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
                                                     .autoMaxIteration = true,
+                                                    .interiorDetectRadiusPower = 7,
                                                     .autoIterationMultiplier = 100,
                                                     .absoluteIterationMode = false}},
                 .render = RenderPresets::High().genRender(),
@@ -414,17 +416,12 @@ namespace merutilm::rff2 {
 
 
     void RFFApplication::renderImGui() {
-        ImGui::Begin("Status");
-        if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {
-            glfwSetCursor(cursorManager->window, cursorManager->handCursor);
-        } else {
-            glfwSetCursor(cursorManager->window, cursorManager->crosshairCursor);
-        }
-        for (auto &statusMessage: statusMessages) {
-            ImGui::Text("%s", statusMessage.data());
-        }
-        ImGui::End();
 
+        renderControlImGui();
+        renderStatusImGui();
+    }
+
+    void RFFApplication::renderControlImGui() {
         ImGui::Begin("Control");
         if (ImGui::BeginTabBar("Control")) {
             if (ImGui::BeginTabItem("File")) {
@@ -487,7 +484,29 @@ namespace merutilm::rff2 {
             ImGui::EndTabBar();
         }
 
+        ImGui::End();
+    }
 
+    void RFFApplication::renderStatusImGui() const {
+
+        const int height = ImGui::GetTextLineHeight() + ImGui::GetStyle().WindowPadding.y * 2;
+        ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetIO().DisplaySize.y - height));
+
+        ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, height));
+
+        ImGui::Begin("StatusBar", nullptr,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0));
+        if (ImGui::BeginTable("StatusBarTable", statusMessages.size(), ImGuiTableFlags_BordersInner)) {
+            for (int i = 0; i < statusMessages.size(); i++) {
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted(statusMessages[i].c_str());
+            }
+            ImGui::EndTable();
+        }
+
+        ImGui::PopStyleVar();
         ImGui::End();
     }
 

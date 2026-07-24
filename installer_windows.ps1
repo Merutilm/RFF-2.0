@@ -47,6 +47,7 @@ $packages = @(
     "mingw-w64-clang-x86_64-gmp",
     "mingw-w64-clang-x86_64-vulkan",
     "mingw-w64-clang-x86_64-glm",
+    "mingw-w64-clang-x86_64-glfw"
     "mingw-w64-clang-x86_64-opencv"
 ) -join " "
 

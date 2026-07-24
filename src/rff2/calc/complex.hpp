@@ -49,6 +49,7 @@ namespace merutilm::rff2 {
 
         friend complex operator-(const Num a, const complex b) { return complex{a - b.re, -b.im}; }
 
+        friend bool operator==(const complex &a, const complex &b) {return a.re == b.re && a.im == b.im;}
 
         [[nodiscard]] Num norm_sqr() const { return re * re + im * im; }
 

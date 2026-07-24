@@ -12,6 +12,7 @@ namespace merutilm::rff2 {
         uint64_t maxIteration;
         FrtDecimalizeIterationMethod decimalizeIterationMethod;
         bool autoMaxIteration;
+        uint8_t interiorDetectRadiusPower;
         uint16_t autoIterationMultiplier;
         bool absoluteIterationMode;
 

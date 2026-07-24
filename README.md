@@ -33,7 +33,7 @@ This will be <u>**SIGNIFICANTLY**</u> faster because it <u>**SUPERJUMPS**</u> pr
 
 - It's very simple. Just go into the `releases`, 
 download the zip,
-unzip it and run it from the `bin` directory.
+unzip it and run installer.
 
 - Or you can build manually.
 

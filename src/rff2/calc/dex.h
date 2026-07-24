@@ -58,7 +58,7 @@ namespace merutilm::rff2 {
 
         explicit operator double() const;
 
-        bool operator==(const dex &other) const = default;
+        bool operator==(const dex &other) const;
 
         friend dex operator-(const dex a) { return {a.exp2, -a.mantissa}; }
 
@@ -284,6 +284,19 @@ namespace merutilm::rff2 {
     }
 
     inline dex::operator double() const { return ldexp(mantissa, exp2); }
+
+#ifdef SAFE_DEX_OPERATOR
+    inline bool dex::operator==(const dex &other) const {
+        const int d_exp2 = exp2 - other.exp2;
+        const int abs_exp2 = std::abs(d_exp2);
+
+        if (abs_exp2 > 512) return false;
+        const auto exp_bits = static_cast<int64_t>(abs_exp2) << 52;
+        return mantissa + (d_exp2 > 0 ? exp_bits : -exp_bits) == other.mantissa;
+    }
+#else
+    inline bool dex::operator==(const dex &other) const = default;
+#endif
 
     inline std::string dex::to_string() const {
         // m * 2^n

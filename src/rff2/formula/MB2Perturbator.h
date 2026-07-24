@@ -26,8 +26,10 @@ namespace merutilm::rff2 {
 
     public:
         MB2PerturbatorBase(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
-                           const FrtPerturbSettings &ptbSettings, const SeriesApproximationData &seriesApproximationData) :
-            state(state), dcMax(dcMax), generalSettings(generalSettings), ptbSettings(ptbSettings), seriesApproximationData(seriesApproximationData) {}
+                           const FrtPerturbSettings &ptbSettings,
+                           const SeriesApproximationData &seriesApproximationData) :
+            state(state), dcMax(dcMax), generalSettings(generalSettings), ptbSettings(ptbSettings),
+            seriesApproximationData(seriesApproximationData) {}
 
         virtual ~MB2PerturbatorBase() = default;
 
@@ -41,9 +43,11 @@ namespace merutilm::rff2 {
         const MPATable<Num, MAX_DEGREE> *table;
 
         explicit MB2Perturbator(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
-                                const FrtPerturbSettings &ptbSettings, const SeriesApproximationData &seriesApproximationData, const MB2Reference<Num> &reference,
-                                const MPATable<Num, MAX_DEGREE> *table) :
-            MB2PerturbatorBase(state, dcMax, generalSettings, ptbSettings, seriesApproximationData), reference(reference), table(table) {}
+                                const FrtPerturbSettings &ptbSettings,
+                                const SeriesApproximationData &seriesApproximationData,
+                                const MB2Reference<Num> &reference, const MPATable<Num, MAX_DEGREE> *table) :
+            MB2PerturbatorBase(state, dcMax, generalSettings, ptbSettings, seriesApproximationData),
+            reference(reference), table(table) {}
 
         ~MB2Perturbator() override = default;
 
@@ -55,15 +59,13 @@ namespace merutilm::rff2 {
             const auto cr = static_cast<double>(c.re);
             const auto ci = static_cast<double>(c.im);
 
-            //fast calculation of main bulb
+            // fast calculation of main bulb
             if (const auto crm025 = cr - 0.25;
                 crm025 * crm025 + ci * ci < 0.5 * (-crm025 + std::sqrt(crm025 * crm025 + ci * ci)))
                 return true;
 
-            if (const auto crp100 = cr + 1;
-                crp100 * crp100 + ci * ci < 0.0625)
+            if (const auto crp100 = cr + 1; crp100 * crp100 + ci * ci < 0.0625)
                 return true;
-
 
 
             return false;
@@ -78,7 +80,7 @@ namespace merutilm::rff2 {
             const auto dc0 = static_cast<complex<Num>>(dc + off);
 #ifdef ENABLE_SERIES_APPROXIMATION
             // PROCESS SERIES APPROXIMATION (DEPRECATED)
-            const complex dcSa = {dex{dc0.re}, dex{dc0.im}};
+            const complex dcSa = {dex{dc0.re}, dex { dc0.im }};
             complex dcSaM = dcSa;
             complex dzSa = complex<dex>::ZERO;
 
@@ -94,13 +96,15 @@ namespace merutilm::rff2 {
             uint64_t iteration = 0;
             uint64_t refIteration = 0;
             complex<Num> dz = complex<Num>::ZERO;
+            Num dcMax0 = Num(dcMax);
 #endif
             const uint64_t maxRefIteration = reference.longestPeriod();
 
             int absIteration = 0;
             Num currDistance2 = Num(0);
             Num prevDistance2 = currDistance2;
-            // auto minDistance2 = dex(generalSettings.bailout);
+
+            const float interiorDetectRadius = ptbSettings.interiorDetectRadiusPower == 0 ? 0 : pow(10, -ptbSettings.interiorDetectRadiusPower);
             const bool isAbs = ptbSettings.absoluteIterationMode;
             const uint64_t maxIteration = ptbSettings.maxIteration;
             const float bailout2 = generalSettings.bailout * generalSettings.bailout;
@@ -111,6 +115,9 @@ namespace merutilm::rff2 {
                 return isAbs ? 1 : static_cast<double>(maxIteration);
             }
 
+
+            std::array<complex<Num>, 8> pdz = {complex<Num>::ONE, complex<Num>::ONE, complex<Num>::ONE};
+            int pdzIndex = 0;
 
             while (iteration < maxIteration) {
                 if (table != nullptr) {
@@ -140,23 +147,39 @@ namespace merutilm::rff2 {
                     ++absIteration;
                 }
 
-                complex<Num> ptbz = reference.orbit(refIteration) + dz;
+                complex<Num> z = reference.orbit(refIteration) + dz;
 
 
                 prevDistance2 = currDistance2;
-                currDistance2 = ptbz.norm_sqr();
-                // minDistance2 = std::min(dex(currDistance2), minDistance2);
+                currDistance2 = z.norm_sqr();
+
 
                 if (refIteration == maxRefIteration || currDistance2 < dz.norm_sqr()) {
                     refIteration = 0;
-                    dz = ptbz;
+                    dz = z;
+
+
+                    if (interiorDetectRadius != 0) {
+                        for (const complex<Num> &pdz0 : pdz) {
+                            if ((pdz0 - dz).norm_sqr() < dcMax0 * Num(interiorDetectRadius)) {
+                                return isAbs ? absIteration : maxIteration;
+                            }
+                        }
+
+                        pdz[pdzIndex++] = dz;
+                        if (pdzIndex == pdz.size())
+                            pdzIndex = 0;
+                    }
+
                 }
+
 
                 dz = dz.try_normalized_value();
 
                 if (static_cast<double>(currDistance2) > bailout2)
                     break;
-                if (absIteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested())
+                if (absIteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 &&
+                    state.interruptRequested())
                     return 0.0;
             }
 
@@ -165,16 +188,15 @@ namespace merutilm::rff2 {
             }
 
             if (iteration >= maxIteration) {
-                return static_cast<double>(maxIteration);//std::sqrt(static_cast<double>(dex(dcMax) / minDistance2) );
+                return static_cast<double>(maxIteration);
             }
 
             const double prevDistance = sqrt(static_cast<double>(prevDistance2));
             const double currDistance = sqrt(static_cast<double>(currDistance2));
 
-            return static_cast<double>(iteration) + FrtDecimalizeIterationMethodUtil::getExteriorDoubleValueIterationRatio(prevDistance, currDistance,
-                                                                             ptbSettings.decimalizeIterationMethod,
-                                                                             generalSettings.bailout);
+            return static_cast<double>(iteration) +
+                   FrtDecimalizeIterationMethodUtil::getExteriorDoubleValueIterationRatio(
+                           prevDistance, currDistance, ptbSettings.decimalizeIterationMethod, generalSettings.bailout);
         }
-
     };
 } // namespace merutilm::rff2

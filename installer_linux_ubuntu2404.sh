@@ -1,11 +1,11 @@
 #!/bin/bash
 
-set -ex
+set -e
 
-path="$(dirname "$0")"
+path="$(cd "$(dirname "$0")" && pwd)"
 cd "$path" || exit
 
-sudo apt install -y clang clang-tools make cmake libopencv-dev libvulkan-dev libglm-dev ninja-build libgtk-3-dev git wget xz-utils
+sudo apt install -y clang clang-tools make cmake libopencv-dev libvulkan-dev libglm-dev ninja-build libgtk-3-dev git wget xz-utils libglfw3-dev
 
 if find /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu -name "libgmp.a" 2>/dev/null | grep -q .; then
     echo "GMP already installed. Skipping GMP build"
@@ -70,6 +70,6 @@ rm -rf RFF-2.0
 
 echo "$hash" > version.config
 echo "Installation Finished"
-echo "Location:$path"
+echo "Location: $path"
 
 

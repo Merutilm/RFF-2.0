@@ -159,9 +159,11 @@ namespace merutilm::rff2 {
 
         void renderImGui() override;
 
+
     private:
         static void initImGui();
-
+        void renderControlImGui();
+        void renderStatusImGui() const;
     };
 
 

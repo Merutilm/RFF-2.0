@@ -20,6 +20,7 @@ namespace merutilm::rff2::Constants::UI {
     constexpr float DRAG_SPEED_SLOPE = 10;
     constexpr float MIN_DRAG_SLOPE = 1e-9f;
     constexpr float MAX_DRAG_SLOPE = 10000;
+    constexpr float STATUS_HEIGHT = 24;
     constexpr auto FMT_SLOPE = "%.3g";
 
 } // namespace merutilm::rff2::Constants::UI

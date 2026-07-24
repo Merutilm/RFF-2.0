@@ -191,6 +191,12 @@ namespace merutilm::rff2 {
             }
             Utilities::imguiHelpMarker("Sets The Bailout radius");
 
+
+            ImGui::InputScalar("Interior Detection Threshold", ImGuiDataType_U8, &calc.perturb.interiorDetectRadiusPower);
+            Utilities::imguiHelpMarker(
+                    "Set the interior detection threshold. It calculates the distance between the previous and current z at the periodic point.\n"
+                    "if the distance is smaller than \"10^-value\", this pixel is set to interior and all subsequent iterations are skipped. Set 0 to disable it.");
+
             Utilities::imguiDropdown("Decimalize Iteration", &calc.perturb.decimalizeIterationMethod);
             Utilities::imguiHelpMarker("Sets the decimalization method of iterations.");
 
