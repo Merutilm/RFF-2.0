@@ -193,3 +193,12 @@ Set-Content -Path $VersionFile -Value $newestSha
 
 Write-Step "Installation Finished"
 Write-Host "Location: $WorkDir"
+
+
+Write-Host "Do you want to launch installed application now? [y/n] " -NoNewline
+
+$key = [Console]::ReadKey($true)
+
+if ($key.KeyChar -in @('y','Y')) {
+    Start-Process ".\bin\RFF.exe"
+}
