@@ -55,6 +55,8 @@ namespace merutilm::vkh {
 
         bool canRenderNow() const;
 
+        void setResolution(int w, int h) const;
+
 
         template<typename F>
             requires std::is_invocable_r_v<void, F>

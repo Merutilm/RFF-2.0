@@ -16,7 +16,11 @@ namespace merutilm::rff2 {
         if (setRenderProperties) {
 
             auto &[clarityMultiplier, fps, linearInterpolation, threads] = app.getSettings().render;
+            auto [width, height] = app.getWindowContext().getSwapchain().getSwapchainExtent();
+            std::array resRaw{static_cast<int>(width), static_cast<int>(height)};
+
             constexpr uint32_t minThread = 1;
+
             const uint32_t maxThreads = std::thread::hardware_concurrency();
 
             ImGui::Begin("Set Render Properties");
@@ -26,16 +30,23 @@ namespace merutilm::rff2 {
                 app.getRequests().requestResize(app.rootWindowContext->getSwapchain().getSwapchainExtent());
             }
 
+            if (ImGui::InputInt2("Resolution", resRaw.data())) {
+                resRaw[0] = std::max(resRaw[0], Constants::Render::MIN_WINDOW_WIDTH);
+                resRaw[1] = std::max(resRaw[1], Constants::Render::MIN_WINDOW_HEIGHT);
+                app.getWindowContext().getWindow()->setResolution(resRaw[0], resRaw[1]);
+            }
+
+
             Utilities::imguiHelpMarker("Sets the clarity multiplier.");
-            if (ImGui::SliderFloat("Framerate", &fps, 30, 240)) {
-                fps = std::clamp(fps, 30.0f, 240.0f);
+            if (ImGui::SliderFloat("Framerate", &fps, Constants::Render::MIN_FPS, Constants::Render::MAX_FPS)) {
+                fps = std::clamp(fps, Constants::Render::MIN_FPS, Constants::Render::MAX_FPS);
                 app.getWindowContext().getWindow()->initializerSettings.framerate = fps;
             }
             Utilities::imguiHelpMarker("Sets the Framerate.");
 
 
             if (ImGui::SliderScalar("Threads", ImGuiDataType_U32, &threads, &minThread, &maxThreads)) {
-                //noop
+                // noop
             }
             Utilities::imguiHelpMarker("Sets the number of threads while rendering an image.");
 

@@ -45,15 +45,15 @@ int main() {
 #ifndef NDEBUG
     countLines();
 #endif
-    Application::start<RFFApplication>({.framerate = 100,
+    Application::start<RFFApplication>({.framerate = Constants::Render::INIT_FPS,
                                      .name = "RFF 2.0",
                                      .icon = "../res/icon.png",
-                                     .widthInfo = {.min = 100,
+                                     .widthInfo = {.min = Constants::Render::MIN_WINDOW_WIDTH,
                                                    .max = INT_MAX,
-                                                   .first = 1280},
-                                     .heightInfo = {.min = 100,
+                                                   .first = Constants::Render::INIT_WINDOW_WIDTH},
+                                     .heightInfo = {.min = Constants::Render::MIN_WINDOW_HEIGHT,
                                                     .max = INT_MAX,
-                                                    .first = 720},
+                                                    .first = Constants::Render::INIT_WINDOW_HEIGHT},
                                      .resizable = true,
                                      .filedrop = false});
 

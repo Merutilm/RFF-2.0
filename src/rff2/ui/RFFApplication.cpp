@@ -493,7 +493,7 @@ namespace merutilm::rff2 {
 
     void RFFApplication::renderStatusImGui() const {
 
-        const int height = ImGui::GetTextLineHeight() + ImGui::GetStyle().WindowPadding.y * 2;
+        const float height = ImGui::GetTextLineHeight() + ImGui::GetStyle().WindowPadding.y * 2;
         ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetIO().DisplaySize.y - height));
 
         ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, height));

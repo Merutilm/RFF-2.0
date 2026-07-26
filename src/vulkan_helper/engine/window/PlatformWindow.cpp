@@ -79,6 +79,9 @@ namespace merutilm::vkh {
         return !glfwGetWindowAttrib(window, GLFW_ICONIFIED) && glfwGetWindowAttrib(window, GLFW_VISIBLE) && width > 0 &&
                height > 0;
     }
+    void PlatformWindow::setResolution(const int w, const int h) const {
+        glfwSetWindowSize(window, w, h);
+    }
 
     bool PlatformWindow::isKeyPressed(const int key) const { return pressedKeys.contains(key); }
 

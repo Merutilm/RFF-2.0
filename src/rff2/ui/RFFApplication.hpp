@@ -182,7 +182,7 @@ namespace merutilm::rff2 {
         }
         if constexpr (std::is_base_of_v<Presets::ResolutionPreset, P>) {
             auto r = preset.genResolution();
-            glfwSetWindowSize(rootWindowContext->getWindow()->getWindow(), r[0], r[1]);
+            rootWindowContext->getWindow()->setResolution(r[0], r[1]);
         }
         if constexpr (std::is_base_of_v<Presets::ShaderPreset, P>) {
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::PalettePreset, P>) {
