@@ -448,6 +448,7 @@ namespace merutilm::rff2 {
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Render")) {
+                FnRender::setResolutionProperties(*this);
                 FnRender::setRenderProperties(*this);
                 FnRender::linearInterpolation(*this);
                 ImGui::EndTabItem();

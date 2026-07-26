@@ -17,6 +17,9 @@ namespace merutilm::rff2::Constants::UI {
     constexpr auto SELECTED_COLOR_HIGHLIGHT = IM_COL32(255, 255, 0, 255);
     constexpr float SELECTED_COLOR_THICKNESS = 2.0f;
 
+
+    constexpr float CLARITY_MULTIPLIER_UNIT = 0.125f;
+
     constexpr float DRAG_SPEED_SLOPE = 10;
     constexpr float MIN_DRAG_SLOPE = 1e-9f;
     constexpr float MAX_DRAG_SLOPE = 10000;

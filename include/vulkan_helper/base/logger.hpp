@@ -10,7 +10,7 @@ namespace merutilm::vkh {
         logger() = delete;
 
         template<typename... Args>
-        static void log_cerr_silent(std::format_string<Args...> message, Args &&...args) {
+        static void log_err_silent(std::format_string<Args...> message, Args &&...args) {
             const std::tm tm = get_tm();
             std::cerr << current_put_time(&tm) << " | " << std::format(message, std::forward<Args>(args)...) << "\n"
                       << std::flush;
@@ -19,7 +19,7 @@ namespace merutilm::vkh {
 
         template<typename... Args>
         static void log_err(std::format_string<Args...> message, Args &&...args) {
-            log_cerr_silent(message, std::forward<Args>(args)...);
+            log_err_silent(message, std::forward<Args>(args)...);
             std::string fmt = std::format(message, std::forward<Args>(args)...);
 #ifdef _WIN32
             MessageBox(nullptr, fmt.data(), "Error", MB_ICONERROR | MB_OK);
@@ -40,7 +40,7 @@ namespace merutilm::vkh {
 
         template<typename... Args>
         static void log_warn(std::format_string<Args...> message, Args &&...args) {
-            log_cerr_silent(message, std::forward<Args>(args)...);
+            log_err_silent(message, std::forward<Args>(args)...);
             std::string fmt = std::format(message, std::forward<Args>(args)...);
 #ifdef _WIN32
             MessageBox(nullptr, fmt.data(), "Warning", MB_ICONWARNING | MB_OK);

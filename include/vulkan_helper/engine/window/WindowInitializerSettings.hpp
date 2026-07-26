@@ -8,7 +8,7 @@ namespace merutilm::vkh {
 
         struct Range {
             int min = 0;
-            int max = INT_MAX;
+            int max = GLFW_DONT_CARE;
             int first = 300;
         };
 

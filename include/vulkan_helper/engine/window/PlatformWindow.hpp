@@ -53,7 +53,7 @@ namespace merutilm::vkh {
         static PlatformMenuItemBase &addMenuItem(PlatformMenuBase &menu, std::string name);
         static PlatformCheckboxMenuItemBase &addCheckboxMenuItem(PlatformMenuBase &menu, std::string name);
 
-        bool canRenderNow() const;
+        bool canRenderNow() const;\
 
         void setResolution(int w, int h) const;
 

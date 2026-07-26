@@ -255,7 +255,7 @@ namespace merutilm::vkh {
         window = glfwCreateWindow(initializerSettings.widthInfo.first, initializerSettings.heightInfo.first,
                                   initializerSettings.name.c_str(), nullptr, nullptr);
 
-
+        glfwSetWindowSizeLimits(window, initializerSettings.widthInfo.min, initializerSettings.heightInfo.min, initializerSettings.widthInfo.max, initializerSettings.heightInfo.max);
         glfwSetWindowUserPointer(window, this);
         glfwSetKeyCallback(window, processKeyInput);
         glfwSetCursorEnterCallback(window, processMouseEnter);
