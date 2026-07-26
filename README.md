@@ -49,6 +49,17 @@ In this case, use version `2.0.12.1`. Supported OS of this version is only Windo
 ```
 
 ### Launch Application
+#### installation
+Run the installer in the extracted `RFF.zip`.
+
+The installer script handles the entire process: 
+- installing build tools
+- build
+- creating the executable  
+
+Therefore, you should run the installer as Administrator.
+If you are unsure exactly what is being executed, the following tasks run automatically.
+
 #### for Windows
 If it does not run immediately after zip extraction, try the following steps.
 
@@ -87,7 +98,8 @@ Path : %MSYS2_ROOT%\clang64\bin
 
 
 ```bash
-sudo apt install -y clang clang-tools make cmake libopencv-dev libvulkan-dev libglm-dev ninja-build libgtk-3-dev git wget xz-utils libglfw3-dev
+sudo apt update
+sudo apt install -y clang clang-tools build-essential make cmake libopencv-dev libvulkan-dev libglm-dev ninja-build libgtk-3-dev git wget xz-utils libglfw3-dev
 
 wget https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz
 # You can get any version from https://gmplib.org/download/snapshot/gmp-next/
@@ -108,7 +120,7 @@ sudo ldconfig
 
 
 ### Build
-The dependency [libgmp](https://github.com/sethtroisi/libgmp/tree/master) must be built separately.
+The dependency [libgmp](https://gmplib.org/download/snapshot) must be built separately.
 
 ```bash
 
