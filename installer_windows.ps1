@@ -11,6 +11,17 @@ function Write-Step($msg)
     Write-Host "==== $msg ====" -ForegroundColor Cyan
 }
 
+
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
+{
+    throw "Permission denied, please run it as Administrator."
+}
+
+if (-not (Get-Command winget -ErrorAction SilentlyContinue))
+{
+    throw "winget not found. please install App Installer in Microsoft Store."
+}
+
 # ---------------------------------------------------------------------------
 # 1. MSYS2 installation (winget)
 # ---------------------------------------------------------------------------
