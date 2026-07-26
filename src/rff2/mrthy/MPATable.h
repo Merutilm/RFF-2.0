@@ -48,7 +48,7 @@ namespace merutilm::rff2 {
 
         explicit MPATable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
                           const FrtMPASettings *mpaSettings, Num dcMax,
-                          std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
+                          std::function<void(uint64_t, float)> &&actionPerCreatingTableIteration);
 
 
     protected:
@@ -74,7 +74,7 @@ namespace merutilm::rff2 {
 
 
         void generateTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
-                           std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration);
+                           std::function<void(uint64_t, float)> &&actionPerCreatingTableIteration);
 
         void allocateWithCheckTableSize(uint64_t index, uint64_t levels);
 
@@ -112,7 +112,7 @@ namespace merutilm::rff2 {
     template<Number Num, uint8_t MAX_DEGREE>
     MPATable<Num, MAX_DEGREE>::MPATable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
                                         const FrtMPASettings *mpaSettings, Num dcMax,
-                                        std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) :
+                                        std::function<void(uint64_t, float)> &&actionPerCreatingTableIteration) :
         mpaSettings(*mpaSettings) {
 
         if (tryInit(reference)) {
@@ -345,7 +345,7 @@ namespace merutilm::rff2 {
     void
     MPATable<Num, MAX_DEGREE>::generateTable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
                                              Num dcMax,
-                                             std::function<void(uint64_t, double)> &&actionPerCreatingTableIteration) {
+                                             std::function<void(uint64_t, float)> &&actionPerCreatingTableIteration) {
 
 
         const auto &tablePeriod = mpaPeriod->tablePeriod;

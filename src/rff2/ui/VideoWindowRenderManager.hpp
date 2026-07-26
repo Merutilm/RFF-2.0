@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
         RFFBinary *normal = nullptr;
         RFFBinary *zoomed = nullptr;
         const VkExtent2D videoExtent;
-        const Settings targetSettings;
+        const Settings &targetSettings;
         std::unique_ptr<VideoWindowRenderer> renderer = nullptr;
 
     public:
@@ -69,7 +69,7 @@ namespace merutilm::rff2 {
 
         VideoBufferCache createImage() const;
 
-
+    protected:
 
         void init() override;
 

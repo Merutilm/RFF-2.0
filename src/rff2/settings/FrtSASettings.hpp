@@ -6,6 +6,7 @@
 #include <cstdint>
 namespace merutilm::rff2 {
     struct FrtSASettings {
+        bool use;
         uint16_t appliedTermsCount;
         uint16_t validatedTermsCount;
         float epsilonPower;

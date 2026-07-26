@@ -3,14 +3,12 @@
 //
 
 #pragma once
-#include <opencv2/videoio.hpp>
 
 
 #include "../settings/Settings.h"
 #include "RFFApplication.hpp"
 #include "VideoBufferCache.hpp"
 #include "VideoWindowRenderManager.hpp"
-#include "vulkan_helper/handle/EngineHandler.hpp"
 
 namespace merutilm::rff2 {
 
@@ -38,7 +36,7 @@ namespace merutilm::rff2 {
 
 
         static void createVideo(RFFApplication &app, const std::filesystem::path &open,
-                                const std::filesystem::path &save);
+                                const std::filesystem::path &save, const Settings &settingsClone);
 
         static cv::Mat generateFrame(const VideoBufferCache &buffer, int imgWidth, bool showText);
 

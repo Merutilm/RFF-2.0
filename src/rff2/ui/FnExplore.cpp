@@ -80,7 +80,7 @@ namespace merutilm::rff2 {
                 const uint64_t longestPeriod = ref->longestPeriod();
 
                 const std::unique_ptr<MB2Locator> locator = MB2Locator::locateMinibrot(
-                        app.getState(), data, getActionWhileFindingMBCenter(app, longestPeriod),
+                        app.getState(), data, getActionWhileFindingMBCenter(app, longestPeriod), getActionWhileSeriesApprox(app),
                         getActionWhileCreatingTable(app), getActionWhileFindingZoom(app));
 
                 if (locator == nullptr) {
@@ -103,11 +103,23 @@ namespace merutilm::rff2 {
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = app.rootWindowContext->getWindow()->getTime();
                 app.setStatusMessage(Constants::Status::RENDER_STATUS,
-                                     std::format("L : {:.3f}%[{}]",
+                                     std::format("Location : {:.3f}%[{}]",
                                                  static_cast<float>(100 * p) / static_cast<float>(longestPeriod), i));
             }
         };
     }
+
+    std::function<void(uint64_t, float)> FnExplore::getActionWhileSeriesApprox(RFFApplication &app) {
+        return [&app](const uint64_t, const float i) {
+            static float time = app.rootWindowContext->getWindow()->getTime();
+            const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
+            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
+                time = app.rootWindowContext->getWindow()->getTime();
+                app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Series-Approximation : {:.3f}%", i * 100));
+            }
+        };
+    }
+
 
     std::function<void(uint64_t, float)> FnExplore::getActionWhileCreatingTable(RFFApplication &app) {
         return [&app](const uint64_t, const float i) {
@@ -115,7 +127,7 @@ namespace merutilm::rff2 {
             const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = app.rootWindowContext->getWindow()->getTime();
-                app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("A : {:.3f}%", i * 100));
+                app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("MP-Approximation : {:.3f}%", i * 100));
             }
         };
     }
@@ -123,7 +135,7 @@ namespace merutilm::rff2 {
 
     std::function<void(float)> FnExplore::getActionWhileFindingZoom(RFFApplication &app) {
         return [&app](float zoom) {
-            app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Z : 10^{}", zoom));
+            app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Zoom : 10^{}", zoom));
         };
     }
 } // namespace merutilm::rff2

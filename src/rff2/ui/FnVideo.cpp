@@ -137,7 +137,7 @@ namespace merutilm::rff2 {
     }
     void FnVideo::exportZoomVideo(RFFApplication &app) {
         if (ImGui::Button("Export Zooming Video", ImVec2(-FLT_MIN, 0))) {
-            app.getBackgroundThreads().createThread([&app](const BackgroundThread &) {
+            app.getBackgroundThreads().createThread([&app, settingsClone = app.getSettings()](const BackgroundThread &) {
                 const auto openPtr = IOUtilities::ioDirectoryDialog("Select Sample Keyframe folder");
 
                 if (openPtr == nullptr) {
@@ -150,7 +150,7 @@ namespace merutilm::rff2 {
                     return;
                 }
                 const auto &save = *savePtr;
-                VideoWindow::createVideo(app, open, save);
+                VideoWindow::createVideo(app, open, save, settingsClone);
             });
         }
 

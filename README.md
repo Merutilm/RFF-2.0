@@ -173,7 +173,6 @@ the extension of `info` file is `.rfsm`.
 
 
 - Find the nearest Minibrot with `Locate Minibrot` in `Explore` menu.
-
 - More features will be added soon.
 
 ## Known Issues & Problems

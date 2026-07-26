@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
     VideoWindow::~VideoWindow() { VideoWindow::cleanup(); }
 
     void VideoWindow::createVideo(RFFApplication &app, const std::filesystem::path &open,
-                                  const std::filesystem::path &save) {
+                                  const std::filesystem::path &save, const Settings &settingsClone) {
         int imgWidth = 0;
         int imgHeight = 0;
 
@@ -35,7 +35,8 @@ namespace merutilm::rff2 {
             return;
         }
 
-        if (app.getSettings().video.data.isStatic) {
+
+        if (settingsClone.video.data.isStatic) {
             const RFFStaticMapBinary targetMap = RFFStaticMapBinary::readByID(open, 1);
             if (!targetMap.hasData()) {
                 vkh::logger::log_err("Cannot create video. There is no samples in the directory");
@@ -61,14 +62,13 @@ namespace merutilm::rff2 {
         const auto cw = static_cast<uint32_t>(std::min(imgWidth, 1280));
         const auto ch = cw * imgHeight / imgWidth;
         auto window = VideoWindow(app, static_cast<int>(cw), static_cast<int>(ch));
-        window.initScene(VkExtent2D{static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight)},
-                         app.getSettings());
-        auto &scene = *window.scene;
-        GLFWwindow *handle = scene.getWindowContext().getWindow()->getWindow();
+        window.initScene(VkExtent2D{static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight)}, settingsClone);
+        auto &manager = *window.scene;
+        GLFWwindow *handle = manager.getWindowContext().getWindow()->getWindow();
 
-        const auto &[defaultZoomIncrement, isStatic] = app.getSettings().video.data;
-        const auto &[overZoom, showText, mps] = app.getSettings().video.animation;
-        const auto &[fps, bitrate] = app.getSettings().video.exportation;
+        const auto &[defaultZoomIncrement, isStatic] = settingsClone.video.data;
+        const auto &[overZoom, showText, mps] = settingsClone.video.animation;
+        const auto &[fps, bitrate] = settingsClone.video.exportation;
 
 
         cv::VideoWriter writer;
@@ -80,116 +80,113 @@ namespace merutilm::rff2 {
             return;
         }
 
-        std::jthread imageRenderThread([&, imgWidth, imgHeight] {
-            VideoProgressInfo &vpi = app.getVideoProgressInfo();
-            const auto frameInterval = mps / fps;
-            uint32_t maxNumber;
-            if (isStatic) {
-                IOUtilities::generateFilename(open, Constants::File::EXT_STATIC_MAP, &maxNumber);
-            } else {
-                IOUtilities::generateFilename(open, Constants::File::EXT_DYNAMIC_MAP, &maxNumber);
-            }
-            --maxNumber;
+        VideoProgressInfo &vpi = app.getVideoProgressInfo();
+        const auto frameInterval = mps / fps;
+        uint32_t maxNumber;
+        if (isStatic) {
+            IOUtilities::generateFilename(open, Constants::File::EXT_STATIC_MAP, &maxNumber);
+        } else {
+            IOUtilities::generateFilename(open, Constants::File::EXT_DYNAMIC_MAP, &maxNumber);
+        }
+        --maxNumber;
 
-            const float minNumber = -overZoom;
-            auto currentFrame = static_cast<float>(maxNumber);
-            float currentSec = 0;
-            uint32_t pf1 = UINT32_MAX;
-            const float startSec = std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+        const float minNumber = -overZoom;
+        auto currentFrame = static_cast<float>(maxNumber);
+        float currentSec = 0;
+        uint32_t pf1 = UINT32_MAX;
+        const float startSec = std::chrono::duration_cast<std::chrono::duration<float>>(
+                                       std::chrono::high_resolution_clock::now().time_since_epoch())
+                                       .count();
 
-            RFFDynamicMapBinary zoomedDynamic = RFFDynamicMapBinary::DEFAULT;
-            RFFDynamicMapBinary normalDynamic = RFFDynamicMapBinary::DEFAULT;
-            RFFStaticMapBinary zoomedStatic = RFFStaticMapBinary::DEFAULT;
-            RFFStaticMapBinary normalStatic = RFFStaticMapBinary::DEFAULT;
-            cv::Mat zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
-            cv::Mat normalStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
+        RFFDynamicMapBinary zoomedDynamic = RFFDynamicMapBinary::DEFAULT;
+        RFFDynamicMapBinary normalDynamic = RFFDynamicMapBinary::DEFAULT;
+        RFFStaticMapBinary zoomedStatic = RFFStaticMapBinary::DEFAULT;
+        RFFStaticMapBinary normalStatic = RFFStaticMapBinary::DEFAULT;
+        cv::Mat zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
+        cv::Mat normalStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
 
-            scene.setStatic(isStatic);
+        manager.setStatic(isStatic);
 
-            while (currentFrame > minNumber) {
-                currentFrame -= frameInterval;
-                currentSec += 1 / fps;
-                bool requiredRefresh = false;
+        while (currentFrame > minNumber && !glfwWindowShouldClose(handle)) {
+
+            currentFrame -= frameInterval;
+            currentSec += 1 / fps;
+            bool requiredRefresh = false;
 
 
-                if (currentFrame < 1) {
-                    if (0 != pf1) {
-                        if (isStatic) {
-                            zoomedStatic = RFFStaticMapBinary::DEFAULT;
-                            normalStatic = RFFStaticMapBinary::readByID(open, 1);
-                            zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
-                            normalStaticImage = RFFStaticMapBinary::loadImageByID(open, 1);
-                        } else {
-                            zoomedDynamic = RFFDynamicMapBinary::DEFAULT;
-                            normalDynamic = RFFDynamicMapBinary::readByID(open, 1);
-                        }
-                        pf1 = 0;
-                        requiredRefresh = true;
-                    }
-                } else {
-                    if (const auto f1 = static_cast<uint32_t>(currentFrame); f1 != pf1) {
-                        const uint32_t f2 = f1 + 1;
-                        if (isStatic) {
-                            zoomedStatic = RFFStaticMapBinary::readByID(open, f1);
-                            normalStatic = RFFStaticMapBinary::readByID(open, f2);
-                            zoomedStaticImage = RFFStaticMapBinary::loadImageByID(open, f1);
-                            normalStaticImage = RFFStaticMapBinary::loadImageByID(open, f2);
-                        } else {
-                            zoomedDynamic = RFFDynamicMapBinary::readByID(open, f1);
-                            normalDynamic = RFFDynamicMapBinary::readByID(open, f2);
-                        }
-                        pf1 = f1;
-                        requiredRefresh = true;
-                    }
-                }
-
-                if (glfwWindowShouldClose(handle)) {
-                    break;
-                }
-
-                scene.setCurrentFrame(currentFrame);
-                if (requiredRefresh) {
+            if (currentFrame < 1) {
+                if (0 != pf1) {
                     if (isStatic) {
-                        scene.setMap(&normalStatic, &zoomedStatic);
-                        scene.applyCurrentStaticImage(normalStaticImage, zoomedStaticImage);
+                        zoomedStatic = RFFStaticMapBinary::DEFAULT;
+                        normalStatic = RFFStaticMapBinary::readByID(open, 1);
+                        zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
+                        normalStaticImage = RFFStaticMapBinary::loadImageByID(open, 1);
                     } else {
-                        scene.setMap(&normalDynamic, &zoomedDynamic);
-                        scene.applyCurrentDynamicMap(normalDynamic, zoomedDynamic, currentFrame);
-                        scene.setMaxIterationDynamic(static_cast<double>(normalDynamic.getMaxIteration()));
+                        zoomedDynamic = RFFDynamicMapBinary::DEFAULT;
+                        normalDynamic = RFFDynamicMapBinary::readByID(open, 1);
                     }
+                    pf1 = 0;
+                    requiredRefresh = true;
                 }
-
-                while (!scene.getWindowContext().getWindow()->canRenderNow()) {
-                    //noop, TODO - busy waiting anti pattern, use wait and notify via conditional variable
-                    _mm_pause();
+            } else {
+                if (const auto f1 = static_cast<uint32_t>(currentFrame); f1 != pf1) {
+                    const uint32_t f2 = f1 + 1;
+                    if (isStatic) {
+                        zoomedStatic = RFFStaticMapBinary::readByID(open, f1);
+                        normalStatic = RFFStaticMapBinary::readByID(open, f2);
+                        zoomedStaticImage = RFFStaticMapBinary::loadImageByID(open, f1);
+                        normalStaticImage = RFFStaticMapBinary::loadImageByID(open, f2);
+                    } else {
+                        zoomedDynamic = RFFDynamicMapBinary::readByID(open, f1);
+                        normalDynamic = RFFDynamicMapBinary::readByID(open, f2);
+                    }
+                    pf1 = f1;
+                    requiredRefresh = true;
                 }
-                scene.setTime(currentSec);
-                scene.renderOnce();
-                VideoBufferCache buffer = scene.createImage();
-                writer << generateFrame(buffer, imgWidth, showText);
-
-                const float progressRatio =
-                        (static_cast<float>(maxNumber) - currentFrame) / (static_cast<float>(maxNumber) + overZoom);
-                const float spentSec = std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - startSec;
-                const auto remainedSec = static_cast<uint32_t>((1 - progressRatio) / progressRatio * spentSec);
-
-                std::scoped_lock lock(vpi.mutex);
-                vpi.ratio = progressRatio;
-                vpi.remainedTimeStr =
-                        std::format("Processing... {:.2f}% [{}]", std::clamp(progressRatio, 0.0f, 1.0f) * 100,
-                                    Utilities::formatTime(remainedSec));
             }
 
-            writer.release();
+            manager.setCurrentFrame(currentFrame);
+            if (requiredRefresh) {
+                if (isStatic) {
+                    manager.setMap(&normalStatic, &zoomedStatic);
+                    manager.applyCurrentStaticImage(normalStaticImage, zoomedStaticImage);
+                } else {
+                    manager.setMap(&normalDynamic, &zoomedDynamic);
+                    manager.applyCurrentDynamicMap(normalDynamic, zoomedDynamic, currentFrame);
+                    manager.setMaxIterationDynamic(static_cast<double>(normalDynamic.getMaxIteration()));
+                }
+            }
 
-            app.engine->getCore().getLogicalDevice().waitDeviceIdle();
-            vkh::logger::log("Render Finished!");
+            while (!manager.getWindowContext().getWindow()->canRenderNow()) {
+                // noop, TODO - busy waiting anti pattern, use wait and notify via conditional variable
+                _mm_pause();
+            }
+            manager.setTime(currentSec);
+            manager.renderOnce();
+            VideoBufferCache buffer = manager.createImage();
+            writer << generateFrame(buffer, imgWidth, showText);
+
+            const float progressRatio =
+                    (static_cast<float>(maxNumber) - currentFrame) / (static_cast<float>(maxNumber) + overZoom);
+            const float spentSec = std::chrono::duration_cast<std::chrono::duration<float>>(
+                                           std::chrono::high_resolution_clock::now().time_since_epoch())
+                                           .count() -
+                                   startSec;
+            const auto remainedSec = static_cast<uint32_t>((1 - progressRatio) / progressRatio * spentSec);
 
             std::scoped_lock lock(vpi.mutex);
-            vpi.ratio = 0;
-        });
+            vpi.ratio = progressRatio;
+            vpi.remainedTimeStr = std::format("Processing... {:.2f}% [{}]", std::clamp(progressRatio, 0.0f, 1.0f) * 100,
+                                              Utilities::formatTime(remainedSec));
+        }
 
-        scene.getWindowContext().getWindow()->start();
+        writer.release();
+
+        app.engine->getCore().getLogicalDevice().waitDeviceIdle();
+        vkh::logger::log("Render Finished!");
+
+        std::scoped_lock lock(vpi.mutex);
+        vpi.ratio = 0;
     }
 
 

@@ -54,7 +54,7 @@ namespace merutilm::rff2 {
         static CreationResult generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                                          const FrtReferenceSettings &refSettings, int exp10,
                                          uint64_t refInitialCapacity, uint64_t fixedPeriod, dex dcMax, bool strictFPG,
-                                         std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+                                         const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                          std::unique_ptr<MB2Reference> *result);
 
 
@@ -121,7 +121,7 @@ namespace merutilm::rff2 {
     Reference::CreationResult MB2Reference<Num>::generateReference(
             const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
             const FrtReferenceSettings &refSettings, int exp10, uint64_t refInitialCapacity, uint64_t fixedPeriod,
-            dex dcMax, const bool strictFPG, std::function<void(uint64_t)> &&actionPerRefCalcIteration,
+            dex dcMax, const bool strictFPG, const std::function<void(uint64_t)> &actionPerRefCalcIteration,
             std::unique_ptr<MB2Reference> *result) {
         if (state.interruptRequested()) {
             return CreationResult::TERMINATED;
@@ -171,7 +171,6 @@ namespace merutilm::rff2 {
         bool canReuse = withoutNormalize;
 
         std::unique_ptr<fixed_point_complex> fpgReference = nullptr;
-        auto func = std::move(actionPerRefCalcIteration);
 
         uint64_t period = 0;
 
@@ -212,7 +211,7 @@ namespace merutilm::rff2 {
                 fixed_point_complex::add(fpgBn, fpgBn, one);
             }
 
-            applyFormula(z, c, func, tp, period);
+            applyFormula(z, c, actionPerRefCalcIteration, tp, period);
             syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, exp10, z0, c0);
 
 

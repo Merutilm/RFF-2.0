@@ -16,7 +16,7 @@ namespace merutilm::vkh {
         VkQueue graphicsQueue = nullptr;
         VkQueue presentQueue = nullptr;
 
-        std::mutex queueMutex;
+        std::recursive_mutex queueMutex;
 
     public:
         explicit LogicalDevice(Instance &instance, PhysicalDeviceLoader &physicalDevice);
@@ -37,7 +37,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] VkQueue getPresentQueue() const { return presentQueue; }
 
-        std::mutex &getQueueMutex() { return queueMutex; }
+        std::recursive_mutex &getQueueMutex() { return queueMutex; }
 
         void queueSubmit(uint32_t submitCount, const VkSubmitInfo *pSubmits, VkFence fence);
 

@@ -7,6 +7,7 @@
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtPerturbSettings.hpp"
+#include "../settings/FrtSASettings.hpp"
 #include "Perturbator.h"
 #include "SeriesApproximationData.hpp"
 
@@ -21,15 +22,16 @@ namespace merutilm::rff2 {
 
     protected:
         const FrtGeneralSettings &generalSettings;
+        const FrtSASettings &saSettings;
         const FrtPerturbSettings &ptbSettings;
         const SeriesApproximationData &seriesApproximationData;
 
     public:
         MB2PerturbatorBase(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
-                           const FrtPerturbSettings &ptbSettings,
+                           const FrtSASettings &saSettings, const FrtPerturbSettings &ptbSettings,
                            const SeriesApproximationData &seriesApproximationData) :
-            state(state), dcMax(dcMax), generalSettings(generalSettings), ptbSettings(ptbSettings),
-            seriesApproximationData(seriesApproximationData) {}
+            state(state), dcMax(dcMax), generalSettings(generalSettings), saSettings(saSettings),
+            ptbSettings(ptbSettings), seriesApproximationData(seriesApproximationData) {}
 
         virtual ~MB2PerturbatorBase() = default;
 
@@ -43,10 +45,10 @@ namespace merutilm::rff2 {
         const MPATable<Num, MAX_DEGREE> *table;
 
         explicit MB2Perturbator(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
-                                const FrtPerturbSettings &ptbSettings,
+                                const FrtSASettings &saSettings, const FrtPerturbSettings &ptbSettings,
                                 const SeriesApproximationData &seriesApproximationData,
                                 const MB2Reference<Num> &reference, const MPATable<Num, MAX_DEGREE> *table) :
-            MB2PerturbatorBase(state, dcMax, generalSettings, ptbSettings, seriesApproximationData),
+            MB2PerturbatorBase(state, dcMax, generalSettings, saSettings, ptbSettings, seriesApproximationData),
             reference(reference), table(table) {}
 
         ~MB2Perturbator() override = default;
@@ -78,33 +80,42 @@ namespace merutilm::rff2 {
                 return 0.0;
 
             const auto dc0 = static_cast<complex<Num>>(dc + off);
-#ifdef ENABLE_SERIES_APPROXIMATION
-            // PROCESS SERIES APPROXIMATION (DEPRECATED)
-            const complex dcSa = {dex{dc0.re}, dex { dc0.im }};
-            complex dcSaM = dcSa;
-            complex dzSa = complex<dex>::ZERO;
 
-            for (const auto term: seriesApproximationData.terms) {
-                dzSa += term * dcSaM;
-                dcSaM *= dcSa;
+            uint64_t iteration;
+            uint64_t refIteration;
+            complex<Num> dz;
+
+
+            if (saSettings.use) {
+                const complex dcSa = {dex{dc0.re}, dex{dc0.im}};
+                complex dcSaM = dcSa;
+                complex dzSa = complex<dex>::ZERO;
+
+                for (const auto term: seriesApproximationData.terms) {
+                    dzSa += term * dcSaM;
+                    dcSaM *= dcSa;
+                }
+
+                iteration = seriesApproximationData.skippedIterations;
+                refIteration = seriesApproximationData.skippedIterations;
+                dz = {Num(dzSa.re), Num(dzSa.im)};
+
+            } else {
+                iteration = 0;
+                refIteration = 0;
+                dz = complex<Num>::ZERO;
             }
 
-            uint64_t iteration = seriesApproximationData.skippedIterations;
-            uint64_t refIteration = seriesApproximationData.skippedIterations;
-            complex<Num> dz = {Num(dzSa.re), Num(dzSa.im)};
-#else
-            uint64_t iteration = 0;
-            uint64_t refIteration = 0;
-            complex<Num> dz = complex<Num>::ZERO;
             Num dcMax0 = Num(dcMax);
-#endif
+
             const uint64_t maxRefIteration = reference.longestPeriod();
 
             int absIteration = 0;
             Num currDistance2 = Num(0);
             Num prevDistance2 = currDistance2;
 
-            const float interiorDetectRadius = ptbSettings.interiorDetectRadiusPower == 0 ? 0 : pow(10, -ptbSettings.interiorDetectRadiusPower);
+            const float interiorDetectRadius =
+                    ptbSettings.interiorDetectRadiusPower == 0 ? 0 : pow(10, -ptbSettings.interiorDetectRadiusPower);
             const bool isAbs = ptbSettings.absoluteIterationMode;
             const uint64_t maxIteration = ptbSettings.maxIteration;
             const float bailout2 = generalSettings.bailout * generalSettings.bailout;
@@ -160,7 +171,7 @@ namespace merutilm::rff2 {
 
 
                     if (interiorDetectRadius != 0) {
-                        for (const complex<Num> &pdz0 : pdz) {
+                        for (const complex<Num> &pdz0: pdz) {
                             if ((pdz0 - dz).norm_sqr() < dcMax0 * Num(interiorDetectRadius)) {
                                 return isAbs ? absIteration : maxIteration;
                             }
@@ -170,7 +181,6 @@ namespace merutilm::rff2 {
                         if (pdzIndex == pdz.size())
                             pdzIndex = 0;
                     }
-
                 }
 
 

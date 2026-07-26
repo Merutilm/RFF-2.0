@@ -219,7 +219,12 @@ namespace merutilm::rff2 {
         if (enabled) {
             ImGui::Begin("Series Approximation");
 
-            auto &[appliedTermsCount, validatedTermsCount, epsilonPower] = app.getSettings().fractal.sa;
+            auto &[use, appliedTermsCount, validatedTermsCount, epsilonPower] = app.getSettings().fractal.sa;
+            ImGui::Checkbox("Use", &use);
+
+            if (!use)
+                ImGui::BeginDisabled();
+
             if (ImGui::InputScalar("Applied Terms", ImGuiDataType_U16, &appliedTermsCount)) {
                 appliedTermsCount =
                         std::clamp(appliedTermsCount, static_cast<uint16_t>(1), static_cast<uint16_t>(1024));
@@ -239,6 +244,11 @@ namespace merutilm::rff2 {
                                        "The fractal will be rendered glitch-less but slow,\n"
                                        "and is large, It will be fast, but maybe shown visible glitches.");
 
+
+            if (!use)
+                ImGui::EndDisabled();
+
+
             if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
                 app.getRequests().requestRecompute();
             }
@@ -246,6 +256,7 @@ namespace merutilm::rff2 {
             if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0))) {
                 enabled = false;
             }
+
             ImGui::End();
         }
     }

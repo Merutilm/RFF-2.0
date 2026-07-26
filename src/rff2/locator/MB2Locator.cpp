@@ -43,6 +43,8 @@ namespace merutilm::rff2 {
                                                                          const std::function<void(uint64_t, int)> &
                                                                          actionWhileFindingMinibrotCenter,
                                                                          const std::function<void (uint64_t, float)> &
+                                                                         actionWhileSeriesApprox,
+                                                                         const std::function<void (uint64_t, float)> &
                                                                          actionWhileCreatingTable,
                                                                          const std::function<void(float)>
                                                                          &actionWhileFindingMinibrotZoom) {
@@ -56,7 +58,7 @@ namespace merutilm::rff2 {
 
 
         std::unique_ptr<MB2RenderDataBase> result = findAccurateCenterPerturbator(
-            state, data, actionWhileFindingMinibrotCenter, actionWhileCreatingTable);
+            state, data, actionWhileFindingMinibrotCenter, actionWhileSeriesApprox, actionWhileCreatingTable);
 
         if (result == nullptr) {
             return nullptr;
@@ -82,7 +84,7 @@ namespace merutilm::rff2 {
 
             actionWhileFindingMinibrotZoom(resultZoom);
             logZoom = resultZoom;
-            result->translate(logZoom, resultDcMax, result->fractalSettings.perturb, result->fractalSettings.reference.center);
+            result->translate(logZoom, resultDcMax, result->fractalSettings.perturb, result->fractalSettings.reference.center, actionWhileSeriesApprox);
             zoomIncrement /= 2;
         }
 
@@ -101,6 +103,7 @@ namespace merutilm::rff2 {
     std::unique_ptr<MB2RenderDataBase> MB2Locator::findAccurateCenterPerturbator(
             ParallelRenderState &state, const MB2RenderDataBase *data,
             const std::function<void(uint64_t, int)> &actionWhileFindingMinibrotCenter,
+            const std::function<void (uint64_t, float)> &actionWhileSeriesApprox,
             const std::function<void(uint64_t, float)> &actionWhileCreatingTable) {
         // multiply zoom by 2 and find center offset.
         // set the center to center + centerOffset.
@@ -149,13 +152,13 @@ namespace merutilm::rff2 {
                     Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
-                    }, actionWhileCreatingTable, true);
+                    }, actionWhileSeriesApprox, actionWhileCreatingTable, true);
             } else {
                 doubledZoomData = std::make_unique<DeepMB2RenderData>(
                     state, doubledZoomCalc, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
-                    }, actionWhileCreatingTable, true);
+                    }, actionWhileSeriesApprox, actionWhileCreatingTable, true);
             }
 
 

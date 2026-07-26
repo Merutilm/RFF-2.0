@@ -121,7 +121,10 @@ namespace merutilm::rff2 {
                                                         .compression = CalculationPresets::UltraFast().genRefComp(),
                                                         .reuse = FrtReferenceReuseMethod::DISABLED,
                                                 },
-                                        .sa = {.appliedTermsCount = 8, .validatedTermsCount = 1, .epsilonPower = -5},
+                                        .sa = {.use = false,
+                                               .appliedTermsCount = 8,
+                                               .validatedTermsCount = 1,
+                                               .epsilonPower = -5},
                                         .mpa = CalculationPresets::UltraFast().genMPA(),
                                         .perturb = {.maxIteration = 300,
                                                     .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
@@ -152,7 +155,10 @@ namespace merutilm::rff2 {
                                                         .compression = CalculationPresets::UltraFast().genRefComp(),
                                                         .reuse = FrtReferenceReuseMethod::DISABLED,
                                                 },
-                                        .sa = {.appliedTermsCount = 8, .validatedTermsCount = 1, .epsilonPower = -5},
+                                        .sa = {.use = false,
+                                               .appliedTermsCount = 8,
+                                               .validatedTermsCount = 1,
+                                               .epsilonPower = -5},
                                         .mpa = CalculationPresets::UltraFast().genMPA(),
                                         .perturb = {.maxIteration = 300,
                                                     .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
@@ -435,9 +441,7 @@ namespace merutilm::rff2 {
             if (ImGui::BeginTabItem("Fractal")) {
                 FnFractal::reference(*this);
                 FnFractal::iterations(*this);
-#ifdef ENABLE_SERIES_APPROXIMATION
-                FnFractal::sa(*this);
-#endif
+                // FnFractal::sa(*this);
                 FnFractal::mpa(*this);
                 FnFractal::automaticIterations(*this);
                 FnFractal::absoluteIterationMode(*this);
@@ -626,12 +630,23 @@ namespace merutilm::rff2 {
                                  std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }
         };
+        std::function actionPerSeriesApproxIteration = [this, startTime](const uint64_t p, const double i) mutable {
+            static float time = rootWindowContext->getWindow()->getTime();
+            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
+            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
+                time = rootWindowContext->getWindow()->getTime();
+                setStatusMessage(Constants::Status::RENDER_STATUS,
+                                 std::format("Series-Approximation : {:.3f}%", i * 100));
+                setStatusMessage(Constants::Status::TIME_STATUS,
+                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
+            }
+        };
         std::function actionPerCreatingTableIteration = [this, startTime](const uint64_t p, const double i) mutable {
             static float time = rootWindowContext->getWindow()->getTime();
             const float elapsed = rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Approximation : {:.3f}%", i * 100));
+                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("MP-Approximation : {:.3f}%", i * 100));
                 setStatusMessage(Constants::Status::TIME_STATUS,
                                  std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }
@@ -650,7 +665,7 @@ namespace merutilm::rff2 {
                     return false;
                 }
                 renderData->translate(frt.general.logZoom, renderData->getPerturbator()->dcMax, frt.perturb,
-                                      frt.reference.center);
+                                      frt.reference.center, actionPerSeriesApproxIteration);
                 break;
             }
             case CENTERED_REFERENCE: {
@@ -663,7 +678,8 @@ namespace merutilm::rff2 {
                 uint64_t period = renderData->getReference()->longestPeriod();
                 const auto center = MB2Locator::locateMinibrot(
                         state, renderData.get(), FnExplore::getActionWhileFindingMBCenter(*this, period),
-                        FnExplore::getActionWhileCreatingTable(*this), FnExplore::getActionWhileFindingZoom(*this));
+                        FnExplore::getActionWhileSeriesApprox(*this), FnExplore::getActionWhileCreatingTable(*this),
+                        FnExplore::getActionWhileFindingZoom(*this));
                 if (center == nullptr)
                     return false;
 
@@ -675,26 +691,29 @@ namespace merutilm::rff2 {
                 if (refCalc.general.logZoom > Constants::Fractal::ZOOM_DEADLINE) {
                     renderData = std::make_unique<DeepMB2RenderData>(
                             state, refCalc, center->data->getPerturbator()->dcMax, refExp10, capacity, period,
-                            std::move(actionPerRefCalcIteration), std::move(actionPerCreatingTableIteration), false);
+                            actionPerRefCalcIteration, actionPerSeriesApproxIteration, actionPerCreatingTableIteration,
+                            false);
                 } else {
                     renderData = std::make_unique<LightMB2RenderData>(
                             state, refCalc, center->data->getPerturbator()->dcMax, refExp10, capacity, period,
-                            std::move(actionPerRefCalcIteration), std::move(actionPerCreatingTableIteration), false);
+                            actionPerRefCalcIteration, actionPerSeriesApproxIteration, actionPerCreatingTableIteration,
+                            false);
                 }
-                renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center);
+                renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center,
+                                      actionPerSeriesApproxIteration);
                 break;
             }
             case DISABLED: {
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
-
+                renderData = nullptr;
                 if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
-                    renderData = std::make_unique<DeepMB2RenderData>(state, frt, dcMax, exp10, capacity, 0,
-                                                                     std::move(actionPerRefCalcIteration),
-                                                                     std::move(actionPerCreatingTableIteration), false);
+                    renderData = std::make_unique<DeepMB2RenderData>(
+                            state, frt, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
+                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration, false);
                 } else {
                     renderData = std::make_unique<LightMB2RenderData>(
-                            state, frt, dcMax, exp10, capacity, 0, std::move(actionPerRefCalcIteration),
-                            std::move(actionPerCreatingTableIteration), false);
+                            state, frt, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
+                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration, false);
                 }
                 break;
             }
