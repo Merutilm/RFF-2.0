@@ -71,6 +71,7 @@ pacman -S mingw-w64-clang-x86_64-clang
 pacman -S mingw-w64-clang-x86_64-opencv
 pacman -S mingw-w64-clang-x86_64-vulkan
 pacman -S mingw-w64-clang-x86_64-glm
+pacman -S mingw-w64-clang-x86_64-glfw
 ```
 
 6. Add the following directory to your Windows environment variable:
@@ -86,7 +87,7 @@ Path : %MSYS2_ROOT%\clang64\bin
 
 
 ```bash
-sudo apt install -y clang clang-tools make cmake libopencv-dev libvulkan-dev libglm-dev ninja-build libgtk-3-dev git wget xz-utils
+sudo apt install -y clang clang-tools make cmake libopencv-dev libvulkan-dev libglm-dev ninja-build libgtk-3-dev git wget xz-utils libglfw3-dev
 
 wget https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz
 # You can get any version from https://gmplib.org/download/snapshot/gmp-next/
