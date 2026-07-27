@@ -78,7 +78,7 @@ namespace merutilm::vkh {
             return tm;
         }
 
-        static std::_Put_time<char> current_put_time(const std::tm *const tm) {
+        static auto current_put_time(const std::tm *const tm) {
             return std::put_time(tm, "%Y/%m/%d, %H:%M:%S");
         }
     };
