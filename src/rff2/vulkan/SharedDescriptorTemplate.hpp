@@ -57,7 +57,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
     struct DescIteration final : public vkh::DescriptorTemplate {
         static constexpr uint32_t ID = 2;
-        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
         static constexpr uint32_t BINDING_UBO_ITERATION_INFO = 0;
         static constexpr uint32_t BINDING_SSBO_ITERATION_MATRIX = 1;

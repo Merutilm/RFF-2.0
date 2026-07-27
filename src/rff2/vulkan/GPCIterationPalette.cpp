@@ -71,10 +71,6 @@ namespace merutilm::rff2 {
                                                                  DescPalette::BINDING_SSBO_PALETTE);
         auto &paletteSSBOHost = paletteSSBO.getHostObject();
 
-        if (paletteSSBO.isLocked()) {
-            paletteSSBO.unlock(wc.getCommandPool());
-        }
-
         const auto paletteLength = static_cast<uint32_t>(palette.colors.size());
 
         paletteSSBOHost.set<uint32_t>(DescPalette::TARGET_PALETTE_SIZE, paletteLength);

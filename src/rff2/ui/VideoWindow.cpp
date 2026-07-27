@@ -110,7 +110,7 @@ namespace merutilm::rff2 {
         while (currentFrame > minNumber && !glfwWindowShouldClose(handle)) {
 
             currentFrame -= frameInterval;
-            currentSec += 1 / fps;
+            currentSec += 1.0f / fps;
             bool requiredRefresh = false;
 
 
@@ -157,6 +157,7 @@ namespace merutilm::rff2 {
                 }
             }
 
+            std::condition_variable cv;
             while (!manager.getWindowContext().getWindow()->canRenderNow()) {
                 // noop, TODO - busy waiting anti pattern, use wait and notify via conditional variable
                 _mm_pause();

@@ -56,10 +56,6 @@ namespace merutilm::rff2 {
         auto &paletteSSBO = paletteDesc.get<vkh::ShaderStorage>(0, DescPalette::BINDING_SSBO_PALETTE);
         auto &paletteSSBOHost = paletteSSBO.getHostObject();
 
-        if (paletteSSBO.isLocked()) {
-            paletteSSBO.unlock(wc.getCommandPool());
-        }
-
         const auto paletteLength = static_cast<uint32_t>(palette.colors.size());
 
         paletteSSBOHost.set<uint32_t>(DescPalette::TARGET_PALETTE_SIZE, paletteLength);
@@ -135,9 +131,6 @@ namespace merutilm::rff2 {
 
         auto &iterOut = getDescriptor(SET_OUTPUT_ITERATION);
         auto &iterOutSSBO = iterOut.get<vkh::ShaderStorage>(0, DescIteration::BINDING_SSBO_ITERATION_MATRIX);
-        if (iterOutSSBO.isLocked()) {
-            iterOutSSBO.unlock(wc.getCommandPool());
-        }
         iterOutSSBO.getHostObject().resizeAndClear<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, width * height);
         iterOutSSBO.reloadBuffer();
         iterOutSSBO.lock(wc.getCommandPool());

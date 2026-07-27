@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.30)
 project(RFF)
 
 
-if (NOT UNIX)
-    if (NOT DEFINED ENV{MSYS2_ROOT})
+if (WIN32)
+    if (DEFINED ENV{MSYS2_ROOT})
         set(CLANG64_DIRS "$ENV{MSYS2_ROOT}/clang64")
         set(CLANG64_LIBS "${CLANG64_DIRS}/lib")
+    else()
+        message(FATAL_ERROR "Environment Variable of MSYS2 is not set")
     endif ()
 endif ()
 
@@ -69,6 +71,8 @@ add_executable(
         src/rff2/ui/FnPreset.hpp
         src/rff2/constants/UIConstants.hpp
         src/rff2/util/RendererUtils.hpp
+        src/rff2/vulkan/GPC3DFractal.cpp
+        src/rff2/vulkan/GPC3DFractal.hpp
 )
 
 target_compile_options(RFF PRIVATE

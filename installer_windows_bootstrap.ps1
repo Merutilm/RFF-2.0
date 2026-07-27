@@ -185,7 +185,7 @@ foreach ($name in $targetDirs)
         Remove-Item -Path $dest -Recurse -Force
     }
 
-    Move-Item -Path $item -Destination $dest -Recurse
+    Move-Item -Path $item -Destination $dest
 }
 
 Remove-Item -Path $repoDir -Recurse -Force
