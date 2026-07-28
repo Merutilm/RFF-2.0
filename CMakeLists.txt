@@ -73,6 +73,8 @@ add_executable(
         src/rff2/util/RendererUtils.hpp
         src/rff2/vulkan/GPC3DFractal.cpp
         src/rff2/vulkan/GPC3DFractal.hpp
+        src/rff2/vulkan/GPCSmoothZoom.cpp
+        src/rff2/vulkan/GPCSmoothZoom.hpp
 )
 
 target_compile_options(RFF PRIVATE

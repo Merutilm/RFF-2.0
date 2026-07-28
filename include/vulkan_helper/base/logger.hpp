@@ -78,8 +78,10 @@ namespace merutilm::vkh {
             return tm;
         }
 
-        static auto current_put_time(const std::tm *const tm) {
-            return std::put_time(tm, "%Y/%m/%d, %H:%M:%S");
+        static std::string current_put_time(const std::tm *const tm) {
+            std::ostringstream oss;
+            oss << std::put_time(tm, "%Y/%m/%d, %H:%M:%S");
+            return oss.str();
         }
     };
 } // namespace merutilm::vkh

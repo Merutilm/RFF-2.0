@@ -44,7 +44,7 @@ void main(){
     float y = float(gl_VertexIndex / width);
     float z = float(iteration_settings.iterations[gl_VertexIndex]);
 
-    gl_Position = vec4(x, y, z, 1.0) * camera_settings.model * camera_settings.view * camera_settings.proj;
+    gl_Position = camera_settings.proj * camera_settings.view * camera_settings.model * vec4(x, y, z, 1.0);
     fragColor = inColor;
     fragTexcoord = inTexcoord;
 }
