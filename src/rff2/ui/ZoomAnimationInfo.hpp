@@ -8,13 +8,13 @@ namespace merutilm::rff2 {
     struct ZoomAnimationInfo {
 
         bool animating = false;
-        static constexpr float DURATION = 0.3f;
+        static constexpr float DURATION = 0.2f;
 
         glm::vec2 targetMouseDragOffset = glm::vec2(0.0f, 0.0f);
-
         glm::vec2 targetMouseZoomOffsetStart = glm::vec2(0.0f, 0.0f);
         glm::vec2 targetMouseZoomOffset = glm::vec2(0.0f, 0.0f);
         glm::vec2 targetMouseZoomOffsetAim = glm::vec2(0.0f, 0.0f);
+
         float targetLogZoomOffsetStart = 0.0f;
         float targetLogZoomOffset = 0.0f;
         float targetLogZoomOffsetAim = 0.0f;

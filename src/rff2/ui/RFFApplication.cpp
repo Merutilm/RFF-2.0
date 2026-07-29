@@ -267,8 +267,8 @@ namespace merutilm::rff2 {
             const int my = static_cast<int>(mdy);
             const auto mxr = static_cast<float>(mx) / static_cast<float>(getIterationBufferWidth()) - 0.5f;
             const auto myr = static_cast<float>(my) / static_cast<float>(getIterationBufferHeight()) - 0.5f;
-
             const auto dz = pow(10.0f, -zoomAnimationInfo.targetLogZoomOffsetAim);
+
             if (value > 0) {
                 const complex<dex> offset =
                         offsetConversion(settings, getMouseXOnIterationBuffer(mx), getMouseYOnIterationBuffer(my));
@@ -529,10 +529,10 @@ namespace merutilm::rff2 {
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0));
-        if (ImGui::BeginTable("StatusBarTable", statusMessages.size(), ImGuiTableFlags_BordersInner)) {
-            for (int i = 0; i < statusMessages.size(); i++) {
+        if (ImGui::BeginTable("StatusBarTable", static_cast<int>(statusMessages.size()), ImGuiTableFlags_BordersInner)) {
+            for (const auto & statusMessage : statusMessages) {
                 ImGui::TableNextColumn();
-                ImGui::TextUnformatted(statusMessages[i].c_str());
+                ImGui::TextUnformatted(statusMessage.c_str());
             }
             ImGui::EndTable();
         }
