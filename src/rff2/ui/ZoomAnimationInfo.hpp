@@ -8,7 +8,7 @@ namespace merutilm::rff2 {
     struct ZoomAnimationInfo {
 
         bool animating = false;
-        static constexpr float AIM_APPLY_TIME = 0.3f;
+        static constexpr float DURATION = 0.3f;
 
         glm::vec2 targetMouseDragOffset = glm::vec2(0.0f, 0.0f);
 
@@ -45,11 +45,11 @@ namespace merutilm::rff2 {
 
             timeAccumulator += dt;
 
-            if (timeAccumulator >= AIM_APPLY_TIME) {
-                timeAccumulator = AIM_APPLY_TIME;
+            if (timeAccumulator >= DURATION) {
+                timeAccumulator = DURATION;
                 animating = false;
             }
-            const float t = timeAccumulator / AIM_APPLY_TIME;
+            const float t = timeAccumulator / DURATION;
             targetLogZoomOffset = std::lerp(targetLogZoomOffsetStart, targetLogZoomOffsetAim, t);
 
             const float dz = std::pow(10.0f, targetLogZoomOffsetStart - targetLogZoomOffset);
