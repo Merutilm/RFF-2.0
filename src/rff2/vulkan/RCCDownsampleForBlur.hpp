@@ -45,8 +45,8 @@ namespace merutilm::rff2 {
                     &downsample, {},
                     {resultAttachment,
                      {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-                     vkh::SubpassDependency::none(),
-                     vkh::RenderPassAttachmentReference::none()},
+                     std::nullopt,
+                     std::nullopt},
                     [this] {
                         return vkh::DescIndexPicker{descIndexer == DescIndexer::FOG
                                                             ? GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG

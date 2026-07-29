@@ -5,6 +5,7 @@
 #pragma once
 #include "GPCBloomThreshold.hpp"
 #include "GPCFog.hpp"
+#include "../util/RendererUtils.hpp"
 #include "SharedImageContextIndices.hpp"
 #include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
@@ -56,24 +57,16 @@ namespace merutilm::rff2 {
         }
 
         void configurePipelines() override {
-            vkh::GraphicsPipelineNode *fogNode = registerPipeline<GPCFog>(
-                    &fog, {},
-                    {resultAttachment,
-                     {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-                     {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                      VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_INPUT_ATTACHMENT_READ_BIT, VK_DEPENDENCY_BY_REGION_BIT},
-                     {vkh::RenderPassAttachmentType::INPUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}},
-                    [] { return vkh::DescIndexPicker{}; });
+            vkh::GraphicsPipelineNode *fogNode =
+                    registerPipeline<GPCFog>(&fog, {},
+                                             {resultAttachment, RendererUtils::COLOR_REF_INFO,
+                                              RendererUtils::INPUT_READ_DEPENDENCY, RendererUtils::INPUT_REF_INFO},
+                                             RendererUtils::DEFAULT_DESC_PICKER);
 
             registerPipeline<GPCBloomThreshold>(
                     &bloomThreshold, {fogNode},
-                    {bloomThresholdAttachment,
-                     {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-                     vkh::SubpassDependency::none(),
-                     vkh::RenderPassAttachmentReference::none()},
-                    [] {
-                        return vkh::DescIndexPicker {};
-                    });
+                    {bloomThresholdAttachment, RendererUtils::COLOR_REF_INFO, std::nullopt, std::nullopt},
+                    RendererUtils::DEFAULT_DESC_PICKER);
         }
     };
 } // namespace merutilm::rff2

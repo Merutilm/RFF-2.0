@@ -7,6 +7,7 @@
 
 #include "GPCColor.hpp"
 #include "GPCSlope.hpp"
+#include "../util/RendererUtils.hpp"
 #include "SharedImageContextIndices.hpp"
 
 namespace merutilm::rff2 {
@@ -64,18 +65,18 @@ namespace merutilm::rff2 {
                     &slope, {},
                     {tempAttachment,
                      {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-                     {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                     vkh::SubpassDependency{VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                       VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
                       VK_DEPENDENCY_BY_REGION_BIT},
-                     {vkh::RenderPassAttachmentType::INPUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}},
-                    [] { return vkh::DescIndexPicker{}; });
+                     vkh::RenderPassAttachmentReference{vkh::RenderPassAttachmentType::INPUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}},
+                    RendererUtils::DEFAULT_DESC_PICKER);
 
             registerPipeline<GPCColor>(&color, {slopeNode},
                                    {resultAttachment,
                                     {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-                                    vkh::SubpassDependency::none(),
-                                    vkh::RenderPassAttachmentReference::none()},
-                                   [] { return vkh::DescIndexPicker{}; });
+                                    std::nullopt,
+                                    std::nullopt},
+                                   RendererUtils::DEFAULT_DESC_PICKER);
         }
     };
 } // namespace merutilm::rff2

@@ -40,8 +40,8 @@ layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 fragTexcoord;
 
 void main(){
-    float x = float(gl_VertexIndex % width);
-    float y = float(gl_VertexIndex / width);
+    float x = float(gl_VertexIndex % iteration_info_settings.extent.x);
+    float y = float(gl_VertexIndex / iteration_info_settings.extent.x);
     float z = float(iteration_settings.iterations[gl_VertexIndex]);
 
     gl_Position = camera_settings.proj * camera_settings.view * camera_settings.model * vec4(x, y, z, 1.0);

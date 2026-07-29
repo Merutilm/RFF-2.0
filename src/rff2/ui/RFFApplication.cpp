@@ -102,7 +102,7 @@ namespace merutilm::rff2 {
             backgroundThreads.notifyAll();
         }
 
-
+        invokeUpdaters();
         renderer->render();
     }
 
@@ -238,6 +238,11 @@ namespace merutilm::rff2 {
                     const int16_t y = getMouseYOnIterationBuffer(my);
                     const auto dx = static_cast<int16_t>(getMouseXOnIterationBuffer(mx - mdx) - x);
                     const auto dy = static_cast<int16_t>(getMouseYOnIterationBuffer(my - mdy) - y);
+                    const auto dxr = -static_cast<float>(dx) / static_cast<float>(getIterationBufferWidth());
+                    const auto dyr = static_cast<float>(dy) / static_cast<float>(getIterationBufferHeight());
+                    const auto dz = pow(10.0f, -zoomAnimationInfo.targetLogZoomOffsetAim);
+
+                    zoomAnimationInfo.targetMouseDragOffset += glm::vec2{dxr * dz, dyr * dz};
 
                     if (mb == GLFW_MOUSE_BUTTON_LEFT) {
                         const float m = settings.render.clarityMultiplier;
@@ -254,39 +259,47 @@ namespace merutilm::rff2 {
                     }
                 });
         eventSystem.mouseWheel.onMouseScroll.add([this](const int value) {
-            constexpr float increment = Constants::Fractal::ZOOM_INTERVAL;
-
             settings.fractal.general.logZoom = std::max(Constants::Fractal::ZOOM_MIN, settings.fractal.general.logZoom);
             double mdx;
             double mdy;
             glfwGetCursorPos(rootWindowContext->getWindow()->getWindow(), &mdx, &mdy);
             const int mx = static_cast<int>(mdx);
             const int my = static_cast<int>(mdy);
+            const auto mxr = static_cast<float>(mx) / static_cast<float>(getIterationBufferWidth()) - 0.5f;
+            const auto myr = static_cast<float>(my) / static_cast<float>(getIterationBufferHeight()) - 0.5f;
+
+            const auto dz = pow(10.0f, -zoomAnimationInfo.targetLogZoomOffsetAim);
             if (value > 0) {
                 const complex<dex> offset =
                         offsetConversion(settings, getMouseXOnIterationBuffer(mx), getMouseYOnIterationBuffer(my));
-                const double mzi = 1.0 / pow(10, Constants::Fractal::ZOOM_INTERVAL);
+                const double mzi = pow(10, -Constants::Fractal::ZOOM_INTERVAL);
                 float &logZoom = settings.fractal.general.logZoom;
-                logZoom += increment;
-
+                logZoom += Constants::Fractal::ZOOM_INTERVAL;
                 fixed_point_complex_i1 &center = settings.fractal.reference.center;
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
                 center.set_exp10(exp10);
                 const fixed_point_complex_i1 add(offset.re * dex(1 - mzi), offset.im * dex(1 - mzi), exp10);
                 fixed_point_complex_i1::add(center, center, add);
+
+                zoomAnimationInfo.stop();
+                zoomAnimationInfo.targetLogZoomOffsetAim += Constants::Fractal::ZOOM_INTERVAL;
+                zoomAnimationInfo.targetMouseZoomOffsetAim -= glm::vec2{mxr * dz * (1 - mzi), myr * dz * (1 - mzi)};
+
             } else if (value < 0) {
                 const complex<dex> offset =
                         offsetConversion(settings, getMouseXOnIterationBuffer(mx), getMouseYOnIterationBuffer(my));
-                const double mzo = 1.0 / pow(10, -Constants::Fractal::ZOOM_INTERVAL);
+                const double mzo = pow(10, Constants::Fractal::ZOOM_INTERVAL);
                 float &logZoom = settings.fractal.general.logZoom;
-                logZoom -= increment;
-
-
+                logZoom -= Constants::Fractal::ZOOM_INTERVAL;
                 fixed_point_complex_i1 &center = settings.fractal.reference.center;
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
                 center.set_exp10(exp10);
                 const fixed_point_complex_i1 add(offset.re * dex(1 - mzo), offset.im * dex(1 - mzo), exp10);
                 fixed_point_complex_i1::add(center, center, add);
+
+                zoomAnimationInfo.stop();
+                zoomAnimationInfo.targetLogZoomOffsetAim -= Constants::Fractal::ZOOM_INTERVAL;
+                zoomAnimationInfo.targetMouseZoomOffsetAim -= glm::vec2{mxr * dz * (1 - mzo), myr * dz * (1 - mzo)};
             }
 
 
@@ -345,15 +358,27 @@ namespace merutilm::rff2 {
         vkh::BufferContext::destroyContext(rootWindowContext->core, bufCtx);
     }
 
+    void RFFApplication::invokeUpdaters() {
+        static float time = rootWindowContext->getWindow()->getTime();
+        const float t = rootWindowContext->getWindow()->getTime();
+        const float dt = t - time;
+        time = t;
+
+        zoomAnimationInfo.update(dt);
+        renderer->rccPresentPrepare->smoothZoom->setSmoothZoomData(zoomAnimationInfo.targetMouseDragOffset +
+                                                                           zoomAnimationInfo.targetMouseZoomOffset,
+                                                                   zoomAnimationInfo.targetLogZoomOffset);
+    }
+
     void RFFApplication::applyShaderSettings(const Settings &s) const {
         rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
         renderer->rcc0->iterationPalette->setPalette(s.shader.palette);
-        renderer->rcc1->stripe->setStripe(s.shader.stripe);
-        renderer->rcc2->slope->setSlope(s.shader.slope);
-        renderer->rcc2->color->setColor(s.shader.color);
+        renderer->rcc0->stripe->setStripe(s.shader.stripe);
+        renderer->rcc0->slope->setSlope(s.shader.slope);
+        renderer->rcc0->color->setColor(s.shader.color);
         renderer->rcc3->fog->setFog(s.shader.fog);
         renderer->rcc4->bloom->setBloom(s.shader.bloom);
-        renderer->rcc5->linearInterpolation->setLinearInterpolation(s.render.linearInterpolation);
+        renderer->rcc4->linearInterpolation->setLinearInterpolation(s.render.linearInterpolation);
         renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, s.shader.fog.radius);
         renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, s.shader.bloom.radius);
     }
@@ -369,7 +394,8 @@ namespace merutilm::rff2 {
                                                                    {dWidth, dHeight});
         renderer->rccDownsample->downsample->setRescaledResolution(
                 GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM, {dWidth, dHeight});
-        renderer->rccPresentPrepare->presentPrepare->setRescaledResolution({sWidth, sHeight});
+
+        renderer->rccPresentPrepare->smoothZoom->setRescaledResolution({sWidth, sHeight});
         renderer->rcc0->iterationPalette->resetIterationBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double>>(iw, ih);
         renderer->iterationStagingBufferContext = std::make_unique<GraphicsMatrixBuffer<double>>(
@@ -791,6 +817,7 @@ namespace merutilm::rff2 {
             }
         });
 
+        zoomAnimationInfo.reset();
         previewer.dispatch();
 
         statusThread.request_stop();

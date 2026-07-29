@@ -42,6 +42,11 @@ namespace merutilm::vkh {
         void generate() override;
 
     private:
+
+        void appendReference(std::unordered_map<const RenderPassAttachment *, std::unordered_set<uint32_t>> &usedSubpasses,
+                          const RenderPassAttachment *attachment, uint32_t currentSubpass,
+                          const RenderPassAttachmentReference &referenceInfo);
+
         void processNode(
                 std::unordered_map<const RenderPassAttachment *, std::unordered_set<uint32_t>> &usedSubpasses,
                 std::unordered_map<uint32_t, std::unordered_map<uint32_t, VkSubpassDependency>> &generatedDependencies,

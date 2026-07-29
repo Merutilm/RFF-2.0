@@ -7,11 +7,8 @@
 #include "../util/RendererUtils.hpp"
 #include "../vulkan/CPCBoxBlur.hpp"
 #include "../vulkan/RCC0.hpp"
-#include "../vulkan/RCC1.hpp"
-#include "../vulkan/RCC2.hpp"
 #include "../vulkan/RCC3.hpp"
 #include "../vulkan/RCC4.hpp"
-#include "../vulkan/RCC5.hpp"
 #include "../vulkan/RCCDownsampleForBlur.hpp"
 #include "../vulkan/RCCPresentPrepareImgui.hpp"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
@@ -26,21 +23,15 @@ namespace merutilm::rff2 {
         Settings &settings;
 
         vkh::RenderContext *rc0;
-        vkh::RenderContext *rc1;
-        vkh::RenderContext *rc2;
         vkh::RenderContext *rcDownsample;
         vkh::RenderContext *rc3;
         vkh::RenderContext *rc4;
-        vkh::RenderContext *rc5;
         vkh::RenderContext *rcPresent;
 
         RCC0 *rcc0;
-        RCC1 *rcc1;
-        RCC2 *rcc2;
         RCCDownsampleForBlur *rccDownsample;
         RCC3 *rcc3;
         RCC4 *rcc4;
-        RCC5 *rcc5;
         RCCPresentPrepareImgui *rccPresentPrepare;
 
         CPCBoxBlur *computeBoxBlur;
@@ -69,27 +60,13 @@ namespace merutilm::rff2 {
         void init() override {
 
             const auto swapchainImageContextGetter = [this] {
-                auto &swapchain = wc.getSwapchain();
+                const auto &swapchain = wc.getSwapchain();
                 return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
             };
             computeBoxBlur =
                     vkh::ComputePipelineConfigurator::createComputePipeline<CPCBoxBlur>(configurators, engine, wc);
             rc0 = vkh::RenderContextUtils::attachRenderContext<RCC0>(
                     &rcc0, configurators, engine, wc,
-                    [this] {
-                        return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
-                                                      settings.render.clarityMultiplier);
-                    },
-                    swapchainImageContextGetter);
-            rc1 = vkh::RenderContextUtils::attachRenderContext<RCC1>(
-                    &rcc1, configurators, engine, wc,
-                    [this] {
-                        return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
-                                                      settings.render.clarityMultiplier);
-                    },
-                    swapchainImageContextGetter);
-            rc2 = vkh::RenderContextUtils::attachRenderContext<RCC2>(
-                    &rcc2, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
@@ -111,13 +88,6 @@ namespace merutilm::rff2 {
                     swapchainImageContextGetter);
             rc4 = vkh::RenderContextUtils::attachRenderContext<RCC4>(
                     &rcc4, configurators, engine, wc,
-                    [this] {
-                        return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
-                                                      settings.render.clarityMultiplier);
-                    },
-                    swapchainImageContextGetter);
-            rc5 = vkh::RenderContextUtils::attachRenderContext<RCC5>(
-                    &rcc5, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
@@ -159,32 +129,7 @@ namespace merutilm::rff2 {
             vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc0, frameIndex);
 
             // [IN] EXTERNAL
-            // [SUBPASS OUT] SECONDARY (iteration)
-
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
-                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY),
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-            // [BARRIER] SECONDARY
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc1, frameIndex);
-
-
-            // [IN] SECONDARY
-            // [OUT] PRIMARY
-
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
-                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-            // [BARRIER] PRIMARY
-
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(
-                    wc, *rc2, frameIndex);
-
-            // [IN] PRIMARY
-            // [SUBPASS OUT] SECONDARY (slope)
-            // [SUBPASS IN] SECONDARY
-            // [OUT] PRIMARY (color)
+            // [SUBPASS OUT] PRIMARY (color)
 
             vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
                     cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
@@ -271,16 +216,6 @@ namespace merutilm::rff2 {
 
             // [IN] SECONDARY
             // [IN] DOWNSAMPLED_SECONDARY
-            // [OUT] PRIMARY
-
-            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
-                    cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc5, frameIndex);
-
-            // [IN] PRIMARY
             // [OUT] SECONDARY
 
             vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(

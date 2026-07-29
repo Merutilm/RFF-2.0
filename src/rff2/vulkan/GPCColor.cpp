@@ -6,8 +6,8 @@
 
 #include "../constants/VulkanWindowConstants.hpp"
 #include "../settings/ShdColorSettings.h"
-#include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
+#include "SharedImageContextIndices.hpp"
 
 namespace merutilm::rff2 {
     void GPCColor::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {

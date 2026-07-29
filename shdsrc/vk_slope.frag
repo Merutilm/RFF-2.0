@@ -25,16 +25,16 @@ layout (location = 1) in vec2 fragTexcoord;
 
 layout (location = 0) out vec4 color;
 
-double get_iteration(uvec2 iter_coord, uvec2 offset){
-    iter_coord.y = iteration_info_settings.extent.y - iter_coord.y;
+double get_iteration(ivec2 iter_coord, ivec2 offset){
+    iter_coord.y = int(iteration_info_settings.extent.y) - iter_coord.y - 1;
     iter_coord += offset;
+    iter_coord = clamp(iter_coord.xy, ivec2(0), ivec2(iteration_info_settings.extent.xy) - ivec2(1));
     return iteration_settings.iterations[iter_coord.y * iteration_info_settings.extent.x + iter_coord.x];
 }
 
 void main() {
 
-    uvec2 iter_coord = uvec2(gl_FragCoord.xy);
-
+    ivec2 iter_coord = ivec2(gl_FragCoord.xy);
 
     if(slope_settings.reflection_ratio >= 1 || slope_settings.depth == 0){
         color = texelFetch(canvas, ivec2(iter_coord), 0);
@@ -46,14 +46,14 @@ void main() {
     float aRad = radians(slope_settings.azimuth);
     float zRad = radians(slope_settings.zenith);
 
-    double ld = get_iteration(iter_coord, uvec2(-1, -1));
-    double d = get_iteration(iter_coord, uvec2(0, -1));
-    double rd = get_iteration(iter_coord, uvec2(1, -1));
-    double l = get_iteration(iter_coord, uvec2(-1, 0));
-    double r = get_iteration(iter_coord, uvec2(1, 0));
-    double lu = get_iteration(iter_coord, uvec2(-1, 1));
-    double u = get_iteration(iter_coord, uvec2(0, 1));
-    double ru = get_iteration(iter_coord, uvec2(1, 1));
+    double ld = get_iteration(iter_coord, ivec2(-1, -1));
+    double d = get_iteration(iter_coord, ivec2(0, -1));
+    double rd = get_iteration(iter_coord, ivec2(1, -1));
+    double l = get_iteration(iter_coord, ivec2(-1, 0));
+    double r = get_iteration(iter_coord, ivec2(1, 0));
+    double lu = get_iteration(iter_coord, ivec2(-1, 1));
+    double u = get_iteration(iter_coord, ivec2(0, 1));
+    double ru = get_iteration(iter_coord, ivec2(1, 1));
 
     float dzDx = float((rd + 2 * r + ru) - (ld + 2 * l + lu)) * slope_settings.depth * multiplier;
     float dzDy = float((lu + 2 * u + ru) - (ld + 2 * d + rd)) * slope_settings.depth * multiplier;

@@ -7,6 +7,18 @@
 
 namespace merutilm::rff2 {
     class GPCSmoothZoom : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
+
+        static constexpr uint32_t SET_SAMPLE = 0;
+        static constexpr uint32_t BINDING_SAMPLE_SAMPLER = 0;
+        static constexpr uint32_t BINDING_SAMPLE_RESOLUTION_UBO = 1;
+        static constexpr uint32_t TARGET_SAMPLE_EXTENT = 0;
+
+
+        static constexpr uint32_t SET_SMOOTH_ZOOM = 1;
+        static constexpr uint32_t BINDING_SMOOTH_ZOOM_UBO = 0;
+        static constexpr uint32_t TARGET_SMOOTH_ZOOM_POSITION_DELTA = 0;
+        static constexpr uint32_t TARGET_SMOOTH_ZOOM_LOG_ZOOM_DELTA = 1;
+
     public:
         GPCSmoothZoom(vkh::Engine &engine, vkh::WindowContext &wc) :
             GeneralPostProcessGraphicsPipelineConfigurator(engine, wc, "vk_smooth_zoom.frag") {
@@ -16,8 +28,12 @@ namespace merutilm::rff2 {
         void pipelineInitialized() override;
         void renderContextRefreshed() override;
 
+        void setRescaledResolution(const glm::vec2 &newResolution) const;
+        void setSmoothZoomData(const glm::vec2 &positionDelta, float logZoomDelta) const;
+
     protected:
         void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
+        void resetSmoothZoom() const;
         void configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) override;
     };
 }

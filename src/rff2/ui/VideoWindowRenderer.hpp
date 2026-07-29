@@ -6,12 +6,9 @@
 #include "../vulkan/CPC2MapIterationStripe.hpp"
 #include "../vulkan/CPCBoxBlur.hpp"
 #include "../vulkan/CPCImageRGBA2BGR.hpp"
-#include "../vulkan/RCC0.hpp"
-#include "../vulkan/RCC1.hpp"
 #include "../vulkan/RCC2.hpp"
 #include "../vulkan/RCC3.hpp"
 #include "../vulkan/RCC4.hpp"
-#include "../vulkan/RCC5.hpp"
 #include "../vulkan/RCCDownsampleForBlur.hpp"
 #include "../vulkan/RCCPresent.hpp"
 #include "../vulkan/RCCStatic2Image.hpp"
@@ -28,23 +25,17 @@ namespace merutilm::rff2 {
     struct VideoWindowRenderer final : public vkh::Renderer {
 
         vkh::RenderContext *rcStatic2;
-        vkh::RenderContext *rc0;
-        vkh::RenderContext *rc1;
         vkh::RenderContext *rc2;
         vkh::RenderContext *rcDownsample;
         vkh::RenderContext *rc3;
         vkh::RenderContext *rc4;
-        vkh::RenderContext *rc5;
         vkh::RenderContext *rcPresent;
 
         RCCStatic2Image *rccStatic2;
-        RCC0 *rcc0;
-        RCC1 *rcc1;
         RCC2 *rcc2;
         RCCDownsampleForBlur *rccDownsample;
         RCC3 *rcc3;
         RCC4 *rcc4;
-        RCC5 *rcc5;
         RCCPresent *rccPresent;
 
         CPC2MapIterationStripe *compute2MapIterationStripe = nullptr;
@@ -91,18 +82,6 @@ namespace merutilm::rff2 {
                 configurators, engine, wc, [this] {
                     return videoExtent;
                 }, swapchainImageContextGetter);
-            rc0 = vkh::RenderContextUtils::attachRenderContext<RCC0>(
-                    &rcc0, configurators, engine, wc,
-                    [this] {
-                        return videoExtent;
-                    },
-                    swapchainImageContextGetter);
-            rc1 = vkh::RenderContextUtils::attachRenderContext<RCC1>(
-                    &rcc1, configurators, engine, wc,
-                    [this] {
-                        return videoExtent;
-                    },
-                    swapchainImageContextGetter);
             rc2 = vkh::RenderContextUtils::attachRenderContext<RCC2>(
                     &rcc2, configurators, engine, wc,
                     [this] {
@@ -123,12 +102,6 @@ namespace merutilm::rff2 {
                     swapchainImageContextGetter);
             rc4 = vkh::RenderContextUtils::attachRenderContext<RCC4>(
                     &rcc4, configurators, engine, wc,
-                    [this] {
-                        return videoExtent;
-                    },
-                    swapchainImageContextGetter);
-            rc5 = vkh::RenderContextUtils::attachRenderContext<RCC5>(
-                    &rcc5, configurators, engine, wc,
                     [this] {
                         return videoExtent;
                     },
@@ -289,17 +262,6 @@ namespace merutilm::rff2 {
 
                 // [IN] SECONDARY
                 // [IN] DOWNSAMPLED_SECONDARY
-                // [OUT] PRIMARY
-
-                vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
-                        cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
-                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-
-                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(
-                        wc, *rc5, frameIndex);
-
-                // [IN] PRIMARY
                 // [OUT] SECONDARY
 
                 vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(

@@ -46,7 +46,7 @@ namespace merutilm::rff2 {
         renderer->rcc2->color->setColor(targetSettings.shader.color);
         renderer->rcc3->fog->setFog(targetSettings.shader.fog);
         renderer->rcc4->bloom->setBloom(targetSettings.shader.bloom);
-        renderer->rcc5->linearInterpolation->setLinearInterpolation(targetSettings.render.linearInterpolation);
+        renderer->rcc4->linearInterpolation->setLinearInterpolation(targetSettings.render.linearInterpolation);
         renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
                                                targetSettings.shader.fog.radius);
         renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM,

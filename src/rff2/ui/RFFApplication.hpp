@@ -15,6 +15,7 @@
 #include "AppRenderer.hpp"
 #include "CursorManager.hpp"
 #include "VideoProgressInfo.hpp"
+#include "ZoomAnimationInfo.hpp"
 #include "vulkan_helper/Application.hpp"
 
 namespace merutilm::rff2 {
@@ -29,11 +30,11 @@ namespace merutilm::rff2 {
 
         std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
         std::unique_ptr<Matrix<double>> iterationMatrix = nullptr;
-
         std::unique_ptr<MB2RenderDataBase> renderData = nullptr;
 
         std::unique_ptr<CursorManager> cursorManager = nullptr;
 
+        ZoomAnimationInfo zoomAnimationInfo;
         VideoProgressInfo videoProgressInfo = {};
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
@@ -73,6 +74,7 @@ namespace merutilm::rff2 {
         void applyDefaultSettings();
 
         void applyCreateImage();
+        void invokeUpdaters();
 
         void applyShaderSettings(const Settings &s) const;
 

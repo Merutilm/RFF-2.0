@@ -11,9 +11,6 @@ namespace merutilm::vkh {
     struct RenderPassAttachmentReference {
         const RenderPassAttachmentType attachmentType;
         const VkImageLayout layoutToUse;
-
-
-        static RenderPassAttachmentReference none() {return {};}
     };
 
 

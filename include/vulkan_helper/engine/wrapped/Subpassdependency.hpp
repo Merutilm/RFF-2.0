@@ -11,8 +11,5 @@ namespace merutilm::vkh {
         const VkAccessFlags srcAccessFlags;
         const VkAccessFlags dstAccessFlags;
         const VkDependencyFlags dependencyFlags;
-
-
-        static SubpassDependency none() {return {};}
     };
 }

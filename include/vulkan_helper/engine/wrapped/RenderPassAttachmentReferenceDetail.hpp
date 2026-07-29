@@ -11,10 +11,8 @@ namespace merutilm::vkh {
     struct RenderPassAttachmentReferenceDetail {
         const RenderPassAttachment * targetAttachment;
         const RenderPassAttachmentReference srcReferenceInfo;
-        const SubpassDependency dependency;
-        const RenderPassAttachmentReference dstReferenceInfo;
-
-
+        const std::optional<SubpassDependency> dependency;
+        const std::optional<RenderPassAttachmentReference> dstReferenceInfo;
 
     };
 } // namespace merutilm::vkh

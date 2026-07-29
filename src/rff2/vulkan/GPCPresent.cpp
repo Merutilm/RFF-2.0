@@ -4,7 +4,6 @@
 
 #include "GPCPresent.hpp"
 
-#include "../constants/VulkanWindowConstants.hpp"
 #include "SharedImageContextIndices.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 

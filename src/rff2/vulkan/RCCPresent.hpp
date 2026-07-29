@@ -38,8 +38,8 @@ namespace merutilm::rff2 {
                     &present, {},
                     {swapchainAttachment,
                      {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
-                     vkh::SubpassDependency::none(),
-                     vkh::RenderPassAttachmentReference::none()},
+                     std::nullopt,
+                     std::nullopt},
                     [] {
                         return vkh::DescIndexPicker{};
                     });

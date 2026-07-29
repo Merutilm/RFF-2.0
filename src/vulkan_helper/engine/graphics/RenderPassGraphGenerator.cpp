@@ -84,35 +84,49 @@ namespace merutilm::vkh {
     }
 
 
+    void RenderPassGraphGenerator::appendReference(std::unordered_map<const RenderPassAttachment *, std::unordered_set<uint32_t>> &usedSubpasses,
+        const RenderPassAttachment *attachment, const uint32_t currentSubpass, const RenderPassAttachmentReference& referenceInfo) {
+        rpm.appendReference(attachment, referenceInfo, currentSubpass);
+        std::unordered_set<uint32_t> &usedSubpass =
+                usedSubpasses.try_emplace(attachment, std::unordered_set<uint32_t>{}).first->second;
+        usedSubpass.insert(currentSubpass);
+    }
+
+
     void RenderPassGraphGenerator::processNode(
             std::unordered_map<const RenderPassAttachment *, std::unordered_set<uint32_t>> &usedSubpasses,
             std::unordered_map<uint32_t, std::unordered_map<uint32_t, VkSubpassDependency>> &generatedDependencies,
             const GraphicsPipelineNode *node) {
 
         const uint32_t currentSubpass = node->getSubpass();
-        rpm.appendReference(node->getAttachmentReference().targetAttachment, node->getAttachmentReference().srcReferenceInfo, currentSubpass);
 
         const RenderPassAttachment *attachment = node->getAttachmentReference().targetAttachment;
-
-        std::unordered_set<uint32_t> &usedSubpass =
-                usedSubpasses.try_emplace(attachment, std::unordered_set<uint32_t>{}).first->second;
-        usedSubpass.insert(currentSubpass);
+        appendReference(usedSubpasses, attachment, currentSubpass, node->getAttachmentReference().srcReferenceInfo);
 
         const std::vector<GraphicsPipelineNode *> &depends = node->getDepends();
 
 
         for (const auto depend: depends) {
             const uint32_t dependSubpass = depend->getSubpass();
-            rpm.appendReference(depend->getAttachmentReference().targetAttachment, depend->getAttachmentReference().dstReferenceInfo, currentSubpass);
+            const std::optional<RenderPassAttachmentReference> &dependDstReferenceInfo = depend->getAttachmentReference().dstReferenceInfo;
+            const std::optional<SubpassDependency> &dependDstDependency = depend->getAttachmentReference().dependency;
 
-            VkSubpassDependency &dep = generatedDependencies[dependSubpass][currentSubpass];
-            dep.srcSubpass = dependSubpass;
-            dep.dstSubpass = currentSubpass;
-            dep.srcStageMask |= depend->getAttachmentReference().dependency.srcPipelineStageFlags;
-            dep.dstStageMask |= depend->getAttachmentReference().dependency.dstPipelineStageFlags;
-            dep.srcAccessMask |= depend->getAttachmentReference().dependency.srcAccessFlags;
-            dep.dstAccessMask |= depend->getAttachmentReference().dependency.dstAccessFlags;
-            dep.dependencyFlags |= depend->getAttachmentReference().dependency.dependencyFlags;
+            if (dependDstReferenceInfo.has_value()) {
+                const RenderPassAttachment *dependsAttachment = depend->getAttachmentReference().targetAttachment;
+                appendReference(usedSubpasses, dependsAttachment, currentSubpass, *dependDstReferenceInfo);
+            }
+
+            if (dependDstDependency.has_value()) {
+                VkSubpassDependency &dep = generatedDependencies[dependSubpass][currentSubpass];
+                dep.srcSubpass = dependSubpass;
+                dep.dstSubpass = currentSubpass;
+                dep.srcStageMask |= dependDstDependency->srcPipelineStageFlags;
+                dep.dstStageMask |= dependDstDependency->dstPipelineStageFlags;
+                dep.srcAccessMask |= dependDstDependency->srcAccessFlags;
+                dep.dstAccessMask |= dependDstDependency->dstAccessFlags;
+                dep.dependencyFlags |= dependDstDependency->dependencyFlags;
+            }
+
         }
     }
 } // namespace merutilm::vkh

@@ -4,8 +4,8 @@
 
 #include "GPCFog.hpp"
 
-#include "RCC1.hpp"
 #include "SharedDescriptorTemplate.hpp"
+#include "SharedImageContextIndices.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 
 namespace merutilm::rff2 {
