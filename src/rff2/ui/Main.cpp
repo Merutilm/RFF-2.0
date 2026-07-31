@@ -49,10 +49,10 @@ int main() {
                                      .name = "RFF 2.0",
                                      .icon = "../res/icon.png",
                                      .widthInfo = {.min = Constants::Render::MIN_WINDOW_WIDTH,
-                                                   .max = INT_MAX,
+                                                   .max = GLFW_DONT_CARE,
                                                    .first = Constants::Render::INIT_WINDOW_WIDTH},
                                      .heightInfo = {.min = Constants::Render::MIN_WINDOW_HEIGHT,
-                                                    .max = INT_MAX,
+                                                    .max = GLFW_DONT_CARE,
                                                     .first = Constants::Render::INIT_WINDOW_HEIGHT},
                                      .resizable = true,
                                      .filedrop = false});

@@ -219,8 +219,8 @@ namespace merutilm::rff2 {
                 .framerate = 60,
                 .name = "Video Window",
                 .icon = "../res/icon.png",
-                .widthInfo = {.min = 0, .max = INT_MAX, .first = width},
-                .heightInfo = {.min = 0, .max = INT_MAX, .first = height},
+                .widthInfo = {.min = 0, .max = GLFW_DONT_CARE, .first = width},
+                .heightInfo = {.min = 0, .max = GLFW_DONT_CARE, .first = height},
                 .resizable = false,
                 .filedrop = false,
         };
