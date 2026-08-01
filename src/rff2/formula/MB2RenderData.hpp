@@ -37,9 +37,9 @@ namespace merutilm::rff2 {
 
 
         std::unique_ptr<MB2Reference<Num>> reference;
-        std::unique_ptr<MPATableBase> table;
+        std::unique_ptr<MPATable<Num>> table;
         std::unique_ptr<SeriesApproximationData> seriesApproxData;
-        std::unique_ptr<MB2PerturbatorBase> perturbator;
+        std::unique_ptr<MB2Perturbator<Num>> perturbator;
 
         explicit MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, dex dcMax, int exp10,
                                uint64_t refInitialCapacity, uint64_t fixedPeriod,
@@ -48,12 +48,10 @@ namespace merutilm::rff2 {
                                const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration,
                                bool arbitraryPrecisionFPGBn);
 
-        void createByDegree(dex dcMax, const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
-
 
         [[nodiscard]] MB2ReferenceBase *getReference() const override { return reference.get(); }
 
-        [[nodiscard]] MB2PerturbatorBase *getPerturbator() const override { return perturbator.get(); }
+        [[nodiscard]] MB2Perturbator<Num> *getPerturbator() const override { return perturbator.get(); }
 
         void generateSeriesApproxTerms(dex dcMax, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration);
 
@@ -85,61 +83,13 @@ namespace merutilm::rff2 {
         seriesApproxData = std::make_unique<SeriesApproximationData>();
         generateSeriesApproxTerms(dcMax, actionPerSeriesApproxIteration);
 
-        createByDegree(dcMax, actionPerCreatingTableIteration);
+        table = std::make_unique<MPATable<Num>>(state, *reference, &fractalSettings.mpa, Num(dcMax),
+                                                                   actionPerCreatingTableIteration);
+        perturbator = std::make_unique<MB2Perturbator<Num>>(
+                state, dcMax, fractalSettings.general, fractalSettings.sa, fractalSettings.perturb, *seriesApproxData, *reference,
+                dynamic_cast<MPATable<Num> *>(table.get()));
     }
 
-
-    template<Number Num>
-    void MB2RenderData<Num>::createByDegree(const dex dcMax,
-                                            const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) {
-
-         auto func = [this, dcMax, actionPerCreatingTableIteration = actionPerCreatingTableIteration] <uint8_t D>() mutable {
-             table = std::make_unique<MPATable<Num, D>>(state, *reference, &fractalSettings.mpa, Num(dcMax),
-                                                           std::move(actionPerCreatingTableIteration));
-             perturbator = std::make_unique<MB2Perturbator<Num, D>>(
-                     state, dcMax, fractalSettings.general, fractalSettings.sa, fractalSettings.perturb, *seriesApproxData, *reference,
-                     dynamic_cast<MPATable<Num, D> *>(table.get()));
-         };
-
-
-        switch (fractalSettings.mpa.maxDegree) {
-            using enum FrtMPADegree;
-            case P1_STANDARD: {
-                func.template operator()<static_cast<uint8_t>(P1_STANDARD)>();
-                break;
-            }
-            case P2: {
-                func.template operator()<static_cast<uint8_t>(P2)>();
-                break;
-            }
-            case P4: {
-                func.template operator()<static_cast<uint8_t>(P4)>();
-                break;
-            }
-            case P8: {
-                func.template operator()<static_cast<uint8_t>(P8)>();
-                break;
-            }
-            case P16: {
-                func.template operator()<static_cast<uint8_t>(P16)>();
-                break;
-            }
-            case P32: {
-                func.template operator()<static_cast<uint8_t>(P32)>();
-                break;
-            }
-            case P64: {
-                func.template operator()<static_cast<uint8_t>(P64)>();
-                break;
-            }
-            case P128: {
-                func.template operator()<static_cast<uint8_t>(P128)>();
-                break;
-            }
-            default:
-                throw vkh::exception_invalid_args("unsupported parameter");
-        }
-    }
 
 
     template<Number Num>

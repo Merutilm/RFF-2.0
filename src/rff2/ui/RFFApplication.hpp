@@ -65,8 +65,8 @@ namespace merutilm::rff2 {
         [[nodiscard]] uint16_t calcIterationBufferWidth(const Settings &s) const;
 
         [[nodiscard]] uint16_t calcIterationBufferHeight(const Settings &s) const;
-        uint16_t getIterationBufferWidth() const;
-        uint16_t getIterationBufferHeight() const;
+        [[nodiscard]] uint16_t getIterationBufferWidth() const;
+        [[nodiscard]] uint16_t getIterationBufferHeight() const;
 
 
         void addListeners() override;

@@ -267,13 +267,8 @@ namespace merutilm::rff2 {
 
         if (enabled) {
             ImGui::Begin("MP-Approximation");
-            auto &[maxDegree, minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod,
+            auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod,
                    mpaCompressionMethod] = app.getSettings().fractal.mpa;
-            Utilities::imguiDropdown("Max Degree (Experimental)", &maxDegree);
-            Utilities::imguiHelpMarker("Set max degree of PA, Setting this to high value can accelerate the "
-                                       "calculation of spiral patterns "
-                                       "but slows down the pre-calculation."
-                                       " Excluding standard option, it is currently inefficient.");
 
             if (ImGui::InputScalar("Min Skip Reference", ImGuiDataType_U16, &minSkipReference)) {
                 minSkipReference = std::max(minSkipReference, static_cast<uint16_t>(4));

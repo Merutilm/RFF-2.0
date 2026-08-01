@@ -38,16 +38,16 @@ namespace merutilm::rff2 {
         [[nodiscard]] virtual double iterate(const complex<dex> &dc) const = 0;
     };
 
-    template<Number Num, uint8_t MAX_DEGREE>
+    template<Number Num>
     struct MB2Perturbator final : public Perturbator, public MB2PerturbatorBase {
 
         const MB2Reference<Num> &reference;
-        const MPATable<Num, MAX_DEGREE> *table;
+        const MPATable<Num> *table;
 
         explicit MB2Perturbator(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
                                 const FrtSASettings &saSettings, const FrtPerturbSettings &ptbSettings,
                                 const SeriesApproximationData &seriesApproximationData,
-                                const MB2Reference<Num> &reference, const MPATable<Num, MAX_DEGREE> *table) :
+                                const MB2Reference<Num> &reference, const MPATable<Num> *table) :
             MB2PerturbatorBase(state, dcMax, generalSettings, saSettings, ptbSettings, seriesApproximationData),
             reference(reference), table(table) {}
 
@@ -132,8 +132,8 @@ namespace merutilm::rff2 {
 
             while (iteration < maxIteration) {
                 if (table != nullptr) {
-                    if (PA<Num, MAX_DEGREE> *paPtr = table->lookup(refIteration, dz); paPtr != nullptr) {
-                        PA<Num, MAX_DEGREE> &pa = *paPtr;
+                    if (PA<Num> *paPtr = table->lookup(refIteration, dz); paPtr != nullptr) {
+                        PA<Num> &pa = *paPtr;
 
                         dz = pa.apply(dz, dc0);
                         iteration += pa.skip;

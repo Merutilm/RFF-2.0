@@ -13,7 +13,6 @@
 #include "ShdIterationColoringMethod.hpp"
 #include "ShdPalSingleIterationColoringMethod.h"
 #include "ShdStripeType.h"
-#include "FrtMPADegree.hpp"
 
 
 namespace merutilm::rff2 {
@@ -76,19 +75,6 @@ namespace merutilm::rff2 {
                     SINGLE_DIRECTION,
                     SMOOTH,
                     SQUARED
-                };
-            }
-            if constexpr (std::is_same_v<E, FrtMPADegree>) {
-                using enum FrtMPADegree;
-                return {
-                    P1_STANDARD,
-                    P2,
-                    P4,
-                    P8,
-                    P16,
-                    P32,
-                    P64,
-                    P128
                 };
             }
             return {};
@@ -159,20 +145,6 @@ namespace merutilm::rff2 {
                     case SINGLE_DIRECTION: return "Single Direction";
                     case SMOOTH: return "Smooth";
                     case SQUARED: return "Squared";
-                    default: break;
-                }
-            }
-            if constexpr (std::is_same_v<E, FrtMPADegree>) {
-                switch (value) {
-                    using enum FrtMPADegree;
-                    case P1_STANDARD: return "1 (Standard)";
-                    case P2: return "2";
-                    case P4: return "4";
-                    case P8: return "8";
-                    case P16: return "16";
-                    case P32: return "32";
-                    case P64: return "64";
-                    case P128: return "128";
                     default: break;
                 }
             }
