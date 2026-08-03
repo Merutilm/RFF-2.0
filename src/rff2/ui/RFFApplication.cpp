@@ -107,7 +107,7 @@ namespace merutilm::rff2 {
     }
 
 
-    Settings RFFApplication::genDefaultAttr() {
+    Settings RFFApplication::genDefaultSettings() {
 #ifndef NDEBUG
         return Settings{
                 .fractal =
@@ -117,15 +117,15 @@ namespace merutilm::rff2 {
                                                         .center = fixed_point_complex_i1(
                                                                 "-0.85", "0", Perturbator::logZoomToExp10(2)),
                                                         .useParallelRefCalculation = false,
-                                                        .sync = CalculationPresets::UltraFast().genRefSync(),
-                                                        .compression = CalculationPresets::UltraFast().genRefComp(),
+                                                        .sync = CalculationPresets::UltraBest().genRefSync(),
+                                                        .compression = CalculationPresets::UltraStable().genRefComp(),
                                                         .reuse = FrtReferenceReuseMethod::DISABLED,
                                                 },
                                         .sa = {.use = false,
                                                .appliedTermsCount = 8,
                                                .validatedTermsCount = 1,
                                                .epsilonPower = -5},
-                                        .mpa = CalculationPresets::UltraFast().genMPA(),
+                                        .mpa = CalculationPresets::Stable().genMPA(),
                                         .perturb = {.maxIteration = 300,
                                                     .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
                                                     .autoMaxIteration = true,
@@ -270,7 +270,7 @@ namespace merutilm::rff2 {
             const auto dz = pow(10.0f, -zoomAnimationInfo.targetLogZoomOffsetAim);
 
             if (value > 0) {
-                const complex<dex> offset =
+                const auto [re, im] =
                         offsetConversion(settings, getMouseXOnIterationBuffer(mx), getMouseYOnIterationBuffer(my));
                 const double mzi = pow(10, -Constants::Fractal::ZOOM_INTERVAL);
                 float &logZoom = settings.fractal.general.logZoom;
@@ -278,7 +278,7 @@ namespace merutilm::rff2 {
                 fixed_point_complex_i1 &center = settings.fractal.reference.center;
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
                 center.set_exp10(exp10);
-                const fixed_point_complex_i1 add(offset.re * dex(1 - mzi), offset.im * dex(1 - mzi), exp10);
+                const fixed_point_complex_i1 add(re * dex(1 - mzi), im * dex(1 - mzi), exp10);
                 fixed_point_complex_i1::add(center, center, add);
 
                 zoomAnimationInfo.stop();
@@ -286,7 +286,7 @@ namespace merutilm::rff2 {
                 zoomAnimationInfo.targetMouseZoomOffsetAim -= glm::vec2{mxr * dz * (1 - mzi), myr * dz * (1 - mzi)};
 
             } else if (value < 0) {
-                const complex<dex> offset =
+                const auto [re, im] =
                         offsetConversion(settings, getMouseXOnIterationBuffer(mx), getMouseYOnIterationBuffer(my));
                 const double mzo = pow(10, Constants::Fractal::ZOOM_INTERVAL);
                 float &logZoom = settings.fractal.general.logZoom;
@@ -294,7 +294,7 @@ namespace merutilm::rff2 {
                 fixed_point_complex_i1 &center = settings.fractal.reference.center;
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
                 center.set_exp10(exp10);
-                const fixed_point_complex_i1 add(offset.re * dex(1 - mzo), offset.im * dex(1 - mzo), exp10);
+                const fixed_point_complex_i1 add(re * dex(1 - mzo), im * dex(1 - mzo), exp10);
                 fixed_point_complex_i1::add(center, center, add);
 
                 zoomAnimationInfo.stop();
@@ -310,7 +310,7 @@ namespace merutilm::rff2 {
 
     void RFFApplication::applyDefaultSettings() {
         rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
-        settings = genDefaultAttr();
+        settings = genDefaultSettings();
     }
 
 

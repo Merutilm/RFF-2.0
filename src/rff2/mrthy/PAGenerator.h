@@ -12,40 +12,76 @@
 
 namespace merutilm::rff2 {
 
-    
+
     template<Number Num>
     struct PAGenerator {
 
         uint64_t start;
         uint64_t skip = 0;
         const std::vector<ArrayCompressionTool> &compressors;
-        double epsilon;
-        Num radius = Num(HUGE_VAL);
+        const double epsilon;
 
         const std::vector<complex<Num>> &orbit;
-        Num dcMax;
-        complex<Num> an = {Num(1), Num(0)};
-        complex<Num> bn = {Num(0), Num(0)};
+        const Num dcMax;
+        complex<Num> an = complex<Num>::ONE;
+        complex<Num> bn = complex<Num>::ZERO;
+        Num radius = Num(DBL_MAX);
 
         explicit PAGenerator(const MB2Reference<Num> &reference, double epsilon, Num dcMax, uint64_t start);
 
-        void merge(const PA<Num> &pa);
+        void reuse(uint64_t start);
+
+        void merge(const PAGenerator &target);
+
+        void merge(const PA<Num> &target);
 
         void step();
 
-        [[nodiscard]] PA<Num> build([[maybe_unused]] std::pmr::monotonic_buffer_resource *const resource) { return PA<Num>{this->skip, an, bn, this->radius}; }
+        [[nodiscard]] PA<Num> build() { return PA<Num>{skip, an, bn, radius}; }
     };
+
+
+    template<Number Num>
+    void PAGenerator<Num>::reuse(uint64_t start) {
+        this->start = start;
+        this->skip = 0;
+        an = complex<Num>::ONE;
+        bn = complex<Num>::ZERO;
+        radius = Num(DBL_MAX);
+    }
 
     template<Number Num>
     PAGenerator<Num>::PAGenerator(const MB2Reference<Num> &reference, const double epsilon, Num dcMax,
-                                  const uint64_t start) : start(start), compressors(reference.compressor), epsilon(epsilon), orbit(reference.refOrbit), dcMax(dcMax) {}
+                                  const uint64_t start) :
+        start(start), compressors(reference.compressor), epsilon(epsilon), orbit(reference.refOrbit), dcMax(dcMax) {}
+
     template<Number Num>
-    void PAGenerator<Num>::merge(const PA<Num> &pa) {
-        const auto &target = pa;
+    void PAGenerator<Num>::merge(const PAGenerator &target) {
+#ifndef NDEBUG
+        if (this->start + this->skip != target.start) {
+            throw std::invalid_argument("value not match");
+        }
+#endif
+
+
         const complex<Num> anMerge = target.an * an;
         const complex<Num> bnMerge = target.an * bn + target.bn;
 
-        this->radius = calculatable::try_normalized_value(std::min(this->radius, target.radius));
+        this->radius = calculatable::try_normalized_value(std::clamp((target.radius - bn.norm_approx() * this->dcMax) / an.norm_approx(), Num(0), this->radius));
+
+        an = anMerge.try_normalized_value();
+        bn = bnMerge.try_normalized_value();
+
+        this->skip += target.skip;
+    }
+
+
+    template<Number Num>
+    void PAGenerator<Num>::merge(const PA<Num> &target) {
+        const complex<Num> anMerge = target.an * an;
+        const complex<Num> bnMerge = target.an * bn + target.bn;
+
+        this->radius = calculatable::try_normalized_value(std::clamp((target.radius - bn.norm_approx() * this->dcMax) / an.norm_approx(), Num(0), this->radius));
 
         an = anMerge.try_normalized_value();
         bn = bnMerge.try_normalized_value();
@@ -60,7 +96,8 @@ namespace merutilm::rff2 {
         const complex<Num> z2 = Num(2) * this->orbit[index];
 
         this->radius = calculatable::try_normalized_value(
-                std::min(this->radius, (Num(this->epsilon) * z2.norm_approx() - bn.norm_approx() * this->dcMax) / an.norm_approx()));
+                std::min(this->radius,
+                         (Num(this->epsilon) * z2.norm_approx() - bn.norm_approx() * this->dcMax) / an.norm_approx()));
 
         an = (an * z2).try_normalized_value();
         bn = (bn * z2 + Num(1)).try_normalized_value();

@@ -9,6 +9,5 @@ namespace merutilm::rff2 {
     struct FrtReferenceCompSettings final{
         uint32_t compressCriteria;
         uint8_t compressionThresholdPower;
-        bool noCompressorNormalization;
     };
 }

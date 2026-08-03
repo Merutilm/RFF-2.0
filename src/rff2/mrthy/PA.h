@@ -16,6 +16,8 @@ namespace merutilm::rff2 {
         complex<Num> an;
         complex<Num> bn;
 
+        explicit PA() = default;
+
         explicit PA(const uint64_t skip, const complex<Num> an, const complex<Num> bn, const Num radius) : skip(skip), radius(radius), an(an), bn(bn) {
         }
 

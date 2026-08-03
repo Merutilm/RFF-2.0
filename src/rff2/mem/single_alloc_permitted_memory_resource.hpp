@@ -13,7 +13,8 @@ namespace merutilm::rff2 {
         explicit single_alloc_permitted_memory_resource() : resource(std::pmr::get_default_resource()) {
         }
 
-        void *do_allocate(std::size_t __bytes, std::size_t __alignment) override {
+    private:
+        void *do_allocate(const std::size_t __bytes, const std::size_t __alignment) override {
             if (once_allocated) {
                 std::cerr << "2nd allocation is not allowed" << std::endl;
                 throw std::bad_alloc();
@@ -23,7 +24,7 @@ namespace merutilm::rff2 {
         };
         void do_deallocate(void *__p, std::size_t __bytes, std::size_t __alignment) override {
             resource->deallocate(__p, __bytes, __alignment);
-        };
+        }
         bool do_is_equal(const memory_resource &__other) const noexcept override {
             return resource->is_equal(__other);
         }

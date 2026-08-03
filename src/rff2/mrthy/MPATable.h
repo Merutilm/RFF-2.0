@@ -25,7 +25,7 @@ namespace merutilm::rff2 {
     template<Number Num>
     struct MPATable {
 
-        static constexpr int REQUIRED_PERTURBATION = 2;
+        static constexpr int PERTURBATION_REQ = 2;
         const FrtMPASettings mpaSettings;
 
         // pulled mpa : fill only valid elements from the sparse mpa vector
@@ -54,15 +54,15 @@ namespace merutilm::rff2 {
         void fitBufferSize();
 
 
-        bool tryJumpTableGeneration(const MB2Reference<Num> &reference, double epsilon, Num dcMax,
-                                    std::vector<uint64_t> &periodCount,
-                                    std::vector<std::optional<PAGenerator<Num>>> &currentPA, uint64_t pulledTableIndex,
-                                    uint64_t *currentIteration);
-
-
-        void stepOnce(const MB2Reference<Num> &reference, double epsilon, Num dcMax, std::vector<uint64_t> &periodCount,
-                      std::vector<std::optional<PAGenerator<Num>>> &currentPA, uint64_t pulledTableIndex,
-                      const uint64_t *currentIteration, bool jumped);
+        bool tryJumpTableGeneration(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
+                                    std::vector<std::optional<PAGenerator<Num>>> &currentPA,
+                                    std::vector<bool> &generationAvailable, uint64_t *iteration);
+        void verifyPA(const std::vector<uint64_t> &itCountLim, const std::vector<uint64_t> &tablePeriod,
+                      std::vector<bool> &generationAvailable, std::vector<std::optional<PAGenerator<Num>>> &currentPA,
+                      uint64_t iteration);
+        void refreshCounter(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
+                            const std::vector<uint64_t> &tablePeriod, std::vector<bool> &generationAvailable,
+                            std::vector<std::optional<PAGenerator<Num>>> &currentPA, uint64_t iteration);
 
 
         void generateTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
@@ -197,18 +197,19 @@ namespace merutilm::rff2 {
         const uint64_t skippableIterationsCount = mpaPeriod->skippableIterationsCount.back();
         const uint64_t lastCompIndex = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod,
                                                                  pulledMPACompressor, longestPeriod + 1);
-        const uint64_t bufferSize =
-                levels * sizeof(PA<Num>) * std::min(lastCompIndex, skippableIterationsCount) +
-                lastCompIndex * sizeof(std::pmr::vector<PA<Num>>);
+        const uint64_t bufferSize = levels * sizeof(PA<Num>) * std::min(lastCompIndex, skippableIterationsCount) +
+                                    lastCompIndex * sizeof(std::pmr::vector<PA<Num>>);
         tableManager.emplace(bufferSize, lastCompIndex);
     }
 
     template<Number Num>
-    bool MPATable<Num>::tryJumpTableGeneration(const MB2Reference<Num> &reference, double epsilon, Num dcMax,
-                                               std::vector<uint64_t> &periodCount,
+    bool MPATable<Num>::tryJumpTableGeneration(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
                                                std::vector<std::optional<PAGenerator<Num>>> &currentPA,
-                                               const uint64_t pulledTableIndex, uint64_t *const currentIteration) {
+                                               std::vector<bool> &generationAvailable, uint64_t *const iteration) {
 
+        if (pulledMPACompressor.empty()) return false;
+
+        const uint64_t pulledTableIndex = iterationToPulledTableIndex(*mpaPeriod, *iteration);
         const ArrayCompressionTool *containedTool = ArrayCompressor::find(pulledMPACompressor, pulledTableIndex + 1);
         if (containedTool == nullptr || containedTool->start != pulledTableIndex + 1) {
             return false;
@@ -222,7 +223,7 @@ namespace merutilm::rff2 {
         // count itself and periodic point, +2
 
         const uint64_t compTableIndex = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod,
-                                                                  pulledMPACompressor, *currentIteration);
+                                                                  pulledMPACompressor, *iteration);
 
         allocateWithCheckTableSize(compTableIndex, levels);
         auto &pa = table[compTableIndex];
@@ -231,107 +232,91 @@ namespace merutilm::rff2 {
         const uint64_t skip = mainReferencePA.skip;
 
         for (uint64_t i = level + 1; i < levels; ++i) {
-            if (i <= level && periodCount[i] != 0) {
+            if (i <= level && itCount[i] != 0) {
                 vkh::logger::log("WARNING : Failed to compress!! \n what : the table period count {} is not zero.",
-                                 periodCount[i]);
+                                 itCount[i]);
                 return false;
             }
-            if (periodCount[i] + skip > tablePeriod[i] - REQUIRED_PERTURBATION) {
+            if (itCount[i] + skip > tablePeriod[i] - PERTURBATION_REQ) {
                 vkh::logger::log("WARNING : Failed to compress!! \n what : the table period count {} + "
                                  "skip {} exceeds its period {}.",
-                                 periodCount[i], skip, tablePeriod[i]);
+                                 itCount[i], skip, tablePeriod[i]);
                 return false;
             }
         }
 
+        *iteration += skip;
 
-        for (uint64_t i = 0; i < levels; ++i) {
-            if (i <= level) {
-                pa.push_back(mainReferenceMPA[i]);
-                uint64_t count = skip;
-                for (uint64_t j = level; j > i; --j) {
-                    count %= tablePeriod[j - 1];
-                }
-                currentPA[i] = std::nullopt;
-                periodCount[i] = count;
-            } else {
-                if (currentPA[i] == std::nullopt) {
-                    currentPA[i].emplace(reference, epsilon, dcMax, *currentIteration);
-                }
-                currentPA[i]->merge(mainReferencePA);
-                periodCount[i] += skip;
-            }
+        for (uint64_t i = 0; i < std::min(level + 1, levels); ++i) {
+            pa.push_back(mainReferenceMPA[i]);
+            currentPA[i]->reuse(*iteration);
+            itCount[i] = 0;
+            itCountLim[i] = PERTURBATION_REQ;
+            generationAvailable[i] = false;
         }
 
-        *currentIteration += skip;
+        if (level + 1 < levels) {
+            itCount[level + 1] += skip;
+            currentPA[level + 1]->merge(mainReferencePA);
+        }
         return true;
     }
 
-
     template<Number Num>
-    void MPATable<Num>::stepOnce(const MB2Reference<Num> &reference, double epsilon, Num dcMax,
-                                 std::vector<uint64_t> &periodCount,
-                                 std::vector<std::optional<PAGenerator<Num>>> &currentPA,
-                                 const uint64_t pulledTableIndex, const uint64_t *const currentIteration,
-                                 const bool jumped) {
-
-        bool resetLowerLevel = false;
-        const bool independent = ArrayCompressor::isIndependent(pulledMPACompressor, pulledTableIndex);
-
-        auto &table = *tableManager->mpaTable;
-        const auto &tablePeriod = mpaPeriod->tablePeriod;
+    void MPATable<Num>::verifyPA(const std::vector<uint64_t> &itCountLim, const std::vector<uint64_t> &tablePeriod,
+                                 std::vector<bool> &generationAvailable,
+                                 std::vector<std::optional<PAGenerator<Num>>> &currentPA, uint64_t iteration) {
+        uint64_t level = 0;
         const uint64_t levels = tablePeriod.size();
+        auto &table = *tableManager->mpaTable;
 
-        for (uint64_t i = levels; i > 0; --i) {
-            const uint64_t level = i - 1;
-            std::optional<PAGenerator<Num>> &currentLevel = currentPA[level];
-            if (periodCount[level] == 0 && independent && !jumped) {
-                currentLevel.emplace(reference, epsilon, dcMax, *currentIteration);
-            }
+        while (level < levels && (currentPA[level]->skip == tablePeriod[level] - PERTURBATION_REQ ||
+                                  itCountLim[level] != tablePeriod[level])) {
 
-            if (currentLevel != std::nullopt && periodCount[level] + REQUIRED_PERTURBATION < tablePeriod[level]) {
-                currentLevel->step();
-            }
+            if (itCountLim[level] == tablePeriod[level] && generationAvailable[level]) {
+                const uint64_t compTableIndex = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod,
+                                                                          pulledMPACompressor, currentPA[level]->start);
+                allocateWithCheckTableSize(compTableIndex, levels);
+                auto &pa = table[compTableIndex];
 
-
-            ++periodCount[level];
-
-            if (periodCount[level] == tablePeriod[level]) {
-                if (currentLevel != std::nullopt && currentLevel->skip == tablePeriod[level] - REQUIRED_PERTURBATION) {
-                    const uint64_t compTableIndex = iterationToCompTableIndex(
-                            mpaSettings.mpaCompressionMethod, *mpaPeriod, pulledMPACompressor, currentLevel->start);
-
-
-                    if (compTableIndex == UINT64_MAX) {
-                        vkh::logger::log_err("FATAL : FAILED TO CREATING TABLE!!\n what : iteration {} is not "
-                                             "pullable. aborting the table creation...",
-                                             currentLevel->start);
-                        return;
-                    }
-
-                    allocateWithCheckTableSize(compTableIndex, levels);
-                    auto &pa = table[compTableIndex];
-
-                    if (pa.empty() || pa.back().skip < currentLevel->skip)
-                        pa.push_back(currentLevel->build(tableManager->strictTableResource.get()));
-                    else {
-                        vkh::logger::log_err("WARNING : The insertion of pa generated from compressed index {} is not "
-                                             "allowed. It might be a bug!",
-                                             compTableIndex);
-                    }
+                if (pa.empty() || pa.back().skip < currentPA[level]->skip) {
+                    pa.emplace_back(currentPA[level]->build());
                 }
-                // Stop all lower level iteration for efficiency
-                // because it is too hard to skipping to next part of the periodic point
-                currentLevel = std::nullopt;
-                resetLowerLevel = true;
+                generationAvailable[level] = false;
             }
 
-            if (resetLowerLevel) {
-                periodCount[level] = 0;
+            if (level < levels - 1) {
+                currentPA[level + 1]->merge(*currentPA[level]);
+                currentPA[level]->reuse(iteration);
             }
+            ++level;
         }
     }
 
+    template<Number Num>
+    void MPATable<Num>::refreshCounter(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
+                                       const std::vector<uint64_t> &tablePeriod, std::vector<bool> &generationAvailable,
+                                       std::vector<std::optional<PAGenerator<Num>>> &currentPA, uint64_t iteration) {
+
+
+        uint64_t level = 0;
+
+        // reset current and lower level count when it reached limit
+        // Worst case, O(1).
+        while (level < tablePeriod.size() - 1 && itCount[level] == itCountLim[level]) {
+            itCount[level + 1] += itCount[level];
+            currentPA[level + 1]->merge(*currentPA[level]);
+            currentPA[level]->reuse(iteration);
+            ++level;
+        }
+
+        while (level > 0) {
+            --level;
+            itCountLim[level] = std::min(tablePeriod[level], itCountLim[level + 1] - itCount[level + 1]);
+            itCount[level] = 0;
+            generationAvailable[level] = true;
+        }
+    }
 
     template<Number Num>
     void MPATable<Num>::generateTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
@@ -351,27 +336,44 @@ namespace merutilm::rff2 {
         const double epsilon = pow(10, epsilonPower);
         uint64_t iteration = 1;
         uint64_t absIteration = 0;
-        auto periodCount = std::vector<uint64_t>(levels, 0);
+        // auto periodCount = std::vector<uint64_t>(levels, 0);
         auto currentPA = std::vector<std::optional<PAGenerator<Num>>>(levels);
+        for (auto &pa: currentPA) {
+            pa.emplace(reference, epsilon, dcMax, 1);
+        }
+
+
+        std::vector<uint64_t> itCount(levels, 0);
+        std::vector<uint64_t> itCountLim(levels, 0); // copy the initial value.
+        std::vector<bool> generationAvailable(levels, true);
+
+        for (uint64_t i = 0; i < levels; ++i) {
+            itCountLim[i] = tablePeriod[i];
+        }
+
+
+        std::vector<bool> itResetFlag(levels, false);
+        auto &table = *tableManager->mpaTable;
+
 
         while (iteration <= longestPeriod) {
             if (state.interruptRequested())
                 return;
 
-            actionPerCreatingTableIteration(iteration, static_cast<double>(iteration) / static_cast<double>(longestPeriod));
-            const uint64_t pulledTableIndex = iterationToPulledTableIndex(*mpaPeriod, iteration);
-            bool jumped = false;
+            actionPerCreatingTableIteration(iteration,
+                                            static_cast<double>(iteration) / static_cast<double>(longestPeriod));
 
-            if (tryJumpTableGeneration(reference, epsilon, dcMax, periodCount, currentPA, pulledTableIndex,
-                                       &iteration)) {
-                jumped = true;
+            const bool jumped = tryJumpTableGeneration(itCount, itCountLim, currentPA, generationAvailable, &iteration);
+
+            if (!jumped) {
+                currentPA[0]->step();
+                ++itCount[0];
+                ++iteration;
+                ++absIteration;
             }
 
-
-            stepOnce(reference, epsilon, dcMax, periodCount, currentPA, pulledTableIndex, &iteration, jumped);
-
-            ++iteration;
-            ++absIteration;
+            verifyPA(itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
+            refreshCounter(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
         }
     }
 
@@ -424,9 +426,9 @@ namespace merutilm::rff2 {
             // 997 % 1000 = 997
             // 997 % 4 = 1
             // 997 + 4 - 2 + 1 = 1000
-            if (i < tablePeriod.size() && remainder + tablePeriod[0] - REQUIRED_PERTURBATION + 1 > tablePeriod[i]) {
+            if (i < tablePeriod.size() && remainder + tablePeriod[0] - PERTURBATION_REQ + 1 > tablePeriod[i]) {
                 return UINT64_MAX;
-                // Insufficient length, ("Pulled Table Index" must be skipped for at least "shortest period")
+                // Insufficient length, ('Pulled Table Index' must be skipped for at least 'shortest period')
             }
 
 

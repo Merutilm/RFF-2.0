@@ -21,7 +21,7 @@ namespace merutilm::rff2 {
                 .dstPipelineStageFlags = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
                 .srcAccessFlags = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
                 .dstAccessFlags = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-                .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+                .dependencyFlags = 0
 
         };
         inline static const vkh::SubpassDependency INPUT_READ_DEPENDENCY{

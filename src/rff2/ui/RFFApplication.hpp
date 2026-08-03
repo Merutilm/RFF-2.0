@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
     public:
-        explicit RFFApplication(const vkh::WindowInitializerSettings &wic) : Application(wic), settings(genDefaultAttr()) {
+        explicit RFFApplication(const vkh::WindowInitializerSettings &wic) : Application(wic), settings(genDefaultSettings()) {
 
         }
 
@@ -56,7 +56,7 @@ namespace merutilm::rff2 {
         void update() override;
 
 
-        static Settings genDefaultAttr();
+        static Settings genDefaultSettings();
 
         [[nodiscard]] complex<dex> offsetConversion(const Settings &s, int mx, int my) const;
 

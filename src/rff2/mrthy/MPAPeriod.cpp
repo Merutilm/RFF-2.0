@@ -40,7 +40,7 @@ namespace merutilm::rff2 {
             }
             uint64_t elements = 0;
             uint64_t remainder = tablePeriod[i];
-            for (int j = i - 1; j >= 0; j--) {
+            for (int j = i - 1; j >= 0; --j) {
                 const uint64_t groupAmount = remainder / tablePeriod[j];
                 remainder %= tablePeriod[j];
                 elements += groupAmount * tablePeriodElements[j];
@@ -54,7 +54,7 @@ namespace merutilm::rff2 {
         // example
         // period : [3, 11, 26]
         //
-        // -- : The space of R3A
+        // -- : The space of MPA
         //
         // It : 00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 ... longestPeriod
         //
