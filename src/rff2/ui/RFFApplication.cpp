@@ -265,42 +265,28 @@ namespace merutilm::rff2 {
             glfwGetCursorPos(rootWindowContext->getWindow()->getWindow(), &mdx, &mdy);
             const int mx = static_cast<int>(mdx);
             const int my = static_cast<int>(mdy);
-            const auto mxr = static_cast<float>(mx) / static_cast<float>(getIterationBufferWidth()) - 0.5f;
-            const auto myr = static_cast<float>(my) / static_cast<float>(getIterationBufferHeight()) - 0.5f;
+            const int16_t mix = getMouseXOnIterationBuffer(mx);
+            const int16_t miy = getMouseYOnIterationBuffer(my);
+            const auto mxr = static_cast<float>(mix) / static_cast<float>(getIterationBufferWidth()) - 0.5f;
+            const auto myr = static_cast<float>(miy) / static_cast<float>(getIterationBufferHeight()) - 0.5f;
             const auto dz = pow(10.0f, -zoomAnimationInfo.targetLogZoomOffsetAim);
 
-            if (value > 0) {
-                const auto [re, im] =
-                        offsetConversion(settings, getMouseXOnIterationBuffer(mx), getMouseYOnIterationBuffer(my));
-                const double mzi = pow(10, -Constants::Fractal::ZOOM_INTERVAL);
-                float &logZoom = settings.fractal.general.logZoom;
-                logZoom += Constants::Fractal::ZOOM_INTERVAL;
-                fixed_point_complex_i1 &center = settings.fractal.reference.center;
-                const int exp10 = Perturbator::logZoomToExp10(logZoom);
-                center.set_exp10(exp10);
-                const fixed_point_complex_i1 add(re * dex(1 - mzi), im * dex(1 - mzi), exp10);
-                fixed_point_complex_i1::add(center, center, add);
+            const auto [re, im] = offsetConversion(settings, mix, miy);
+            float &logZoom = settings.fractal.general.logZoom;
+            fixed_point_complex_i1 &center = settings.fractal.reference.center;
+            const int exp10 = Perturbator::logZoomToExp10(logZoom);
+            center.set_exp10(exp10);
+            const float mag = value > 0 ? Constants::Fractal::ZOOM_INTERVAL : -Constants::Fractal::ZOOM_INTERVAL;
 
-                zoomAnimationInfo.stop();
-                zoomAnimationInfo.targetLogZoomOffsetAim += Constants::Fractal::ZOOM_INTERVAL;
-                zoomAnimationInfo.targetMouseZoomOffsetAim -= glm::vec2{mxr * dz * (1 - mzi), myr * dz * (1 - mzi)};
+            const double mz = pow(10, -mag);
+            logZoom += mag;
+            const fixed_point_complex_i1 add(re * dex(1 - mz), im * dex(1 - mz), exp10);
+            fixed_point_complex_i1::add(center, center, add);
 
-            } else if (value < 0) {
-                const auto [re, im] =
-                        offsetConversion(settings, getMouseXOnIterationBuffer(mx), getMouseYOnIterationBuffer(my));
-                const double mzo = pow(10, Constants::Fractal::ZOOM_INTERVAL);
-                float &logZoom = settings.fractal.general.logZoom;
-                logZoom -= Constants::Fractal::ZOOM_INTERVAL;
-                fixed_point_complex_i1 &center = settings.fractal.reference.center;
-                const int exp10 = Perturbator::logZoomToExp10(logZoom);
-                center.set_exp10(exp10);
-                const fixed_point_complex_i1 add(re * dex(1 - mzo), im * dex(1 - mzo), exp10);
-                fixed_point_complex_i1::add(center, center, add);
+            zoomAnimationInfo.stop();
+            zoomAnimationInfo.targetLogZoomOffsetAim += mag;
+            zoomAnimationInfo.targetMouseZoomOffsetAim += glm::vec2{mxr * dz * (mz - 1), myr * dz * (1 - mz)};
 
-                zoomAnimationInfo.stop();
-                zoomAnimationInfo.targetLogZoomOffsetAim -= Constants::Fractal::ZOOM_INTERVAL;
-                zoomAnimationInfo.targetMouseZoomOffsetAim -= glm::vec2{mxr * dz * (1 - mzo), myr * dz * (1 - mzo)};
-            }
 
 
             requests.requestRecompute();
@@ -529,8 +515,9 @@ namespace merutilm::rff2 {
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0));
-        if (ImGui::BeginTable("StatusBarTable", static_cast<int>(statusMessages.size()), ImGuiTableFlags_BordersInner)) {
-            for (const auto & statusMessage : statusMessages) {
+        if (ImGui::BeginTable("StatusBarTable", static_cast<int>(statusMessages.size()),
+                              ImGuiTableFlags_BordersInner)) {
+            for (const auto &statusMessage: statusMessages) {
                 ImGui::TableNextColumn();
                 ImGui::TextUnformatted(statusMessage.c_str());
             }
