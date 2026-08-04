@@ -98,7 +98,7 @@ namespace merutilm::rff2 {
         bool prepareRenderData(float startTime, const Settings &s);
         bool fillIteration(float startTime, const Settings &s);
 
-        void afterCompute(bool success);
+        void afterComputeFinally(bool success);
 
 
         void setStatusMessage(const int index, const std::string_view &message) {

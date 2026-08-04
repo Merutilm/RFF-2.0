@@ -602,13 +602,20 @@ namespace merutilm::rff2 {
         state.createThread([this] {
             const Settings s = this->settings; // clone the settings
             const auto start = rootWindowContext->getWindow()->getTime();
-            bool success = prepareRenderData(start, s);
+            bool success = false;
 
-            if (success) {
-                beforeIterationFill();
-                success = fillIteration(start, s);
+            try {
+                success = prepareRenderData(start, s);
+
+                if (success) {
+                    beforeIterationFill();
+                    success = fillIteration(start, s);
+                }
+            } catch (allocation_cancelled &) {
+                vkh::logger::log("Memory allocation cancelled by user");
             }
-            afterCompute(success);
+
+            afterComputeFinally(success);
         });
     }
 
@@ -678,6 +685,8 @@ namespace merutilm::rff2 {
             case CURRENT_REFERENCE: {
                 if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
                     vkh::logger::log_err("Do not reuse Reference during reference calculation!!!");
+                    this->settings.fractal.reference.reuse = DISABLED;
+                    requests.requestRecompute();
                     return false;
                 }
                 renderData->translate(frt.general.logZoom, renderData->getPerturbator()->dcMax, frt.perturb,
@@ -688,6 +697,8 @@ namespace merutilm::rff2 {
 
                 if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
                     vkh::logger::log_err("Do not reuse Reference during reference calculation!!!");
+                    this->settings.fractal.reference.reuse = DISABLED;
+                    requests.requestRecompute();
                     return false;
                 }
 
@@ -707,13 +718,13 @@ namespace merutilm::rff2 {
 
                 if (refCalc.general.logZoom > Constants::Fractal::ZOOM_DEADLINE) {
                     renderData = std::make_unique<DeepMB2RenderData>(
-                            state, refCalc, approxTableCache, center->data->getPerturbator()->dcMax, refExp10,
-                            capacity, period, actionPerRefCalcIteration, actionPerSeriesApproxIteration,
+                            state, refCalc, approxTableCache, center->data->getPerturbator()->dcMax, refExp10, capacity,
+                            period, actionPerRefCalcIteration, actionPerSeriesApproxIteration,
                             actionPerCreatingTableIteration, false);
                 } else {
                     renderData = std::make_unique<LightMB2RenderData>(
-                            state, refCalc, approxTableCache, center->data->getPerturbator()->dcMax, refExp10,
-                            capacity, period, actionPerRefCalcIteration, actionPerSeriesApproxIteration,
+                            state, refCalc, approxTableCache, center->data->getPerturbator()->dcMax, refExp10, capacity,
+                            period, actionPerRefCalcIteration, actionPerSeriesApproxIteration,
                             actionPerCreatingTableIteration, false);
                 }
                 renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center,
@@ -831,9 +842,9 @@ namespace merutilm::rff2 {
         return true;
     }
 
-    void RFFApplication::afterCompute(const bool success) {
+    void RFFApplication::afterComputeFinally(const bool success) {
         if (!success) {
-            vkh::logger::log("Recompute cancelled.");
+            // vkh::logger::log("Recompute cancelled.");
         }
         if (success && settings.fractal.reference.reuse == FrtReferenceReuseMethod::CENTERED_REFERENCE) {
             settings.fractal.reference.reuse = FrtReferenceReuseMethod::CURRENT_REFERENCE;

@@ -39,23 +39,25 @@ namespace merutilm::vkh {
         }
 
         template<typename... Args>
-        static void log_warn(std::format_string<Args...> message, Args &&...args) {
+        static bool log_warn(std::format_string<Args...> message, Args &&...args) {
             log_err_silent(message, std::forward<Args>(args)...);
             std::string fmt = std::format(message, std::forward<Args>(args)...);
 #ifdef _WIN32
-            MessageBox(nullptr, fmt.data(), "Warning", MB_ICONWARNING | MB_OK);
+            int result = MessageBox(nullptr, fmt.data(), "Warning", MB_ICONWARNING | MB_OKCANCEL);
+            return result == IDOK;
 #endif
 #ifdef __linux__
             gtk_init_check(nullptr, nullptr);
-            GtkWidget *dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING, GTK_BUTTONS_OK,
+            GtkWidget *dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING, GTK_BUTTONS_OK_CANCEL,
                                                        "%s", fmt.data());
-            gtk_window_set_title(GTK_WINDOW(dialog), "Error");
+            gtk_window_set_title(GTK_WINDOW(dialog), "Warning");
             gtk_widget_show_all(dialog);
-            gtk_dialog_run(GTK_DIALOG(dialog));
+            const gint response = gtk_dialog_run(GTK_DIALOG(dialog));
             gtk_widget_destroy(dialog);
 
             while (gtk_events_pending())
                 gtk_main_iteration();
+            return response == GTK_RESPONSE_OK;
 #endif
         }
 

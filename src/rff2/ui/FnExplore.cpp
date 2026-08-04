@@ -44,7 +44,7 @@ namespace merutilm::rff2 {
                 return;
 
             if (const std::unique_ptr<fixed_point_complex_i1> c = MB2Locator::findCenter(*data); c == nullptr) {
-                vkh::logger::log_warn("No center found!");
+                vkh::logger::log_err("No center found!");
             } else {
                 app.getSettings().fractal.reference.center = *c;
                 app.getRequests().requestRecompute();
@@ -58,7 +58,8 @@ namespace merutilm::rff2 {
             Settings &settings = app.getSettings();
 
             if (settings.fractal.reference.reuse != FrtReferenceReuseMethod::DISABLED) {
-                vkh::logger::log_warn("Do not reuse reference!");
+                vkh::logger::log_err("Do not reuse reference!");
+                app.getSettings().fractal.reference.reuse = FrtReferenceReuseMethod::DISABLED;
                 return;
             }
 
@@ -74,7 +75,7 @@ namespace merutilm::rff2 {
                 const auto ref = data->getReference();
 
                 if (ref == nullptr) {
-                    vkh::logger::log_warn("Please wait until the calculation is complete.", "Caution");
+                    vkh::logger::log_err("Please wait until the calculation is complete.");
                     return;
                 }
 

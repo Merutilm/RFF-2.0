@@ -162,7 +162,7 @@ namespace merutilm::rff2 {
                                        const fixed_point_complex_i1 &newCenter, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) {
         if (lastCreationResult != Reference::CreationResult::SUCCESS) {
             // try to use incomplete reference
-            vkh::logger::log_warn("Please do not try to use incomplete Reference.");
+            vkh::logger::log_err("Please do not try to use incomplete Reference.");
         } else {
             const int exp10 = logZoomToExp10(logZoom);
             fixed_point_complex_i1 center = newCenter.create_variant(exp10);

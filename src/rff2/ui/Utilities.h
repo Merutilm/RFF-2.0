@@ -63,17 +63,19 @@ namespace merutilm::rff2::Utilities {
         return split;
     }
 
-    template <typename Enum> requires std::is_enum_v<Enum>
-    static bool imguiDropdown(const char * label, Enum *currentValue) {
+    template<typename Enum>
+        requires std::is_enum_v<Enum>
+    static bool imguiDropdown(const char *label, Enum *currentValue) {
         static const std::vector<Enum> values = Selectable::values<Enum>();
-        static std::vector<const char*> valueStr;
+        static std::vector<const char *> valueStr;
         valueStr.reserve(values.size());
 
         const bool newlyAdded = valueStr.empty();
 
         int valueIndex = 0;
         for (int i = 0; i < values.size(); ++i) {
-            if (newlyAdded) valueStr.push_back(Selectable::toString(values[i]));
+            if (newlyAdded)
+                valueStr.push_back(Selectable::toString(values[i]));
             if (*currentValue == values[i]) {
                 valueIndex = i;
             }
@@ -86,13 +88,11 @@ namespace merutilm::rff2::Utilities {
         return result;
     }
 
-    static void imguiHelpMarker(const char* desc)
-    {
+    static void imguiHelpMarker(const char *desc) {
         ImGui::SameLine();
         ImGui::TextDisabled("(?)");
 
-        if (ImGui::IsItemHovered())
-        {
+        if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::TextUnformatted(desc);
             ImGui::EndTooltip();
@@ -100,4 +100,21 @@ namespace merutilm::rff2::Utilities {
     }
 
     static int getRefreshInterval(const float logZoom) { return std::max(1, static_cast<int>(100000.0 / logZoom)); }
+
+    static std::string formatByte(const size_t size) {
+        const double k = 1024.0;
+        const double m = k * 1024.0;
+        const double g = m * 1024.0;
+
+        if (size >= g) {
+            return std::format("{:.2F} GiB", size / g);
+        }
+        if (size >= m) {
+            return std::format("{:.2F} MiB", size / m);
+        }
+        if (size >= k) {
+            return std::format("{:.2F} KiB", size / k);
+        }
+        return std::format("{:d} B", size);
+    }
 } // namespace merutilm::rff2::Utilities

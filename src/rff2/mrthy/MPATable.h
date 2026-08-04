@@ -443,13 +443,14 @@ namespace merutilm::rff2 {
         const size_t levels = tablePeriod.size();
         fitBufferSize();
 
+
         const double epsilon = pow(10, epsilonPower);
         uint64_t iteration = 1;
 
 
         std::vector<uint64_t> itCount(levels, 0);
         std::vector<uint64_t> itCountLim(levels, 0);
-        std::vector<bool> generationAvailable(levels, true);
+        std::vector generationAvailable(levels, true);
         std::vector<PAGenerator<Num>> currentPA(levels, PAGenerator<Num>(reference, epsilon, dcMax, 1));
 
         for (uint64_t i = 0; i < levels; ++i) {
@@ -457,7 +458,7 @@ namespace merutilm::rff2 {
         }
 
 
-        std::vector<bool> itResetFlag(levels, false);
+        std::vector itResetFlag(levels, false);
         uint64_t pulledTableIndex = 0;
 
         while (iteration <= longestPeriod) {

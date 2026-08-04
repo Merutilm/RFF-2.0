@@ -9,13 +9,23 @@
 #include "../calc/calculatable.hpp"
 #include "../mrthy/MPAIndexMapper.hpp"
 #include "../mrthy/PA.h"
+#include "../ui/Utilities.h"
+#include "vulkan_helper/base/vkh.hpp"
 
 namespace merutilm::rff2 {
 
     struct ApproxTableCacheBase {
+        static constexpr uint64_t INITIAL_MAXIMUM_MEMORY = 17179869184;
+        uint64_t allowedMaximum = INITIAL_MAXIMUM_MEMORY;
+
         virtual ~ApproxTableCacheBase() = default;
 
         virtual void resize(size_t tableLen, size_t mapperLen) = 0;
+    };
+
+
+    struct allocation_cancelled : std::runtime_error {
+        explicit allocation_cancelled() : std::runtime_error("allocation denied") {}
     };
 
     template<Number Num>
@@ -33,11 +43,29 @@ namespace merutilm::rff2 {
         ApproxTableCache &operator=(ApproxTableCache &&) = delete;
 
 
-        void resize(const size_t tableLen, const size_t mapperLen) override {
-            if (tableLen > mpaTable.size() || tableLen < mpaTable.size() / 4) mpaTable.resize(tableLen);
-            if (mapperLen > nonCompToPulledIndexMapper.size() || mapperLen < nonCompToPulledIndexMapper.size() / 4) nonCompToPulledIndexMapper.resize(mapperLen);
+        template<typename F>
+        void resizeWithWarning(std::vector<F> &container, size_t newSize) {
+
+            if (newSize > container.size() || newSize < container.size() / 4) {
+                uint64_t size = newSize * sizeof(F);
+
+                if (allowedMaximum < size &&
+                    !vkh::logger::log_warn(
+                            "The application has requested more than {} of memory. Do you want to continue?",
+                            Utilities::formatByte(size))) {
+                    throw allocation_cancelled();
+                }
+
+                allowedMaximum = std::max(allowedMaximum, size);
+                container.resize(newSize);
+            }
         }
 
+
+        void resize(const size_t tableLen, const size_t mapperLen) override {
+            resizeWithWarning(mpaTable, tableLen);
+            resizeWithWarning(nonCompToPulledIndexMapper, mapperLen);
+        }
     };
 
     using LightApproxTableCache = ApproxTableCache<double>;
