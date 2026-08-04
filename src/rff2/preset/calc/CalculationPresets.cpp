@@ -14,7 +14,7 @@ namespace merutilm::rff2 {
 
 
     FrtMPASettings CalculationPresets::UltraFast::genMPA() const {
-        return FrtMPASettings{4, 2, -3, FrtMPASelectionMethod::HIGHEST, FrtMPACompressionMethod::NO_COMPRESSION};
+        return FrtMPASettings{4, 2, -3, FrtMPASelectionMethod::HIGHEST, FrtMPACompressionMethod::FASTEST};
     }
 
     FrtReferenceCompSettings CalculationPresets::UltraFast::genRefComp() const {
@@ -27,7 +27,7 @@ namespace merutilm::rff2 {
     FrtReferenceSyncSettings CalculationPresets::Fast::genRefSync() const { return FrtReferenceSyncSettings{16, 3}; }
 
     FrtMPASettings CalculationPresets::Fast::genMPA() const {
-        return FrtMPASettings{8, 2, -4, FrtMPASelectionMethod::HIGHEST, FrtMPACompressionMethod::NO_COMPRESSION};
+        return FrtMPASettings{8, 2, -4, FrtMPASelectionMethod::HIGHEST, FrtMPACompressionMethod::FASTEST};
     }
 
     FrtReferenceCompSettings CalculationPresets::Fast::genRefComp() const {
@@ -40,7 +40,7 @@ namespace merutilm::rff2 {
     std::string CalculationPresets::Normal::getName() const { return "Normal"; }
 
     FrtMPASettings CalculationPresets::Normal::genMPA() const {
-        return FrtMPASettings{8, 2, -5, FrtMPASelectionMethod::HIGHEST, FrtMPACompressionMethod::LITTLE_COMPRESSION};
+        return FrtMPASettings{8, 2, -5, FrtMPASelectionMethod::HIGHEST, FrtMPACompressionMethod::BALANCED};
     }
 
     FrtReferenceCompSettings CalculationPresets::Normal::genRefComp() const {
@@ -53,7 +53,7 @@ namespace merutilm::rff2 {
     FrtReferenceSyncSettings CalculationPresets::Best::genRefSync() const { return FrtReferenceSyncSettings{4, 2}; }
 
     FrtMPASettings CalculationPresets::Best::genMPA() const {
-        return FrtMPASettings{8, 2, -6, FrtMPASelectionMethod::HIGHEST, FrtMPACompressionMethod::LITTLE_COMPRESSION};
+        return FrtMPASettings{8, 2, -6, FrtMPASelectionMethod::HIGHEST, FrtMPACompressionMethod::BALANCED};
     }
 
     FrtReferenceCompSettings CalculationPresets::Best::genRefComp() const {
@@ -67,7 +67,7 @@ namespace merutilm::rff2 {
     }
 
     FrtMPASettings CalculationPresets::UltraBest::genMPA() const {
-        return FrtMPASettings{8, 2, -7, FrtMPASelectionMethod::HIGHEST, FrtMPACompressionMethod::LITTLE_COMPRESSION};
+        return FrtMPASettings{8, 2, -7, FrtMPASelectionMethod::HIGHEST, FrtMPACompressionMethod::BALANCED};
     }
 
     FrtReferenceCompSettings CalculationPresets::UltraBest::genRefComp() const {

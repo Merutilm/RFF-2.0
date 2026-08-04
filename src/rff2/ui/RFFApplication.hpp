@@ -31,7 +31,7 @@ namespace merutilm::rff2 {
         std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
         std::unique_ptr<Matrix<double>> iterationMatrix = nullptr;
         std::unique_ptr<MB2RenderDataBase> renderData = nullptr;
-
+        std::unique_ptr<ApproxTableCacheBase> approxTableCache = nullptr;
         std::unique_ptr<CursorManager> cursorManager = nullptr;
 
         ZoomAnimationInfo zoomAnimationInfo;
@@ -116,6 +116,10 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] MB2RenderDataBase *getCurrentRenderData() const {
             return renderData.get();
+        }
+
+        [[nodiscard]] std::unique_ptr<ApproxTableCacheBase> *getApproxTableCache(){
+            return &approxTableCache;
         }
 
         [[nodiscard]] AppRenderManagerRequests &getRequests() {

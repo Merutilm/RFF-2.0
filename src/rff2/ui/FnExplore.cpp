@@ -64,11 +64,12 @@ namespace merutilm::rff2 {
 
             app.getState().cancel();
             const MB2RenderDataBase *data = app.getCurrentRenderData();
-            if (data == nullptr) {
+            std::unique_ptr<ApproxTableCacheBase> *cache = app.getApproxTableCache();
+            if (!data || !cache) {
                 throw vkh::exception_invalid_state("Perturbator cannot be null");
             }
 
-            app.getState().createThread([&app, data,
+            app.getState().createThread([&app, data, cache,
                                          &settings] {
                 const auto ref = data->getReference();
 
@@ -80,8 +81,9 @@ namespace merutilm::rff2 {
                 const uint64_t longestPeriod = ref->longestPeriod();
 
                 const std::unique_ptr<MB2Locator> locator = MB2Locator::locateMinibrot(
-                        app.getState(), data, getActionWhileFindingMBCenter(app, longestPeriod), getActionWhileSeriesApprox(app),
-                        getActionWhileCreatingTable(app), getActionWhileFindingZoom(app));
+                        app.getState(), *data, *cache, getActionWhileFindingMBCenter(app, longestPeriod),
+                        getActionWhileSeriesApprox(app), getActionWhileCreatingTable(app),
+                        getActionWhileFindingZoom(app));
 
                 if (locator == nullptr) {
                     vkh::logger::log("Locate Minibrot Cancelled.");

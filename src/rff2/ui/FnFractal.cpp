@@ -295,11 +295,11 @@ namespace merutilm::rff2 {
             Utilities::imguiDropdown("Compression Method", &mpaCompressionMethod);
             Utilities::imguiHelpMarker(
                     "Set the compression method of MPA.\n "
-                    "\"Little Compression\" maybe slowing down for table creation, but allocates the memory "
+                    "\"Balanced\" maybe slowing down for table creation, but allocates the memory "
                     "efficiently.\n"
                     "\"Strongest\" works based on the Reference Compressor, so if it is disabled, it will behave the "
                     "same "
-                    "as \"Little Compression\".\n "
+                    "as \"Balanced\".\n "
                     "It uses acceleration when possible, and can accelerate table creation.");
 
             if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {

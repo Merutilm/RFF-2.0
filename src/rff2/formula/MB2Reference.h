@@ -134,7 +134,6 @@ namespace merutilm::rff2 {
         auto ref = std::vector<complex<Num>>();
 
         ref.reserve(refInitialCapacity);
-
         ref.push_back(complex<Num>::ZERO);
 
         int strictIntExp10 = -exp10;

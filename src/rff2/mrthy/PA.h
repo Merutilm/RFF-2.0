@@ -22,9 +22,9 @@ namespace merutilm::rff2 {
         }
 
 
-        [[nodiscard]] complex<Num> apply(const complex<Num> dz, const complex<Num> dc) {
+        [[nodiscard]] complex<Num> apply(const complex<Num> dz, const complex<Num> dc) const {
             return an * dz + bn * dc;
-        };
+        }
 
         [[nodiscard]] bool isValid(const Num dzRad) const {
             return dzRad < radius;

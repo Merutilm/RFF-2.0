@@ -288,7 +288,6 @@ namespace merutilm::rff2 {
             zoomAnimationInfo.targetMouseZoomOffsetAim += glm::vec2{mxr * dz * (mz - 1), myr * dz * (1 - mz)};
 
 
-
             requests.requestRecompute();
         });
     }
@@ -632,7 +631,10 @@ namespace merutilm::rff2 {
         const complex<dex> offset = offsetConversion(s, 0, 0);
         const dex dcMax = offset.norm_approx();
 
-        uint64_t capacity = renderData && renderData->getReference() ? renderData->getReference()->length() : 0;
+        static uint64_t capacity = 0;
+        if (renderData && renderData->getReference()) {
+            capacity = renderData->getReference()->length();
+        }
 
         std::function actionPerRefCalcIteration = [this, startTime](const uint64_t p) mutable {
             static float time = rootWindowContext->getWindow()->getTime();
@@ -690,10 +692,11 @@ namespace merutilm::rff2 {
                 }
 
                 uint64_t period = renderData->getReference()->longestPeriod();
-                const auto center = MB2Locator::locateMinibrot(
-                        state, renderData.get(), FnExplore::getActionWhileFindingMBCenter(*this, period),
-                        FnExplore::getActionWhileSeriesApprox(*this), FnExplore::getActionWhileCreatingTable(*this),
-                        FnExplore::getActionWhileFindingZoom(*this));
+                const auto center = MB2Locator::locateMinibrot(state, *renderData.get(), approxTableCache,
+                                                               FnExplore::getActionWhileFindingMBCenter(*this, period),
+                                                               FnExplore::getActionWhileSeriesApprox(*this),
+                                                               FnExplore::getActionWhileCreatingTable(*this),
+                                                               FnExplore::getActionWhileFindingZoom(*this));
                 if (center == nullptr)
                     return false;
 
@@ -704,14 +707,14 @@ namespace merutilm::rff2 {
 
                 if (refCalc.general.logZoom > Constants::Fractal::ZOOM_DEADLINE) {
                     renderData = std::make_unique<DeepMB2RenderData>(
-                            state, refCalc, center->data->getPerturbator()->dcMax, refExp10, capacity, period,
-                            actionPerRefCalcIteration, actionPerSeriesApproxIteration, actionPerCreatingTableIteration,
-                            false);
+                            state, refCalc, approxTableCache, center->data->getPerturbator()->dcMax, refExp10,
+                            capacity, period, actionPerRefCalcIteration, actionPerSeriesApproxIteration,
+                            actionPerCreatingTableIteration, false);
                 } else {
                     renderData = std::make_unique<LightMB2RenderData>(
-                            state, refCalc, center->data->getPerturbator()->dcMax, refExp10, capacity, period,
-                            actionPerRefCalcIteration, actionPerSeriesApproxIteration, actionPerCreatingTableIteration,
-                            false);
+                            state, refCalc, approxTableCache, center->data->getPerturbator()->dcMax, refExp10,
+                            capacity, period, actionPerRefCalcIteration, actionPerSeriesApproxIteration,
+                            actionPerCreatingTableIteration, false);
                 }
                 renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center,
                                       actionPerSeriesApproxIteration);
@@ -722,11 +725,11 @@ namespace merutilm::rff2 {
                 renderData = nullptr;
                 if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
                     renderData = std::make_unique<DeepMB2RenderData>(
-                            state, frt, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
+                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
                             actionPerSeriesApproxIteration, actionPerCreatingTableIteration, false);
                 } else {
                     renderData = std::make_unique<LightMB2RenderData>(
-                            state, frt, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
+                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
                             actionPerSeriesApproxIteration, actionPerCreatingTableIteration, false);
                 }
                 break;

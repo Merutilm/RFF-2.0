@@ -47,8 +47,8 @@ namespace merutilm::rff2 {
             if constexpr (std::is_same_v<E, FrtMPACompressionMethod>) {
                 using enum FrtMPACompressionMethod;
                 return {
-                    NO_COMPRESSION,
-                    LITTLE_COMPRESSION,
+                    FASTEST,
+                    BALANCED,
                     STRONGEST
                 };
             }
@@ -114,8 +114,8 @@ namespace merutilm::rff2 {
             if constexpr (std::is_same_v<E, FrtMPACompressionMethod>) {
                 switch (value) {
                     using enum FrtMPACompressionMethod;
-                    case NO_COMPRESSION: return "No compression";
-                    case LITTLE_COMPRESSION: return "Little compression";
+                    case FASTEST: return "Fastest";
+                    case BALANCED: return "Balanced";
                     case STRONGEST: return "Strongest";
                     default: break;
                 }

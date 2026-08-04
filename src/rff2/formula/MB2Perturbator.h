@@ -132,8 +132,8 @@ namespace merutilm::rff2 {
 
             while (iteration < maxIteration) {
                 if (table != nullptr) {
-                    if (PA<Num> *paPtr = table->lookup(refIteration, dz); paPtr != nullptr) {
-                        PA<Num> &pa = *paPtr;
+                    if (const PA<Num> *paPtr = table->lookup(refIteration, dz); paPtr != nullptr) {
+                        const PA<Num> &pa = *paPtr;
 
                         dz = pa.apply(dz, dc0);
                         iteration += pa.skip;

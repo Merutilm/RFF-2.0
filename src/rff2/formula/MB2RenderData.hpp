@@ -14,10 +14,11 @@ namespace merutilm::rff2 {
 
         ParallelRenderState &state;
         FractalSettings fractalSettings;
+        std::unique_ptr<ApproxTableCacheBase> *cache;
         Reference::CreationResult lastCreationResult = Reference::CreationResult::UNDEFINED;
 
-        explicit MB2RenderDataBase(ParallelRenderState &state, FractalSettings frt) :
-            state(state), fractalSettings(std::move(frt)) {}
+        explicit MB2RenderDataBase(ParallelRenderState &state, FractalSettings frt, std::unique_ptr<ApproxTableCacheBase> &cache) :
+            state(state), fractalSettings(std::move(frt)), cache(&cache) {}
 
         virtual ~MB2RenderDataBase() = default;
 
@@ -41,7 +42,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<SeriesApproximationData> seriesApproxData;
         std::unique_ptr<MB2Perturbator<Num>> perturbator;
 
-        explicit MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, dex dcMax, int exp10,
+        explicit MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, std::unique_ptr<ApproxTableCacheBase> &cache, dex dcMax, int exp10,
                                uint64_t refInitialCapacity, uint64_t fixedPeriod,
                                const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration,
@@ -62,12 +63,12 @@ namespace merutilm::rff2 {
     };
 
     template<Number Num>
-    MB2RenderData<Num>::MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, const dex dcMax,
+    MB2RenderData<Num>::MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, std::unique_ptr<ApproxTableCacheBase> &cache, const dex dcMax,
                                       const int exp10, const uint64_t refInitialCapacity, const uint64_t fixedPeriod,
                                       const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                       const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration,
                                       const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration,
-                                      const bool arbitraryPrecisionFPGBn) : MB2RenderDataBase(state, frt) {
+                                      const bool arbitraryPrecisionFPGBn) : MB2RenderDataBase(state, frt, cache) {
         this->lastCreationResult = MB2Reference<Num>::generateReference(
                 state, frt.general, frt.reference, exp10, refInitialCapacity, fixedPeriod, dcMax,
                 arbitraryPrecisionFPGBn, actionPerRefCalcIteration, &reference);
@@ -83,7 +84,9 @@ namespace merutilm::rff2 {
         seriesApproxData = std::make_unique<SeriesApproximationData>();
         generateSeriesApproxTerms(dcMax, actionPerSeriesApproxIteration);
 
-        table = std::make_unique<MPATable<Num>>(state, *reference, &fractalSettings.mpa, Num(dcMax),
+
+
+        table = std::make_unique<MPATable<Num>>(state, *reference, cache, &fractalSettings.mpa, Num(dcMax),
                                                                    actionPerCreatingTableIteration);
         perturbator = std::make_unique<MB2Perturbator<Num>>(
                 state, dcMax, fractalSettings.general, fractalSettings.sa, fractalSettings.perturb, *seriesApproxData, *reference,
