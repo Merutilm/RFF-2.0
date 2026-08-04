@@ -55,14 +55,14 @@ namespace merutilm::rff2 {
 
 
         bool tryJumpTableGeneration(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
-                                    std::vector<std::optional<PAGenerator<Num>>> &currentPA,
+        std::vector<PAGenerator<Num>> &currentPA,
                                     std::vector<bool> &generationAvailable, uint64_t *iteration);
         void verifyPA(const std::vector<uint64_t> &itCountLim, const std::vector<uint64_t> &tablePeriod,
-                      std::vector<bool> &generationAvailable, std::vector<std::optional<PAGenerator<Num>>> &currentPA,
+                      std::vector<bool> &generationAvailable, std::vector<PAGenerator<Num>> &currentPA,
                       uint64_t iteration);
         void refreshCounter(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
                             const std::vector<uint64_t> &tablePeriod, std::vector<bool> &generationAvailable,
-                            std::vector<std::optional<PAGenerator<Num>>> &currentPA, uint64_t iteration);
+                            std::vector<PAGenerator<Num>> &currentPA, uint64_t iteration);
 
 
         void generateTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
@@ -204,7 +204,7 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     bool MPATable<Num>::tryJumpTableGeneration(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
-                                               std::vector<std::optional<PAGenerator<Num>>> &currentPA,
+                                               std::vector<PAGenerator<Num>> &currentPA,
                                                std::vector<bool> &generationAvailable, uint64_t *const iteration) {
 
         if (pulledMPACompressor.empty()) return false;
@@ -214,22 +214,27 @@ namespace merutilm::rff2 {
         if (containedTool == nullptr || containedTool->start != pulledTableIndex + 1) {
             return false;
         }
-        auto &table = *tableManager->mpaTable;
         const auto &tablePeriod = mpaPeriod->tablePeriod;
         const uint64_t levels = tablePeriod.size();
-        const std::pmr::vector<PA<Num>> &mainReferenceMPA = table[0];
         const auto &skippableIterationsCount = mpaPeriod->skippableIterationsCount;
         const uint64_t level = binarySearch(skippableIterationsCount, containedTool->end - containedTool->start + 2);
         // count itself and periodic point, +2
 
-        const uint64_t compTableIndex = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod,
-                                                                  pulledMPACompressor, *iteration);
 
-        allocateWithCheckTableSize(compTableIndex, levels);
-        auto &pa = table[compTableIndex];
+        auto &table = *tableManager->mpaTable;
+        const std::pmr::vector<PA<Num>> &mainReferenceMPA = table[0];
+        if (level >= mainReferenceMPA.size()) {
+            throw std::invalid_argument("Invalid index detected. it might be a bug! Please contact the developer and attach the current location file (.rfl)");
+        }
 
         const PA<Num> &mainReferencePA = mainReferenceMPA[level];
         const uint64_t skip = mainReferencePA.skip;
+
+        const uint64_t compTableIndex = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod,
+                                                                  pulledMPACompressor, *iteration);
+        auto &pa = table[compTableIndex];
+        allocateWithCheckTableSize(compTableIndex, levels);
+
 
         for (uint64_t i = level + 1; i < levels; ++i) {
             if (i <= level && itCount[i] != 0) {
@@ -249,7 +254,7 @@ namespace merutilm::rff2 {
 
         for (uint64_t i = 0; i < std::min(level + 1, levels); ++i) {
             pa.push_back(mainReferenceMPA[i]);
-            currentPA[i]->reuse(*iteration);
+            currentPA[i].reuse(*iteration);
             itCount[i] = 0;
             itCountLim[i] = PERTURBATION_REQ;
             generationAvailable[i] = false;
@@ -257,7 +262,7 @@ namespace merutilm::rff2 {
 
         if (level + 1 < levels) {
             itCount[level + 1] += skip;
-            currentPA[level + 1]->merge(mainReferencePA);
+            currentPA[level + 1].merge(mainReferencePA);
         }
         return true;
     }
@@ -265,30 +270,30 @@ namespace merutilm::rff2 {
     template<Number Num>
     void MPATable<Num>::verifyPA(const std::vector<uint64_t> &itCountLim, const std::vector<uint64_t> &tablePeriod,
                                  std::vector<bool> &generationAvailable,
-                                 std::vector<std::optional<PAGenerator<Num>>> &currentPA, uint64_t iteration) {
+                                 std::vector<PAGenerator<Num>> &currentPA, uint64_t iteration) {
         uint64_t level = 0;
         const uint64_t levels = tablePeriod.size();
         auto &table = *tableManager->mpaTable;
 
-        while (level < levels && (currentPA[level]->skip == tablePeriod[level] - PERTURBATION_REQ ||
+        while (level < levels && (currentPA[level].skip == tablePeriod[level] - PERTURBATION_REQ ||
                                   itCountLim[level] != tablePeriod[level] || !generationAvailable[level])) {
 
             if (itCountLim[level] == tablePeriod[level] && generationAvailable[level]) {
                 const uint64_t compTableIndex = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod,
-                                                                          pulledMPACompressor, currentPA[level]->start);
+                                                                          pulledMPACompressor, currentPA[level].start);
                 allocateWithCheckTableSize(compTableIndex, levels);
                 auto &pa = table[compTableIndex];
 
-                if (pa.empty() || pa.back().skip < currentPA[level]->skip) {
-                    pa.emplace_back(currentPA[level]->build());
+                if (pa.empty() || pa.back().skip < currentPA[level].skip) {
+                    pa.emplace_back(currentPA[level].build());
                 }
                 generationAvailable[level] = false;
             }
 
             if (level < levels - 1) {
-                currentPA[level + 1]->merge(*currentPA[level]);
+                currentPA[level + 1].merge(currentPA[level]);
             }
-            currentPA[level]->reuse(iteration);
+            currentPA[level].reuse(iteration);
             ++level;
         }
     }
@@ -296,7 +301,7 @@ namespace merutilm::rff2 {
     template<Number Num>
     void MPATable<Num>::refreshCounter(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
                                        const std::vector<uint64_t> &tablePeriod, std::vector<bool> &generationAvailable,
-                                       std::vector<std::optional<PAGenerator<Num>>> &currentPA, uint64_t iteration) {
+                                       std::vector<PAGenerator<Num>> &currentPA, uint64_t iteration) {
 
 
         // reset current and lower level count when it reached limit
@@ -305,8 +310,8 @@ namespace merutilm::rff2 {
         uint64_t level = 0;
         while (level < tablePeriod.size() - 1 && itCount[level] == itCountLim[level]) {
             itCount[level + 1] += itCount[level];
-            currentPA[level + 1]->merge(*currentPA[level]);
-            currentPA[level]->reuse(iteration);
+            currentPA[level + 1].merge(currentPA[level]);
+            currentPA[level].reuse(iteration);
             ++level;
         }
 
@@ -335,17 +340,12 @@ namespace merutilm::rff2 {
 
         const double epsilon = pow(10, epsilonPower);
         uint64_t iteration = 1;
-        uint64_t absIteration = 0;
-        // auto periodCount = std::vector<uint64_t>(levels, 0);
-        auto currentPA = std::vector<std::optional<PAGenerator<Num>>>(levels);
-        for (auto &pa: currentPA) {
-            pa.emplace(reference, epsilon, dcMax, 1);
-        }
 
 
         std::vector<uint64_t> itCount(levels, 0);
-        std::vector<uint64_t> itCountLim(levels, 0); // copy the initial value.
+        std::vector<uint64_t> itCountLim(levels, 0);
         std::vector<bool> generationAvailable(levels, true);
+        std::vector<PAGenerator<Num>> currentPA(levels, PAGenerator<Num>(reference, epsilon, dcMax, 1));
 
         for (uint64_t i = 0; i < levels; ++i) {
             itCountLim[i] = tablePeriod[i];
@@ -353,7 +353,6 @@ namespace merutilm::rff2 {
 
 
         std::vector<bool> itResetFlag(levels, false);
-
 
         while (iteration <= longestPeriod) {
             if (state.interruptRequested())
@@ -365,10 +364,9 @@ namespace merutilm::rff2 {
             const bool jumped = tryJumpTableGeneration(itCount, itCountLim, currentPA, generationAvailable, &iteration);
 
             if (!jumped) {
-                currentPA[0]->step();
+                currentPA[0].step();
                 ++itCount[0];
                 ++iteration;
-                ++absIteration;
             }
 
             verifyPA(itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
