@@ -271,7 +271,7 @@ namespace merutilm::rff2 {
         auto &table = *tableManager->mpaTable;
 
         while (level < levels && (currentPA[level]->skip == tablePeriod[level] - PERTURBATION_REQ ||
-                                  itCountLim[level] != tablePeriod[level])) {
+                                  itCountLim[level] != tablePeriod[level] || !generationAvailable[level])) {
 
             if (itCountLim[level] == tablePeriod[level] && generationAvailable[level]) {
                 const uint64_t compTableIndex = iterationToCompTableIndex(mpaSettings.mpaCompressionMethod, *mpaPeriod,
@@ -287,8 +287,8 @@ namespace merutilm::rff2 {
 
             if (level < levels - 1) {
                 currentPA[level + 1]->merge(*currentPA[level]);
-                currentPA[level]->reuse(iteration);
             }
+            currentPA[level]->reuse(iteration);
             ++level;
         }
     }
@@ -299,10 +299,10 @@ namespace merutilm::rff2 {
                                        std::vector<std::optional<PAGenerator<Num>>> &currentPA, uint64_t iteration) {
 
 
-        uint64_t level = 0;
-
         // reset current and lower level count when it reached limit
-        // Worst case, O(1).
+        // Amortized O(1)
+
+        uint64_t level = 0;
         while (level < tablePeriod.size() - 1 && itCount[level] == itCountLim[level]) {
             itCount[level + 1] += itCount[level];
             currentPA[level + 1]->merge(*currentPA[level]);
@@ -353,7 +353,6 @@ namespace merutilm::rff2 {
 
 
         std::vector<bool> itResetFlag(levels, false);
-        auto &table = *tableManager->mpaTable;
 
 
         while (iteration <= longestPeriod) {

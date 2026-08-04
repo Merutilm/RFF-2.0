@@ -98,7 +98,14 @@ namespace merutilm::rff2 {
                 logZoomCache = logZoom;
                 locationChanged = false;
             }
-
+            if (ImGui::Button("Apply Location Changes", ImVec2(-FLT_MIN, 0))) {
+                const int exp10 = Perturbator::logZoomToExp10(logZoom);
+                if (locationChanged) {
+                    frt.reference.center = fixed_point_complex_i1(real, imag, exp10);
+                    frt.general.logZoom = logZoom;
+                    app.getRequests().requestRecompute();
+                }
+            }
             Utilities::imguiDropdown("Reuse Reference", &frt.reference.reuse);
             Utilities::imguiHelpMarker("Sets the reuse reference method.");
 
@@ -146,14 +153,7 @@ namespace merutilm::rff2 {
 
 
 
-            if (ImGui::Button("Apply Location Changes", ImVec2(-FLT_MIN, 0))) {
-                const int exp10 = Perturbator::logZoomToExp10(logZoom);
-                if (locationChanged) {
-                    frt.reference.center = fixed_point_complex_i1(real, imag, exp10);
-                    frt.general.logZoom = logZoom;
-                    app.getRequests().requestRecompute();
-                }
-            }
+
             if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
                 app.getRequests().requestRecompute();
             }
