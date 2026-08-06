@@ -37,7 +37,13 @@ namespace merutilm::rff2 {
 
         void step();
 
-        [[nodiscard]] PA<Num> build() { return PA<Num>{skip, an, bn, radius}; }
+        [[nodiscard]] PA<Num> build() {
+#ifndef NDEBUG
+            return PA<Num>{start, skip, an, bn, radius};
+#else
+            return PA<Num>{skip, an, bn, radius};
+#endif
+        }
     };
 
 

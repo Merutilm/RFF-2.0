@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "FrtDecimalizeIterationMethod.h"
-#include "FrtMPACompressionMethod.h"
 #include "FrtMPASelectionMethod.h"
 #include "FrtReferenceReuseMethod.h"
 #include "ShdIterationColoringMethod.hpp"
@@ -42,14 +41,6 @@ namespace merutilm::rff2 {
                 return {
                     LOWEST,
                     HIGHEST
-                };
-            }
-            if constexpr (std::is_same_v<E, FrtMPACompressionMethod>) {
-                using enum FrtMPACompressionMethod;
-                return {
-                    FASTEST,
-                    BALANCED,
-                    STRONGEST
                 };
             }
             if constexpr (std::is_same_v<E, ShdIterationColoringMethod>) {
@@ -108,15 +99,6 @@ namespace merutilm::rff2 {
                     using enum FrtMPASelectionMethod;
                     case LOWEST: return "Lowest";
                     case HIGHEST: return "Highest";
-                    default: break;
-                }
-            }
-            if constexpr (std::is_same_v<E, FrtMPACompressionMethod>) {
-                switch (value) {
-                    using enum FrtMPACompressionMethod;
-                    case FASTEST: return "Fastest";
-                    case BALANCED: return "Balanced";
-                    case STRONGEST: return "Strongest";
                     default: break;
                 }
             }

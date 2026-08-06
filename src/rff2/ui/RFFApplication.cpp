@@ -131,7 +131,7 @@ namespace merutilm::rff2 {
                                                     .autoMaxIteration = true,
                                                     .interiorDetectRadiusPower = 7,
                                                     .autoIterationMultiplier = 100,
-                                                    .absoluteIterationMode = true}},
+                                                    .absoluteIterationMode = false}},
                 .render = {.clarityMultiplier = 0.25f, .fps = 60, .linearInterpolation = true, .threads = 1},
                 .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),

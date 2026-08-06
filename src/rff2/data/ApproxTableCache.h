@@ -34,6 +34,7 @@ namespace merutilm::rff2 {
 
         std::vector<PA<Num>> mpaTable;
         std::vector<MPAIndexMapper> nonCompToPulledIndexMapper;
+        uint64_t tableSizeUsed;
 
         explicit ApproxTableCache() = default;
         ~ApproxTableCache() override = default;
@@ -43,11 +44,10 @@ namespace merutilm::rff2 {
         ApproxTableCache &operator=(ApproxTableCache &&) = delete;
 
 
-        template<typename F>
-        void resizeWithWarning(std::vector<F> &container, size_t newSize) {
-
+        template<typename Elem>
+        void resizeWithWarning(std::vector<Elem> &container, size_t newSize) {
             if (newSize > container.size() || newSize < container.size() / 4) {
-                uint64_t size = newSize * sizeof(F);
+                const uint64_t size = newSize * sizeof(Elem);
 
                 if (allowedMaximum < size &&
                     !vkh::logger::log_warn(
@@ -59,11 +59,15 @@ namespace merutilm::rff2 {
                 allowedMaximum = std::max(allowedMaximum, size);
                 container.resize(newSize);
             }
+#ifndef NDEBUG
+            std::ranges::fill_n(container.begin(), container.size(), Elem{});
+#endif
         }
 
 
         void resize(const size_t tableLen, const size_t mapperLen) override {
             resizeWithWarning(mpaTable, tableLen);
+            tableSizeUsed = tableLen;
             resizeWithWarning(nonCompToPulledIndexMapper, mapperLen);
         }
     };

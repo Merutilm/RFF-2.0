@@ -263,7 +263,7 @@ namespace merutilm::rff2 {
         if (enabled) {
             ImGui::Begin("MP-Approximation");
             auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod,
-                   mpaCompressionMethod] = app.getSettings().fractal.mpa;
+                   useCompress] = app.getSettings().fractal.mpa;
 
             if (ImGui::InputScalar("Min Skip Reference", ImGuiDataType_U16, &minSkipReference)) {
                 minSkipReference = std::max(minSkipReference, static_cast<uint16_t>(4));
@@ -292,14 +292,10 @@ namespace merutilm::rff2 {
             Utilities::imguiHelpMarker(
                     "Set the selection method of MPA. The first target PA is always the front element.");
 
-            Utilities::imguiDropdown("Compression Method", &mpaCompressionMethod);
+            ImGui::Checkbox("Use Compression", &useCompress);
             Utilities::imguiHelpMarker(
                     "Set the compression method of MPA.\n "
-                    "\"Balanced\" maybe slowing down for table creation, but allocates the memory "
-                    "efficiently.\n"
-                    "\"Strongest\" works based on the Reference Compressor, so if it is disabled, it will behave the "
-                    "same "
-                    "as \"Balanced\".\n "
+                    "If it is checked, slowing down for table creation, but allocates the memory efficiently.\n"
                     "It uses acceleration when possible, and can accelerate table creation.");
 
             if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {

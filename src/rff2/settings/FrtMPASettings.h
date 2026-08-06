@@ -4,8 +4,6 @@
 
 #pragma once
 #include <cstdint>
-
-#include "FrtMPACompressionMethod.h"
 #include "FrtMPASelectionMethod.h"
 
 
@@ -15,6 +13,6 @@ namespace merutilm::rff2 {
         uint8_t maxMultiplierBetweenLevel;
         float epsilonPower;
         FrtMPASelectionMethod mpaSelectionMethod;
-        FrtMPACompressionMethod mpaCompressionMethod;
+        bool useCompress;
     };
 }
