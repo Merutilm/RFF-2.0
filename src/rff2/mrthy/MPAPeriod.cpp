@@ -35,12 +35,9 @@ namespace merutilm::rff2 {
 
         const size_t size = tablePeriod.size();
         auto tablePeriodElements = std::vector<uint64_t>(size, 0);
+        tablePeriodElements[0] = 1;
 
-        for (int i = 0; i < size; ++i) {
-            if (i == 0) {
-                tablePeriodElements[i] = 1;
-                continue;
-            }
+        for (int i = 1; i < size; ++i) {
             uint64_t elements = 0;
             uint64_t remainder = tablePeriod[i];
             for (int j = i - 1; j >= 0; --j) {

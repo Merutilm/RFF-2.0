@@ -467,12 +467,17 @@ namespace merutilm::rff2 {
         // 1 4 7 12 15 18 23 27 30 33 38
         // 3 1 1  2  1  1  2  3  1  1  2
 
-        if (iteration == 0) {
-            return {UINT64_MAX, 0};
-        }
 
         const auto &tablePeriod = mpaPeriod.tablePeriod;
         const auto &skippableIterationCounts = mpaPeriod.skippableIterationsCount;
+
+        if (iteration == 0) {
+            return {UINT64_MAX, 0};
+        }
+        if (iteration == 1) {
+            return {0, tablePeriod.size()};
+        }
+
 
         uint64_t index = 0;
         uint64_t levels = 0;
@@ -486,6 +491,8 @@ namespace merutilm::rff2 {
 
             remainder -= quotient * period;
             maxSkip = std::min(period, maxSkip - quotient * period);
+            if (remainder == 0 || maxSkip < tablePeriod[0]) return MPAIndexMapper{UINT64_MAX, 0};
+
             levels += maxSkip >= period && remainder == 1;
             index += quotient * count;
         }
