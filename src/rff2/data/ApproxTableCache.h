@@ -25,16 +25,22 @@ namespace merutilm::rff2 {
 
 
     struct allocation_cancelled : std::runtime_error {
-        explicit allocation_cancelled() : std::runtime_error("allocation denied") {}
+        explicit allocation_cancelled() : std::runtime_error("allocation cancelled") {}
     };
 
     template<Number Num>
     struct ApproxTableCache : ApproxTableCacheBase {
         using value_type = Num;
 
+#ifndef NDEBUG
         std::vector<PA<Num>> mpaTable;
         std::vector<MPAIndexMapper> nonCompToPulledIndexMapper;
-        uint64_t tableSizeUsed;
+#else
+        PA<Num> *mpaTable;
+        MPAIndexMapper *nonCompToPulledIndexMapper;
+#endif
+        size_t tableSizeUsed;
+        size_t mapperSizeUsed;
 
         explicit ApproxTableCache() = default;
         ~ApproxTableCache() override = default;
@@ -43,11 +49,12 @@ namespace merutilm::rff2 {
         ApproxTableCache(ApproxTableCache &&) = delete;
         ApproxTableCache &operator=(ApproxTableCache &&) = delete;
 
-
-        template<typename Elem>
-        void resizeWithWarning(std::vector<Elem> &container, size_t newSize) {
-            if (newSize > container.size() || newSize < container.size() / 4) {
-                const uint64_t size = newSize * sizeof(Elem);
+#ifndef NDEBUG
+        template<typename Pod>
+            requires std::is_trivially_copyable_v<Pod>
+        void resizeWithWarning(std::vector<Pod> *container, const size_t oldSize, const size_t newSize) {
+            if (newSize > oldSize || newSize < oldSize / 4) {
+                const uint64_t size = newSize * sizeof(Pod);
 
                 if (allowedMaximum < size &&
                     !vkh::logger::log_warn(
@@ -57,18 +64,52 @@ namespace merutilm::rff2 {
                 }
 
                 allowedMaximum = std::max(allowedMaximum, size);
-                container.resize(newSize);
+                container->resize(newSize);
             }
-#ifndef NDEBUG
-            std::ranges::fill_n(container.begin(), container.size(), Elem{});
-#endif
+            std::ranges::fill_n(container->begin(), newSize, Pod{});
         }
 
 
+        template<typename Pod>
+            requires std::is_trivially_copyable_v<Pod>
+        static void set(std::vector<Pod> &container, const size_t index, Pod val) {
+            container[index] = val;
+        }
+
+#else
+        template<typename Pod>
+            requires std::is_trivially_copyable_v<Pod>
+        void resizeWithWarning(Pod **container, const size_t oldSize, const size_t newSize) {
+            if (newSize > oldSize || newSize < oldSize / 4) {
+                const uint64_t size = newSize * sizeof(Pod);
+
+                if (allowedMaximum < size &&
+                    !vkh::logger::log_warn(
+                            "The application has requested more than {} of memory. Do you want to continue?",
+                            Utilities::formatByte(size))) {
+                    throw allocation_cancelled();
+                }
+
+                allowedMaximum = std::max(allowedMaximum, size);
+                free(*container);
+                *container = static_cast<Pod *>(malloc(sizeof(Pod) * newSize));
+            }
+        }
+
+        template<typename Pod>
+            requires std::is_trivially_copyable_v<Pod>
+        static void set(Pod *container, const size_t index, Pod val) {
+            ::new (&container[index]) Pod(val);
+        }
+
+#endif
+
+
         void resize(const size_t tableLen, const size_t mapperLen) override {
-            resizeWithWarning(mpaTable, tableLen);
+            resizeWithWarning(&mpaTable, tableSizeUsed, tableLen);
+            resizeWithWarning(&nonCompToPulledIndexMapper, mapperSizeUsed, mapperLen);
             tableSizeUsed = tableLen;
-            resizeWithWarning(nonCompToPulledIndexMapper, mapperLen);
+            mapperSizeUsed = mapperLen;
         }
     };
 

@@ -19,7 +19,6 @@
 #include "../vulkan/GPCDownsampleForBlur.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 #include "../vulkan/SharedImageContextIndices.hpp"
-#include "Callback.hpp"
 #include "FnExplore.hpp"
 #include "FnFile.hpp"
 #include "FnFractal.hpp"
@@ -153,7 +152,7 @@ namespace merutilm::rff2 {
                                                         .useParallelRefCalculation = false,
                                                         .sync = CalculationPresets::UltraFast().genRefSync(),
                                                         .compression = CalculationPresets::UltraFast().genRefComp(),
-                                                        .reuse = FrtReferenceReuseMethod::DISABLED,
+                                                        .reuse = false,
                                                 },
                                         .sa = {.use = false,
                                                .appliedTermsCount = 8,
@@ -494,6 +493,7 @@ namespace merutilm::rff2 {
                 FnExplore::reset(*this);
                 FnExplore::cancelRender(*this);
                 FnExplore::findCenter(*this);
+                FnExplore::locateCenteredReference(*this);
                 FnExplore::locateMinibrot(*this);
                 ImGui::EndTabItem();
             }
@@ -680,73 +680,26 @@ namespace merutilm::rff2 {
             return false;
 
 
-        switch (frt.reference.reuse) {
-            using enum FrtReferenceReuseMethod;
-            case CURRENT_REFERENCE: {
-                if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
-                    vkh::logger::log_err("Do not reuse Reference during reference calculation!!!");
-                    this->settings.fractal.reference.reuse = DISABLED;
-                    requests.requestRecompute();
-                    return false;
-                }
-                renderData->translate(frt.general.logZoom, renderData->getPerturbator()->dcMax, frt.perturb,
-                                      frt.reference.center, actionPerSeriesApproxIteration);
-                break;
+        if (frt.reference.reuse) {
+            if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
+                vkh::logger::log_err("Do not reuse Reference during reference calculation!!!");
+                this->settings.fractal.reference.reuse = false;
+                requests.requestRecompute();
+                return false;
             }
-            case CENTERED_REFERENCE: {
-
-                if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
-                    vkh::logger::log_err("Do not reuse Reference during reference calculation!!!");
-                    this->settings.fractal.reference.reuse = DISABLED;
-                    requests.requestRecompute();
-                    return false;
-                }
-
-                uint64_t period = renderData->getReference()->longestPeriod();
-                const auto center = MB2Locator::locateMinibrot(state, *renderData.get(), approxTableCache,
-                                                               FnExplore::getActionWhileFindingMBCenter(*this, period),
-                                                               FnExplore::getActionWhileSeriesApprox(*this),
-                                                               FnExplore::getActionWhileCreatingTable(*this),
-                                                               FnExplore::getActionWhileFindingZoom(*this));
-                if (center == nullptr)
-                    return false;
-
-                FractalSettings refCalc = frt;
-                refCalc.reference.center = center->data->fractalSettings.reference.center;
-                refCalc.general.logZoom = center->data->fractalSettings.general.logZoom;
-                int refExp10 = Perturbator::logZoomToExp10(refCalc.general.logZoom);
-
-                if (refCalc.general.logZoom > Constants::Fractal::ZOOM_DEADLINE) {
-                    renderData = std::make_unique<DeepMB2RenderData>(
-                            state, refCalc, approxTableCache, center->data->getPerturbator()->dcMax, refExp10, capacity,
-                            period, actionPerRefCalcIteration, actionPerSeriesApproxIteration,
-                            actionPerCreatingTableIteration, false);
-                } else {
-                    renderData = std::make_unique<LightMB2RenderData>(
-                            state, refCalc, approxTableCache, center->data->getPerturbator()->dcMax, refExp10, capacity,
-                            period, actionPerRefCalcIteration, actionPerSeriesApproxIteration,
-                            actionPerCreatingTableIteration, false);
-                }
-                renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center,
-                                      actionPerSeriesApproxIteration);
-                break;
-            }
-            case DISABLED: {
-                const int exp10 = Perturbator::logZoomToExp10(logZoom);
-                renderData = nullptr;
-                if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
-                    renderData = std::make_unique<DeepMB2RenderData>(
-                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
-                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration, false);
-                } else {
-                    renderData = std::make_unique<LightMB2RenderData>(
-                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
-                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration, false);
-                }
-                break;
-            }
-            default: {
-                // noop
+            renderData->translate(frt.general.logZoom, renderData->getPerturbator()->dcMax, frt.perturb,
+                                  frt.reference.center, actionPerSeriesApproxIteration);
+        } else {
+            const int exp10 = Perturbator::logZoomToExp10(logZoom);
+            renderData = nullptr;
+            if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
+                renderData = std::make_unique<DeepMB2RenderData>(
+                        state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
+                        actionPerSeriesApproxIteration, actionPerCreatingTableIteration, false);
+            } else {
+                renderData = std::make_unique<LightMB2RenderData>(
+                        state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
+                        actionPerSeriesApproxIteration, actionPerCreatingTableIteration, false);
             }
         }
 
@@ -845,9 +798,6 @@ namespace merutilm::rff2 {
     void RFFApplication::afterComputeFinally(const bool success) {
         if (!success) {
             // vkh::logger::log("Recompute cancelled.");
-        }
-        if (success && settings.fractal.reference.reuse == FrtReferenceReuseMethod::CENTERED_REFERENCE) {
-            settings.fractal.reference.reuse = FrtReferenceReuseMethod::CURRENT_REFERENCE;
         }
         idleCompute = true;
         backgroundThreads.notifyAll();

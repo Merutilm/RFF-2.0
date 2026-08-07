@@ -51,15 +51,57 @@ namespace merutilm::rff2 {
             }
         }
     }
+    void FnExplore::locateCenteredReference(RFFApplication &app) {
+        if (ImGui::Button("Locate Centered Reference", ImVec2(-FLT_MIN, 0))) {
+
+            ParallelRenderState &state = app.getState();
+
+            state.createThread([&] {
+                Settings &settings = app.getSettings();
+                float startTime = app.rootWindowContext->getWindow()->getTime();
+                std::unique_ptr<MB2RenderDataBase> &data = app.getCurrentRenderDataOwnRef();
+                if (!data || !data->getReference() || !data->getPerturbator()) {
+                    vkh::logger::log_err("Do not reuse Reference during reference calculation!!!");
+                    settings.fractal.reference.reuse = false;
+                    return;
+                }
+
+                uint64_t period = data->getReference()->longestPeriod();
+                const auto center = MB2Locator::locateMinibrot(
+                        state, *data, *app.getApproxTableCache(), getActionWhileFindingMBCenter(app, period),
+                        getActionWhileSeriesApprox(app), getActionWhileCreatingTable(app),
+                        getActionWhileFindingZoom(app));
+                if (center == nullptr)
+                    return;
+
+                FractalSettings refCalc = settings.fractal;
+                refCalc.reference.center = center->data->fractalSettings.reference.center;
+                refCalc.general.logZoom = center->data->fractalSettings.general.logZoom;
+                int refExp10 = Perturbator::logZoomToExp10(refCalc.general.logZoom);
+                if (refCalc.general.logZoom > Constants::Fractal::ZOOM_DEADLINE) {
+                    data = std::make_unique<DeepMB2RenderData>(
+                            state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax, refExp10,
+                            data->getReference()->length(), period, getActionWhileRefCalc(app, startTime), getActionWhileSeriesApprox(app), getActionWhileCreatingTable(app), false);
+                } else {
+                    data = std::make_unique<LightMB2RenderData>(
+                            state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax, refExp10,
+                            data->getReference()->length(), period, getActionWhileRefCalc(app, startTime), getActionWhileSeriesApprox(app), getActionWhileCreatingTable(app), false);
+                }
+
+                settings.fractal.reference.reuse = true;
+                app.getRequests().requestRecompute();
+            });
+        }
+    }
 
     void FnExplore::locateMinibrot(RFFApplication &app) {
 
         if (ImGui::Button("Locate Minibrot", ImVec2(-FLT_MIN, 0))) {
             Settings &settings = app.getSettings();
 
-            if (settings.fractal.reference.reuse != FrtReferenceReuseMethod::DISABLED) {
+            if (settings.fractal.reference.reuse) {
                 vkh::logger::log_err("Do not reuse reference!");
-                app.getSettings().fractal.reference.reuse = FrtReferenceReuseMethod::DISABLED;
+                app.getSettings().fractal.reference.reuse = false;
                 return;
             }
 
@@ -70,8 +112,7 @@ namespace merutilm::rff2 {
                 throw vkh::exception_invalid_state("Perturbator cannot be null");
             }
 
-            app.getState().createThread([&app, data, cache,
-                                         &settings] {
+            app.getState().createThread([&app, data, cache, &settings] {
                 const auto ref = data->getReference();
 
                 if (ref == nullptr) {
@@ -99,7 +140,7 @@ namespace merutilm::rff2 {
     }
 
     std::function<void(uint64_t, int)> FnExplore::getActionWhileFindingMBCenter(RFFApplication &app,
-                                                                                      const uint64_t longestPeriod) {
+                                                                                const uint64_t longestPeriod) {
         return [&app, longestPeriod](const uint64_t p, int i) {
             static float time = app.rootWindowContext->getWindow()->getTime();
             const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
@@ -118,7 +159,8 @@ namespace merutilm::rff2 {
             const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = app.rootWindowContext->getWindow()->getTime();
-                app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Series-Approximation : {:.3f}%", i * 100));
+                app.setStatusMessage(Constants::Status::RENDER_STATUS,
+                                     std::format("Series-Approximation : {:.3f}%", i * 100));
             }
         };
     }
@@ -130,7 +172,8 @@ namespace merutilm::rff2 {
             const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = app.rootWindowContext->getWindow()->getTime();
-                app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("MP-Approximation : {:.3f}%", i * 100));
+                app.setStatusMessage(Constants::Status::RENDER_STATUS,
+                                     std::format("MP-Approximation : {:.3f}%", i * 100));
             }
         };
     }
@@ -139,6 +182,18 @@ namespace merutilm::rff2 {
     std::function<void(float)> FnExplore::getActionWhileFindingZoom(RFFApplication &app) {
         return [&app](float zoom) {
             app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Zoom : 10^{}", zoom));
+        };
+    }
+    std::function<void(uint64_t)> FnExplore::getActionWhileRefCalc(RFFApplication &app, float startTime) {
+        return [&app, startTime](const uint64_t p) {
+            static float time = app.rootWindowContext->getWindow()->getTime();
+            const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
+            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
+                time = app.rootWindowContext->getWindow()->getTime();
+                app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "Period : {:L}", p));
+                app.setStatusMessage(Constants::Status::TIME_STATUS,
+                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
+            }
         };
     }
 } // namespace merutilm::rff2

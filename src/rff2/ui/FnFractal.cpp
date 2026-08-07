@@ -106,7 +106,7 @@ namespace merutilm::rff2 {
                     app.getRequests().requestRecompute();
                 }
             }
-            Utilities::imguiDropdown("Reuse Reference", &frt.reference.reuse);
+            ImGui::Checkbox("Reuse Reference", &frt.reference.reuse);
             Utilities::imguiHelpMarker("Sets the reuse reference method.");
 
             ImGui::InputScalar("Reference Compression Criteria", ImGuiDataType_U32,
@@ -292,11 +292,11 @@ namespace merutilm::rff2 {
             Utilities::imguiHelpMarker(
                     "Set the selection method of MPA. The first target PA is always the front element.");
 
-            ImGui::Checkbox("Use Compression", &useCompress);
+            ImGui::Checkbox("Use Acceleration", &useCompress);
             Utilities::imguiHelpMarker(
-                    "Set the compression method of MPA.\n "
-                    "If it is checked, slowing down for table creation, but allocates the memory efficiently.\n"
-                    "It uses acceleration when possible, and can accelerate table creation.");
+                    "Use acceleration if possible.\n "
+                    "If it is checked, slowing down for table creation, It uses acceleration when possible.\n"
+                    "Depending on the reference orbit, memory usage may increase or decrease compared to when it is not checked.\n");
 
             if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
                 app.getRequests().requestRecompute();

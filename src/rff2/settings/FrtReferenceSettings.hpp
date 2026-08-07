@@ -5,7 +5,6 @@
 #pragma once
 #include "../calc/fixed_point_complex.hpp"
 #include "FrtReferenceCompSettings.h"
-#include "FrtReferenceReuseMethod.h"
 #include "FrtReferenceSyncSettings.hpp"
 
 namespace merutilm::rff2 {
@@ -14,6 +13,6 @@ namespace merutilm::rff2 {
         bool useParallelRefCalculation{};
         FrtReferenceSyncSettings sync{};
         FrtReferenceCompSettings compression{};
-        FrtReferenceReuseMethod reuse{};
+        bool reuse{};
     };
 }

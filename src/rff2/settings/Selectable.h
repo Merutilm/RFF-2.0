@@ -8,7 +8,6 @@
 
 #include "FrtDecimalizeIterationMethod.h"
 #include "FrtMPASelectionMethod.h"
-#include "FrtReferenceReuseMethod.h"
 #include "ShdIterationColoringMethod.hpp"
 #include "ShdPalSingleIterationColoringMethod.h"
 #include "ShdStripeType.h"
@@ -18,14 +17,7 @@ namespace merutilm::rff2 {
     struct Selectable {
         template<typename E> requires std::is_enum_v<E>
         static std::vector<E> values() {
-            if constexpr (std::is_same_v<E, FrtReferenceReuseMethod>) {
-                using enum FrtReferenceReuseMethod;
-                return {
-                    CURRENT_REFERENCE,
-                    CENTERED_REFERENCE,
-                    DISABLED
-                };
-            }
+
             if constexpr (std::is_same_v<E, FrtDecimalizeIterationMethod>) {
                 using enum FrtDecimalizeIterationMethod;
                 return {
@@ -73,16 +65,6 @@ namespace merutilm::rff2 {
 
         template<typename E> requires std::is_enum_v<E>
         static const char * toString(const E &value) {
-            if constexpr (std::is_same_v<E, FrtReferenceReuseMethod>) {
-                switch (value) {
-                    using enum FrtReferenceReuseMethod;
-                    case CURRENT_REFERENCE: return "Current";
-                    case CENTERED_REFERENCE: return "Centered";
-                    case DISABLED: return "Disabled";
-                    default: break;
-                }
-
-            }
             if constexpr (std::is_same_v<E, FrtDecimalizeIterationMethod>) {
                 switch (value) {
                     using enum FrtDecimalizeIterationMethod;

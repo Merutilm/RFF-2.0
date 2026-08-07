@@ -15,6 +15,7 @@ namespace merutilm::rff2 {
         static void reset(RFFApplication &app);
         static void cancelRender(RFFApplication &app);
         static void findCenter(RFFApplication &app);
+        static void locateCenteredReference(RFFApplication &app);
         static void locateMinibrot(RFFApplication &app);
 
         static std::function<void(uint64_t, int)> getActionWhileFindingMBCenter(RFFApplication &app,
@@ -25,5 +26,7 @@ namespace merutilm::rff2 {
         static std::function<void(uint64_t, float)> getActionWhileCreatingTable(RFFApplication &app);
 
         static std::function<void(float)> getActionWhileFindingZoom(RFFApplication &app);
+
+        static std::function<void(uint64_t)> getActionWhileRefCalc(RFFApplication &app, float startTime);
     };
 } // namespace merutilm::rff2
