@@ -33,14 +33,21 @@ namespace merutilm::rff2 {
         using value_type = Num;
 
 #ifndef NDEBUG
+        /**
+         * flatten index table
+         */
         std::vector<PA<Num>> mpaTable;
-        std::vector<MPAIndexMapper> nonCompToPulledIndexMapper;
+        /**
+         * for uncompressed table : iteration to flatten index
+         * for compressed table : pulled compressed index to flatten index
+         */
+        std::vector<MPAIndexMapper> flattenIndexMapper;
 #else
         PA<Num> *mpaTable;
-        MPAIndexMapper *nonCompToPulledIndexMapper;
+        MPAIndexMapper *flattenIndexMapper;
 #endif
-        size_t tableSizeUsed;
-        size_t mapperSizeUsed;
+        size_t tableSizeUsed = 0;
+        size_t mapperSizeUsed = 0;
 
         explicit ApproxTableCache() = default;
         ~ApproxTableCache() override = default;
@@ -69,13 +76,6 @@ namespace merutilm::rff2 {
             std::ranges::fill_n(container->begin(), newSize, Pod{});
         }
 
-
-        template<typename Pod>
-            requires std::is_trivially_copyable_v<Pod>
-        static void set(std::vector<Pod> &container, const size_t index, Pod val) {
-            container[index] = val;
-        }
-
 #else
         template<typename Pod>
             requires std::is_trivially_copyable_v<Pod>
@@ -96,18 +96,12 @@ namespace merutilm::rff2 {
             }
         }
 
-        template<typename Pod>
-            requires std::is_trivially_copyable_v<Pod>
-        static void set(Pod *container, const size_t index, Pod val) {
-            ::new (&container[index]) Pod(val);
-        }
-
 #endif
 
 
         void resize(const size_t tableLen, const size_t mapperLen) override {
             resizeWithWarning(&mpaTable, tableSizeUsed, tableLen);
-            resizeWithWarning(&nonCompToPulledIndexMapper, mapperSizeUsed, mapperLen);
+            resizeWithWarning(&flattenIndexMapper, mapperSizeUsed, mapperLen);
             tableSizeUsed = tableLen;
             mapperSizeUsed = mapperLen;
         }

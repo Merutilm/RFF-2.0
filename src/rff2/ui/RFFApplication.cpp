@@ -118,7 +118,7 @@ namespace merutilm::rff2 {
                                                         .useParallelRefCalculation = false,
                                                         .sync = CalculationPresets::UltraBest().genRefSync(),
                                                         .compression = CalculationPresets::UltraStable().genRefComp(),
-                                                        .reuse = FrtReferenceReuseMethod::DISABLED,
+                                                        .reuse = false,
                                                 },
                                         .sa = {.use = false,
                                                .appliedTermsCount = 8,

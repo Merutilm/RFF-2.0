@@ -64,9 +64,10 @@ namespace merutilm::vkh {
                 if (capabilities.maxImageCount > 0 && maxFramesInFlight > capabilities.maxImageCount) {
                     maxFramesInFlight = capabilities.maxImageCount;
                 }
-                break;
+                return;
             }
         }
+        throw exception_init("no such suitable device found");
     }
 
 

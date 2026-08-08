@@ -292,11 +292,11 @@ namespace merutilm::rff2 {
             Utilities::imguiHelpMarker(
                     "Set the selection method of MPA. The first target PA is always the front element.");
 
-            ImGui::Checkbox("Use Acceleration", &useCompress);
+            ImGui::Checkbox("Compress", &useCompress);
             Utilities::imguiHelpMarker(
-                    "Use acceleration if possible.\n "
-                    "If it is checked, slowing down for table creation, It uses acceleration when possible.\n"
-                    "Depending on the reference orbit, memory usage may increase or decrease compared to when it is not checked.\n");
+                    "Use compression and acceleration if possible.\n "
+                    "If it is checked, slowing down for table creation, It uses compression and acceleration when possible.\n"
+                    "Depending on the reference orbit, memory usage may the same or decrease compared to when it is not checked.\n");
 
             if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
                 app.getRequests().requestRecompute();
