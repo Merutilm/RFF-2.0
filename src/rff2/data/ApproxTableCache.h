@@ -43,8 +43,8 @@ namespace merutilm::rff2 {
          */
         std::vector<MPAIndexMapper> flattenIndexMapper;
 #else
-        PA<Num> *mpaTable;
-        MPAIndexMapper *flattenIndexMapper;
+        PA<Num> *mpaTable = nullptr;
+        MPAIndexMapper *flattenIndexMapper = nullptr;
 #endif
         size_t tableSizeUsed = 0;
         size_t mapperSizeUsed = 0;

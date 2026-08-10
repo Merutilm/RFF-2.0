@@ -71,14 +71,21 @@ namespace merutilm::rff2 {
         void refreshCounter(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
                             const std::vector<uint64_t> &tablePeriod, std::vector<bool> &generationAvailable,
                             std::vector<PAGenerator<Num>> &currentPA, uint64_t iteration);
-        void stepOnce(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
-                      const std::vector<uint64_t> &tablePeriod, std::vector<bool> &generationAvailable,
-                      std::vector<PAGenerator<Num>> &currentPA, uint64_t &pulledTableIndex, uint64_t &flattenTableIndex,
-                      uint64_t &iteration);
+        void uncompressedStepOnce(std::vector<uint64_t> &itCount, const std::vector<uint64_t> &itCountLim,
+                                  const std::vector<uint64_t> &tablePeriod, std::vector<PAGenerator<Num>> &currentPA,
+                                  uint64_t &flattenTableIndex, uint64_t &iteration);
+        void compressedStepOnce(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
+                                const std::vector<uint64_t> &tablePeriod, std::vector<bool> &generationAvailable,
+                                std::vector<PAGenerator<Num>> &currentPA, uint64_t &pulledTableIndex,
+                                uint64_t &flattenTableIndex, uint64_t &iteration);
 
 
         void generateTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
                            const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
+        void generateCompressedTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
+                                     const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
+        void generateUncompressedTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
+                                       const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
 
         /**
          * Gets the finally compressed table index of MPA Table.
@@ -193,7 +200,7 @@ namespace merutilm::rff2 {
 
 
         const uint64_t longestPeriod = mpaPeriod->tablePeriods.back();
-        const uint64_t lastIndex = MPAIndexMapperUtils::iterationToFlattenTableIndex(*mpaPeriod, longestPeriod + 1);
+        const uint64_t lastIndex = mpaPeriod->tableElementCounts.back();
         uint64_t compressedOutLen = 0;
         for (const auto &compressor: pulledMPACompressor) {
             const uint64_t i = binarySearch(mpaPeriod->skippableIterationCounts, compressor.range() + 1);
@@ -305,8 +312,6 @@ namespace merutilm::rff2 {
                 if (level >= flattenIndexMapper.generatedLevels) {
                     throw std::invalid_argument("invalid level provided");
                 }
-                debugCheckMPAFromMapper(tableCache->tableSizeUsed, flattenIndexMapper.mapped, levels,
-                                        flattenIndexMapper.generatedLevels);
 #endif
 
                 pa[level] = currentPA[level].build();
@@ -324,13 +329,13 @@ namespace merutilm::rff2 {
     template<Number Num>
     std::span<PA<Num>> MPATable<Num>::getMPAFromMapper(const MPAIndexMapper flattenIndexMapper) {
         const size_t levels = mpaPeriod->tablePeriods.size();
+        size_t size = flattenIndexMapper.generatedLevels;
+        debugCheckMPAFromMapper(tableCache->tableSizeUsed, flattenIndexMapper.mapped, levels, size);
 #ifndef NDEBUG
         PA<Num> *start = tableCache->mpaTable.data() + flattenIndexMapper.mapped;
 #else
         PA<Num> *start = tableCache->mpaTable + flattenIndexMapper.mapped;
 #endif
-        size_t size = flattenIndexMapper.generatedLevels;
-        debugCheckMPAFromMapper(tableCache->tableSizeUsed, flattenIndexMapper.mapped, levels, size);
         return std::span<PA<Num>>(start, size);
     }
 
@@ -338,13 +343,13 @@ namespace merutilm::rff2 {
     std::span<const PA<Num>> MPATable<Num>::getMPAFromMapper(const MPAIndexMapper flattenIndexMapper) const {
 
         const size_t levels = mpaPeriod->tablePeriods.size();
+        size_t size = flattenIndexMapper.generatedLevels;
+        debugCheckMPAFromMapper(tableCache->tableSizeUsed, flattenIndexMapper.mapped, levels, size);
 #ifndef NDEBUG
         const PA<Num> *start = tableCache->mpaTable.data() + flattenIndexMapper.mapped;
 #else
         PA<Num> *start = tableCache->mpaTable + flattenIndexMapper.mapped;
 #endif
-        size_t size = flattenIndexMapper.generatedLevels;
-        debugCheckMPAFromMapper(tableCache->tableSizeUsed, flattenIndexMapper.mapped, levels, size);
 
         return std::span<const PA<Num>>(start, size);
     }
@@ -392,49 +397,59 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    void MPATable<Num>::stepOnce(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
-                                 const std::vector<uint64_t> &tablePeriod, std::vector<bool> &generationAvailable,
-                                 std::vector<PAGenerator<Num>> &currentPA, uint64_t &pulledTableIndex,
-                                 uint64_t &flattenTableIndex, uint64_t &iteration) {
+    void MPATable<Num>::uncompressedStepOnce(std::vector<uint64_t> &itCount, const std::vector<uint64_t> &itCountLim,
+                                             const std::vector<uint64_t> &tablePeriod,
+                                             std::vector<PAGenerator<Num>> &currentPA, uint64_t &flattenTableIndex,
+                                             uint64_t &iteration) {
         uint64_t levels = 0;
         while (levels < tablePeriod.size() && itCount[levels] == 0 && itCountLim[levels] == tablePeriod[levels]) {
             ++levels;
         }
 
-        if (mpaSettings.useCompress) {
 
-            bool jumped = false;
-            if (levels > 0) {
-
-                uint64_t compIndex = ArrayCompressor::compress(pulledMPACompressor, pulledTableIndex);
-                assert(tableCache->flattenIndexMapper.size() > compIndex);
-                tableCache->flattenIndexMapper[compIndex] = {flattenTableIndex, levels};
-
-                jumped = tryJumpTableGeneration(itCount, itCountLim, currentPA, generationAvailable, pulledTableIndex,
-                                                flattenTableIndex, iteration);
-            }
-
-            if (!jumped) {
-                if (levels > 0) {
-                    ++pulledTableIndex;
-                    flattenTableIndex += levels;
-                }
-
-                currentPA[0].step();
-                ++itCount[0];
-                ++iteration;
-            }
+        if (levels > 0) {
+            debugCheckMPAFromMapper(tableCache->tableSizeUsed, flattenTableIndex, tablePeriod.size(), levels);
+            assert(tableCache->flattenIndexMapper.size() > iteration);
+            tableCache->flattenIndexMapper[iteration] = {flattenTableIndex, levels};
+            flattenTableIndex += levels;
         } else {
+            assert(tableCache->flattenIndexMapper.size() > iteration);
+            tableCache->flattenIndexMapper[iteration] = {UINT64_MAX, 0};
+        }
+        currentPA[0].step();
+        ++itCount[0];
+        ++iteration;
+    }
 
+
+    template<Number Num>
+    void MPATable<Num>::compressedStepOnce(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
+                                           const std::vector<uint64_t> &tablePeriod,
+                                           std::vector<bool> &generationAvailable,
+                                           std::vector<PAGenerator<Num>> &currentPA, uint64_t &pulledTableIndex,
+                                           uint64_t &flattenTableIndex, uint64_t &iteration) {
+        uint64_t levels = 0;
+        while (levels < tablePeriod.size() && itCount[levels] == 0 && itCountLim[levels] == tablePeriod[levels]) {
+            ++levels;
+        }
+
+        bool jumped = false;
+        if (levels > 0) {
+
+            uint64_t compIndex = ArrayCompressor::compress(pulledMPACompressor, pulledTableIndex);
+            assert(tableCache->flattenIndexMapper.size() > compIndex);
+            tableCache->flattenIndexMapper[compIndex] = {flattenTableIndex, levels};
+
+            jumped = tryJumpTableGeneration(itCount, itCountLim, currentPA, generationAvailable, pulledTableIndex,
+                                            flattenTableIndex, iteration);
+        }
+
+        if (!jumped) {
             if (levels > 0) {
-                debugCheckMPAFromMapper(tableCache->tableSizeUsed, flattenTableIndex, tablePeriod.size(), levels);
-                assert(tableCache->flattenIndexMapper.size() > iteration);
-                tableCache->flattenIndexMapper[iteration] = {flattenTableIndex, levels};
+                ++pulledTableIndex;
                 flattenTableIndex += levels;
-            } else {
-                assert(tableCache->flattenIndexMapper.size() > iteration);
-                tableCache->flattenIndexMapper[iteration] = {UINT64_MAX, 0};
             }
+
             currentPA[0].step();
             ++itCount[0];
             ++iteration;
@@ -448,15 +463,28 @@ namespace merutilm::rff2 {
 
         const auto &tablePeriod = mpaPeriod->tablePeriods;
         const uint64_t longestPeriod = tablePeriod.back();
-        const auto epsilonPower = mpaSettings.epsilonPower;
 
         if (longestPeriod < mpaSettings.minSkipReference)
             return;
 
-        const size_t levels = tablePeriod.size();
         fitBufferSize();
+        if (mpaSettings.useCompress) {
+            generateCompressedTable(state, reference, dcMax, actionPerCreatingTableIteration);
+        } else {
+            generateUncompressedTable(state, reference, dcMax, actionPerCreatingTableIteration);
+        }
+    }
+
+    template<Number Num>
+    void MPATable<Num>::generateCompressedTable(
+            const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
+            const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) {
 
 
+        const auto &tablePeriod = mpaPeriod->tablePeriods;
+        const uint64_t longestPeriod = tablePeriod.back();
+        const size_t levels = tablePeriod.size();
+        const auto epsilonPower = mpaSettings.epsilonPower;
         const double epsilon = pow(10, epsilonPower);
         uint64_t iteration = 1;
 
@@ -470,7 +498,6 @@ namespace merutilm::rff2 {
             itCountLim[i] = tablePeriod[i];
         }
 
-
         uint64_t pulledTableIndex = 0;
         uint64_t flattenTableIndex = 0;
 
@@ -481,7 +508,46 @@ namespace merutilm::rff2 {
             actionPerCreatingTableIteration(iteration,
                                             static_cast<double>(iteration) / static_cast<double>(longestPeriod));
 
-            stepOnce(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, pulledTableIndex,
+            compressedStepOnce(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, pulledTableIndex,
+                     flattenTableIndex, iteration);
+            verifyPA(itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
+            refreshCounter(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
+        }
+    }
+
+
+    template<Number Num>
+    void MPATable<Num>::generateUncompressedTable(
+            const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
+            const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) {
+        const auto &tablePeriod = mpaPeriod->tablePeriods;
+        const uint64_t longestPeriod = tablePeriod.back();
+        const size_t levels = tablePeriod.size();
+        const auto epsilonPower = mpaSettings.epsilonPower;
+        const double epsilon = pow(10, epsilonPower);
+        uint64_t iteration = 1;
+
+
+        std::vector<uint64_t> itCount(levels, 0);
+        std::vector<uint64_t> itCountLim(levels, 0);
+        std::vector generationAvailable(levels, true);
+        std::vector<PAGenerator<Num>> currentPA(levels, PAGenerator<Num>(reference, epsilon, dcMax, 1));
+
+        for (uint64_t i = 0; i < levels; ++i) {
+            itCountLim[i] = tablePeriod[i];
+        }
+
+        uint64_t flattenTableIndex = 0;
+
+        while (iteration <= longestPeriod) {
+
+            if (state.interruptRequested())
+                return;
+
+            actionPerCreatingTableIteration(iteration,
+                                            static_cast<double>(iteration) / static_cast<double>(longestPeriod));
+
+            uncompressedStepOnce(itCount, itCountLim, tablePeriod, currentPA,
                      flattenTableIndex, iteration);
             verifyPA(itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
             refreshCounter(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
