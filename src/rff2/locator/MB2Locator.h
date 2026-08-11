@@ -1,5 +1,6 @@
 //
 // Created by Merutilm on 2025-05-16.
+// modified by Vinfinity on 2026-08-11!!
 //
 
 #pragma once
@@ -24,6 +25,13 @@ namespace merutilm::rff2 {
                        const std::function<void(uint64_t, float)> &actionWhileSeriesApprox,
                        const std::function<void(uint64_t, float)> &actionWhileCreatingTable,
                        const std::function<void(float)> &actionWhileFindingMinibrotZoom);
+
+        static std::unique_ptr<MB2RenderDataBase>
+        locateMinibrotCenter(ParallelRenderState &state, const MB2RenderDataBase &data,
+                             std::unique_ptr<ApproxTableCacheBase> &cache,
+                             const std::function<void(uint64_t, int)> &actionWhileFindingMinibrotCenter,
+                             const std::function<void(uint64_t, float)> &actionWhileSeriesApprox,
+                             const std::function<void(uint64_t, float)> &actionWhileCreatingTable);
 
     private:
         static std::unique_ptr<MB2RenderDataBase>
