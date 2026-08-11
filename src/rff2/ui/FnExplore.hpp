@@ -14,9 +14,9 @@ namespace merutilm::rff2 {
         static void recompute(RFFApplication &app);
         static void reset(RFFApplication &app);
         static void cancelRender(RFFApplication &app);
-        static void findCenter(RFFApplication &app);
         static void locateCenteredReference(RFFApplication &app);
         static void locateMinibrot(RFFApplication &app);
+        static void autoExplorer(RFFApplication &app);
 
         static std::function<void(uint64_t, int)> getActionWhileFindingMBCenter(RFFApplication &app,
                                                                                 uint64_t longestPeriod);
