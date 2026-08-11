@@ -33,7 +33,7 @@ fi
 
 printf "\033[36m=================== RFF Installation ===================\033[0m\n"
 
-url="https://github.com/Valephnull/RFF-2.0";
+url="https://github.com/Merutilm/RFF-2.0";
 hash=$(git ls-remote "$url" HEAD | head -n 1 | awk '{print $1}')
 if [[ -f version.config ]]; then
     prevHash=$(<version.config)
