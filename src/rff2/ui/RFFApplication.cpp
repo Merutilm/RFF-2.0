@@ -63,6 +63,7 @@ namespace merutilm::rff2 {
 
 
     void RFFApplication::onQuit() {
+        autoExplorer.stop();
         state.cancel();
         renderer = nullptr;
         NFD::Quit();
@@ -100,6 +101,8 @@ namespace merutilm::rff2 {
             requests.createImageRequested.exchange(false);
             backgroundThreads.notifyAll();
         }
+
+        autoExplorer.update(*this);
 
         invokeUpdaters();
         renderer->render();
@@ -492,9 +495,9 @@ namespace merutilm::rff2 {
                 FnExplore::recompute(*this);
                 FnExplore::reset(*this);
                 FnExplore::cancelRender(*this);
-                FnExplore::findCenter(*this);
                 FnExplore::locateCenteredReference(*this);
                 FnExplore::locateMinibrot(*this);
+                FnExplore::autoExplorer(*this);
                 ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
@@ -800,6 +803,7 @@ namespace merutilm::rff2 {
             // vkh::logger::log("Recompute cancelled.");
         }
         idleCompute = true;
+        ++completedRenderCount;
         backgroundThreads.notifyAll();
     }
 } // namespace merutilm::rff2
