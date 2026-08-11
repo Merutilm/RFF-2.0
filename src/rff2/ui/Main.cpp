@@ -7,7 +7,7 @@
 #include <filesystem>
 
 
-#include "RFFApplication.hpp"
+#include "RFF2.hpp"
 #include "VideoWindow.hpp"
 
 
@@ -45,7 +45,7 @@ int main() {
 #ifndef NDEBUG
     countLines();
 #endif
-    Application::start<RFFApplication>({.framerate = Constants::Render::INIT_FPS,
+    Application::start<RFF2>({.framerate = Constants::Render::INIT_FPS,
                                      .name = "RFF 2.0",
                                      .icon = "../res/icon.png",
                                      .widthInfo = {.min = Constants::Render::MIN_WINDOW_WIDTH,

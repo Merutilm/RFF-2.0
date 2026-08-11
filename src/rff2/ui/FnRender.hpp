@@ -8,10 +8,10 @@
 
 
 namespace merutilm::rff2 {
-    class RFFApplication;
+    class RFF2;
     struct FnRender {
-        static void setResolutionProperties(RFFApplication &app);
-        static void setRenderProperties(RFFApplication &app);
-        static void linearInterpolation(RFFApplication &app);
+        static void setResolutionProperties(RFF2 &app);
+        static void setRenderProperties(RFF2 &app);
+        static void linearInterpolation(RFF2 &app);
     };
 }

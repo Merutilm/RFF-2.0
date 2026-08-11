@@ -1,30 +1,32 @@
 //
-// Created by Merutilm on 2025-08-30.
+// Created by Merutilm on 2025-07-22.
 //
 
 #pragma once
-#include "GPCBloom.hpp"
-#include "GPCLinearInterpolation.hpp"
-#include "SharedImageContextIndices.hpp"
-#include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
+#include <vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp>
 
+#include "GPCColor.hpp"
+#include "GPCSlope.hpp"
+#include "../util/RendererUtils.hpp"
+#include "SharedImageContextIndices.hpp"
 
 namespace merutilm::rff2 {
-    class RCC4 final : public vkh::RenderPassGraphGenerator {
+    class RenderGraph2 final : public vkh::RenderPassGraphGenerator {
 
-        vkh::RenderPassAttachment *tempAttachment;
         vkh::RenderPassAttachment *resultAttachment;
+        vkh::RenderPassAttachment *tempAttachment;
 
     public:
-        GPCBloom *bloom;
-        GPCLinearInterpolation *linearInterpolation;
+        GPCSlope *slope;
+        GPCColor *color;
 
         using RenderPassGraphGenerator::RenderPassGraphGenerator;
+
 
     protected:
         void configureAttachments() override {
             using namespace SharedImageContextIndices;
-            tempAttachment = &appendAttachment(
+            resultAttachment = &appendAttachment(
                     {
                             .flags = 0,
                             .format = wc.getSharedImageContext()
@@ -39,7 +41,8 @@ namespace merutilm::rff2 {
                             .finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                     },
                     wc.getSharedImageContext().getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY));
-            resultAttachment = &appendAttachment(
+
+            tempAttachment = &appendAttachment(
                     {
                             .flags = 0,
                             .format = wc.getSharedImageContext()
@@ -57,15 +60,23 @@ namespace merutilm::rff2 {
         }
 
         void configurePipelines() override {
-            vkh::GraphicsPipelineNode *bloomNode =
-                    registerPipeline(&bloom, {},
-                                     {tempAttachment, RendererUtils::COLOR_REF_INFO,
-                                      RendererUtils::SAMPLER_READ_DEPENDENCY, RendererUtils::INPUT_REF_INFO},
-                                     RendererUtils::DEFAULT_DESC_PICKER);
 
-            registerPipeline(&linearInterpolation, {bloomNode},
-                             {resultAttachment, RendererUtils::COLOR_REF_INFO, std::nullopt, std::nullopt},
-                             RendererUtils::DEFAULT_DESC_PICKER);
+            vkh::GraphicsPipelineNode *slopeNode = registerPipeline<GPCSlope>(
+                    &slope, {},
+                    {tempAttachment,
+                     {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+                     vkh::SubpassDependency{VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                      VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
+                      VK_DEPENDENCY_BY_REGION_BIT},
+                     vkh::RenderPassAttachmentReference{vkh::RenderPassAttachmentType::INPUT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}},
+                    RendererUtils::DEFAULT_DESC_PICKER);
+
+            registerPipeline<GPCColor>(&color, {slopeNode},
+                                   {resultAttachment,
+                                    {vkh::RenderPassAttachmentType::COLOR, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+                                    std::nullopt,
+                                    std::nullopt},
+                                   RendererUtils::DEFAULT_DESC_PICKER);
         }
     };
 } // namespace merutilm::rff2

@@ -10,14 +10,14 @@
 #include "opencv2/opencv.hpp"
 
 namespace merutilm::rff2 {
-    VideoWindow::VideoWindow(RFFApplication &app, const int width, const int height) :
+    VideoWindow::VideoWindow(RFF2 &app, const int width, const int height) :
         app(app), width(width), height(height) {
         VideoWindow::init();
     }
 
     VideoWindow::~VideoWindow() { VideoWindow::cleanup(); }
 
-    void VideoWindow::createVideo(RFFApplication &app, const std::filesystem::path &open,
+    void VideoWindow::createVideo(RFF2 &app, const std::filesystem::path &open,
                                   const std::filesystem::path &save, const Settings &settingsClone) {
         int imgWidth = 0;
         int imgHeight = 0;

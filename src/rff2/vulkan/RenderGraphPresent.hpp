@@ -7,7 +7,7 @@
 #include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
-    class RCCPresent final : public vkh::RenderPassGraphGenerator {
+    class RenderGraphPresent final : public vkh::RenderPassGraphGenerator {
 
         vkh::RenderPassAttachment *swapchainAttachment;
 

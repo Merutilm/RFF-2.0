@@ -8,7 +8,7 @@
 #include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
-    class RCCStatic2Image final : public vkh::RenderPassGraphGenerator {
+    class RenderGraphStatic2Image final : public vkh::RenderPassGraphGenerator {
         vkh::RenderPassAttachment *resultAttachment;
 
     public:

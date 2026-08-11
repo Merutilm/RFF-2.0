@@ -42,11 +42,11 @@ namespace merutilm::rff2 {
         renderer->compute2MapIterationStripe->set2MapSize(videoExtent);
         renderer->compute2MapIterationStripe->setDefaultZoomIncrement(targetSettings.video.data.defaultZoomIncrement);
         renderer->compute2MapIterationStripe->setStripe(targetSettings.shader.stripe);
-        renderer->rcc2->slope->setSlope(targetSettings.shader.slope);
-        renderer->rcc2->color->setColor(targetSettings.shader.color);
-        renderer->rcc3->fog->setFog(targetSettings.shader.fog);
-        renderer->rcc4->bloom->setBloom(targetSettings.shader.bloom);
-        renderer->rcc4->linearInterpolation->setLinearInterpolation(targetSettings.render.linearInterpolation);
+        renderer->rg2->slope->setSlope(targetSettings.shader.slope);
+        renderer->rg2->color->setColor(targetSettings.shader.color);
+        renderer->rg3->fog->setFog(targetSettings.shader.fog);
+        renderer->rg4->bloom->setBloom(targetSettings.shader.bloom);
+        renderer->rg4->linearInterpolation->setLinearInterpolation(targetSettings.render.linearInterpolation);
         renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
                                                targetSettings.shader.fog.radius);
         renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM,
@@ -67,7 +67,7 @@ namespace merutilm::rff2 {
 
     void VideoWindowRenderManager::applyCurrentStaticImage(const cv::Mat &normal, const cv::Mat &zoomed) const {
         wc.core.getLogicalDevice().waitDeviceIdle();
-        renderer->rccStatic2->static2Image->setImages(normal, zoomed);
+        renderer->rgStatic2->static2Image->setImages(normal, zoomed);
     }
 
 
@@ -85,9 +85,9 @@ namespace merutilm::rff2 {
             sp->renderContextRefreshed();
         }
 
-        renderer->rccDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG, {bWidth, bHeight});
-        renderer->rccDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM, {bWidth, bHeight});
-        renderer->rccPresent->present->setRescaledResolution({sWidth, sHeight});
+        renderer->rgDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG, {bWidth, bHeight});
+        renderer->rgDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM, {bWidth, bHeight});
+        renderer->rgPresent->present->setRescaledResolution({sWidth, sHeight});
     }
 
 

@@ -5,12 +5,12 @@
 #pragma once
 
 namespace merutilm::rff2 {
-    class RFFApplication;
+    class RFF2;
     struct FnFile {
-        static void saveMap(RFFApplication &app);
-        static void saveImage(RFFApplication &app);
-        static void saveLocation(RFFApplication &app);
-        static void loadMap(RFFApplication &app);
-        static void loadLocation(RFFApplication &app);
+        static void saveMap(RFF2 &app);
+        static void saveImage(RFF2 &app);
+        static void saveLocation(RFF2 &app);
+        static void loadMap(RFF2 &app);
+        static void loadLocation(RFF2 &app);
     };
 }

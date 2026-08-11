@@ -4,13 +4,13 @@
 
 #include "FnRender.hpp"
 
-#include "RFFApplication.hpp"
+#include "RFF2.hpp"
 #include "Utilities.h"
 #include "imgui.h"
 
 namespace merutilm::rff2 {
 
-    void FnRender::setResolutionProperties(RFFApplication &app) {
+    void FnRender::setResolutionProperties(RFF2 &app) {
         static bool setResolution = false;
         static std::array<uint32_t, 2> resolutionTemp;
         static float clarityMultiplierTemp;
@@ -78,7 +78,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    void FnRender::setRenderProperties(RFFApplication &app) {
+    void FnRender::setRenderProperties(RFF2 &app) {
         static bool setRenderProperties = false;
 
         ImGui::Checkbox("Set Render Properties", &setRenderProperties);
@@ -114,7 +114,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    void FnRender::linearInterpolation(RFFApplication &app) {
+    void FnRender::linearInterpolation(RFF2 &app) {
         if (ImGui::Checkbox("Linear Interpolation", &app.getSettings().render.linearInterpolation)) {
             app.getRequests().requestShader();
         }

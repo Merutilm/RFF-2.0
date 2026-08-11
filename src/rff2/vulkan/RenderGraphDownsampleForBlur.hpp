@@ -8,7 +8,7 @@
 #include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
-    class RCCDownsampleForBlur final : public vkh::RenderPassGraphGenerator {
+    class RenderGraphDownsampleForBlur final : public vkh::RenderPassGraphGenerator {
 
         vkh::RenderPassAttachment *resultAttachment;
 

@@ -9,24 +9,24 @@
 
 namespace merutilm::rff2 {
 
-    class RFFApplication;
+    class RFF2;
     struct FnExplore {
-        static void recompute(RFFApplication &app);
-        static void reset(RFFApplication &app);
-        static void cancelRender(RFFApplication &app);
-        static void findCenter(RFFApplication &app);
-        static void locateCenteredReference(RFFApplication &app);
-        static void locateMinibrot(RFFApplication &app);
+        static void recompute(RFF2 &app);
+        static void reset(RFF2 &app);
+        static void cancelRender(RFF2 &app);
+        static void findCenter(RFF2 &app);
+        static void locateCenteredReference(RFF2 &app);
+        static void locateMinibrot(RFF2 &app);
 
-        static std::function<void(uint64_t, int)> getActionWhileFindingMBCenter(RFFApplication &app,
+        static std::function<void(uint64_t, int)> getActionWhileFindingMBCenter(RFF2 &app,
                                                                                 uint64_t longestPeriod);
 
-        static std::function<void(uint64_t, float)> getActionWhileSeriesApprox(RFFApplication &app);
+        static std::function<void(uint64_t, float)> getActionWhileSeriesApprox(RFF2 &app);
 
-        static std::function<void(uint64_t, float)> getActionWhileCreatingTable(RFFApplication &app);
+        static std::function<void(uint64_t, float)> getActionWhileCreatingTable(RFF2 &app);
 
-        static std::function<void(float)> getActionWhileFindingZoom(RFFApplication &app);
+        static std::function<void(float)> getActionWhileFindingZoom(RFF2 &app);
 
-        static std::function<void(uint64_t)> getActionWhileRefCalc(RFFApplication &app, float startTime);
+        static std::function<void(uint64_t)> getActionWhileRefCalc(RFF2 &app, float startTime);
     };
 } // namespace merutilm::rff2

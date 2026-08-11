@@ -6,11 +6,11 @@
 #include "../data/GraphicsMatrixStagingBuffer.h"
 #include "../util/RendererUtils.hpp"
 #include "../vulkan/CPCBoxBlur.hpp"
-#include "../vulkan/RCC0.hpp"
-#include "../vulkan/RCC3.hpp"
-#include "../vulkan/RCC4.hpp"
-#include "../vulkan/RCCDownsampleForBlur.hpp"
 #include "../vulkan/RCCPresentPrepareImgui.hpp"
+#include "../vulkan/RenderGraph0.hpp"
+#include "../vulkan/RenderGraph3.hpp"
+#include "../vulkan/RenderGraph4.hpp"
+#include "../vulkan/RenderGraphDownsampleForBlur.hpp"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
 #include "vulkan_helper/engine/internal/RendererImGui.hpp"
 #include "vulkan_helper/util/BarrierUtils.hpp"
@@ -22,19 +22,19 @@ namespace merutilm::rff2 {
 
         Settings &settings;
 
-        vkh::RenderContext *rc0;
-        vkh::RenderContext *rcDownsample;
-        vkh::RenderContext *rc3;
-        vkh::RenderContext *rc4;
-        vkh::RenderContext *rcPresent;
+        vkh::RenderContext *rc0 = nullptr;
+        vkh::RenderContext *rcDownsample = nullptr;
+        vkh::RenderContext *rc3 = nullptr;
+        vkh::RenderContext *rc4 = nullptr;
+        vkh::RenderContext *rcPresent = nullptr;
 
-        RCC0 *rcc0;
-        RCCDownsampleForBlur *rccDownsample;
-        RCC3 *rcc3;
-        RCC4 *rcc4;
-        RCCPresentPrepareImgui *rccPresentPrepare;
+        RenderGraph0 *rg0 = nullptr;
+        RenderGraphDownsampleForBlur *rccDownsample = nullptr;
+        RenderGraph3 *rg3 = nullptr;
+        RenderGraph4 *rg4 = nullptr;
+        RCCPresentPrepareImgui *rccPresentPrepare = nullptr;
 
-        CPCBoxBlur *computeBoxBlur;
+        CPCBoxBlur *computeBoxBlur = nullptr;
 
         std::unique_ptr<GraphicsMatrixBuffer<double>> iterationStagingBufferContext = nullptr;
 
@@ -65,29 +65,29 @@ namespace merutilm::rff2 {
             };
             computeBoxBlur =
                     vkh::ComputePipelineConfigurator::createComputePipeline<CPCBoxBlur>(configurators, engine, wc);
-            rc0 = vkh::RenderContextUtils::attachRenderContext<RCC0>(
-                    &rcc0, configurators, engine, wc,
+            rc0 = vkh::RenderContextUtils::attachRenderContext<RenderGraph0>(
+                    &rg0, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
-            rcDownsample = vkh::RenderContextUtils::attachRenderContext<RCCDownsampleForBlur>(
+            rcDownsample = vkh::RenderContextUtils::attachRenderContext<RenderGraphDownsampleForBlur>(
                     &rccDownsample, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getBlurredImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                      settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
-            rc3 = vkh::RenderContextUtils::attachRenderContext<RCC3>(
-                    &rcc3, configurators, engine, wc,
+            rc3 = vkh::RenderContextUtils::attachRenderContext<RenderGraph3>(
+                    &rg3, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
-            rc4 = vkh::RenderContextUtils::attachRenderContext<RCC4>(
-                    &rcc4, configurators, engine, wc,
+            rc4 = vkh::RenderContextUtils::attachRenderContext<RenderGraph4>(
+                    &rg4, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
@@ -116,10 +116,10 @@ namespace merutilm::rff2 {
             };
 
 
-            rcc0->iterationPalette->cmdRefreshIterations(wc.getCommandBuffer().getCommandBufferHandle(frameIndex),
+            rg0->iterationPalette->cmdRefreshIterations(wc.getCommandBuffer().getCommandBufferHandle(frameIndex),
                                                          iterationStagingBufferContext->getContext());
 
-            auto &ctx = rcc0->iterationPalette->getResultIterationBuffer();
+            auto &ctx = rg0->iterationPalette->getResultIterationBuffer();
             vkh::BarrierUtils::cmdBufferMemoryBarrier(cbh, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
                                                       ctx.buffer, 0, ctx.bufferSize, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                                       VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
@@ -137,7 +137,7 @@ namespace merutilm::rff2 {
                     VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
             // [BARRIER] PRIMARY
 
-            rccDownsample->descIndexer = RCCDownsampleForBlur::DescIndexer::FOG;
+            rccDownsample->descIndexer = RenderGraphDownsampleForBlur::DescIndexer::FOG;
             vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rcDownsample, frameIndex);
 
             // [IN] PRIMARY
@@ -182,7 +182,7 @@ namespace merutilm::rff2 {
 
             // [BARRIER] PRIMARY
 
-            rccDownsample->descIndexer = RCCDownsampleForBlur::DescIndexer::BLOOM;
+            rccDownsample->descIndexer = RenderGraphDownsampleForBlur::DescIndexer::BLOOM;
             vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rcDownsample, frameIndex);
             // [IN] PRIMARY
             // [OUT] DOWNSAMPLED_PRIMARY

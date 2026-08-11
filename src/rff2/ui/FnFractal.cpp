@@ -6,14 +6,14 @@
 
 #include "../formula/Perturbator.h"
 #include "../settings/Selectable.h"
-#include "RFFApplication.hpp"
+#include "RFF2.hpp"
 #include "Utilities.h"
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 
 namespace merutilm::rff2 {
 
-    void FnFractal::reference(RFFApplication &app) {
+    void FnFractal::reference(RFF2 &app) {
 
         static bool enabled = false;
         auto &frt = app.getSettings().fractal;
@@ -164,7 +164,7 @@ namespace merutilm::rff2 {
             ImGui::End();
         }
     }
-    void FnFractal::iterations(RFFApplication &app) {
+    void FnFractal::iterations(RFF2 &app) {
 
         static bool enabled = false;
         ImGui::Checkbox("Iterations", &enabled);
@@ -205,7 +205,7 @@ namespace merutilm::rff2 {
             ImGui::End();
         }
     }
-    void FnFractal::sa(RFFApplication &app) {
+    void FnFractal::sa(RFF2 &app) {
 
 
         static bool enabled = false;
@@ -255,7 +255,7 @@ namespace merutilm::rff2 {
             ImGui::End();
         }
     }
-    void FnFractal::mpa(RFFApplication &app) {
+    void FnFractal::mpa(RFF2 &app) {
 
         static bool enabled = false;
         ImGui::Checkbox("MP-Approximation", &enabled);
@@ -309,10 +309,10 @@ namespace merutilm::rff2 {
         }
     }
 
-    void FnFractal::automaticIterations(RFFApplication &app) {
+    void FnFractal::automaticIterations(RFF2 &app) {
         ImGui::Checkbox("Auto Iterations", &app.getSettings().fractal.perturb.autoMaxIteration);
     }
-    void FnFractal::absoluteIterationMode(RFFApplication &app) {
+    void FnFractal::absoluteIterationMode(RFF2 &app) {
         ImGui::Checkbox("Absolute Iteration Mode", &app.getSettings().fractal.perturb.absoluteIterationMode);
     }
 

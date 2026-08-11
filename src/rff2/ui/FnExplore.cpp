@@ -11,17 +11,17 @@
 
 #include "../constants/Constants.hpp"
 #include "../locator/MB2Locator.h"
-#include "RFFApplication.hpp"
+#include "RFF2.hpp"
 
 namespace merutilm::rff2 {
 
 
-    void FnExplore::recompute(RFFApplication &app) {
+    void FnExplore::recompute(RFF2 &app) {
         if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
             return app.getRequests().requestRecompute();
         }
     };
-    void FnExplore::reset(RFFApplication &app) {
+    void FnExplore::reset(RFF2 &app) {
 
         if (ImGui::Button("Reset", ImVec2(-FLT_MIN, 0))) {
             app.getRequests().requestDefaultSettings();
@@ -31,12 +31,12 @@ namespace merutilm::rff2 {
             app.getRequests().requestRecompute();
         }
     }
-    void FnExplore::cancelRender(RFFApplication &app) {
+    void FnExplore::cancelRender(RFF2 &app) {
         if (ImGui::Button("Cancel", ImVec2(-FLT_MIN, 0))) {
             app.getState().cancel();
         }
     }
-    void FnExplore::findCenter(RFFApplication &app) {
+    void FnExplore::findCenter(RFF2 &app) {
 
         if (ImGui::Button("Find Center", ImVec2(-FLT_MIN, 0))) {
             const MB2RenderDataBase *data = app.getCurrentRenderData();
@@ -51,7 +51,7 @@ namespace merutilm::rff2 {
             }
         }
     }
-    void FnExplore::locateCenteredReference(RFFApplication &app) {
+    void FnExplore::locateCenteredReference(RFF2 &app) {
         if (ImGui::Button("Locate Centered Reference", ImVec2(-FLT_MIN, 0))) {
 
             ParallelRenderState &state = app.getState();
@@ -94,7 +94,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    void FnExplore::locateMinibrot(RFFApplication &app) {
+    void FnExplore::locateMinibrot(RFF2 &app) {
 
         if (ImGui::Button("Locate Minibrot", ImVec2(-FLT_MIN, 0))) {
             Settings &settings = app.getSettings();
@@ -139,7 +139,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    std::function<void(uint64_t, int)> FnExplore::getActionWhileFindingMBCenter(RFFApplication &app,
+    std::function<void(uint64_t, int)> FnExplore::getActionWhileFindingMBCenter(RFF2 &app,
                                                                                 const uint64_t longestPeriod) {
         return [&app, longestPeriod](const uint64_t p, int i) {
             static float time = app.rootWindowContext->getWindow()->getTime();
@@ -153,7 +153,7 @@ namespace merutilm::rff2 {
         };
     }
 
-    std::function<void(uint64_t, float)> FnExplore::getActionWhileSeriesApprox(RFFApplication &app) {
+    std::function<void(uint64_t, float)> FnExplore::getActionWhileSeriesApprox(RFF2 &app) {
         return [&app](const uint64_t, const float i) {
             static float time = app.rootWindowContext->getWindow()->getTime();
             const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
@@ -166,7 +166,7 @@ namespace merutilm::rff2 {
     }
 
 
-    std::function<void(uint64_t, float)> FnExplore::getActionWhileCreatingTable(RFFApplication &app) {
+    std::function<void(uint64_t, float)> FnExplore::getActionWhileCreatingTable(RFF2 &app) {
         return [&app](const uint64_t, const float i) {
             static float time = app.rootWindowContext->getWindow()->getTime();
             const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
@@ -179,12 +179,12 @@ namespace merutilm::rff2 {
     }
 
 
-    std::function<void(float)> FnExplore::getActionWhileFindingZoom(RFFApplication &app) {
+    std::function<void(float)> FnExplore::getActionWhileFindingZoom(RFF2 &app) {
         return [&app](float zoom) {
             app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Zoom : 10^{}", zoom));
         };
     }
-    std::function<void(uint64_t)> FnExplore::getActionWhileRefCalc(RFFApplication &app, float startTime) {
+    std::function<void(uint64_t)> FnExplore::getActionWhileRefCalc(RFF2 &app, float startTime) {
         return [&app, startTime](const uint64_t p) {
             static float time = app.rootWindowContext->getWindow()->getTime();
             const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;

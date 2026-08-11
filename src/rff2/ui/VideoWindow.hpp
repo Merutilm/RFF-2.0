@@ -6,7 +6,7 @@
 
 
 #include "../settings/Settings.h"
-#include "RFFApplication.hpp"
+#include "RFF2.hpp"
 #include "VideoBufferCache.hpp"
 #include "VideoWindowRenderManager.hpp"
 
@@ -15,14 +15,14 @@ namespace merutilm::rff2 {
 
     class VideoWindow final : vkh::Handler{
 
-        RFFApplication &app;
+        RFF2 &app;
         std::unique_ptr<VideoWindowRenderManager> scene = nullptr;
         const int width;
         const int height;
 
 
     public:
-        explicit VideoWindow(RFFApplication &app, int width, int height);
+        explicit VideoWindow(RFF2 &app, int width, int height);
 
         ~VideoWindow() override;
 
@@ -35,7 +35,7 @@ namespace merutilm::rff2 {
         VideoWindow &operator=(VideoWindow &&) = delete;
 
 
-        static void createVideo(RFFApplication &app, const std::filesystem::path &open,
+        static void createVideo(RFF2 &app, const std::filesystem::path &open,
                                 const std::filesystem::path &save, const Settings &settingsClone);
 
         static cv::Mat generateFrame(const VideoBufferCache &buffer, int imgWidth, bool showText);

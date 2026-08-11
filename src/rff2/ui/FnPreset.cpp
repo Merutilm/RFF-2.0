@@ -17,7 +17,7 @@
 namespace merutilm::rff2 {
 
 
-    void FnPreset::calculation(RFFApplication &app) {
+    void FnPreset::calculation(RFF2 &app) {
         if (ImGui::TreeNode("Calculation")) {
             addPresetExecutor(app, CalculationPresets::UltraFast());
             addPresetExecutor(app, CalculationPresets::Fast());
@@ -30,7 +30,7 @@ namespace merutilm::rff2 {
             ImGui::TreePop();
         }
     }
-    void FnPreset::render(RFFApplication &app) {
+    void FnPreset::render(RFF2 &app) {
         if (ImGui::TreeNode("Render")) {
             addPresetExecutor(app, RenderPresets::Potato());
             addPresetExecutor(app, RenderPresets::Low());
@@ -41,7 +41,7 @@ namespace merutilm::rff2 {
             ImGui::TreePop();
         }
     }
-    void FnPreset::resolution(RFFApplication &app) {
+    void FnPreset::resolution(RFF2 &app) {
         if (ImGui::TreeNode("Resolution")) {
 
             addPresetExecutor(app, ResolutionPresets::L1());
@@ -52,7 +52,7 @@ namespace merutilm::rff2 {
             ImGui::TreePop();
         }
     }
-    void FnPreset::shader(RFFApplication &app) {
+    void FnPreset::shader(RFF2 &app) {
         if (ImGui::TreeNode("Shader")) {
             if (ImGui::TreeNode("Palette")) {
                 addPresetExecutor(app, ShdPalettePresets::Classic1());

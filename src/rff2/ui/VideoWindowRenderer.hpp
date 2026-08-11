@@ -3,40 +3,40 @@
 //
 
 #pragma once
+#include <vulkan_helper/util/RenderContextUtils.hpp>
+#include "../util/RendererUtils.hpp"
 #include "../vulkan/CPC2MapIterationStripe.hpp"
 #include "../vulkan/CPCBoxBlur.hpp"
 #include "../vulkan/CPCImageRGBA2BGR.hpp"
-#include "../vulkan/RCC2.hpp"
-#include "../vulkan/RCC3.hpp"
-#include "../vulkan/RCC4.hpp"
-#include "../vulkan/RCCDownsampleForBlur.hpp"
-#include "../vulkan/RCCPresent.hpp"
-#include "../vulkan/RCCStatic2Image.hpp"
+#include "../vulkan/RenderGraph2.hpp"
+#include "../vulkan/RenderGraph3.hpp"
+#include "../vulkan/RenderGraph4.hpp"
+#include "../vulkan/RenderGraphDownsampleForBlur.hpp"
+#include "../vulkan/RenderGraphPresent.hpp"
+#include "../vulkan/RenderGraphStatic2Image.hpp"
 #include "../vulkan/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/base/vkh.hpp"
 #include "vulkan_helper/engine/configurator/PipelineConfigurator.hpp"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
 #include "vulkan_helper/engine/graphics/Renderer.hpp"
-#include <vulkan_helper/util/RenderContextUtils.hpp>
 #include "vulkan_helper/util/BarrierUtils.hpp"
-#include "../util/RendererUtils.hpp"
 
 namespace merutilm::rff2 {
     struct VideoWindowRenderer final : public vkh::Renderer {
 
-        vkh::RenderContext *rcStatic2;
-        vkh::RenderContext *rc2;
-        vkh::RenderContext *rcDownsample;
-        vkh::RenderContext *rc3;
-        vkh::RenderContext *rc4;
-        vkh::RenderContext *rcPresent;
+        vkh::RenderContext *rcStatic2 = nullptr;
+        vkh::RenderContext *rc2 = nullptr;
+        vkh::RenderContext *rcDownsample = nullptr;
+        vkh::RenderContext *rc3 = nullptr;
+        vkh::RenderContext *rc4 = nullptr;
+        vkh::RenderContext *rcPresent = nullptr;
 
-        RCCStatic2Image *rccStatic2;
-        RCC2 *rcc2;
-        RCCDownsampleForBlur *rccDownsample;
-        RCC3 *rcc3;
-        RCC4 *rcc4;
-        RCCPresent *rccPresent;
+        RenderGraphStatic2Image *rgStatic2 = nullptr;
+        RenderGraph2 *rg2 = nullptr;
+        RenderGraphDownsampleForBlur *rgDownsample = nullptr;
+        RenderGraph3 *rg3 = nullptr;
+        RenderGraph4 *rg4 = nullptr;
+        RenderGraphPresent *rgPresent = nullptr;
 
         CPC2MapIterationStripe *compute2MapIterationStripe = nullptr;
         CPCBoxBlur *computeBoxBlur = nullptr;
@@ -77,37 +77,37 @@ namespace merutilm::rff2 {
             computeBoxBlur =
                     vkh::ComputePipelineConfigurator::createComputePipeline<CPCBoxBlur>(configurators, engine, wc);
 
-            rcStatic2 = vkh::RenderContextUtils::attachRenderContext<RCCStatic2Image>(
-                &rccStatic2,
+            rcStatic2 = vkh::RenderContextUtils::attachRenderContext<RenderGraphStatic2Image>(
+                &rgStatic2,
                 configurators, engine, wc, [this] {
                     return videoExtent;
                 }, swapchainImageContextGetter);
-            rc2 = vkh::RenderContextUtils::attachRenderContext<RCC2>(
-                    &rcc2, configurators, engine, wc,
+            rc2 = vkh::RenderContextUtils::attachRenderContext<RenderGraph2>(
+                    &rg2, configurators, engine, wc,
                     [this] {
                         return videoExtent;
                     },
                     swapchainImageContextGetter);
-            rcDownsample = vkh::RenderContextUtils::attachRenderContext<RCCDownsampleForBlur>(
-                    &rccDownsample, configurators, engine, wc,
+            rcDownsample = vkh::RenderContextUtils::attachRenderContext<RenderGraphDownsampleForBlur>(
+                    &rgDownsample, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getBlurredImageExtent(videoExtent, 1);
                     },
                     swapchainImageContextGetter);
-            rc3 = vkh::RenderContextUtils::attachRenderContext<RCC3>(
-                    &rcc3, configurators, engine, wc,
+            rc3 = vkh::RenderContextUtils::attachRenderContext<RenderGraph3>(
+                    &rg3, configurators, engine, wc,
                     [this] {
                         return videoExtent;
                     },
                     swapchainImageContextGetter);
-            rc4 = vkh::RenderContextUtils::attachRenderContext<RCC4>(
-                    &rcc4, configurators, engine, wc,
+            rc4 = vkh::RenderContextUtils::attachRenderContext<RenderGraph4>(
+                    &rg4, configurators, engine, wc,
                     [this] {
                         return videoExtent;
                     },
                     swapchainImageContextGetter);
-            rcPresent = vkh::RenderContextUtils::attachRenderContext<RCCPresent>(
-                    &rccPresent, configurators, engine, wc, [this] { return wc.getSwapchain().getSwapchainExtent(); },
+            rcPresent = vkh::RenderContextUtils::attachRenderContext<RenderGraphPresent>(
+                    &rgPresent, configurators, engine, wc, [this] { return wc.getSwapchain().getSwapchainExtent(); },
                     swapchainImageContextGetter);
 
             finishPipelineInitialization();
@@ -181,7 +181,7 @@ namespace merutilm::rff2 {
                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
                 // [BARRIER] PRIMARY
 
-                rccDownsample->descIndexer = RCCDownsampleForBlur::DescIndexer::FOG;
+                rgDownsample->descIndexer = RenderGraphDownsampleForBlur::DescIndexer::FOG;
                 vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(
                         wc, *rcDownsample, frameIndex);
 
@@ -228,7 +228,7 @@ namespace merutilm::rff2 {
 
                 // [BARRIER] PRIMARY
 
-                rccDownsample->descIndexer = RCCDownsampleForBlur::DescIndexer::BLOOM;
+                rgDownsample->descIndexer = RenderGraphDownsampleForBlur::DescIndexer::BLOOM;
                 vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rcDownsample, frameIndex);
                 // [IN] PRIMARY
                 // [OUT] DOWNSAMPLED_PRIMARY

@@ -10,7 +10,7 @@
 
 namespace merutilm::rff2 {
 
-    void FnShader::palette(RFFApplication &app) {
+    void FnShader::palette(RFF2 &app) {
 
         static bool enabled = false;
 
@@ -213,7 +213,7 @@ namespace merutilm::rff2 {
             ImGui::End();
         }
     }
-    void FnShader::stripe(RFFApplication &app) {
+    void FnShader::stripe(RFF2 &app) {
 
         static bool enabled = false;
 
@@ -273,7 +273,7 @@ namespace merutilm::rff2 {
             ImGui::End();
         }
     }
-    void FnShader::slope(RFFApplication &app) {
+    void FnShader::slope(RFF2 &app) {
         static bool enabled = false;
 
         ImGui::Checkbox("Slope", &enabled);
@@ -313,7 +313,7 @@ namespace merutilm::rff2 {
             ImGui::End();
         }
     }
-    void FnShader::color(RFFApplication &app) {
+    void FnShader::color(RFF2 &app) {
 
         static bool enabled = false;
 
@@ -350,7 +350,7 @@ namespace merutilm::rff2 {
             ImGui::End();
         }
     }
-    void FnShader::fog(RFFApplication &app) {
+    void FnShader::fog(RFF2 &app) {
 
         static bool enabled = false;
 
@@ -374,7 +374,7 @@ namespace merutilm::rff2 {
             ImGui::End();
         }
     }
-    void FnShader::bloom(RFFApplication &app) {
+    void FnShader::bloom(RFF2 &app) {
         static bool enabled = false;
 
         ImGui::Checkbox("Bloom", &enabled);

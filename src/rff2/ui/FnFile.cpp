@@ -6,13 +6,13 @@
 
 #include "../constants/Constants.hpp"
 #include "../io/RFFLocationBinary.h"
-#include "../ui/RFFApplication.hpp"
+#include "../ui/RFF2.hpp"
 #include "IOUtilities.h"
 #include "imgui.h"
 
 namespace merutilm::rff2 {
 
-    void FnFile::saveMap(RFFApplication &app) {
+    void FnFile::saveMap(RFF2 &app) {
         if (ImGui::Button("Save Map", ImVec2(-FLT_MIN, 0))) {
             const auto path = IOUtilities::ioFileDialog(Constants::File::DESC_DYNAMIC_MAP, IOUtilities::SAVE_FILE,
                                                         Constants::File::EXT_DYNAMIC_MAP);
@@ -22,12 +22,12 @@ namespace merutilm::rff2 {
             app.generateMap().exportFile(*path);
         }
     }
-    void FnFile::saveImage(RFFApplication &app) {
+    void FnFile::saveImage(RFF2 &app) {
         if (ImGui::Button("Save Image", ImVec2(-FLT_MIN, 0))) {
             app.getRequests().requestCreateImage();
         }
     }
-    void FnFile::saveLocation(RFFApplication &app) {
+    void FnFile::saveLocation(RFF2 &app) {
 
         if (ImGui::Button("Save Location", ImVec2(-FLT_MIN, 0))) {
             const auto path = IOUtilities::ioFileDialog(Constants::File::DESC_LOCATION, IOUtilities::SAVE_FILE,
@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
                     .exportFile(*path);
         }
     }
-    void FnFile::loadMap(RFFApplication &app) {
+    void FnFile::loadMap(RFF2 &app) {
 
         if (ImGui::Button("Load Map", ImVec2(-FLT_MIN, 0))) {
             const auto path = IOUtilities::ioFileDialog(Constants::File::DESC_DYNAMIC_MAP, IOUtilities::OPEN_FILE,
@@ -54,7 +54,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    void FnFile::loadLocation(RFFApplication &app) {
+    void FnFile::loadLocation(RFF2 &app) {
 
 
         if (ImGui::Button("Load Location", ImVec2(-FLT_MIN, 0))) {

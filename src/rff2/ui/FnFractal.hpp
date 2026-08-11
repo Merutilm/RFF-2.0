@@ -7,14 +7,14 @@
 
 
 namespace merutilm::rff2 {
-    class RFFApplication;
+    class RFF2;
     struct FnFractal {
-        static void reference(RFFApplication &app);
-        static void iterations(RFFApplication &app);
-        static void sa(RFFApplication &app);
-        static void mpa(RFFApplication &app);
+        static void reference(RFF2 &app);
+        static void iterations(RFF2 &app);
+        static void sa(RFF2 &app);
+        static void mpa(RFF2 &app);
 
-        static void automaticIterations(RFFApplication &app);
-        static void absoluteIterationMode(RFFApplication &app);
+        static void automaticIterations(RFF2 &app);
+        static void absoluteIterationMode(RFF2 &app);
     };
 } // namespace merutilm::rff2

@@ -18,7 +18,7 @@
 
 namespace merutilm::rff2 {
 
-    void FnVideo::dataSettings(RFFApplication &app) {
+    void FnVideo::dataSettings(RFF2 &app) {
         static bool enabled = false;
         ImGui::Checkbox("Data Settings", &enabled);
         if (enabled) {
@@ -36,7 +36,7 @@ namespace merutilm::rff2 {
             ImGui::End();
         }
     }
-    void FnVideo::animationSettings(RFFApplication &app) {
+    void FnVideo::animationSettings(RFF2 &app) {
         static bool enabled = false;
         ImGui::Checkbox("Animation Settings", &enabled);
         if (enabled) {
@@ -54,7 +54,7 @@ namespace merutilm::rff2 {
             ImGui::End();
         }
     }
-    void FnVideo::exportSettings(RFFApplication &app) {
+    void FnVideo::exportSettings(RFF2 &app) {
         static bool enabled = false;
         ImGui::Checkbox("Export Settings", &enabled);
         if (enabled) {
@@ -69,7 +69,7 @@ namespace merutilm::rff2 {
         }
 
     }
-    void FnVideo::generateVidKeyframes(RFFApplication &app) {
+    void FnVideo::generateVidKeyframes(RFF2 &app) {
         if (ImGui::Button("Generate Video Keyframes", ImVec2(-FLT_MIN, 0))) {
             app.getBackgroundThreads().createThread([&app](BackgroundThread &thread) {
                 const auto &state = app.getState();
@@ -134,7 +134,7 @@ namespace merutilm::rff2 {
             });
         };
     }
-    void FnVideo::exportZoomVideo(RFFApplication &app) {
+    void FnVideo::exportZoomVideo(RFF2 &app) {
         if (ImGui::Button("Export Zooming Video", ImVec2(-FLT_MIN, 0))) {
             app.getBackgroundThreads().createThread([&app, settingsClone = app.getSettings()](const BackgroundThread &) {
                 const auto openPtr = IOUtilities::ioDirectoryDialog("Select Sample Keyframe folder");

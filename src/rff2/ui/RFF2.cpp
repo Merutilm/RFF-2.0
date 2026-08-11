@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-08-08.
 //
 
-#include "RFFApplication.hpp"
+#include "RFF2.hpp"
 
 #include "../calc/dex_exp.h"
 #include "../locator/MB2Locator.h"
@@ -40,7 +40,7 @@
 namespace merutilm::rff2 {
 
 
-    void RFFApplication::onStart() {
+    void RFF2::onStart() {
         cursorManager = std::make_unique<CursorManager>(rootWindowContext->getWindow()->getWindow());
 
         applyShaderSettings(settings);
@@ -50,7 +50,7 @@ namespace merutilm::rff2 {
         NFD::Init();
     }
 
-    void RFFApplication::onResize(const VkExtent2D newExtent) {
+    void RFF2::onResize(const VkExtent2D newExtent) {
         Application::onResize(newExtent);
         if (newExtent.width > 0 || newExtent.height > 0) {
             engine->getCore().getLogicalDevice().waitDeviceIdle();
@@ -62,13 +62,13 @@ namespace merutilm::rff2 {
     }
 
 
-    void RFFApplication::onQuit() {
+    void RFF2::onQuit() {
         state.cancel();
         renderer = nullptr;
         NFD::Quit();
     }
 
-    void RFFApplication::update() {
+    void RFF2::update() {
 
         if (requests.defaultSettingsRequested) {
             applyDefaultSettings();
@@ -106,7 +106,7 @@ namespace merutilm::rff2 {
     }
 
 
-    Settings RFFApplication::genDefaultSettings() {
+    Settings RFF2::genDefaultSettings() {
 #ifndef NDEBUG
         return Settings{
                 .fractal =
@@ -178,7 +178,7 @@ namespace merutilm::rff2 {
 #endif
     }
 
-    complex<dex> RFFApplication::offsetConversion(const Settings &s, const int mx, const int my) const {
+    complex<dex> RFF2::offsetConversion(const Settings &s, const int mx, const int my) const {
         using namespace Constants::Fractal;
         const double ox = static_cast<double>(mx) - static_cast<double>(getIterationBufferWidth()) / 2.0;
         const double oy = static_cast<double>(my) - static_cast<double>(getIterationBufferHeight()) / 2.0;
@@ -189,29 +189,29 @@ namespace merutilm::rff2 {
                         getDivisor(s) / dex(s.render.clarityMultiplier)};
     }
 
-    dex RFFApplication::getDivisor(const Settings &settings) {
+    dex RFF2::getDivisor(const Settings &settings) {
         return dex_exp::exp10(settings.fractal.general.logZoom);
     }
 
 
-    uint16_t RFFApplication::calcIterationBufferWidth(const Settings &s) const {
+    uint16_t RFF2::calcIterationBufferWidth(const Settings &s) const {
         const float multiplier = s.render.clarityMultiplier;
         return static_cast<uint16_t>(static_cast<float>(rootWindowContext->getSwapchain().getSwapchainExtent().width) *
                                      multiplier);
     }
 
-    uint16_t RFFApplication::calcIterationBufferHeight(const Settings &s) const {
+    uint16_t RFF2::calcIterationBufferHeight(const Settings &s) const {
         const float multiplier = s.render.clarityMultiplier;
         return static_cast<uint16_t>(static_cast<float>(rootWindowContext->getSwapchain().getSwapchainExtent().height) *
                                      multiplier);
     }
 
-    uint16_t RFFApplication::getIterationBufferWidth() const { return renderer->rcc0->iterationPalette->iterWidth; }
+    uint16_t RFF2::getIterationBufferWidth() const { return renderer->rg0->iterationPalette->iterWidth; }
 
-    uint16_t RFFApplication::getIterationBufferHeight() const { return renderer->rcc0->iterationPalette->iterHeight; }
+    uint16_t RFF2::getIterationBufferHeight() const { return renderer->rg0->iterationPalette->iterHeight; }
 
 
-    void RFFApplication::addListeners() {
+    void RFF2::addListeners() {
         Application::addListeners();
         auto &eventSystem = rootWindowContext->getWindow()->eventSystem;
 
@@ -266,39 +266,47 @@ namespace merutilm::rff2 {
             const int my = static_cast<int>(mdy);
             const int16_t mix = getMouseXOnIterationBuffer(mx);
             const int16_t miy = getMouseYOnIterationBuffer(my);
-            const auto mxr = static_cast<float>(mix) / static_cast<float>(getIterationBufferWidth()) - 0.5f;
-            const auto myr = static_cast<float>(miy) / static_cast<float>(getIterationBufferHeight()) - 0.5f;
-            const auto dz = pow(10.0f, -zoomAnimationInfo.targetLogZoomOffsetAim);
-
-            const auto [re, im] = offsetConversion(settings, mix, miy);
-            float &logZoom = settings.fractal.general.logZoom;
-            fixed_point_complex_i1 &center = settings.fractal.reference.center;
-            const int exp10 = Perturbator::logZoomToExp10(logZoom);
-            center.set_exp10(exp10);
-            const float mag = value > 0 ? Constants::Fractal::ZOOM_INTERVAL : -Constants::Fractal::ZOOM_INTERVAL;
-
-            const double mz = pow(10, -mag);
-            logZoom += mag;
-            const fixed_point_complex_i1 add(re * dex(1 - mz), im * dex(1 - mz), exp10);
-            fixed_point_complex_i1::add(center, center, add);
-
-            zoomAnimationInfo.stop();
-            zoomAnimationInfo.targetLogZoomOffsetAim += mag;
-            zoomAnimationInfo.targetMouseZoomOffsetAim += glm::vec2{mxr * dz * (mz - 1), myr * dz * (1 - mz)};
-
-
-            requests.requestRecompute();
+            zoom(mix, miy, value > 0 ? Constants::Fractal::ZOOM_INTERVAL : -Constants::Fractal::ZOOM_INTERVAL);
         });
     }
 
 
-    void RFFApplication::applyDefaultSettings() {
+    void RFF2::zoom(const int16_t px, const int16_t py, const float logIncrement) {
+
+        settings.fractal.general.logZoom = std::max(Constants::Fractal::ZOOM_MIN, settings.fractal.general.logZoom);
+        const int16_t mix = px;
+        const int16_t miy = py;
+        const auto mxr = static_cast<float>(mix) / static_cast<float>(getIterationBufferWidth()) - 0.5f;
+        const auto myr = static_cast<float>(miy) / static_cast<float>(getIterationBufferHeight()) - 0.5f;
+        const auto dz = pow(10.0f, -zoomAnimationInfo.targetLogZoomOffsetAim);
+
+        const auto [re, im] = offsetConversion(settings, mix, miy);
+        float &logZoom = settings.fractal.general.logZoom;
+        fixed_point_complex_i1 &center = settings.fractal.reference.center;
+        const int exp10 = Perturbator::logZoomToExp10(logZoom);
+        center.set_exp10(exp10);
+
+        const float mz = pow(10.0f, -logIncrement);
+        logZoom += logIncrement;
+        const fixed_point_complex_i1 add(re * dex(1 - mz), im * dex(1 - mz), exp10);
+        fixed_point_complex_i1::add(center, center, add);
+
+        zoomAnimationInfo.stop();
+        zoomAnimationInfo.targetLogZoomOffsetAim += logIncrement;
+        zoomAnimationInfo.targetMouseZoomOffsetAim += glm::vec2{mxr * dz * (mz - 1), myr * dz * (1 - mz)};
+
+
+        requests.requestRecompute();
+    }
+
+
+    void RFF2::applyDefaultSettings() {
         rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
         settings = genDefaultSettings();
     }
 
 
-    void RFFApplication::applyCreateImage() {
+    void RFF2::applyCreateImage() {
         const uint32_t frameIndex = renderer->getFrameIndex();
         rootWindowContext->getSyncObject().getFence(frameIndex).wait();
 
@@ -342,7 +350,7 @@ namespace merutilm::rff2 {
         vkh::BufferContext::destroyContext(rootWindowContext->core, bufCtx);
     }
 
-    void RFFApplication::invokeUpdaters() {
+    void RFF2::invokeUpdaters() {
         static float time = rootWindowContext->getWindow()->getTime();
         const float t = rootWindowContext->getWindow()->getTime();
         const float dt = t - time;
@@ -354,20 +362,20 @@ namespace merutilm::rff2 {
                                                                    zoomAnimationInfo.targetLogZoomOffset);
     }
 
-    void RFFApplication::applyShaderSettings(const Settings &s) const {
+    void RFF2::applyShaderSettings(const Settings &s) const {
         rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
-        renderer->rcc0->iterationPalette->setPalette(s.shader.palette);
-        renderer->rcc0->stripe->setStripe(s.shader.stripe);
-        renderer->rcc0->slope->setSlope(s.shader.slope);
-        renderer->rcc0->color->setColor(s.shader.color);
-        renderer->rcc3->fog->setFog(s.shader.fog);
-        renderer->rcc4->bloom->setBloom(s.shader.bloom);
-        renderer->rcc4->linearInterpolation->setLinearInterpolation(s.render.linearInterpolation);
+        renderer->rg0->iterationPalette->setPalette(s.shader.palette);
+        renderer->rg0->stripe->setStripe(s.shader.stripe);
+        renderer->rg0->slope->setSlope(s.shader.slope);
+        renderer->rg0->color->setColor(s.shader.color);
+        renderer->rg3->fog->setFog(s.shader.fog);
+        renderer->rg4->bloom->setBloom(s.shader.bloom);
+        renderer->rg4->linearInterpolation->setLinearInterpolation(s.render.linearInterpolation);
         renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, s.shader.fog.radius);
         renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, s.shader.bloom.radius);
     }
 
-    void RFFApplication::refreshResizeParams(const VkExtent2D swapchainExtent) {
+    void RFF2::refreshResizeParams(const VkExtent2D swapchainExtent) {
         const uint16_t iw = calcIterationBufferWidth(settings);
         const uint16_t ih = calcIterationBufferHeight(settings);
         const auto &[dWidth, dHeight] =
@@ -380,18 +388,18 @@ namespace merutilm::rff2 {
                 GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM, {dWidth, dHeight});
 
         renderer->rccPresentPrepare->smoothZoom->setRescaledResolution({sWidth, sHeight});
-        renderer->rcc0->iterationPalette->resetIterationBuffer(iw, ih);
+        renderer->rg0->iterationPalette->resetIterationBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double>>(iw, ih);
         renderer->iterationStagingBufferContext = std::make_unique<GraphicsMatrixBuffer<double>>(
                 rootWindowContext->core, iw, ih, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     }
 
-    void RFFApplication::registerRenderers() {
+    void RFF2::registerRenderers() {
         renderer = registerRenderer<AppRenderer>(*engine, *rootWindowContext, settings, [this] { renderImGui(); });
         createImGuiContext(renderer->imguiRenderContext);
     }
 
-    void RFFApplication::initImGui() {
+    void RFF2::initImGui() {
 
         const ImGuiIO &io = ImGui::GetIO();
         const std::filesystem::path path =
@@ -431,13 +439,13 @@ namespace merutilm::rff2 {
     }
 
 
-    void RFFApplication::renderImGui() {
+    void RFF2::renderImGui() {
 
         renderControlImGui();
         renderStatusImGui();
     }
 
-    void RFFApplication::renderControlImGui() {
+    void RFF2::renderControlImGui() {
         ImGui::Begin("Control");
         if (ImGui::BeginTabBar("Control")) {
             if (ImGui::BeginTabItem("File")) {
@@ -503,7 +511,7 @@ namespace merutilm::rff2 {
         ImGui::End();
     }
 
-    void RFFApplication::renderStatusImGui() const {
+    void RFF2::renderStatusImGui() const {
 
         const float height = ImGui::GetTextLineHeight() + ImGui::GetStyle().WindowPadding.y * 2;
         ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetIO().DisplaySize.y - height));
@@ -527,7 +535,7 @@ namespace merutilm::rff2 {
         ImGui::End();
     }
 
-    void RFFApplication::refreshSharedImgContexts(const VkExtent2D extent) {
+    void RFF2::refreshSharedImgContexts(const VkExtent2D extent) {
         using namespace SharedImageContextIndices;
         auto &sharedImg = rootWindowContext->getSharedImageContext();
         sharedImg.cleanupContexts();
@@ -573,7 +581,7 @@ namespace merutilm::rff2 {
                                                                  VK_IMAGE_USAGE_STORAGE_BIT));
     }
 
-    void RFFApplication::overwriteMatrixFromMap(const RFFDynamicMapBinary &map) const {
+    void RFF2::overwriteMatrixFromMap(const RFFDynamicMapBinary &map) const {
         rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
         const uint32_t iw = getIterationBufferWidth();
         const uint32_t ih = getIterationBufferHeight();
@@ -583,22 +591,22 @@ namespace merutilm::rff2 {
             return;
         }
 
-        renderer->rcc0->iterationPalette->setMaxIteration(static_cast<double>(map.getMaxIteration()));
+        renderer->rg0->iterationPalette->setMaxIteration(static_cast<double>(map.getMaxIteration()));
         renderer->iterationStagingBufferContext->fill(map.getMatrix().getCanvas());
     }
 
-    int16_t RFFApplication::getMouseXOnIterationBuffer(const int mx) const {
+    int16_t RFF2::getMouseXOnIterationBuffer(const int mx) const {
         const float multiplier = settings.render.clarityMultiplier;
         return static_cast<int16_t>(static_cast<float>(mx) * multiplier);
     }
 
-    int16_t RFFApplication::getMouseYOnIterationBuffer(const int my) const {
+    int16_t RFF2::getMouseYOnIterationBuffer(const int my) const {
         const float multiplier = settings.render.clarityMultiplier;
         return static_cast<int16_t>(static_cast<float>(getIterationBufferHeight()) -
                                     static_cast<float>(my) * multiplier);
     }
 
-    void RFFApplication::recomputeThreaded() {
+    void RFF2::recomputeThreaded() {
         state.createThread([this] {
             const Settings s = this->settings; // clone the settings
             const auto start = rootWindowContext->getWindow()->getTime();
@@ -619,12 +627,12 @@ namespace merutilm::rff2 {
         });
     }
 
-    void RFFApplication::beforeIterationFill() const {
-        renderer->rcc0->iterationPalette->setMaxIteration(
+    void RFF2::beforeIterationFill() const {
+        renderer->rg0->iterationPalette->setMaxIteration(
                 static_cast<double>(renderData->fractalSettings.perturb.maxIteration));
     }
 
-    bool RFFApplication::prepareRenderData(const float startTime, const Settings &s) {
+    bool RFF2::prepareRenderData(const float startTime, const Settings &s) {
 
         if (state.interruptRequested())
             return false;
@@ -726,7 +734,7 @@ namespace merutilm::rff2 {
     }
 
 
-    bool RFFApplication::fillIteration(const float startTime, const Settings &s) {
+    bool RFF2::fillIteration(const float startTime, const Settings &s) {
         std::atomic renderPixelsCount = 0;
         const uint16_t w = getIterationBufferWidth();
         const uint16_t h = getIterationBufferHeight();
@@ -795,7 +803,7 @@ namespace merutilm::rff2 {
         return true;
     }
 
-    void RFFApplication::afterComputeFinally(const bool success) {
+    void RFF2::afterComputeFinally(const bool success) {
         if (!success) {
             // vkh::logger::log("Recompute cancelled.");
         }

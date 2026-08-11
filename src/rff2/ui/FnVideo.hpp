@@ -5,14 +5,14 @@
 #pragma once
 #include <functional>
 
-#include "RFFApplication.hpp"
+#include "RFF2.hpp"
 
 namespace merutilm::rff2 {
     struct FnVideo {
-        static void dataSettings(RFFApplication &app);
-        static void animationSettings(RFFApplication &app);
-        static void exportSettings(RFFApplication &app);
-        static void generateVidKeyframes(RFFApplication &app);
-        static void exportZoomVideo(RFFApplication &app);
+        static void dataSettings(RFF2 &app);
+        static void animationSettings(RFF2 &app);
+        static void exportSettings(RFF2 &app);
+        static void generateVidKeyframes(RFF2 &app);
+        static void exportZoomVideo(RFF2 &app);
     };
 }

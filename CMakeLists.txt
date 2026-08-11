@@ -46,7 +46,7 @@ add_executable(
         src/rff2/io/KFRColorLoader.cpp
         extern/stb_image.c
         src/rff2/vulkan/GPCIterationPalette.cpp
-        src/rff2/ui/RFFApplication.cpp
+        src/rff2/ui/RFF2.cpp
         src/rff2/vulkan/GPCStripe.cpp
         src/rff2/vulkan/GPCSlope.cpp
         src/rff2/vulkan/GPCColor.cpp
