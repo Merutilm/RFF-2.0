@@ -1,5 +1,6 @@
 # RFF 2.0
 
+
 ## What is RFF?
 
 **RFF** is an abbreviation for <u>**Ridiculously Fast Fractal**</u>.
@@ -11,7 +12,7 @@
 
 - A program that achieves extremely fast `Power-2 MB2 set`.
 
-- The application is built with the `Vulkan`.
+- The application is built with `Vulkan`.
 
 - This program uses `Fast-period-guessing`*(a.k.a. FPG)* which I developed. It automatically generates the `longest period` of the selected location.
 This value is unmodifiable.
@@ -27,9 +28,6 @@ Therefore, If you are trying to render long periods (over `10,000,000` or so), Y
 This will be <u>**SIGNIFICANTLY**</u> faster because it <u>**SUPERJUMPS**</u> process of table creation. 
 
 - Save amazing images using shaders!
-
-## What is this fork?
-This fork replaces a whole bunch of things in the Exploration tab with better stuff I liked from other fractal explorers, specifically the Newton Raphson menu from Kalles Fraktaler, and the Auto Explore feature from Fractal eXtreme. Thats all this fork does
 
 ## Get Started
 
@@ -187,7 +185,8 @@ the extension of `info` file is `.rfsm`.
 4. Export your own Video using existing `keyframes`.
 
 
-- Find the nearest Minibrot with `Locate Minibrot` in `Explore` menu.
+- Zoom randomly into the contours of the set with the Auto Explore menu (like in Fractal eXtreme).
+- Use the Newton Raphson Zooming menu to find mini mandelbrots, or pattern doublings, or more (like in Kalles Fraktaler).
 - More features will be added soon.
 
 ## Known Issues & Problems
