@@ -1,6 +1,5 @@
 # RFF 2.0
 
-
 ## What is RFF?
 
 **RFF** is an abbreviation for <u>**Ridiculously Fast Fractal**</u>.
@@ -28,6 +27,9 @@ Therefore, If you are trying to render long periods (over `10,000,000` or so), Y
 This will be <u>**SIGNIFICANTLY**</u> faster because it <u>**SUPERJUMPS**</u> process of table creation. 
 
 - Save amazing images using shaders!
+
+## What is this fork?
+This fork replaces a whole bunch of things in the Exploration tab with better stuff I liked from other fractal explorers, specifically the Newton Raphson menu from Kalles Fraktaler, and the Auto Explore feature from Fractal eXtreme. Thats all this fork does
 
 ## Get Started
 
