@@ -10,6 +10,5 @@ namespace merutilm::rff2 {
         RenderSettings render;
         ShaderSettings shader;
         VideoSettings video;
-
     };
 }

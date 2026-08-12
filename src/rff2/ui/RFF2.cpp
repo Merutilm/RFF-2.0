@@ -110,7 +110,7 @@ namespace merutilm::rff2 {
 #ifndef NDEBUG
         return Settings{
                 .fractal =
-                        FractalSettings{.general = {.bailout = 2.00001f, .logZoom = 2},
+                        FractalSettings{.general = {.bailout = 2.00001f, .logZoom = 2, .threads = 1},
                                         .reference =
                                                 {
                                                         .center = fixed_point_complex_i1(
@@ -144,7 +144,7 @@ namespace merutilm::rff2 {
 #else
         return Settings{
                 .fractal =
-                        FractalSettings{.general = {.bailout = 2.00001f, .logZoom = 2},
+                        FractalSettings{.general = {.bailout = 2.00001f, .logZoom = 2, .threads = std::thread::hardware_concurrency() - 1},
                                         .reference =
                                                 {
                                                         .center = fixed_point_complex_i1(
@@ -761,7 +761,7 @@ namespace merutilm::rff2 {
             ++renderPixelsCount;
             return iteration;
         };
-        auto previewer = ParallelArrayDispatcher<double>(state, *iterationMatrix, s.render.threads, std::move(func));
+        auto previewer = ParallelArrayDispatcher<double>(state, *iterationMatrix, s.fractal.general.threads, std::move(func));
 
         renderer->iterationStagingBufferContext->fillZero();
 
@@ -789,7 +789,7 @@ namespace merutilm::rff2 {
             return false;
 
         const auto syncer = ParallelDispatcher(
-                state, w, h, s.render.threads,
+                state, w, h, s.fractal.general.threads,
                 [this](const uint16_t x, const uint16_t y, uint16_t, uint16_t, float, float, uint32_t) {
                     renderer->iterationStagingBufferContext->set(x, y, (*iterationMatrix)(x, y));
                 });

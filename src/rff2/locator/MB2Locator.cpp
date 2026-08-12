@@ -66,7 +66,7 @@ namespace merutilm::rff2 {
         }
         dex resultDcMax = result->getPerturbator()->dcMax;
 
-        auto &[bailout, logZoom] = result->fractalSettings.general;
+        auto &logZoom = result->fractalSettings.general.logZoom;
         float resultZoom = logZoom;
         float zoomIncrement = resultZoom / 4;
 

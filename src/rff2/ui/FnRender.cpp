@@ -16,17 +16,18 @@ namespace merutilm::rff2 {
         static float clarityMultiplierTemp;
         static bool valueChanged = false;
         auto [width, height] = app.getWindowContext().getSwapchain().getSwapchainExtent();
+        float &clarityMultiplier = app.getSettings().render.clarityMultiplier;
+
 
         if (ImGui::Checkbox("Set Resolution Properties", &setResolution)) {
             resolutionTemp[0] = width;
             resolutionTemp[1] = height;
-            clarityMultiplierTemp = app.getSettings().render.clarityMultiplier;
+            clarityMultiplierTemp = clarityMultiplier;
             valueChanged = false;
         }
 
         if (setResolution) {
 
-            auto &[clarityMultiplier, fps, linearInterpolation, threads] = app.getSettings().render;
 
             ImGui::Begin("Set Resolution Properties");
 
@@ -40,7 +41,7 @@ namespace merutilm::rff2 {
                                  Constants::UI::CLARITY_MULTIPLIER_UNIT, Constants::Render::MIN_CLARITY_MULTIPLIER,
                                  Constants::Render::MAX_CLARITY_MULTIPLIER)) {
                 clarityMultiplierTemp = std::clamp(clarityMultiplierTemp, Constants::Render::MIN_CLARITY_MULTIPLIER,
-                                                   Constants::Render::MAX_CLARITY_MULTIPLIER);\
+                                                   Constants::Render::MAX_CLARITY_MULTIPLIER);
                 valueChanged = true;
             }
 
@@ -63,7 +64,7 @@ namespace merutilm::rff2 {
             if (ImGui::Button(str.data(), ImVec2(-FLT_MIN, 0))) {
                 app.getWindowContext().getWindow()->setResolution(static_cast<int>(resolutionTemp[0]),
                                                                   static_cast<int>(resolutionTemp[1]));
-                clarityMultiplier = clarityMultiplierTemp;
+                app.getSettings().render.clarityMultiplier = clarityMultiplierTemp;
                 app.getRequests().requestResize(swapchainExtent);
                 valueChanged = false;
             } else if (!valueChanged)
@@ -85,7 +86,7 @@ namespace merutilm::rff2 {
 
         if (setRenderProperties) {
 
-            auto &[clarityMultiplier, fps, linearInterpolation, threads] = app.getSettings().render;
+            float &fps = app.getSettings().render.fps;
 
 
             constexpr uint32_t minThread = 1;
@@ -101,7 +102,7 @@ namespace merutilm::rff2 {
             Utilities::imguiHelpMarker("Sets the Framerate.");
 
 
-            if (ImGui::SliderScalar("Threads", ImGuiDataType_U32, &threads, &minThread, &maxThreads)) {
+            if (ImGui::SliderScalar("Threads", ImGuiDataType_U32, &app.getSettings().fractal.general.threads, &minThread, &maxThreads)) {
                 // noop
             }
             Utilities::imguiHelpMarker("Sets the number of threads while rendering an image.");

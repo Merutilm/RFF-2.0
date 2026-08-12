@@ -6,7 +6,6 @@ namespace merutilm::rff2 {
         float clarityMultiplier;
         float fps;
         bool linearInterpolation;
-        uint32_t threads;
     };
 }
 
