@@ -10,7 +10,7 @@
 #include "Utilities.h"
 
 #include "../constants/Constants.hpp"
-#include "../locator/MB2Locator.h"
+#include "../mb/MB2Locator.h"
 #include "RFF2.hpp"
 
 namespace merutilm::rff2 {

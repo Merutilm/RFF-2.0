@@ -5,9 +5,9 @@
 #pragma once
 #include <atomic>
 
-#include "../formula/MB2Perturbator.h"
-#include "../formula/MB2RenderData.hpp"
 #include "../io/RFFDynamicMapBinary.h"
+#include "../mb/MB2Perturbator.h"
+#include "../mb/MB2RenderData.hpp"
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
 #include "../settings/Settings.h"
@@ -27,6 +27,7 @@ namespace merutilm::rff2 {
         AppRenderer *renderer = nullptr;
 
         std::atomic<bool> idleCompute = true;
+        std::atomic<bool> canShowPreview = false;
 
         std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
         std::unique_ptr<Matrix<double>> iterationMatrix = nullptr;

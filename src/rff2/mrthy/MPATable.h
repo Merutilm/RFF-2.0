@@ -8,7 +8,7 @@
 #include <algorithm>
 
 #include "../data/ApproxTableCache.h"
-#include "../formula/MB2Reference.h"
+#include "../mb/MB2Reference.h"
 #include "../parallel/ParallelRenderState.h"
 #include "ArrayCompressionTool.h"
 #include "ArrayCompressor.h"
@@ -29,6 +29,8 @@ namespace merutilm::rff2 {
         // table caches
         ApproxTableCache<Num> *tableCache = nullptr;
 
+
+        const FrtGeneralSettings generalSettings;
         const FrtMPASettings mpaSettings;
 
         // pulled mpa : fill only valid elements from the sparse mpa vector
@@ -40,7 +42,7 @@ namespace merutilm::rff2 {
 
 
         explicit MPATable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
-                          std::unique_ptr<ApproxTableCacheBase> &tableCache, const FrtMPASettings *mpaSettings,
+                          std::unique_ptr<ApproxTableCacheBase> &tableCache, const FrtGeneralSettings &generalSettings, const FrtMPASettings &mpaSettings,
                           Num dcMax, const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
 
 
@@ -87,18 +89,7 @@ namespace merutilm::rff2 {
         void generateUncompressedTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
                                        const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
 
-        /**
-         * Gets the finally compressed table index of MPA Table.
-         * @param useCompress The compress flag
-         * @param mpaPeriod The generated MPA Period
-         * @param pulledMPACompressor The compressor of pulled MPA table
-         * @param iteration The iteration to pull
-         * @return The finally compressed index. if not found, returns @code UINT64_MAX@endcode
-         */
-        [[nodiscard]] MPAIndexMapper
-        iterationToCompTableFlattenIndexMapper(bool useCompress, const MPAPeriod &mpaPeriod,
-                                               const std::vector<ArrayCompressionTool> &pulledMPACompressor,
-                                               uint64_t iteration) const;
+        [[nodiscard]] MPAIndexMapper getFlattenIndexMapper(uint64_t iteration) const;
 
 
     public:
@@ -112,9 +103,9 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     MPATable<Num>::MPATable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
-                            std::unique_ptr<ApproxTableCacheBase> &tableCache, const FrtMPASettings *mpaSettings,
+                            std::unique_ptr<ApproxTableCacheBase> &tableCache, const FrtGeneralSettings &generalSettings, const FrtMPASettings &mpaSettings,
                             Num dcMax, const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) :
-        mpaSettings(*mpaSettings) {
+        generalSettings(generalSettings), mpaSettings(mpaSettings) {
 
         if (tryInit(reference, tableCache)) {
             generateTable(state, reference, dcMax, actionPerCreatingTableIteration);
@@ -303,8 +294,7 @@ namespace merutilm::rff2 {
                                   itCountLim[level] != tablePeriod[level] || !generationAvailable[level])) {
 
             if (itCountLim[level] == tablePeriod[level] && generationAvailable[level]) {
-                const MPAIndexMapper flattenIndexMapper = iterationToCompTableFlattenIndexMapper(
-                        mpaSettings.useCompress, *mpaPeriod, pulledMPACompressor, currentPA[level].start);
+                const MPAIndexMapper flattenIndexMapper = getFlattenIndexMapper(currentPA[level].start);
 
 
                 auto pa = getMPAFromMapper(flattenIndexMapper);
@@ -509,7 +499,7 @@ namespace merutilm::rff2 {
                                             static_cast<double>(iteration) / static_cast<double>(longestPeriod));
 
             compressedStepOnce(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, pulledTableIndex,
-                     flattenTableIndex, iteration);
+                               flattenTableIndex, iteration);
             verifyPA(itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
             refreshCounter(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
         }
@@ -547,21 +537,16 @@ namespace merutilm::rff2 {
             actionPerCreatingTableIteration(iteration,
                                             static_cast<double>(iteration) / static_cast<double>(longestPeriod));
 
-            uncompressedStepOnce(itCount, itCountLim, tablePeriod, currentPA,
-                     flattenTableIndex, iteration);
+            uncompressedStepOnce(itCount, itCountLim, tablePeriod, currentPA, flattenTableIndex, iteration);
             verifyPA(itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
             refreshCounter(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
         }
     }
 
-
     template<Number Num>
-    MPAIndexMapper
-    MPATable<Num>::iterationToCompTableFlattenIndexMapper(const bool useCompress, const MPAPeriod &mpaPeriod,
-                                                          const std::vector<ArrayCompressionTool> &pulledMPACompressor,
-                                                          const uint64_t iteration) const {
-        if (useCompress) {
-            const auto [pulled, levels] = MPAIndexMapperUtils::iterationToPulledTableIndexMapper(mpaPeriod, iteration);
+    MPAIndexMapper MPATable<Num>::getFlattenIndexMapper(const uint64_t iteration) const {
+        if (mpaSettings.useCompress) {
+            const auto [pulled, levels] = MPAIndexMapperUtils::iterationToPulledTableIndexMapper(*mpaPeriod, iteration);
             if (pulled == UINT64_MAX) {
                 return MPAIndexMapper{UINT64_MAX, 0};
             }
@@ -581,8 +566,7 @@ namespace merutilm::rff2 {
             return nullptr;
         }
 
-        const MPAIndexMapper mapper = iterationToCompTableFlattenIndexMapper(mpaSettings.useCompress, *mpaPeriod,
-                                                                             pulledMPACompressor, refIteration);
+        const MPAIndexMapper mapper = getFlattenIndexMapper(refIteration);
 
         if (mapper.mapped == UINT64_MAX) {
             return nullptr;

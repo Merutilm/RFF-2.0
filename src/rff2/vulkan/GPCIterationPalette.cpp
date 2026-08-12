@@ -55,13 +55,19 @@ namespace merutilm::rff2 {
             });
     }
 
-    void GPCIterationPalette::setMaxIteration(const double maxIteration) const {
+
+    void GPCIterationPalette::applyMaxIteration() const {
         using namespace SharedDescriptorTemplate;
-        auto &iterUBO = getDescriptor(SET_ITERATION).get<vkh::Uniform>(0,
-                                                                              DescIteration::BINDING_UBO_ITERATION_INFO);
+        const auto &iterUBO = getDescriptor(SET_ITERATION).get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
+        iterUBO.update();
+    }
+
+
+    void GPCIterationPalette::setMaxIterationTemp(const double maxIteration) const {
+        using namespace SharedDescriptorTemplate;
+        auto &iterUBO = getDescriptor(SET_ITERATION).get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
 
         iterUBO.getHostObject().set<double>(DescIteration::TARGET_UBO_ITERATION_MAX, maxIteration);
-        iterUBO.update();
     }
 
     void GPCIterationPalette::setPalette(const ShdPaletteSettings &palette) const {

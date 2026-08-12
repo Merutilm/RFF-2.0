@@ -36,6 +36,7 @@ namespace merutilm::rff2 {
 
         CPCBoxBlur *computeBoxBlur = nullptr;
 
+
         std::unique_ptr<GraphicsMatrixBuffer<double>> iterationStagingBufferContext = nullptr;
 
         template<typename F>
@@ -103,8 +104,6 @@ namespace merutilm::rff2 {
 
         void beforeCmdRender() override {
             RendererImGui::beforeCmdRender();
-            vkh::BufferContext::flush(wc.core.getLogicalDevice().getLogicalDeviceHandle(),
-                                      iterationStagingBufferContext->getContext());
         }
 
 

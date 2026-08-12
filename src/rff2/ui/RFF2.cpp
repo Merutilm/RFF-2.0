@@ -5,7 +5,7 @@
 #include "RFF2.hpp"
 
 #include "../calc/dex_exp.h"
-#include "../locator/MB2Locator.h"
+#include "../mb/MB2Locator.h"
 #include "../parallel/ParallelArrayDispatcher.h"
 #include "../parallel/ParallelDispatcher.h"
 #include "../preset/calc/CalculationPresets.h"
@@ -131,7 +131,7 @@ namespace merutilm::rff2 {
                                                     .interiorDetectRadiusPower = 7,
                                                     .autoIterationMultiplier = 100,
                                                     .absoluteIterationMode = false}},
-                .render = {.clarityMultiplier = 0.25f, .fps = 60, .linearInterpolation = true, .threads = 1},
+                .render = {.clarityMultiplier = 0.25f, .fps = 60, .linearInterpolation = true},
                 .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .slope = ShdSlopePresets::Disabled().genSlope(),
@@ -144,7 +144,9 @@ namespace merutilm::rff2 {
 #else
         return Settings{
                 .fractal =
-                        FractalSettings{.general = {.bailout = 2.00001f, .logZoom = 2, .threads = std::thread::hardware_concurrency() - 1},
+                        FractalSettings{.general = {.bailout = 2.00001f,
+                                                    .logZoom = 2,
+                                                    .threads = std::thread::hardware_concurrency() - 1},
                                         .reference =
                                                 {
                                                         .center = fixed_point_complex_i1(
@@ -189,9 +191,7 @@ namespace merutilm::rff2 {
                         getDivisor(s) / dex(s.render.clarityMultiplier)};
     }
 
-    dex RFF2::getDivisor(const Settings &settings) {
-        return dex_exp::exp10(settings.fractal.general.logZoom);
-    }
+    dex RFF2::getDivisor(const Settings &settings) { return dex_exp::exp10(settings.fractal.general.logZoom); }
 
 
     uint16_t RFF2::calcIterationBufferWidth(const Settings &s) const {
@@ -241,6 +241,7 @@ namespace merutilm::rff2 {
                     const auto dyr = static_cast<float>(dy) / static_cast<float>(getIterationBufferHeight());
                     const auto dz = pow(10.0f, -zoomAnimationInfo.targetLogZoomOffsetAim);
 
+                    zoomAnimationInfo.aimChanged = true;
                     zoomAnimationInfo.targetMouseDragOffset += glm::vec2{dxr * dz, dyr * dz};
 
                     if (mb == GLFW_MOUSE_BUTTON_LEFT) {
@@ -291,11 +292,10 @@ namespace merutilm::rff2 {
         const fixed_point_complex_i1 add(re * dex(1 - mz), im * dex(1 - mz), exp10);
         fixed_point_complex_i1::add(center, center, add);
 
+        zoomAnimationInfo.aimChanged = true;
         zoomAnimationInfo.stop();
         zoomAnimationInfo.targetLogZoomOffsetAim += logIncrement;
         zoomAnimationInfo.targetMouseZoomOffsetAim += glm::vec2{mxr * dz * (mz - 1), myr * dz * (1 - mz)};
-
-
         requests.requestRecompute();
     }
 
@@ -356,6 +356,12 @@ namespace merutilm::rff2 {
         const float dt = t - time;
         time = t;
 
+        if (canShowPreview && !zoomAnimationInfo.aimChanged) {
+            renderer->iterationStagingBufferContext->fill();
+            renderer->rg0->iterationPalette->applyMaxIteration();
+            zoomAnimationInfo.reset();
+        }
+
         zoomAnimationInfo.update(dt);
         renderer->rccPresentPrepare->smoothZoom->setSmoothZoomData(zoomAnimationInfo.targetMouseDragOffset +
                                                                            zoomAnimationInfo.targetMouseZoomOffset,
@@ -391,7 +397,7 @@ namespace merutilm::rff2 {
         renderer->rg0->iterationPalette->resetIterationBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double>>(iw, ih);
         renderer->iterationStagingBufferContext = std::make_unique<GraphicsMatrixBuffer<double>>(
-                rootWindowContext->core, iw, ih, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+                rootWindowContext->core, iw, ih, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     }
 
     void RFF2::registerRenderers() {
@@ -591,7 +597,7 @@ namespace merutilm::rff2 {
             return;
         }
 
-        renderer->rg0->iterationPalette->setMaxIteration(static_cast<double>(map.getMaxIteration()));
+        renderer->rg0->iterationPalette->setMaxIterationTemp(static_cast<double>(map.getMaxIteration()));
         renderer->iterationStagingBufferContext->fill(map.getMatrix().getCanvas());
     }
 
@@ -628,11 +634,15 @@ namespace merutilm::rff2 {
     }
 
     void RFF2::beforeIterationFill() const {
-        renderer->rg0->iterationPalette->setMaxIteration(
+
+        renderer->rg0->iterationPalette->setMaxIterationTemp(
                 static_cast<double>(renderData->fractalSettings.perturb.maxIteration));
     }
 
     bool RFF2::prepareRenderData(const float startTime, const Settings &s) {
+
+
+        canShowPreview = false;
 
         if (state.interruptRequested())
             return false;
@@ -735,6 +745,12 @@ namespace merutilm::rff2 {
 
 
     bool RFF2::fillIteration(const float startTime, const Settings &s) {
+
+        if (state.interruptRequested())
+            return false;
+
+        canShowPreview = true;
+
         std::atomic renderPixelsCount = 0;
         const uint16_t w = getIterationBufferWidth();
         const uint16_t h = getIterationBufferHeight();
@@ -761,9 +777,10 @@ namespace merutilm::rff2 {
             ++renderPixelsCount;
             return iteration;
         };
-        auto previewer = ParallelArrayDispatcher<double>(state, *iterationMatrix, s.fractal.general.threads, std::move(func));
+        auto previewer =
+                ParallelArrayDispatcher<double>(state, *iterationMatrix, s.fractal.general.threads, std::move(func));
 
-        renderer->iterationStagingBufferContext->fillZero();
+        // renderer->iterationStagingBufferContext->fillZero();
 
         auto statusThread = std::jthread([&renderPixelsCount, len, this, startTime](const std::stop_token &stop) {
             static float time = rootWindowContext->getWindow()->getTime();
@@ -779,7 +796,7 @@ namespace merutilm::rff2 {
             }
         });
 
-        zoomAnimationInfo.reset();
+
         previewer.dispatch();
 
         statusThread.request_stop();
@@ -798,6 +815,7 @@ namespace merutilm::rff2 {
 
         if (state.interruptRequested())
             return false;
+
         setStatusMessage(Constants::Status::RENDER_STATUS, "Done");
 
         return true;

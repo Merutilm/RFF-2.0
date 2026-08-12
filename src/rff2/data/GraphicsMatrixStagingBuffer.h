@@ -14,8 +14,10 @@
 namespace merutilm::rff2 {
     template<typename T>
     class GraphicsMatrixBuffer final : vkh::CoreHandler {
+        bool updated;
         uint32_t width;
         uint32_t height;
+        std::vector<T> data;
         vkh::BufferContext context = {};
         VkBufferUsageFlags usage;
         VkMemoryPropertyFlags properties;
@@ -47,15 +49,25 @@ namespace merutilm::rff2 {
         }
 
         void set(const uint32_t i, const T &value) {
-            vkh::BufferContext::set(context, i, value);
+            updated = true;
+            data[i] = value;
         }
 
         void set(const uint32_t x, const uint32_t y, const T &value) {
-            vkh::BufferContext::set(context, getIndex(x, y), value);
+            updated = true;
+            data[getIndex(x, y)] = value;
         }
 
-        void fill(const std::vector<double> &vector) const {
-            vkh::BufferContext::fill(context, vector);
+        void fill() {
+            if (updated) {
+                updated = false;
+                vkh::BufferContext::fill(context, data);
+            }
+        }
+
+        void fill(const std::vector<T> &data) {
+            memcpy(this->data.data(), data.data(), data.size() * sizeof(T));
+            vkh::BufferContext::fill(context, data);
         }
 
         void fillZero() const {
@@ -89,13 +101,15 @@ namespace merutilm::rff2 {
         uint32_t getLength() const {
             return static_cast<uint32_t>(width) * height;
         }
-
+    protected:
         void init() override {
+            updated = false;
             context = vkh::BufferContext::createContext(core, {
                                                   .size = width * height * sizeof(T),
                                                   .usage = usage,
                                                   .properties = properties,
                                               });
+            data.resize(width * height);
             vkh::BufferContext::mapMemory(core, context);
         }
 

@@ -4,7 +4,7 @@
 
 #include "FnFractal.hpp"
 
-#include "../formula/Perturbator.h"
+#include "../mb/Perturbator.h"
 #include "../settings/Selectable.h"
 #include "RFF2.hpp"
 #include "Utilities.h"

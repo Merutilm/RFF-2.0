@@ -6,7 +6,7 @@
 
 #include "../calc/calculatable.hpp"
 #include "../calc/complex.hpp"
-#include "../formula/MB2Reference.h"
+#include "../mb/MB2Reference.h"
 #include "ArrayCompressionTool.h"
 #include "PA.h"
 

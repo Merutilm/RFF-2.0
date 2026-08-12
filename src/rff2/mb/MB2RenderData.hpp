@@ -86,7 +86,7 @@ namespace merutilm::rff2 {
 
 
 
-        table = std::make_unique<MPATable<Num>>(state, *reference, cache, &fractalSettings.mpa, Num(dcMax),
+        table = std::make_unique<MPATable<Num>>(state, *reference, cache, fractalSettings.general, fractalSettings.mpa, Num(dcMax),
                                                                    actionPerCreatingTableIteration);
         perturbator = std::make_unique<MB2Perturbator<Num>>(
                 state, dcMax, fractalSettings.general, fractalSettings.sa, fractalSettings.perturb, *seriesApproxData, *reference,

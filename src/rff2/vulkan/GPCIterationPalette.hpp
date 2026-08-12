@@ -38,7 +38,9 @@ namespace merutilm::rff2 {
 
         void resetIterationBuffer(uint32_t width, uint32_t height);
 
-        void setMaxIteration(double maxIteration) const;
+        void applyMaxIteration() const;
+
+        void setMaxIterationTemp(double maxIteration) const;
 
         void setPalette(const ShdPaletteSettings &palette) const;
 
