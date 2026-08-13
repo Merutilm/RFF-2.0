@@ -152,7 +152,7 @@ namespace merutilm::rff2 {
 
         const auto it = static_cast<uint64_t>(renderData.getPerturbator()->iterate( {
             renderData.getPerturbator()->dcMax,
-           dex::ZERO
+            renderData.getPerturbator()->dcMax / dex(2)
         }));
 
         return it == renderData.fractalSettings.perturb.maxIteration;
