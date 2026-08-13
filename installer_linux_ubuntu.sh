@@ -85,7 +85,8 @@ printf "\033[32mLocation: %s/bin/RFF\033[0m\n" "$path"
 read -n 1 -r -p "Do you want to launch installed application now? [y/n] :" answer
 
 if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
-  ./bin/RFF
+  cd bin
+  ./RFF
 fi
 
 

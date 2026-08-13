@@ -3,7 +3,7 @@ $RepoUrl = "https://github.com/Merutilm/RFF-2.0"
 
 
 $ErrorActionPreference = "Stop"
-$WorkDir = (Get-Location).Path   # powershell executed dir
+$workDir = (Get-Location).Path   # powershell executed dir
 
 function Write-Step($msg)
 {
@@ -89,7 +89,7 @@ function Get-RemoteHeadSha($url)
 }
 
 $RepoDirName = [System.IO.Path]::GetFileNameWithoutExtension($RepoUrl.TrimEnd('/'))
-$VersionFile = Join-Path $WorkDir "version.config"
+$VersionFile = Join-Path $workDir "version.config"
 
 $upToDate = $false
 $newestSha = Get-RemoteHeadSha $RepoUrl
@@ -116,7 +116,7 @@ if ($upToDate)
 # ---------------------------------------------------------------------------
 Write-Step "Clone Repository"
 
-$repoDir = Join-Path $WorkDir "RFF-2.0"
+$repoDir = Join-Path $workDir "RFF-2.0"
 
 if (Test-Path $repoDir)
 {
@@ -178,7 +178,7 @@ foreach ($name in $targetDirs)
 {
 
     $item = Join-Path $repoDir $name
-    $dest = Join-Path $WorkDir $name
+    $dest = Join-Path $workDir $name
 
     if (Test-Path $dest)
     {
@@ -192,7 +192,7 @@ Remove-Item -Path $repoDir -Recurse -Force
 Set-Content -Path $VersionFile -Value $newestSha
 
 Write-Step "Installation Finished"
-Write-Host "Location: $WorkDir"
+Write-Host "Location: $workDir"
 
 
 Write-Host "Do you want to launch installed application now? [y/n] " -NoNewline
@@ -200,5 +200,7 @@ Write-Host "Do you want to launch installed application now? [y/n] " -NoNewline
 $key = [Console]::ReadKey($true)
 
 if ($key.KeyChar -in @('y','Y')) {
-    Start-Process ".\bin\RFF.exe"
+    $bin = Join-Path $workDir bin
+    Set-Location $bin
+    Start-Process ".\RFF.exe"
 }
