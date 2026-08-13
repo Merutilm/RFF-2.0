@@ -210,11 +210,11 @@ namespace merutilm::rff2 {
     inline const dex dex::PINF = {0, INFINITY};
     inline const dex dex::NINF = {0, -static_cast<double>(INFINITY)};
 #endif
-    constexpr dex::dex() : dex(0, 0) {}
+    constexpr dex::dex() noexcept : dex(0, 0) {}
 
-    constexpr dex::dex(const int64_t exp2, const double mantissa) : exp2(exp2), mantissa(mantissa) {}
+    constexpr dex::dex(const int64_t exp2, const double mantissa) noexcept : exp2(exp2), mantissa(mantissa) {}
 
-    constexpr dex::dex(const double value) : exp2(0), mantissa(value) {
+    constexpr dex::dex(const double value) noexcept : exp2(0), mantissa(value) {
     }
 
     inline double dex::ldexp_neg(const double mantissa, const int64_t exp2) {
