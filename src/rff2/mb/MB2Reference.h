@@ -22,12 +22,14 @@ namespace merutilm::rff2 {
         const std::vector<uint64_t> period;
         const fixed_point_complex fpgReference;
         const fixed_point_complex fpgBn;
+        const float logZoom;
+        const dex dcMax;
 
         MB2ReferenceBase(fixed_point_complex_i1 &&center, std::vector<ArrayCompressionTool> &&compressor,
                          std::vector<uint64_t> &&period, fixed_point_complex &&fpgReference,
-                         fixed_point_complex &&fpgBn) :
+                         fixed_point_complex &&fpgBn, float logZoom, dex dcMax) :
             center(std::move(center)), compressor(std::move(compressor)), period(std::move(period)),
-            fpgReference(std::move(fpgReference)), fpgBn(std::move(fpgBn)) {}
+            fpgReference(std::move(fpgReference)), fpgBn(std::move(fpgBn)), logZoom(logZoom), dcMax(dcMax) {}
 
         virtual ~MB2ReferenceBase() = default;
 
@@ -43,7 +45,7 @@ namespace merutilm::rff2 {
 
         explicit MB2Reference(fixed_point_complex_i1 &&center, std::vector<complex<Num>> &&orbit,
                               std::vector<ArrayCompressionTool> &&compressor, std::vector<uint64_t> &&period,
-                              fixed_point_complex &&fpgReference, fixed_point_complex &&fpgBn);
+                              fixed_point_complex &&fpgReference, fixed_point_complex &&fpgBn, float logZoom, dex dcMax);
 
         static void syncReference(fixed_point_complex_i1 &z, uint64_t intervalCounter, uint32_t refSyncInterval,
                                   uint8_t refSyncRadiusPower, Num refSyncRadius2, int exp10, complex<Num> &z0,
@@ -70,9 +72,9 @@ namespace merutilm::rff2 {
     template<Number Num>
     MB2Reference<Num>::MB2Reference(fixed_point_complex_i1 &&center, std::vector<complex<Num>> &&orbit,
                                     std::vector<ArrayCompressionTool> &&compressor, std::vector<uint64_t> &&period,
-                                    fixed_point_complex &&fpgReference, fixed_point_complex &&fpgBn) :
+                                    fixed_point_complex &&fpgReference, fixed_point_complex &&fpgBn, float logZoom, const dex dcMax) :
         MB2ReferenceBase(std::move(center), std::move(compressor), std::move(period), std::move(fpgReference),
-                         std::move(fpgBn)),
+                         std::move(fpgBn), logZoom, dcMax),
         refOrbit(std::move(orbit)) {}
 
 
@@ -139,8 +141,7 @@ namespace merutilm::rff2 {
         int strictIntExp10 = -exp10;
         int fpgIntExp10 = strictFPG ? strictIntExp10 : 1;
 
-        fixed_point_complex_i1 center = refSettings.center;
-        fixed_point_complex_i1 c = center.create_variant(exp10);
+        fixed_point_complex_i1 c = refSettings.center.create_variant(exp10);
         auto z = fixed_point_complex_i1(0.0, 0.0, exp10);
         auto temp = z;
         auto fpgBn = fixed_point_complex(0.0, 0.0, exp10, fpgIntExp10);
@@ -258,8 +259,8 @@ namespace merutilm::rff2 {
         ref.shrink_to_fit();
         periodArray = periodArray.empty() ? std::vector(1, period) : periodArray;
 
-        *result = std::make_unique<MB2Reference>(std::move(center), std::move(ref), std::move(tools),
-                                                 std::move(periodArray), std::move(*fpgReference), std::move(fpgBn));
+        *result = std::make_unique<MB2Reference>(std::move(c), std::move(ref), std::move(tools),
+                                                 std::move(periodArray), std::move(*fpgReference), std::move(fpgBn), generalSettings.logZoom, dcMax);
 
         return CreationResult::SUCCESS;
     }

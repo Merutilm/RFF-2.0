@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
     void GPCStripe::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
         writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_STRIPE).queue(queue, frameIndex, {}, {DescStripe::TARGET_STRIPE_TYPE});
+            getDescriptor(SET_STRIPE).queue(queue, frameIndex, {}, {DescStripe::BINDING_UBO_STRIPE});
         });
     }
 

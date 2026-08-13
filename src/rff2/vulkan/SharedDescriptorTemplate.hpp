@@ -176,7 +176,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<float>(TARGET_SLOPE_OPACITY);
             bufferManager.reserve<float>(TARGET_SLOPE_ZENITH);
             bufferManager.reserve<float>(TARGET_SLOPE_AZIMUTH);
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, false);
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, true);
             auto descManager = vkh::DescriptorManager();
             descManager.appendUBO(BINDING_UBO_SLOPE, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));

@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include "../calc/fixed_point_complex.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "MB2RenderData.hpp"
 
@@ -13,8 +12,6 @@ namespace merutilm::rff2 {
         static constexpr float ZOOM_INCREMENT_LIMIT = 0.01f;
 
         std::unique_ptr<MB2RenderDataBase> data;
-
-        static std::unique_ptr<fixed_point_complex_i1> findCenter(const MB2RenderDataBase &data);
 
         static std::unique_ptr<fixed_point_complex_i1> findCenterOffset(const MB2RenderDataBase &data);
 

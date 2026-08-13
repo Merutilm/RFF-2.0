@@ -82,12 +82,12 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPCBoxBlur::setBlurInfo(const uint32_t blurSizeDescIndex, const float blurSize) const {
+    void CPCBoxBlur::setBlurInfo(const uint32_t blurSizeDescIndex, const float blurSize, const uint32_t frameIndex) const {
         auto &desc = getDescriptor(SET_BLUR_RADIUS);
 
         auto &ubo = desc.get<vkh::Uniform>(blurSizeDescIndex, BINDING_BLUR_RADIUS_UBO);
         ubo.getHostObject().set<float>(TARGET_BLUR_UBO_BLUR_SIZE, blurSize);
-        ubo.update();
+        ubo.updateMF(frameIndex);
     }
 
     void CPCBoxBlur::pipelineInitialized() {
@@ -128,7 +128,7 @@ namespace merutilm::rff2 {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<float>(TARGET_BLUR_UBO_BLUR_SIZE);
             auto descUBO = std::make_unique<vkh::Uniform>(wc.core, std::move(bufferManager),
-                                                              vkh::BufferLock::LOCK_UNLOCK, false);
+                                                              vkh::BufferLock::LOCK_UNLOCK, true);
             descManager.appendUBO(BINDING_BLUR_RADIUS_UBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(descUBO));
             radDesc.emplace_back(std::move(descManager));
         }

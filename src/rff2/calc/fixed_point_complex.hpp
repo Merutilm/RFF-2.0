@@ -8,6 +8,7 @@
 #include "fixed_point_complex.hpp"
 #include "fixed_point_decimal.hpp"
 #include "spin_thread_pool.hpp"
+#include <sstream>
 
 namespace merutilm::rff2 {
 

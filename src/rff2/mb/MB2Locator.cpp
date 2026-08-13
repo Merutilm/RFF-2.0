@@ -11,20 +11,6 @@
 
 
 namespace merutilm::rff2 {
-    std::unique_ptr<fixed_point_complex_i1> MB2Locator::findCenter(const MB2RenderDataBase &data) {
-        const int exp10 = Perturbator::logZoomToExp10(data.fractalSettings.general.logZoom);
-        fixed_point_complex_i1 center = data.getReference()->center.create_variant(exp10);
-        const fixed_point_complex_i1 dc = findCenterOffset(data)->create_variant(exp10);
-
-        const double dr = dc.clone_real().double_value();
-        const double di = dc.clone_imag().double_value();
-        if (const dex dcMax = data.getPerturbator()->dcMax; dex(dr * dr + di * di) > dcMax * dcMax) {
-            return nullptr;
-        }
-        fixed_point_complex::add(center, center, dc);
-        return std::make_unique<fixed_point_complex_i1>(center);
-    }
-
 
     std::unique_ptr<fixed_point_complex_i1> MB2Locator::findCenterOffset(const MB2RenderDataBase &data) {
         const int exp10 = Perturbator::logZoomToExp10(data.fractalSettings.general.logZoom);
@@ -158,11 +144,7 @@ namespace merutilm::rff2 {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileSeriesApprox, actionWhileCreatingTable, true);
             }
-
-
         }
-
-
         return doubledZoomData;
     }
 
@@ -170,7 +152,7 @@ namespace merutilm::rff2 {
 
         const auto it = static_cast<uint64_t>(renderData.getPerturbator()->iterate( {
             renderData.getPerturbator()->dcMax,
-           renderData.getPerturbator()->dcMax / dex(Constants::Fractal::INTENTIONAL_ERROR_DCLMB)
+           dex::ZERO
         }));
 
         return it == renderData.fractalSettings.perturb.maxIteration;

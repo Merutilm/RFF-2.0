@@ -14,7 +14,9 @@ namespace merutilm::rff2 {
         static void recompute(RFF2 &app);
         static void reset(RFF2 &app);
         static void cancelRender(RFF2 &app);
-        static void findCenter(RFF2 &app);
+        static void setCursorToCenter(RFF2 &app);
+        static void reuseReferenceDetail(RFF2 &app);
+        static void goToOriginalReference(RFF2 &app);
         static void locateCenteredReference(RFF2 &app);
         static void locateMinibrot(RFF2 &app);
 

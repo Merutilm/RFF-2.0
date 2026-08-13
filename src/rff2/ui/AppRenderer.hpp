@@ -11,6 +11,7 @@
 #include "../vulkan/RenderGraph3.hpp"
 #include "../vulkan/RenderGraph4.hpp"
 #include "../vulkan/RenderGraphDownsampleForBlur.hpp"
+#include "ZoomAnimationInfo.hpp"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
 #include "vulkan_helper/engine/internal/RendererImGui.hpp"
 #include "vulkan_helper/util/BarrierUtils.hpp"
@@ -20,7 +21,8 @@ namespace merutilm::rff2 {
     struct AppRenderer final : public vkh::RendererImGui {
 
 
-        Settings &settings;
+        const Settings &settings;
+        const ZoomAnimationInfo &zoomAnimationInfo;
 
         vkh::RenderContext *rc0 = nullptr;
         vkh::RenderContext *rcDownsample = nullptr;
@@ -41,8 +43,8 @@ namespace merutilm::rff2 {
 
         template<typename F>
             requires std::is_invocable_v<F>
-        explicit AppRenderer(vkh::Engine &engine, vkh::WindowContext &wc, Settings &settings, F &&renderFunc) :
-            RendererImGui(engine, wc, std::forward<F>(renderFunc)), settings(settings) {
+        explicit AppRenderer(vkh::Engine &engine, vkh::WindowContext &wc, Settings &settings, ZoomAnimationInfo &zoomAnimationInfo, F &&renderFunc) :
+            RendererImGui(engine, wc, std::forward<F>(renderFunc)), settings(settings), zoomAnimationInfo(zoomAnimationInfo) {
             AppRenderer::init();
         }
 
@@ -104,6 +106,12 @@ namespace merutilm::rff2 {
 
         void beforeCmdRender() override {
             RendererImGui::beforeCmdRender();
+            const float mul = std::pow(10.0f, -zoomAnimationInfo.targetLogZoomOffset);
+            computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
+                                                  std::min(1.0f, settings.shader.fog.radius * mul), frameIndex);
+            computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM,
+                                                  std::min(1.0f, settings.shader.bloom.radius * mul), frameIndex);
+            rg0->slope->setSlope(settings.shader.slope, mul, frameIndex);
         }
 
 

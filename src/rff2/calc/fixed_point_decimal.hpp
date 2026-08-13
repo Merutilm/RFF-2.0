@@ -5,6 +5,7 @@
 #include <cmath>
 #include <gmp.h>
 #include <stdexcept>
+#include <vector>
 #include <cstring>
 #include "dex.h"
 
@@ -20,7 +21,7 @@ namespace merutilm::rff2 {
 
         mp_size_t int_limbs_to_read = 1;
 
-        int offset = 0;
+        mp_size_t offset = 0;
         mp_limb_t *raw = nullptr;
 
         explicit fixed_point_decimal() : fixed_point_decimal(0.0, 0, 0) {
@@ -30,7 +31,7 @@ namespace merutilm::rff2 {
 
         explicit fixed_point_decimal(const std::string &str, int dec_exp10, int int_exp10);
 
-        explicit fixed_point_decimal(const dex v, int dec_exp10, int int_exp10);
+        explicit fixed_point_decimal(dex v, int dec_exp10, int int_exp10);
 
         ~fixed_point_decimal();
 
@@ -46,7 +47,7 @@ namespace merutilm::rff2 {
             requires std::is_invocable_r_v<int, F, mpf_t, int>
         void init_data(int dec_exp10, int int_exp10, F &&setter_exp2_getter);
 
-        mp_limb_t *get_limbs_from_mpf(mpf_t src, int limbs_count);
+        mp_limb_t *get_limbs_from_mpf(mpf_t src, mp_size_t limbs_count);
 
         static int dec_exp10_to_exp2div64(int exp10);
 
@@ -124,11 +125,11 @@ namespace merutilm::rff2 {
 
         void set_exp10(int dec_exp10, int int_exp10);
 
-        static int normalized_limbs_count(const mp_limb_t *limbs, int limbs_count);
+        static mp_size_t normalized_limbs_count(const mp_limb_t *limbs, mp_size_t limbs_count);
 
         [[nodiscard]] mp_limb_t *get_value_ptr() const;
 
-        void temp_write_limbs(const mp_limb_t *limbs, int limbs_read_count);
+        void temp_write_limbs(const mp_limb_t *limbs, mp_size_t limbs_read_count);
 
         static int int_exp10_to_exp2div64(int exp10);
 
@@ -136,7 +137,7 @@ namespace merutilm::rff2 {
 
         dex dex_value();
 
-        bool is_strict_zero() const;
+        [[nodiscard]] bool is_strict_zero() const;
 
         std::string to_string();
 
@@ -149,7 +150,7 @@ namespace merutilm::rff2 {
 
         void set_int_limbs_to_read(mp_size_t new_int_limbs_to_read);
 
-        void export_value(int *exp2, int *shift, uint64_t *mantissa_bit, size_t *cnt, int *f_exp2);
+        void export_value(mp_size_t *exp2, int *shift, uint64_t *mantissa_bit, size_t *cnt, mp_size_t *f_exp2);
     };
 
 
@@ -272,7 +273,7 @@ namespace merutilm::rff2 {
     }
 
 
-    inline mp_limb_t *fixed_point_decimal::get_limbs_from_mpf(mpf_t src, const int limbs_count) {
+    inline mp_limb_t *fixed_point_decimal::get_limbs_from_mpf(mpf_t src, const mp_size_t limbs_count) {
         mpz_set_f(temp, src);
         const mp_limb_t *lmb1 = mpz_limbs_read(temp);
         const size_t size = mpz_size(temp);
@@ -284,7 +285,7 @@ namespace merutilm::rff2 {
     }
 
 
-    inline void fixed_point_decimal::temp_write_limbs(const mp_limb_t *limbs, const int limbs_read_count) {
+    inline void fixed_point_decimal::temp_write_limbs(const mp_limb_t *limbs, const mp_size_t limbs_read_count) {
         const size_t lc = limbs_count();
         mp_limb_t *v = mpz_limbs_write(temp, static_cast<mp_size_t>(lc));
         memcpy(v, limbs, limbs_read_count * sizeof(mp_limb_t));
@@ -355,8 +356,8 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::sub(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {
-        const int l_lc = lhs.limbs_read_count();
-        const int r_lc = rhs.limbs_read_count();
+        const mp_size_t l_lc = lhs.limbs_read_count();
+        const mp_size_t r_lc = rhs.limbs_read_count();
 
         if (lhs.sgn == 0) {
             if (&result != &rhs) {
@@ -399,8 +400,8 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::sqr(fixed_point_decimal &result, const fixed_point_decimal &v) {
 
-        const int lc = result.limbs_count();
-        const int lrc = result.limbs_read_count();
+        const mp_size_t lc = result.limbs_count();
+        const mp_size_t lrc = result.limbs_read_count();
         const mp_limb_t *lhs_value = v.get_value_ptr();
 
         if (v.sgn == 0) {
@@ -419,9 +420,9 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::mul(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {
-        const int lc = result.limbs_count();
-        const int l_lc = lhs.limbs_read_count();
-        const int r_lc = rhs.limbs_read_count();
+        const mp_size_t lc = result.limbs_count();
+        const mp_size_t l_lc = lhs.limbs_read_count();
+        const mp_size_t r_lc = rhs.limbs_read_count();
         const mp_limb_t *lhs_value = lhs.get_value_ptr();
         const mp_limb_t *rhs_value = rhs.get_value_ptr();
 
@@ -445,7 +446,7 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::div(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {
-        const int lc = result.limbs_count();
+        const mp_size_t lc = result.limbs_count();
 
         const auto l_lc = lhs.limbs_read_count();
         const auto r_lc = rhs.limbs_read_count();
@@ -459,16 +460,16 @@ namespace merutilm::rff2 {
         if (rhs.sgn == 0) {
             throw std::overflow_error("divide by zero");
         }
-        const int dividend_size = result.dec_limbs_count + l_lc;
-        const int divisor_size = normalized_limbs_count(rhs_value, r_lc);
+        const mp_size_t dividend_size = result.dec_limbs_count + l_lc;
+        const mp_size_t divisor_size = normalized_limbs_count(rhs_value, r_lc);
 
         mpn_zero(result.raw + lc * 3, result.dec_limbs_count);
         mpn_copyi(result.raw + lc * 3 + result.dec_limbs_count, lhs_value, l_lc);
         mpn_tdiv_qr(result.raw, result.raw + lc * 5, 0, result.raw + lc * 3, dividend_size, rhs_value, divisor_size);
 
-        const int result_size = dividend_size - divisor_size + 1;
+        const mp_size_t result_size = dividend_size - divisor_size + 1;
         // result.dec_limbs_count + l_lc - divisor_size + 1
-        const int cpy_cnt = l_lc - result_size;
+        const mp_size_t cpy_cnt = l_lc - result_size;
         // cpy_cnt = divisor_size - result.dec_limbs_count - 1
         // if cpy_cnt < 0, limbs can be overflowed
         if (cpy_cnt > 0) std::fill_n(result.raw + result_size, cpy_cnt, 0);
@@ -500,10 +501,10 @@ namespace merutilm::rff2 {
             (new_int_limbs_count == SIZE_MAX || new_int_limbs_count == int_limbs_count))
             return;
 
-        const int dec_copy_count = std::min(new_dec_limbs_count, dec_limbs_count);
-        const int int_copy_count = std::min(new_int_limbs_count, int_limbs_to_read);
-        const int src_offset = dec_limbs_count - dec_copy_count;
-        const int dst_offset = new_dec_limbs_count - dec_copy_count;
+        const mp_size_t dec_copy_count = std::min(new_dec_limbs_count, dec_limbs_count);
+        const mp_size_t int_copy_count = std::min(new_int_limbs_count, int_limbs_to_read);
+        const mp_size_t src_offset = dec_limbs_count - dec_copy_count;
+        const mp_size_t dst_offset = new_dec_limbs_count - dec_copy_count;
         const auto new_raw = new mp_limb_t[(new_dec_limbs_count + new_int_limbs_count) * RAW_ARR_LEN]();
         memcpy(new_raw + dst_offset, get_value_ptr() + src_offset,
                sizeof(mp_limb_t) * (dec_copy_count + int_copy_count));
@@ -525,8 +526,8 @@ namespace merutilm::rff2 {
     }
 
 
-    inline int fixed_point_decimal::normalized_limbs_count(const mp_limb_t *limbs, const int limbs_count) {
-        int cnt = limbs_count;
+    inline mp_size_t fixed_point_decimal::normalized_limbs_count(const mp_limb_t *limbs, const mp_size_t limbs_count) {
+        mp_size_t cnt = limbs_count;
         while (cnt > 0 && limbs[cnt - 1] == 0)
             --cnt;
         return cnt;
@@ -544,8 +545,8 @@ namespace merutilm::rff2 {
         uint64_t mantissa_bit;
         size_t cnt;
         int shift;
-        int exp2;
-        int f_exp2;
+        mp_size_t exp2;
+        mp_size_t f_exp2;
 
         export_value(&exp2, &shift, &mantissa_bit, &cnt, &f_exp2);
         // 0100 0000 0000 : 2^1
@@ -571,14 +572,14 @@ namespace merutilm::rff2 {
         uint64_t mantissa_bit;
         size_t cnt;
         int shift;
-        int exp2;
-        int f_exp2;
+        mp_size_t exp2;
+        mp_size_t f_exp2;
 
         export_value(&exp2, &shift, &mantissa_bit, &cnt, &f_exp2);
 
-        const double mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
+        const auto mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
 
-        return dex(sgn) * dex::mul_2exp(dex(mantissa), f_exp2);
+        return dex(sgn) * dex::mul_2exp(dex(mantissa), static_cast<int>(f_exp2));
     }
     inline bool fixed_point_decimal::is_strict_zero() const {
         return mpn_zero_p(get_value_ptr(), limbs_read_count());
@@ -632,8 +633,8 @@ namespace merutilm::rff2 {
     }
 
 
-    inline void fixed_point_decimal::export_value(int *exp2, int *shift, uint64_t *mantissa_bit, size_t *cnt,
-                                                  int *f_exp2) {
+    inline void fixed_point_decimal::export_value(mp_size_t *exp2, int *shift, uint64_t *mantissa_bit, size_t *cnt,
+                                                  mp_size_t *f_exp2) {
         *exp2 = -dec_limbs_count * 64;
         temp_write_limbs(get_value_ptr(), limbs_read_count());
         const size_t len = mpz_sizeinbase(temp, 2);

@@ -59,7 +59,9 @@ namespace merutilm::rff2 {
 
         static Settings genDefaultSettings();
 
-        [[nodiscard]] complex<dex> offsetConversion(const Settings &s, int mx, int my) const;
+        [[nodiscard]] complex<dex> offsetConversion(const Settings &s, int px, int py) const;
+        std::array<int, 2> iterationBufferConversion(const Settings &s, const complex<dex> &offset) const;
+        void moveCursor(int px, int py) const;
 
         static dex getDivisor(const Settings &settings);
 

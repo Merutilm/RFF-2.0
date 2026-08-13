@@ -1,4 +1,5 @@
 #pragma once
+#include "ExploreSettings.hpp"
 #include "FractalSettings.h"
 #include "RenderSettings.h"
 #include "ShaderSettings.h"
@@ -10,5 +11,6 @@ namespace merutilm::rff2 {
         RenderSettings render;
         ShaderSettings shader;
         VideoSettings video;
+        ExploreSettings explore;
     };
 }

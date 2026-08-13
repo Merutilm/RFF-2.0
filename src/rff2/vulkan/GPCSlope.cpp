@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void GPCSlope::setSlope(const ShdSlopeSettings &slope, const float depthMultiplier) const {
+    void GPCSlope::setSlope(const ShdSlopeSettings &slope, const float depthMultiplier, const uint32_t frameIndex) const {
         using namespace SharedDescriptorTemplate;
         auto &slopeDesc = getDescriptor(SET_SLOPE);
         auto &slopeUBO = slopeDesc.get<vkh::Uniform>(0, DescSlope::BINDING_UBO_SLOPE);
@@ -25,7 +25,7 @@ namespace merutilm::rff2 {
         slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_OPACITY, slope.opacity);
         slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_ZENITH, slope.zenith);
         slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_AZIMUTH, slope.azimuth);
-        slopeUBO.update();
+        slopeUBO.updateMF(frameIndex);
     }
 
     void GPCSlope::pipelineInitialized() {

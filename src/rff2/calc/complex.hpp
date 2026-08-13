@@ -45,9 +45,15 @@ namespace merutilm::rff2 {
             return complex{a.re - b.re, a.im - b.im};
         }
 
+        friend complex &operator-=(complex &a, const complex b) { return a = a - b; }
+
         friend complex operator-(const complex a, const Num b) { return complex{a.re - b, a.im}; }
 
         friend complex operator-(const Num a, const complex b) { return complex{a - b.re, -b.im}; }
+
+        friend complex operator/(const complex a, const Num b) {
+            return complex{a.re / b, a.im / b};
+        }
 
         friend bool operator==(const complex &a, const complex &b) {return a.re == b.re && a.im == b.im;}
 

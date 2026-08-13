@@ -42,15 +42,10 @@ namespace merutilm::rff2 {
         renderer->compute2MapIterationStripe->set2MapSize(videoExtent);
         renderer->compute2MapIterationStripe->setDefaultZoomIncrement(targetSettings.video.data.defaultZoomIncrement);
         renderer->compute2MapIterationStripe->setStripe(targetSettings.shader.stripe);
-        renderer->rg2->slope->setSlope(targetSettings.shader.slope, 1);
         renderer->rg2->color->setColor(targetSettings.shader.color);
         renderer->rg3->fog->setFog(targetSettings.shader.fog);
         renderer->rg4->bloom->setBloom(targetSettings.shader.bloom);
         renderer->rg4->linearInterpolation->setLinearInterpolation(targetSettings.render.linearInterpolation);
-        renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
-                                               targetSettings.shader.fog.radius);
-        renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM,
-                                               targetSettings.shader.bloom.radius);
     }
 
     void VideoWindowRenderManager::setTime(const float currentSec) const { renderer->currentSec = currentSec; }
@@ -72,7 +67,7 @@ namespace merutilm::rff2 {
 
 
     void VideoWindowRenderManager::initRenderer() {
-        renderer = std::make_unique<VideoWindowRenderer>(engine, wc, videoExtent);
+        renderer = std::make_unique<VideoWindowRenderer>(engine, wc, targetSettings, videoExtent);
         applySize();
         applyShader();
     }
