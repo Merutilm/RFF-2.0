@@ -147,8 +147,10 @@ namespace merutilm::rff2 {
         auto one = fixed_point_complex_i1(1.0, 0.0, exp10);
         auto bailoutSqr = Num(generalSettings.bailout * generalSettings.bailout);
 
-        op_thread_pool parallelReferenceThreadPool{};
-        op_thread_pool *tp = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPool : nullptr;
+        op_thread_pool parallelReferenceThreadPoolForStrict{};
+        op_thread_pool parallelReferenceThreadPoolForRef{};
+        op_thread_pool *tpStrict = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPoolForStrict : nullptr;
+        op_thread_pool *tpRef = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPoolForRef : nullptr;
 
         complex<Num> fpgBn0 = complex<Num>::ONE;
 
@@ -207,11 +209,11 @@ namespace merutilm::rff2 {
             // strict fpg
             if (strictFPG) {
                 fixed_point_complex::dbl(temp, z);
-                fixed_point_complex::mul(fpgBn, fpgBn, temp, tp);
+                fixed_point_complex::mul(fpgBn, fpgBn, temp, tpStrict);
                 fixed_point_complex::add(fpgBn, fpgBn, one);
             }
 
-            applyFormula(z, c, actionPerRefCalcIteration, tp, period);
+            applyFormula(z, c, actionPerRefCalcIteration, tpRef, period);
             syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, exp10, z0, c0);
 
 
