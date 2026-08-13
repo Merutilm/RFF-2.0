@@ -82,21 +82,21 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPCBoxBlur::setBlurInfo(uint32_t blurSizeDescIndex, const float blurSize) const {
+    void CPCBoxBlur::setBlurInfo(const uint32_t blurSizeDescIndex, const float blurSize) const {
         auto &desc = getDescriptor(SET_BLUR_RADIUS);
 
         auto &ubo = desc.get<vkh::Uniform>(blurSizeDescIndex, BINDING_BLUR_RADIUS_UBO);
         ubo.getHostObject().set<float>(TARGET_BLUR_UBO_BLUR_SIZE, blurSize);
         ubo.update();
-
-        writeDescriptorMF(
-            [&desc, &blurSizeDescIndex](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-                desc.queue(queue, frameIndex, {blurSizeDescIndex}, {BINDING_BLUR_RADIUS_UBO});
-            });
     }
 
     void CPCBoxBlur::pipelineInitialized() {
-        //no operation
+
+        auto &desc = getDescriptor(SET_BLUR_RADIUS);
+        writeDescriptorMF(
+            [&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+                desc.queue(queue, frameIndex, {}, {BINDING_BLUR_RADIUS_UBO});
+            });
     }
 
     void CPCBoxBlur::renderContextRefreshed() {

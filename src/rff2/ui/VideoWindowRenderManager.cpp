@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
         renderer->compute2MapIterationStripe->set2MapSize(videoExtent);
         renderer->compute2MapIterationStripe->setDefaultZoomIncrement(targetSettings.video.data.defaultZoomIncrement);
         renderer->compute2MapIterationStripe->setStripe(targetSettings.shader.stripe);
-        renderer->rg2->slope->setSlope(targetSettings.shader.slope);
+        renderer->rg2->slope->setSlope(targetSettings.shader.slope, 1);
         renderer->rg2->color->setColor(targetSettings.shader.color);
         renderer->rg3->fog->setFog(targetSettings.shader.fog);
         renderer->rg4->bloom->setBloom(targetSettings.shader.bloom);

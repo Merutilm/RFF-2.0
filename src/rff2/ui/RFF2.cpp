@@ -363,6 +363,11 @@ namespace merutilm::rff2 {
         }
 
         zoomAnimationInfo.update(dt);
+
+        const float mul = pow(10, -zoomAnimationInfo.targetLogZoomOffset);
+        renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, std::min(1.0f, settings.shader.fog.radius * mul));
+        renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, std::min(1.0f, settings.shader.bloom.radius * mul));
+        renderer->rg0->slope->setSlope(settings.shader.slope, mul);
         renderer->rccPresentPrepare->smoothZoom->setSmoothZoomData(zoomAnimationInfo.targetMouseDragOffset +
                                                                            zoomAnimationInfo.targetMouseZoomOffset,
                                                                    zoomAnimationInfo.targetLogZoomOffset);
@@ -372,13 +377,10 @@ namespace merutilm::rff2 {
         rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
         renderer->rg0->iterationPalette->setPalette(s.shader.palette);
         renderer->rg0->stripe->setStripe(s.shader.stripe);
-        renderer->rg0->slope->setSlope(s.shader.slope);
         renderer->rg0->color->setColor(s.shader.color);
         renderer->rg3->fog->setFog(s.shader.fog);
         renderer->rg4->bloom->setBloom(s.shader.bloom);
         renderer->rg4->linearInterpolation->setLinearInterpolation(s.render.linearInterpolation);
-        renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, s.shader.fog.radius);
-        renderer->computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, s.shader.bloom.radius);
     }
 
     void RFF2::refreshResizeParams(const VkExtent2D swapchainExtent) {
