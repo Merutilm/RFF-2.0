@@ -56,8 +56,7 @@ namespace merutilm::rff2 {
         static CreationResult generateReference(const ParallelRenderState &state,
                                                 const FrtGeneralSettings &generalSettings,
                                                 const FrtReferenceSettings &refSettings, int exp10,
-                                                uint64_t refInitialCapacity, uint64_t fixedPeriod, dex dcMax,
-                                                bool strictFPG,
+                                                uint64_t refInitialCapacity, uint64_t forcedStrictFPGPeriod, dex dcMax,
                                                 const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                                 std::unique_ptr<MB2Reference> *result);
 
@@ -119,8 +118,8 @@ namespace merutilm::rff2 {
     template<Number Num>
     Reference::CreationResult MB2Reference<Num>::generateReference(
             const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
-            const FrtReferenceSettings &refSettings, int exp10, uint64_t refInitialCapacity, uint64_t fixedPeriod,
-            dex dcMax, const bool strictFPG, const std::function<void(uint64_t)> &actionPerRefCalcIteration,
+            const FrtReferenceSettings &refSettings, int exp10, uint64_t refInitialCapacity, uint64_t forcedStrictFPGPeriod,
+            dex dcMax, const std::function<void(uint64_t)> &actionPerRefCalcIteration,
             std::unique_ptr<MB2Reference> *result) {
         if (state.interruptRequested()) {
             return CreationResult::TERMINATED;
@@ -132,7 +131,7 @@ namespace merutilm::rff2 {
         ref.push_back(complex<Num>::ZERO);
 
         int strictIntExp10 = -exp10;
-        int fpgIntExp10 = strictFPG ? strictIntExp10 : 1;
+        int fpgIntExp10 = forcedStrictFPGPeriod != 0 ? strictIntExp10 : 1;
 
         fixed_point_complex_i1 c = refSettings.center.create_variant(exp10);
         auto z = fixed_point_complex_i1(0.0, 0.0, exp10);
@@ -169,7 +168,7 @@ namespace merutilm::rff2 {
 
         uint64_t period = 0;
 
-        for (period = 0; period == 0 || z0.norm_sqr() < bailoutSqr; ++period) {
+        for (period = 0; z0.norm_sqr() < bailoutSqr; ++period) {
             if (state.interruptRequested()) {
                 return CreationResult::TERMINATED;
             }
@@ -182,15 +181,14 @@ namespace merutilm::rff2 {
                 complex<Num> fpgBnTemp = fpgBn0 * z0 * Num(2) + Num(1);
 
                 Num fpgRadius = fpgBnTemp.norm_approx();
-                bool isRadZero = calculatable::is_zero(radius2);
 
-                if (minZRadius > radius2 && !isRadZero) {
+                if (minZRadius > radius2) {
                     minZRadius = radius2;
                     periodArray.push_back(period);
                 }
 
-                if ((fpgReference == nullptr && fpgRadius > fpgLimit) || isRadZero ||
-                    (fixedPeriod != 0 && fixedPeriod == period)) {
+
+                if (fpgRadius > fpgLimit || forcedStrictFPGPeriod == period) {
                     periodArray.push_back(period);
                     fpgReference = std::make_unique<fixed_point_complex>(z);
                     break;
@@ -200,7 +198,7 @@ namespace merutilm::rff2 {
             }
 
             // strict fpg
-            if (strictFPG) {
+            if (forcedStrictFPGPeriod != 0) {
                 fixed_point_complex::dbl(temp, z);
                 fixed_point_complex::mul(fpgBn, fpgBn, temp, tpStrict);
                 fixed_point_complex::add(fpgBn, fpgBn, one);
@@ -242,13 +240,14 @@ namespace merutilm::rff2 {
             }
         }
 
-        if (!strictFPG)
+        if (forcedStrictFPGPeriod == 0)
             fpgBn = fixed_point_complex(fpgBn0.re, fpgBn0.im, exp10, strictIntExp10);
         if (fpgReference == nullptr)
             fpgReference = std::make_unique<fixed_point_complex>(z);
 
         ref.resize(period - compressed + 1);
         ref.shrink_to_fit();
+
         periodArray = periodArray.empty() ? std::vector(1, period) : periodArray;
 
         *result = std::make_unique<MB2Reference>(std::move(c), std::move(ref), std::move(tools),

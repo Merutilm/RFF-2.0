@@ -43,11 +43,10 @@ namespace merutilm::rff2 {
         std::unique_ptr<MB2Perturbator<Num>> perturbator;
 
         explicit MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, std::unique_ptr<ApproxTableCacheBase> &cache, dex dcMax, int exp10,
-                               uint64_t refInitialCapacity, uint64_t fixedPeriod,
+                               uint64_t refInitialCapacity, uint64_t forcedStrictFPGPeriod,
                                const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration,
-                               const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration,
-                               bool arbitraryPrecisionFPGBn);
+                               const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
 
 
         [[nodiscard]] MB2ReferenceBase *getReference() const override { return reference.get(); }
@@ -64,14 +63,12 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     MB2RenderData<Num>::MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, std::unique_ptr<ApproxTableCacheBase> &cache, const dex dcMax,
-                                      const int exp10, const uint64_t refInitialCapacity, const uint64_t fixedPeriod,
+                                      const int exp10, const uint64_t refInitialCapacity, const uint64_t forcedStrictFPGPeriod,
                                       const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                       const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration,
-                                      const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration,
-                                      const bool arbitraryPrecisionFPGBn) : MB2RenderDataBase(state, frt, cache) {
-        this->lastCreationResult = MB2Reference<Num>::generateReference(
-                state, frt.general, frt.reference, exp10, refInitialCapacity, fixedPeriod, dcMax,
-                arbitraryPrecisionFPGBn, actionPerRefCalcIteration, &reference);
+                                      const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) : MB2RenderDataBase(state, frt, cache) {
+        this->lastCreationResult = MB2Reference<Num>::generateReference(state, frt.general, frt.reference, exp10, refInitialCapacity,
+                                                     forcedStrictFPGPeriod, dcMax, actionPerRefCalcIteration, &reference);
 
         if (this->lastCreationResult != Reference::CreationResult::SUCCESS) {
             table = nullptr;
@@ -137,18 +134,24 @@ namespace merutilm::rff2 {
             // validation
 
             complex lSum = complex<dex>::ZERO;
-            dex rSum = dex::ZERO;
+            dex lSumMag = dex::ZERO;
+            dex rSumMag = dex::ZERO;
             dex dcMaxNs = dcMax;
             for (uint32_t currExp = 0; currExp < terms.size(); ++currExp) {
                 if (currExp < fractalSettings.sa.appliedTermsCount) {
                     lSum += termsTemp[currExp] * dcMaxNs;
+                    lSumMag += termsTemp[currExp].norm_approx() * dcMaxNs;
                 } else {
-                    rSum += termsTemp[currExp].norm_approx() * dcMaxNs;
+                    rSumMag += termsTemp[currExp].norm_approx() * dcMaxNs;
                 }
+
                 dcMaxNs *= dcMax;
             }
 
-            if (lSum.norm_approx() * epsilon < rSum || lSum.norm_sqr() > dex(fractalSettings.general.bailout * fractalSettings.general.bailout))
+            const complex znDex{dex(zn.re), dex(zn.im)};
+            const complex<dex> point = lSum + znDex;
+
+            if (lSumMag * epsilon < rSumMag || point.norm_sqr() > dex(fractalSettings.general.bailout * fractalSettings.general.bailout))
                 break;
 
             std::copy_n(termsTemp.begin(), terms.size(), terms.begin());

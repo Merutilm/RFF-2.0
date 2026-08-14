@@ -477,7 +477,7 @@ namespace merutilm::rff2 {
             if (ImGui::BeginTabItem("Fractal")) {
                 FnFractal::reference(*this);
                 FnFractal::iterations(*this);
-                // FnFractal::sa(*this);
+                FnFractal::sa(*this);
                 FnFractal::mpa(*this);
                 FnFractal::automaticIterations(*this);
                 FnFractal::absoluteIterationMode(*this);
@@ -694,43 +694,16 @@ namespace merutilm::rff2 {
             capacity = renderData->getReference()->length();
         }
 
-        std::function actionPerRefCalcIteration = [this, startTime](const uint64_t p) mutable {
-            static float time = rootWindowContext->getWindow()->getTime();
-            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "Period : {:L}", p));
-                setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
-        std::function actionPerSeriesApproxIteration = [this, startTime](const uint64_t p, const double i) mutable {
-            static float time = rootWindowContext->getWindow()->getTime();
-            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS,
-                                 std::format("Series-Approximation : {:.3f}%", i * 100));
-                setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
-        std::function actionPerCreatingTableIteration = [this, startTime](const uint64_t p, const double i) mutable {
-            static float time = rootWindowContext->getWindow()->getTime();
-            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("MP-Approximation : {:.3f}%", i * 100));
-                setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
+        std::function actionPerRefCalcIteration = FnExplore::getActionWhileRefCalc(*this, startTime);
+        std::function actionPerSeriesApproxIteration = FnExplore::getActionWhileSeriesApprox(*this, startTime);
+        std::function actionPerCreatingTableIteration = FnExplore::getActionWhileCreatingTable(*this, startTime);
 
 
         if (state.interruptRequested())
             return false;
 
 
+        const int exp10 = Perturbator::logZoomToExp10(logZoom);
         if (frt.reference.reuse) {
             if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
                 vkh::logger::log_err("Do not reuse Reference during reference calculation!!!");
@@ -738,19 +711,25 @@ namespace merutilm::rff2 {
                 requests.requestRecompute();
                 return false;
             }
-            renderData->translate(frt.general.logZoom, renderData->getPerturbator()->dcMax, frt.perturb,
+
+            fixed_point_complex_i1 center = frt.reference.center.create_variant(exp10);
+            const fixed_point_complex_i1 referenceCenter = renderData->getReference()->center.create_variant(exp10);
+            fixed_point_complex::sub(center, center, referenceCenter);
+            const dex distance = static_cast<complex<dex>>(center).norm_approx();
+
+
+            renderData->translate(frt.general.logZoom, dcMax + distance, frt.perturb,
                                   frt.reference.center, actionPerSeriesApproxIteration);
         } else {
-            const int exp10 = Perturbator::logZoomToExp10(logZoom);
             renderData = nullptr;
             if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {
                 renderData = std::make_unique<DeepMB2RenderData>(
                         state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
-                        actionPerSeriesApproxIteration, actionPerCreatingTableIteration, false);
+                        actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
             } else {
                 renderData = std::make_unique<LightMB2RenderData>(
                         state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
-                        actionPerSeriesApproxIteration, actionPerCreatingTableIteration, false);
+                        actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
             }
         }
 

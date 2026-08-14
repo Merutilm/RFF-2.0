@@ -92,8 +92,8 @@ namespace merutilm::rff2 {
                 complex dzSa = complex<dex>::ZERO;
 
                 for (const auto term: seriesApproximationData.terms) {
-                    dzSa += term * dcSaM;
-                    dcSaM *= dcSa;
+                    dzSa = (dzSa + term * dcSaM).try_normalized_value();
+                    dcSaM = (dcSaM * dcSa).try_normalized_value();
                 }
 
                 iteration = seriesApproximationData.skippedIterations;

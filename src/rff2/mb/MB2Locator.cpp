@@ -123,7 +123,7 @@ namespace merutilm::rff2 {
             fixed_point_complex::add(center, center, centerOffset);
 
             if (centerOffset.is_strict_zero()) {
-                vkh::logger::log_err("No center found", "Error");
+                vkh::logger::log_err("The center could not be found, or you are already in the center");
                 return nullptr;
             }
             doubledZoomCalc.reference.center = center;
@@ -135,14 +135,14 @@ namespace merutilm::rff2 {
                     Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
-                    }, actionWhileSeriesApprox, actionWhileCreatingTable, true);
+                    }, actionWhileSeriesApprox, actionWhileCreatingTable);
 
             } else {
                 doubledZoomData = std::make_unique<DeepMB2RenderData>(
                     state, doubledZoomCalc, cache, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
-                    }, actionWhileSeriesApprox, actionWhileCreatingTable, true);
+                    }, actionWhileSeriesApprox, actionWhileCreatingTable);
             }
         }
         return doubledZoomData;
