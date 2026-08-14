@@ -6,7 +6,6 @@
 #include <concepts>
 #include "dex.h"
 #include "dex_trig.h"
-#include "fixed_point_decimal.hpp"
 #include "rff_math.h"
 namespace merutilm::rff2 {
 
@@ -48,16 +47,6 @@ namespace merutilm::rff2 {
                 static_assert(std::is_same_v<Num, dex>);
                 n.try_normalize();
                 return n;
-            }
-        }
-
-        template<Number Num>
-        Num from_fixed_point_decimal(fixed_point_decimal &n) {
-            if constexpr (std::is_same_v<Num, double>) {
-                return n.double_value();
-            } else {
-                static_assert(std::is_same_v<Num, dex>);
-                return n.dex_value();
             }
         }
 

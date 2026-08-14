@@ -141,7 +141,7 @@ namespace merutilm::rff2 {
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
-                .explore = {.setCursorToCenter = false}};
+                .explore = {.autoMoveCursorToCenter = false}};
 #else
         return Settings{
                 .fractal =
@@ -178,7 +178,7 @@ namespace merutilm::rff2 {
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
-                .explore = {.setCursorToCenter = false}};
+                .explore = {.autoMoveCursorToCenter = false}};
 #endif
     }
 
@@ -518,8 +518,10 @@ namespace merutilm::rff2 {
                 FnExplore::recompute(*this);
                 FnExplore::reset(*this);
                 FnExplore::cancelRender(*this);
-                FnExplore::setCursorToCenter(*this);
-                FnExplore::reuseReferenceDetail(*this);
+                FnExplore::moveCursorToCenter(*this);
+                FnExplore::reuseReference(*this);
+                FnExplore::moveToCenter(*this);
+                FnExplore::goToOriginalReference(*this);
                 FnExplore::locateCenteredReference(*this);
                 FnExplore::locateMinibrot(*this);
                 ImGui::EndTabItem();
@@ -646,22 +648,25 @@ namespace merutilm::rff2 {
         });
     }
 
+    void RFF2::moveCursorToCenter() const {
+        const std::unique_ptr<fixed_point_complex_i1> off = MB2Locator::findCenterOffset(*renderData);
+        auto offDex = static_cast<complex<dex>>(*off);
+        if (renderData->getPerturbator()) {
+            offDex -= renderData->getPerturbator()->off;
+        }
+        const auto [width, height] = rootWindowContext->getSwapchain().getSwapchainExtent();
+
+        // multiplying 1.01 to attract reference center to client center
+        const std::array<int, 2> ib = iterationBufferConversion(settings, offDex * dex(1.01));
+
+        if (ib[0] >= 0 && ib[1] >= 0 && ib[0] < width && ib[1] < height) {
+            moveCursor(ib[0], ib[1]);
+        }
+    }
+
     void RFF2::beforeIterationFill() const {
-        if (settings.explore.setCursorToCenter) {
-
-            const std::unique_ptr<fixed_point_complex_i1> off = MB2Locator::findCenterOffset(*renderData);
-            complex offDex = {off->get_real().dex_value(), off->get_imag().dex_value()};
-            if (renderData->getPerturbator()) {
-                offDex -= renderData->getPerturbator()->off;
-            }
-            const auto [width, height] = rootWindowContext->getSwapchain().getSwapchainExtent();
-
-            // multiplying 1.01 to attract reference center to client center
-            const std::array<int, 2> ib = iterationBufferConversion(settings, offDex * dex(1.01));
-
-            if (ib[0] >= 0 && ib[1] >= 0 && ib[0] < width && ib[1] < height) {
-                moveCursor(ib[0], ib[1]);
-            }
+        if (settings.explore.autoMoveCursorToCenter) {
+            moveCursorToCenter();
         }
         renderer->rg0->iterationPalette->setMaxIterationTemp(
                 static_cast<double>(renderData->fractalSettings.perturb.maxIteration));

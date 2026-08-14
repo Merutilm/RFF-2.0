@@ -30,9 +30,7 @@ namespace merutilm::rff2 {
         //mantissa = decimal value of exp2
         const double raw_exp2 = v / Constants::Num::LOG10_2;
         const auto exp2 = static_cast<int>(raw_exp2);
-        dex result = {exp2, std::pow(2, raw_exp2 - exp2)};
-        result.normalize();
-        return result;
+        return {exp2, std::pow(2, raw_exp2 - exp2)};
     }
 
 

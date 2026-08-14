@@ -148,7 +148,7 @@ namespace merutilm::rff2 {
 
 
                 if (refIteration != maxRefIteration) {
-                    const complex<Num> oldZ2 = reference.orbit(refIteration) * Num(2);
+                    const complex<Num> oldZ2 = reference.orbit(refIteration) * 2;
                     const complex<Num> oldPtbz = oldZ2 + dz;
 
                     dz = oldPtbz * dz + dc0;
@@ -172,7 +172,7 @@ namespace merutilm::rff2 {
 
                     if (interiorDetectRadius != 0) {
                         for (const complex<Num> &pdz0: pdz) {
-                            if ((pdz0 - dz).norm_sqr() < dcMax0 * Num(interiorDetectRadius)) {
+                            if ((pdz0 - dz).norm_sqr() < dcMax0 * interiorDetectRadius) {
                                 return isAbs ? absIteration : maxIteration;
                             }
                         }

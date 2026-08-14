@@ -36,15 +36,38 @@ namespace merutilm::rff2 {
             app.getState().cancel();
         }
     }
-    void FnExplore::setCursorToCenter(RFF2 &app) {
-        ImGui::Checkbox("Auto Set Cursor To Center", &app.getSettings().explore.setCursorToCenter);
+    void FnExplore::moveCursorToCenter(RFF2 &app) {
+        if (ImGui::Checkbox("Auto Move Cursor To Center", &app.getSettings().explore.autoMoveCursorToCenter)) {
+            if (app.getSettings().explore.autoMoveCursorToCenter) app.moveCursorToCenter();
+        }
     }
-    void FnExplore::reuseReferenceDetail(RFF2 &app) {
+
+    void FnExplore::reuseReference(RFF2 &app) {
         auto& frt = app.getSettings().fractal;
         ImGui::Checkbox("Reuse Reference", &frt.reference.reuse);
+    }
+
+    void FnExplore::moveToCenter(RFF2 &app) {
+        const MB2RenderDataBase * renderData = app.getCurrentRenderData();
+        auto& frt = app.getSettings().fractal;
+        if (renderData && renderData->getPerturbator()) {
+            if (ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
+                const int exp10 = Perturbator::logZoomToExp10(renderData->getReference()->logZoom);
+                const auto off = MB2Locator::findCenterOffset(*renderData)->create_variant(exp10);
+                fixed_point_complex_i1 center = frt.reference.center.create_variant(exp10);
+                fixed_point_complex::add(center, center, off);
+                frt.reference.center = center;
+                app.getRequests().requestRecompute();
+            }
+        }
+    }
+
+
+    void FnExplore::goToOriginalReference(RFF2 &app) {
 
         MB2RenderDataBase * renderData = app.getCurrentRenderData();
 
+        auto& frt = app.getSettings().fractal;
         if (frt.reference.reuse && renderData && renderData->getReference()) {
             if (ImGui::Button("Go to Original Reference", ImVec2(-FLT_MIN, 0))) {
                 frt.reference.center = renderData->getReference()->center;
@@ -54,6 +77,7 @@ namespace merutilm::rff2 {
             }
         }
     }
+
     void FnExplore::locateCenteredReference(RFF2 &app) {
 
         std::unique_ptr<MB2RenderDataBase> &data = app.getCurrentRenderDataOwnRef();

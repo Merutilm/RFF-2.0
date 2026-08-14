@@ -93,6 +93,13 @@ namespace merutilm::rff2 {
             return {std::max(a.exp2, b.exp2),
                     ldexp_neg(a.mantissa, std::min(static_cast<int64_t>(0), d_exp2)) + ldexp_neg(b.mantissa, std::min(static_cast<int64_t>(0), -d_exp2))};
         }
+        friend dex operator+(const dex a, const double b) {
+            return a + dex(b);
+        }
+
+        friend dex operator+(const double a, const dex b) {
+            return dex(a) + b;
+        }
 
         friend dex operator-(const dex a, const dex b) {
 #ifdef SAFE_DEX_OPERATOR
@@ -126,11 +133,39 @@ namespace merutilm::rff2 {
         }
 
 
-        friend dex operator*(const dex a, const dex b) {
+        friend dex operator-(const dex a, const double b) {
+            return a - dex(b);
+        }
 
-            if (a.is_zero() || b.is_zero()) [[unlikely]] {
-                return ZERO;
+        friend dex operator-(const double a, const dex b) {
+            return dex(a) - b;
+        }
+
+        friend dex operator*(const dex a, const double b) {
+#ifdef SAFE_DEX_OPERATOR
+            if (a.isnan() || std::isnan(b)) {
+                return NN;
             }
+            if (a.isinf() || std::isinf(b)) {
+                return a.sgn() == (b > 0) ? PINF : NINF;
+            }
+#endif
+            return {a.exp2, a.mantissa * b};
+        }
+
+        friend dex operator*(const double a, const dex b) {
+#ifdef SAFE_DEX_OPERATOR
+            if (std::isnan(a) || b.isnan()) {
+                return NN;
+            }
+            if (std::isinf(a) || b.isinf()) {
+                return (a > 0) == b.sgn() ? PINF : NINF;
+            }
+#endif
+            return {b.exp2, a * b.mantissa};
+        }
+
+        friend dex operator*(const dex a, const dex b) {
 #ifdef SAFE_DEX_OPERATOR
             if (a.isnan() || b.isnan()) {
                 return NN;

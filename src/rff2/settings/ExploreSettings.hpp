@@ -5,6 +5,6 @@
 #pragma once
 namespace merutilm::rff2 {
     struct ExploreSettings {
-        bool setCursorToCenter;
+        bool autoMoveCursorToCenter;
     };
 }

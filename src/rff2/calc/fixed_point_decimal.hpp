@@ -133,9 +133,9 @@ namespace merutilm::rff2 {
 
         static int int_exp10_to_exp2div64(int exp10);
 
-        double double_value();
+        explicit operator double();
 
-        dex dex_value();
+        explicit operator dex();
 
         [[nodiscard]] bool is_strict_zero() const;
 
@@ -537,7 +537,7 @@ namespace merutilm::rff2 {
     inline mp_limb_t *fixed_point_decimal::get_value_ptr() const { return raw + offset; }
 
 
-    inline double fixed_point_decimal::double_value() {
+    inline fixed_point_decimal::operator double() {
         if (sgn == 0) {
             return 0;
         }
@@ -565,7 +565,7 @@ namespace merutilm::rff2 {
         return std::bit_cast<double>(sig | exponent | mantissa_bit);
     }
 
-    inline dex fixed_point_decimal::dex_value() {
+    inline fixed_point_decimal::operator dex() {
         if (sgn == 0) {
             return dex::ZERO;
         }

@@ -23,39 +23,45 @@ namespace merutilm::rff2 {
             return complex{a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re};
         }
 
-        friend complex &operator*=(complex &a, const Num b) { return a = a * b; }
+        friend complex &operator*=(complex &a, const dex b) { return a = a * b; }
+
+        friend complex &operator*=(complex &a, const double b) { return a = a * b; }
 
         friend complex &operator*=(complex &a, const complex b) { return a = a * b; }
 
-        friend complex operator*(const complex a, const Num b) { return complex{a.re * b, a.im * b}; }
+        friend complex operator*(const complex a, const dex b) { return complex{a.re * b, a.im * b}; }
 
-        friend complex operator*(const Num a, const complex b) { return complex{a * b.re, a * b.im}; }
+        friend complex operator*(const complex a, const double b) { return complex{a.re * b, a.im * b}; }
 
-        friend complex operator+(const complex a, const complex b) {
-            return complex{a.re + b.re, a.im + b.im};
-        }
+        friend complex operator*(const dex a, const complex b) { return complex{a * b.re, a * b.im}; }
+
+        friend complex operator*(const double a, const complex b) { return complex{a * b.re, a * b.im}; }
+
+        friend complex operator+(const complex a, const complex b) { return complex{a.re + b.re, a.im + b.im}; }
 
         friend complex &operator+=(complex &a, const complex b) { return a = a + b; }
 
-        friend complex operator+(const Num a, const complex b) { return complex{a + b.re, b.im}; }
+        friend complex operator+(const dex a, const complex b) { return complex{a + b.re, b.im}; }
 
-        friend complex operator+(const complex a, const Num b) { return complex{a.re + b, a.im}; }
+        friend complex operator+(const double a, const complex b) { return complex{a + b.re, b.im}; }
 
-        friend complex operator-(const complex a, const complex b) {
-            return complex{a.re - b.re, a.im - b.im};
-        }
+        friend complex operator+(const complex a, const dex b) { return complex{a.re + b, a.im}; }
+
+        friend complex operator+(const complex a, const double b) { return complex{a.re + b, a.im}; }
+
+        friend complex operator-(const complex a, const complex b) { return complex{a.re - b.re, a.im - b.im}; }
 
         friend complex &operator-=(complex &a, const complex b) { return a = a - b; }
 
-        friend complex operator-(const complex a, const Num b) { return complex{a.re - b, a.im}; }
+        friend complex operator-(const complex a, const dex b) { return complex{a.re - b, a.im}; }
+        friend complex operator-(const complex a, const double b) { return complex{a.re - b, a.im}; }
 
-        friend complex operator-(const Num a, const complex b) { return complex{a - b.re, -b.im}; }
+        friend complex operator-(const dex a, const complex b) { return complex{a - b.re, -b.im}; }
+        friend complex operator-(const double a, const complex b) { return complex{a - b.re, -b.im}; }
 
-        friend complex operator/(const complex a, const Num b) {
-            return complex{a.re / b, a.im / b};
-        }
+        friend complex operator/(const complex a, const dex b) { return complex{a.re / b, a.im / b}; }
 
-        friend bool operator==(const complex &a, const complex &b) {return a.re == b.re && a.im == b.im;}
+        friend bool operator==(const complex &a, const complex &b) { return a.re == b.re && a.im == b.im; }
 
         [[nodiscard]] Num norm_sqr() const { return re * re + im * im; }
 
@@ -69,7 +75,7 @@ namespace merutilm::rff2 {
         std::string to_string() {
             if constexpr (std::is_same_v<Num, dex>) {
                 return re.to_string() + " | " + im.to_string() + "i";
-            }else {
+            } else {
                 static_assert(std::is_same_v<Num, double>);
                 return std::to_string(re) + " | " + std::to_string(im) + "i";
             }

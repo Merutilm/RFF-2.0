@@ -10,6 +10,8 @@
 #include "spin_thread_pool.hpp"
 #include <sstream>
 
+#include "complex.hpp"
+
 namespace merutilm::rff2 {
 
 
@@ -104,6 +106,11 @@ namespace merutilm::rff2 {
 
         static void make_operation_compatible(fixed_point_complex &result, const fixed_point_complex &v);
 
+        template<Number Num>
+        explicit operator complex<Num>() {
+            return {static_cast<Num>(real), static_cast<Num>(imag)};
+        }
+
         [[nodiscard]] fixed_point_decimal &get_real();
 
         [[nodiscard]] fixed_point_decimal &get_imag();
@@ -112,11 +119,11 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] fixed_point_decimal clone_imag() const;
 
-        fixed_point_complex create_variant(int dec_exp10, int int_exp10) const;
+        [[nodiscard]] fixed_point_complex create_variant(int dec_exp10, int int_exp10) const;
 
         void set_exp10(int dec_exp10, int int_exp10);
 
-        bool is_strict_zero() const;
+        [[nodiscard]] bool is_strict_zero() const;
 
         std::string to_string();
     };

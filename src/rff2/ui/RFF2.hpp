@@ -98,10 +98,12 @@ namespace merutilm::rff2 {
         [[nodiscard]] int16_t getMouseYOnIterationBuffer(int my) const;
 
         void recomputeThreaded();
+        void moveCursorToCenter() const;
 
         void beforeIterationFill() const;
 
         bool prepareRenderData(float startTime, const Settings &s);
+
         bool fillIteration(float startTime, const Settings &s);
 
         void afterComputeFinally(bool success);

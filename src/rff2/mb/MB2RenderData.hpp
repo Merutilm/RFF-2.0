@@ -169,7 +169,7 @@ namespace merutilm::rff2 {
             const fixed_point_complex_i1 refCenter = reference->center.create_variant(exp10);
             fixed_point_complex_i1::sub(center, center, refCenter);
 
-            perturbator->off = {center.get_real().dex_value(), center.get_imag().dex_value()};
+            perturbator->off = {static_cast<dex>(center.get_real()), static_cast<dex>(center.get_imag())};
             perturbator->dcMax = dcMax;
 
             fractalSettings.perturb = ptbSettings;

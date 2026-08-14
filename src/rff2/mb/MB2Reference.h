@@ -48,8 +48,7 @@ namespace merutilm::rff2 {
                               fixed_point_complex &&fpgReference, fixed_point_complex &&fpgBn, float logZoom, dex dcMax);
 
         static void syncReference(fixed_point_complex_i1 &z, uint64_t intervalCounter, uint32_t refSyncInterval,
-                                  uint8_t refSyncRadiusPower, Num refSyncRadius2, int exp10, complex<Num> &z0,
-                                  complex<Num> &c0);
+                                  uint8_t refSyncRadiusPower, Num refSyncRadius2, complex<Num> &z0, complex<Num> &c0);
 
         static void applyFormula(fixed_point_complex_i1 &z, const fixed_point_complex_i1 &c,
                                  const std::function<void(uint64_t)> &stepFunc, op_thread_pool *tp, uint64_t invoker);
@@ -81,29 +80,23 @@ namespace merutilm::rff2 {
     template<Number Num>
     void MB2Reference<Num>::syncReference(fixed_point_complex_i1 &z, const uint64_t intervalCounter,
                                           const uint32_t refSyncInterval, const uint8_t refSyncRadiusPower,
-                                          const Num refSyncRadius2, const int exp10, complex<Num> &z0,
-                                          complex<Num> &c0) {
+                                          const Num refSyncRadius2, complex<Num> &z0, complex<Num> &c0) {
 
         if (refSyncRadiusPower == 0 || refSyncInterval == 1) {
-            z0 = {calculatable::from_fixed_point_decimal<Num>(z.get_real()),
-                  calculatable::from_fixed_point_decimal<Num>(z.get_imag())};
+            z0 = static_cast<complex<Num>>(z);
         } else {
             const complex<Num> next = z0 * z0 + c0;
             const Num radius2 = next.norm_sqr();
 
 
             if (radius2 < refSyncRadius2 || intervalCounter % refSyncInterval == 0) {
-                z0 = {calculatable::from_fixed_point_decimal<Num>(z.get_real()),
-                      calculatable::from_fixed_point_decimal<Num>(z.get_imag())};
+                z0 = static_cast<complex<Num>>(z);
             } else {
 
                 z0 = next.try_normalized_value();
 
                 // if constexpr(std::is_same_v<Num, double>) {
-                //     complex<Num> z2 = {
-                //         calculatable::from_fixed_point_decimal<Num>(z.get_real()),
-                //         calculatable::from_fixed_point_decimal<Num>(z.get_imag())
-                //     };
+                //     complex<Num> z2 = static_cast<complex<Num>>(z);
                 //
                 //     // if (z0.re/z2.re <0.99 || z0.re/z2.re >1.01 || z0.im/z2.im <0.99 || z0.im/z2.im >1.01) {
                 //         std::cout << intervalCounter % refSyncInterval << " | " << z0.re - z2.re  << " " << z0.im -
@@ -156,8 +149,7 @@ namespace merutilm::rff2 {
         complex<Num> fpgBn0 = complex<Num>::ONE;
 
         complex<Num> z0 = complex<Num>::ZERO;
-        complex<Num> c0 = {calculatable::from_fixed_point_decimal<Num>(c.get_real()),
-                           calculatable::from_fixed_point_decimal<Num>(c.get_imag())};
+        complex<Num> c0 = static_cast<complex<Num>>(c);
 
         auto periodArray = std::vector<uint64_t>();
 
@@ -215,7 +207,7 @@ namespace merutilm::rff2 {
             }
 
             applyFormula(z, c, actionPerRefCalcIteration, tpRef, period);
-            syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, exp10, z0, c0);
+            syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, z0, c0);
 
 
             if (compressCriteria > 0 && period >= 1) {

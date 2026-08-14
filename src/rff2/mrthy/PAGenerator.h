@@ -25,7 +25,7 @@ namespace merutilm::rff2 {
         const Num dcMax;
         complex<Num> an = complex<Num>::ONE;
         complex<Num> bn = complex<Num>::ZERO;
-        Num radius = Num(DBL_MAX);
+        Num radius = calculatable::try_normalized_value(Num(DBL_MAX));
 
         explicit PAGenerator(const MB2Reference<Num> &reference, double epsilon, Num dcMax, uint64_t start);
 
@@ -53,7 +53,7 @@ namespace merutilm::rff2 {
         this->skip = 0;
         an = complex<Num>::ONE;
         bn = complex<Num>::ZERO;
-        radius = Num(DBL_MAX);
+        radius = calculatable::try_normalized_value(Num(DBL_MAX));
     }
 
     template<Number Num>
@@ -99,11 +99,11 @@ namespace merutilm::rff2 {
     void PAGenerator<Num>::step() {
         const uint64_t iter = this->start + this->skip++; // k+n
         const uint64_t index = ArrayCompressor::compress(this->compressors, iter);
-        const complex<Num> z2 = Num(2) * this->orbit[index];
+        const complex<Num> z2 = 2.0 * this->orbit[index];
 
         this->radius = calculatable::try_normalized_value(
                 std::min(this->radius,
-                         (Num(this->epsilon) * z2.norm_approx() - bn.norm_approx() * this->dcMax) / an.norm_approx()));
+                         (this->epsilon * z2.norm_approx() - bn.norm_approx() * this->dcMax) / an.norm_approx()));
 
         an = (an * z2).try_normalized_value();
         bn = (bn * z2 + Num(1)).try_normalized_value();
