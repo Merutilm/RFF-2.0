@@ -35,6 +35,9 @@ namespace merutilm::rff2 {
 
         void merge(const PA<Num> &target);
 
+        template<typename P>
+        void merge(const P &target);
+
         void step();
 
         [[nodiscard]] PA<Num> build() {
@@ -63,47 +66,52 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     void PAGenerator<Num>::merge(const PAGenerator &target) {
-#ifndef NDEBUG
-        if (this->start + this->skip != target.start) {
-            throw std::invalid_argument("value not match");
-        }
-#endif
-
-
-        const complex<Num> anMerge = target.an * an;
-        const complex<Num> bnMerge = target.an * bn + target.bn;
-
-        this->radius = calculatable::try_normalized_value(std::clamp((target.radius - bn.norm_approx() * this->dcMax) / an.norm_approx(), Num(0), this->radius));
-
-        an = anMerge.try_normalized_value();
-        bn = bnMerge.try_normalized_value();
-
-        this->skip += target.skip;
+        merge<PAGenerator>(target);
     }
 
 
     template<Number Num>
     void PAGenerator<Num>::merge(const PA<Num> &target) {
-        const complex<Num> anMerge = target.an * an;
-        const complex<Num> bnMerge = target.an * bn + target.bn;
+        merge<PA<Num>>(target);
+    }
 
+    template<Number Num>
+    template<typename P>
+    void PAGenerator<Num>::merge(const P &target) {
+#ifndef NDEBUG
+        if (this->start + this->skip != target.start) {
+            throw std::invalid_argument("value not match");
+        }
+#endif
+        this->skip += target.skip;
+
+#ifdef NDEBUG
+        if (calculatable::is_zero(this->radius) || calculatable::is_zero(target.radius)) {
+            this->radius = Num(0);
+            return; //skip useless operation
+        }
+#endif
         this->radius = calculatable::try_normalized_value(std::clamp((target.radius - bn.norm_approx() * this->dcMax) / an.norm_approx(), Num(0), this->radius));
 
+
+        const complex<Num> anMerge = target.an * an;
+        const complex<Num> bnMerge = target.an * bn + target.bn;
         an = anMerge.try_normalized_value();
         bn = bnMerge.try_normalized_value();
-
-        this->skip += target.skip;
     }
 
     template<Number Num>
     void PAGenerator<Num>::step() {
         const uint64_t iter = this->start + this->skip++; // k+n
+
+#ifdef NDEBUG
+        if (calculatable::is_zero(this->radius)) return; //skip useless operation
+#endif
         const uint64_t index = ArrayCompressor::compress(this->compressors, iter);
         const complex<Num> z2 = 2.0 * this->orbit[index];
 
         this->radius = calculatable::try_normalized_value(
-                std::min(this->radius,
-                         (this->epsilon * z2.norm_approx() - bn.norm_approx() * this->dcMax) / an.norm_approx()));
+                std::clamp((this->epsilon * z2.norm_approx() - bn.norm_approx() * this->dcMax) / an.norm_approx(), Num(0), this->radius));
 
         an = (an * z2).try_normalized_value();
         bn = (bn * z2 + Num(1)).try_normalized_value();
