@@ -636,7 +636,7 @@ namespace merutilm::rff2 {
         uint64_t flattenTableIndex = 0;
 
         while (iteration <= longestPeriod) {
-            if (state.interruptRequested())
+            if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested())
                 return;
 
             actionPerCreatingTableIteration(iteration,
@@ -714,13 +714,14 @@ namespace merutilm::rff2 {
 
 
                 while (iteration <= std::min(startIteration + itInterval - 1, longestPeriod)) {
-                    if (state.interruptRequested())
-                        return;
-
-                    if (i == 0) {
-                        actionPerCreatingTableIteration(
-                                std::min(longestPeriod, iteration * threadCount),
-                                std::min(1.0, static_cast<double>(iteration) * threadCount / static_cast<double>(longestPeriod)));
+                    if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0) {
+                        if (state.interruptRequested())
+                            return;
+                        if (i == 0) {
+                            actionPerCreatingTableIteration(
+                                    std::min(longestPeriod, iteration * threadCount),
+                                    std::min(1.0, static_cast<double>(iteration) * threadCount / static_cast<double>(longestPeriod)));
+                        }
                     }
 
                     uncompressedStepOnce(itCount, itCountLim, tablePeriod, currentPA, currentPASkips, flattenTableIndex,

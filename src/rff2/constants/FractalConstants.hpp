@@ -6,7 +6,7 @@
 #include <cstdint>
 
 namespace merutilm::rff2::Constants::Fractal {
-    constexpr int PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL = 256;
+    constexpr int PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL = 1024;
     constexpr float ZOOM_MIN = 1.0f;
     constexpr float ZOOM_INTERVAL = 0.235f;
     constexpr float ZOOM_DEADLINE = 290;
