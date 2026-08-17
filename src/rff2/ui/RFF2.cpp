@@ -110,21 +110,21 @@ namespace merutilm::rff2 {
 #ifndef NDEBUG
         return Settings{
                 .fractal =
-                        FractalSettings{.general = {.bailout = 2.00001f, .logZoom = 2, .threads = 1},
+                        FractalSettings{.general = {.bailout = 2.00001f, .logZoom = 2, .threads = 15},
                                         .reference =
                                                 {
                                                         .center = fixed_point_complex_i1(
                                                                 "-0.85", "0", Perturbator::logZoomToExp10(2)),
                                                         .useParallelRefCalculation = false,
-                                                        .sync = CalculationPresets::UltraBest().genRefSync(),
-                                                        .compression = CalculationPresets::UltraStable().genRefComp(),
+                                                        .sync = CalculationPresets::UltraFast().genRefSync(),
+                                                        .compression = CalculationPresets::UltraFast().genRefComp(),
                                                         .reuse = false,
                                                 },
                                         .sa = {.use = false,
                                                .appliedTermsCount = 8,
                                                .validatedTermsCount = 1,
                                                .epsilonPower = -5},
-                                        .mpa = CalculationPresets::Stable().genMPA(),
+                                        .mpa = CalculationPresets::UltraFast().genMPA(),
                                         .perturb = {.maxIteration = 300,
                                                     .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
                                                     .autoMaxIteration = true,

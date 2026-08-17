@@ -68,7 +68,7 @@ namespace merutilm::rff2 {
                 if (remainder == 0 || maxSkip < tablePeriod[0])
                     return invalidValueSentinel<MODE, Ret>();
 
-                levels += maxSkip >= period && remainder == 1;
+                levels += maxSkip == period && remainder == 1;
 
                 if constexpr (MODE == IndexMappingMode::PULLED || MODE == IndexMappingMode::PULLED_LEVELS) {
                     const uint64_t count = mpaPeriod.skippableIterationCounts[i - 1];
@@ -86,17 +86,13 @@ namespace merutilm::rff2 {
             if (remainder != 1 || maxSkip < tablePeriod[0])
                 return invalidValueSentinel<MODE, Ret>();
 
-            if constexpr (MODE == IndexMappingMode::PULLED) {
+            if constexpr (MODE == IndexMappingMode::PULLED || MODE == IndexMappingMode::FLATTEN)
                 return index;
-            } else if constexpr (MODE == IndexMappingMode::PULLED_LEVELS) {
+            else if constexpr (MODE == IndexMappingMode::PULLED_LEVELS || MODE == IndexMappingMode::FLATTEN_LEVELS)
                 return MPAIndexMapper{index, levels};
-            } else if constexpr (MODE == IndexMappingMode::FLATTEN) {
-                return index;
-            } else if constexpr (MODE == IndexMappingMode::FLATTEN_LEVELS) {
-                return MPAIndexMapper{index, levels};
-            } else if constexpr (MODE == IndexMappingMode::LEVELS) {
+            else if constexpr (MODE == IndexMappingMode::LEVELS)
                 return levels;
-            } else
+            else
                 throw std::logic_error("invalid mapping mode");
         }
 
