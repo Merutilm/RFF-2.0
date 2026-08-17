@@ -14,5 +14,6 @@ namespace merutilm::rff2 {
         float epsilonPower;
         FrtMPASelectionMethod mpaSelectionMethod;
         bool useCompress;
+        bool useParallelization;
     };
 }

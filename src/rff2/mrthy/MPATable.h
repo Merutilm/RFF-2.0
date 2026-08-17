@@ -334,7 +334,6 @@ namespace merutilm::rff2 {
                         throw std::invalid_argument("invalid level provided");
                     }
 #endif
-
                     auto pa = getMPAFromMapper(flattenIndexMapper);
                     pa[level] = currentPA[level].build();
                 }
@@ -636,7 +635,8 @@ namespace merutilm::rff2 {
         uint64_t flattenTableIndex = 0;
 
         while (iteration <= longestPeriod) {
-            if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested())
+            if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 &&
+                state.interruptRequested())
                 return;
 
             actionPerCreatingTableIteration(iteration,
@@ -662,161 +662,189 @@ namespace merutilm::rff2 {
         const double epsilon = pow(10, epsilonPower);
         const uint32_t threadCount = generalSettings.threads;
         const uint64_t itInterval = std::max(tablePeriod[0], longestPeriod / threadCount + 1);
-        std::vector<std::unique_ptr<std::jthread>> threads(threadCount);
         std::vector<std::vector<std::pair<std::optional<PAGenerator<Num>>, std::optional<PAGenerator<Num>>>>>
                 partialPAs(threadCount);
-        for (auto &v: partialPAs) {
-            v.resize(levels);
-        }
+        if (mpaSettings.useParallelization) {
+            std::vector<std::unique_ptr<std::jthread>> threads(threadCount);
+
+            for (auto &v: partialPAs) {
+                v.resize(levels);
+            }
 
 
-        for (uint64_t i = 0; i < threadCount; ++i) {
+            for (uint64_t i = 0; i < threadCount; ++i) {
 
 
-            threads[i] = std::make_unique<std::jthread>([this, &reference, &state, &actionPerCreatingTableIteration,
-                                                         dcMax, i, itInterval, &tablePeriod, longestPeriod, epsilon,
-                                                         levels, &partialPAs, threadCount] {
-                const uint64_t startIteration = itInterval * i + 1;
-                if (startIteration > longestPeriod) return;
+                threads[i] = std::make_unique<std::jthread>([this, &reference, &state, &actionPerCreatingTableIteration,
+                                                             dcMax, i, itInterval, &tablePeriod, longestPeriod, epsilon,
+                                                             levels, &partialPAs, threadCount] {
+                    const uint64_t startIteration = itInterval * i + 1;
+                    if (startIteration > longestPeriod)
+                        return;
 
-                std::vector<uint64_t> itCount;
-                std::vector<uint64_t> itCountLim;
-                std::vector<bool> generationAvailable;
-                std::vector<bool> isPartial;
-                generateIterationCountVec(itCount, itCountLim, generationAvailable, isPartial, startIteration);
+                    std::vector<uint64_t> itCount;
+                    std::vector<uint64_t> itCountLim;
+                    std::vector<bool> generationAvailable;
+                    std::vector<bool> isPartial;
+                    generateIterationCountVec(itCount, itCountLim, generationAvailable, isPartial, startIteration);
 
-                std::vector<uint64_t> currentPASkips = itCount;
-                for (uint64_t j = 0; j < levels - 1; ++j) {
-                    if (currentPASkips[j] >= tablePeriod[j] - PERTURBATION_REQ) {
-                        currentPASkips[j + 1] += currentPASkips[j];
-                        currentPASkips[j] = 0;
-                    }
-                }
-
-                MPAIndexMapper mapper = MPAIndexMapperUtils::invalidValueSentinel<MPAIndexMapperUtils::IndexMappingMode::FLATTEN_LEVELS, MPAIndexMapper>();
-
-                uint64_t startIterationDecrement = 0;
-                for (; mapper.mapped == UINT64_MAX; ++startIterationDecrement) {
-                    mapper = MPAIndexMapperUtils::iterationToFlattenTableIndexMapper(
-                           *mpaPeriod, startIteration - startIterationDecrement);
-                   //TODO can this be optimized?
-                   //Even though the number of loops is less than 2 * MinSkipReference, optimization may still be possible.
-                }
-
-                uint64_t flattenTableIndex = itCount[0] > 0 || startIterationDecrement > 1 ? mapper.mapped + mapper.generatedLevels : mapper.mapped;
-
-
-                std::vector<PAGenerator<Num>> currentPA(levels,
-                                                        PAGenerator<Num>(reference, epsilon, dcMax, startIteration));
-
-
-                uint64_t iteration = startIteration;
-
-
-                while (iteration <= std::min(startIteration + itInterval - 1, longestPeriod)) {
-                    if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0) {
-                        if (state.interruptRequested())
-                            return;
-                        if (i == 0) {
-                            actionPerCreatingTableIteration(
-                                    std::min(longestPeriod, iteration * threadCount),
-                                    std::min(1.0, static_cast<double>(iteration) * threadCount / static_cast<double>(longestPeriod)));
+                    std::vector<uint64_t> currentPASkips = itCount;
+                    for (uint64_t j = 0; j < levels - 1; ++j) {
+                        if (currentPASkips[j] >= tablePeriod[j] - PERTURBATION_REQ) {
+                            currentPASkips[j + 1] += currentPASkips[j];
+                            currentPASkips[j] = 0;
                         }
                     }
 
-                    uncompressedStepOnce(itCount, itCountLim, tablePeriod, currentPA, currentPASkips, flattenTableIndex,
-                                         iteration);
-                    verifyPAUncompressed(itCountLim, tablePeriod, generationAvailable, currentPA, currentPASkips,
-                                         isPartial, partialPAs[i], iteration);
-                    refreshCounterUncompressed(itCount, itCountLim, tablePeriod, generationAvailable, currentPA,
-                                               currentPASkips, isPartial, iteration);
-                }
+                    MPAIndexMapper mapper = MPAIndexMapperUtils::invalidValueSentinel<
+                            MPAIndexMapperUtils::IndexMappingMode::FLATTEN_LEVELS, MPAIndexMapper>();
 
-
-                for (uint64_t j = 1; j < levels; ++j) {
-                    currentPA[j].merge(currentPA[j - 1]);
-                }
-
-
-                for (uint64_t j = 0; j < levels; ++j) {
-                    auto &pp = partialPAs[i][j];
-
-                    if (isPartial[j]) {
-                        pp.first.emplace(currentPA[j]);
+                    uint64_t startIterationDecrement = 0;
+                    for (; mapper.mapped == UINT64_MAX; ++startIterationDecrement) {
+                        mapper = MPAIndexMapperUtils::iterationToFlattenTableIndexMapper(
+                                *mpaPeriod, startIteration - startIterationDecrement);
+                        // TODO can this be optimized?
+                        // Even though the number of loops is less than 2 * MinSkipReference, optimization may still be
+                        // possible.
                     }
-                    if (tablePeriod[j] == itCountLim[j]) {
-                        pp.second.emplace(currentPA[j]);
+
+                    uint64_t flattenTableIndex = itCount[0] > 0 || startIterationDecrement > 1
+                                                         ? mapper.mapped + mapper.generatedLevels
+                                                         : mapper.mapped;
+
+
+                    std::vector<PAGenerator<Num>> currentPA(
+                            levels, PAGenerator<Num>(reference, epsilon, dcMax, startIteration));
+
+
+                    uint64_t iteration = startIteration;
+
+
+                    while (iteration <= std::min(startIteration + itInterval - 1, longestPeriod)) {
+                        if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0) {
+                            if (state.interruptRequested())
+                                return;
+                            if (i == 0) {
+                                actionPerCreatingTableIteration(
+                                        std::min(longestPeriod, iteration * threadCount),
+                                        std::min(1.0, static_cast<double>(iteration) * threadCount /
+                                                              static_cast<double>(longestPeriod)));
+                            }
+                        }
+
+                        uncompressedStepOnce(itCount, itCountLim, tablePeriod, currentPA, currentPASkips,
+                                             flattenTableIndex, iteration);
+                        verifyPAUncompressed(itCountLim, tablePeriod, generationAvailable, currentPA, currentPASkips,
+                                             isPartial, partialPAs[i], iteration);
+                        refreshCounterUncompressed(itCount, itCountLim, tablePeriod, generationAvailable, currentPA,
+                                                   currentPASkips, isPartial, iteration);
                     }
-                }
 
 
-                for (uint64_t j = 0; j < levels; ++j) {
-                    auto &pp = partialPAs[i][j];
-                    if (pp.first.has_value() && pp.first->skip == 0)
-                        pp.first.reset();
-                    if (pp.second.has_value() && pp.second->skip == 0)
-                        pp.second.reset();
-                }
+                    for (uint64_t j = 1; j < levels; ++j) {
+                        currentPA[j].merge(currentPA[j - 1]);
+                    }
 
-            });
+
+                    for (uint64_t j = 0; j < levels; ++j) {
+                        auto &pp = partialPAs[i][j];
+
+                        if (isPartial[j]) {
+                            pp.first.emplace(currentPA[j]);
+                        }
+                        if (tablePeriod[j] == itCountLim[j]) {
+                            pp.second.emplace(currentPA[j]);
+                        }
+                    }
+
+
+                    for (uint64_t j = 0; j < levels; ++j) {
+                        auto &pp = partialPAs[i][j];
+                        if (pp.first.has_value() && pp.first->skip == 0)
+                            pp.first.reset();
+                        if (pp.second.has_value() && pp.second->skip == 0)
+                            pp.second.reset();
+                    }
+                });
 #ifndef NDEBUG
-            if (threads[i]->joinable())
-                threads[i]->join();
+                if (threads[i]->joinable())
+                    threads[i]->join();
 #endif
-        }
+            }
 
-        for (const auto &thread: threads) {
-            if (thread->joinable())
-                thread->join();
-        }
+            for (const auto &thread: threads) {
+                if (thread->joinable())
+                    thread->join();
+            }
 
-        if (state.interruptRequested()) return;
+            if (state.interruptRequested())
+                return;
 
-        for (uint64_t i = 0; i < levels; ++i) {
+            for (uint64_t i = 0; i < levels; ++i) {
 
-            std::optional<PAGenerator<Num>> preservingPA = std::nullopt;
+                std::optional<PAGenerator<Num>> preservingPA = std::nullopt;
 
-            for (uint64_t j = 1; j < threadCount; ++j) {
+                for (uint64_t j = 1; j < threadCount; ++j) {
 
-                auto &referencePA = partialPAs[j - 1][i].second;
+                    auto &referencePA = partialPAs[j - 1][i].second;
 
-                if (referencePA.has_value()) {
+                    if (referencePA.has_value()) {
 
-                    if (!preservingPA.has_value()) preservingPA.emplace(*referencePA);
+                        if (!preservingPA.has_value())
+                            preservingPA.emplace(*referencePA);
 
 #ifndef NDEBUG
-                    if (!partialPAs[j][i].first.has_value())
-                        throw std::logic_error("that is a bug");
+                        if (!partialPAs[j][i].first.has_value())
+                            throw std::logic_error("that is a bug");
 #endif
-                    preservingPA->merge(*partialPAs[j][i].first);
+                        preservingPA->merge(*partialPAs[j][i].first);
 
-                    if (preservingPA->skip == tablePeriod[i] - PERTURBATION_REQ) {
-                        PA<Num> pa = preservingPA->build();
-                        const uint64_t flattenIndex = MPAIndexMapperUtils::iterationToFlattenTableIndex(*mpaPeriod, preservingPA->start) + i;
+                        if (preservingPA->skip == tablePeriod[i] - PERTURBATION_REQ) {
+                            PA<Num> pa = preservingPA->build();
+                            const uint64_t flattenIndex =
+                                    MPAIndexMapperUtils::iterationToFlattenTableIndex(*mpaPeriod, preservingPA->start) +
+                                    i;
 #ifndef NDEBUG
-                        if (flattenIndex == UINT64_MAX || tableCache->mpaTable[flattenIndex].skip != 0)
-                            throw std::logic_error("already assigned or flatten index cannot be found");
+                            if (flattenIndex == UINT64_MAX || tableCache->mpaTable[flattenIndex].skip != 0)
+                                throw std::logic_error("already assigned or flatten index cannot be found");
 #endif
-                        preservingPA.reset();
-                        tableCache->mpaTable[flattenIndex] = pa;
+                            preservingPA.reset();
+                            tableCache->mpaTable[flattenIndex] = pa;
+                        }
                     }
                 }
             }
-        }
+        } else {
+            uint64_t flattenTableIndex = 0;
+            std::vector<uint64_t> itCount;
+            std::vector<uint64_t> itCountLim;
+            std::vector<bool> generationAvailable;
+            std::vector<bool> isPartial;
+            uint64_t iteration = 1;
+            generateIterationCountVec(itCount, itCountLim, generationAvailable, isPartial, 1);
+            std::vector<PAGenerator<Num>> currentPA(levels, PAGenerator<Num>(reference, epsilon, dcMax, 1));
+            std::vector<uint64_t> currentPASkips(levels, 0);
+            std::vector<std::pair<std::optional<PAGenerator<Num>>, std::optional<PAGenerator<Num>>>> partialPA;
 
-        // uint64_t flattenTableIndex = 0;
-        //
-        // while (it <= longestPeriod) {
-        //
-        //     if (state.interruptRequested())
-        //         return;
-        //
-        //     actionPerCreatingTableIteration(it, static_cast<double>(it) / static_cast<double>(longestPeriod));
-        //
-        //     uncompressedStepOnce(ic, icl, tablePeriod, currentPA, flattenTableIndex, it);
-        //     verifyPAUncompressed(icl, tablePeriod, ga, currentPA, it);
-        //     refreshCounterUncompressed(ic, icl, tablePeriod, ga, currentPA, it);
-        // }
+            while (iteration <= longestPeriod) {
+
+                if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0) {
+                    if (state.interruptRequested()) {
+                        return;
+                    }
+                    actionPerCreatingTableIteration(iteration,
+                                                    static_cast<double>(iteration) / static_cast<double>(longestPeriod));
+                }
+
+
+                uncompressedStepOnce(itCount, itCountLim, tablePeriod, currentPA, currentPASkips, flattenTableIndex,
+                                     iteration);
+                verifyPAUncompressed(itCountLim, tablePeriod, generationAvailable, currentPA, currentPASkips, isPartial,
+                                     partialPA, iteration);
+                refreshCounterUncompressed(itCount, itCountLim, tablePeriod, generationAvailable, currentPA,
+                                           currentPASkips, isPartial, iteration);
+            }
+        }
     }
     template<Number Num>
     MPAIndexMapper MPATable<Num>::getCompFlattenIndexMapper(const uint64_t iteration) const {

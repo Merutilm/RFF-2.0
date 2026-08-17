@@ -263,7 +263,7 @@ namespace merutilm::rff2 {
         if (enabled) {
             ImGui::Begin("MP-Approximation");
             auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod,
-                   useCompress] = app.getSettings().fractal.mpa;
+                   useCompress, useParallelization] = app.getSettings().fractal.mpa;
 
             if (ImGui::InputScalar("Min Skip Reference", ImGuiDataType_U16, &minSkipReference)) {
                 minSkipReference = std::max(minSkipReference, static_cast<uint16_t>(4));
@@ -297,6 +297,10 @@ namespace merutilm::rff2 {
                     "Use compression and acceleration if possible.\n "
                     "If it is checked, slowing down for table creation, It uses compression and acceleration when possible.\n"
                     "Depending on the reference orbit, memory usage may the same or decrease compared to when it is not checked.\n");
+
+            ImGui::Checkbox("Parallelize during generation", &useParallelization);
+            Utilities::imguiHelpMarker(
+                    "Use parallelization during generation if possible.");
 
             if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
                 app.getRequests().requestRecompute();
