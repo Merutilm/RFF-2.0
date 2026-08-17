@@ -106,6 +106,9 @@ namespace merutilm::rff2 {
                                      const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
         void generateUncompressedTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
                                        const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
+#ifndef NDEBUG
+        void checkZero();
+#endif
 
         [[nodiscard]] MPAIndexMapper getFlattenIndexMapper(uint64_t iteration) const;
         [[nodiscard]] MPAIndexMapper getCompFlattenIndexMapper(uint64_t iteration) const;
@@ -308,6 +311,9 @@ namespace merutilm::rff2 {
             std::vector<std::pair<std::optional<PAGenerator<Num>>, std::optional<PAGenerator<Num>>>> &partialPA,
             uint64_t iteration) {
 
+        // reset current and lower level count when it reached limit
+        // table period is exponential
+        // Amortized O(1)
 
         uint64_t level = 0;
         const uint64_t levels = tablePeriod.size();
@@ -357,6 +363,7 @@ namespace merutilm::rff2 {
                                            std::vector<bool> &generationAvailable,
                                            std::vector<PAGenerator<Num>> &currentPA, uint64_t iteration) {
         // reset current and lower level count when it reached limit
+        // table period is exponential
         // Amortized O(1)
 
         uint64_t level = 0;
@@ -440,6 +447,7 @@ namespace merutilm::rff2 {
 
 
         // reset current and lower level count when it reached limit
+        // table period is exponential
         // Amortized O(1)
 
         uint64_t level = 0;
@@ -647,6 +655,9 @@ namespace merutilm::rff2 {
             verifyPACompressed(itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
             refreshCounterCompressed(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
         }
+#ifndef NDEBUG
+        checkZero();
+#endif
     }
 
 
@@ -832,8 +843,8 @@ namespace merutilm::rff2 {
                     if (state.interruptRequested()) {
                         return;
                     }
-                    actionPerCreatingTableIteration(iteration,
-                                                    static_cast<double>(iteration) / static_cast<double>(longestPeriod));
+                    actionPerCreatingTableIteration(iteration, static_cast<double>(iteration) /
+                                                                       static_cast<double>(longestPeriod));
                 }
 
 
@@ -845,7 +856,25 @@ namespace merutilm::rff2 {
                                            currentPASkips, isPartial, iteration);
             }
         }
+
+#ifndef NDEBUG
+        checkZero();
+#endif
     }
+
+#ifndef NDEBUG
+    template<Number Num>
+    void MPATable<Num>::checkZero() {
+        for (size_t i = 0; i < tableCache->mpaTable.size(); ++i) {
+            auto &pa = tableCache->mpaTable[i];
+            if (pa.skip == 0) {
+                throw std::logic_error("zero skips detected at index " + std::to_string(i));
+            }
+        }
+    }
+#endif
+
+
     template<Number Num>
     MPAIndexMapper MPATable<Num>::getCompFlattenIndexMapper(const uint64_t iteration) const {
         const auto [pulled, levels] = MPAIndexMapperUtils::iterationToPulledTableIndexMapper(*mpaPeriod, iteration);
@@ -892,11 +921,6 @@ namespace merutilm::rff2 {
                 const PA<Num> *pa = nullptr;
 
                 for (const PA<Num> &test: table) {
-#ifndef NDEBUG
-                    if (test.skip == 0) {
-                        throw std::logic_error("zero skips detected");
-                    }
-#endif
 
                     if (test.isValid(r)) {
                         pa = &test;
@@ -908,22 +932,13 @@ namespace merutilm::rff2 {
             case HIGHEST: {
                 const PA<Num> &pa = table.front();
                 // This table cannot be empty because the pre-processing is done.
-#ifndef NDEBUG
-                if (pa.skip == 0) {
-                    throw std::logic_error("zero skips detected");
-                }
-#endif
+
                 if (!pa.isValid(r)) {
                     return nullptr;
                 }
 
                 for (uint64_t j = table.size(); j > 0; --j) {
                     const PA<Num> &test = table[j - 1];
-#ifndef NDEBUG
-                    if (test.skip == 0) {
-                        throw std::logic_error("zero skips detected");
-                    }
-#endif
 
                     if (test.isValid(r)) {
                         return &test;

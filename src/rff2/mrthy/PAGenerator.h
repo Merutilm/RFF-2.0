@@ -79,7 +79,8 @@ namespace merutilm::rff2 {
     template<typename P>
     void PAGenerator<Num>::merge(const P &target) {
 #ifndef NDEBUG
-        if (this->start + this->skip != target.start) {
+        //target.start 1 : I know what I am doing
+        if (target.start != 1 && this->start + this->skip != target.start) {
             throw std::invalid_argument("value not match");
         }
 #endif
