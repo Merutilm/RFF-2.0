@@ -56,7 +56,7 @@ namespace merutilm::rff2 {
         return std::make_unique<std::filesystem::path>(std::move(path));
     }
 
-    std::unique_ptr<std::filesystem::path> IOUtilities::ioDirectoryDialog(const std::string_view title) {
+    std::unique_ptr<std::filesystem::path> IOUtilities::ioDirectoryDialog() {
         NFD::UniquePath outPath;
 
         const nfdresult_t result = NFD::PickFolder(outPath);

@@ -12,12 +12,12 @@
 namespace merutilm::rff2 {
     class RenderGraph4 final : public vkh::RenderPassGraphGenerator {
 
-        vkh::RenderPassAttachment *tempAttachment;
-        vkh::RenderPassAttachment *resultAttachment;
+        vkh::RenderPassAttachment *tempAttachment = nullptr;
+        vkh::RenderPassAttachment *resultAttachment = nullptr;
 
     public:
-        GPCBloom *bloom;
-        GPCLinearInterpolation *linearInterpolation;
+        GPCBloom *bloom = nullptr;
+        GPCLinearInterpolation *linearInterpolation = nullptr;
 
         using RenderPassGraphGenerator::RenderPassGraphGenerator;
 

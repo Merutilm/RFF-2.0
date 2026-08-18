@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
         if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
             return app.getRequests().requestRecompute();
         }
-    };
+    }
     void FnExplore::reset(RFF2 &app) {
 
         if (ImGui::Button("Reset", ImVec2(-FLT_MIN, 0))) {

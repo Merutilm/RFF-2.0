@@ -9,7 +9,7 @@
 
 namespace merutilm::rff2 {
     class RenderGraphStatic2Image final : public vkh::RenderPassGraphGenerator {
-        vkh::RenderPassAttachment *resultAttachment;
+        vkh::RenderPassAttachment *resultAttachment = nullptr;
 
     public:
         GPCStaticImage2Map *static2Image = nullptr;

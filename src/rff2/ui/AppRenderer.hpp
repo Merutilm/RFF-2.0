@@ -6,11 +6,11 @@
 #include "../data/GraphicsMatrixStagingBuffer.h"
 #include "../util/RendererUtils.hpp"
 #include "../vulkan/CPCBoxBlur.hpp"
-#include "../vulkan/RCCPresentPrepareImgui.hpp"
 #include "../vulkan/RenderGraph0.hpp"
 #include "../vulkan/RenderGraph3.hpp"
 #include "../vulkan/RenderGraph4.hpp"
 #include "../vulkan/RenderGraphDownsampleForBlur.hpp"
+#include "../vulkan/RenderGraphPresentPrepareImgui.hpp"
 #include "ZoomAnimationInfo.hpp"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
 #include "vulkan_helper/engine/internal/RendererImGui.hpp"
@@ -34,7 +34,7 @@ namespace merutilm::rff2 {
         RenderGraphDownsampleForBlur *rccDownsample = nullptr;
         RenderGraph3 *rg3 = nullptr;
         RenderGraph4 *rg4 = nullptr;
-        RCCPresentPrepareImgui *rccPresentPrepare = nullptr;
+        RenderGraphPresentPrepareImgui *rccPresentPrepare = nullptr;
 
         CPCBoxBlur *computeBoxBlur = nullptr;
 
@@ -96,7 +96,7 @@ namespace merutilm::rff2 {
                                                       settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
-            rcPresent = vkh::RenderContextUtils::attachRenderContext<RCCPresentPrepareImgui>(
+            rcPresent = vkh::RenderContextUtils::attachRenderContext<RenderGraphPresentPrepareImgui>(
                     &rccPresentPrepare, configurators, engine, wc, [this] { return wc.getSwapchain().getSwapchainExtent(); },
                     swapchainImageContextGetter);
 

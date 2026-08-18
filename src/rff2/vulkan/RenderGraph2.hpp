@@ -13,12 +13,12 @@
 namespace merutilm::rff2 {
     class RenderGraph2 final : public vkh::RenderPassGraphGenerator {
 
-        vkh::RenderPassAttachment *resultAttachment;
-        vkh::RenderPassAttachment *tempAttachment;
+        vkh::RenderPassAttachment *resultAttachment = nullptr;
+        vkh::RenderPassAttachment *tempAttachment = nullptr;
 
     public:
-        GPCSlope *slope;
-        GPCColor *color;
+        GPCSlope *slope = nullptr;
+        GPCColor *color = nullptr;
 
         using RenderPassGraphGenerator::RenderPassGraphGenerator;
 

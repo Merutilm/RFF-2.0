@@ -145,10 +145,9 @@ namespace merutilm::rff2 {
         op_thread_pool *tpStrict = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPoolForStrict : nullptr;
         op_thread_pool *tpRef = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPoolForRef : nullptr;
 
-        complex<Num> fpgBn0 = complex<Num>::ONE;
-
-        complex<Num> z0 = complex<Num>::ZERO;
-        complex<Num> c0 = static_cast<complex<Num>>(c);
+        auto fpgBn0 = complex<Num>::ONE;
+        auto z0 = complex<Num>::ZERO;
+        auto c0 = static_cast<complex<Num>>(c);
 
         auto periodArray = std::vector<uint64_t>();
 

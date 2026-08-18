@@ -35,7 +35,7 @@ namespace merutilm::rff2 {
             for (int i = 0; i < len; ++i) {
                 pool[start + i]->run_request(std::forward<Args>(args)...);
             }
-        };
+        }
 
         void clear_all_task() {
             pool.clear();
@@ -45,10 +45,10 @@ namespace merutilm::rff2 {
             for (auto &t: pool) {
                 t->wait();
             }
-        };
+        }
         
-        bool is_empty() const {
+        [[nodiscard]] bool is_empty() const {
             return pool.empty();
-        };
+        }
     };
 }

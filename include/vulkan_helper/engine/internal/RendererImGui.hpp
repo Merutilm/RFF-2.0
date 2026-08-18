@@ -17,7 +17,7 @@ namespace merutilm::vkh {
             RendererImGui::init();
         }
 
-        ~RendererImGui() override { RendererImGui::cleanup(); };
+        ~RendererImGui() override { RendererImGui::cleanup(); }
         RendererImGui(const RendererImGui &) = delete;
         RendererImGui &operator=(const RendererImGui &) = delete;
         RendererImGui(RendererImGui &&) = delete;

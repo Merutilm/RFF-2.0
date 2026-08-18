@@ -10,12 +10,12 @@
 namespace merutilm::rff2 {
     class RenderGraphDownsampleForBlur final : public vkh::RenderPassGraphGenerator {
 
-        vkh::RenderPassAttachment *resultAttachment;
+        vkh::RenderPassAttachment *resultAttachment = nullptr;
 
     public:
         enum class DescIndexer : uint8_t { FOG, BLOOM };
 
-        GPCDownsampleForBlur *downsample;
+        GPCDownsampleForBlur *downsample = nullptr;
         DescIndexer descIndexer;
 
         using RenderPassGraphGenerator::RenderPassGraphGenerator;

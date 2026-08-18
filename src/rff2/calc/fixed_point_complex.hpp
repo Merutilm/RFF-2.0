@@ -33,7 +33,7 @@ namespace merutilm::rff2 {
 
         explicit fixed_point_complex(double re, double im, int dec_exp10, int int_exp10);
 
-        explicit fixed_point_complex(const dex re, const dex im, int dec_exp10, int int_exp10);
+        explicit fixed_point_complex(dex re, dex im, int dec_exp10, int int_exp10);
 
         explicit fixed_point_complex(const fixed_point_decimal &re, const fixed_point_decimal &im, int dec_exp10,
                                      int int_exp10);

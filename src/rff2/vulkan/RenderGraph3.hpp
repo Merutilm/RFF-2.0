@@ -13,11 +13,11 @@ namespace merutilm::rff2 {
     class RenderGraph3 final : public vkh::RenderPassGraphGenerator {
 
     public:
-        vkh::RenderPassAttachment *resultAttachment;
-        vkh::RenderPassAttachment *bloomThresholdAttachment;
+        vkh::RenderPassAttachment *resultAttachment = nullptr;
+        vkh::RenderPassAttachment *bloomThresholdAttachment = nullptr;
 
-        GPCFog *fog;
-        GPCBloomThreshold *bloomThreshold;
+        GPCFog *fog = nullptr;
+        GPCBloomThreshold *bloomThreshold = nullptr;
 
         using RenderPassGraphGenerator::RenderPassGraphGenerator;
 

@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
         static std::unique_ptr<std::filesystem::path> ioFileDialog(std::string_view desc, char type,
                                                                    std::string_view extension);
 
-        static std::unique_ptr<std::filesystem::path> ioDirectoryDialog(std::string_view title);
+        static std::unique_ptr<std::filesystem::path> ioDirectoryDialog();
 
         static std::string fileNameFormat(unsigned int n, std::string_view extension);
 
@@ -58,7 +58,7 @@ namespace merutilm::rff2 {
     }
 
     inline void IOUtilities::encodeAndWrite(std::ofstream &out, const char *t, const uint64_t length) {
-        out.write(t, length);
+        out.write(t, static_cast<std::streamsize>(length));
     }
 
     template<typename T> requires std::is_arithmetic_v<T>
@@ -68,7 +68,7 @@ namespace merutilm::rff2 {
             const auto oi = toBinaryArray(et);
             ot.insert(ot.end(), oi.begin(), oi.end());
         }
-        out.write(ot.data(), ot.size());
+        out.write(ot.data(), static_cast<std::streamsize>(ot.size()));
     }
 
 
@@ -80,13 +80,13 @@ namespace merutilm::rff2 {
     }
 
     inline void IOUtilities::readAndDecode(std::ifstream &in, const uint64_t length, char *t) {
-        in.read(t, length);
+        in.read(t, static_cast<std::streamsize>(length));
     }
 
     template<typename T> requires std::is_arithmetic_v<T>
     void IOUtilities::readAndDecode(std::ifstream &in, std::vector<T> *t) {
         auto it = std::vector<char>(t->size() * sizeof(T));
-        in.read(it.data(), it.size());
+        in.read(it.data(), static_cast<std::streamsize>(it.size()));
 
         for (uint32_t i = 0; i < it.size(); i += sizeof(T)) {
             auto iSubArr = std::array<char, sizeof(T)>();
@@ -106,4 +106,4 @@ namespace merutilm::rff2 {
     void IOUtilities::fromBinaryArray(const std::array<char, sizeof(T)> &arr, T *result) {
         memcpy(result, arr.data(), sizeof(T));
     }
-};
+}

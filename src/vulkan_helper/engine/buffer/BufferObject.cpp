@@ -93,7 +93,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void BufferObject::lock(CommandPool &commandPool, Fence *const fence) {
+    void BufferObject::lock(CommandPool &commandPool, const Fence *const fence) {
         if (locked) {
             logger::log_err_silent("Double-call of BufferObject::lock()");
             return;
@@ -179,7 +179,7 @@ namespace merutilm::vkh {
     }
 
 
-    void BufferObject::unlock(CommandPool &commandPool, Fence *const fence) {
+    void BufferObject::unlock(CommandPool &commandPool, const Fence *const fence) {
         if (!locked) {
             logger::log_err_silent("Double-call of BufferObject::unlock()");
             return;

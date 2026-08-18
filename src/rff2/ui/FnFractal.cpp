@@ -25,8 +25,8 @@ namespace merutilm::rff2 {
             mpfInit = true;
         }
 
-        static std::string real = "";
-        static std::string imag = "";
+        static std::string real;
+        static std::string imag;
         static float logZoom = 0;
         static std::string realCache = real;
         static std::string imagCache = imag;

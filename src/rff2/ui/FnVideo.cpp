@@ -73,7 +73,7 @@ namespace merutilm::rff2 {
         if (ImGui::Button("Generate Video Keyframes", ImVec2(-FLT_MIN, 0))) {
             app.getBackgroundThreads().createThread([&app](BackgroundThread &thread) {
                 const auto &state = app.getState();
-                const auto dirPtr = IOUtilities::ioDirectoryDialog("Folder to generate keyframes");
+                const auto dirPtr = IOUtilities::ioDirectoryDialog();
 
                 float &logZoom = app.getSettings().fractal.general.logZoom;
                 if (dirPtr == nullptr) {
@@ -137,7 +137,7 @@ namespace merutilm::rff2 {
     void FnVideo::exportZoomVideo(RFF2 &app) {
         if (ImGui::Button("Export Zooming Video", ImVec2(-FLT_MIN, 0))) {
             app.getBackgroundThreads().createThread([&app, settingsClone = app.getSettings()](const BackgroundThread &) {
-                const auto openPtr = IOUtilities::ioDirectoryDialog("Select Sample Keyframe folder");
+                const auto openPtr = IOUtilities::ioDirectoryDialog();
 
                 if (openPtr == nullptr) {
                     return;

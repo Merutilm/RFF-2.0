@@ -9,10 +9,10 @@
 namespace merutilm::rff2 {
     class RenderGraphPresent final : public vkh::RenderPassGraphGenerator {
 
-        vkh::RenderPassAttachment *swapchainAttachment;
+        vkh::RenderPassAttachment *swapchainAttachment = nullptr;
 
     public:
-        GPCPresent *present;
+        GPCPresent *present = nullptr;
 
         using RenderPassGraphGenerator::RenderPassGraphGenerator;
 

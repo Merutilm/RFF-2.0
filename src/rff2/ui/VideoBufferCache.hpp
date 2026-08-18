@@ -32,7 +32,7 @@ namespace merutilm::rff2 {
 
         VideoBufferCache &operator=(VideoBufferCache &&) = delete;
 
-
+    protected:
         void init() override {
             image = cv::Mat(height, width, CV_8UC3, bufferContext.mappedMemory);
         }

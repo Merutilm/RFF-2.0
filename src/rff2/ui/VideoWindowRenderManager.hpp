@@ -67,7 +67,7 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] float calculateZoom(float defaultZoomIncrement, float currentFrame) const;
 
-        VideoBufferCache createImage() const;
+        [[nodiscard]] VideoBufferCache createImage() const;
 
     protected:
 

@@ -80,7 +80,7 @@ namespace merutilm::rff2 {
             return;
         }
 
-        VideoProgressInfo &vpi = app.getVideoProgressInfo();
+        auto &[mutex, ratio, remainedTimeStr] = app.getVideoProgressInfo();
         const auto frameInterval = mps / fps;
         uint32_t maxNumber;
         if (isStatic) {
@@ -175,9 +175,9 @@ namespace merutilm::rff2 {
                                    startSec;
             const auto remainedSec = static_cast<uint32_t>((1 - progressRatio) / progressRatio * spentSec);
 
-            std::scoped_lock lock(vpi.mutex);
-            vpi.ratio = progressRatio;
-            vpi.remainedTimeStr = std::format("Processing... {:.2f}% [{}]", std::clamp(progressRatio, 0.0f, 1.0f) * 100,
+            std::scoped_lock lock(mutex);
+            ratio = progressRatio;
+            remainedTimeStr = std::format("Processing... {:.2f}% [{}]", std::clamp(progressRatio, 0.0f, 1.0f) * 100,
                                               Utilities::formatTime(remainedSec));
         }
 
@@ -186,8 +186,8 @@ namespace merutilm::rff2 {
         app.engine->getCore().getLogicalDevice().waitDeviceIdle();
         vkh::logger::log("Render Finished!");
 
-        std::scoped_lock lock(vpi.mutex);
-        vpi.ratio = 0;
+        std::scoped_lock lock(mutex);
+        ratio = 0;
     }
 
 

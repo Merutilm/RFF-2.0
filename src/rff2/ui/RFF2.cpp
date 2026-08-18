@@ -197,8 +197,8 @@ namespace merutilm::rff2 {
     }
 
     void RFF2::moveCursor(const int px, const int py) const {
-        const int mx = px / settings.render.clarityMultiplier;
-        const int my = py / settings.render.clarityMultiplier;
+        const int mx = static_cast<int>(static_cast<float>(px) / settings.render.clarityMultiplier);
+        const int my = static_cast<int>(static_cast<float>(py) / settings.render.clarityMultiplier);
         glfwSetCursorPos(rootWindowContext->getWindow()->getWindow(), mx,
                          rootWindowContext->getSwapchain().getSwapchainExtent().height - my);
     }

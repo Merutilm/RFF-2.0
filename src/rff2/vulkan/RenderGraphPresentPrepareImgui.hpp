@@ -7,12 +7,12 @@
 #include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
-    class RCCPresentPrepareImgui final : public vkh::RenderPassGraphGenerator {
+    class RenderGraphPresentPrepareImgui final : public vkh::RenderPassGraphGenerator {
 
-        vkh::RenderPassAttachment *swapchainAttachment;
+        vkh::RenderPassAttachment *swapchainAttachment = nullptr;
 
     public:
-        GPCSmoothZoom *smoothZoom;
+        GPCSmoothZoom *smoothZoom = nullptr;
 
         using RenderPassGraphGenerator::RenderPassGraphGenerator;
 

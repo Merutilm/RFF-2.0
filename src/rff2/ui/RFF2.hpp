@@ -60,10 +60,10 @@ namespace merutilm::rff2 {
         static Settings genDefaultSettings();
 
         [[nodiscard]] complex<dex> offsetConversion(const Settings &s, int px, int py) const;
-        std::array<int, 2> iterationBufferConversion(const Settings &s, const complex<dex> &offset) const;
+        [[nodiscard]] std::array<int, 2> iterationBufferConversion(const Settings &s, const complex<dex> &offset) const;
         void moveCursor(int px, int py) const;
 
-        static dex getDivisor(const Settings &settings);
+        [[nodiscard]] static dex getDivisor(const Settings &settings);
 
         [[nodiscard]] uint16_t calcIterationBufferWidth(const Settings &s) const;
 
