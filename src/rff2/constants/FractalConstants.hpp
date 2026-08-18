@@ -13,5 +13,5 @@ namespace merutilm::rff2::Constants::Fractal {
     constexpr uint16_t GAUSSIAN_MAX_WIDTH = 200;
     constexpr double MAX_LOC_LEN = 5;
     constexpr int EXP10_ADDITION = 15;
-    constexpr std::size_t MAX_PALETTE_LEN = 1000000;
+    constexpr size_t MAX_PALETTE_LEN = 1000000;
 } // namespace merutilm::rff2::Constants::Fractal
