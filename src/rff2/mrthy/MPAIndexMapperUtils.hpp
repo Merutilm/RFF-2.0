@@ -96,6 +96,19 @@ namespace merutilm::rff2 {
                 throw std::logic_error("invalid mapping mode");
         }
 
+        static uint64_t iterationToNearestFlattenTableIndex(const MPAPeriod &mpaPeriod, uint64_t iteration) {
+
+            MPAIndexMapper mapper = invalidValueSentinel<IndexMappingMode::FLATTEN_LEVELS, MPAIndexMapper>();
+            uint64_t iterationDecrement = 0;
+            for (; mapper.mapped == UINT64_MAX; ++iterationDecrement) {
+                mapper = iterationToFlattenTableIndexMapper(mpaPeriod, iteration - iterationDecrement);
+                // TODO can this be optimized?
+                // Even though the number of loops is less than 2 * MinSkipReference, optimization may still be
+                // possible.
+            }
+            return iterationDecrement > 1 ? mapper.mapped + mapper.generatedLevels : mapper.mapped;
+        }
+
         static MPAIndexMapper iterationToFlattenTableIndexMapper(const MPAPeriod &mpaPeriod, const uint64_t iteration) {
             return iterationToTableIndexMapper<IndexMappingMode::FLATTEN_LEVELS, MPAIndexMapper>(mpaPeriod, iteration);
         }

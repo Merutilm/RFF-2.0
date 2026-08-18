@@ -4,6 +4,7 @@
 
 #pragma once
 #include <cstdint>
+#include <memory>
 
 namespace merutilm::rff2::Constants::Fractal {
     constexpr int PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL = 1024;
