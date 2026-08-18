@@ -60,9 +60,12 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] std::span<const PA<Num>> getMPAFromMapper(MPAIndexMapper flattenIndexMapper) const;
 
-        static void debugCheckMPAFromMapper(size_t totalSize, size_t mapped, size_t levels, size_t generatedLevels);
+        [[nodiscard]] static uint64_t binarySearch(const std::vector<uint64_t> &arr, uint64_t key);
 
-        static uint64_t binarySearch(const std::vector<uint64_t> &arr, uint64_t key);
+        [[nodiscard]] static std::vector<uint64_t> generateCurrentPASkips(const std::vector<uint64_t> &tablePeriod,
+                                                                          const std::vector<uint64_t> &itCount);
+
+        static void debugCheckMPAFromMapper(size_t totalSize, size_t mapped, size_t levels, size_t generatedLevels);
 
         void fitBufferSize();
 
@@ -106,8 +109,6 @@ namespace merutilm::rff2 {
         void generateCompressedTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
                                      const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
 
-        [[nodiscard]] static std::vector<uint64_t> generateCurrentPASkips(const std::vector<uint64_t> &tablePeriod,
-                                                                          const std::vector<uint64_t> &itCount);
 
         void configurePartialPA(const std::vector<uint64_t> &tablePeriod, const std::vector<uint64_t> &itCountLim,
                                 std::vector<PAGenerator<Num>> &currentPA, std::vector<bool> &isPartial,
