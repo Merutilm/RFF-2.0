@@ -3,8 +3,9 @@
 set +e
 cd "$(dirname "$0")" || exit
 
-dirIn="shdsrc"
-dirOut="shaders"
+dirInclude="shaders/include"
+dirIn="shaders/src"
+dirOut="shaders/out"
 ext=".spv"
 
 echo "-- Shader Compilation"
@@ -29,7 +30,7 @@ for ((i=0; i<len; i++)); do
 
     printf "\033[36m# [%d/%d] Compiling %s...\033[0m\n" "$((i+1))" "$len" "$name"
 
-    if glslc "$target" -o "$compiled"; then
+    if glslc -O "$target" -I "$dirInclude" -o "$compiled"; then
         ((success++))
     else
         printf "\033[31m-- Failed to compile %s!\033[0m\n" "$name"

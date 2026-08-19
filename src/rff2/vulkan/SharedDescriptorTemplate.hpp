@@ -92,7 +92,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
     struct DescPalette final : public vkh::DescriptorTemplate {
         static constexpr uint32_t ID = 3;
-        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
         static constexpr uint32_t BINDING_SSBO_PALETTE = 0;
 

@@ -17,4 +17,5 @@ namespace merutilm::rff2::Constants::File {
     constexpr auto DESC_IMAGE = "Image file";
     constexpr auto DESC_VIDEO = "Video file";
     constexpr auto DESC_KFR = "Kalle's Fraktaler file";
+    constexpr auto BACKUP_FILE_NAME = "backup";
 }

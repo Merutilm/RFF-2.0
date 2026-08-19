@@ -5,6 +5,7 @@
 #include "RFF2.hpp"
 
 #include "../calc/dex_exp.h"
+#include "../io/RFFLocationBinary.h"
 #include "../mb/MB2Locator.h"
 #include "../parallel/ParallelArrayDispatcher.h"
 #include "../parallel/ParallelDispatcher.h"
@@ -616,6 +617,33 @@ namespace merutilm::rff2 {
         renderer->iterationStagingBufferContext->fill(map.getMatrix().getCanvas());
     }
 
+    std::filesystem::path RFF2::getBackupLocationPath() {
+        return vkh::ExecutableUtils::getExecutableDirectory() / std::format("{0}.{1}",Constants::File::BACKUP_FILE_NAME, Constants::File::EXT_LOCATION);
+    }
+
+    void RFF2::saveBackup() const {
+        const auto path = getBackupLocationPath();
+        saveCurrentLocation(path);
+    }
+
+    void RFF2::saveCurrentLocation(const std::filesystem::path &path) const {
+        auto frt = settings.fractal; // clone the settings
+        auto &center = frt.reference.center;
+        RFFLocationBinary(frt.general.logZoom, center.real.to_string(), center.imag.to_string(),
+                          frt.perturb.maxIteration)
+                .exportFile(path);
+    }
+
+    void RFF2::loadLocation(const std::filesystem::path &path) {
+        const RFFLocationBinary location = RFFLocationBinary::read(path);
+
+        settings.fractal.reference.center = fixed_point_complex_i1(
+                location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
+        settings.fractal.general.logZoom = location.getLogZoom();
+        settings.fractal.perturb.maxIteration = location.getMaxIteration();
+        requests.requestRecompute();
+    }
+
     int16_t RFF2::getMouseXOnIterationBuffer(const int mx) const {
         const float multiplier = settings.render.clarityMultiplier;
         return static_cast<int16_t>(static_cast<float>(mx) * multiplier);
@@ -628,7 +656,20 @@ namespace merutilm::rff2 {
     }
 
     void RFF2::recomputeThreaded() {
+
+
         state.createThread([this] {
+            static bool backUpLoadConfirmed = false;
+            if (!backUpLoadConfirmed) {
+                backUpLoadConfirmed = true;
+                const auto path = getBackupLocationPath();
+                if (std::filesystem::exists(path) && vkh::logger::log_warn("Do you want to load the last rendered location?")) {
+                    if (!std::filesystem::exists(path)) return; //user deleted file manually
+                    loadLocation(path);
+                    return;
+                }
+            }
+
             const Settings s = this->settings; // clone the settings
             const auto start = rootWindowContext->getWindow()->getTime();
             bool success = false;
@@ -670,6 +711,8 @@ namespace merutilm::rff2 {
         }
         renderer->rg0->iterationPalette->setMaxIterationTemp(
                 static_cast<double>(renderData->fractalSettings.perturb.maxIteration));
+
+        saveBackup();
     }
 
     bool RFF2::prepareRenderData(const float startTime, const Settings &s) {

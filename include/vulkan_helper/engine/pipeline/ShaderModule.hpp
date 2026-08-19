@@ -8,7 +8,7 @@
 namespace merutilm::vkh {
     class ShaderModule final : public CoreHandler {
 
-        static constexpr auto SHADER_PATH_PREFIX = "shaders/";
+        static constexpr auto SHADER_PATH_PREFIX = "shaders/out/";
 
         VkShaderStageFlagBits shaderStage;
         VkShaderModule shaderModule = nullptr;

@@ -119,7 +119,7 @@ namespace merutilm::rff2 {
         void generateUncompressedTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
                                        const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
 #ifndef NDEBUG
-        void checkZero();
+        void checkZero(const ParallelRenderState &state);
 #endif
 
         [[nodiscard]] MPAIndexMapper getFlattenIndexMapper(uint64_t iteration) const;
@@ -659,8 +659,9 @@ namespace merutilm::rff2 {
 
         while (iteration <= longestPeriod) {
             if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 &&
-                state.interruptRequested())
+                state.interruptRequested()) {
                 return;
+            }
 
             actionPerCreatingTableIteration(iteration,
                                             static_cast<double>(iteration) / static_cast<double>(longestPeriod));
@@ -671,7 +672,7 @@ namespace merutilm::rff2 {
             refreshCounterCompressed(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
         }
 #ifndef NDEBUG
-        checkZero();
+        checkZero(state);
 #endif
     }
 
@@ -726,10 +727,7 @@ namespace merutilm::rff2 {
     void MPATable<Num>::gluePartialPA(const ParallelRenderState &state, const std::vector<uint64_t> &tablePeriod,
                                       const uint32_t threadCount, std::vector<PartialPA> &partialPAs) {
 
-
-        if (state.interruptRequested())
-            return;
-        uint64_t levels = tablePeriod.size();
+        const uint64_t levels = tablePeriod.size();
 
         for (uint64_t i = 0; i < levels; ++i) {
 
@@ -794,8 +792,9 @@ namespace merutilm::rff2 {
                                                              dcMax, i, itInterval, &tablePeriod, longestPeriod, epsilon,
                                                              levels, &partialPAs, threadCount] {
                     const uint64_t startIteration = itInterval * i + 1;
-                    if (startIteration > longestPeriod)
+                    if (startIteration > longestPeriod || state.interruptRequested()) {
                         return;
+                    }
 
                     std::vector<uint64_t> itCount;
                     std::vector<uint64_t> itCountLim;
@@ -814,8 +813,8 @@ namespace merutilm::rff2 {
 
                     while (iteration <= std::min(startIteration + itInterval - 1, longestPeriod)) {
                         if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0) {
-                            if (state.interruptRequested())
-                                return;
+                            if (state.interruptRequested()) return;
+
 #ifndef NDEBUG
                             actionPerCreatingTableIteration(
                                     std::min(longestPeriod, iteration),
@@ -851,11 +850,13 @@ namespace merutilm::rff2 {
                     thread->join();
             }
 
+            if (state.interruptRequested()) return;
+
             gluePartialPA(state, tablePeriod, threadCount, partialPAs);
 
-            if (state.interruptRequested()) {
-                return;
-            }
+#ifndef NDEBUG
+            checkZero(state);
+#endif
         } else {
             uint64_t flattenTableIndex = 0;
             std::vector<uint64_t> itCount;
@@ -869,9 +870,7 @@ namespace merutilm::rff2 {
             while (iteration <= longestPeriod) {
 
                 if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0) {
-                    if (state.interruptRequested()) {
-                        return;
-                    }
+                    if (state.interruptRequested()) return;
                     actionPerCreatingTableIteration(iteration, static_cast<double>(iteration) /
                                                                        static_cast<double>(longestPeriod));
                 }
@@ -884,18 +883,21 @@ namespace merutilm::rff2 {
                 refreshCounterUncompressed(itCount, itCountLim, tablePeriod, generationAvailable, currentPA,
                                            currentPASkips, nullptr, iteration);
             }
-        }
 
 #ifndef NDEBUG
-        checkZero();
+            checkZero(state);
 #endif
+        }
+
+
     }
 
 #ifndef NDEBUG
     template<Number Num>
-    void MPATable<Num>::checkZero() {
-        for (size_t i = 0; i < tableCache->mpaTable.size(); ++i) {
+    void MPATable<Num>::checkZero(const ParallelRenderState &state) {
+        for (size_t i = 0; i < tableCache->tableSizeUsed; ++i) {
             auto &pa = tableCache->mpaTable[i];
+            if (state.interruptRequested()) return;
             if (pa.skip == 0) {
                 throw std::logic_error("zero skips detected at index " + std::to_string(i));
             }

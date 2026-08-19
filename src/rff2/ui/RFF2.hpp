@@ -93,11 +93,20 @@ namespace merutilm::rff2 {
 
         void overwriteMatrixFromMap(const RFFDynamicMapBinary &map) const;
 
+        [[nodiscard]] static std::filesystem::path getBackupLocationPath();
+
+        void saveBackup() const;
+
+        void saveCurrentLocation(const std::filesystem::path &path) const;
+
+        void loadLocation(const std::filesystem::path &path);
+
         [[nodiscard]] int16_t getMouseXOnIterationBuffer(int mx) const;
 
         [[nodiscard]] int16_t getMouseYOnIterationBuffer(int my) const;
 
         void recomputeThreaded();
+
         void moveCursorToCenter() const;
 
         void beforeIterationFill() const;

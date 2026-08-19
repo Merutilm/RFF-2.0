@@ -35,11 +35,7 @@ namespace merutilm::rff2 {
             if (path == nullptr) {
                 return;
             }
-            auto settings = app.getSettings().fractal; // clone the settings
-            auto &center = settings.reference.center;
-            RFFLocationBinary(settings.general.logZoom, center.real.to_string(), center.imag.to_string(),
-                              settings.perturb.maxIteration)
-                    .exportFile(*path);
+            app.saveCurrentLocation(*path);
         }
     }
     void FnFile::loadMap(RFF2 &app) {
@@ -63,13 +59,7 @@ namespace merutilm::rff2 {
             if (path == nullptr) {
                 return;
             }
-            const RFFLocationBinary location = RFFLocationBinary::read(*path);
-
-            app.getSettings().fractal.reference.center = fixed_point_complex_i1(
-                    location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
-            app.getSettings().fractal.general.logZoom = location.getLogZoom();
-            app.getSettings().fractal.perturb.maxIteration = location.getMaxIteration();
-            app.getRequests().requestRecompute();
+            app.loadLocation(*path);
         }
     }
 } // namespace merutilm::rff2

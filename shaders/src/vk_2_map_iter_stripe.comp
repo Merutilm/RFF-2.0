@@ -1,0 +1,117 @@
+#version 450
+#include <common.glsl>
+
+// define descriptors
+#define DESC_PALETTE 2
+#define DESC_TIME 3
+#define DESC_ITERATION 5
+#define DESC_STRIPE 6
+#define DESC_ITERATION_BUFFER_ACCESS writeonly
+
+// include descriptors
+#include <desc_iteration.glsl>
+#include <desc_palette.glsl>
+#include <desc_time.glsl>
+#include <desc_stripe.glsl>
+
+// include utilities
+#include <utils_iteration.glsl>
+#include <utils_palette.glsl>
+#include <utils_stripe.glsl>
+
+
+layout (set = 0, binding = 0) buffer Iteration2MapNormalSSBO {
+    double iterations[];
+} it2map_normal_settings;
+
+layout (set = 0, binding = 1) buffer Iteration2MapZoomedSSBO {
+    double iterations[];
+} it2map_zoomed_settings;
+
+
+layout (set = 1, binding = 0) uniform VideoUBO {
+    float default_zoom_increment;
+    float current_frame;
+} video_settings;
+
+layout (set = 4, binding = 0, rgba8) writeonly uniform image2D merged_image_output;
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+
+double get_iteration_normal(ivec2 iter_coord, ivec2 offset) {
+    return it2map_normal_settings.iterations[get_iteration_index(iter_coord, offset)];
+}
+
+
+double get_iteration_zoomed(ivec2 iter_coord, ivec2 offset) {
+    return it2map_zoomed_settings.iterations[get_iteration_index(iter_coord, offset)];
+}
+
+void set_iteration_output(ivec2 iter_coord, double value) {
+    iteration_settings.iterations[get_iteration_index(iter_coord)] = value;
+}
+
+
+void main() {
+
+    vec2 center = vec2(iteration_info_settings.extent) / 2.0;
+    vec2 coord = vec2(gl_GlobalInvocationID.xy) - center;
+    float r = int(max(0, video_settings.current_frame)) - video_settings.current_frame;
+
+    float nsr = pow(video_settings.default_zoom_increment, r + 1);// r = 0 ~ 1
+    float zsr = pow(video_settings.default_zoom_increment, r);// r = -1 ~ 0
+
+    vec2 ntx = coord / nsr + center;
+    vec2 ztx = coord / zsr + center;
+
+    vec2 nrt = mod(ntx, 1);
+    vec2 zrt = mod(ztx, 1);
+
+    double n00 = get_iteration_normal(ivec2(ntx), ivec2(0, 0));
+    double n10 = get_iteration_normal(ivec2(ntx), ivec2(1, 0));
+    double n01 = get_iteration_normal(ivec2(ntx), ivec2(0, 1));
+    double n11 = get_iteration_normal(ivec2(ntx), ivec2(1, 1));
+
+    double z00 = get_iteration_zoomed(ivec2(ztx), ivec2(0, 0));
+
+    vec3 nc00 = palette_get_color(n00).rgb * stripe_get_multiplier(n00);
+    vec3 nc10 = palette_get_color(n10).rgb * stripe_get_multiplier(n10);
+    vec3 nc01 = palette_get_color(n01).rgb * stripe_get_multiplier(n01);
+    vec3 nc11 = palette_get_color(n11).rgb * stripe_get_multiplier(n11);
+
+    vec3 nc0 = nc00 - (nc00 - nc10) * nrt.x;
+    vec3 nc1 = nc01 - (nc01 - nc11) * nrt.x;
+    vec3 nc = nc0 - (nc0 - nc1) * nrt.y;
+
+    if (ztx.x >= iteration_info_settings.extent.x - 1 || ztx.y >= iteration_info_settings.extent.y - 1 || ztx.x < 0 || ztx.y < 0 || z00 == 0) {
+
+        double n0 = n00 - (n00 - n10) * nrt.x;
+        double n1 = n01 - (n01 - n11) * nrt.x;
+        double n = n0 - (n0 - n1) * nrt.y;
+
+        set_iteration_output(ivec2(gl_GlobalInvocationID.xy), n);
+        imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), vec4(nc, 1));
+
+    } else {
+        double z10 = get_iteration_zoomed(ivec2(ztx), ivec2(1, 0));
+        double z01 = get_iteration_zoomed(ivec2(ztx), ivec2(0, 1));
+        double z11 = get_iteration_zoomed(ivec2(ztx), ivec2(1, 1));
+
+        double z0 = z00 - (z00 - z10) * zrt.x;
+        double z1 = z01 - (z01 - z11) * zrt.x;
+        double z = z0 - (z0 - z1) * zrt.y;
+        set_iteration_output(ivec2(gl_GlobalInvocationID.xy), z);
+
+        vec3 zc00 = palette_get_color(z00).rgb * stripe_get_multiplier(z00);
+        vec3 zc10 = palette_get_color(z10).rgb * stripe_get_multiplier(z10);
+        vec3 zc01 = palette_get_color(z01).rgb * stripe_get_multiplier(z01);
+        vec3 zc11 = palette_get_color(z11).rgb * stripe_get_multiplier(z11);
+
+        vec3 zc0 = zc00 - (zc00 - zc10) * zrt.x;
+        vec3 zc1 = zc01 - (zc01 - zc11) * zrt.x;
+        vec3 zc = zc0 - (zc0 - zc1) * zrt.y;
+
+        imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), vec4(nc * (-r) + zc * (r + 1), 1));
+    }
+}
