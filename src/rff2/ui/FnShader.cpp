@@ -405,6 +405,31 @@ namespace merutilm::rff2 {
             ImGui::End();
         }
     }
+    void FnShader::noiseReduction(RFF2 &app) {
+        static bool enabled = false;
+
+        ImGui::Checkbox("Noise Reduction", &enabled);
+        if (enabled) {
+            ImGui::Begin("Noise Reduction");
+            auto &[use, similarCountThreshold, differenceThreshold] = app.getSettings().shader.noiseReduction;
+
+            if (ImGui::Checkbox("Use", &use)) {
+                app.getRequests().requestShader();
+            }
+            constexpr uint32_t min = 0;
+            constexpr uint32_t max = 8;
+            if (ImGui::SliderScalar("Similar Pixel Count Threshold", ImGuiDataType_U32, &similarCountThreshold, &min, &max)) {
+                similarCountThreshold = std::clamp(similarCountThreshold, min, max);
+                app.getRequests().requestShader();
+            }
+            if (ImGui::SliderFloat("Difference Threshold", &differenceThreshold, 0, 1)) {
+                app.getRequests().requestShader();
+            }
+
+            ImGui::End();
+        }
+
+    }
 
 
 } // namespace merutilm::rff2

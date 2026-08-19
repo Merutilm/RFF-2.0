@@ -3,13 +3,11 @@
 //
 
 #pragma once
-#include <cstdint>
-#include <functional>
+#include "RFF2.hpp"
 
 
 namespace merutilm::rff2 {
 
-    class RFF2;
     struct FnExplore {
         static void recompute(RFF2 &app);
         static void reset(RFF2 &app);

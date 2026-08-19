@@ -45,7 +45,7 @@ namespace merutilm::rff2 {
         renderer->rg2->color->setColor(targetSettings.shader.color);
         renderer->rg3->fog->setFog(targetSettings.shader.fog);
         renderer->rg4->bloom->setBloom(targetSettings.shader.bloom);
-        renderer->rg4->linearInterpolation->setLinearInterpolation(targetSettings.render.linearInterpolation);
+        renderer->rg4->noiseReduction->setNoiseReduction(targetSettings.shader.noiseReduction);
     }
 
     void VideoWindowRenderManager::setTime(const float currentSec) const { renderer->currentSec = currentSec; }

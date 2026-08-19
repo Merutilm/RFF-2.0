@@ -3,15 +3,12 @@
 //
 
 #pragma once
-#include <functional>
-
-
+#include "RFF2.hpp"
 
 namespace merutilm::rff2 {
     class RFF2;
     struct FnRender {
         static void setResolutionProperties(RFF2 &app);
         static void setRenderProperties(RFF2 &app);
-        static void linearInterpolation(RFF2 &app);
     };
 }

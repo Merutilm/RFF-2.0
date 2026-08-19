@@ -11,7 +11,6 @@
 
 #include "../constants/Constants.hpp"
 #include "../mb/MB2Locator.h"
-#include "RFF2.hpp"
 
 namespace merutilm::rff2 {
 

@@ -244,9 +244,6 @@ namespace merutilm::rff2 {
         if (fpgReference == nullptr)
             fpgReference = std::make_unique<fixed_point_complex>(z);
 
-        ref.resize(period - compressed + 1);
-        ref.shrink_to_fit();
-
         periodArray = periodArray.empty() ? std::vector(1, period) : periodArray;
 
         *result = std::make_unique<MB2Reference>(std::move(c), std::move(ref), std::move(tools),

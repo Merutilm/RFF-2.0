@@ -115,11 +115,5 @@ namespace merutilm::rff2 {
         }
     }
 
-    void FnRender::linearInterpolation(RFF2 &app) {
-        if (ImGui::Checkbox("Linear Interpolation", &app.getSettings().render.linearInterpolation)) {
-            app.getRequests().requestShader();
-        }
-    }
-
 
 } // namespace merutilm::rff2

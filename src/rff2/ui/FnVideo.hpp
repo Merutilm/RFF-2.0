@@ -3,8 +3,6 @@
 //
 
 #pragma once
-#include <functional>
-
 #include "RFF2.hpp"
 
 namespace merutilm::rff2 {

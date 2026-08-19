@@ -55,7 +55,7 @@ add_executable(
         src/rff2/vulkan/GPCBloomThreshold.cpp
         src/rff2/vulkan/CPCBoxBlur.cpp
         src/rff2/vulkan/GPCBloom.cpp
-        src/rff2/vulkan/GPCLinearInterpolation.cpp
+        src/rff2/vulkan/GPCNoiseReduction.cpp
         src/rff2/vulkan/GPCPresent.cpp
         src/rff2/ui/VideoWindow.cpp
         src/rff2/ui/VideoWindowRenderManager.cpp

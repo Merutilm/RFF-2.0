@@ -2,6 +2,7 @@
 #include "ShdBloomSettings.h"
 #include "ShdColorSettings.h"
 #include "ShdFogSettings.h"
+#include "ShdNoiseReduction.hpp"
 #include "ShdPaletteSettings.h"
 #include "ShdSlopeSettings.h"
 #include "ShdStripeSettings.h"
@@ -15,5 +16,6 @@ namespace merutilm::rff2 {
         ShdColorSettings color;
         ShdFogSettings fog;
         ShdBloomSettings bloom;
+        ShdNoiseReduction noiseReduction;
     };
 }

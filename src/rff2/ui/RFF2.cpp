@@ -132,13 +132,15 @@ namespace merutilm::rff2 {
                                                     .interiorDetectRadiusPower = 7,
                                                     .autoIterationMultiplier = 100,
                                                     .absoluteIterationMode = false}},
-                .render = {.clarityMultiplier = 0.25f, .fps = 60, .linearInterpolation = true},
+                .render = {.clarityMultiplier = 0.25f, .fps = 60},
                 .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .slope = ShdSlopePresets::Disabled().genSlope(),
                            .color = ShdColorPresets::Disabled().genColor(),
                            .fog = ShdFogPresets::Disabled().genFog(),
-                           .bloom = BloomPresets::Disabled().genBloom()},
+                           .bloom = BloomPresets::Disabled().genBloom(),
+                           .noiseReduction = {true, 2, 0.1f}
+                },
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
@@ -175,7 +177,8 @@ namespace merutilm::rff2 {
                            .slope = ShdSlopePresets::Disabled().genSlope(),
                            .color = ShdColorPresets::Disabled().genColor(),
                            .fog = ShdFogPresets::Disabled().genFog(),
-                           .bloom = BloomPresets::Disabled().genBloom()},
+                           .bloom = BloomPresets::Disabled().genBloom(),
+                           .noiseReduction = {true, 2, 0.1f}},
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
@@ -389,7 +392,7 @@ namespace merutilm::rff2 {
         renderer->rg0->color->setColor(s.shader.color);
         renderer->rg3->fog->setFog(s.shader.fog);
         renderer->rg4->bloom->setBloom(s.shader.bloom);
-        renderer->rg4->linearInterpolation->setLinearInterpolation(s.render.linearInterpolation);
+        renderer->rg4->noiseReduction->setNoiseReduction(s.shader.noiseReduction);
     }
 
     void RFF2::refreshResizeParams(const VkExtent2D swapchainExtent) {
@@ -487,7 +490,6 @@ namespace merutilm::rff2 {
             if (ImGui::BeginTabItem("Render")) {
                 FnRender::setResolutionProperties(*this);
                 FnRender::setRenderProperties(*this);
-                FnRender::linearInterpolation(*this);
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Presets")) {
@@ -505,6 +507,7 @@ namespace merutilm::rff2 {
                 FnShader::color(*this);
                 FnShader::fog(*this);
                 FnShader::bloom(*this);
+                FnShader::noiseReduction(*this);
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Video")) {
@@ -618,7 +621,8 @@ namespace merutilm::rff2 {
     }
 
     std::filesystem::path RFF2::getBackupLocationPath() {
-        return vkh::ExecutableUtils::getExecutableDirectory() / std::format("{0}.{1}",Constants::File::BACKUP_FILE_NAME, Constants::File::EXT_LOCATION);
+        return vkh::ExecutableUtils::getExecutableDirectory() /
+               std::format("{0}.{1}", Constants::File::BACKUP_FILE_NAME, Constants::File::EXT_LOCATION);
     }
 
     void RFF2::saveBackup() const {
@@ -637,8 +641,8 @@ namespace merutilm::rff2 {
     void RFF2::loadLocation(const std::filesystem::path &path) {
         const RFFLocationBinary location = RFFLocationBinary::read(path);
 
-        settings.fractal.reference.center = fixed_point_complex_i1(
-                location.getReal(), location.getImag(), Perturbator::logZoomToExp10(location.getLogZoom()));
+        settings.fractal.reference.center = fixed_point_complex_i1(location.getReal(), location.getImag(),
+                                                                   Perturbator::logZoomToExp10(location.getLogZoom()));
         settings.fractal.general.logZoom = location.getLogZoom();
         settings.fractal.perturb.maxIteration = location.getMaxIteration();
         requests.requestRecompute();
@@ -663,8 +667,10 @@ namespace merutilm::rff2 {
             if (!backUpLoadConfirmed) {
                 backUpLoadConfirmed = true;
                 const auto path = getBackupLocationPath();
-                if (std::filesystem::exists(path) && vkh::logger::log_warn("Do you want to load the last rendered location?")) {
-                    if (!std::filesystem::exists(path)) return; //user deleted file manually
+                if (std::filesystem::exists(path) &&
+                    vkh::logger::log_warn("Do you want to load the last rendered location?")) {
+                    if (!std::filesystem::exists(path))
+                        return; // user deleted file manually
                     loadLocation(path);
                     return;
                 }
@@ -761,8 +767,8 @@ namespace merutilm::rff2 {
             const dex distance = static_cast<complex<dex>>(center).norm_approx();
 
 
-            renderData->translate(frt.general.logZoom, dcMax + distance, frt.perturb,
-                                  frt.reference.center, actionPerSeriesApproxIteration);
+            renderData->translate(frt.general.logZoom, dcMax + distance, frt.perturb, frt.reference.center,
+                                  actionPerSeriesApproxIteration);
         } else {
             renderData = nullptr;
             if (logZoom > Constants::Fractal::ZOOM_DEADLINE) {

@@ -3,11 +3,10 @@
 //
 
 #pragma once
-#include <functional>
+#include "RFF2.hpp"
 
 
 namespace merutilm::rff2 {
-    class RFF2;
     struct FnFractal {
         static void reference(RFF2 &app);
         static void iterations(RFF2 &app);

@@ -2,35 +2,37 @@
 // Created by Merutilm on 2025-08-31.
 //
 
-#include "GPCLinearInterpolation.hpp"
+#include "GPCNoiseReduction.hpp"
 
 #include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 
 namespace merutilm::rff2 {
-    void GPCLinearInterpolation::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
+    void GPCNoiseReduction::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
         //noop
     }
 
-    void GPCLinearInterpolation::setLinearInterpolation(const bool use) const {
+    void GPCNoiseReduction::setNoiseReduction(const ShdNoiseReduction &noiseReduction) const {
         using namespace SharedDescriptorTemplate;
-        auto &interDesc = getDescriptor(SET_LINEAR_INTERPOLATION);
+        auto &interDesc = getDescriptor(SET_NOISE_REDUCTION);
         auto &interUBO = interDesc.get<vkh::Uniform>(
-            0, DescLinearInterpolation::BINDING_UBO_LINEAR_INTERPOLATION);
+            0, DescNoiseReduction::BINDING_UBO_NOISE_REDUCTION);
         auto &interUBOHost = interUBO.getHostObject();
-        interUBOHost.set<bool>(DescLinearInterpolation::TARGET_LINEAR_INTERPOLATION_USE, use);
+        interUBOHost.set<bool>(DescNoiseReduction::TARGET_NOISE_REDUCTION_USE, noiseReduction.use);
+        interUBOHost.set<uint32_t>(DescNoiseReduction::TARGET_NOISE_REDUCTION_SIMILAR_COUNT_THRESHOLD, noiseReduction.similarCountThreshold);
+        interUBOHost.set<float>(DescNoiseReduction::TARGET_NOISE_REDUCTION_DIFFERENCE_THRESHOLD, noiseReduction.differenceThreshold);
         interUBO.update();
     }
 
-    void GPCLinearInterpolation::pipelineInitialized() {
+    void GPCNoiseReduction::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
         writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_LINEAR_INTERPOLATION).queue(queue, frameIndex, {}, {DescBloom::BINDING_UBO_BLOOM});
+            getDescriptor(SET_NOISE_REDUCTION).queue(queue, frameIndex, {}, {DescBloom::BINDING_UBO_BLOOM});
         });
     }
 
-    void GPCLinearInterpolation::renderContextRefreshed() {
+    void GPCNoiseReduction::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &samplerDesc = getDescriptor(SET_PREV_RESULT);
         const auto &sample = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY);
@@ -44,12 +46,12 @@ namespace merutilm::rff2 {
         });
     }
 
-    void GPCLinearInterpolation::configurePushConstant(
+    void GPCNoiseReduction::configurePushConstant(
         vkh::PipelineLayoutManager &pipelineLayoutManager) {
         //noop
     }
 
-    void GPCLinearInterpolation::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
+    void GPCNoiseReduction::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
         using namespace SharedDescriptorTemplate;
         vkh::Sampler &sampler = pickFromGlobalRepository<vkh::GlobalSamplerRepo, vkh::Sampler &>(
             VkSamplerCreateInfo{
@@ -79,6 +81,6 @@ namespace merutilm::rff2 {
                                                         std::make_unique<vkh::CombinedImageSampler>(
                                                             wc.core, sampler, true));
         appendUniqueDescriptor(SET_PREV_RESULT, descriptors, std::move(descManager));
-        appendDescriptor<DescLinearInterpolation>(SET_LINEAR_INTERPOLATION, descriptors);
+        appendDescriptor<DescNoiseReduction>(SET_NOISE_REDUCTION, descriptors);
     }
 }
