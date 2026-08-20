@@ -3,23 +3,20 @@
 //
 
 #pragma once
+#include "../util/RendererUtils.hpp"
+#include "GPC3DFractal.hpp"
 #include "GPCColor.hpp"
-#include "GPCIterationPalette.hpp"
-#include "GPCSlope.hpp"
-#include "GPCStripe.hpp"
 #include "SharedImageContextIndices.hpp"
 #include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
-    class RenderGraph0 final : public vkh::RenderPassGraphGenerator {
+    class RenderGraph1 final : public vkh::RenderPassGraphGenerator {
 
         vkh::RenderPassAttachment *resultAttachment = nullptr;
         vkh::RenderPassAttachment *tempAttachment = nullptr;
 
     public:
-        GPCIterationPalette *iterationPalette = nullptr;
-        GPCStripe *stripe = nullptr;
-        GPCSlope *slope = nullptr;
+        GPC3DFractal *fractal3d = nullptr;
         GPCColor *color = nullptr;
 
         using RenderPassGraphGenerator::RenderPassGraphGenerator;
@@ -63,25 +60,14 @@ namespace merutilm::rff2 {
         void configurePipelines() override {
 
 
-            vkh::GraphicsPipelineNode *paletteNode = registerPipeline<GPCIterationPalette>(
-                    &iterationPalette, {},
-                    {tempAttachment, RendererUtils::COLOR_REF_INFO, RendererUtils::SAMPLER_READ_DEPENDENCY,
-                     RendererUtils::INPUT_REF_INFO},
-                    RendererUtils::DEFAULT_DESC_PICKER);
+            vkh::GraphicsPipelineNode *fractal3dNode =
+                      registerPipeline<GPC3DFractal>(&fractal3d, {},
+                                                 {tempAttachment, RendererUtils::COLOR_REF_INFO,
+                                                  RendererUtils::INPUT_READ_DEPENDENCY, RendererUtils::INPUT_REF_INFO},
+                                                 RendererUtils::DEFAULT_DESC_PICKER);
 
-            vkh::GraphicsPipelineNode *stripeNode =
-                    registerPipeline<GPCStripe>(&stripe, {paletteNode},
-                                                {resultAttachment, RendererUtils::COLOR_REF_INFO,
-                                                 RendererUtils::SAMPLER_READ_DEPENDENCY, RendererUtils::INPUT_REF_INFO},
-                                                RendererUtils::DEFAULT_DESC_PICKER);
 
-            vkh::GraphicsPipelineNode *slopeNode =
-                    registerPipeline<GPCSlope>(&slope, {stripeNode},
-                                               {tempAttachment, RendererUtils::COLOR_REF_INFO,
-                                                RendererUtils::INPUT_READ_DEPENDENCY, RendererUtils::INPUT_REF_INFO},
-                                               RendererUtils::DEFAULT_DESC_PICKER);
-
-            registerPipeline<GPCColor>(&color, {slopeNode},
+            registerPipeline<GPCColor>(&color, {fractal3dNode},
                                        {resultAttachment, RendererUtils::COLOR_REF_INFO, std::nullopt, std::nullopt},
                                        RendererUtils::DEFAULT_DESC_PICKER);
         }

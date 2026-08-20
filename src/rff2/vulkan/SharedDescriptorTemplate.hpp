@@ -307,5 +307,26 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         }
     };
 
+    struct DescFractal3D final : public vkh::DescriptorTemplate {
+        static constexpr uint32_t ID = 11;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_VERTEX_BIT;
 
+        static constexpr uint32_t BINDING_UBO_F3D = 0;
+
+        static constexpr uint32_t TARGET_F3D_BASE_ITERATION = 0;
+        static constexpr uint32_t TARGET_F3D_DEPTH_DIVISOR = 1;
+        static constexpr uint32_t TARGET_F3D_ROTATION = 2;
+
+
+        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+            auto bufferManager = vkh::HostDataObjectManager();
+            bufferManager.reserve<float>(TARGET_F3D_BASE_ITERATION);
+            bufferManager.reserve<float>(TARGET_F3D_DEPTH_DIVISOR);
+            bufferManager.reserve<float>(TARGET_F3D_ROTATION);
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, false);
+            auto descManager = vkh::DescriptorManager();
+            descManager.appendUBO(BINDING_UBO_F3D, STAGE, std::move(ubo));
+            managers.emplace_back(std::move(descManager));
+        }
+    };
 }

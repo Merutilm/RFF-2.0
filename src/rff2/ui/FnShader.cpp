@@ -94,7 +94,8 @@ namespace merutilm::rff2 {
                 ImGui::EndTable();
 
 
-                const int pageCount = (static_cast<int>(colors.size()) - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE + 1;
+                const int pageCount =
+                        (static_cast<int>(colors.size()) - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE + 1;
 
                 if (ImGui::ArrowButton("##prev", ImGuiDir_Left)) {
                     if (ImGui::GetIO().KeyCtrl) {
@@ -418,7 +419,8 @@ namespace merutilm::rff2 {
             }
             constexpr uint32_t min = 0;
             constexpr uint32_t max = 8;
-            if (ImGui::SliderScalar("Similar Pixel Count Threshold", ImGuiDataType_U32, &similarCountThreshold, &min, &max)) {
+            if (ImGui::SliderScalar("Similar Pixel Count Threshold", ImGuiDataType_U32, &similarCountThreshold, &min,
+                                    &max)) {
                 similarCountThreshold = std::clamp(similarCountThreshold, min, max);
                 app.getRequests().requestShader();
             }
@@ -428,7 +430,43 @@ namespace merutilm::rff2 {
 
             ImGui::End();
         }
+    }
 
+    void FnShader::fractal3D(RFF2 &app) {
+        static bool enabled = false;
+
+        ImGui::Checkbox("3D", &enabled);
+        if (enabled) {
+            ImGui::Begin("3D");
+            auto &[use, altitude, rotation, baseIteration, divisor] = app.getSettings().shader.fractal3D;
+
+            ImGui::Checkbox("Use", &use);
+
+            if (ImGui::SliderFloat("Altitude", &altitude, 0, 360)) {
+                app.getRequests().requestShader();
+            }
+
+            if (ImGui::SliderFloat("Rotation", &rotation, 0, 360)) {
+                app.getRequests().requestShader();
+            }
+
+
+            if (ImGui::DragFloat("Base Iteration",  &baseIteration, Constants::UI::UNLIMITED_DRAG_SPEED,
+                                 Constants::UI::UNLIMITED_MIN_DRAG_SCALAR, Constants::UI::UNLIMITED_MAX_DRAG,
+                                 Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
+                app.getRequests().requestShader();
+            }
+
+
+            if (ImGui::DragFloat("Depth Divisor", &divisor, Constants::UI::UNLIMITED_DRAG_SPEED,
+                                 Constants::UI::UNLIMITED_MIN_DRAG_SCALAR, Constants::UI::UNLIMITED_MAX_DRAG,
+                                 Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
+                divisor = std::max(divisor, FLT_MIN);
+                app.getRequests().requestShader();
+            }
+
+            ImGui::End();
+        }
     }
 
 

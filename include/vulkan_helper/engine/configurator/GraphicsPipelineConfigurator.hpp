@@ -39,7 +39,7 @@ namespace merutilm::vkh {
         [[nodiscard]] virtual IndexBuffer &getIndexBuffer() = 0;
 
 
-        void cmdDraw(const VkCommandBuffer cbh, const uint32_t frameIndex, const uint32_t indexVarBinding) {
+        void cmdDraw(const VkCommandBuffer cbh, const uint32_t frameIndex, const uint32_t indexVarTarget) {
 
             const VkBuffer vertexBufferHandle = getVertexBuffer().isMultiframe()
                                                         ? getVertexBuffer().getBufferContextMF(frameIndex).buffer
@@ -50,8 +50,8 @@ namespace merutilm::vkh {
             constexpr VkDeviceSize vertexBufferOffset = 0;
             {
                 vkCmdBindVertexBuffers(cbh, 0, 1, &vertexBufferHandle, &vertexBufferOffset);
-                vkCmdBindIndexBuffer(cbh, indexBufferHandle, getIndexBuffer().getHostObject().getOffset(indexVarBinding), VK_INDEX_TYPE_UINT32);
-                vkCmdDrawIndexed(cbh, getIndexBuffer().getHostObject().getElementCount(indexVarBinding), 1, 0, 0, 0);
+                vkCmdBindIndexBuffer(cbh, indexBufferHandle, getIndexBuffer().getHostObject().getOffset(indexVarTarget), VK_INDEX_TYPE_UINT32);
+                vkCmdDrawIndexed(cbh, getIndexBuffer().getHostObject().getElementCount(indexVarTarget), 1, 0, 0, 0);
             }
         }
     };

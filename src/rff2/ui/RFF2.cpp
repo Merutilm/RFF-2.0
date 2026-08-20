@@ -139,8 +139,8 @@ namespace merutilm::rff2 {
                            .color = ShdColorPresets::Disabled().genColor(),
                            .fog = ShdFogPresets::Disabled().genFog(),
                            .bloom = BloomPresets::Disabled().genBloom(),
-                           .noiseReduction = {true, 2, 0.1f}
-                },
+                           .noiseReduction = {true, 2, 0.1f},
+                           .fractal3D = {true, 85, 0, 0, 10.f}},
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
@@ -178,7 +178,9 @@ namespace merutilm::rff2 {
                            .color = ShdColorPresets::Disabled().genColor(),
                            .fog = ShdFogPresets::Disabled().genFog(),
                            .bloom = BloomPresets::Disabled().genBloom(),
-                           .noiseReduction = {true, 2, 0.1f}},
+                           .noiseReduction = {true, 2, 0.1f},
+                            .fractal3D = {false, 85, 0, 0, 10.f}
+                },
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
@@ -393,6 +395,7 @@ namespace merutilm::rff2 {
         renderer->rg3->fog->setFog(s.shader.fog);
         renderer->rg4->bloom->setBloom(s.shader.bloom);
         renderer->rg4->noiseReduction->setNoiseReduction(s.shader.noiseReduction);
+        renderer->rg1->fractal3d->setFractal3D(s.shader.fractal3D);
     }
 
     void RFF2::refreshResizeParams(const VkExtent2D swapchainExtent) {
@@ -409,6 +412,7 @@ namespace merutilm::rff2 {
 
         renderer->rccPresentPrepare->smoothZoom->setRescaledResolution({sWidth, sHeight});
         renderer->rg0->iterationPalette->resetIterationBuffer(iw, ih);
+        renderer->rg1->fractal3d->resetBuffer(iw, ih);
         iterationMatrix = std::make_unique<Matrix<double>>(iw, ih);
         renderer->iterationStagingBufferContext = std::make_unique<GraphicsMatrixBuffer<double>>(
                 rootWindowContext->core, iw, ih, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -508,6 +512,9 @@ namespace merutilm::rff2 {
                 FnShader::fog(*this);
                 FnShader::bloom(*this);
                 FnShader::noiseReduction(*this);
+#ifndef NDEBUG
+                FnShader::fractal3D(*this);
+#endif
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Video")) {
@@ -616,7 +623,8 @@ namespace merutilm::rff2 {
             return;
         }
 
-        renderer->rg0->iterationPalette->setMaxIterationTemp(static_cast<double>(map.getMaxIteration()));
+        renderer->rg0->iterationPalette->setMaxIteration(static_cast<double>(map.getMaxIteration()));
+        renderer->rg0->iterationPalette->applyMaxIteration();
         renderer->iterationStagingBufferContext->fill(map.getMatrix().getCanvas());
     }
 
@@ -715,7 +723,7 @@ namespace merutilm::rff2 {
         if (settings.explore.autoMoveCursorToCenter) {
             moveCursorToCenter();
         }
-        renderer->rg0->iterationPalette->setMaxIterationTemp(
+        renderer->rg0->iterationPalette->setMaxIteration(
                 static_cast<double>(renderData->fractalSettings.perturb.maxIteration));
 
         saveBackup();

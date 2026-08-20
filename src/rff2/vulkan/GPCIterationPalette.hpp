@@ -40,7 +40,10 @@ namespace merutilm::rff2 {
 
         void applyMaxIteration() const;
 
-        void setMaxIterationTemp(double maxIteration) const;
+        /**
+         * call applyMaxIteration to update params for gpu
+         */
+        void setMaxIteration(double maxIteration) const;
 
         void setPalette(const ShdPaletteSettings &palette) const;
 

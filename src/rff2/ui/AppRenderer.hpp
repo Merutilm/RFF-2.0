@@ -7,6 +7,7 @@
 #include "../util/RendererUtils.hpp"
 #include "../vulkan/CPCBoxBlur.hpp"
 #include "../vulkan/RenderGraph0.hpp"
+#include "../vulkan/RenderGraph1.hpp"
 #include "../vulkan/RenderGraph3.hpp"
 #include "../vulkan/RenderGraph4.hpp"
 #include "../vulkan/RenderGraphDownsampleForBlur.hpp"
@@ -25,12 +26,14 @@ namespace merutilm::rff2 {
         const ZoomAnimationInfo &zoomAnimationInfo;
 
         vkh::RenderContext *rc0 = nullptr;
+        vkh::RenderContext *rc1 = nullptr;
         vkh::RenderContext *rcDownsample = nullptr;
         vkh::RenderContext *rc3 = nullptr;
         vkh::RenderContext *rc4 = nullptr;
         vkh::RenderContext *rcPresent = nullptr;
 
         RenderGraph0 *rg0 = nullptr;
+        RenderGraph1 *rg1 = nullptr;
         RenderGraphDownsampleForBlur *rccDownsample = nullptr;
         RenderGraph3 *rg3 = nullptr;
         RenderGraph4 *rg4 = nullptr;
@@ -70,6 +73,13 @@ namespace merutilm::rff2 {
                     vkh::ComputePipelineConfigurator::createComputePipeline<CPCBoxBlur>(configurators, engine, wc);
             rc0 = vkh::RenderContextUtils::attachRenderContext<RenderGraph0>(
                     &rg0, configurators, engine, wc,
+                    [this] {
+                        return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                                                      settings.render.clarityMultiplier);
+                    },
+                    swapchainImageContextGetter);
+            rc1 = vkh::RenderContextUtils::attachRenderContext<RenderGraph1>(
+                    &rg1, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
                                                       settings.render.clarityMultiplier);
@@ -133,7 +143,12 @@ namespace merutilm::rff2 {
 
             // [BARRIER] Safe-copy iteration buffer
 
-            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc0, frameIndex);
+            if (settings.shader.fractal3D.use) {
+                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc1, frameIndex);
+            }else {
+                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc0, frameIndex);
+            }
+
 
             // [IN] EXTERNAL
             // [SUBPASS OUT] PRIMARY (color)

@@ -37,6 +37,8 @@ float col_diff2(vec3 a, vec3 b)
 }
 
 
+
+// This is an optimized and rewritten version of the AI-generated source code
 void main()
 {
     ivec2 size = textureSize(canvas, 0);
