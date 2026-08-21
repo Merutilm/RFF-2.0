@@ -5,9 +5,8 @@
 #include <vulkan_helper/engine/pipeline/ComputeShaderPipeline.hpp>
 
 namespace merutilm::vkh {
-    ComputeShaderPipeline::ComputeShaderPipeline(Core &core, PipelineLayout &pipelineLayout,
-                                                 PipelineManager &&pipelineManager) :
-        Pipeline(core, pipelineLayout, std::move(pipelineManager)) {
+    ComputeShaderPipeline::ComputeShaderPipeline(Core &core, PipelineManager &&pipelineManager) :
+        Pipeline(core, std::move(pipelineManager)) {
         ComputeShaderPipeline::init();
     }
 

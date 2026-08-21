@@ -28,13 +28,13 @@ namespace merutilm::rff2 {
         void configureAttachments() override {
             using namespace SharedImageContextIndices;
             tempAttachment = &appendAttachment(
-                    {
+                    VkAttachmentDescription{
                             .flags = 0,
                             .format = wc.getSharedImageContext()
                                               .getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY)[0]
                                               .imageFormat,
                             .samples = VK_SAMPLE_COUNT_1_BIT,
-                            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                            .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -43,13 +43,13 @@ namespace merutilm::rff2 {
                     },
                     wc.getSharedImageContext().getImageContextMF(MF_MAIN_RENDER_IMAGE_SECONDARY));
             resultAttachment = &appendAttachment(
-                    {
+                    VkAttachmentDescription{
                             .flags = 0,
                             .format = wc.getSharedImageContext()
                                               .getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY)[0]
                                               .imageFormat,
                             .samples = VK_SAMPLE_COUNT_1_BIT,
-                            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                            .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
                             .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,

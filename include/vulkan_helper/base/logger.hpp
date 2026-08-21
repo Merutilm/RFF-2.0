@@ -39,18 +39,18 @@ namespace merutilm::vkh {
         }
 
         template<typename... Args>
-        static bool log_warn(std::format_string<Args...> message, Args &&...args) {
+        static bool messagebox_yn(const std::string &title, std::format_string<Args...> message, Args &&...args) {
             log_err_silent(message, std::forward<Args>(args)...);
             std::string fmt = std::format(message, std::forward<Args>(args)...);
 #ifdef _WIN32
-            int result = MessageBox(nullptr, fmt.data(), "Warning", MB_ICONWARNING | MB_OKCANCEL);
+            int result = MessageBox(nullptr, fmt.data(), title.data(), MB_ICONWARNING | MB_OKCANCEL);
             return result == IDOK;
 #endif
 #ifdef __linux__
             gtk_init_check(nullptr, nullptr);
-            GtkWidget *dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING, GTK_BUTTONS_OK_CANCEL,
-                                                       "%s", fmt.data());
-            gtk_window_set_title(GTK_WINDOW(dialog), "Warning");
+            GtkWidget *dialog = gtk_message_dialog_new(nullptr, GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
+                                                       GTK_BUTTONS_OK_CANCEL, "%s", fmt.data());
+            gtk_window_set_title(GTK_WINDOW(dialog), title.data());
             gtk_widget_show_all(dialog);
             const gint response = gtk_dialog_run(GTK_DIALOG(dialog));
             gtk_widget_destroy(dialog);

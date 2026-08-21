@@ -57,11 +57,9 @@ namespace merutilm::vkh {
     template<typename T>
     void BufferContext::fill(const BufferContext &bufCtx, const std::vector<T> &vec) {
         const size_t size = vec.size() * sizeof(T);
-#ifndef NDEBUG
         if (size != bufCtx.bufferSize) {
             throw exception_invalid_args(std::format("Buffer size mismatch : {} and {}", size, bufCtx.bufferSize));
         }
-#endif
         memcpy(bufCtx.mappedMemory, vec.data(), size);
     }
     template<typename T>

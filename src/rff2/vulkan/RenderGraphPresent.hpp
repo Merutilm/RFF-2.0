@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
         void configureAttachments() override {
 
             swapchainAttachment =
-                    &appendAttachment({.flags = 0,
+                    &appendAttachment(VkAttachmentDescription{.flags = 0,
                                        .format = wc.core.getPhysicalDeviceLoader().getPrimarySurfaceFormat(),
                                        .samples = VK_SAMPLE_COUNT_1_BIT,
                                        .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -28,7 +28,7 @@ namespace merutilm::rff2 {
                                        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                                        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                       .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR}, //skip imgui render
+                                       .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR}, // skip imgui render
                                       swapchainImageContextGetter());
         }
 

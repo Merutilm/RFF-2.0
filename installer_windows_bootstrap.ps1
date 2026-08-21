@@ -63,6 +63,13 @@ $packages = @(
 ) -join " "
 
 & $msys2Bash -lc "pacman -S --noconfirm --needed $packages"
+& $msys2Bash -lc "git clone --branch 4.11.0 --depth 1 https://github.com/opencv/opencv.git &&
+cd opencv &&
+mkdir build &&
+cd build &&
+cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/clang64 && cmake --build . -j && cmake --install ."
+
+
 
 # ---------------------------------------------------------------------------
 # 3. clang64 toolchain to PATH
@@ -74,7 +81,7 @@ $usrBin = Join-Path $msys2Root "usr\bin"
 $env:PATH = "$clang64Bin;$usrBin;$env:PATH"
 
 # ---------------------------------------------------------------------------
-# 3-1. Check Version (원격 HEAD SHA vs 마지막 설치 시 저장한 SHA)
+# 3-1. Check Version
 # ---------------------------------------------------------------------------
 Write-Step "Check Version"
 

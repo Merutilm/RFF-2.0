@@ -14,8 +14,7 @@ namespace merutilm::vkh {
         const std::vector<Descriptor *> descriptors;
         const std::vector<ShaderModule *> shaderModules;
 
-        explicit Pipeline(Core &core, PipelineLayout &pipelineLayout,
-                                  PipelineManager &&pipelineManager);
+        explicit Pipeline(Core &core, PipelineManager &&pipelineManager);
 
         ~Pipeline() override;
 

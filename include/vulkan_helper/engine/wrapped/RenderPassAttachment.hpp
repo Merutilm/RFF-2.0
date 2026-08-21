@@ -10,5 +10,6 @@ namespace merutilm::vkh {
         uint32_t attachmentIndex;
         VkAttachmentDescription attachment;
         MultiframeImageContext imageContext;
+        VkClearValue clearValue;
     };
 }

@@ -70,7 +70,6 @@ namespace merutilm::rff2 {
         });
         vbo.lock(wc.getCommandPool());
         ibo.lock(wc.getCommandPool());
-
     }
 
     void GPC3DFractal::setFractal3D(const ShdFractal3DSettings &fractal3DSettings) const {
@@ -88,16 +87,19 @@ namespace merutilm::rff2 {
         const float altitudeRad = glm::radians(fractal3DSettings.altitude);
         const float rotationRad = glm::radians(fractal3DSettings.rotation);
 
-        const float distance = 2.0f;
+        const float distance = fractal3DSettings.distance;;
 
-        const glm::vec3 cameraPos = {0,
-                                     distance * cos(altitudeRad), distance * sin(altitudeRad)};
+        const glm::vec3 cameraPos = {distance * std::cos(altitudeRad) * std::sin(rotationRad), distance * std::cos(altitudeRad) * -std::cos(rotationRad), distance * std::sin(altitudeRad)};
+        const glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(0.0f), glm::vec3(0, 0, 1));
 
-        const glm::mat4 view = glm::lookAt(cameraPos, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+        const auto &[w, h] = wc.getSwapchain().getSwapchainExtent();
+        const float fov = 90.f;
+        glm::mat4 proj = glm::infinitePerspective(glm::radians(fov), static_cast<float>(w) / static_cast<float>(h), 0.01f);
+        proj[1][1] *= -1;
 
         cameraUBOHost.set<glm::mat4>(DescCamera3D::TARGET_CAMERA_MODEL, glm::mat4{1.0f});
         cameraUBOHost.set<glm::mat4>(DescCamera3D::TARGET_CAMERA_VIEW, view);
-        cameraUBOHost.set<glm::mat4>(DescCamera3D::TARGET_CAMERA_PROJ, glm::mat4{1.0f});
+        cameraUBOHost.set<glm::mat4>(DescCamera3D::TARGET_CAMERA_PROJ, proj);
 
 
         f3dUBOHost.set<float>(DescFractal3D::TARGET_F3D_BASE_ITERATION, fractal3DSettings.baseIteration);
@@ -106,6 +108,146 @@ namespace merutilm::rff2 {
 
         updateBufferMF([&cameraUBO](const uint32_t frameIndex) { cameraUBO.updateMF(frameIndex); });
         f3dUBO.update();
+    }
+
+    VkGraphicsPipelineCreateInfo GPC3DFractal::generatePipelineInfo(const vkh::PipelineManager &pipelineManager,
+                                                                    vkh::RenderPass *rp, uint32_t subpass,
+                                                                    vkh::PipelineConfiguration &pipelineConfiguration) {
+        const auto &modules = pipelineManager.shaderModules;
+
+        pipelineConfiguration.shaderStageCreateInfos.resize(modules.size());
+        for (size_t i = 0; i < modules.size(); ++i) {
+            pipelineConfiguration.shaderStageCreateInfos[i] = {
+                    .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                    .pNext = nullptr,
+                    .flags = 0,
+                    .stage = modules[i]->getShaderStage(),
+                    .module = modules[i]->getShaderModuleHandle(),
+                    .pName = "main",
+                    .pSpecializationInfo = nullptr};
+        }
+
+        auto &vertInputAttributeDescription = getVertexBuffer().getVertexInputAttributeDescriptions();
+        auto &vertBindingDescription = getVertexBuffer().getVertexInputBindingDescriptions();
+
+
+        pipelineConfiguration.vertexInputStateCreateInfo = VkPipelineVertexInputStateCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .vertexBindingDescriptionCount = static_cast<uint32_t>(vertBindingDescription.size()),
+                .pVertexBindingDescriptions = vertBindingDescription.data(),
+                .vertexAttributeDescriptionCount = static_cast<uint32_t>(vertInputAttributeDescription.size()),
+                .pVertexAttributeDescriptions = vertInputAttributeDescription.data(),
+        };
+
+        pipelineConfiguration.inputAssemblyStateCreateInfo = VkPipelineInputAssemblyStateCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+                .primitiveRestartEnable = VK_FALSE};
+
+        pipelineConfiguration.viewportStateCreateInfo =
+                VkPipelineViewportStateCreateInfo{.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+                                                  .pNext = nullptr,
+                                                  .flags = 0,
+                                                  .viewportCount = 1,
+                                                  .pViewports = nullptr,
+                                                  .scissorCount = 1,
+                                                  .pScissors = nullptr};
+
+        pipelineConfiguration.rasterizationStateCreateInfo = VkPipelineRasterizationStateCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .depthClampEnable = VK_TRUE,
+                .rasterizerDiscardEnable = VK_FALSE,
+                .polygonMode = VK_POLYGON_MODE_FILL,
+                .cullMode = VK_CULL_MODE_BACK_BIT,
+                .frontFace = VK_FRONT_FACE_CLOCKWISE,
+                .depthBiasEnable = VK_FALSE,
+                .depthBiasConstantFactor = 0,
+                .depthBiasClamp = 0,
+                .depthBiasSlopeFactor = 0,
+                .lineWidth = 1};
+
+        pipelineConfiguration.multisampleStateCreateInfo =
+                VkPipelineMultisampleStateCreateInfo{.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+                                                     .pNext = nullptr,
+                                                     .flags = 0,
+                                                     .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+                                                     .sampleShadingEnable = VK_FALSE,
+                                                     .minSampleShading = 1,
+                                                     .pSampleMask = nullptr,
+                                                     .alphaToCoverageEnable = VK_FALSE,
+                                                     .alphaToOneEnable = VK_FALSE};
+
+
+        pipelineConfiguration.depthStencilStateCreateInfo = VkPipelineDepthStencilStateCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .depthTestEnable = VK_TRUE,
+                .depthWriteEnable = VK_TRUE,
+                .depthCompareOp = VK_COMPARE_OP_LESS,
+                .depthBoundsTestEnable = VK_FALSE,
+                .stencilTestEnable = VK_FALSE,
+                .front = {},
+                .back = {},
+                .minDepthBounds = 0,
+                .maxDepthBounds = 1};
+
+        pipelineConfiguration.colorBlendAttachmentState = VkPipelineColorBlendAttachmentState{
+                .blendEnable = VK_TRUE,
+                .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+                .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+                .colorBlendOp = VK_BLEND_OP_ADD,
+                .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+                .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+                .alphaBlendOp = VK_BLEND_OP_ADD,
+                .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+                                  VK_COLOR_COMPONENT_A_BIT};
+
+        pipelineConfiguration.colorBlendStateCreateInfo =
+                VkPipelineColorBlendStateCreateInfo{.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+                                                    .pNext = nullptr,
+                                                    .flags = 0,
+                                                    .logicOpEnable = VK_FALSE,
+                                                    .logicOp = VK_LOGIC_OP_NO_OP,
+                                                    .attachmentCount = 1,
+                                                    .pAttachments = &pipelineConfiguration.colorBlendAttachmentState,
+                                                    .blendConstants = {0, 0, 0, 1}};
+
+
+        pipelineConfiguration.dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+        pipelineConfiguration.dynamicStateCreateInfo = VkPipelineDynamicStateCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .dynamicStateCount = static_cast<uint32_t>(pipelineConfiguration.dynamicStates.size()),
+                .pDynamicStates = pipelineConfiguration.dynamicStates.data(),
+        };
+
+        return {.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .stageCount = static_cast<uint32_t>(pipelineConfiguration.shaderStageCreateInfos.size()),
+                .pStages = pipelineConfiguration.shaderStageCreateInfos.data(),
+                .pVertexInputState = &pipelineConfiguration.vertexInputStateCreateInfo,
+                .pInputAssemblyState = &pipelineConfiguration.inputAssemblyStateCreateInfo,
+                .pTessellationState = nullptr,
+                .pViewportState = &pipelineConfiguration.viewportStateCreateInfo,
+                .pRasterizationState = &pipelineConfiguration.rasterizationStateCreateInfo,
+                .pMultisampleState = &pipelineConfiguration.multisampleStateCreateInfo,
+                .pDepthStencilState = &pipelineConfiguration.depthStencilStateCreateInfo,
+                .pColorBlendState = &pipelineConfiguration.colorBlendStateCreateInfo,
+                .pDynamicState = &pipelineConfiguration.dynamicStateCreateInfo,
+                .layout = pipelineManager.layout.getLayoutHandle(),
+                .renderPass = rp->getRenderPassHandle(),
+                .subpass = subpass,
+                .basePipelineHandle = nullptr,
+                .basePipelineIndex = -1};
     }
 
     void GPC3DFractal::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
@@ -119,6 +261,8 @@ namespace merutilm::rff2 {
         appendDescriptor<DescTime>(SET_TIME, descriptors);
         appendDescriptor<DescCamera3D>(SET_CAMERA, descriptors);
         appendDescriptor<DescFractal3D>(SET_FRACTAL3D, descriptors);
+        appendDescriptor<DescStripe>(SET_STRIPE, descriptors);
+        appendDescriptor<DescSlope>(SET_SLOPE, descriptors);
     }
 
     void GPC3DFractal::configureVertexBuffer(vkh::HostDataObjectManager &som) {

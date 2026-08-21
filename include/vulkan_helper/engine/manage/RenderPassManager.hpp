@@ -39,7 +39,7 @@ namespace merutilm::vkh {
                              uint32_t subpassIndex = UINT32_MAX);
 
         RenderPassAttachment &appendAttachment(const VkAttachmentDescription &attachmentDescription,
-                                               const MultiframeImageContext &imageContext);
+                                               const MultiframeImageContext &imageContext, VkClearValue clearValue = {});
 
 
         void appendDependency(const VkSubpassDependency &subpassDependency);

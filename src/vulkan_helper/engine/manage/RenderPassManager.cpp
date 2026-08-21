@@ -35,8 +35,8 @@ namespace merutilm::vkh {
         });
     }
 
-    RenderPassAttachment &RenderPassManager::appendAttachment(const VkAttachmentDescription &attachmentDescription, const MultiframeImageContext &imageContext) {
-        return *attachments.emplace_back(std::make_unique<RenderPassAttachment>(attachments.size(), attachmentDescription, imageContext));
+    RenderPassAttachment &RenderPassManager::appendAttachment(const VkAttachmentDescription &attachmentDescription, const MultiframeImageContext &imageContext, VkClearValue clearValue) {
+        return *attachments.emplace_back(std::make_unique<RenderPassAttachment>(attachments.size(), attachmentDescription, imageContext, clearValue));
     }
 
     void RenderPassManager::appendDependency(const VkSubpassDependency &subpassDependency) {

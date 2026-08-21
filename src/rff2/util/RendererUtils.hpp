@@ -14,6 +14,8 @@ namespace merutilm::rff2 {
 
         inline static const vkh::RenderPassAttachmentReference COLOR_REF_INFO{vkh::RenderPassAttachmentType::COLOR,
                                                                               VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+        inline static const vkh::RenderPassAttachmentReference DEPTH_REF_INFO{vkh::RenderPassAttachmentType::DEPTH_STENCIL,
+                                                                              VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
         inline static const vkh::RenderPassAttachmentReference INPUT_REF_INFO{vkh::RenderPassAttachmentType::INPUT,
                                                                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
         inline static const vkh::SubpassDependency SAMPLER_READ_DEPENDENCY{

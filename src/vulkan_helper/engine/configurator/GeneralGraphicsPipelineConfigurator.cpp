@@ -2,8 +2,8 @@
 // Created by Merutilm on 2025-07-18.
 //
 
-#include <vulkan_helper/engine/pipeline/GraphicsPipeline.hpp>
 #include <vulkan_helper/engine/configurator/GeneralGraphicsPipelineConfigurator.hpp>
+#include <vulkan_helper/engine/pipeline/GraphicsPipeline.hpp>
 #include <vulkan_helper/engine/repo/GlobalPipelineLayoutRepo.hpp>
 #include <vulkan_helper/engine/repo/Repositories.hpp>
 
@@ -21,8 +21,8 @@ namespace merutilm::vkh {
         }
 
         configurePushConstant(pipelineLayoutManager);
-        PipelineLayout & pipelineLayout = engine.getGlobalRepositories().getRepository<GlobalPipelineLayoutRepo>()->pick(
-            std::move(pipelineLayoutManager));
+        PipelineLayout &pipelineLayout = engine.getGlobalRepositories().getRepository<GlobalPipelineLayoutRepo>()->pick(
+                std::move(pipelineLayoutManager));
 
 
         PipelineManager pipelineManager(pipelineLayout);
@@ -40,8 +40,6 @@ namespace merutilm::vkh {
         vertexBuffer.emplace(wc.core, std::move(vertManager), BufferLock::LOCK_UNLOCK, true);
         indexBuffer.emplace(wc.core, std::move(indexManager), BufferLock::LOCK_UNLOCK, true);
 
-        pipeline = std::make_unique<GraphicsPipeline>(wc.core, pipelineLayout, *vertexBuffer, *indexBuffer, *rp, subpass,
-                                              std::move(pipelineManager));
+        createPipeline(std::move(pipelineManager), rp, subpass);
     }
-
-}
+} // namespace merutilm::vkh

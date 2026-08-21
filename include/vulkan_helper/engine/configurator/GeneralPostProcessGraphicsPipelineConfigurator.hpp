@@ -7,6 +7,7 @@
 #include <vulkan_helper/engine/buffer/VertexBuffer.hpp>
 #include "GeneralGraphicsPipelineConfigurator.hpp"
 #include "GraphicsPipelineConfigurator.hpp"
+#include "vulkan_helper/engine/wrapped/PipelineConfiguration.hpp"
 
 namespace merutilm::vkh {
     class GeneralPostProcessGraphicsPipelineConfigurator : public GraphicsPipelineConfigurator {
@@ -41,6 +42,11 @@ namespace merutilm::vkh {
         void configureVertexBuffer(HostDataObjectManager & som) override;
 
         void configureIndexBuffer(HostDataObjectManager & som) override;
+
+        VkGraphicsPipelineCreateInfo
+        generatePipelineInfo(const PipelineManager &pipelineManager, RenderPass *rp,
+                                                          uint32_t subpass,
+                                                          PipelineConfiguration &pipelineConfiguration) override;
 
     };
 }

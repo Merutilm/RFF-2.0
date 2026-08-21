@@ -435,18 +435,22 @@ namespace merutilm::rff2 {
     void FnShader::fractal3D(RFF2 &app) {
         static bool enabled = false;
 
-        ImGui::Checkbox("3D", &enabled);
+        ImGui::Checkbox("3D (Wow epic)", &enabled);
         if (enabled) {
             ImGui::Begin("3D");
-            auto &[use, altitude, rotation, baseIteration, divisor] = app.getSettings().shader.fractal3D;
+            auto &[use, altitude, rotation, distance, baseIteration, divisor] = app.getSettings().shader.fractal3D;
 
             ImGui::Checkbox("Use", &use);
 
-            if (ImGui::SliderFloat("Altitude", &altitude, 0, 360)) {
+            if (ImGui::SliderFloat("Altitude", &altitude, 5, 89.99f)) {
                 app.getRequests().requestShader();
             }
 
             if (ImGui::SliderFloat("Rotation", &rotation, 0, 360)) {
+                app.getRequests().requestShader();
+            }
+
+            if (ImGui::SliderFloat("Distance", &distance, 0.2f, 2.0f)) {
                 app.getRequests().requestShader();
             }
 

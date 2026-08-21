@@ -64,7 +64,7 @@ namespace merutilm::rff2 {
                 const uint64_t size = newSize * sizeof(Pod);
 
                 if (allowedMaximum < size &&
-                    !vkh::logger::log_warn(
+                    !vkh::logger::messagebox_yn("Warning",
                             "The application has requested more than {} of memory. Do you want to continue?",
                             Utilities::formatByte(size))) {
                     throw allocation_cancelled();
@@ -84,7 +84,7 @@ namespace merutilm::rff2 {
                 const uint64_t size = newSize * sizeof(Pod);
 
                 if (allowedMaximum < size &&
-                    !vkh::logger::log_warn(
+                    !vkh::logger::messagebox_yn("Warning",
                             "The application has requested more than {} of memory. Do you want to continue?",
                             Utilities::formatByte(size))) {
                     throw allocation_cancelled();

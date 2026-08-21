@@ -17,14 +17,14 @@ namespace merutilm::vkh {
         std::vector<GraphicsPipelineNode *> depends = {};
         std::vector<GraphicsPipelineNode *> next = {};
         GraphicsPipelineConfigurator * configurator = nullptr;
-        RenderPassAttachmentReferenceDetail attachmentReference;
+        std::vector<RenderPassAttachmentReferenceDetail> attachmentReference;
         std::function<DescIndexPicker()> descIndexPickerFunc;
         uint32_t subpass;
 
     public:
 
         template<typename Func> requires std::is_invocable_r_v<DescIndexPicker, Func>
-        explicit GraphicsPipelineNode(std::vector<GraphicsPipelineNode *> &&depends, GraphicsPipelineConfigurator *configurator, RenderPassAttachmentReferenceDetail &&attachmentReference, const uint32_t subpass, Func &&descIndexPickerFunc) :
+        explicit GraphicsPipelineNode(std::vector<GraphicsPipelineNode *> &&depends, GraphicsPipelineConfigurator *configurator, std::vector<RenderPassAttachmentReferenceDetail> &&attachmentReference, const uint32_t subpass, Func &&descIndexPickerFunc) :
             depends(std::move(depends)), configurator(configurator), attachmentReference(std::move(attachmentReference)), subpass(subpass), descIndexPickerFunc(std::forward<Func>(descIndexPickerFunc)) {
             for (const auto depend: this->depends) {
                 depend->next.emplace_back(this);
@@ -42,7 +42,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] const std::vector<GraphicsPipelineNode *> &getNext() const { return this->next; }
 
-        [[nodiscard]] const RenderPassAttachmentReferenceDetail &getAttachmentReference() const { return this->attachmentReference; }
+        [[nodiscard]] const std::vector<RenderPassAttachmentReferenceDetail> &getAttachmentReference() const { return this->attachmentReference; }
 
         [[nodiscard]] GraphicsPipelineConfigurator &getPipelineConfigurator() const { return *this->configurator; }
 

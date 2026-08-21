@@ -3,23 +3,17 @@
 
 // define descriptors
 #define DESC_ITERATION 1
+#define DESC_SLOPE 2
 
 // include descriptors
 #include <desc_iteration.glsl>
+#include <desc_slope.glsl>
 
 // include utilities
 #include <utils_iteration.glsl>
 
 layout (set = 0, binding = 0) uniform sampler2D canvas;
 
-
-layout (set = 2, binding = 0) uniform SlopeUBO {
-    float depth;
-    float reflection_ratio;
-    float opacity;
-    float zenith;
-    float azimuth;
-} slope_settings;
 
 layout (location = 0) in vec3 fragColor;
 layout (location = 1) in vec2 fragTexcoord;
@@ -51,7 +45,7 @@ void main() {
 
     float dzDx = float((rd + 2 * r + ru) - (ld + 2 * l + lu)) * slope_settings.depth * multiplier;
     float dzDy = float((lu + 2 * u + ru) - (ld + 2 * d + rd)) * slope_settings.depth * multiplier;
-    float slope = atan(radians(length(vec2(dzDx, dzDy))), 1);
+    float slope = atan(length(vec2(dzDx, dzDy)));
     float aspect = atan(dzDy, -dzDx);
     float shade = max(slope_settings.reflection_ratio, cos(zRad) * cos(slope) + sin(zRad) * sin(slope) * cos(aRad + aspect));
     float fShade = 1 - slope_settings.opacity * (1 - shade);

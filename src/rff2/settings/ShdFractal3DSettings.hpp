@@ -8,6 +8,7 @@ namespace merutilm::rff2 {
         bool use;
         float altitude;
         float rotation;
+        float distance;
         float baseIteration;
         float depthDivisor;
     };

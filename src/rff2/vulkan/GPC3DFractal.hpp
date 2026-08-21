@@ -14,6 +14,8 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_TIME = 2;
         static constexpr uint32_t SET_CAMERA = 3;
         static constexpr uint32_t SET_FRACTAL3D = 4;
+        static constexpr uint32_t SET_STRIPE = 5;
+        static constexpr uint32_t SET_SLOPE = 6;
 
         static constexpr uint32_t TARGET_VBO = 0;
         static constexpr uint32_t TARGET_IBO = 0;
@@ -31,6 +33,9 @@ namespace merutilm::rff2 {
         void setFractal3D(const ShdFractal3DSettings &fractal3DSettings) const;
 
     protected:
+        VkGraphicsPipelineCreateInfo generatePipelineInfo(const vkh::PipelineManager &pipelineManager, vkh::RenderPass *rp, uint32_t subpass,
+                             vkh::PipelineConfiguration &pipelineConfiguration) override;
+
         void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
         void configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) override;
         void configureVertexBuffer(vkh::HostDataObjectManager &som) override;

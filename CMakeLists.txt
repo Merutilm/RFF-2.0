@@ -97,9 +97,6 @@ target_include_directories(RFF PRIVATE
         ${CMAKE_SOURCE_DIR}/extern
         # clang include dirs
         ${CMAKE_SOURCE_DIR}/include
-        # clang include dirs
-        ${CLANG64_DIRS}/include
-        # opencv4 include dirs
 )
 if (WIN32)
     target_link_libraries(
@@ -116,6 +113,8 @@ if (WIN32)
 
 
     target_include_directories(RFF PRIVATE
+            # clang include dirs
+            ${CLANG64_DIRS}/include
             # opencv4 include dirs
             ${CLANG64_DIRS}/include/opencv4
     )

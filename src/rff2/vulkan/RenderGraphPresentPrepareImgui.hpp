@@ -20,16 +20,18 @@ namespace merutilm::rff2 {
         void configureAttachments() override {
 
             swapchainAttachment =
-                    &appendAttachment({.flags = 0,
-                                       .format = wc.core.getPhysicalDeviceLoader().getPrimarySurfaceFormat(),
-                                       .samples = VK_SAMPLE_COUNT_1_BIT,
-                                       .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                       .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-                                       .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-                                       .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                       .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}, //imgui rendering requires color attachment for swapchain
-                                      swapchainImageContextGetter());
+                    &appendAttachment(
+                    VkAttachmentDescription{.flags = 0,
+                     .format = wc.core.getPhysicalDeviceLoader().getPrimarySurfaceFormat(),
+                     .samples = VK_SAMPLE_COUNT_1_BIT,
+                     .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                     .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                     .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                     .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                     .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+                     .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}, // imgui rendering requires color
+                                                                               // attachment for swapchain
+                    swapchainImageContextGetter());
         }
 
         void configurePipelines() override {

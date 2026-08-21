@@ -140,7 +140,7 @@ namespace merutilm::rff2 {
                            .fog = ShdFogPresets::Disabled().genFog(),
                            .bloom = BloomPresets::Disabled().genBloom(),
                            .noiseReduction = {true, 2, 0.1f},
-                           .fractal3D = {true, 85, 0, 0, 10.f}},
+                           .fractal3D = {true, 85, 0, 1, 0, 10.f}},
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
@@ -179,7 +179,7 @@ namespace merutilm::rff2 {
                            .fog = ShdFogPresets::Disabled().genFog(),
                            .bloom = BloomPresets::Disabled().genBloom(),
                            .noiseReduction = {true, 2, 0.1f},
-                            .fractal3D = {false, 85, 0, 0, 10.f}
+                            .fractal3D = {false, 85, 0, 1, 0, 10.f}
                 },
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
@@ -512,9 +512,7 @@ namespace merutilm::rff2 {
                 FnShader::fog(*this);
                 FnShader::bloom(*this);
                 FnShader::noiseReduction(*this);
-#ifndef NDEBUG
                 FnShader::fractal3D(*this);
-#endif
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Video")) {
@@ -601,6 +599,9 @@ namespace merutilm::rff2 {
                 iiiGetter(internalImageExtent, VK_FORMAT_R16G16B16A16_UNORM,
                           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
                                   VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT));
+        sharedImg.appendMultiframeImageContext(
+                MF_MAIN_RENDER_IMAGE_DEPTH,
+                iiiGetter(internalImageExtent, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT));
         sharedImg.appendMultiframeImageContext(MF_MAIN_RENDER_DOWNSAMPLED_IMAGE_PRIMARY,
                                                iiiGetter(blurredImageExtent, VK_FORMAT_R8G8B8A8_UNORM,
                                                          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
@@ -676,7 +677,7 @@ namespace merutilm::rff2 {
                 backUpLoadConfirmed = true;
                 const auto path = getBackupLocationPath();
                 if (std::filesystem::exists(path) &&
-                    vkh::logger::log_warn("Do you want to load the last rendered location?")) {
+                    vkh::logger::messagebox_yn("Info", "Last rendered location has been found. Do you want to load it?")) {
                     if (!std::filesystem::exists(path))
                         return; // user deleted file manually
                     loadLocation(path);
