@@ -27,12 +27,6 @@ void main() {
 
     ivec2 iter_coord = ivec2(gl_FragCoord.xy);
     double iteration = get_iteration(iter_coord);
-
-    if (stripe_settings.type == ST_NONE || iteration == 0) {
-        color = texelFetch(canvas, ivec2(gl_FragCoord.xy), 0);
-        return;
-    }
-
     float multiplier = stripe_get_multiplier(iteration);
 
     color = vec4(texelFetch(canvas, ivec2(gl_FragCoord.xy), 0).rgb * multiplier, 1);

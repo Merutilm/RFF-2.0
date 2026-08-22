@@ -37,7 +37,7 @@ void main() {
 
     double iteration = double(fragIterationHi) + double(fragIterationLo);
 
-    float stripe_multiplier = stripe_settings.type == ST_NONE ? 1 : stripe_get_multiplier(iteration);
+    float stripe_multiplier = stripe_get_multiplier(iteration);
 
     color = vec4(fragColor * ((1 - opacity) + opacity * diffuse) * stripe_multiplier, 1);
 }

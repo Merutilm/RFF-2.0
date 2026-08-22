@@ -7,6 +7,8 @@
 
 float stripe_get_multiplier(double iteration){
 
+    if(stripe_settings.coloring == ST_NONE) return 1;
+
     switch (stripe_settings.coloring) {
         case ICM_LINEAR:
             break;
