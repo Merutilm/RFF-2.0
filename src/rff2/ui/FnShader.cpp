@@ -455,7 +455,7 @@ namespace merutilm::rff2 {
             }
 
 
-            if (ImGui::DragFloat("Base Iteration",  &baseIteration, Constants::UI::UNLIMITED_DRAG_SPEED,
+            if (ImGui::DragFloat("Base Iteration", &baseIteration, Constants::UI::UNLIMITED_DRAG_SPEED,
                                  Constants::UI::UNLIMITED_MIN_DRAG_SCALAR, Constants::UI::UNLIMITED_MAX_DRAG,
                                  Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
                 app.getRequests().requestShader();
