@@ -24,7 +24,7 @@ namespace merutilm::rff2 {
     std::string CalculationPresets::Fast::getName() const { return "Fast"; }
 
 
-    FrtReferenceSyncSettings CalculationPresets::Fast::genRefSync() const { return FrtReferenceSyncSettings{16, 3}; }
+    FrtReferenceSyncSettings CalculationPresets::Fast::genRefSync() const { return FrtReferenceSyncSettings{8, 3}; }
 
     FrtMPASettings CalculationPresets::Fast::genMPA() const {
         return FrtMPASettings{8, 2, -4, FrtMPASelectionMethod::HIGHEST, false, true};

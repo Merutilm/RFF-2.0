@@ -133,6 +133,8 @@ namespace merutilm::rff2 {
 
         static int int_exp10_to_exp2div64(int exp10);
 
+        explicit operator float();
+
         explicit operator double();
 
         explicit operator dex();
@@ -536,6 +538,9 @@ namespace merutilm::rff2 {
 
     inline mp_limb_t *fixed_point_decimal::get_value_ptr() const { return raw + offset; }
 
+    inline fixed_point_decimal::operator float() {
+        return static_cast<float>(operator double());
+    }
 
     inline fixed_point_decimal::operator double() {
         if (sgn == 0) {

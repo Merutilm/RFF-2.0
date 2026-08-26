@@ -6,6 +6,8 @@
 
 #include <thread>
 
+#include "../../settings/RndMPAModeForComputeShader.hpp"
+
 
 namespace merutilm::rff2 {
     std::string RenderPresets::Potato::getName() const {
@@ -13,7 +15,7 @@ namespace merutilm::rff2 {
     }
 
     RenderSettings RenderPresets::Potato::genRender() const {
-        return RenderSettings{0.1f, 60};
+        return RenderSettings{0.1f, 60, false};
     }
 
 
@@ -22,7 +24,7 @@ namespace merutilm::rff2 {
     }
 
     RenderSettings RenderPresets::Low::genRender() const {
-        return RenderSettings{0.3f, 60};
+        return RenderSettings{0.3f, 60, false};
     }
 
     std::string RenderPresets::Medium::getName() const {
@@ -30,7 +32,7 @@ namespace merutilm::rff2 {
     }
 
     RenderSettings RenderPresets::Medium::genRender() const {
-        return RenderSettings{0.5f, 60};
+        return RenderSettings{0.5f, 60, false, RndMPAModeForComputeShader::FULL};
     }
 
     std::string RenderPresets::High::getName() const {
@@ -38,7 +40,7 @@ namespace merutilm::rff2 {
     }
 
     RenderSettings RenderPresets::High::genRender() const {
-        return RenderSettings{1.0f, 60};
+        return RenderSettings{1.0f, 60, false, RndMPAModeForComputeShader::FULL};
     }
 
     std::string RenderPresets::Ultra::getName() const {
@@ -46,7 +48,7 @@ namespace merutilm::rff2 {
     }
 
     RenderSettings RenderPresets::Ultra::genRender() const {
-        return RenderSettings{2.0f, 60};
+        return RenderSettings{2.0f, 60, false, RndMPAModeForComputeShader::FULL};
     }
 
     std::string RenderPresets::Extreme::getName() const {
@@ -54,6 +56,6 @@ namespace merutilm::rff2 {
     }
 
     RenderSettings RenderPresets::Extreme::genRender() const {
-        return RenderSettings{4.0f,  60};
+        return RenderSettings{4.0f,  60, false, RndMPAModeForComputeShader::FULL};
     }
 }

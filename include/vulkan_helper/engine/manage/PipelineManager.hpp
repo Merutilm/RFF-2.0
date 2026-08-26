@@ -8,13 +8,16 @@
 #include <vulkan_helper/engine/pipeline/PipelineLayout.hpp>
 #include <vulkan_helper/engine/pipeline/ShaderModule.hpp>
 
+#include <vulkan_helper/engine/pipeline/PipelineSpecialization.hpp>
+
 namespace merutilm::vkh {
     struct PipelineManager {
-        PipelineLayout & layout;
+        PipelineLayout * layout = nullptr;
+        PipelineSpecialization specialization;
         std::vector<Descriptor *> descriptors = {};
         std::vector<ShaderModule *> shaderModules = {};
 
-        explicit PipelineManager(PipelineLayout & layout);
+        explicit PipelineManager(PipelineLayout & layout, PipelineSpecialization &&specialization);
 
 
         void attachShader(ShaderModule * shaderStage);

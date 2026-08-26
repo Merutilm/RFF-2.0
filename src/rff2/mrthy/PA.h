@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include "../calc/calculatable.hpp"
 #include "../calc/complex.hpp"
 #include "../calc/dex.h"
 namespace merutilm::rff2 {
@@ -11,24 +10,19 @@ namespace merutilm::rff2 {
     template<Number Num>
     struct PA {
 
-#ifndef NDEBUG
-        uint64_t start;
-#endif
-
         uint64_t skip;
-        Num radius;
         complex<Num> an;
         complex<Num> bn;
+        Num radius;
+        // For Num = float, the data members occupy 28 bytes.
+        // With 8-byte alignment, sizeof(PA<float>) is 32 bytes due to 4 bytes of tail padding.
+        // No explicit padding member is required.
+
 
         explicit PA() = default;
 
-#ifndef NDEBUG
-        explicit PA(const uint64_t start, const uint64_t skip, const complex<Num> an, const complex<Num> bn, const Num radius) : start(start), skip(skip), radius(radius), an(an), bn(bn) {
+        explicit PA(const uint64_t skip, const complex<Num> an, const complex<Num> bn, const Num radius) : skip(skip), an(an), bn(bn), radius(radius) {
         }
-#else
-        explicit PA(const uint64_t skip, const complex<Num> an, const complex<Num> bn, const Num radius) : skip(skip), radius(radius), an(an), bn(bn) {
-        }
-#endif
 
         [[nodiscard]] complex<Num> apply(const complex<Num> dz, const complex<Num> dc) const {
             return an * dz + bn * dc;

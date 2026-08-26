@@ -14,16 +14,16 @@
 
 namespace merutilm::rff2 {
 
-    inline const RFFDynamicMapBinary RFFDynamicMapBinary::DEFAULT = RFFDynamicMapBinary(0, 0, 0, Matrix<double>(0, 0));
+    inline const RFFDynamicMapBinary RFFDynamicMapBinary::DEFAULT = RFFDynamicMapBinary(0, 0, 0, std::vector<double>(), 0, 0);
 
     RFFDynamicMapBinary::RFFDynamicMapBinary(const float logZoom, const uint64_t period, const uint64_t maxIteration,
-                                  Matrix<double> iterations) : RFFBinary(logZoom), period(period), maxIteration(maxIteration),
-                                                               iterations(std::move(iterations)) {
+                                  std::vector<double> iterations, const uint16_t width, const uint16_t height) : RFFBinary(logZoom), period(period), maxIteration(maxIteration),
+                                                               iterations(std::move(iterations)), width(width), height(height) {
     }
 
 
     bool RFFDynamicMapBinary::hasData() const {
-        return iterations.getWidth() > 0;
+        return width > 0;
     }
 
 
@@ -49,7 +49,7 @@ namespace merutilm::rff2 {
         IOUtilities::readAndDecode(in, &m);
         auto i = std::vector<double>(w * h);
         IOUtilities::readAndDecode(in, &i);
-        return RFFDynamicMapBinary(z, p, m, Matrix(w, h, i));
+        return RFFDynamicMapBinary(z, p, m, i, w, h);
     }
 
     RFFDynamicMapBinary RFFDynamicMapBinary::readByID(const std::filesystem::path& dir, const uint32_t id) {
@@ -63,28 +63,16 @@ namespace merutilm::rff2 {
 
     void RFFDynamicMapBinary::exportFile(const std::filesystem::path &path) const {
         if (std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc); out.is_open()) {
-            IOUtilities::encodeAndWrite(out, iterations.getWidth());
-            IOUtilities::encodeAndWrite(out, iterations.getHeight());
+            IOUtilities::encodeAndWrite(out, width);
+            IOUtilities::encodeAndWrite(out, height);
             IOUtilities::encodeAndWrite(out, getLogZoom());
             IOUtilities::encodeAndWrite(out, period);
             IOUtilities::encodeAndWrite(out, maxIteration);
-            IOUtilities::encodeAndWrite(out, iterations.getCanvas());
+            IOUtilities::encodeAndWrite(out, iterations);
             out.close();
         } else {
             vkh::logger::log("ERROR : Cannot save file");
         }
     }
 
-
-    uint64_t RFFDynamicMapBinary::getPeriod() const {
-        return period;
-    }
-
-    uint64_t RFFDynamicMapBinary::getMaxIteration() const {
-        return maxIteration;
-    }
-
-    const Matrix<double> &RFFDynamicMapBinary::getMatrix() const {
-        return iterations;
-    }
 }

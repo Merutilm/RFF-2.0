@@ -1,0 +1,277 @@
+#version 450
+#include <common.glsl>
+#extension GL_EXT_shader_explicit_arithmetic_types_int64: require
+
+// define descriptors
+#define DESC_ITERATION 0
+#define DESC_ITERATION_BUFFER_ACCESS writeonly
+
+// include descriptors
+#include <desc_iteration.glsl>
+
+// include utilities
+
+
+
+
+struct PA {
+    uint64_t skip;
+    vec2 an;
+    vec2 bn;
+    float radius;
+    float _padd; // Explicitly pad the struct to 32 bytes for array stride
+};
+
+struct MPIndexMapper {
+    uint64_t mapped;
+    uint64_t levels;
+};
+
+
+layout (constant_id = 0) const uint mpa_mode = 0;
+
+layout (std430, set = 1, binding = 0) readonly buffer RenderMeta {
+    uint64_t max_iteration;
+    uint64_t max_ref_iteration;
+    float log_zoom;
+    float bailout;
+    float clarity_multiplier;
+    uint decimalize_iteration_method;
+    vec2 offset;
+    vec2 orbit[];
+} render_meta;
+
+
+layout (std430, set = 1, binding = 1) readonly buffer MPTableMeta {
+    uint64_t len;
+    uint selection_method;
+    //padding 4
+    PA[] table; //28 bytes, padding per elem 4
+} mp_table_meta;
+
+layout (std430, set = 1, binding = 2) readonly buffer MPMapperMeta {
+    uint64_t len;
+    MPIndexMapper[] mapper;
+} mp_mapper_meta;
+
+
+vec2 mul_comp(vec2 a, vec2 b)
+{
+    return vec2(
+    a.x * b.x - a.y * b.y,
+    a.x * b.y + a.y * b.x
+    );
+}
+
+
+float norm2(vec2 a)
+{
+    return a.x * a.x + a.y * a.y;
+}
+
+
+vec2 offset_conversion(vec2 pixel, vec2 extent) {
+    return (pixel - extent / 2) / pow(10, render_meta.log_zoom) / render_meta.clarity_multiplier;
+}
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+uint compress(uint64_t ref_iteration) {
+    //TODO compress
+    return uint(ref_iteration);
+}
+
+PA invalid_sentinel() {
+    return PA(0, vec2(0), vec2(0), 0, 0);
+}
+
+bool is_valid(PA pa, float r) {
+    return r < pa.radius;
+}
+
+float norm_approx(vec2 v) {
+    v.x = abs(v.x);
+    v.y = abs(v.y);
+    float min = min(v.x, v.y);
+    float max = max(v.x, v.y);
+
+    if (max == 0) {
+        return 0;
+    }
+
+    return max + 0.428f * min / max * min;
+}
+
+PA lookup(uint64_t ref_iteration, vec2 dz) {
+    if (mpa_mode == MM_OFF) {
+        return invalid_sentinel();
+    }
+    if (mpa_mode == MM_REFITERATION && ref_iteration != 1) {
+        return invalid_sentinel();
+    }
+    if (ref_iteration == 0) {
+        return invalid_sentinel();
+    }
+
+    MPIndexMapper mapper = mp_mapper_meta.mapper[uint(ref_iteration)];
+
+    if (mapper.mapped == UINT64_MAX) {
+        return invalid_sentinel();
+    }
+
+    const float r = norm_approx(dz);
+
+    switch (mp_table_meta.selection_method) {
+        case MSM_LOWEST:
+            {
+                PA pa = invalid_sentinel();
+
+                for (int i = 0; i < mapper.levels; ++i) {
+                    PA test = mp_table_meta.table[int(mapper.mapped) + i];
+                    if (is_valid(test, r)) {
+                        pa = test;
+                    } else
+                    return pa;
+                }
+                return pa;
+                break;
+            }
+        case MSM_HIGHEST:
+            {
+                PA pa = mp_table_meta.table[int(mapper.mapped)];
+
+                if (!is_valid(pa, r)) {
+                    return invalid_sentinel();
+                }
+
+                for (int j = int(mapper.levels); j > 1; --j) {
+                    PA test = mp_table_meta.table[int(mapper.mapped) + j - 1];
+
+                    if (is_valid(test, r)) {
+                        return test;
+                    }
+                }
+
+                return pa;
+                break;
+            }
+    }
+    return invalid_sentinel();
+}
+
+vec2 apply(PA pa, vec2 dz, vec2 dc) {
+    return mul_comp(pa.an, dz) + mul_comp(pa.bn, dc);
+}
+
+
+float apply_decimalize(float ratio) {
+    switch (render_meta.decimalize_iteration_method) {
+        case DIM_NONE: {
+                           ratio = 0;
+                           break;
+                       }
+        case DIM_LINEAR: {
+                           break;
+                       }
+        case DIM_SQUARE_ROOT: {
+                           ratio = sqrt(ratio);
+                           break;
+                       }
+        case DIM_LOG: {
+                           ratio = log(ratio + 1) / LN2;
+                           break;
+                       }
+        case DIM_LOGLOG: {
+                           ratio = log(log(ratio + 1) / LN2 + 1) / LN2;
+                           break;
+                       }
+        default: break;
+    }
+    return ratio;
+}
+
+float get_exterior_double_value_iteration_ratio(float prev_distance, float curr_distance) {
+    // prevIterDistance = p
+    // currIterDistance = c
+    // bailout = b
+    //
+    // a = b - p (p < b)
+    // b = c - b (c > b)
+    // 0 dec 1 decimal value
+    // a : b ratio
+    // ratio = a / (a + b) = (b - p) / (c - p)
+
+    if (prev_distance == curr_distance) {
+        return 0.0;
+    }
+    return apply_decimalize((render_meta.bailout - prev_distance) / (curr_distance - prev_distance));
+}
+
+void main() {
+    uint64_t iteration = uint64_t(0);
+    uint64_t ref_iteration = uint64_t(0);
+    vec2 dz = vec2(0, 0);
+
+    int px = int(gl_GlobalInvocationID.x);
+    int py = int(gl_GlobalInvocationID.y);
+    vec2 pixel = vec2(px, py);
+    uint index = py * iteration_info_settings.extent.x + px;
+
+    vec2 extent = vec2(iteration_info_settings.extent);
+    float bailout2 = render_meta.bailout * render_meta.bailout;
+
+    vec2 dc = offset_conversion(pixel, extent) + render_meta.offset;
+    float prev_distance2 = 0;
+    float curr_distance2 = 0;
+
+    while (iteration < render_meta.max_iteration)
+    {
+        if (mp_table_meta.len != 0) {
+            PA pa = lookup(ref_iteration, dz);
+            if (pa.skip > 0) {
+                dz = apply(pa, dz, dc);
+                iteration += pa.skip;
+                ref_iteration += pa.skip;
+
+                if (iteration >= render_meta.max_iteration) {
+                    iteration_settings.iterations[index] = double(render_meta.max_iteration);
+                    return;
+                }
+            }
+        }
+
+
+
+        if (ref_iteration != render_meta.max_ref_iteration) {
+            vec2 oldZ2 = render_meta.orbit[compress(ref_iteration)] * 2;
+            vec2 oldPtbz = oldZ2 + dz;
+
+            dz = mul_comp(oldPtbz, dz) + dc;
+
+            ++ref_iteration;
+            ++iteration;
+        }
+
+        vec2 z = render_meta.orbit[compress(ref_iteration)] + dz;
+        prev_distance2 = curr_distance2;
+        curr_distance2 = norm2(z);
+
+        if (ref_iteration == render_meta.max_ref_iteration || curr_distance2 < norm2(dz)) {
+            ref_iteration = 0;
+            dz = z;
+        }
+
+        if (curr_distance2 > bailout2) break;
+    }
+
+    if (iteration >= render_meta.max_iteration) {
+        iteration_settings.iterations[index] = render_meta.max_iteration;
+        return;
+    }
+
+    float prev_distance = sqrt(prev_distance2);
+    float curr_distance = sqrt(curr_distance2);
+
+    iteration_settings.iterations[index] = double(iteration) + get_exterior_double_value_iteration_ratio(prev_distance, curr_distance);
+
+}

@@ -7,7 +7,7 @@
 #include <string>
 
 namespace merutilm::rff2 {
-    struct AppRenderManagerRequests {
+    struct UpdateRequests {
         std::atomic<bool> defaultSettingsRequested = false;
         std::atomic<bool> recomputeRequested = false;
         std::atomic<bool> resizeRequested = false;

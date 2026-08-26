@@ -14,7 +14,7 @@ namespace merutilm::vkh {
 
         const auto indices = findQueueFamilies(physicalDevice, surface);
         return properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
-               features.geometryShader &&
+               features.geometryShader && features.shaderFloat64 &&
                indices.isComplete() &&
                checkDeviceExtensionSupport(physicalDevice);
     }

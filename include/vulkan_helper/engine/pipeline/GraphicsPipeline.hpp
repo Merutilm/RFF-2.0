@@ -9,10 +9,10 @@ namespace merutilm::vkh {
  
     class GraphicsPipeline final : public Pipeline {
 
-        VkGraphicsPipelineCreateInfo createInfo;
+        std::vector<VkGraphicsPipelineCreateInfo> createInfo;
 
     public:
-        explicit GraphicsPipeline(Core &core, PipelineManager &&pipelineManager, VkGraphicsPipelineCreateInfo &&createInfo);
+        explicit GraphicsPipeline(Core &core, PipelineManager &&pipelineManager, std::vector<VkGraphicsPipelineCreateInfo> &&createInfo);
 
         ~GraphicsPipeline() override;
 
@@ -24,7 +24,8 @@ namespace merutilm::vkh {
 
         GraphicsPipeline &operator=(GraphicsPipeline &&) = delete;
 
-        void cmdBindAll(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices = {}) const override;
+        void cmdBindAll(VkCommandBuffer cbh, uint32_t specializationIndex, uint32_t frameIndex,
+                        DescIndexPicker &&descIndices) const override;
 
     protected:
         void init() override;

@@ -49,6 +49,11 @@ namespace merutilm::vkh {
             requires std::is_trivially_copyable_v<T>
         void set(uint32_t target, const std::vector<T> &arr);
 
+
+        template<typename T>
+            requires std::is_trivially_copyable_v<T>
+        void set(uint32_t target, const T *rawArr);
+
         template<typename T>
             requires std::is_trivially_copyable_v<T>
         void set(uint32_t target, uint32_t arrIndex, T &t);
@@ -108,6 +113,13 @@ namespace merutilm::vkh {
         const uint32_t offset = offsets[target];
         memcpy(&data[offset], arr.data(), size);
     }
+    template<typename T>
+        requires std::is_trivially_copyable_v<T>
+    void HostDataObject::set(const uint32_t target, const T *rawArr) {
+        const uint32_t offset = offsets[target];
+        memcpy(&data[offset], rawArr, sizes[target]);
+    }
+
     template<typename T>
         requires std::is_trivially_copyable_v<T>
     void HostDataObject::set(const uint32_t target, const uint32_t arrIndex, T &t) {

@@ -35,7 +35,8 @@ namespace merutilm::vkh {
             return ptr;
         }
 
-        void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices) override;
+        void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex,
+                       DescIndexPicker &&descIndices) override;
 
         void setExtent(const VkExtent2D &newExtent) { this->extent = newExtent; }
 

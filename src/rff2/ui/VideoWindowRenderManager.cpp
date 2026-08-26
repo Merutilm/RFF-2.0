@@ -22,13 +22,13 @@ namespace merutilm::rff2 {
     void VideoWindowRenderManager::applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed,
                                                   const float currentFrame) const {
         wc.core.getLogicalDevice().waitDeviceIdle();
-        auto &normalI = normal.getMatrix();
+        auto &normalI = normal.iterations;
         if (currentFrame < 1) {
-            const std::vector<double> zoomedDefault(normalI.getLength());
-            renderer->compute2MapIterationStripe->setAllIterations(normalI.getCanvas(), zoomedDefault);
+            const std::vector<double> zoomedDefault(normalI.size());
+            renderer->compute2MapIterationStripe->setAllIterations(normalI, zoomedDefault);
         } else {
-            auto &zoomedI = zoomed.getMatrix();
-            renderer->compute2MapIterationStripe->setAllIterations(normalI.getCanvas(), zoomedI.getCanvas());
+            auto &zoomedI = zoomed.iterations;
+            renderer->compute2MapIterationStripe->setAllIterations(normalI, zoomedI);
         }
     }
 
@@ -141,7 +141,7 @@ namespace merutilm::rff2 {
         renderer->render();
     }
 
-    float VideoWindowRenderManager::calculateZoom(const float defaultZoomIncrement, const float currentFrame) const {
+    float VideoWindowRenderManager::calculateLogZoom(const float defaultZoomIncrement, const float currentFrame) const {
         if (currentFrame < 1) {
             const float r = 1 - currentFrame;
 
@@ -192,7 +192,7 @@ namespace merutilm::rff2 {
         vkh::BufferContext::unmapMemory(wc.core, dstBuffer);
         return VideoBufferCache(wc.core, std::move(dstBuffer), static_cast<int>(videoExtent.width),
                                 static_cast<int>(videoExtent.height),
-                                calculateZoom(targetSettings.video.data.defaultZoomIncrement, renderer->currentFrame));
+                                calculateLogZoom(targetSettings.video.data.defaultZoomIncrement, renderer->currentFrame));
     }
 
     void VideoWindowRenderManager::init() {

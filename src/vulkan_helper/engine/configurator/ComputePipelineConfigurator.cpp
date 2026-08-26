@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-08-28.
 //
 
-#include <vulkan_helper/engine/pipeline/ComputeShaderPipeline.hpp>
+#include <vulkan_helper/engine/pipeline/ComputePipeline.hpp>
 #include <vulkan_helper/engine/configurator/ComputePipelineConfigurator.hpp>
 #include <vulkan_helper/engine/repo/GlobalPipelineLayoutRepo.hpp>
 
@@ -10,8 +10,9 @@ namespace merutilm::vkh {
 
 
 
-    void ComputePipelineConfigurator::cmdRender(const VkCommandBuffer cbh, const uint32_t frameIndex, DescIndexPicker &&descIndices) {
-        pipeline->cmdBindAll(cbh, frameIndex, std::move(descIndices));
+    void ComputePipelineConfigurator::cmdRender(const VkCommandBuffer cbh,
+                                                const uint32_t frameIndex, DescIndexPicker &&descIndices) {
+        pipeline->cmdBindAll(cbh, specializationIndex, frameIndex, std::move(descIndices));
         cmdDispatch(cbh);
     }
 
@@ -30,12 +31,12 @@ namespace merutilm::vkh {
             std::move(pipelineLayoutManager));
 
 
-        PipelineManager pipelineManager(pipelineLayout);
+        PipelineManager pipelineManager(pipelineLayout, createSpecializationInfo());
 
         pipelineManager.attachDescriptor(std::move(descriptors));
         pipelineManager.attachShader(&computeShader);
 
-        pipeline = std::make_unique<ComputeShaderPipeline>(wc.core, std::move(pipelineManager));
+        pipeline = std::make_unique<ComputePipeline>(wc.core, std::move(pipelineManager));
     }
 
 }

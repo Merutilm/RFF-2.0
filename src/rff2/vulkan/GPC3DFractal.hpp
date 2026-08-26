@@ -33,8 +33,8 @@ namespace merutilm::rff2 {
         void setFractal3D(const ShdFractal3DSettings &fractal3DSettings) const;
 
     protected:
-        VkGraphicsPipelineCreateInfo generatePipelineInfo(const vkh::PipelineManager &pipelineManager, vkh::RenderPass *rp, uint32_t subpass,
-                             vkh::PipelineConfiguration &pipelineConfiguration) override;
+        std::vector<VkGraphicsPipelineCreateInfo> generatePipelineInfo(const vkh::PipelineManager &pipelineManager, vkh::RenderPass *rp, uint32_t subpass,
+                             vkh::GraphicsPipelineConfiguration &pipelineConfiguration) override;
 
         void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
         void configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) override;

@@ -4,7 +4,7 @@
 #include <vulkan_helper/engine/manage/PipelineManager.hpp>
 
 namespace merutilm::vkh {
-    PipelineManager::PipelineManager(PipelineLayout & layout): layout(layout) {
+    PipelineManager::PipelineManager(PipelineLayout & layout, PipelineSpecialization &&specialization): layout(&layout), specialization(std::move(specialization)) {
     }
 
     void PipelineManager::attachShader(ShaderModule * shaderStage) {

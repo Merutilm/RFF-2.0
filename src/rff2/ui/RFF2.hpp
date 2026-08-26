@@ -11,9 +11,9 @@
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
 #include "../settings/Settings.h"
-#include "AppRenderManagerRequests.hpp"
 #include "AppRenderer.hpp"
 #include "CursorManager.hpp"
+#include "UpdateRequests.hpp"
 #include "VideoProgressInfo.hpp"
 #include "ZoomAnimationInfo.hpp"
 #include "vulkan_helper/Application.hpp"
@@ -22,15 +22,16 @@ namespace merutilm::rff2 {
     class RFF2 final : public vkh::Application {
 
         ParallelRenderState state = {};
+        std::mutex ptbWithComputeShaderMutex;
         Settings settings;
-        AppRenderManagerRequests requests = {};
+        UpdateRequests requests = {};
         AppRenderer *renderer = nullptr;
 
         std::atomic<bool> idleCompute = true;
         std::atomic<bool> canShowPreview = false;
 
         std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
-        std::unique_ptr<Matrix<double>> iterationMatrix = nullptr;
+        std::unique_ptr<Matrix<double>> actualIterationMatrix = nullptr;
         std::unique_ptr<MB2RenderDataBase> renderData = nullptr;
         std::unique_ptr<ApproxTableCacheBase> approxTableCache = nullptr;
         std::unique_ptr<CursorManager> cursorManager = nullptr;
@@ -40,9 +41,7 @@ namespace merutilm::rff2 {
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
     public:
-        explicit RFF2(const vkh::WindowInitializerSettings &wic) : Application(wic), settings(genDefaultSettings()) {
-
-        }
+        explicit RFF2(const vkh::WindowInitializerSettings &wic) : Application(wic), settings(genDefaultSettings()) {}
 
         ~RFF2() override = default;
 
@@ -54,7 +53,7 @@ namespace merutilm::rff2 {
 
         RFF2 &operator=(RFF2 &&) = delete;
 
-        void update() override;
+        void update();
 
 
         static Settings genDefaultSettings();
@@ -123,67 +122,51 @@ namespace merutilm::rff2 {
         }
 
 
-        [[nodiscard]] Settings &getSettings() {
-            return settings;
-        }
+        [[nodiscard]] Settings &getSettings() { return settings; }
 
-        [[nodiscard]] ParallelRenderState &getState() {
-            return state;
-        }
+        [[nodiscard]] ParallelRenderState &getState() { return state; }
 
-        [[nodiscard]] MB2RenderDataBase *getCurrentRenderData() const {
-            return renderData.get();
-        }
+        [[nodiscard]] MB2RenderDataBase *getCurrentRenderData() const { return renderData.get(); }
 
-        [[nodiscard]] std::unique_ptr<MB2RenderDataBase> &getCurrentRenderDataOwnRef() {
-            return renderData;
-        }
+        [[nodiscard]] std::unique_ptr<MB2RenderDataBase> &getCurrentRenderDataOwnRef() { return renderData; }
 
-        [[nodiscard]] std::unique_ptr<ApproxTableCacheBase> *getApproxTableCache(){
-            return &approxTableCache;
-        }
+        [[nodiscard]] std::unique_ptr<ApproxTableCacheBase> *getApproxTableCache() { return &approxTableCache; }
 
-        [[nodiscard]] AppRenderManagerRequests &getRequests() {
-            return requests;
-        }
+        [[nodiscard]] UpdateRequests &getRequests() { return requests; }
 
 
-        void setCurrentPerturbator(std::unique_ptr<MB2RenderDataBase> data) {
-            renderData = std::move(data);
-        }
+        void setCurrentPerturbator(std::unique_ptr<MB2RenderDataBase> data) { renderData = std::move(data); }
 
-        [[nodiscard]] BackgroundThreads &getBackgroundThreads() {
-            return backgroundThreads;
-        }
+        [[nodiscard]] BackgroundThreads &getBackgroundThreads() { return backgroundThreads; }
 
         [[nodiscard]] RFFDynamicMapBinary generateMap() const {
-            return {renderData->fractalSettings.general.logZoom, renderData->getReference()->longestPeriod(), renderData->fractalSettings.perturb.maxIteration, *iterationMatrix};
+            return {renderData->fractalSettings.general.logZoom,
+                    renderData->getReference()->longestPeriod(),
+                    renderData->fractalSettings.perturb.maxIteration,
+                    renderer->iterationStagingBufferContext->getData(),
+                    renderer->iterationStagingBufferContext->getWidth(),
+                    renderer->iterationStagingBufferContext->getHeight()};
         }
 
-        [[nodiscard]] bool isIdleCompute() const {
-            return idleCompute;
-        }
+        [[nodiscard]] bool isIdleCompute() const { return idleCompute; }
 
 
-        [[nodiscard]] vkh::WindowContext &getWindowContext() const {
-            return *rootWindowContext;
-        }
+        [[nodiscard]] vkh::WindowContext &getWindowContext() const { return *rootWindowContext; }
 
 
-        template<typename P> requires std::is_base_of_v<Preset, P>
+        template<typename P>
+            requires std::is_base_of_v<Preset, P>
         void applyPreset(P &preset);
 
-        void onStart() override;
+        void onStart();
 
-        void onResize(VkExtent2D newExtent) override;
+        void onResize(VkExtent2D newExtent);
 
-        void onQuit() override;
+        void onQuit();
 
         VideoProgressInfo &getVideoProgressInfo() { return videoProgressInfo; }
 
     protected:
-
-
         void renderImGui() override;
 
 
@@ -194,7 +177,8 @@ namespace merutilm::rff2 {
     };
 
 
-    template<typename P> requires std::is_base_of_v<Preset, P>
+    template<typename P>
+        requires std::is_base_of_v<Preset, P>
     void RFF2::applyPreset(P &preset) {
         if constexpr (std::is_base_of_v<Presets::CalculationPreset, P>) {
             settings.fractal.reference.sync = preset.genRefSync();
@@ -233,4 +217,4 @@ namespace merutilm::rff2 {
             requests.requestShader();
         }
     }
-}
+} // namespace merutilm::rff2

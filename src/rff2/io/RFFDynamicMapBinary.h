@@ -9,16 +9,16 @@
 #include "../data/Matrix.h"
 
 namespace merutilm::rff2 {
-    class RFFDynamicMapBinary final : public RFFBinary{
+    struct RFFDynamicMapBinary final : RFFBinary{
         uint64_t period;
         uint64_t maxIteration;
-        Matrix<double> iterations;
-
-    public:
+        std::vector<double> iterations;
+        uint16_t width;
+        uint16_t height;
         static const RFFDynamicMapBinary DEFAULT;
 
-        RFFDynamicMapBinary(float logZoom, uint64_t period, uint64_t maxIteration, Matrix<double> iterations);
-
+        RFFDynamicMapBinary(float logZoom, uint64_t period, uint64_t maxIteration, std::vector<double> iterations,
+                            uint16_t width, uint16_t height);
         [[nodiscard]] bool hasData() const override;
 
         [[nodiscard]] static RFFDynamicMapBinary read(const std::filesystem::path &path);
@@ -28,12 +28,6 @@ namespace merutilm::rff2 {
         void exportAsKeyframe(const std::filesystem::path &dir) const override;
 
         void exportFile(const std::filesystem::path &path) const override;
-
-        [[nodiscard]] uint64_t getPeriod() const;
-
-        [[nodiscard]] uint64_t getMaxIteration() const;
-
-        [[nodiscard]] const Matrix<double> &getMatrix() const;
     };
 
 }

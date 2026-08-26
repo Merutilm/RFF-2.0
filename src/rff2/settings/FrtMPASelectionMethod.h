@@ -6,7 +6,7 @@
 
 
 namespace merutilm::rff2 {
-    enum class FrtMPASelectionMethod {
+    enum class FrtMPASelectionMethod : uint32_t{
         /**
         * Checks the lowest-level MPA first, increases the level until not valid.
         */

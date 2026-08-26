@@ -7,7 +7,7 @@
 #include <vulkan_helper/engine/buffer/VertexBuffer.hpp>
 #include "GeneralGraphicsPipelineConfigurator.hpp"
 #include "GraphicsPipelineConfigurator.hpp"
-#include "vulkan_helper/engine/wrapped/PipelineConfiguration.hpp"
+#include "vulkan_helper/engine/wrapped/GraphicsPipelineConfiguration.hpp"
 
 namespace merutilm::vkh {
     class GeneralPostProcessGraphicsPipelineConfigurator : public GraphicsPipelineConfigurator {
@@ -28,7 +28,8 @@ namespace merutilm::vkh {
 
         GeneralPostProcessGraphicsPipelineConfigurator &operator=(GeneralPostProcessGraphicsPipelineConfigurator &&) = delete;
 
-        void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices) override;
+        void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex,
+                       DescIndexPicker &&descIndices) override;
 
         void configure(RenderPass *rp, uint32_t subpass) override;
 
@@ -43,10 +44,10 @@ namespace merutilm::vkh {
 
         void configureIndexBuffer(HostDataObjectManager & som) override;
 
-        VkGraphicsPipelineCreateInfo
+        std::vector<VkGraphicsPipelineCreateInfo>
         generatePipelineInfo(const PipelineManager &pipelineManager, RenderPass *rp,
                                                           uint32_t subpass,
-                                                          PipelineConfiguration &pipelineConfiguration) override;
+                                                          GraphicsPipelineConfiguration &pipelineConfiguration) override;
 
     };
 }

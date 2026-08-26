@@ -191,7 +191,8 @@ namespace merutilm::rff2 {
         }
     }
 
-    using LightMB2RenderData = MB2RenderData<double>;
-    using DeepMB2RenderData = MB2RenderData<dex>;
+    using NormalMB2RenderData = MB2RenderData<float>;
+    using DoubleMB2RenderData = MB2RenderData<double>;
+    using DexMB2RenderData = MB2RenderData<dex>;
 
 } // namespace merutilm::rff2

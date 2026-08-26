@@ -3,9 +3,10 @@
 //
 
 #pragma once
-#include "../data/GraphicsMatrixStagingBuffer.h"
+#include "../data/GraphicsMatrixBuffer.h"
 #include "../util/RendererUtils.hpp"
 #include "../vulkan/CPCBoxBlur.hpp"
+#include "../vulkan/CPCIterate.hpp"
 #include "../vulkan/RenderGraph0.hpp"
 #include "../vulkan/RenderGraph1.hpp"
 #include "../vulkan/RenderGraph3.hpp"
@@ -39,6 +40,7 @@ namespace merutilm::rff2 {
         RenderGraph4 *rg4 = nullptr;
         RenderGraphPresentPrepareImgui *rccPresentPrepare = nullptr;
 
+        CPCIterate *computeIterate = nullptr;
         CPCBoxBlur *computeBoxBlur = nullptr;
 
 
@@ -46,8 +48,10 @@ namespace merutilm::rff2 {
 
         template<typename F>
             requires std::is_invocable_v<F>
-        explicit AppRenderer(vkh::Engine &engine, vkh::WindowContext &wc, Settings &settings, ZoomAnimationInfo &zoomAnimationInfo, F &&renderFunc) :
-            RendererImGui(engine, wc, std::forward<F>(renderFunc)), settings(settings), zoomAnimationInfo(zoomAnimationInfo) {
+        explicit AppRenderer(vkh::Engine &engine, vkh::WindowContext &wc, Settings &settings,
+                             ZoomAnimationInfo &zoomAnimationInfo, F &&renderFunc) :
+            RendererImGui(engine, wc, std::forward<F>(renderFunc)), settings(settings),
+            zoomAnimationInfo(zoomAnimationInfo) {
             AppRenderer::init();
         }
 
@@ -69,46 +73,48 @@ namespace merutilm::rff2 {
                 const auto &swapchain = wc.getSwapchain();
                 return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
             };
+            computeIterate =
+                    vkh::ComputePipelineConfigurator::createComputePipeline<CPCIterate>(configurators, engine, wc);
             computeBoxBlur =
                     vkh::ComputePipelineConfigurator::createComputePipeline<CPCBoxBlur>(configurators, engine, wc);
             rc0 = vkh::RenderContextUtils::attachRenderContext<RenderGraph0>(
                     &rg0, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
-                                                      settings.render.clarityMultiplier);
+                                                                     settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
             rc1 = vkh::RenderContextUtils::attachRenderContext<RenderGraph1>(
                     &rg1, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
-                                                      settings.render.clarityMultiplier);
+                                                                     settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
             rcDownsample = vkh::RenderContextUtils::attachRenderContext<RenderGraphDownsampleForBlur>(
                     &rccDownsample, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getBlurredImageExtent(wc.getSwapchain().getSwapchainExtent(),
-                                                     settings.render.clarityMultiplier);
+                                                                    settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
             rc3 = vkh::RenderContextUtils::attachRenderContext<RenderGraph3>(
                     &rg3, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
-                                                      settings.render.clarityMultiplier);
+                                                                     settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
             rc4 = vkh::RenderContextUtils::attachRenderContext<RenderGraph4>(
                     &rg4, configurators, engine, wc,
                     [this] {
                         return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
-                                                      settings.render.clarityMultiplier);
+                                                                     settings.render.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
             rcPresent = vkh::RenderContextUtils::attachRenderContext<RenderGraphPresentPrepareImgui>(
-                    &rccPresentPrepare, configurators, engine, wc, [this] { return wc.getSwapchain().getSwapchainExtent(); },
-                    swapchainImageContextGetter);
+                    &rccPresentPrepare, configurators, engine, wc,
+                    [this] { return wc.getSwapchain().getSwapchainExtent(); }, swapchainImageContextGetter);
 
             finishPipelineInitialization();
         }
@@ -118,9 +124,9 @@ namespace merutilm::rff2 {
             RendererImGui::beforeCmdRender();
             const float mul = std::pow(10.0f, -zoomAnimationInfo.targetLogZoomOffset);
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
-                                                  std::min(1.0f, settings.shader.fog.radius * mul), frameIndex);
+                                        std::min(1.0f, settings.shader.fog.radius * mul), frameIndex);
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM,
-                                                  std::min(1.0f, settings.shader.bloom.radius * mul), frameIndex);
+                                        std::min(1.0f, settings.shader.bloom.radius * mul), frameIndex);
             rg0->slope->setSlope(settings.shader.slope, mul, frameIndex);
         }
 
@@ -134,8 +140,7 @@ namespace merutilm::rff2 {
 
 
             rg0->iterationPalette->cmdRefreshIterations(wc.getCommandBuffer().getCommandBufferHandle(frameIndex),
-                                                         iterationStagingBufferContext->getContext());
-
+                                                        iterationStagingBufferContext->getContext());
             auto &ctx = rg0->iterationPalette->getResultIterationBuffer();
             vkh::BarrierUtils::cmdBufferMemoryBarrier(cbh, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
                                                       ctx.buffer, 0, ctx.bufferSize, VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -143,9 +148,10 @@ namespace merutilm::rff2 {
 
             // [BARRIER] Safe-copy iteration buffer
 
+
             if (settings.shader.fractal3D.use) {
                 vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc1, frameIndex);
-            }else {
+            } else {
                 vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc0, frameIndex);
             }
 

@@ -47,6 +47,7 @@ add_executable(
         extern/stb_image.c
         src/rff2/vulkan/GPCIterationPalette.cpp
         src/rff2/ui/RFF2.cpp
+        src/rff2/vulkan/CPCIterate.cpp
         src/rff2/vulkan/GPCStripe.cpp
         src/rff2/vulkan/GPCSlope.cpp
         src/rff2/vulkan/GPCColor.cpp
@@ -62,19 +63,9 @@ add_executable(
         src/rff2/vulkan/CPC2MapIterationStripe.cpp
         src/rff2/vulkan/GPCStaticImage2Map.cpp
         src/rff2/vulkan/CPCImageRGBA2BGR.cpp
-        src/rff2/settings/FrtReferenceSettings.hpp
-        src/rff2/settings/FrtPerturbSettings.hpp
-        src/rff2/settings/FrtGeneralSettings.hpp
-        src/rff2/calc/calculatable.hpp
-        src/rff2/calc/complex.hpp
         src/rff2/ui/FnPreset.cpp
-        src/rff2/ui/FnPreset.hpp
-        src/rff2/constants/UIConstants.hpp
-        src/rff2/util/RendererUtils.hpp
         src/rff2/vulkan/GPC3DFractal.cpp
-        src/rff2/vulkan/GPC3DFractal.hpp
         src/rff2/vulkan/GPCSmoothZoom.cpp
-        src/rff2/vulkan/GPCSmoothZoom.hpp
 )
 
 target_compile_options(RFF PRIVATE

@@ -6,7 +6,7 @@
 #include "../constants/Constants.hpp"
 #include <cmath>
 namespace merutilm::rff2 {
-    enum class FrtDecimalizeIterationMethod {
+    enum class FrtDecimalizeIterationMethod : uint32_t{
         /**
          * Do Not Use Decimal Iterations.
          */
@@ -48,12 +48,11 @@ namespace merutilm::rff2 {
                     break;
                 }
                 case LOG : {
-                    ratio = log10(ratio + 1) / Constants::Num::LOG10_2;
+                    ratio = log(ratio + 1) / std::numbers::ln2;
                     break;
                 }
                 case LOG_LOG : {
-                    constexpr double logBailout = Constants::Num::LOG10_2;
-                    ratio = log10(log10(ratio + 1) / logBailout + 1) / logBailout;
+                    ratio = log(log(ratio + 1) / std::numbers::ln2 + 1) / std::numbers::ln2;
                     break;
                 }
                 default : break;

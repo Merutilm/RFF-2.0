@@ -10,7 +10,7 @@ namespace merutilm::vkh {
 
 
     void RCCImGui::configureAttachments() {
-        swapchainImageAttachment = &rpm.appendAttachment({.flags = 0,
+        swapchainImageAttachment = &appendAttachment(VkAttachmentDescription{.flags = 0,
                                        .format = engine.getCore().getPhysicalDeviceLoader().getPrimarySurfaceFormat(),
                                        .samples = VK_SAMPLE_COUNT_1_BIT,
                                        .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
@@ -19,7 +19,7 @@ namespace merutilm::vkh {
                                        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                        .initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                                        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR},
-                                      swapchainImageContextGetter());
+                                      swapchainImageContextGetter(), VkClearValue{.color={0, 0, 0, 1}});
     }
 
     void RCCImGui::configurePipelines() {

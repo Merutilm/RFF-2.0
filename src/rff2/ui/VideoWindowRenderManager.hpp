@@ -65,7 +65,7 @@ namespace merutilm::rff2 {
             return wc;
         }
 
-        [[nodiscard]] float calculateZoom(float defaultZoomIncrement, float currentFrame) const;
+        [[nodiscard]] float calculateLogZoom(float defaultZoomIncrement, float currentFrame) const;
 
         [[nodiscard]] VideoBufferCache createImage() const;
 

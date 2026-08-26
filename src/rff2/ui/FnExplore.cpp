@@ -101,12 +101,12 @@ namespace merutilm::rff2 {
                     refCalc.reference.center = center->data->fractalSettings.reference.center;
                     refCalc.general.logZoom = center->data->fractalSettings.general.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
                     int refExp10 = Perturbator::logZoomToExp10(refCalc.general.logZoom);
-                    if (refCalc.general.logZoom > Constants::Fractal::ZOOM_DEADLINE) {
-                        data = std::make_unique<DeepMB2RenderData>(
+                    if (refCalc.general.logZoom > Constants::Fractal::DB_ZOOM_DEADLINE) {
+                        data = std::make_unique<DexMB2RenderData>(
                                 state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax, refExp10,
                                 data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime), getActionWhileSeriesApprox(app, startTime), getActionWhileCreatingTable(app, startTime));
                     } else {
-                        data = std::make_unique<LightMB2RenderData>(
+                        data = std::make_unique<DoubleMB2RenderData>(
                                 state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax, refExp10,
                                 data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime), getActionWhileSeriesApprox(app, startTime), getActionWhileCreatingTable(app, startTime));
                     }

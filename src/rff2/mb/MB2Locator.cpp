@@ -4,7 +4,6 @@
 
 #include "MB2Locator.h"
 
-#include "../calc/dex_exp.h"
 #include "MB2Reference.h"
 #include "MB2RenderData.hpp"
 #include "Perturbator.h"
@@ -63,10 +62,10 @@ namespace merutilm::rff2 {
 
             if (checkMaxIterationOnly(*result)) {
                 resultZoom -= zoomIncrement;
-                resultDcMax = resultDcMax * dex_exp::exp10(zoomIncrement);
+                resultDcMax = resultDcMax * rff_math::exp10(zoomIncrement);
             } else {
                 resultZoom += zoomIncrement;
-                resultDcMax = resultDcMax / dex_exp::exp10(zoomIncrement);
+                resultDcMax = resultDcMax / rff_math::exp10(zoomIncrement);
             }
 
             actionWhileFindingMinibrotZoom(resultZoom);
@@ -105,7 +104,7 @@ namespace merutilm::rff2 {
         doubledZoomCalc.perturb.decimalizeIterationMethod = FrtDecimalizeIterationMethod::NONE;
 
 
-        dex doubledZoomDcMax = data.getPerturbator()->dcMax / dex_exp::exp10(logZoom);
+        dex doubledZoomDcMax = data.getPerturbator()->dcMax / rff_math::exp10(logZoom);
 
 
         int centerFixCount = 0;
@@ -129,8 +128,16 @@ namespace merutilm::rff2 {
             doubledZoomCalc.reference.center = center;
             ++centerFixCount;
 
-            if (doubledLogZoom < Constants::Fractal::ZOOM_DEADLINE) {
-                doubledZoomData = std::make_unique<LightMB2RenderData>(
+            if (doubledLogZoom < Constants::Fractal::NM_ZOOM_DEADLINE) {
+                doubledZoomData = std::make_unique<NormalMB2RenderData>(
+                    state, doubledZoomCalc, cache, doubledZoomDcMax,
+                    Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
+                    [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
+                        actionWhileFindingMinibrotCenter(p, centerFixCount);
+                    }, actionWhileSeriesApprox, actionWhileCreatingTable);
+
+            } else if (doubledLogZoom < Constants::Fractal::DB_ZOOM_DEADLINE) {
+                doubledZoomData = std::make_unique<DoubleMB2RenderData>(
                     state, doubledZoomCalc, cache, doubledZoomDcMax,
                     Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
@@ -138,7 +145,7 @@ namespace merutilm::rff2 {
                     }, actionWhileSeriesApprox, actionWhileCreatingTable);
 
             } else {
-                doubledZoomData = std::make_unique<DeepMB2RenderData>(
+                doubledZoomData = std::make_unique<DexMB2RenderData>(
                     state, doubledZoomCalc, cache, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);

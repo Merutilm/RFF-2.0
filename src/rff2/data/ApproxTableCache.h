@@ -6,7 +6,6 @@
 #include <memory_resource>
 
 
-#include "../calc/calculatable.hpp"
 #include "../mrthy/MPAIndexMapper.hpp"
 #include "../mrthy/PA.h"
 #include "../ui/Utilities.h"
@@ -17,6 +16,8 @@ namespace merutilm::rff2 {
     struct ApproxTableCacheBase {
         static constexpr uint64_t INITIAL_MAXIMUM_MEMORY = 17179869184;
         uint64_t allowedMaximum = INITIAL_MAXIMUM_MEMORY;
+        size_t tableSizeUsed = 0;
+        size_t mapperSizeUsed = 0;
 
         virtual ~ApproxTableCacheBase() = default;
 
@@ -46,8 +47,6 @@ namespace merutilm::rff2 {
         PA<Num> *mpaTable = nullptr;
         MPAIndexMapper *flattenIndexMapper = nullptr;
 #endif
-        size_t tableSizeUsed = 0;
-        size_t mapperSizeUsed = 0;
 
         explicit ApproxTableCache() = default;
         ~ApproxTableCache() override = default;

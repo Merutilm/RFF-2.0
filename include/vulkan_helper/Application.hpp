@@ -55,22 +55,14 @@ namespace merutilm::vkh {
 
         virtual void registerRenderers() = 0;
 
-
-        virtual void addListeners();
-
-        virtual void update() = 0;
+        virtual void addListeners() = 0;
 
         void start() const {
 
             rootWindowContext->getWindow()->start();
         }
 
-
-        virtual void onStart() = 0;
-
-        virtual void onResize(VkExtent2D newExtent);
-
-        virtual void onQuit() = 0;
+        virtual void recreateContexts(VkExtent2D newExtent);
 
     protected:
 

@@ -38,25 +38,6 @@ namespace merutilm::vkh {
         rootWindowContext = &engine->attachWindowContext(std::move(rootWindowInitializerSettings), 0);
     }
 
-    void Application::addListeners() {
-
-        rootWindowContext->getWindow()->eventSystem.applicationLifecycle.onUpdate.add([this] { update(); });
-
-        rootWindowContext->getWindow()->eventSystem.resize.onResize.add([this](const int w, const int h) {
-            const auto extent = VkExtent2D(w, h);
-            onResize(extent);
-        });
-
-        rootWindowContext->getWindow()->eventSystem.applicationLifecycle.onStart.add([this] {
-            onStart();
-        });
-
-        rootWindowContext->getWindow()->eventSystem.applicationLifecycle.onQuit.add([this] {
-            rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
-            onQuit();
-        });
-    }
-
 
 #ifdef VKH_USE_IMGUI
     void Application::createImGuiContext(RenderContext *rc) {
@@ -102,14 +83,13 @@ namespace merutilm::vkh {
         }
     }
 
-    void Application::onResize(const VkExtent2D newExtent) {
+    void Application::recreateContexts(const VkExtent2D newExtent) {
         if (newExtent.width > 0 && newExtent.height > 0) {
             rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
             rootWindowContext->getSwapchain().recreate(newExtent);
             refreshSharedImgContexts(rootWindowContext->getSwapchain().getSwapchainExtent());
             for (const auto &rc: rootWindowContext->getRenderContexts())
                 rc->recreate();
-
             callRenderContextRefreshed();
         }
     }

@@ -37,8 +37,8 @@ namespace merutilm::rff2 {
                 valueChanged = true;
             }
 
-            if (ImGui::DragFloat("Clarity Multiplier", &clarityMultiplierTemp,
-                                 Constants::UI::CLARITY_MULTIPLIER_UNIT, Constants::Render::MIN_CLARITY_MULTIPLIER,
+            if (ImGui::DragFloat("Clarity Multiplier", &clarityMultiplierTemp, Constants::UI::CLARITY_MULTIPLIER_UNIT,
+                                 Constants::Render::MIN_CLARITY_MULTIPLIER,
                                  Constants::Render::MAX_CLARITY_MULTIPLIER)) {
                 clarityMultiplierTemp = std::clamp(clarityMultiplierTemp, Constants::Render::MIN_CLARITY_MULTIPLIER,
                                                    Constants::Render::MAX_CLARITY_MULTIPLIER);
@@ -75,7 +75,6 @@ namespace merutilm::rff2 {
             }
 
             ImGui::End();
-
         }
     }
 
@@ -102,11 +101,31 @@ namespace merutilm::rff2 {
             Utilities::imguiHelpMarker("Sets the Framerate.");
 
 
-            if (ImGui::SliderScalar("Threads", ImGuiDataType_U32, &app.getSettings().fractal.general.threads, &minThread, &maxThreads)) {
+            if (ImGui::SliderScalar("Threads", ImGuiDataType_U32, &app.getSettings().fractal.general.threads,
+                                    &minThread, &maxThreads)) {
                 // noop
             }
             Utilities::imguiHelpMarker("Sets the number of threads while rendering an image.");
 
+
+            if (app.engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceFeatures().shaderInt64) {
+                if (ImGui::Checkbox("Use Compute Shader Instead of Threading",
+                                    &app.getSettings().render.ptbWithComputeShader)) {
+                    // noop
+                }
+                Utilities::imguiHelpMarker("Use Compute shader instead of multithreading. "
+                                           "it is only available for single-precision values down to 1e-35, "
+                                           "uncompressed MP table and uncompressed reference.");
+
+                if (app.getSettings().render.ptbWithComputeShader) {
+                    Utilities::imguiDropdown("Compute Shader MPA Mode",
+                                             &app.getSettings().render.mpaModeForComputeShader);
+                    Utilities::imguiHelpMarker("Sets MPA Mode. finding appropriate pa from mp-table on gpu-level is so expensive.");
+                }
+            }
+            if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
+                app.getRequests().requestRecompute();
+            }
             if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0))) {
                 setRenderProperties = false;
             }

@@ -4,8 +4,8 @@
 
 #pragma once
 #include <algorithm>
-#include <vector>
 #include <array>
+#include <vector>
 
 #include "vulkan_helper/engine/context/BufferContext.hpp"
 #include "vulkan_helper/handle/CoreHandler.hpp"
@@ -15,22 +15,21 @@ namespace merutilm::rff2 {
     template<typename T>
     class GraphicsMatrixBuffer final : vkh::CoreHandler {
         bool updated = false;
-        uint32_t width;
-        uint32_t height;
+        uint16_t width;
+        uint16_t height;
         std::vector<T> data;
         vkh::BufferContext context = {};
         VkBufferUsageFlags usage;
         VkMemoryPropertyFlags properties;
 
     public:
-        explicit GraphicsMatrixBuffer(vkh::Core &core, const uint32_t width,
-                                             const uint32_t height, const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties) : CoreHandler(core), width(width), height(height), usage(usage), properties(properties) {
+        explicit GraphicsMatrixBuffer(vkh::Core &core, const uint16_t width, const uint16_t height,
+                                      const VkBufferUsageFlags usage, const VkMemoryPropertyFlags properties) :
+            CoreHandler(core), width(width), height(height), usage(usage), properties(properties) {
             GraphicsMatrixBuffer::init();
         }
 
-        ~GraphicsMatrixBuffer() override {
-            GraphicsMatrixBuffer::cleanup();
-        }
+        ~GraphicsMatrixBuffer() override { GraphicsMatrixBuffer::cleanup(); }
 
         GraphicsMatrixBuffer(const GraphicsMatrixBuffer &) = delete;
 
@@ -40,9 +39,7 @@ namespace merutilm::rff2 {
 
         GraphicsMatrixBuffer &operator=(GraphicsMatrixBuffer &&) = delete;
 
-        [[nodiscard]] T operator[](const uint32_t i) const {
-            return vkh::BufferContext::get<T>(context, i);
-        }
+        [[nodiscard]] T operator[](const uint32_t i) const { return vkh::BufferContext::get<T>(context, i); }
 
         [[nodiscard]] T operator()(const uint32_t x, const uint32_t y) const {
             return vkh::BufferContext::get<T>(context, getIndex(x, y));
@@ -65,18 +62,22 @@ namespace merutilm::rff2 {
             }
         }
 
+        void markUpdate() {
+            updated = true;
+        }
+
+        std::vector<T> &getData() { return data; }
+
         void fill(const std::vector<T> &data) {
             memcpy(this->data.data(), data.data(), data.size() * sizeof(T));
             vkh::BufferContext::fill(context, data);
         }
 
-        void fillZero() const {
-            vkh::BufferContext::fillZero(context);
-        }
+        void fillZero() const { vkh::BufferContext::fillZero(context); }
 
-        [[nodiscard]] uint32_t getIndex(uint32_t x, uint32_t y) const {
-            x = std::clamp(x, static_cast<uint32_t>(0), width - 1);
-            y = std::clamp(y, static_cast<uint32_t>(0), height - 1);
+        [[nodiscard]] uint32_t getIndex(uint16_t x, uint16_t y) const {
+            x = std::clamp(x, static_cast<uint16_t>(0), static_cast<uint16_t>(width - 1));
+            y = std::clamp(y, static_cast<uint16_t>(0), static_cast<uint16_t>(height - 1));
             return static_cast<uint32_t>(width) * y + x;
         }
 
@@ -86,29 +87,22 @@ namespace merutilm::rff2 {
             return {px, py};
         }
 
-        [[nodiscard]] const vkh::BufferContext &getContext() const {
-            return context;
-        }
+        [[nodiscard]] const vkh::BufferContext &getContext() const { return context; }
 
-        [[nodiscard]] uint32_t getWidth() const {
-            return width;
-        }
+        [[nodiscard]] uint16_t getWidth() const { return width; }
 
-        [[nodiscard]] uint32_t getHeight() const {
-            return height;
-        }
+        [[nodiscard]] uint16_t getHeight() const { return height; }
 
-        [[nodiscard]] uint32_t getLength() const {
-            return static_cast<uint32_t>(width) * height;
-        }
+        [[nodiscard]] uint32_t getLength() const { return static_cast<uint32_t>(width) * height; }
+
     protected:
         void init() override {
             updated = false;
             context = vkh::BufferContext::createContext(core, {
-                                                  .size = width * height * sizeof(T),
-                                                  .usage = usage,
-                                                  .properties = properties,
-                                              });
+                                                                      .size = width * height * sizeof(T),
+                                                                      .usage = usage,
+                                                                      .properties = properties,
+                                                              });
             data.resize(width * height);
             vkh::BufferContext::mapMemory(core, context);
         }
@@ -118,4 +112,4 @@ namespace merutilm::rff2 {
             vkh::BufferContext::destroyContext(core, context);
         }
     };
-}
+} // namespace merutilm::rff2

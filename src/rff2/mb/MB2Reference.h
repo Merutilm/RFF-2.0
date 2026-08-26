@@ -5,7 +5,6 @@
 #pragma once
 #include <vector>
 
-#include "../calc/calculatable.hpp"
 #include "../calc/fixed_point_complex.hpp"
 #include "../mrthy/ArrayCompressionTool.h"
 #include "../mrthy/ArrayCompressor.h"
@@ -80,6 +79,11 @@ namespace merutilm::rff2 {
     void MB2Reference<Num>::syncReference(fixed_point_complex_i1 &z, const uint64_t intervalCounter,
                                           const uint32_t refSyncInterval, const uint8_t refSyncRadiusPower,
                                           const Num refSyncRadius2, complex<Num> &z0, complex<Num> &c0) {
+        if constexpr(std::is_same_v<Num, float>) {
+            z0 = static_cast<complex<Num>>(z);
+            return;
+        }
+
 
         if (refSyncRadiusPower == 0 || refSyncInterval == 1) {
             z0 = static_cast<complex<Num>>(z);
@@ -209,8 +213,8 @@ namespace merutilm::rff2 {
 
             if (compressCriteria > 0 && period >= 1) {
                 const uint64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
-                const bool sr = calculatable::is_zero(z0.re) && calculatable::is_zero(ref[refIndex].re);
-                const bool si = calculatable::is_zero(z0.im) && calculatable::is_zero(ref[refIndex].im);
+                const bool sr = rff_math::is_zero(z0.re) && rff_math::is_zero(ref[refIndex].re);
+                const bool si = rff_math::is_zero(z0.im) && rff_math::is_zero(ref[refIndex].im);
 
                 if ((sr || std::fabs(static_cast<double>(z0.re / ref[refIndex].re) - 1) <= compressionThreshold) &&
                     (si || std::fabs(static_cast<double>(z0.im / ref[refIndex].im) - 1) <= compressionThreshold)) {
@@ -262,7 +266,8 @@ namespace merutilm::rff2 {
         return refOrbit.size();
     }
 
-    using LightMB2Reference = MB2Reference<double>;
-    using DeepMB2Reference = MB2Reference<dex>;
+    using NormalMB2Reference = MB2Reference<float>;
+    using DoubleMB2Reference = MB2Reference<double>;
+    using DexMB2Reference = MB2Reference<dex>;
 
 } // namespace merutilm::rff2

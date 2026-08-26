@@ -1,5 +1,5 @@
 add_library(engine_pipeline OBJECT
-        ComputeShaderPipeline.cpp
+        ComputePipeline.cpp
         GraphicsPipeline.cpp
         Pipeline.cpp
         PipelineLayout.cpp

@@ -114,8 +114,8 @@ namespace merutilm::rff2 {
                                 std::vector<PAGenerator<Num>> &currentPA, std::vector<bool> &isPartial,
                                 PartialPA &partialPA);
 
-        void gluePartialPA(const ParallelRenderState &state, const std::vector<uint64_t> &tablePeriod,
-                           uint32_t threadCount, std::vector<PartialPA> &partialPAs);
+        void gluePartialPA(const std::vector<uint64_t> &tablePeriod, uint32_t threadCount,
+                           std::vector<PartialPA> &partialPAs);
         void generateUncompressedTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
                                        const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
 #ifndef NDEBUG
@@ -642,7 +642,7 @@ namespace merutilm::rff2 {
         const uint64_t longestPeriod = tablePeriod.back();
         const size_t levels = tablePeriod.size();
         const auto epsilonPower = mpaSettings.epsilonPower;
-        const double epsilon = pow(10, epsilonPower);
+        const float epsilon = std::pow(10.f, epsilonPower);
         uint64_t iteration = 1;
 
 
@@ -724,8 +724,8 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    void MPATable<Num>::gluePartialPA(const ParallelRenderState &state, const std::vector<uint64_t> &tablePeriod,
-                                      const uint32_t threadCount, std::vector<PartialPA> &partialPAs) {
+    void MPATable<Num>::gluePartialPA(const std::vector<uint64_t> &tablePeriod, const uint32_t threadCount,
+                                      std::vector<PartialPA> &partialPAs) {
 
         const uint64_t levels = tablePeriod.size();
 
@@ -772,7 +772,7 @@ namespace merutilm::rff2 {
         const uint64_t longestPeriod = tablePeriod.back();
         const size_t levels = tablePeriod.size();
         const auto epsilonPower = mpaSettings.epsilonPower;
-        const double epsilon = pow(10, epsilonPower);
+        const float epsilon = std::pow(10.f, epsilonPower);
         const uint32_t threadCount = generalSettings.threads;
         if (mpaSettings.useParallelization) {
 
@@ -852,7 +852,7 @@ namespace merutilm::rff2 {
 
             if (state.interruptRequested()) return;
 
-            gluePartialPA(state, tablePeriod, threadCount, partialPAs);
+            gluePartialPA(tablePeriod, threadCount, partialPAs);
 
 #ifndef NDEBUG
             checkZero(state);
@@ -968,7 +968,7 @@ namespace merutilm::rff2 {
                     return nullptr;
                 }
 
-                for (uint64_t j = table.size(); j > 0; --j) {
+                for (uint64_t j = table.size(); j > 1; --j) {
                     const PA<Num> &test = table[j - 1];
 
                     if (test.isValid(r)) {

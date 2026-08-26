@@ -55,7 +55,7 @@ namespace merutilm::rff2 {
 
 
         [[nodiscard]] bool checkInteriorBasic(const complex<Num> c) const {
-            if (calculatable::is_zero(c.im) && c.re < Num(0.25) && c.re >= Num(-2))
+            if (rff_math::is_zero(c.im) && c.re < Num(0.25) && c.re >= Num(-2))
                 return true;
 
             const auto cr = static_cast<double>(c.re);
@@ -74,7 +74,7 @@ namespace merutilm::rff2 {
         }
 
 
-        ;
+
         [[nodiscard]] double iterate(const complex<dex> &dc) const override {
             if (state.interruptRequested())
                 return 0.0;

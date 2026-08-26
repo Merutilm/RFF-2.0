@@ -23,9 +23,10 @@ namespace merutilm::vkh {
 
         std::unique_ptr<Pipeline> pipeline = nullptr;
         std::vector<std::unique_ptr<Descriptor>> uniqueDescriptors = {};
+        uint32_t specializationIndex = 0;
 
-        explicit PipelineConfigurator(Engine &engine, WindowContext &wc) :
-            engine(engine), wc(wc) {}
+
+        explicit PipelineConfigurator(Engine &engine, WindowContext &wc) : engine(engine), wc(wc) {}
 
         virtual ~PipelineConfigurator() = default;
 
@@ -84,8 +85,7 @@ namespace merutilm::vkh {
             WindowLocalDescriptorRepo &repo =
                     *wc.getWindowLocalRepositories().getRepository<WindowLocalDescriptorRepo>();
 
-            safe_array::check_index_equal(setExpected, static_cast<uint32_t>(descriptors.size()),
-                                          "Descriptor Add");
+            safe_array::check_index_equal(setExpected, static_cast<uint32_t>(descriptors.size()), "Descriptor Add");
             descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), layoutRepo));
         }
 
@@ -106,14 +106,20 @@ namespace merutilm::vkh {
             safe_array::check_index_equal(setExpected, static_cast<uint32_t>(descriptors.size()),
                                           "Unique Descriptor Add");
             auto &layoutRepo = *engine.getGlobalRepositories().getRepository<GlobalDescriptorSetLayoutRepo>();
-            auto desc = std::make_unique<Descriptor>(wc.core, layoutRepo.pick(manager[0].layoutBuilder), std::move(manager));
+            auto desc = std::make_unique<Descriptor>(wc.core, layoutRepo.pick(manager[0].layoutBuilder),
+                                                     std::move(manager));
             uniqueDescriptors.push_back(std::move(desc));
             descriptors.push_back(uniqueDescriptors.back().get());
         }
 
+        virtual PipelineSpecialization createSpecializationInfo() {
+            return PipelineSpecialization{1};
+        }
+
         virtual void updateQueue(DescriptorUpdateQueue &queue, uint32_t frameIndex) = 0;
 
-        virtual void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices) = 0;
+        virtual void cmdRender(VkCommandBuffer cbh, uint32_t frameIndex,
+                               DescIndexPicker &&descIndices) = 0;
 
         virtual void pipelineInitialized() = 0;
 

@@ -14,7 +14,7 @@ namespace merutilm::rff2 {
 
     void GPC3DFractal::cmdRender(const VkCommandBuffer cbh, const uint32_t frameIndex,
                                  vkh::DescIndexPicker &&descIndices) {
-        pipeline->cmdBindAll(cbh, frameIndex, std::move(descIndices));
+        pipeline->cmdBindAll(cbh, specializationIndex, frameIndex, std::move(descIndices));
         cmdPushAll(cbh);
         cmdDraw(cbh, frameIndex, TARGET_IBO);
     }
@@ -110,9 +110,9 @@ namespace merutilm::rff2 {
         f3dUBO.update();
     }
 
-    VkGraphicsPipelineCreateInfo GPC3DFractal::generatePipelineInfo(const vkh::PipelineManager &pipelineManager,
+    std::vector<VkGraphicsPipelineCreateInfo> GPC3DFractal::generatePipelineInfo(const vkh::PipelineManager &pipelineManager,
                                                                     vkh::RenderPass *rp, uint32_t subpass,
-                                                                    vkh::PipelineConfiguration &pipelineConfiguration) {
+                                                                    vkh::GraphicsPipelineConfiguration &pipelineConfiguration) {
         const auto &modules = pipelineManager.shaderModules;
 
         pipelineConfiguration.shaderStageCreateInfos.resize(modules.size());
@@ -229,7 +229,7 @@ namespace merutilm::rff2 {
                 .pDynamicStates = pipelineConfiguration.dynamicStates.data(),
         };
 
-        return {.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        return {{.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
                 .stageCount = static_cast<uint32_t>(pipelineConfiguration.shaderStageCreateInfos.size()),
@@ -243,11 +243,11 @@ namespace merutilm::rff2 {
                 .pDepthStencilState = &pipelineConfiguration.depthStencilStateCreateInfo,
                 .pColorBlendState = &pipelineConfiguration.colorBlendStateCreateInfo,
                 .pDynamicState = &pipelineConfiguration.dynamicStateCreateInfo,
-                .layout = pipelineManager.layout.getLayoutHandle(),
+                .layout = pipelineManager.layout->getLayoutHandle(),
                 .renderPass = rp->getRenderPassHandle(),
                 .subpass = subpass,
                 .basePipelineHandle = nullptr,
-                .basePipelineIndex = -1};
+                .basePipelineIndex = -1}};
     }
 
     void GPC3DFractal::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {

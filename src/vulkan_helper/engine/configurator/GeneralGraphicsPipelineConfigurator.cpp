@@ -25,7 +25,7 @@ namespace merutilm::vkh {
                 std::move(pipelineLayoutManager));
 
 
-        PipelineManager pipelineManager(pipelineLayout);
+        PipelineManager pipelineManager(pipelineLayout, createSpecializationInfo());
 
 
         pipelineManager.attachDescriptor(std::move(descriptors));
@@ -39,6 +39,8 @@ namespace merutilm::vkh {
 
         vertexBuffer.emplace(wc.core, std::move(vertManager), BufferLock::LOCK_UNLOCK, true);
         indexBuffer.emplace(wc.core, std::move(indexManager), BufferLock::LOCK_UNLOCK, true);
+
+
 
         createPipeline(std::move(pipelineManager), rp, subpass);
     }

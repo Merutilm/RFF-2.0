@@ -5,7 +5,6 @@
 #include "FnFile.hpp"
 
 #include "../constants/Constants.hpp"
-#include "../io/RFFLocationBinary.h"
 #include "../ui/RFF2.hpp"
 #include "IOUtilities.h"
 #include "imgui.h"

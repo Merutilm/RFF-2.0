@@ -6,11 +6,13 @@
 
 #include <vulkan_helper/engine/manage/PipelineManager.hpp>
 #include <vulkan_helper/handle/CoreHandler.hpp>
+#include "PipelineSpecialization.hpp"
 
 namespace merutilm::vkh {
     struct Pipeline : CoreHandler {
-        VkPipeline pipeline = nullptr;
+        std::vector<VkPipeline> pipelines = {};
         PipelineLayout &pipelineLayout;
+        const PipelineSpecialization specialization;
         const std::vector<Descriptor *> descriptors;
         const std::vector<ShaderModule *> shaderModules;
 
@@ -26,10 +28,11 @@ namespace merutilm::vkh {
 
         Pipeline &operator=(Pipeline &&) = delete;
 
-        virtual void cmdBindAll(VkCommandBuffer cbh, uint32_t frameIndex, DescIndexPicker &&descIndices) const = 0;
+        virtual void cmdBindAll(VkCommandBuffer cbh, uint32_t specializationIndex, uint32_t frameIndex,
+                                DescIndexPicker &&descIndices = {}) const = 0;
 
 
-        [[nodiscard]] VkPipeline getPipelineHandle() const { return pipeline; }
+        [[nodiscard]] VkPipeline getPipelineHandle(const uint32_t specializationID) const { return pipelines[specializationID]; }
 
         [[nodiscard]] Descriptor &getDescriptor(const uint32_t setIndex) const {
             return *descriptors[setIndex];

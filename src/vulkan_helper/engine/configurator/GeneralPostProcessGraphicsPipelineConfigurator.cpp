@@ -8,12 +8,12 @@
 #include <vulkan_helper/engine/repo/GlobalPipelineLayoutRepo.hpp>
 #include <vulkan_helper/engine/wrapped/Vertex.hpp>
 
-#include "vulkan_helper/engine/wrapped/PipelineConfiguration.hpp"
+#include "vulkan_helper/engine/wrapped/GraphicsPipelineConfiguration.hpp"
 
 namespace merutilm::vkh {
     void GeneralPostProcessGraphicsPipelineConfigurator::cmdRender(const VkCommandBuffer cbh, const uint32_t frameIndex,
                                                                    DescIndexPicker &&descIndices) {
-        pipeline->cmdBindAll(cbh, frameIndex, std::move(descIndices));
+        pipeline->cmdBindAll(cbh, specializationIndex, frameIndex, std::move(descIndices));
         cmdPushAll(cbh);
         cmdDraw(cbh, frameIndex, 0);
     }
@@ -23,21 +23,17 @@ namespace merutilm::vkh {
 
     void GeneralPostProcessGraphicsPipelineConfigurator::configureIndexBuffer(HostDataObjectManager &som) {}
 
-    VkGraphicsPipelineCreateInfo GeneralPostProcessGraphicsPipelineConfigurator::generatePipelineInfo(
+    std::vector<VkGraphicsPipelineCreateInfo> GeneralPostProcessGraphicsPipelineConfigurator::generatePipelineInfo(
             const PipelineManager &pipelineManager, RenderPass *rp, const uint32_t subpass,
-            PipelineConfiguration &pipelineConfiguration) {
+            GraphicsPipelineConfiguration &pipelineConfiguration) {
         const auto &modules = pipelineManager.shaderModules;
 
         pipelineConfiguration.shaderStageCreateInfos.resize(modules.size());
-        for (size_t i = 0; i < modules.size(); ++i) {
-            pipelineConfiguration.shaderStageCreateInfos[i] = {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-                                         .pNext = nullptr,
-                                         .flags = 0,
-                                         .stage = modules[i]->getShaderStage(),
-                                         .module = modules[i]->getShaderModuleHandle(),
-                                         .pName = "main",
-                                         .pSpecializationInfo = nullptr};
-        }
+        pipelineConfiguration.specializationInfo = pipelineManager.specialization.buildSpecializationInfo();
+
+
+        std::vector<VkGraphicsPipelineCreateInfo> pipelineInfos(pipelineConfiguration.specializationInfo.size());
+
 
         auto &vertInputAttributeDescription = getVertexBuffer().getVertexInputAttributeDescriptions();
         auto &vertBindingDescription = getVertexBuffer().getVertexInputBindingDescriptions();
@@ -140,7 +136,18 @@ namespace merutilm::vkh {
                 .pDynamicStates = pipelineConfiguration.dynamicStates.data(),
         };
 
-        return {.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        for (uint32_t i = 0; i < pipelineConfiguration.specializationInfo.size(); i++) {
+            for (size_t j = 0; j < modules.size(); ++j) {
+                pipelineConfiguration.shaderStageCreateInfos[j] = {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                                             .pNext = nullptr,
+                                             .flags = 0,
+                                             .stage = modules[j]->getShaderStage(),
+                                             .module = modules[j]->getShaderModuleHandle(),
+                                             .pName = "main",
+                                             .pSpecializationInfo = pipelineManager.specialization.isEmpty() ? nullptr : &pipelineConfiguration.specializationInfo[i]};
+            }
+
+            pipelineInfos[i] = {.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
                 .stageCount = static_cast<uint32_t>(pipelineConfiguration.shaderStageCreateInfos.size()),
@@ -154,11 +161,15 @@ namespace merutilm::vkh {
                 .pDepthStencilState = &pipelineConfiguration.depthStencilStateCreateInfo,
                 .pColorBlendState = &pipelineConfiguration.colorBlendStateCreateInfo,
                 .pDynamicState = &pipelineConfiguration.dynamicStateCreateInfo,
-                .layout = pipelineManager.layout.getLayoutHandle(),
+                .layout = pipelineManager.layout->getLayoutHandle(),
                 .renderPass = rp->getRenderPassHandle(),
                 .subpass = subpass,
                 .basePipelineHandle = nullptr,
                 .basePipelineIndex = -1};
+        }
+
+
+        return pipelineInfos;
     }
 
     void GeneralPostProcessGraphicsPipelineConfigurator::configure(RenderPass *rp, const uint32_t subpass) {
@@ -178,7 +189,7 @@ namespace merutilm::vkh {
                 std::move(pipelineLayoutManager));
 
 
-        PipelineManager pipelineManager(pipelineLayout);
+        PipelineManager pipelineManager(pipelineLayout, createSpecializationInfo());
 
         pipelineManager.attachDescriptor(std::move(descriptors));
         pipelineManager.attachShader(&vertexShader);

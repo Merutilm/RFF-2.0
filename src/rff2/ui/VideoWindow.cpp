@@ -52,10 +52,8 @@ namespace merutilm::rff2 {
                 return;
             }
 
-            const Matrix<double> &targetMatrix = targetMap.getMatrix();
-
-            imgWidth = targetMatrix.getWidth();
-            imgHeight = targetMatrix.getHeight();
+            imgWidth = targetMap.width;
+            imgHeight = targetMap.height;
         }
 
 
@@ -153,7 +151,7 @@ namespace merutilm::rff2 {
                 } else {
                     manager.setMap(&normalDynamic, &zoomedDynamic);
                     manager.applyCurrentDynamicMap(normalDynamic, zoomedDynamic, currentFrame);
-                    manager.setMaxIterationDynamic(static_cast<double>(normalDynamic.getMaxIteration()));
+                    manager.setMaxIterationDynamic(static_cast<double>(normalDynamic.maxIteration));
                 }
             }
 
@@ -202,8 +200,8 @@ namespace merutilm::rff2 {
             const int off = std::max(1, loc / 15);
             const int tkn = std::max(1, off / 2);
 
-            const std::string zoomStr = std::format("Zoom : {:6f}E{:d}", std::pow(10, std::fmod(buffer.zoom, 1)),
-                                                    static_cast<int>(buffer.zoom));
+            const std::string zoomStr = std::format("Zoom : {:6f}E{:d}", std::pow(10, std::fmod(buffer.logZoom, 1)),
+                                                    static_cast<int>(buffer.logZoom));
             cv::putText(img, zoomStr, cv::Point(xg + off, loc + yg + off), cv::FONT_HERSHEY_PLAIN, size,
                         cv::Scalar(0, 0, 0));
             cv::putText(img, zoomStr, cv::Point(xg, loc + yg), cv::FONT_HERSHEY_PLAIN, size, cv::Scalar(255, 255, 255),

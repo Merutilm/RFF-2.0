@@ -6,7 +6,7 @@
 #include "vulkan/vulkan.h"
 
 namespace merutilm::vkh {
-    struct PipelineConfiguration {
+    struct GraphicsPipelineConfiguration {
         std::vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos;
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo;
@@ -17,6 +17,8 @@ namespace merutilm::vkh {
         VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo;
         VkPipelineColorBlendAttachmentState colorBlendAttachmentState;
         VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo;
+        std::vector<VkSpecializationInfo> specializationInfo;
+
         std::vector<VkDynamicState> dynamicStates;
         VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo;
     };

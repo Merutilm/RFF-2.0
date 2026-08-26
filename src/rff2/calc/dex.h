@@ -11,23 +11,13 @@
 
 namespace merutilm::rff2 {
 
-
-    struct dex_exp;
-    struct dex_std;
-    struct dex_trig;
-
     /**
      * the floating-point object which supports semi-infinity exponents.
      */
-    class dex {
+    struct dex {
         int64_t exp2;
         double mantissa;
 
-        friend dex_exp;
-        friend dex_std;
-        friend dex_trig;
-
-    public:
         static const dex ZERO;
         static const dex ONE;
 
@@ -57,6 +47,8 @@ namespace merutilm::rff2 {
         static dex div_2exp(dex v, int exp2);
 
         explicit operator double() const;
+
+        explicit operator float() const;
 
         bool operator==(const dex &other) const;
 
@@ -91,15 +83,12 @@ namespace merutilm::rff2 {
 #endif
             const int64_t d_exp2 = a.exp2 - b.exp2;
             return {std::max(a.exp2, b.exp2),
-                    ldexp_neg(a.mantissa, std::min(static_cast<int64_t>(0), d_exp2)) + ldexp_neg(b.mantissa, std::min(static_cast<int64_t>(0), -d_exp2))};
+                    ldexp_neg(a.mantissa, std::min(static_cast<int64_t>(0), d_exp2)) +
+                            ldexp_neg(b.mantissa, std::min(static_cast<int64_t>(0), -d_exp2))};
         }
-        friend dex operator+(const dex a, const double b) {
-            return a + dex(b);
-        }
+        friend dex operator+(const dex a, const double b) { return a + dex(b); }
 
-        friend dex operator+(const double a, const dex b) {
-            return dex(a) + b;
-        }
+        friend dex operator+(const double a, const dex b) { return dex(a) + b; }
 
         friend dex operator-(const dex a, const dex b) {
 #ifdef SAFE_DEX_OPERATOR
@@ -129,17 +118,14 @@ namespace merutilm::rff2 {
 #endif
             const int64_t d_exp2 = a.exp2 - b.exp2;
             return {std::max(a.exp2, b.exp2),
-                       ldexp_neg(a.mantissa, std::min(static_cast<int64_t>(0), d_exp2)) - ldexp_neg(b.mantissa, std::min(static_cast<int64_t>(0), -d_exp2))};
+                    ldexp_neg(a.mantissa, std::min(static_cast<int64_t>(0), d_exp2)) -
+                            ldexp_neg(b.mantissa, std::min(static_cast<int64_t>(0), -d_exp2))};
         }
 
 
-        friend dex operator-(const dex a, const double b) {
-            return a - dex(b);
-        }
+        friend dex operator-(const dex a, const double b) { return a - dex(b); }
 
-        friend dex operator-(const double a, const dex b) {
-            return dex(a) - b;
-        }
+        friend dex operator-(const double a, const dex b) { return dex(a) - b; }
 
         friend dex operator*(const dex a, const double b) {
 #ifdef SAFE_DEX_OPERATOR
@@ -249,8 +235,7 @@ namespace merutilm::rff2 {
 
     constexpr dex::dex(const int64_t exp2, const double mantissa) noexcept : exp2(exp2), mantissa(mantissa) {}
 
-    constexpr dex::dex(const double value) noexcept : exp2(0), mantissa(value) {
-    }
+    constexpr dex::dex(const double value) noexcept : exp2(0), mantissa(value) {}
 
     inline double dex::ldexp_neg(const double mantissa, const int64_t exp2) {
         const auto mts_bits = std::bit_cast<uint64_t>(mantissa);
@@ -263,7 +248,7 @@ namespace merutilm::rff2 {
     inline dex dex::sqrt(const dex v) { return {v.exp2 >> 1, v.sgn() * std::sqrt(std::abs(v.mantissa))}; }
 
     inline dex dex::nthRoot(const dex v, const int d) {
-        //valid when d < 32, v.mantissa > 0
+        // valid when d < 32, v.mantissa > 0
         const int64_t k = (v.exp2 % d + d) % d;
         const int64_t exp2 = v.exp2 - k;
         double mantissa = pow(v.mantissa * (1u << k), 1.0 / d);
@@ -314,29 +299,14 @@ namespace merutilm::rff2 {
     inline bool dex::isnan() const { return std::isnan(mantissa); }
 #endif
 
-    inline bool dex::is_zero() const {
-        return mantissa == 0;
-    }
+    inline bool dex::is_zero() const { return mantissa == 0; }
 
     inline dex::operator double() const { return ldexp(mantissa, static_cast<int>(exp2)); }
 
-#ifdef SAFE_DEX_OPERATOR
-    inline bool dex::operator==(const dex &other) const {
-        const int d_exp2 = exp2 - other.exp2;
-        const int abs_exp2 = std::abs(d_exp2);
-
-        if (abs_exp2 > 512) return false;
-        const auto exp_bits = static_cast<int64_t>(abs_exp2) << 52;
-        return mantissa + (d_exp2 > 0 ? exp_bits : -exp_bits) == other.mantissa;
-    }
-#else
-    inline bool dex::operator==(const dex &other) const = default;
-#endif
+    inline dex::operator float() const { return static_cast<float>(ldexp(mantissa, static_cast<int>(exp2))); }
 
     inline std::string dex::to_string() const {
-        // m * 2^n
-        // = m * 10^(log10(2) * n)
-        // = exp10 = log10(2) * n
+
 
 #ifdef SAFE_DEX_OPERATOR
         if (isnan()) {
@@ -347,14 +317,29 @@ namespace merutilm::rff2 {
         }
 #endif
 
-        const double raw_exp10 = Constants::Num::LOG10_2 * static_cast<double>(exp2);
+        if (mantissa == 0.0) {
+            return "0";
+        }
+        // m * 2^n
+        // = m * 10^(log10(2) * n)
+        // = exp10 = log10(2) * n
+        //
+        const double raw_exp10 = std::numbers::ln2 / std::numbers::ln10 * static_cast<double>(exp2);
         auto exp10 = static_cast<int>(raw_exp10);
         double mantissa10 = mantissa * std::pow(10, raw_exp10 - exp10);
+        const double abs_m = std::abs(mantissa10);
 
-        while (std::abs(mantissa10) < 1 && mantissa10 != 0) {
-            mantissa10 *= 10;
-            exp10 -= 1;
+        if (abs_m >= 10.0) {
+            const int shift = static_cast<int>(std::floor(std::log10(abs_m)));
+            mantissa10 *= std::pow(10.0, -shift);
+            exp10 += shift;
+        } else if (abs_m < 1.0) {
+            const int shift = static_cast<int>(std::ceil(-std::log10(abs_m)));
+            mantissa10 *= std::pow(10.0, shift);
+            exp10 -= shift;
         }
+
+
         return std::format("{}e{}", mantissa10, exp10);
     }
 
