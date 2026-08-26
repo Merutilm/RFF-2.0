@@ -12,6 +12,7 @@
 #include <string>
 #include <format>
 #include <cstdint>
+#include <numbers>
 
 #include <utility>
 #include <memory>

@@ -7,6 +7,7 @@
 #include <random>
 
 #include "dex.h"
+#include <numbers>
 #include "templates.hpp"
 
 namespace merutilm::rff2::rff_math {
