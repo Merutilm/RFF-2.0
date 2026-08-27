@@ -56,12 +56,12 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] const vkh::BufferContext &getWriteBuffer() const;
 
-        void resetWriteBuffer(VkExtent2D extent);
+        void resetWriteBuffer(VkExtent2D extent, vkh::CommandPool &commandPool);
 
         void setRenderMeta(const FractalSettings &frt, const RenderSettings &render,
                            const std::vector<complex<float>> &reference, complex<float> offset, uint32_t maxIteration,
                            const PA<float> *mpTableData, uint64_t tableLen, const MPAIndexMapper *mapperData,
-                           uint64_t mapperLen);
+                           uint64_t mapperLen, vkh::CommandPool &commandPool);
 
 
 

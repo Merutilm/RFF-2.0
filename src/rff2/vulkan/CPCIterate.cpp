@@ -34,7 +34,7 @@ namespace merutilm::rff2 {
         return iterSSBO.getBufferContext();
     }
 
-    void CPCIterate::resetWriteBuffer(const VkExtent2D extent) {
+    void CPCIterate::resetWriteBuffer(const VkExtent2D extent, vkh::CommandPool &commandPool) {
         using namespace SharedDescriptorTemplate;
         setExtent(extent);
 
@@ -49,7 +49,7 @@ namespace merutilm::rff2 {
 
         iterSSBOHost.resizeAndClear<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, extent.width * extent.height);
         iterSSBO.reloadBuffer();
-        iterSSBO.lock(wc.getCommandPool());
+        iterSSBO.lock(commandPool);
         writeDescriptorMF([&iterDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             iterDesc.queue(queue, frameIndex, {}, {DescIteration::BINDING_UBO_ITERATION_INFO, DescIteration::BINDING_SSBO_ITERATION_MATRIX});
         });
@@ -58,7 +58,7 @@ namespace merutilm::rff2 {
     void CPCIterate::setRenderMeta(const FractalSettings &frt, const RenderSettings &render,
                                    const std::vector<complex<float>> &reference, const complex<float> offset,
                                    const uint32_t maxIteration, const PA<float> *mpTableData, const uint64_t tableLen,
-                                   const MPAIndexMapper *mapperData, const uint64_t mapperLen) {
+                                   const MPAIndexMapper *mapperData, const uint64_t mapperLen, vkh::CommandPool &commandPool) {
 
         vkh::Descriptor &desc = getDescriptor(SET_RENDER_META);
         auto &rmSSBO = desc.get<vkh::ShaderStorage>(0, BINDING_RM_SSBO);
@@ -109,10 +109,10 @@ namespace merutilm::rff2 {
         rmMapperSSBO.update();
         rmBatchSSBO.update();
 
-        rmSSBO.lock(wc.getCommandPool());
-        rmTableSSBO.lock(wc.getCommandPool());
-        rmMapperSSBO.lock(wc.getCommandPool());
-        rmBatchSSBO.lock(wc.getCommandPool());
+        rmSSBO.lock(commandPool);
+        rmTableSSBO.lock(commandPool);
+        rmMapperSSBO.lock(commandPool);
+        rmBatchSSBO.lock(commandPool);
 
         writeDescriptorMF([&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             desc.queue(queue, frameIndex, {}, {BINDING_RM_SSBO, BINDING_RM_TABLE_SSBO, BINDING_RM_MAPPER_SSBO, BINDING_RM_BATCH_SSBO});

@@ -12,7 +12,7 @@ namespace merutilm::rff2 {
 
     struct ComputeShaderRenderManager final : vkh::WindowContextHandler{
 
-        std::mutex mutex;
+        std::unique_ptr<vkh::CommandPool> commandPool;
         std::unique_ptr<vkh::CommandBuffer> commandBuffer;
         std::unique_ptr<vkh::Fence> fence;
 
@@ -54,13 +54,15 @@ namespace merutilm::rff2 {
 
     protected:
         void init() override {
-            commandBuffer = std::make_unique<vkh::CommandBuffer>(wc.core, wc.getCommandPool());
+            commandPool = std::make_unique<vkh::CommandPool>(wc.core);
+            commandBuffer = std::make_unique<vkh::CommandBuffer>(wc.core, *commandPool);
             fence = std::make_unique<vkh::Fence>(wc.core);
         }
 
         void cleanup() override {
             if (dstBatchBufferExists) vkh::BufferContext::destroyContext(wc.core, dstBatchBuffer);
             commandBuffer = nullptr;
+            commandPool = nullptr;
             fence = nullptr;
         }
     };

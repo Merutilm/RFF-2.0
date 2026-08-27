@@ -252,6 +252,7 @@ void main() {
                 ++batch_iteration;
 
                 if (iteration >= render_meta.max_iteration) {
+                    iteration_settings.iterations[index] = render_meta.max_iteration;
                     break;
                 }
             }
@@ -280,6 +281,9 @@ void main() {
         }
 
         if (curr_distance2 > bailout2) {
+            float prev_distance = sqrt(prev_distance2);
+            float curr_distance = sqrt(curr_distance2);
+            iteration_settings.iterations[index] = double(iteration) + get_exterior_double_value_iteration_ratio(prev_distance, curr_distance);
             batch_data.staging_values[index].completed = 1;
             break;
         }
@@ -291,10 +295,7 @@ void main() {
         return;
     }
 
-    float prev_distance = sqrt(prev_distance2);
-    float curr_distance = sqrt(curr_distance2);
 
-    iteration_settings.iterations[index] = double(iteration) + get_exterior_double_value_iteration_ratio(prev_distance, curr_distance);
     batch_data.staging_values[index].dz = dz;
     batch_data.staging_values[index].ref_iteration = ref_iteration;
     batch_data.staging_values[index].iteration = iteration;

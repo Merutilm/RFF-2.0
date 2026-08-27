@@ -113,7 +113,6 @@ namespace merutilm::rff2 {
     void RFF2::update() {
         resolveRequests();
         invokeUpdaters();
-        std::scoped_lock lock(computeShaderManager->mutex);
         renderer->render();
     }
 
@@ -377,7 +376,6 @@ namespace merutilm::rff2 {
         vkh::BufferContext::mapMemory(rootWindowContext->core, bufCtx);
         // NEW COMMAND BUFFER
         {
-            std::scoped_lock lock(computeShaderManager->mutex);
             const auto executor =
                     vkh::ScopedNewCommandBufferExecutor(rootWindowContext->core, rootWindowContext->getCommandPool());
             vkh::BarrierUtils::cmdImageMemoryBarrier(
@@ -416,7 +414,6 @@ namespace merutilm::rff2 {
     }
 
     void RFF2::applyShaderSettings(const Settings &s) const {
-        std::scoped_lock lock(computeShaderManager->mutex);
         rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
         renderer->rg0->iterationPalette->setPalette(s.shader.palette);
         renderer->rg0->stripe->setStripe(s.shader.stripe);
@@ -857,16 +854,16 @@ namespace merutilm::rff2 {
         const uint32_t height = getIterationBufferHeight();
 
         {
-            std::scoped_lock lock(computeShaderManager->mutex);
+            vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
             const auto tableLen = cache ? cache->tableSizeUsed : 0;
             const auto mapperLen = cache ? cache->mapperSizeUsed : 0;
 
-            renderer->computeIterate->resetWriteBuffer(VkExtent2D{width, height});
+            renderer->computeIterate->resetWriteBuffer(VkExtent2D{width, height}, commandPool);
             renderer->computeIterate->setRenderMeta(
                     renderData->fractalSettings, s.render, lightRef->refOrbit,
                     static_cast<complex<float>>(renderData->getPerturbator()->off),
                     static_cast<uint32_t>(renderData->fractalSettings.perturb.maxIteration), tableData, tableLen,
-                    mapperData, mapperLen);
+                    mapperData, mapperLen, commandPool);
         } // preparing render meta scope
 
 
@@ -896,30 +893,30 @@ namespace merutilm::rff2 {
             setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale("en_US.UTF-8"), "Batching... ({:L})", currentBatchIteration));
 
             computeShaderManager->fence->waitAndReset();
-            std::scoped_lock lock(computeShaderManager->mutex);
 
             {
-                const VkCommandBuffer commandBuffer = computeShaderManager->commandBuffer->getCommandBufferHandle();
-                const VkFence fence = computeShaderManager->fence->getFenceHandle();
+                vkh::CommandBuffer &commandBuffer = *computeShaderManager->commandBuffer;
+                vkh::Fence &fence = *computeShaderManager->fence;
+                const VkCommandBuffer cbh = commandBuffer.getCommandBufferHandle();
 
-                const vkh::ScopedCommandBufferExecutor executor(*rootWindowContext, commandBuffer, fence,
+                const vkh::ScopedCommandBufferExecutor executor(*rootWindowContext, cbh, fence.getFenceHandle(),
                                                                 VK_NULL_HANDLE, VK_NULL_HANDLE);
 
-                renderer->computeIterate->cmdRender(commandBuffer, 0, {});
+                renderer->computeIterate->cmdRender(cbh, 0, {});
 
                 vkh::BarrierUtils::cmdBufferMemoryBarrier(
-                        commandBuffer, VK_ACCESS_MEMORY_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                        cbh, VK_ACCESS_MEMORY_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
                         resultLocalIterBuffer.buffer, 0, resultLocalIterBuffer.bufferSize,
                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
 
                 vkh::BarrierUtils::cmdBufferMemoryBarrier(
-                        commandBuffer, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, batchCtx.buffer, 0,
+                        cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, batchCtx.buffer, 0,
                         batchCtx.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT);
 
-                vkh::BufferImageContextUtils::cmdCopyBuffer(commandBuffer, resultLocalIterBuffer, visibleIterBuffer);
-                vkh::BufferImageContextUtils::cmdCopyBuffer(commandBuffer, batchCtx, dstBatchBuffer);
+                vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, resultLocalIterBuffer, visibleIterBuffer);
+                vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, batchCtx, dstBatchBuffer);
             }
             computeShaderManager->fence->wait();
 
