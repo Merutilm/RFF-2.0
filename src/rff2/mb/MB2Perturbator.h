@@ -141,7 +141,7 @@ namespace merutilm::rff2 {
                         ++absIteration;
 
                         if (iteration >= maxIteration) {
-                            return static_cast<double>(isAbs ? absIteration : maxIteration);
+                            break;
                         }
                     }
                 }

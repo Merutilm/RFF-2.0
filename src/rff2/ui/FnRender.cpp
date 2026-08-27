@@ -107,27 +107,50 @@ namespace merutilm::rff2 {
             }
             Utilities::imguiHelpMarker("Sets the number of threads while rendering an image.");
 
+            if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0))) {
+                setRenderProperties = false;
+            }
+
+            ImGui::End();
+        }
+    }
+
+    void FnRender::setComputeShader(RFF2 &app) {
+        static bool setComputeShader = false;
+
+        if (!app.engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceFeatures().shaderInt64)
+            return;
+
+        ImGui::Checkbox("Compute Shader", &setComputeShader);
+        if (setComputeShader) {
+
+            ImGui::Begin("Compute Shader");
+
+            auto &[use, mpaMode, batchSize] = app.getSettings().render.computeShader;
 
             if (app.engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceFeatures().shaderInt64) {
-                if (ImGui::Checkbox("Use Compute Shader Instead of Threading",
-                                    &app.getSettings().render.ptbWithComputeShader)) {
+                if (ImGui::Checkbox("Use", &use)) {
                     // noop
                 }
                 Utilities::imguiHelpMarker("Use Compute shader instead of multithreading. "
                                            "it is only available for single-precision values down to 1e-35, "
                                            "uncompressed MP table and uncompressed reference.");
 
-                if (app.getSettings().render.ptbWithComputeShader) {
-                    Utilities::imguiDropdown("Compute Shader MPA Mode",
-                                             &app.getSettings().render.mpaModeForComputeShader);
-                    Utilities::imguiHelpMarker("Sets MPA Mode. finding appropriate pa from mp-table on gpu-level is so expensive.");
+                Utilities::imguiDropdown("MPA Mode", &mpaMode);
+                Utilities::imguiHelpMarker(
+                        "Sets MPA Mode. finding appropriate pa from mp-table on gpu-level is so expensive.");
+
+                if (ImGui::InputScalar("Batch Size", ImGuiDataType_U32, &batchSize)) {
+                    batchSize = std::clamp(batchSize, 1024u, 16777216u);
                 }
+                Utilities::imguiHelpMarker("Sets the absolute iteration batch size of compute shader. "
+                                           "This prevents the graphics driver forces reset gpu if a process takes too long to complete.");
             }
             if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
                 app.getRequests().requestRecompute();
             }
             if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0))) {
-                setRenderProperties = false;
+                setComputeShader = false;
             }
 
             ImGui::End();

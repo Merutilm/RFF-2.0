@@ -3,8 +3,8 @@
 //
 
 #pragma once
+#include <vector>
 #include "../constants/FractalConstants.hpp"
-#include "../data/Matrix.h"
 #include "ParallelRenderState.h"
 namespace merutilm::rff2 {
     template<typename T>
@@ -15,12 +15,14 @@ namespace merutilm::rff2 {
     template<typename T>
     class ParallelArrayDispatcher {
         ParallelRenderState &state;
-        Matrix<T> &matrix;
+        std::vector<T> &arr;
         ParallelArrayRenderer<T> renderer;
         uint32_t threads;
+        uint16_t xRes;
+        uint16_t yRes;
 
     public:
-        ParallelArrayDispatcher(ParallelRenderState &state, Matrix<T> &matrix, uint32_t threads,
+        ParallelArrayDispatcher(ParallelRenderState &state, std::vector<T> &arr, uint16_t xRes, uint16_t yRes, uint32_t threads,
                                 ParallelArrayRenderer<T> renderer);
 
 
@@ -30,10 +32,10 @@ namespace merutilm::rff2 {
         static std::vector<uint16_t> getRenderPriority(uint16_t rpy);
 
 
-        void renderForward(uint16_t xRes, uint16_t yRes, uint16_t y, std::vector<std::atomic<bool> > &rendered);
+        void renderForward(uint32_t start, uint32_t batchSize, std::vector<std::atomic<bool>> &rendered);
 
 
-        void renderBackward(uint16_t xRes, uint16_t yRes, uint32_t len, std::vector<std::atomic<bool> > &rendered);
+        void renderBackward(uint32_t len, std::vector<std::atomic<bool> > &rendered);
     };
 
     // DEFINITION OF PARALLEL ARRAY DISPATCHER  DEFINITION OF PARALLEL ARRAY DISPATCHER  DEFINITION OF PARALLEL ARRAY DISPATCHER  DEFINITION OF PARALLEL ARRAY DISPATCHER
@@ -44,33 +46,27 @@ namespace merutilm::rff2 {
 
 
     template<typename T>
-    ParallelArrayDispatcher<T>::ParallelArrayDispatcher(ParallelRenderState &state, Matrix<T> &matrix, const uint32_t threads,
-                                                        ParallelArrayRenderer<T> renderer) : state(state), matrix(matrix),
-        renderer(std::move(renderer)), threads(threads) {
+    ParallelArrayDispatcher<T>::ParallelArrayDispatcher(ParallelRenderState &state, std::vector<T> &arr, const uint16_t xRes, const uint16_t yRes, const uint32_t threads,
+                                                        ParallelArrayRenderer<T> renderer) : state(state), arr(arr), renderer(std::move(renderer)), threads(threads),
+        xRes(xRes), yRes(yRes) {
     }
 
     template<typename T>
     void ParallelArrayDispatcher<T>::dispatch() {
-        const uint16_t rpy = matrix.getHeight() / threads + 1;
         if (state.interruptRequested()) {
             return;
         }
 
-
-        const std::vector<uint16_t> rpyIndices = getRenderPriority(rpy);
         auto threadPool = std::vector<std::jthread>();
         threadPool.reserve(threads);
-        auto xRes = matrix.getWidth();
-        auto yRes = matrix.getHeight();
-        auto len = matrix.getLength();
+        auto len = arr.size();
         auto rendered = std::vector<std::atomic<bool> >(len);
+        auto batchSize = len / threads + 1;
 
-        for (uint16_t sy = 0; sy < matrix.getHeight(); sy += rpy) {
-            threadPool.emplace_back([sy, &rpyIndices, xRes, yRes, this, &rendered, len] {
-                for (const auto vy: rpyIndices) {
-                    renderForward(xRes, yRes, sy + vy, rendered);
-                }
-                renderBackward(xRes, yRes, len, rendered);
+        for (uint32_t start = 0; start < len; start += batchSize) {
+            threadPool.emplace_back([start, batchSize, this, &rendered, len] {
+                renderForward(start, batchSize, rendered);
+                renderBackward(len, rendered);
             });
         }
 
@@ -119,40 +115,47 @@ namespace merutilm::rff2 {
 
 
     template<typename T>
-    void ParallelArrayDispatcher<T>::renderForward(const uint16_t xRes, const uint16_t yRes, const uint16_t y,
+    void ParallelArrayDispatcher<T>::renderForward(const uint32_t start, const uint32_t batchSize,
                                                    std::vector<std::atomic<bool> > &rendered) {
-        if (y >= yRes) {
+        if (start >= rendered.size()) {
             return;
         }
 
-        for (uint16_t x = 0; x < xRes; ++x) {
-            if (x % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+
+
+        for (uint32_t i = 0; i < batchSize; ++i) {
+            if (i % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
 
-            uint32_t i = static_cast<uint32_t>(xRes) * y + x;
+            uint32_t index = start + i;
+            if (index >= arr.size()) return;
 
-            if (!rendered[i].exchange(true)) {
-                matrix[i] = renderer(x, y, xRes, yRes, static_cast<float>(x) / xRes,
-                                     static_cast<float>(y) / yRes, i, matrix[i]);
+            auto x = static_cast<uint16_t>(index % xRes);
+            auto y = static_cast<uint16_t>(index / xRes);
+
+            if (!rendered[index].exchange(true)) {
+                arr[index] = renderer(x, y, xRes, yRes, static_cast<float>(x) / xRes,
+                                     static_cast<float>(y) / yRes, index, arr[index]);
             }
         }
     }
 
 
     template<typename T>
-    void ParallelArrayDispatcher<T>::renderBackward(const uint16_t xRes, const uint16_t yRes, const uint32_t len,
+    void ParallelArrayDispatcher<T>::renderBackward(const uint32_t len,
                                                     std::vector<std::atomic<bool> > &rendered) {
         for (uint32_t i = len - 1; i > 0; --i) {
             if (i % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
-            const auto [px, py] = matrix.getLocation(i);
+            auto px = static_cast<uint16_t>(i % xRes);
+            auto py = static_cast<uint16_t>(i / xRes);
 
             if (!rendered[i].exchange(true)) {
                 T c = renderer(px, py, xRes, yRes, static_cast<float>(px) / xRes, static_cast<float>(py) / yRes, i,
-                                    matrix[i]);
-                matrix[i] = std::move(c);
+                                    arr[i]);
+                arr[i] = std::move(c);
             }
         }
     }

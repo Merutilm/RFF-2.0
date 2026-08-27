@@ -6,56 +6,44 @@
 
 #include <thread>
 
-#include "../../settings/RndMPAModeForComputeShader.hpp"
+#include "../../settings/RndCmpMPAMode.hpp"
 
 
 namespace merutilm::rff2 {
-    std::string RenderPresets::Potato::getName() const {
-        return "Potato";
-    }
+    std::string RenderPresets::Potato::getName() const { return "Potato"; }
 
     RenderSettings RenderPresets::Potato::genRender() const {
-        return RenderSettings{0.1f, 60, false};
+        return RenderSettings{0.1f, 60, {.use = false, .mpaMode = RndCmpMPAMode::FULL, .absIterationBatchSize = 81920}};
     }
 
 
-    std::string RenderPresets::Low::getName() const {
-        return "Low";
-    }
+    std::string RenderPresets::Low::getName() const { return "Low"; }
 
     RenderSettings RenderPresets::Low::genRender() const {
-        return RenderSettings{0.3f, 60, false};
+        return RenderSettings{0.3f, 60, {.use = false, .mpaMode = RndCmpMPAMode::FULL, .absIterationBatchSize = 81920}};
     }
 
-    std::string RenderPresets::Medium::getName() const {
-        return "Medium";
-    }
+    std::string RenderPresets::Medium::getName() const { return "Medium"; }
 
     RenderSettings RenderPresets::Medium::genRender() const {
-        return RenderSettings{0.5f, 60, false, RndMPAModeForComputeShader::FULL};
+        return RenderSettings{0.5f, 60, {.use = false, .mpaMode = RndCmpMPAMode::FULL, .absIterationBatchSize = 81920}};
     }
 
-    std::string RenderPresets::High::getName() const {
-        return "High";
-    }
+    std::string RenderPresets::High::getName() const { return "High"; }
 
     RenderSettings RenderPresets::High::genRender() const {
-        return RenderSettings{1.0f, 60, false, RndMPAModeForComputeShader::FULL};
+        return RenderSettings{1.0f, 60, {.use = false, .mpaMode = RndCmpMPAMode::FULL, .absIterationBatchSize = 81920}};
     }
 
-    std::string RenderPresets::Ultra::getName() const {
-        return "Ultra";
-    }
+    std::string RenderPresets::Ultra::getName() const { return "Ultra"; }
 
     RenderSettings RenderPresets::Ultra::genRender() const {
-        return RenderSettings{2.0f, 60, false, RndMPAModeForComputeShader::FULL};
+        return RenderSettings{2.0f, 60, {.use = false, .mpaMode = RndCmpMPAMode::FULL, .absIterationBatchSize = 81920}};
     }
 
-    std::string RenderPresets::Extreme::getName() const {
-        return "Extreme (DANGER)";
-    }
+    std::string RenderPresets::Extreme::getName() const { return "Extreme (DANGER)"; }
 
     RenderSettings RenderPresets::Extreme::genRender() const {
-        return RenderSettings{4.0f,  60, false, RndMPAModeForComputeShader::FULL};
+        return RenderSettings{4.0f, 60, {.use = false, .mpaMode = RndCmpMPAMode::FULL, .absIterationBatchSize = 81920}};
     }
-}
+} // namespace merutilm::rff2

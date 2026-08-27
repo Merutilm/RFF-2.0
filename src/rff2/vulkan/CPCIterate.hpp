@@ -6,11 +6,9 @@
 #include "../calc/complex.hpp"
 #include "../mrthy/MPAIndexMapper.hpp"
 #include "../mrthy/PA.h"
-#include "../settings/FrtDecimalizeIterationMethod.h"
-#include "../settings/FrtMPASelectionMethod.h"
-#include "../settings/RndMPAModeForComputeShader.hpp"
+#include "../settings/FractalSettings.h"
+#include "../settings/RenderSettings.h"
 #include "vulkan_helper/engine/configurator/ComputePipelineConfigurator.hpp"
-
 
 namespace merutilm::rff2 {
     struct CPCIterate final : public vkh::ComputePipelineConfigurator {
@@ -41,7 +39,11 @@ namespace merutilm::rff2 {
         static constexpr uint32_t TARGET_RM_MAPPER_LEN = 0;
         static constexpr uint32_t TARGET_RM_MAPPER_DATA = 1;
 
-        CPCIterate(vkh::Engine &engine, vkh::WindowContext &wc) :
+        static constexpr uint32_t BINDING_RM_BATCH_SSBO = 3;
+        static constexpr uint32_t TARGET_RM_BATCH_SIZE = 0;
+        static constexpr uint32_t TARGET_RM_BATCH_STAGING_DATA = 1;
+
+        explicit CPCIterate(vkh::Engine &engine, vkh::WindowContext &wc) :
             ComputePipelineConfigurator(engine, wc, "vk_iterate.comp") {
 
         }
@@ -52,10 +54,18 @@ namespace merutilm::rff2 {
 
         vkh::PipelineSpecialization createSpecializationInfo() override;
 
-        void setRenderMeta(const std::vector<complex<float>> &reference, complex<float> offset, uint32_t maxIteration,
-                           float logZoom, float bailout, float clarityMultiplier, RndMPAModeForComputeShader mpaMode, FrtDecimalizeIterationMethod decimalizeIterationMethod,
+        [[nodiscard]] const vkh::BufferContext &getWriteBuffer() const;
+
+        void resetWriteBuffer(VkExtent2D extent);
+
+        void setRenderMeta(const FractalSettings &frt, const RenderSettings &render,
+                           const std::vector<complex<float>> &reference, complex<float> offset, uint32_t maxIteration,
                            const PA<float> *mpTableData, uint64_t tableLen, const MPAIndexMapper *mapperData,
-                           uint64_t mapperLen, FrtMPASelectionMethod selectionMethod);
+                           uint64_t mapperLen);
+
+
+
+        [[nodiscard]] const vkh::BufferContext &getBatchBuffer() const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;

@@ -5,9 +5,9 @@
 #pragma once
 
 #include <vulkan_helper/base/pch.hpp>
-#include <vulkan_helper/engine/cmd/CommandBuffer.hpp>
+#include <vulkan_helper/engine/cmd/CommandBufferGroup.hpp>
 #include <vulkan_helper/engine/repo/Repositories.hpp>
-#include <vulkan_helper/engine/sync/SyncObject.hpp>
+#include <vulkan_helper/engine/sync/SyncObjectGroup.hpp>
 #include <vulkan_helper/engine/window/Surface.hpp>
 #include <vulkan_helper/engine/window/Swapchain.hpp>
 #include "RenderContext.hpp"
@@ -22,8 +22,8 @@ namespace merutilm::vkh {
         std::optional<Swapchain> swapchain;
         std::optional<Repositories> windowLocalRepositories;
         std::optional<CommandPool> commandPool;
-        std::optional<CommandBuffer> commandBuffer;
-        std::optional<SyncObject> syncObject;
+        std::optional<CommandBufferGroup> commandBuffers;
+        std::optional<SyncObjectGroup> syncObject;
         std::optional<SharedImageContext> sharedImageContext;
         std::vector<std::unique_ptr<RenderContext>> renderContexts = {};
 
@@ -53,9 +53,9 @@ namespace merutilm::vkh {
 
         [[nodiscard]] CommandPool &getCommandPool() { return *commandPool; }
 
-        [[nodiscard]] CommandBuffer &getCommandBuffer() { return *commandBuffer; }
+        [[nodiscard]] CommandBufferGroup &getCommandBufferGroup() { return *commandBuffers; }
 
-        [[nodiscard]] SyncObject &getSyncObject() { return *syncObject; }
+        [[nodiscard]] SyncObjectGroup &getSyncObject() { return *syncObject; }
 
         [[nodiscard]] SharedImageContext &getSharedImageContext() { return *sharedImageContext; }
         [[nodiscard]] std::vector<std::unique_ptr<RenderContext>> &getRenderContexts() { return renderContexts; }

@@ -55,11 +55,12 @@ namespace merutilm::rff2 {
             data[getIndex(x, y)] = value;
         }
 
-        void fill() {
-            if (updated) {
-                updated = false;
-                vkh::BufferContext::fill(context, data);
-            }
+        bool fill() {
+            if (!updated) return false;
+
+            updated = false;
+            vkh::BufferContext::fill(context, data);
+            return true;
         }
 
         void markUpdate() {

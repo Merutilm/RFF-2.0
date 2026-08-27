@@ -12,7 +12,13 @@
 // include utilities
 
 
-
+struct BatchStagingData {
+    uint64_t iteration;
+    uint64_t ref_iteration;
+    vec2 dz;
+    float distance2;
+    uint completed;
+};
 
 struct PA {
     uint64_t skip;
@@ -55,6 +61,12 @@ layout (std430, set = 1, binding = 2) readonly buffer MPMapperMeta {
 } mp_mapper_meta;
 
 
+layout (std430, set = 1, binding = 3) buffer BatchData{
+    uint size;
+    BatchStagingData[] staging_values;
+} batch_data;
+
+
 vec2 mul_comp(vec2 a, vec2 b)
 {
     return vec2(
@@ -70,8 +82,8 @@ float norm2(vec2 a)
 }
 
 
-vec2 offset_conversion(vec2 pixel, vec2 extent) {
-    return (pixel - extent / 2) / pow(10, render_meta.log_zoom) / render_meta.clarity_multiplier;
+vec2 offset_conversion(uvec2 pixel, uvec2 extent) {
+    return (vec2(pixel) - vec2(extent) / 2) / pow(10, render_meta.log_zoom) / render_meta.clarity_multiplier;
 }
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
@@ -208,23 +220,28 @@ float get_exterior_double_value_iteration_ratio(float prev_distance, float curr_
 }
 
 void main() {
-    uint64_t iteration = uint64_t(0);
-    uint64_t ref_iteration = uint64_t(0);
-    vec2 dz = vec2(0, 0);
 
-    int px = int(gl_GlobalInvocationID.x);
-    int py = int(gl_GlobalInvocationID.y);
-    vec2 pixel = vec2(px, py);
+
+    uint px = gl_GlobalInvocationID.x;
+    uint py = gl_GlobalInvocationID.y;
+    uvec2 pixel = uvec2(px, py);
     uint index = py * iteration_info_settings.extent.x + px;
 
-    vec2 extent = vec2(iteration_info_settings.extent);
+    if (px >= int(iteration_info_settings.extent.x) || py >= int(iteration_info_settings.extent.y)) return;
+    if (batch_data.staging_values[index].completed != 0) return;
+
+    vec2 dz = batch_data.staging_values[index].dz;
+    uvec2 extent = uvec2(iteration_info_settings.extent);
     float bailout2 = render_meta.bailout * render_meta.bailout;
 
+    uint64_t iteration = batch_data.staging_values[index].iteration;
+    uint64_t ref_iteration = batch_data.staging_values[index].ref_iteration;
     vec2 dc = offset_conversion(pixel, extent) + render_meta.offset;
     float prev_distance2 = 0;
-    float curr_distance2 = 0;
+    float curr_distance2 = batch_data.staging_values[index].distance2;
+    uint batch_iteration = 0;
 
-    while (iteration < render_meta.max_iteration)
+    while (iteration < render_meta.max_iteration && batch_iteration < batch_data.size)
     {
         if (mp_table_meta.len != 0) {
             PA pa = lookup(ref_iteration, dz);
@@ -232,10 +249,10 @@ void main() {
                 dz = apply(pa, dz, dc);
                 iteration += pa.skip;
                 ref_iteration += pa.skip;
+                ++batch_iteration;
 
                 if (iteration >= render_meta.max_iteration) {
-                    iteration_settings.iterations[index] = double(render_meta.max_iteration);
-                    return;
+                    break;
                 }
             }
         }
@@ -250,6 +267,7 @@ void main() {
 
             ++ref_iteration;
             ++iteration;
+            ++batch_iteration;
         }
 
         vec2 z = render_meta.orbit[compress(ref_iteration)] + dz;
@@ -261,11 +279,15 @@ void main() {
             dz = z;
         }
 
-        if (curr_distance2 > bailout2) break;
+        if (curr_distance2 > bailout2) {
+            batch_data.staging_values[index].completed = 1;
+            break;
+        }
     }
 
     if (iteration >= render_meta.max_iteration) {
         iteration_settings.iterations[index] = render_meta.max_iteration;
+        batch_data.staging_values[index].completed = 1;
         return;
     }
 
@@ -273,5 +295,9 @@ void main() {
     float curr_distance = sqrt(curr_distance2);
 
     iteration_settings.iterations[index] = double(iteration) + get_exterior_double_value_iteration_ratio(prev_distance, curr_distance);
+    batch_data.staging_values[index].dz = dz;
+    batch_data.staging_values[index].ref_iteration = ref_iteration;
+    batch_data.staging_values[index].iteration = iteration;
+    batch_data.staging_values[index].distance2 = curr_distance2;
 
 }

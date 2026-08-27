@@ -2,18 +2,18 @@
 // Created by Merutilm on 2025-09-01.
 //
 
-#include <vulkan_helper/engine/sync/Semaphore.hpp>
+#include <vulkan_helper/engine/sync/SemaphoreGroup.hpp>
 
 namespace merutilm::vkh {
-    Semaphore::Semaphore(Core & core) : CoreHandler(core) {
-        Semaphore::init();
+    SemaphoreGroup::SemaphoreGroup(Core & core) : CoreHandler(core) {
+        SemaphoreGroup::init();
     }
 
-    Semaphore::~Semaphore() {
-        Semaphore::cleanup();
+    SemaphoreGroup::~SemaphoreGroup() {
+        SemaphoreGroup::cleanup();
     }
 
-    void Semaphore::init() {
+    void SemaphoreGroup::init() {
 
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
 
@@ -30,7 +30,7 @@ namespace merutilm::vkh {
         }
     }
 
-    void Semaphore::cleanup() {
+    void SemaphoreGroup::cleanup() {
         const VkDevice device = core.getLogicalDevice().getLogicalDeviceHandle();
         vkDestroySemaphore(device, imageAvailable, nullptr);
         vkDestroySemaphore(device, renderFinished, nullptr);

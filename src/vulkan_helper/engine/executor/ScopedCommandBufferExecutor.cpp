@@ -6,10 +6,10 @@
 
 namespace merutilm::vkh {
     ScopedCommandBufferExecutor::ScopedCommandBufferExecutor(
-        WindowContext & wc, const uint32_t frameIndex, const VkFence fence, const VkSemaphore imageAvailable,
-        const VkSemaphore renderFinished) : WindowContextHandler(wc),
-                                            frameIndex(frameIndex), fence(fence),
-                                            imageAvailable(imageAvailable), renderFinished(renderFinished) {
+        WindowContext & wc, const VkCommandBuffer commandBuffer, const VkFence fence, const VkSemaphore wait,
+        const VkSemaphore signal) : WindowContextHandler(wc),
+                                            commandBuffer(commandBuffer), fence(fence),
+                                            wait(wait), signal(signal) {
         ScopedCommandBufferExecutor::init();
     }
 
@@ -19,7 +19,6 @@ namespace merutilm::vkh {
 
 
     void ScopedCommandBufferExecutor::init() {
-        const VkCommandBuffer cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
         constexpr VkCommandBufferBeginInfo beginInfo = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
             .pNext = nullptr,
@@ -27,27 +26,26 @@ namespace merutilm::vkh {
             .pInheritanceInfo = nullptr
         };
 
-        vkResetCommandBuffer(cbh, 0);
-        if (vkBeginCommandBuffer(cbh, &beginInfo) != VK_SUCCESS) {
+        vkResetCommandBuffer(commandBuffer, 0);
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
             throw exception_init("Failed to begin command buffer operation.");
         }
     }
 
     void ScopedCommandBufferExecutor::cleanup() {
-        const VkCommandBuffer cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
-        vkEndCommandBuffer(cbh);
+        vkEndCommandBuffer(commandBuffer);
 
         std::vector<VkPipelineStageFlags> waitPipelineStage = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         const VkSubmitInfo submitInfo = {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .pNext = nullptr,
-            .waitSemaphoreCount = imageAvailable == VK_NULL_HANDLE ? 0 : 1u,
-            .pWaitSemaphores = imageAvailable == VK_NULL_HANDLE ? nullptr : &imageAvailable,
+            .waitSemaphoreCount = wait == VK_NULL_HANDLE ? 0 : 1u,
+            .pWaitSemaphores = wait == VK_NULL_HANDLE ? nullptr : &wait,
             .pWaitDstStageMask = waitPipelineStage.data(),
             .commandBufferCount = 1u,
-            .pCommandBuffers = &cbh,
-            .signalSemaphoreCount = renderFinished == VK_NULL_HANDLE ? 0 : 1u,
-            .pSignalSemaphores = renderFinished == VK_NULL_HANDLE ? nullptr : &renderFinished,
+            .pCommandBuffers = &commandBuffer,
+            .signalSemaphoreCount = signal == VK_NULL_HANDLE ? 0 : 1u,
+            .pSignalSemaphores = signal == VK_NULL_HANDLE ? nullptr : &signal,
         };
         wc.core.getLogicalDevice().queueSubmit(1, &submitInfo, fence);
     }

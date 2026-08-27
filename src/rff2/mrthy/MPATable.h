@@ -946,7 +946,7 @@ namespace merutilm::rff2 {
         const auto table = getMPAFromMapper(mapper);
         const Num r = dz.norm_approx();
 
-        switch (mpaSettings.mpaSelectionMethod) {
+        switch (mpaSettings.selectionMethod) {
             using enum FrtMPASelectionMethod;
             case LOWEST: {
                 const PA<Num> *pa = nullptr;

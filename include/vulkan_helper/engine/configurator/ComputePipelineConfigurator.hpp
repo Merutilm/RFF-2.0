@@ -7,6 +7,7 @@
 
 namespace merutilm::vkh {
     class ComputePipelineConfigurator : public PipelineConfigurator {
+    protected:
         ShaderModule &computeShader;
         VkExtent2D extent = {};
         static constexpr uint32_t WORK_GROUP_SIZE = 16;

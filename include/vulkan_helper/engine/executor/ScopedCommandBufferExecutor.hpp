@@ -8,12 +8,12 @@
 
 namespace merutilm::vkh {
     class ScopedCommandBufferExecutor final : public WindowContextHandler {
-        const uint32_t frameIndex;
+        const VkCommandBuffer commandBuffer;
         const VkFence fence;
-        const VkSemaphore imageAvailable;
-        const VkSemaphore renderFinished;
+        const VkSemaphore wait;
+        const VkSemaphore signal;
     public:
-        explicit ScopedCommandBufferExecutor(WindowContext & wc, uint32_t frameIndex, VkFence fence, VkSemaphore imageAvailable, VkSemaphore renderFinished);
+        explicit ScopedCommandBufferExecutor(WindowContext & wc, VkCommandBuffer commandBuffer, VkFence fence, VkSemaphore wait, VkSemaphore signal);
 
         ~ScopedCommandBufferExecutor() override;
 

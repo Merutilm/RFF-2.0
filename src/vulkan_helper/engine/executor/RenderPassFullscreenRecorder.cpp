@@ -23,7 +23,7 @@ namespace merutilm::vkh {
 
     void RenderPassFullscreenRecorder::execute(const uint32_t frameIndex) const {
 
-        const auto cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
+        const auto cbh = wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex);
         uint32_t prevSubpass = 0;
         for (const auto &gpn : rc.getGenerator()->pipelines) {
             const uint32_t currentSubpass = gpn->getSubpass();
@@ -38,7 +38,7 @@ namespace merutilm::vkh {
 
 
     void RenderPassFullscreenRecorder::cmdMatchViewportAndScissor() const {
-        const auto cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
+        const auto cbh = wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex);
         const VkExtent2D extent = rc.getFramebuffer()->getExtent();
         const auto [width, height] = extent;
         const VkViewport viewport = {.x = 0,
@@ -71,13 +71,13 @@ namespace merutilm::vkh {
                 .renderArea = {.offset = {0, 0}, .extent = rc.getFramebuffer()->getExtent()},
                 .clearValueCount = static_cast<uint32_t>(clearValues.size()),
                 .pClearValues = clearValues.data()};
-        vkCmdBeginRenderPass(wc.getCommandBuffer().getCommandBufferHandle(frameIndex), &renderPassBeginInfo,
+        vkCmdBeginRenderPass(wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex), &renderPassBeginInfo,
                              VK_SUBPASS_CONTENTS_INLINE);
 
         cmdMatchViewportAndScissor();
     }
 
     void RenderPassFullscreenRecorder::cleanup() {
-        vkCmdEndRenderPass(wc.getCommandBuffer().getCommandBufferHandle(frameIndex));
+        vkCmdEndRenderPass(wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex));
     }
 } // namespace merutilm::vkh

@@ -8,7 +8,7 @@
 
 #include "FrtDecimalizeIterationMethod.h"
 #include "FrtMPASelectionMethod.h"
-#include "RndMPAModeForComputeShader.hpp"
+#include "RndCmpMPAMode.hpp"
 #include "ShdIterationColoringMethod.hpp"
 #include "ShdPalSingleIterationColoringMethod.h"
 #include "ShdStripeType.h"
@@ -61,8 +61,8 @@ namespace merutilm::rff2 {
                     SQUARED
                 };
             }
-            if constexpr (std::is_same_v<E, RndMPAModeForComputeShader>) {
-                using enum RndMPAModeForComputeShader;
+            if constexpr (std::is_same_v<E, RndCmpMPAMode>) {
+                using enum RndCmpMPAMode;
                 return {
                     OFF,
                     FIRST_REFITERATION_ONLY,
@@ -121,9 +121,9 @@ namespace merutilm::rff2 {
                     default: break;
                 }
             }
-            if constexpr (std::is_same_v<E, RndMPAModeForComputeShader>) {
+            if constexpr (std::is_same_v<E, RndCmpMPAMode>) {
                 switch (value) {
-                    using enum RndMPAModeForComputeShader;
+                    using enum RndCmpMPAMode;
                     case OFF: return "Off";
                     case FIRST_REFITERATION_ONLY: return "First Ref Iteration Only";
                     case FULL: return "Fully Use";

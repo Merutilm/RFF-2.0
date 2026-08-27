@@ -27,7 +27,7 @@ namespace merutilm::vkh {
         windowLocalRepositories.emplace();
         configureRepositories();
         commandPool.emplace(core);
-        commandBuffer.emplace(core, *commandPool);
+        commandBuffers.emplace(core, *commandPool);
         syncObject.emplace(core);
         sharedImageContext.emplace(core);
     }
@@ -40,7 +40,7 @@ namespace merutilm::vkh {
         renderContexts.clear();
         sharedImageContext.reset();
         syncObject.reset();
-        commandBuffer.reset();
+        commandBuffers.reset();
         commandPool.reset();
         windowLocalRepositories.reset();
         swapchain.reset();

@@ -104,8 +104,7 @@ namespace merutilm::rff2 {
                         // incomplete frame
                         app.getRequests().requestRecompute();
                         thread.waitUntil([&app, &state] {
-                            return !app.getRequests().recomputeRequested &&
-                                   (state.interruptRequested() || app.isIdleCompute());
+                            return app.getRequests().recomputeRequestedState == ComputeState::IDLE || state.interruptRequested();
                         });
                     }
                     if (state.interruptRequested()) {

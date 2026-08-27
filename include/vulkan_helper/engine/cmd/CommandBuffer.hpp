@@ -9,7 +9,7 @@
 
 namespace merutilm::vkh {
     class CommandBuffer final : public CoreHandler {
-        std::vector<VkCommandBuffer> commandBuffers = {};
+        VkCommandBuffer commandBuffer = {};
         CommandPool & commandPool;
     public:
         explicit CommandBuffer(Core & core, CommandPool & commandPool);
@@ -24,7 +24,9 @@ namespace merutilm::vkh {
 
         CommandBuffer &operator=(CommandBuffer &&) = delete;
 
-        [[nodiscard]] VkCommandBuffer getCommandBufferHandle(const uint32_t frameIndex) const { return commandBuffers[frameIndex]; }
+        [[nodiscard]] VkCommandBuffer getCommandBufferHandle() const {
+            return commandBuffer;
+        }
 
         [[nodiscard]] CommandPool &getCommandPool() const {
             return commandPool;

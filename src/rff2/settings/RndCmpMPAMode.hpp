@@ -3,9 +3,11 @@
 //
 
 #pragma once
+#include <cstdint>
+
 namespace merutilm::rff2 {
 
-    enum class RndMPAModeForComputeShader : uint32_t{
+    enum class RndCmpMPAMode : uint32_t{
         OFF,
         FIRST_REFITERATION_ONLY,
         FULL

@@ -111,7 +111,7 @@ namespace merutilm::rff2 {
 
 
         void cmdRender(const uint32_t swapchainImageIndex) override {
-            const auto cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
+            const auto cbh = wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex);
             const auto mfg = [this](const uint32_t index) {
                 return wc.getSharedImageContext().getImageContextMF(index)[frameIndex].image;
             };

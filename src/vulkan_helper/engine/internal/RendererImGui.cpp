@@ -36,7 +36,7 @@ namespace merutilm::vkh {
         ImDrawData* drawData = ImGui::GetDrawData();
         const auto renderPassRecorder = RenderPassFullscreenRecorder(
                 wc, *imguiRenderContext, frameIndex, swapchainImageIndex);
-        if (drawData) ImGui_ImplVulkan_RenderDrawData(drawData, wc.getCommandBuffer().getCommandBufferHandle(frameIndex));
+        if (drawData) ImGui_ImplVulkan_RenderDrawData(drawData, wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex));
     }
 } // namespace merutilm::vkh
 #endif

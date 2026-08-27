@@ -1,6 +1,7 @@
 
 
 add_library(engine_cmd OBJECT
+        CommandBufferGroup.cpp
         CommandBuffer.cpp
         CommandPool.cpp
 )

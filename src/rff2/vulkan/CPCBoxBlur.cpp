@@ -29,7 +29,7 @@ namespace merutilm::rff2 {
 
 
     void CPCBoxBlur::cmdGaussianBlur(const uint32_t frameIndex, const uint32_t blurSizeDescIndex) {
-        const VkCommandBuffer cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
+        const VkCommandBuffer cbh = wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex);
         auto &blurDesc = getDescriptor(SET_BLUR_IMAGE);
 
         auto ctxGetter = [&blurDesc, &frameIndex](const uint32_t descIndex, const uint32_t binding) {

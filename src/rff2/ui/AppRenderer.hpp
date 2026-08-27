@@ -44,7 +44,8 @@ namespace merutilm::rff2 {
         CPCBoxBlur *computeBoxBlur = nullptr;
 
 
-        std::unique_ptr<GraphicsMatrixBuffer<double>> iterationStagingBufferContext = nullptr;
+        std::unique_ptr<GraphicsMatrixBuffer<double>> visibleIterationBufferContext = nullptr;
+        bool updateStagingBuffer;
 
         template<typename F>
             requires std::is_invocable_v<F>
@@ -133,18 +134,23 @@ namespace merutilm::rff2 {
 
         void cmdRender(const uint32_t swapchainImageIndex) override {
 
-            const auto cbh = wc.getCommandBuffer().getCommandBufferHandle(frameIndex);
+            const auto cbh = wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex);
             const auto mfg = [this](const uint32_t index) {
                 return wc.getSharedImageContext().getImageContextMF(index)[frameIndex].image;
             };
 
 
-            rg0->iterationPalette->cmdRefreshIterations(wc.getCommandBuffer().getCommandBufferHandle(frameIndex),
-                                                        iterationStagingBufferContext->getContext());
-            auto &ctx = rg0->iterationPalette->getResultIterationBuffer();
-            vkh::BarrierUtils::cmdBufferMemoryBarrier(cbh, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
-                                                      ctx.buffer, 0, ctx.bufferSize, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                                      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            if (updateStagingBuffer) {
+                updateStagingBuffer = false;
+
+                rg0->iterationPalette->cmdRefreshIterations(wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex),
+                                                        visibleIterationBufferContext->getContext());
+                auto &ctx = rg0->iterationPalette->getResultIterationBuffer();
+                vkh::BarrierUtils::cmdBufferMemoryBarrier(cbh, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                                                          ctx.buffer, 0, ctx.bufferSize, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            }
+
 
             // [BARRIER] Safe-copy iteration buffer
 
@@ -259,12 +265,12 @@ namespace merutilm::rff2 {
             // [IN] SECONDARY
             // [OUT] EXTERNAL
 
-            vkh::BarrierUtils::cmdOverlaySwapchain(wc.getCommandBuffer().getCommandBufferHandle(frameIndex),
+            vkh::BarrierUtils::cmdOverlaySwapchain(wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex),
                                                    wc.getSwapchain().getSwapchainImages()[swapchainImageIndex]);
 
             RendererImGui::cmdRender(swapchainImageIndex);
         }
 
-        void cleanup() override { iterationStagingBufferContext = nullptr; }
+        void cleanup() override { visibleIterationBufferContext = nullptr; }
     };
 } // namespace merutilm::rff2

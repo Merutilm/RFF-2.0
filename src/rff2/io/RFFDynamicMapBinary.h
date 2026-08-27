@@ -4,9 +4,9 @@
 
 #pragma once
 #include <filesystem>
+#include <vector>
 
 #include "RFFBinary.h"
-#include "../data/Matrix.h"
 
 namespace merutilm::rff2 {
     struct RFFDynamicMapBinary final : RFFBinary{

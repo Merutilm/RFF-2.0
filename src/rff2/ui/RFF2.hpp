@@ -12,6 +12,7 @@
 #include "../preset/Presets.h"
 #include "../settings/Settings.h"
 #include "AppRenderer.hpp"
+#include "ComputeShaderRenderManager.hpp"
 #include "CursorManager.hpp"
 #include "UpdateRequests.hpp"
 #include "VideoProgressInfo.hpp"
@@ -22,19 +23,19 @@ namespace merutilm::rff2 {
     class RFF2 final : public vkh::Application {
 
         ParallelRenderState state = {};
-        std::mutex ptbWithComputeShaderMutex;
+
         Settings settings;
         UpdateRequests requests = {};
         AppRenderer *renderer = nullptr;
 
-        std::atomic<bool> idleCompute = true;
+
         std::atomic<bool> canShowPreview = false;
 
         std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
-        std::unique_ptr<Matrix<double>> actualIterationMatrix = nullptr;
         std::unique_ptr<MB2RenderDataBase> renderData = nullptr;
         std::unique_ptr<ApproxTableCacheBase> approxTableCache = nullptr;
         std::unique_ptr<CursorManager> cursorManager = nullptr;
+        std::unique_ptr<ComputeShaderRenderManager> computeShaderManager = nullptr;
 
         ZoomAnimationInfo zoomAnimationInfo;
         VideoProgressInfo videoProgressInfo = {};
@@ -83,7 +84,7 @@ namespace merutilm::rff2 {
 
         void applyShaderSettings(const Settings &s) const;
 
-        void refreshResizeParams(VkExtent2D swapchainExtent);
+        void refreshResizeParams(VkExtent2D swapchainExtent) const;
 
         void registerRenderers() override;
 
@@ -111,7 +112,9 @@ namespace merutilm::rff2 {
         void beforeIterationFill() const;
 
         bool prepareRenderData(float startTime, const Settings &s);
+        void fillIterationComputeShader(const NormalMB2Reference *lightRef, float startTime, const Settings &s);
 
+        void fillIterationMultithreaded(float startTime, const Settings &s);
         bool fillIteration(float startTime, const Settings &s);
 
         void afterComputeFinally(bool success);
@@ -143,12 +146,10 @@ namespace merutilm::rff2 {
             return {renderData->fractalSettings.general.logZoom,
                     renderData->getReference()->longestPeriod(),
                     renderData->fractalSettings.perturb.maxIteration,
-                    renderer->iterationStagingBufferContext->getData(),
-                    renderer->iterationStagingBufferContext->getWidth(),
-                    renderer->iterationStagingBufferContext->getHeight()};
+                    renderer->visibleIterationBufferContext->getData(),
+                    renderer->visibleIterationBufferContext->getWidth(),
+                    renderer->visibleIterationBufferContext->getHeight()};
         }
-
-        [[nodiscard]] bool isIdleCompute() const { return idleCompute; }
 
 
         [[nodiscard]] vkh::WindowContext &getWindowContext() const { return *rootWindowContext; }
@@ -163,6 +164,7 @@ namespace merutilm::rff2 {
         void onResize(VkExtent2D newExtent);
 
         void onQuit();
+        void resolveRequests();
 
         VideoProgressInfo &getVideoProgressInfo() { return videoProgressInfo; }
 

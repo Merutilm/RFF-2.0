@@ -12,7 +12,7 @@ namespace merutilm::rff2 {
         uint16_t minSkipReference;
         uint8_t maxMultiplierBetweenLevel;
         float epsilonPower;
-        FrtMPASelectionMethod mpaSelectionMethod;
+        FrtMPASelectionMethod selectionMethod;
         bool useCompress;
         bool useParallelization;
     };
