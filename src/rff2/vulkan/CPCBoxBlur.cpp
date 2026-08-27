@@ -128,7 +128,7 @@ namespace merutilm::rff2 {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<float>(TARGET_BLUR_UBO_BLUR_SIZE);
             auto descUBO = std::make_unique<vkh::Uniform>(wc.core, std::move(bufferManager),
-                                                              vkh::BufferLock::LOCK_UNLOCK, true);
+                                                              vkh::BufferLocalization::BIDIRECTIONAL, true);
             descManager.appendUBO(BINDING_BLUR_RADIUS_UBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(descUBO));
             radDesc.emplace_back(std::move(descManager));
         }

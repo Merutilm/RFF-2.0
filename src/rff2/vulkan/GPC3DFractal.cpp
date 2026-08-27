@@ -68,8 +68,8 @@ namespace merutilm::rff2 {
             vbo.updateMF(frameIndex);
             ibo.updateMF(frameIndex);
         });
-        vbo.lock(wc.getCommandPool());
-        ibo.lock(wc.getCommandPool());
+        vbo.localize(wc.getCommandPool());
+        ibo.localize(wc.getCommandPool());
     }
 
     void GPC3DFractal::setFractal3D(const ShdFractal3DSettings &fractal3DSettings) const {

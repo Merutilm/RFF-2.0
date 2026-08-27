@@ -11,6 +11,5 @@ namespace merutilm::rff2 {
         uint64_t refIteration = 0;
         glm::vec2 dz = {0, 0};
         float distance2 = 0;
-        uint32_t completed = 0;
     };
 }

@@ -17,7 +17,6 @@ struct BatchStagingData {
     uint64_t ref_iteration;
     vec2 dz;
     float distance2;
-    uint completed;
 };
 
 struct PA {
@@ -61,10 +60,17 @@ layout (std430, set = 1, binding = 2) readonly buffer MPMapperMeta {
 } mp_mapper_meta;
 
 
-layout (std430, set = 1, binding = 3) buffer BatchData{
-    uint size;
+layout (set = 1, binding = 3) uniform BatchInfo{
+    uint batch_size;
+} batch_info;
+
+layout (std430, set = 1, binding = 4) buffer BatchData{
     BatchStagingData[] staging_values;
 } batch_data;
+
+layout (std430, set = 1, binding = 5) buffer BatchResultData{
+    uint[] completed;
+} batch_result_data;
 
 
 vec2 mul_comp(vec2 a, vec2 b)
@@ -228,7 +234,7 @@ void main() {
     uint index = py * iteration_info_settings.extent.x + px;
 
     if (px >= int(iteration_info_settings.extent.x) || py >= int(iteration_info_settings.extent.y)) return;
-    if (batch_data.staging_values[index].completed != 0) return;
+    if (batch_result_data.completed[index] != 0) return;
 
     vec2 dz = batch_data.staging_values[index].dz;
     uvec2 extent = uvec2(iteration_info_settings.extent);
@@ -241,7 +247,7 @@ void main() {
     float curr_distance2 = batch_data.staging_values[index].distance2;
     uint batch_iteration = 0;
 
-    while (iteration < render_meta.max_iteration && batch_iteration < batch_data.size)
+    while (iteration < render_meta.max_iteration && batch_iteration < batch_info.batch_size)
     {
         if (mp_table_meta.len != 0) {
             PA pa = lookup(ref_iteration, dz);
@@ -284,14 +290,14 @@ void main() {
             float prev_distance = sqrt(prev_distance2);
             float curr_distance = sqrt(curr_distance2);
             iteration_settings.iterations[index] = double(iteration) + get_exterior_double_value_iteration_ratio(prev_distance, curr_distance);
-            batch_data.staging_values[index].completed = 1;
+            batch_result_data.completed[index] = 1;
             break;
         }
     }
 
     if (iteration >= render_meta.max_iteration) {
         iteration_settings.iterations[index] = render_meta.max_iteration;
-        batch_data.staging_values[index].completed = 1;
+        batch_result_data.completed[index] = 1;
         return;
     }
 

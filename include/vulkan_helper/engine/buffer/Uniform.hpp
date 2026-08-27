@@ -9,7 +9,7 @@ namespace merutilm::vkh {
     class Uniform final : public BufferObject {
 
     public:
-        explicit Uniform(Core & core, HostDataObjectManager &&manager, BufferLock bufferLock, bool multiframeEnabled);
+        explicit Uniform(Core & core, HostDataObjectManager &&manager, BufferLocalization bufferLocalization, bool multiframeEnabled);
 
         ~Uniform() override;
 

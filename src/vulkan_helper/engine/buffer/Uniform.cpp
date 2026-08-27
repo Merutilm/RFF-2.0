@@ -5,7 +5,7 @@
 #include <vulkan_helper/engine/buffer/Uniform.hpp>
 
 namespace merutilm::vkh {
-    Uniform::Uniform(Core & core, HostDataObjectManager &&manager, const BufferLock bufferLock, const bool multiframeEnabled) : BufferObject(core, std::move(manager), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, bufferLock, multiframeEnabled){
+    Uniform::Uniform(Core & core, HostDataObjectManager &&manager, const BufferLocalization bufferLocalization, const bool multiframeEnabled) : BufferObject(core, std::move(manager), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, bufferLocalization, multiframeEnabled){
         Uniform::init();
     }
 

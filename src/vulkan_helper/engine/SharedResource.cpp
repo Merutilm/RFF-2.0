@@ -33,14 +33,14 @@ namespace merutilm::vkh {
                                 });
         indexManager.addArray(0, std::vector<uint32_t>{0, 1, 2, 2, 3, 0});
 
-        vertexBufferIdentity = std::make_unique<VertexBuffer>(core, std::move(vertManager), BufferLock::LOCK_ONLY, false);
-        indexBufferIdentity = std::make_unique<IndexBuffer>(core, std::move(indexManager), BufferLock::LOCK_ONLY, false);
+        vertexBufferIdentity = std::make_unique<VertexBuffer>(core, std::move(vertManager), BufferLocalization::UNIDIRECTIONAL, false);
+        indexBufferIdentity = std::make_unique<IndexBuffer>(core, std::move(indexManager), BufferLocalization::UNIDIRECTIONAL, false);
         vertexBufferIdentity->update();
         indexBufferIdentity->update();
 
         CommandPool temp(core);
-        vertexBufferIdentity->lock(temp);
-        indexBufferIdentity->lock(temp);
+        vertexBufferIdentity->localize(temp);
+        indexBufferIdentity->localize(temp);
 
     }
     void SharedResource::cleanup() {

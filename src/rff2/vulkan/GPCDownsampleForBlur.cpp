@@ -80,7 +80,7 @@ namespace merutilm::rff2 {
             uboManager.reserve<glm::uvec2>(TARGET_RESAMPLE_UBO_EXTENT);
             descManager.appendUBO(BINDING_RESAMPLE_UBO, VK_SHADER_STAGE_FRAGMENT_BIT,
                                   std::make_unique<vkh::Uniform>(wc.core, std::move(uboManager),
-                                                                 vkh::BufferLock::LOCK_UNLOCK, false));
+                                                                 vkh::BufferLocalization::BIDIRECTIONAL, false));
             descManagers.emplace_back(std::move(descManager));
         }
         appendUniqueDescriptor(SET_RESAMPLE, descriptors, std::move(descManagers));

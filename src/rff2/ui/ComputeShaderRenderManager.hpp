@@ -45,7 +45,7 @@ namespace merutilm::rff2 {
                 dstBatchBuffer = vkh::BufferContext::createContext(
                    wc.core, {.size = batchCtx.bufferSize,
                                        .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                       .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT});
+                                       .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT});
 
                 vkh::BufferContext::mapMemory(wc.core, dstBatchBuffer);
                 dstBatchBufferExists = true;

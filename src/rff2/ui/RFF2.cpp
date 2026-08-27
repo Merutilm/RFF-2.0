@@ -441,7 +441,7 @@ namespace merutilm::rff2 {
         renderer->rg1->fractal3d->resetBuffer(iw, ih);
         renderer->visibleIterationBufferContext = std::make_unique<GraphicsMatrixBuffer<double>>(
                 rootWindowContext->core, iw, ih, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
         renderer->updateStagingBuffer = true;
     }
 
@@ -853,6 +853,7 @@ namespace merutilm::rff2 {
         const uint32_t width = getIterationBufferWidth();
         const uint32_t height = getIterationBufferHeight();
 
+        setStatusMessage(Constants::Status::RENDER_STATUS, "Preparing Render Meta...");
         {
             vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
             const auto tableLen = cache ? cache->tableSizeUsed : 0;
@@ -870,13 +871,12 @@ namespace merutilm::rff2 {
         auto &resultLocalIterBuffer = renderer->computeIterate->getWriteBuffer();
         auto &visibleIterBuffer = renderer->visibleIterationBufferContext->getContext();
 
-        const vkh::BufferContext &batchCtx = renderer->computeIterate->getBatchBuffer();
-        computeShaderManager->tryCreateOrResizeBatchTransferDstBuffer(batchCtx);
+        const vkh::BufferContext &batchResultCtx = renderer->computeIterate->getBatchResultBuffer();
+        computeShaderManager->tryCreateOrResizeBatchTransferDstBuffer(batchResultCtx);
         const vkh::BufferContext &dstBatchBuffer = computeShaderManager->dstBatchBuffer;
 
 
-
-        std::vector<ComputeShaderBatchStagingData> stagingData(width * height);
+        std::vector<uint32_t> stagingData(width * height);
         uint64_t glitches = width * height;
 
         for (uint32_t i = 0; glitches > s.render.computeShader.allowedGlitchPixelCount; ++i) {
@@ -885,7 +885,6 @@ namespace merutilm::rff2 {
                 break;
             }
 
-            glitches = std::ranges::count_if(stagingData, [](const ComputeShaderBatchStagingData &data) { return !data.completed; });
 
             const float time = rootWindowContext->getWindow()->getTime();
             const uint32_t currentBatchIteration = i * s.render.computeShader.absIterationBatchSize;
@@ -912,18 +911,20 @@ namespace merutilm::rff2 {
 
 
                 vkh::BarrierUtils::cmdBufferMemoryBarrier(
-                        cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, batchCtx.buffer, 0,
-                        batchCtx.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                        cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, batchResultCtx.buffer, 0,
+                        batchResultCtx.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                         VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT);
 
                 vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, resultLocalIterBuffer, visibleIterBuffer);
-                vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, batchCtx, dstBatchBuffer);
+                vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, batchResultCtx, dstBatchBuffer);
             }
             computeShaderManager->fence->wait();
 
-            memcpy(stagingData.data(), dstBatchBuffer.mappedMemory + 8, dstBatchBuffer.bufferSize);
+            memcpy(stagingData.data(), dstBatchBuffer.mappedMemory, dstBatchBuffer.bufferSize);
             memcpy(renderer->visibleIterationBufferContext->getData().data(), visibleIterBuffer.mappedMemory,
                    visibleIterBuffer.bufferSize);
+
+            glitches = std::ranges::count_if(stagingData, [](const uint32_t data) { return data != 1; });
 
             renderer->visibleIterationBufferContext->markUpdate();
             canShowPreview = true;

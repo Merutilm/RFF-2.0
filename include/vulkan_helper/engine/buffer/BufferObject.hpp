@@ -3,26 +3,26 @@
 //
 
 #pragma once
-#include <vulkan_helper/engine/cmd/CommandPool.hpp>
-#include <vulkan_helper/engine/sync/Fence.hpp>
-#include <vulkan_helper/engine/context/BufferContext.hpp>
 #include <vulkan_helper/engine/buffer/HostDataObject.hpp>
-#include <vulkan_helper/handle/CoreHandler.hpp>
+#include <vulkan_helper/engine/cmd/CommandPool.hpp>
+#include <vulkan_helper/engine/context/BufferContext.hpp>
 #include <vulkan_helper/engine/manage/HostDataObjectManager.hpp>
-#include <vulkan_helper/engine/wrapped/BufferLock.hpp>
+#include <vulkan_helper/engine/sync/Fence.hpp>
+#include <vulkan_helper/engine/wrapped/BufferLocalization.hpp>
+#include <vulkan_helper/handle/CoreHandler.hpp>
 
 namespace merutilm::vkh {
     class BufferObject : public CoreHandler {
         HostDataObject hostDataObject;
         VkBufferUsageFlags bufferUsage;
         std::variant<BufferContext, MultiframeBufferContext> bufferContext = {};
-        BufferLock bufferLock;
-        bool locked = false;
+        BufferLocalization bufferLocalization;
+        bool localized = false;
         const bool multiframeEnabled;
 
     public:
         explicit BufferObject(Core &core, HostDataObjectManager &&dataManager, VkBufferUsageFlags bufferUsage,
-                               BufferLock bufferLock, bool multiframeEnabled);
+                               BufferLocalization bufferLocalization, bool multiframeEnabled);
 
         ~BufferObject() override;
 
@@ -36,9 +36,9 @@ namespace merutilm::vkh {
 
         BufferObject &operator=(BufferObject &&) noexcept = delete;
 
-        void lock(CommandPool & commandPool, Fence * fence = VK_NULL_HANDLE);
+        void localize(CommandPool & commandPool, const Fence * fence = VK_NULL_HANDLE);
 
-        void unlock(CommandPool & commandPool, const Fence * fence = VK_NULL_HANDLE);
+        void expose(CommandPool & commandPool, const Fence * fence = VK_NULL_HANDLE);
 
         [[nodiscard]] MultiframeBufferContext &getBufferContextMF() {
             if (multiframeEnabled) return std::get<MultiframeBufferContext>(bufferContext);
@@ -76,7 +76,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] HostDataObject & getHostObject() { return hostDataObject; }
 
-        [[nodiscard]] bool isLocked() const { return locked; }
+        [[nodiscard]] bool isLocalized() const { return localized; }
 
         [[nodiscard]] bool isMultiframe() const { return multiframeEnabled; }
 

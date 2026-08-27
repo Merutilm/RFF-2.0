@@ -93,7 +93,7 @@ namespace merutilm::rff2 {
         uboManager.reserve<glm::uvec2>(TARGET_SAMPLE_EXTENT);
         descManager.appendUBO(
                 BINDING_SAMPLE_RESOLUTION_UBO, VK_SHADER_STAGE_FRAGMENT_BIT,
-                std::make_unique<vkh::Uniform>(wc.core, std::move(uboManager), vkh::BufferLock::LOCK_UNLOCK, false));
+                std::make_unique<vkh::Uniform>(wc.core, std::move(uboManager), vkh::BufferLocalization::BIDIRECTIONAL, false));
 
         appendUniqueDescriptor(SET_SAMPLE, descriptors, std::move(descManager));
 
@@ -102,7 +102,7 @@ namespace merutilm::rff2 {
         vkh::HostDataObjectManager hdm;
         hdm.reserve<glm::vec2>(TARGET_SMOOTH_ZOOM_POSITION_DELTA);
         hdm.reserve<float>(TARGET_SMOOTH_ZOOM_LOG_ZOOM_DELTA);
-        auto uniform = std::make_unique<vkh::Uniform>(wc.core, std::move(hdm), vkh::BufferLock::LOCK_UNLOCK, false);
+        auto uniform = std::make_unique<vkh::Uniform>(wc.core, std::move(hdm), vkh::BufferLocalization::BIDIRECTIONAL, false);
         descManager2.appendUBO(BINDING_SMOOTH_ZOOM_UBO, VK_SHADER_STAGE_FRAGMENT_BIT, std::move(uniform));
 
         appendUniqueDescriptor(SET_SMOOTH_ZOOM, descriptors, std::move(descManager2));

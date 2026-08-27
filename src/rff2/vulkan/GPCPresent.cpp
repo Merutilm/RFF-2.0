@@ -74,7 +74,7 @@ namespace merutilm::rff2 {
         uboManager.reserve<glm::uvec2>(TARGET_PRESENT_UBO_EXTENT);
         descManager.appendUBO(
                 BINDING_PRESENT_UBO, VK_SHADER_STAGE_FRAGMENT_BIT,
-                std::make_unique<vkh::Uniform>(wc.core, std::move(uboManager), vkh::BufferLock::LOCK_UNLOCK, false));
+                std::make_unique<vkh::Uniform>(wc.core, std::move(uboManager), vkh::BufferLocalization::BIDIRECTIONAL, false));
 
         appendUniqueDescriptor(SET_PRESENT, descriptors, std::move(descManager));
     }

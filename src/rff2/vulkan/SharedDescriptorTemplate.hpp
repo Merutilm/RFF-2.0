@@ -28,7 +28,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<glm::mat4>(TARGET_CAMERA_PROJ);
 
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager),
-                                                          vkh::BufferLock::ALWAYS_MUTABLE, true);
+                                                          vkh::BufferLocalization::ALWAYS_EXPOSED, true);
             auto descManager = vkh::DescriptorManager();
             descManager.appendUBO(BINDING_UBO_CAMERA, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));
@@ -48,7 +48,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<float>(TARGET_TIME_CURRENT);
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager),
-                                                          vkh::BufferLock::ALWAYS_MUTABLE, true);
+                                                          vkh::BufferLocalization::ALWAYS_EXPOSED, true);
             auto descManager = vkh::DescriptorManager();
             descManager.appendUBO(BINDING_UBO_TIME, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));
@@ -79,9 +79,9 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserveArray<double>(TARGET_SSBO_ITERATION_BUFFER, 1);
 
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(infoManager),
-                                                                vkh::BufferLock::LOCK_UNLOCK, false);
+                                                                vkh::BufferLocalization::BIDIRECTIONAL, false);
             auto ssbo = std::make_unique<vkh::ShaderStorage>(core, std::move(bufferManager),
-                                                                vkh::BufferLock::LOCK_UNLOCK, false);
+                                                                vkh::BufferLocalization::BIDIRECTIONAL, false);
             descManager.appendUBO(BINDING_UBO_ITERATION_INFO, STAGE, std::move(ubo));
             descManager.appendSSBO(BINDING_SSBO_ITERATION_MATRIX, STAGE, std::move(ssbo));
 
@@ -115,7 +115,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserveArray<glm::vec4>(TARGET_PALETTE_COLORS, 0);
 
             auto ssbo = std::make_unique<vkh::ShaderStorage>(core, std::move(bufferManager),
-                                                                 vkh::BufferLock::LOCK_UNLOCK, false);
+                                                                 vkh::BufferLocalization::BIDIRECTIONAL, false);
             auto descManager = vkh::DescriptorManager();
 
             descManager.appendSSBO(BINDING_SSBO_PALETTE, STAGE, std::move(ssbo));
@@ -148,7 +148,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<float>(TARGET_STRIPE_OFFSET);
             bufferManager.reserve<float>(TARGET_STRIPE_ANIMATION_SPEED);
             bufferManager.reserve<uint32_t>(TARGET_STRIPE_ITERATION_COLORING);
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, false);
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLocalization::BIDIRECTIONAL, false);
             auto descManager = vkh::DescriptorManager();
             descManager.appendUBO(BINDING_UBO_STRIPE, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));
@@ -176,7 +176,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<float>(TARGET_SLOPE_OPACITY);
             bufferManager.reserve<float>(TARGET_SLOPE_ZENITH);
             bufferManager.reserve<float>(TARGET_SLOPE_AZIMUTH);
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, true);
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLocalization::BIDIRECTIONAL, true);
             auto descManager = vkh::DescriptorManager();
             descManager.appendUBO(BINDING_UBO_SLOPE, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));
@@ -206,7 +206,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<float>(TARGET_COLOR_SATURATION);
             bufferManager.reserve<float>(TARGET_COLOR_BRIGHTNESS);
             bufferManager.reserve<float>(TARGET_COLOR_CONTRAST);
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, false);
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLocalization::BIDIRECTIONAL, false);
             auto descManager = vkh::DescriptorManager();
             descManager.appendUBO(BINDING_UBO_COLOR, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));
@@ -229,7 +229,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<float>(TARGET_FOG_RADIUS);
             bufferManager.reserve<float>(TARGET_FOG_OPACITY);
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, false);
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLocalization::BIDIRECTIONAL, false);
             descManager.appendUBO(BINDING_UBO_FOG, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));
         }
@@ -254,7 +254,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<float>(TARGET_BLOOM_RADIUS);
             bufferManager.reserve<float>(TARGET_BLOOM_SOFTNESS);
             bufferManager.reserve<float>(TARGET_BLOOM_INTENSITY);
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, false);
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLocalization::BIDIRECTIONAL, false);
             auto descManager = vkh::DescriptorManager();
             descManager.appendUBO(BINDING_UBO_BLOOM, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));
@@ -278,7 +278,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<bool>(TARGET_NOISE_REDUCTION_USE, 3);
             bufferManager.reserve<uint32_t>(TARGET_NOISE_REDUCTION_SIMILAR_COUNT_THRESHOLD);
             bufferManager.reserve<float>(TARGET_NOISE_REDUCTION_DIFFERENCE_THRESHOLD);
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, false);
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLocalization::BIDIRECTIONAL, false);
             auto descManager = vkh::DescriptorManager();
             descManager.appendUBO(BINDING_UBO_NOISE_REDUCTION, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));
@@ -300,7 +300,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<float>(TARGET_VIDEO_DEFAULT_ZOOM_INCREMENT);
             bufferManager.reserve<float>(TARGET_VIDEO_CURRENT_FRAME);
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, true);
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLocalization::BIDIRECTIONAL, true);
             auto descManager = vkh::DescriptorManager();
             descManager.appendUBO(BINDING_UBO_VIDEO, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));
@@ -323,7 +323,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<float>(TARGET_F3D_BASE_ITERATION);
             bufferManager.reserve<float>(TARGET_F3D_DEPTH_DIVISOR);
             bufferManager.reserve<float>(TARGET_F3D_ROTATION);
-            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLock::LOCK_UNLOCK, false);
+            auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager), vkh::BufferLocalization::BIDIRECTIONAL, false);
             auto descManager = vkh::DescriptorManager();
             descManager.appendUBO(BINDING_UBO_F3D, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));

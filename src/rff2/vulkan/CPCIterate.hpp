@@ -39,9 +39,14 @@ namespace merutilm::rff2 {
         static constexpr uint32_t TARGET_RM_MAPPER_LEN = 0;
         static constexpr uint32_t TARGET_RM_MAPPER_DATA = 1;
 
-        static constexpr uint32_t BINDING_RM_BATCH_SSBO = 3;
+        static constexpr uint32_t BINDING_RM_BATCH_INFO_UBO = 3;
         static constexpr uint32_t TARGET_RM_BATCH_SIZE = 0;
-        static constexpr uint32_t TARGET_RM_BATCH_STAGING_DATA = 1;
+
+        static constexpr uint32_t BINDING_RM_BATCH_SSBO = 4;
+        static constexpr uint32_t TARGET_RM_BATCH_STAGING_DATA = 0;
+
+        static constexpr uint32_t BINDING_RM_BATCH_RESULT_SSBO = 5;
+        static constexpr uint32_t TARGET_RM_BATCH_RESULT_COMPLETED = 0;
 
         explicit CPCIterate(vkh::Engine &engine, vkh::WindowContext &wc) :
             ComputePipelineConfigurator(engine, wc, "vk_iterate.comp") {
@@ -65,7 +70,7 @@ namespace merutilm::rff2 {
 
 
 
-        [[nodiscard]] const vkh::BufferContext &getBatchBuffer() const;
+        [[nodiscard]] const vkh::BufferContext &getBatchResultBuffer() const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;

@@ -37,8 +37,8 @@ namespace merutilm::vkh {
         configureVertexBuffer(vertManager);
         configureIndexBuffer(indexManager);
 
-        vertexBuffer.emplace(wc.core, std::move(vertManager), BufferLock::LOCK_UNLOCK, true);
-        indexBuffer.emplace(wc.core, std::move(indexManager), BufferLock::LOCK_UNLOCK, true);
+        vertexBuffer.emplace(wc.core, std::move(vertManager), BufferLocalization::BIDIRECTIONAL, true);
+        indexBuffer.emplace(wc.core, std::move(indexManager), BufferLocalization::BIDIRECTIONAL, true);
 
 
 

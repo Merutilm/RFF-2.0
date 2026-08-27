@@ -14,9 +14,9 @@ namespace merutilm::vkh {
 
 
     BufferObject::BufferObject(Core &core, HostDataObjectManager &&dataManager, const VkBufferUsageFlags bufferUsage,
-                               const BufferLock bufferLock, const bool multiframeEnabled) :
+                               const BufferLocalization bufferLocalization, const bool multiframeEnabled) :
         CoreHandler(core), hostDataObject(HostDataObject(std::move(dataManager))), bufferUsage(bufferUsage),
-        bufferLock(bufferLock), multiframeEnabled(multiframeEnabled) {
+        bufferLocalization(bufferLocalization), multiframeEnabled(multiframeEnabled) {
         BufferObject::init();
     }
 
@@ -25,7 +25,7 @@ namespace merutilm::vkh {
 
     void BufferObject::reloadBuffer() {
         BufferObject::cleanup();
-        locked = false;
+        localized = false;
         BufferObject::init();
     }
 
@@ -55,9 +55,9 @@ namespace merutilm::vkh {
     }
 
     void BufferObject::checkFinalizedBeforeUpdate() const {
-        if (locked) {
+        if (localized) {
             throw exception_invalid_state(
-                    "BufferObject::updateMF() This bufferObject is already been finalized. It cannot be modified.");
+                    "BufferObject::updateMF() This bufferObject is already been localized. It cannot be modified.");
         }
     }
 
@@ -65,22 +65,22 @@ namespace merutilm::vkh {
     void BufferObject::init() {
         const uint32_t size = hostDataObject.getTotalSizeByte();
 
-        VkBufferUsageFlags lockFlags = 0;
+        VkBufferUsageFlags localizeFlags = 0;
 
-        switch (bufferLock) {
-            using enum BufferLock;
-            case LOCK_UNLOCK:
-            case LOCK_ONLY:
-                lockFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        switch (bufferLocalization) {
+            using enum BufferLocalization;
+            case BIDIRECTIONAL:
+            case UNIDIRECTIONAL:
+                localizeFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
                 break;
-            case ALWAYS_MUTABLE:
-                lockFlags = 0;
+            case ALWAYS_EXPOSED:
+                localizeFlags = 0;
                 break;
         }
 
         const BufferInitInfo info{
                 .size = size,
-                .usage = bufferUsage | lockFlags,
+                .usage = bufferUsage | localizeFlags,
                 .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         };
 
@@ -93,25 +93,25 @@ namespace merutilm::vkh {
         }
     }
 
-    void BufferObject::lock(CommandPool &commandPool, Fence *const fence) {
-        if (locked) {
-            logger::log_err_silent("Double-call of BufferObject::lock()");
+    void BufferObject::localize(CommandPool &commandPool, const Fence *const fence) {
+        if (localized) {
+            logger::log_err_silent("Double-call of BufferObject::localize()");
             return;
         }
 
         VkBufferUsageFlags lockFlags = 0;
 
-        switch (bufferLock) {
-            using enum BufferLock;
-            case LOCK_UNLOCK:
+        switch (bufferLocalization) {
+            using enum BufferLocalization;
+            case BIDIRECTIONAL:
                 lockFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
                 break;
-            case LOCK_ONLY:
+            case UNIDIRECTIONAL:
                 lockFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
                 break;
-            case ALWAYS_MUTABLE: {
-                logger::log_err_silent("Cannot lock object because the given BufferLock is {}",
-                                       static_cast<uint32_t>(bufferLock));
+            case ALWAYS_EXPOSED: {
+                logger::log_err_silent("Cannot lock object because the given BufferLocalization is {}",
+                                       static_cast<uint32_t>(bufferLocalization));
                 return;
             }
         }
@@ -175,25 +175,25 @@ namespace merutilm::vkh {
             BufferContext::destroyContext(core, getBufferContext());
             bufferContext = std::move(lockedBuffer);
         }
-        locked = true;
+        localized = true;
     }
 
 
-    void BufferObject::unlock(CommandPool &commandPool, const Fence *const fence) {
-        if (!locked) {
-            logger::log_err_silent("Double-call of BufferObject::unlock()");
+    void BufferObject::expose(CommandPool &commandPool, const Fence *const fence) {
+        if (!localized) {
+            logger::log_err_silent("Double-call of BufferObject::expose()");
             return;
         }
         VkBufferUsageFlags lockFlags = 0;
 
-        switch (bufferLock) {
-            using enum BufferLock;
-            case LOCK_UNLOCK:
+        switch (bufferLocalization) {
+            using enum BufferLocalization;
+            case BIDIRECTIONAL:
                 lockFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
                 break;
-            case LOCK_ONLY:
-            case ALWAYS_MUTABLE: {
-                logger::log_err_silent("Unlock is not allowed : BufferLock is not LOCK_UNLOCK");
+            case UNIDIRECTIONAL:
+            case ALWAYS_EXPOSED: {
+                logger::log_err_silent("Unlock is not allowed : BufferLocalization is not BIDIRECTIONAL");
                 return;
             }
         }
@@ -258,7 +258,7 @@ namespace merutilm::vkh {
             BufferContext::mapMemory(core, getBufferContext());
         }
 
-        locked = false;
+        localized = false;
     }
 
 

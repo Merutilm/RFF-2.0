@@ -39,19 +39,46 @@ namespace merutilm::rff2 {
         setExtent(extent);
 
         vkh::Descriptor &iterDesc = getDescriptor(SET_ITERATION);
+
         auto &iterUBO = iterDesc.get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
         auto &iterUBOHost = iterUBO.getHostObject();
+
+        if (iterUBOHost.getElementCount(DescIteration::TARGET_SSBO_ITERATION_BUFFER) == extent.width * extent.height) return;
+
+
+        vkh::Descriptor &rmDesc = getDescriptor(SET_RENDER_META);
+        auto &rmBatchSSBO = rmDesc.get<vkh::ShaderStorage>(0, BINDING_RM_BATCH_SSBO);
+        auto &rmBatchResultSSBO = rmDesc.get<vkh::ShaderStorage>(0, BINDING_RM_BATCH_RESULT_SSBO);
+
         auto &iterSSBO = iterDesc.get<vkh::ShaderStorage>(0, DescIteration::BINDING_SSBO_ITERATION_MATRIX);
         auto &iterSSBOHost = iterSSBO.getHostObject();
+        auto &rmBatchSSBOHost = rmBatchSSBO.getHostObject();
+        auto &rmBatchResultSSBOHost = rmBatchResultSSBO.getHostObject();
+
 
         iterUBOHost.set<glm::uvec2>(DescIteration::TARGET_UBO_ITERATION_EXTENT, {extent.width, extent.height});
         iterUBO.update(DescIteration::TARGET_UBO_ITERATION_EXTENT);
 
+
         iterSSBOHost.resizeAndClear<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, extent.width * extent.height);
+        rmBatchSSBOHost.resizeAndClear<ComputeShaderBatchStagingData>(TARGET_RM_BATCH_STAGING_DATA, extent.width * extent.height);
+        rmBatchResultSSBOHost.resizeAndClear<uint32_t>(TARGET_RM_BATCH_RESULT_COMPLETED, extent.width * extent.height);
+
         iterSSBO.reloadBuffer();
-        iterSSBO.lock(commandPool);
-        writeDescriptorMF([&iterDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+        rmBatchSSBO.reloadBuffer();
+        rmBatchResultSSBO.reloadBuffer();
+
+        iterSSBO.update();
+        rmBatchSSBO.update();
+        rmBatchResultSSBO.update();
+
+        iterSSBO.localize(commandPool);
+        rmBatchSSBO.localize(commandPool);
+        rmBatchResultSSBO.localize(commandPool);
+
+        writeDescriptorMF([&iterDesc, &rmDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             iterDesc.queue(queue, frameIndex, {}, {DescIteration::BINDING_UBO_ITERATION_INFO, DescIteration::BINDING_SSBO_ITERATION_MATRIX});
+            rmDesc.queue(queue, frameIndex, {}, {BINDING_RM_BATCH_SSBO, BINDING_RM_BATCH_RESULT_SSBO});
         });
     }
 
@@ -64,13 +91,13 @@ namespace merutilm::rff2 {
         auto &rmSSBO = desc.get<vkh::ShaderStorage>(0, BINDING_RM_SSBO);
         auto &rmTableSSBO = desc.get<vkh::ShaderStorage>(0, BINDING_RM_TABLE_SSBO);
         auto &rmMapperSSBO = desc.get<vkh::ShaderStorage>(0, BINDING_RM_MAPPER_SSBO);
-        auto &rmBatchSSBO = desc.get<vkh::ShaderStorage>(0, BINDING_RM_BATCH_SSBO);
+        auto &rmBatchInfoUBO = desc.get<vkh::Uniform>(0, BINDING_RM_BATCH_INFO_UBO);
 
 
         auto &rmSSBOHost = rmSSBO.getHostObject();
         auto &rmTableSSBOHost = rmTableSSBO.getHostObject();
         auto &rmMapperSSBOHost = rmMapperSSBO.getHostObject();
-        auto &rmBatchSSBOHost = rmBatchSSBO.getHostObject();
+        auto &rmBatchInfoUBOHost = rmBatchInfoUBO.getHostObject();
 
         rmSSBOHost.set<uint64_t>(TARGET_RM_MAX_ITERATION, maxIteration);
         rmSSBOHost.set<uint64_t>(TARGET_RM_MAX_REF_ITERATION, reference.size() - 1);
@@ -94,34 +121,33 @@ namespace merutilm::rff2 {
         if (mapperLen > 0)
             rmMapperSSBOHost.set<MPAIndexMapper>(TARGET_RM_MAPPER_DATA, mapperData);
 
-        rmBatchSSBOHost.set<uint32_t>(TARGET_RM_BATCH_SIZE, render.computeShader.absIterationBatchSize);
-        rmBatchSSBOHost.resizeAndClear<ComputeShaderBatchStagingData>(TARGET_RM_BATCH_STAGING_DATA, extent.width * extent.height);
+        rmBatchInfoUBOHost.set<uint32_t>(TARGET_RM_BATCH_SIZE, render.computeShader.absIterationBatchSize);
 
         specializationIndex = static_cast<uint32_t>(render.computeShader.mpaMode);
 
         rmSSBO.reloadBuffer();
         rmTableSSBO.reloadBuffer();
         rmMapperSSBO.reloadBuffer();
-        rmBatchSSBO.reloadBuffer();
+        rmBatchInfoUBO.reloadBuffer();
 
         rmSSBO.update();
         rmTableSSBO.update();
         rmMapperSSBO.update();
-        rmBatchSSBO.update();
+        rmBatchInfoUBO.update();
 
-        rmSSBO.lock(commandPool);
-        rmTableSSBO.lock(commandPool);
-        rmMapperSSBO.lock(commandPool);
-        rmBatchSSBO.lock(commandPool);
+        rmSSBO.localize(commandPool);
+        rmTableSSBO.localize(commandPool);
+        rmMapperSSBO.localize(commandPool);
+        rmBatchInfoUBO.localize(commandPool);
 
         writeDescriptorMF([&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            desc.queue(queue, frameIndex, {}, {BINDING_RM_SSBO, BINDING_RM_TABLE_SSBO, BINDING_RM_MAPPER_SSBO, BINDING_RM_BATCH_SSBO});
+            desc.queue(queue, frameIndex, {}, {BINDING_RM_SSBO, BINDING_RM_TABLE_SSBO, BINDING_RM_MAPPER_SSBO, BINDING_RM_BATCH_INFO_UBO});
         });
     }
 
 
-    const vkh::BufferContext &CPCIterate::getBatchBuffer() const {
-        return getDescriptor(SET_RENDER_META).get<vkh::ShaderStorage>(0, BINDING_RM_BATCH_SSBO).getBufferContext();
+    const vkh::BufferContext &CPCIterate::getBatchResultBuffer() const {
+        return getDescriptor(SET_RENDER_META).get<vkh::ShaderStorage>(0, BINDING_RM_BATCH_RESULT_SSBO).getBufferContext();
     }
 
     void CPCIterate::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
@@ -160,25 +186,34 @@ namespace merutilm::rff2 {
         homRmMapper.reserve<uint64_t>(TARGET_RM_MAPPER_LEN);
         homRmMapper.reserveArray<MPAIndexMapper>(TARGET_RM_MAPPER_DATA, 0);
 
+        vkh::HostDataObjectManager homRmBatchInfo;
+        homRmBatchInfo.reserve<uint32_t>(TARGET_RM_BATCH_SIZE);
+
         vkh::HostDataObjectManager homRmBatch;
-        homRmBatch.reserve<uint32_t>(TARGET_RM_BATCH_SIZE, 4);
-        homRmBatch.reserveArray<ComputeShaderBatchStagingData>(TARGET_RM_BATCH_STAGING_DATA, 0);
+        homRmBatch.reserveArray<ComputeShaderBatchStagingData>(TARGET_RM_BATCH_STAGING_DATA, 1);
+
+        vkh::HostDataObjectManager homRmBatchResult;
+        homRmBatchResult.reserveArray<uint32_t>(TARGET_RM_BATCH_RESULT_COMPLETED, 1);
 
         auto rmSSBO =
-                std::make_unique<vkh::ShaderStorage>(wc.core, std::move(homRm), vkh::BufferLock::LOCK_ONLY, false);
+                std::make_unique<vkh::ShaderStorage>(wc.core, std::move(homRm), vkh::BufferLocalization::UNIDIRECTIONAL, false);
         auto rmTableSSBO =
-                std::make_unique<vkh::ShaderStorage>(wc.core, std::move(homRmTable), vkh::BufferLock::LOCK_ONLY, false);
+                std::make_unique<vkh::ShaderStorage>(wc.core, std::move(homRmTable), vkh::BufferLocalization::UNIDIRECTIONAL, false);
         auto rmMapperSSBO = std::make_unique<vkh::ShaderStorage>(wc.core, std::move(homRmMapper),
-                                                                 vkh::BufferLock::LOCK_ONLY, false);
+                                                                 vkh::BufferLocalization::UNIDIRECTIONAL, false);
 
-        auto rmBatchSSBO = std::make_unique<vkh::ShaderStorage>(wc.core, std::move(homRmBatch), vkh::BufferLock::LOCK_UNLOCK, false);
+        auto rmBatchInfoUBO = std::make_unique<vkh::Uniform>(wc.core, std::move(homRmBatchInfo), vkh::BufferLocalization::UNIDIRECTIONAL, false);
+        auto rmBatchSSBO = std::make_unique<vkh::ShaderStorage>(wc.core, std::move(homRmBatch), vkh::BufferLocalization::UNIDIRECTIONAL, false);
+        auto rmBatchResultSSBO = std::make_unique<vkh::ShaderStorage>(wc.core, std::move(homRmBatchResult), vkh::BufferLocalization::BIDIRECTIONAL, false);
 
 
         vkh::DescriptorManager descManagerRenderMeta;
         descManagerRenderMeta.appendSSBO(BINDING_RM_SSBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmSSBO));
         descManagerRenderMeta.appendSSBO(BINDING_RM_TABLE_SSBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmTableSSBO));
         descManagerRenderMeta.appendSSBO(BINDING_RM_MAPPER_SSBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmMapperSSBO));
+        descManagerRenderMeta.appendUBO(BINDING_RM_BATCH_INFO_UBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmBatchInfoUBO));
         descManagerRenderMeta.appendSSBO(BINDING_RM_BATCH_SSBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmBatchSSBO));
+        descManagerRenderMeta.appendSSBO(BINDING_RM_BATCH_RESULT_SSBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmBatchResultSSBO));
         appendUniqueDescriptor(SET_RENDER_META, descriptors, std::move(descManagerRenderMeta));
     }
 } // namespace merutilm::rff2

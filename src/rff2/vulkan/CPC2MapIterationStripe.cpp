@@ -70,7 +70,7 @@ namespace merutilm::rff2 {
         paletteSSBOHost.set<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, palette.colors);
         paletteSSBO.reloadBuffer();
         paletteSSBO.update();
-        paletteSSBO.lock(wc.getCommandPool());
+        paletteSSBO.localize(wc.getCommandPool());
 
         writeDescriptorMF([&paletteDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             paletteDesc.queue(queue, frameIndex, {}, {DescPalette::BINDING_SSBO_PALETTE});
@@ -133,7 +133,7 @@ namespace merutilm::rff2 {
         auto &iterOutSSBO = iterOut.get<vkh::ShaderStorage>(0, DescIteration::BINDING_SSBO_ITERATION_MATRIX);
         iterOutSSBO.getHostObject().resizeAndClear<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, width * height);
         iterOutSSBO.reloadBuffer();
-        iterOutSSBO.lock(wc.getCommandPool());
+        iterOutSSBO.localize(wc.getCommandPool());
 
         auto &iterOutUBO = iterOut.get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
         iterOutUBO.getHostObject().set<glm::uvec2>(DescIteration::TARGET_UBO_ITERATION_EXTENT, {width, height});
@@ -174,11 +174,11 @@ namespace merutilm::rff2 {
         auto normal = vkh::HostDataObjectManager();
         normal.reserveArray<double>(TARGET_I2MAP_SSBO_NORMAL_ITERATION, 1);
         auto normalSSBO = std::make_unique<vkh::ShaderStorage>(wc.core, std::move(normal),
-                                                               vkh::BufferLock::ALWAYS_MUTABLE, false);
+                                                               vkh::BufferLocalization::ALWAYS_EXPOSED, false);
         auto zoomed = vkh::HostDataObjectManager();
         zoomed.reserveArray<double>(TARGET_I2MAP_SSBO_ZOOMED_ITERATION, 1);
         auto zoomedSSBO = std::make_unique<vkh::ShaderStorage>(wc.core, std::move(zoomed),
-                                                               vkh::BufferLock::ALWAYS_MUTABLE, false);
+                                                               vkh::BufferLocalization::ALWAYS_EXPOSED, false);
 
         auto i2mapManager = vkh::DescriptorManager();
         i2mapManager.appendSSBO(BINDING_I2MAP_SSBO_NORMAL, VK_SHADER_STAGE_COMPUTE_BIT, std::move(normalSSBO));

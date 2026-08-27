@@ -27,7 +27,7 @@ namespace merutilm::rff2 {
         ssbo.getHostObject().resizeAndClear<uint32_t>(TARGET_OUTPUT_SSBO_DATA,
                                                       extent.width * extent.height * 3 / 4 + 1);
         ssbo.reloadBuffer();
-        ssbo.lock(wc.getCommandPool());
+        ssbo.localize(wc.getCommandPool());
         setExtent(extent);
         writeDescriptorMF(
             [&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
@@ -75,7 +75,7 @@ namespace merutilm::rff2 {
 
         descManager.appendSSBO(BINDING_OUTPUT_SSBO, VK_SHADER_STAGE_COMPUTE_BIT,
                                 std::make_unique<vkh::ShaderStorage>(
-                                    wc.core, std::move(hdm), vkh::BufferLock::LOCK_UNLOCK, true));
+                                    wc.core, std::move(hdm), vkh::BufferLocalization::BIDIRECTIONAL, true));
 
         appendUniqueDescriptor(SET_INFO, descriptors, std::move(descManager));
     }

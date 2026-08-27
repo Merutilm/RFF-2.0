@@ -8,8 +8,8 @@
 #include <vulkan_helper/engine/wrapped/Vertex.hpp>
 
 namespace merutilm::vkh {
-    VertexBuffer::VertexBuffer(Core & core, HostDataObjectManager &&manager, const BufferLock bufferLock, bool multiframeEnabled) : BufferObject(
-        core, std::move(manager), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, bufferLock, multiframeEnabled) {
+    VertexBuffer::VertexBuffer(Core & core, HostDataObjectManager &&manager, const BufferLocalization bufferLocalization, bool multiframeEnabled) : BufferObject(
+        core, std::move(manager), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, bufferLocalization, multiframeEnabled) {
         VertexBuffer::init();
     }
 
