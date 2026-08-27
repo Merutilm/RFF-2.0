@@ -29,10 +29,11 @@ namespace merutilm::rff2 {
         void dispatch();
 
     private:
-        static std::vector<uint16_t> getRenderPriority(uint16_t rpy);
+        static std::vector<uint32_t> getRenderPriority(uint32_t count);
 
 
-        void renderForward(uint32_t start, uint32_t batchSize, std::vector<std::atomic<bool>> &rendered);
+        void renderForward(uint32_t start, std::vector<uint32_t> &indexOff, uint32_t batchSize,
+                           std::vector<std::atomic<bool>> &rendered);
 
 
         void renderBackward(uint32_t len, std::vector<std::atomic<bool> > &rendered);
@@ -63,9 +64,11 @@ namespace merutilm::rff2 {
         auto rendered = std::vector<std::atomic<bool> >(len);
         auto batchSize = len / threads + 1;
 
+        std::vector<uint32_t> indexOff = getRenderPriority(batchSize);
+
         for (uint32_t start = 0; start < len; start += batchSize) {
-            threadPool.emplace_back([start, batchSize, this, &rendered, len] {
-                renderForward(start, batchSize, rendered);
+            threadPool.emplace_back([start, batchSize, &indexOff, this, &rendered, len] {
+                renderForward(start, indexOff, batchSize, rendered);
                 renderBackward(len, rendered);
             });
         }
@@ -80,42 +83,42 @@ namespace merutilm::rff2 {
 
 
     template<typename T>
-    std::vector<uint16_t> ParallelArrayDispatcher<T>::getRenderPriority(const uint16_t rpy) {
-        auto result = std::vector<uint16_t>(rpy, 0);
-        uint16_t count = rpy >> 1;
-        uint16_t repetition = 1;
-        uint16_t index = 1;
+    std::vector<uint32_t> ParallelArrayDispatcher<T>::getRenderPriority(const uint32_t count) {
+        auto result = std::vector<uint32_t>(count, 0);
+        uint32_t countDiv = count >> 1;
+        uint32_t repetition = 1;
+        uint32_t index = 1;
 
-        while (count > 0) {
+        while (countDiv > 0) {
             for (uint16_t j = 0; j < repetition; ++j) {
-                result[index] = result[j] + count;
+                result[index] = result[j] + countDiv;
                 ++index;
             }
 
             repetition <<= 1;
-            count >>= 1;
+            countDiv >>= 1;
         }
 
         auto cpy = result;
         cpy.resize(index);
         std::ranges::sort(cpy);
 
-        uint16_t cpyIndex = 0;
+        uint16_t ci = 0;
         while (index < result.size()) {
             if (
-                const uint16_t missing = cpyIndex + count;
-                cpy.size() <= cpyIndex || cpy[cpyIndex] != missing) {
+                const uint16_t missing = ci + countDiv;
+                cpy.size() <= ci || cpy[ci] != missing) {
                 result[index] = missing;
                 ++index;
-                ++count;
-                } else ++cpyIndex;
+                ++countDiv;
+                } else ++ci;
         }
         return result;
     }
 
 
     template<typename T>
-    void ParallelArrayDispatcher<T>::renderForward(const uint32_t start, const uint32_t batchSize,
+    void ParallelArrayDispatcher<T>::renderForward(const uint32_t start, std::vector<uint32_t> &indexOff, const uint32_t batchSize,
                                                    std::vector<std::atomic<bool> > &rendered) {
         if (start >= rendered.size()) {
             return;
@@ -123,13 +126,13 @@ namespace merutilm::rff2 {
 
 
 
-        for (uint32_t i = 0; i < batchSize; ++i) {
+        for (const uint32_t i : indexOff) {
             if (i % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
 
             uint32_t index = start + i;
-            if (index >= arr.size()) return;
+            if (index >= arr.size()) continue;
 
             auto x = static_cast<uint16_t>(index % xRes);
             auto y = static_cast<uint16_t>(index / xRes);
