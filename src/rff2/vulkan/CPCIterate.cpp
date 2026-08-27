@@ -82,6 +82,20 @@ namespace merutilm::rff2 {
         });
     }
 
+    void CPCIterate::setBatchSize(vkh::CommandPool &commandPool, const uint32_t batchSize) const {
+        using namespace SharedDescriptorTemplate;
+        vkh::Descriptor &desc = getDescriptor(SET_RENDER_META);
+        auto &rmBatchInfoUBO = desc.get<vkh::Uniform>(0, DescRenderMeta::BINDING_RM_BATCH_INFO_UBO);
+        auto &rmBatchInfoUBOHost = rmBatchInfoUBO.getHostObject();
+        rmBatchInfoUBOHost.set<uint32_t>(DescRenderMeta::TARGET_RM_BATCH_SIZE, batchSize);
+        rmBatchInfoUBO.reloadBuffer();
+        rmBatchInfoUBO.update();
+        rmBatchInfoUBO.localize(commandPool);
+        writeDescriptorMF([&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            desc.queue(queue, frameIndex, {}, {DescRenderMeta::BINDING_RM_BATCH_INFO_UBO});
+        });
+    }
+
     void CPCIterate::setRenderMeta(const FractalSettings &frt, const RenderSettings &render,
                                    const std::vector<complex<float>> &reference, const complex<float> offset,
                                    const uint32_t maxIteration, const PA<float> *mpTableData, const uint64_t tableLen,
@@ -92,13 +106,10 @@ namespace merutilm::rff2 {
         auto &rmSSBO = desc.get<vkh::ShaderStorage>(0, DescRenderMeta::BINDING_RM_SSBO);
         auto &rmTableSSBO = desc.get<vkh::ShaderStorage>(0, DescRenderMeta::BINDING_RM_TABLE_SSBO);
         auto &rmMapperSSBO = desc.get<vkh::ShaderStorage>(0, DescRenderMeta::BINDING_RM_MAPPER_SSBO);
-        auto &rmBatchInfoUBO = desc.get<vkh::Uniform>(0, DescRenderMeta::BINDING_RM_BATCH_INFO_UBO);
-
 
         auto &rmSSBOHost = rmSSBO.getHostObject();
         auto &rmTableSSBOHost = rmTableSSBO.getHostObject();
         auto &rmMapperSSBOHost = rmMapperSSBO.getHostObject();
-        auto &rmBatchInfoUBOHost = rmBatchInfoUBO.getHostObject();
 
         rmSSBOHost.set<uint64_t>(DescRenderMeta::TARGET_RM_MAX_ITERATION, maxIteration);
         rmSSBOHost.set<uint64_t>(DescRenderMeta::TARGET_RM_MAX_REF_ITERATION, reference.size() - 1);
@@ -122,27 +133,22 @@ namespace merutilm::rff2 {
         if (mapperLen > 0)
             rmMapperSSBOHost.set<MPAIndexMapper>(DescRenderMeta::TARGET_RM_MAPPER_DATA, mapperData);
 
-        rmBatchInfoUBOHost.set<uint32_t>(DescRenderMeta::TARGET_RM_BATCH_SIZE, render.computeShader.absIterationBatchSize);
-
         specializationIndex = static_cast<uint32_t>(render.computeShader.mpaMode);
 
         rmSSBO.reloadBuffer();
         rmTableSSBO.reloadBuffer();
         rmMapperSSBO.reloadBuffer();
-        rmBatchInfoUBO.reloadBuffer();
 
         rmSSBO.update();
         rmTableSSBO.update();
         rmMapperSSBO.update();
-        rmBatchInfoUBO.update();
 
         rmSSBO.localize(commandPool);
         rmTableSSBO.localize(commandPool);
         rmMapperSSBO.localize(commandPool);
-        rmBatchInfoUBO.localize(commandPool);
 
         writeDescriptorMF([&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            desc.queue(queue, frameIndex, {}, {DescRenderMeta::BINDING_RM_SSBO, DescRenderMeta::BINDING_RM_TABLE_SSBO, DescRenderMeta::BINDING_RM_MAPPER_SSBO, DescRenderMeta::BINDING_RM_BATCH_INFO_UBO});
+            desc.queue(queue, frameIndex, {}, {DescRenderMeta::BINDING_RM_SSBO, DescRenderMeta::BINDING_RM_TABLE_SSBO, DescRenderMeta::BINDING_RM_MAPPER_SSBO});
         });
     }
 

@@ -145,7 +145,7 @@ namespace merutilm::rff2 {
                 .render = {.clarityMultiplier = 0.25f,
                            .fps = 30,
                            .computeShader{
-                                   .use = true, .mpaMode = RndCmpMPAMode::FULL, .absIterationBatchSize = 81920, .interpolateIsolated = true}},
+                                   .use = true, .mpaMode = RndCmpMPAMode::FULL, .preferredBatchDuration = 0.5f, .interpolateIsolated = true}},
                 .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .slope = ShdSlopePresets::Disabled().genSlope(),
@@ -853,12 +853,14 @@ namespace merutilm::rff2 {
         const uint32_t width = getIterationBufferWidth();
         const uint32_t height = getIterationBufferHeight();
 
+        vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
+
         setStatusMessage(Constants::Status::RENDER_STATUS, "Preparing Render Meta...");
         {
-            vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
             const auto tableLen = cache ? cache->tableSizeUsed : 0;
             const auto mapperLen = cache ? cache->mapperSizeUsed : 0;
 
+            renderer->computeIterate->setBatchSize(commandPool, Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
             renderer->computeIterate->resetWriteBuffer(VkExtent2D{width, height}, commandPool);
             renderer->computeIgnoreIsolated->setExtent(VkExtent2D{width, height});
             renderer->computeIterate->setRenderMeta(
@@ -883,6 +885,8 @@ namespace merutilm::rff2 {
 
         std::vector<uint32_t> stagingData(width * height);
         uint64_t glitches = width * height;
+        uint64_t currentBatchIteration = 0;
+        uint32_t batchSizeMultiplier = 1;
 
         for (uint32_t i = 0; glitches > s.render.computeShader.allowedGlitchPixelCount; ++i) {
 
@@ -891,13 +895,16 @@ namespace merutilm::rff2 {
             }
 
 
+            computeShaderManager->fence->waitAndReset();
+
+
+            const auto actualTime = std::chrono::high_resolution_clock::now();
             const float time = rootWindowContext->getWindow()->getTime();
-            const uint32_t currentBatchIteration = i * s.render.computeShader.absIterationBatchSize;
+            currentBatchIteration += Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier;
             setStatusMessage(Constants::Status::TIME_STATUS,
                              std::format("Time : {}", Utilities::formatTime(time - startTime)));
             setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Batching... ({:L}, {:L})", currentBatchIteration, glitches));
 
-            computeShaderManager->fence->waitAndReset();
 
             {
                 vkh::CommandBuffer &commandBuffer = *computeShaderManager->commandBuffer;
@@ -935,7 +942,15 @@ namespace merutilm::rff2 {
                 vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, resultLocalIterBuffer, visibleIterBuffer);
                 vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, batchResultCtx, dstBatchBuffer);
             }
+
             computeShaderManager->fence->wait();
+
+            const auto elapsed = std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now() - actualTime);
+
+            if (elapsed.count() < s.render.computeShader.preferredBatchDuration) {
+                batchSizeMultiplier *= 2;
+                renderer->computeIterate->setBatchSize(commandPool, Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier);
+            }
 
             memcpy(stagingData.data(), dstBatchBuffer.mappedMemory, dstBatchBuffer.bufferSize);
             memcpy(renderer->visibleIterationBufferContext->getData().data(), visibleIterBuffer.mappedMemory,

@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
                               60,
                               {.use = false,
                                .mpaMode = RndCmpMPAMode::FULL,
-                               .absIterationBatchSize = 81920,
+                               .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .interpolateIsolated = true}};
     }
@@ -30,7 +30,7 @@ namespace merutilm::rff2 {
                               60,
                               {.use = false,
                                .mpaMode = RndCmpMPAMode::FULL,
-                               .absIterationBatchSize = 81920,
+                               .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .interpolateIsolated = true}};
     }
@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
                               60,
                               {.use = false,
                                .mpaMode = RndCmpMPAMode::FULL,
-                               .absIterationBatchSize = 81920,
+                               .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .interpolateIsolated = true}};
     }
@@ -54,7 +54,7 @@ namespace merutilm::rff2 {
                               60,
                               {.use = false,
                                .mpaMode = RndCmpMPAMode::FULL,
-                               .absIterationBatchSize = 81920,
+                               .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .interpolateIsolated = true}};
     }
@@ -66,7 +66,7 @@ namespace merutilm::rff2 {
                               60,
                               {.use = false,
                                .mpaMode = RndCmpMPAMode::FULL,
-                               .absIterationBatchSize = 81920,
+                               .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .interpolateIsolated = true}};
     }
@@ -78,7 +78,7 @@ namespace merutilm::rff2 {
                               60,
                               {.use = false,
                                .mpaMode = RndCmpMPAMode::FULL,
-                               .absIterationBatchSize = 81920,
+                               .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .interpolateIsolated = true}};
     }

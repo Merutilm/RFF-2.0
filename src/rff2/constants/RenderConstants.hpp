@@ -17,4 +17,6 @@ namespace merutilm::rff2::Constants::Render {
     constexpr float MIN_FPS = 30;
     constexpr float INIT_FPS = 100;
     constexpr float MAX_FPS = 240;
+
+    constexpr float COMPUTE_SHADER_INIT_BATCH_SIZE = 1024;
 }

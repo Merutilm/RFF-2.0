@@ -34,6 +34,7 @@ namespace merutilm::rff2 {
         [[nodiscard]] const vkh::BufferContext &getWriteBuffer() const;
 
         void resetWriteBuffer(VkExtent2D extent, vkh::CommandPool &commandPool);
+        void setBatchSize(vkh::CommandPool &commandPool, uint32_t batchSize) const;
 
         void setRenderMeta(const FractalSettings &frt, const RenderSettings &render,
                            const std::vector<complex<float>> &reference, complex<float> offset, uint32_t maxIteration,

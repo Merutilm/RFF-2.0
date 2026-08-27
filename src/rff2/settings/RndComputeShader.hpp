@@ -10,7 +10,7 @@ namespace merutilm::rff2 {
     struct RndComputeShader {
         bool use;
         RndCmpMPAMode mpaMode;
-        uint32_t absIterationBatchSize;
+        float preferredBatchDuration;
         uint32_t allowedGlitchPixelCount;
         bool interpolateIsolated;
     };

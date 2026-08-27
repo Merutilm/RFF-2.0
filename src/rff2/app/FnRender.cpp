@@ -126,7 +126,7 @@ namespace merutilm::rff2 {
 
             ImGui::Begin("Compute Shader");
 
-            auto &[use, mpaMode, batchSize, allowedGlitchPixelCount, interpolateIsolated] = app.getSettings().render.computeShader;
+            auto &[use, mpaMode, preferredBatchDuration, allowedGlitchPixelCount, interpolateIsolated] = app.getSettings().render.computeShader;
 
             if (app.engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceFeatures().shaderInt64) {
                 if (ImGui::Checkbox("Use", &use)) {
@@ -140,11 +140,11 @@ namespace merutilm::rff2 {
                 Utilities::imguiHelpMarker(
                         "Sets MPA Mode. finding appropriate pa from mp-table on gpu-level is so expensive.");
 
-                if (ImGui::InputScalar("Batch Size", ImGuiDataType_U32, &batchSize)) {
-                    batchSize = std::clamp(batchSize, 1024u, 16777216u);
+                if (ImGui::InputFloat("Preferred Batch Duration", &preferredBatchDuration)) {
+                    preferredBatchDuration = std::clamp(preferredBatchDuration, 0.01f, 10.f);
                 }
-                Utilities::imguiHelpMarker("Sets the absolute iteration batch size of compute shader. "
-                                           "This prevents the graphics driver forces reset gpu if a process takes too long to complete.");
+                Utilities::imguiHelpMarker("Sets the preferred batch duration of compute shader. "
+                                           "The batch size starts at 1024 and is doubled when the dispatch time is shorter than this duration.");
 
                 if (ImGui::InputScalar("Allowed Glitch Pixel Count", ImGuiDataType_U32, &allowedGlitchPixelCount)) {
                     allowedGlitchPixelCount = std::max(allowedGlitchPixelCount, 0u);
