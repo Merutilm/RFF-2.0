@@ -11,9 +11,9 @@
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
 #include "../settings/Settings.h"
-#include "AppRenderer.hpp"
 #include "ComputeShaderRenderManager.hpp"
 #include "CursorManager.hpp"
+#include "RFF2Renderer.hpp"
 #include "UpdateRequests.hpp"
 #include "VideoProgressInfo.hpp"
 #include "ZoomAnimationInfo.hpp"
@@ -26,7 +26,7 @@ namespace merutilm::rff2 {
 
         Settings settings;
         UpdateRequests requests = {};
-        AppRenderer *renderer = nullptr;
+        RFF2Renderer *renderer = nullptr;
 
 
         std::atomic<bool> canShowPreview = false;

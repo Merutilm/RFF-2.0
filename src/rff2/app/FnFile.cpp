@@ -4,8 +4,8 @@
 
 #include "FnFile.hpp"
 
+#include "../app/RFF2.hpp"
 #include "../constants/Constants.hpp"
-#include "../ui/RFF2.hpp"
 #include "IOUtilities.h"
 #include "imgui.h"
 

@@ -6,6 +6,7 @@
 #include "../data/GraphicsMatrixBuffer.h"
 #include "../util/RendererUtils.hpp"
 #include "../vulkan/CPCBoxBlur.hpp"
+#include "../vulkan/CPCInterpolateIsolated.hpp"
 #include "../vulkan/CPCIterate.hpp"
 #include "../vulkan/RenderGraph0.hpp"
 #include "../vulkan/RenderGraph1.hpp"
@@ -20,7 +21,7 @@
 #include "vulkan_helper/util/RenderContextUtils.hpp"
 
 namespace merutilm::rff2 {
-    struct AppRenderer final : public vkh::RendererImGui {
+    struct RFF2Renderer final : public vkh::RendererImGui {
 
 
         const Settings &settings;
@@ -41,6 +42,7 @@ namespace merutilm::rff2 {
         RenderGraphPresentPrepareImgui *rccPresentPrepare = nullptr;
 
         CPCIterate *computeIterate = nullptr;
+        CPCInterpolateIsolated *computeIgnoreIsolated = nullptr;
         CPCBoxBlur *computeBoxBlur = nullptr;
 
 
@@ -49,22 +51,22 @@ namespace merutilm::rff2 {
 
         template<typename F>
             requires std::is_invocable_v<F>
-        explicit AppRenderer(vkh::Engine &engine, vkh::WindowContext &wc, Settings &settings,
+        explicit RFF2Renderer(vkh::Engine &engine, vkh::WindowContext &wc, Settings &settings,
                              ZoomAnimationInfo &zoomAnimationInfo, F &&renderFunc) :
             RendererImGui(engine, wc, std::forward<F>(renderFunc)), settings(settings),
             zoomAnimationInfo(zoomAnimationInfo) {
-            AppRenderer::init();
+            RFF2Renderer::init();
         }
 
-        ~AppRenderer() override { AppRenderer::cleanup(); }
+        ~RFF2Renderer() override { RFF2Renderer::cleanup(); }
 
-        AppRenderer(const AppRenderer &) = delete;
+        RFF2Renderer(const RFF2Renderer &) = delete;
 
-        AppRenderer &operator=(const AppRenderer &) = delete;
+        RFF2Renderer &operator=(const RFF2Renderer &) = delete;
 
-        AppRenderer(AppRenderer &&) = delete;
+        RFF2Renderer(RFF2Renderer &&) = delete;
 
-        AppRenderer &operator=(AppRenderer &&) = delete;
+        RFF2Renderer &operator=(RFF2Renderer &&) = delete;
 
 
     protected:
@@ -74,10 +76,9 @@ namespace merutilm::rff2 {
                 const auto &swapchain = wc.getSwapchain();
                 return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
             };
-            computeIterate =
-                    vkh::ComputePipelineConfigurator::createComputePipeline<CPCIterate>(configurators, engine, wc);
-            computeBoxBlur =
-                    vkh::ComputePipelineConfigurator::createComputePipeline<CPCBoxBlur>(configurators, engine, wc);
+            computeIterate = vkh::ComputePipelineConfigurator::createComputePipeline<CPCIterate>(configurators, engine, wc);
+            computeIgnoreIsolated = vkh::ComputePipelineConfigurator::createComputePipeline<CPCInterpolateIsolated>(configurators, engine, wc);
+            computeBoxBlur = vkh::ComputePipelineConfigurator::createComputePipeline<CPCBoxBlur>(configurators, engine, wc);
             rc0 = vkh::RenderContextUtils::attachRenderContext<RenderGraph0>(
                     &rg0, configurators, engine, wc,
                     [this] {

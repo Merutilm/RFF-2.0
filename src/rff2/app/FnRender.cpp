@@ -126,7 +126,7 @@ namespace merutilm::rff2 {
 
             ImGui::Begin("Compute Shader");
 
-            auto &[use, mpaMode, batchSize, allowedGlitchPixelCount] = app.getSettings().render.computeShader;
+            auto &[use, mpaMode, batchSize, allowedGlitchPixelCount, interpolateIsolated] = app.getSettings().render.computeShader;
 
             if (app.engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceFeatures().shaderInt64) {
                 if (ImGui::Checkbox("Use", &use)) {
@@ -150,6 +150,8 @@ namespace merutilm::rff2 {
                     allowedGlitchPixelCount = std::max(allowedGlitchPixelCount, 0u);
                 }
                 Utilities::imguiHelpMarker("If a few pixels are abnormally iterated, skip those pixels.");
+
+                ImGui::Checkbox("Interpolate Isolated Pixel", &interpolateIsolated);
             }
             if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
                 app.getRequests().requestRecompute();

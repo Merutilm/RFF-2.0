@@ -4,8 +4,8 @@
 
 #include "../vulkan/GPCIterationPalette.hpp"
 
+#include "../app/Utilities.h"
 #include "../settings/ShdPaletteSettings.h"
-#include "../ui/Utilities.h"
 #include "SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/util/BufferImageContextUtils.hpp"
 #include "vulkan_helper/util/DescriptorUpdater.hpp"

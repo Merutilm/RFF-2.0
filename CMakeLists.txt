@@ -19,16 +19,16 @@ set(CMAKE_BUILD_RPATH "$ORIGIN")
 add_executable(
         RFF
         extern/imgui/misc/cpp/imgui_stdlib.cpp
-        src/rff2/ui/Main.cpp
+        src/rff2/app/Main.cpp
         src/rff2/io/RFFDynamicMapBinary.cpp
         src/rff2/parallel/ParallelRenderState.cpp
         src/rff2/mrthy/MPAPeriod.cpp
-        src/rff2/ui/FnFile.cpp
-        src/rff2/ui/FnFractal.cpp
-        src/rff2/ui/FnRender.cpp
-        src/rff2/ui/FnShader.cpp
+        src/rff2/app/FnFile.cpp
+        src/rff2/app/FnFractal.cpp
+        src/rff2/app/FnRender.cpp
+        src/rff2/app/FnShader.cpp
         src/rff2/mb/MB2Locator.cpp
-        src/rff2/ui/FnExplore.cpp
+        src/rff2/app/FnExplore.cpp
         src/rff2/preset/shader/palette/ShdPalettePresets.cpp
         src/rff2/preset/shader/fog/ShdFogPresets.cpp
         src/rff2/preset/shader/color/ShdColorPresets.cpp
@@ -38,15 +38,15 @@ add_executable(
         src/rff2/preset/resolution/ResolutionPresets.cpp
         src/rff2/preset/render/RenderPresets.cpp
         src/rff2/preset/calc/CalculationPresets.cpp
-        src/rff2/ui/FnVideo.cpp
-        src/rff2/ui/IOUtilities.cpp
+        src/rff2/app/FnVideo.cpp
+        src/rff2/app/IOUtilities.cpp
         src/rff2/io/RFFStaticMapBinary.cpp
         src/rff2/io/RFFBinary.cpp
         src/rff2/io/RFFLocationBinary.cpp
         src/rff2/io/KFRColorLoader.cpp
         extern/stb_image.c
         src/rff2/vulkan/GPCIterationPalette.cpp
-        src/rff2/ui/RFF2.cpp
+        src/rff2/app/RFF2.cpp
         src/rff2/vulkan/CPCIterate.cpp
         src/rff2/vulkan/GPCStripe.cpp
         src/rff2/vulkan/GPCSlope.cpp
@@ -58,14 +58,16 @@ add_executable(
         src/rff2/vulkan/GPCBloom.cpp
         src/rff2/vulkan/GPCNoiseReduction.cpp
         src/rff2/vulkan/GPCPresent.cpp
-        src/rff2/ui/VideoWindow.cpp
-        src/rff2/ui/VideoWindowRenderManager.cpp
+        src/rff2/app/VideoWindow.cpp
+        src/rff2/app/VideoWindowRenderManager.cpp
         src/rff2/vulkan/CPC2MapIterationStripe.cpp
         src/rff2/vulkan/GPCStaticImage2Map.cpp
         src/rff2/vulkan/CPCImageRGBA2BGR.cpp
-        src/rff2/ui/FnPreset.cpp
+        src/rff2/app/FnPreset.cpp
         src/rff2/vulkan/GPC3DFractal.cpp
         src/rff2/vulkan/GPCSmoothZoom.cpp
+        src/rff2/vulkan/CPCInterpolateIsolated.cpp
+        src/rff2/vulkan/CPCInterpolateIsolated.hpp
 )
 
 target_compile_options(RFF PRIVATE

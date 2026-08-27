@@ -145,7 +145,7 @@ namespace merutilm::rff2 {
                 .render = {.clarityMultiplier = 0.25f,
                            .fps = 30,
                            .computeShader{
-                                   .use = true, .mpaMode = RndCmpMPAMode::FULL, .absIterationBatchSize = 81920}},
+                                   .use = true, .mpaMode = RndCmpMPAMode::FULL, .absIterationBatchSize = 81920, .interpolateIsolated = true}},
                 .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .slope = ShdSlopePresets::Disabled().genSlope(),
@@ -446,7 +446,7 @@ namespace merutilm::rff2 {
     }
 
     void RFF2::registerRenderers() {
-        renderer = registerRenderer<AppRenderer>(*engine, *rootWindowContext, settings, zoomAnimationInfo,
+        renderer = registerRenderer<RFF2Renderer>(*engine, *rootWindowContext, settings, zoomAnimationInfo,
                                                  [this] { renderImGui(); });
         createImGuiContext(renderer->imguiRenderContext);
     }
@@ -860,6 +860,7 @@ namespace merutilm::rff2 {
             const auto mapperLen = cache ? cache->mapperSizeUsed : 0;
 
             renderer->computeIterate->resetWriteBuffer(VkExtent2D{width, height}, commandPool);
+            renderer->computeIgnoreIsolated->setExtent(VkExtent2D{width, height});
             renderer->computeIterate->setRenderMeta(
                     renderData->fractalSettings, s.render, lightRef->refOrbit,
                     static_cast<complex<float>>(renderData->getPerturbator()->off),
@@ -904,16 +905,28 @@ namespace merutilm::rff2 {
 
                 renderer->computeIterate->cmdRender(cbh, 0, {});
 
-                vkh::BarrierUtils::cmdBufferMemoryBarrier(
-                        cbh, VK_ACCESS_MEMORY_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
-                        resultLocalIterBuffer.buffer, 0, resultLocalIterBuffer.bufferSize,
-                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
 
+                if (s.render.computeShader.interpolateIsolated) {
+                    vkh::BarrierUtils::cmdBufferMemoryBarrier(
+                        cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, resultLocalIterBuffer.buffer, 0,
+                        resultLocalIterBuffer.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
+                    vkh::BarrierUtils::cmdBufferMemoryBarrier(
+                            cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, batchResultCtx.buffer, 0,
+                            batchResultCtx.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+
+                    renderer->computeIgnoreIsolated->cmdRender(cbh, 0, {});
+                }
                 vkh::BarrierUtils::cmdBufferMemoryBarrier(
-                        cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, batchResultCtx.buffer, 0,
-                        batchResultCtx.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT);
+                                       cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                                       resultLocalIterBuffer.buffer, 0, resultLocalIterBuffer.bufferSize,
+                                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+                vkh::BarrierUtils::cmdBufferMemoryBarrier(
+                        cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT, batchResultCtx.buffer, 0,
+                        batchResultCtx.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
                 vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, resultLocalIterBuffer, visibleIterBuffer);
                 vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, batchResultCtx, dstBatchBuffer);

@@ -1,0 +1,59 @@
+#version 450
+#include <common.glsl>
+#extension GL_EXT_shader_explicit_arithmetic_types_int64: require
+
+// define descriptors
+#define DESC_ITERATION 0
+#define DESC_ITERATION_BUFFER_ACCESS
+#define DESC_RENDER_META 1
+
+// include descriptors
+#include <desc_iteration.glsl>
+#include <desc_render_meta.glsl>
+
+// include utilities
+
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+void main() {
+
+
+    uint px = gl_GlobalInvocationID.x;
+    uint py = gl_GlobalInvocationID.y;
+
+    uint index = py * iteration_info_settings.extent.x + px;
+
+    if (px >= int(iteration_info_settings.extent.x) || py >= int(iteration_info_settings.extent.y)) return;
+    if (batch_result_data.completed[index] != 0) return;
+
+
+    bool l = px != 0;
+    bool r = px < iteration_info_settings.extent.x - 1;
+    bool u = py < iteration_info_settings.extent.y - 1;
+    bool d = py != 0;
+
+    bool c1 = !l || batch_result_data.completed[index - 1] == 1;
+    bool c2 = !r || batch_result_data.completed[index + 1] == 1;
+    bool c3 = !u || batch_result_data.completed[index + px] == 1;
+    bool c4 = !d || batch_result_data.completed[index - px] == 1;
+
+    double i1 = l ? iteration_settings.iterations[index - 1] : 0;
+    double i2 = r ? iteration_settings.iterations[index + 1] : 0;
+    double i3 = u ? iteration_settings.iterations[index + px] : 0;
+    double i4 = d ? iteration_settings.iterations[index - px] : 0;
+
+
+    if (!c1 || !c2 || !c3 || !c4) return;
+
+    double it = 0;
+    uint cnt = 0;
+
+    if (l) {it += i1; ++cnt;}
+    if (r) {it += i2; ++cnt;}
+    if (u) {it += i3; ++cnt;}
+    if (d) {it += i4; ++cnt;}
+
+    iteration_settings.iterations[index] = it / cnt;
+    batch_result_data.completed[index] = 1;
+}
