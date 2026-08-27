@@ -11,5 +11,6 @@ namespace merutilm::rff2 {
         bool use;
         RndCmpMPAMode mpaMode;
         uint32_t absIterationBatchSize;
+        uint32_t allowedGlitchPixelCount;
     };
 }

@@ -877,20 +877,21 @@ namespace merutilm::rff2 {
 
 
         std::vector<ComputeShaderBatchStagingData> stagingData(width * height);
+        uint64_t glitches = 1;
 
-        for (uint32_t i = 0; std::ranges::any_of(
-                     stagingData, [](const ComputeShaderBatchStagingData &data) { return !data.completed; });
-             ++i) {
+        for (uint32_t i = 0; glitches > s.render.computeShader.allowedGlitchPixelCount; ++i) {
 
             if (state.interruptRequested()) {
                 break;
             }
 
+            glitches = std::ranges::count_if(stagingData, [](const ComputeShaderBatchStagingData &data) { return !data.completed; });
+
             const float time = rootWindowContext->getWindow()->getTime();
             const uint32_t currentBatchIteration = i * s.render.computeShader.absIterationBatchSize;
             setStatusMessage(Constants::Status::TIME_STATUS,
                              std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale("en_US.UTF-8"), "Batching... ({:L})", currentBatchIteration));
+            setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Batching... ({:L}, {:L})", currentBatchIteration, glitches));
 
             computeShaderManager->fence->waitAndReset();
 

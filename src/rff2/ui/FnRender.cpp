@@ -126,7 +126,7 @@ namespace merutilm::rff2 {
 
             ImGui::Begin("Compute Shader");
 
-            auto &[use, mpaMode, batchSize] = app.getSettings().render.computeShader;
+            auto &[use, mpaMode, batchSize, allowedGlitchPixelCount] = app.getSettings().render.computeShader;
 
             if (app.engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceFeatures().shaderInt64) {
                 if (ImGui::Checkbox("Use", &use)) {
@@ -145,6 +145,11 @@ namespace merutilm::rff2 {
                 }
                 Utilities::imguiHelpMarker("Sets the absolute iteration batch size of compute shader. "
                                            "This prevents the graphics driver forces reset gpu if a process takes too long to complete.");
+
+                if (ImGui::InputScalar("Allowed Glitch Pixel Count", ImGuiDataType_U32, &allowedGlitchPixelCount)) {
+                    allowedGlitchPixelCount = std::max(allowedGlitchPixelCount, 0u);
+                }
+                Utilities::imguiHelpMarker("If a few pixels are abnormally iterated, skip those pixels.");
             }
             if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
                 app.getRequests().requestRecompute();
