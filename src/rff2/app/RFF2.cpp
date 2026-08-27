@@ -869,6 +869,10 @@ namespace merutilm::rff2 {
         } // preparing render meta scope
 
 
+        if (state.interruptRequested()) {
+            return;
+        }
+
         auto &resultLocalIterBuffer = renderer->computeIterate->getWriteBuffer();
         auto &visibleIterBuffer = renderer->visibleIterationBufferContext->getContext();
 
