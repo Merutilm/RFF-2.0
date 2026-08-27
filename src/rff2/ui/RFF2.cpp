@@ -877,7 +877,7 @@ namespace merutilm::rff2 {
 
 
         std::vector<ComputeShaderBatchStagingData> stagingData(width * height);
-        uint64_t glitches = 1;
+        uint64_t glitches = width * height;
 
         for (uint32_t i = 0; glitches > s.render.computeShader.allowedGlitchPixelCount; ++i) {
 
