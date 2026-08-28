@@ -144,7 +144,7 @@ namespace merutilm::rff2 {
                     preferredBatchDuration = std::clamp(preferredBatchDuration, 0.01f, 10.f);
                 }
                 Utilities::imguiHelpMarker("Sets the preferred batch duration of compute shader. "
-                                           "The batch size starts at 1024 and is doubled when the dispatch time is shorter than this duration.");
+                                           "The batch size starts at 128 and is doubled when the dispatch time is shorter than this duration.");
 
                 if (ImGui::InputScalar("Allowed Glitch Pixel Count", ImGuiDataType_U32, &allowedGlitchPixelCount)) {
                     allowedGlitchPixelCount = std::max(allowedGlitchPixelCount, 0u);

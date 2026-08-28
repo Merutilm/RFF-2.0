@@ -90,7 +90,7 @@ namespace merutilm::rff2 {
         uint32_t index = 1;
 
         while (countDiv > 0) {
-            for (uint16_t j = 0; j < repetition; ++j) {
+            for (uint32_t j = 0; j < repetition; ++j) {
                 result[index] = result[j] + countDiv;
                 ++index;
             }
@@ -103,10 +103,10 @@ namespace merutilm::rff2 {
         cpy.resize(index);
         std::ranges::sort(cpy);
 
-        uint16_t ci = 0;
+        uint32_t ci = 0;
         while (index < result.size()) {
             if (
-                const uint16_t missing = ci + countDiv;
+                const uint32_t missing = ci + countDiv;
                 cpy.size() <= ci || cpy[ci] != missing) {
                 result[index] = missing;
                 ++index;
