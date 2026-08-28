@@ -7,11 +7,13 @@
 #include <vulkan_helper/engine/sync/Fence.hpp>
 #include <vulkan_helper/handle/CoreHandler.hpp>
 
+#include "vulkan_helper/engine/cmd/CommandBuffer.hpp"
+
 namespace merutilm::vkh {
     class ScopedNewCommandBufferExecutor final : public CoreHandler {
         CommandPool & commandPool;
-        Fence * const fence;
-        VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+        Fence * fence;
+        std::unique_ptr<CommandBuffer> commandBuffer;
 
     public:
         explicit ScopedNewCommandBufferExecutor(Core & core, CommandPool & commandPool, Fence * fence = VK_NULL_HANDLE);
@@ -26,7 +28,7 @@ namespace merutilm::vkh {
 
         ScopedNewCommandBufferExecutor &operator=(ScopedNewCommandBufferExecutor &&) = delete;
 
-        [[nodiscard]] VkCommandBuffer getCommandBufferHandle() const { return commandBuffer; }
+        [[nodiscard]] CommandBuffer &getCommandBuffer() const { return *commandBuffer; }
 
     protected:
         void init() override;

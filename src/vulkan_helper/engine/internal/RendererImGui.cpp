@@ -9,7 +9,6 @@
 #include "imgui_impl_vulkan.h"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
 #include "vulkan_helper/engine/internal/RCCImGui.hpp"
-#include "vulkan_helper/util/BarrierUtils.hpp"
 #include "vulkan_helper/util/RenderContextUtils.hpp"
 namespace merutilm::vkh {
 
@@ -36,7 +35,7 @@ namespace merutilm::vkh {
         ImDrawData* drawData = ImGui::GetDrawData();
         const auto renderPassRecorder = RenderPassFullscreenRecorder(
                 wc, *imguiRenderContext, frameIndex, swapchainImageIndex);
-        if (drawData) ImGui_ImplVulkan_RenderDrawData(drawData, wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex));
+        if (drawData) ImGui_ImplVulkan_RenderDrawData(drawData, wc.getCommandBufferGroup().getCommandBuffer(frameIndex).getCommandBufferHandle());
     }
 } // namespace merutilm::vkh
 #endif

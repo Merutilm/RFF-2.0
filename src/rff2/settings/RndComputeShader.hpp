@@ -3,15 +3,15 @@
 //
 
 #pragma once
-#include "RndCmpMPAMode.hpp"
 #include <cstdint>
 namespace merutilm::rff2 {
 
     struct RndComputeShader {
         bool use;
-        RndCmpMPAMode mpaMode;
         float preferredBatchDuration;
         uint32_t allowedGlitchPixelCount;
+        bool completelyIgnoreMpa;
+        uint32_t automaticAcceptMpaBatches;
         bool interpolateIsolated;
     };
 }

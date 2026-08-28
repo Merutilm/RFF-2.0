@@ -14,10 +14,10 @@ namespace merutilm::vkh {
 
     struct RenderPassGraphGeneratorBase {
         RenderPassManager rpm;
-        std::vector<std::unique_ptr<GraphicsPipelineNode>> pipelines{};
+        std::vector<std::unique_ptr<GraphicsPipelineNode>> pipelineNodes{};
 
         // Cache used during initialization. Ownership is transferred to the renderer after initialization.
-        std::vector<std::unique_ptr<PipelineConfigurator>> pipelineConfiguratorsCache{};\
+        std::vector<std::unique_ptr<PipelineConfigurator>> pipelineConfiguratorsCache{};
 
         uint32_t createdSubpassesCount = 0;
 

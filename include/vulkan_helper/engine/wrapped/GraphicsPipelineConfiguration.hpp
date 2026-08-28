@@ -7,7 +7,7 @@
 
 namespace merutilm::vkh {
     struct GraphicsPipelineConfiguration {
-        std::vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos;
+        std::vector<std::vector<VkPipelineShaderStageCreateInfo>> shaderStageCreateInfos;
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo;
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo;
         VkPipelineTessellationStateCreateInfo tessellationStateCreateInfo;
@@ -17,7 +17,7 @@ namespace merutilm::vkh {
         VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo;
         VkPipelineColorBlendAttachmentState colorBlendAttachmentState;
         VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo;
-        std::vector<VkSpecializationInfo> specializationInfo;
+        std::vector<VkSpecializationInfo> specializationInfos;
 
         std::vector<VkDynamicState> dynamicStates;
         VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo;

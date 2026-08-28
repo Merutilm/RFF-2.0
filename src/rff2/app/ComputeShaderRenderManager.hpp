@@ -16,8 +16,9 @@ namespace merutilm::rff2 {
         std::unique_ptr<vkh::CommandBuffer> commandBuffer;
         std::unique_ptr<vkh::Fence> fence;
 
-        bool dstBatchBufferExists = false;
         vkh::BufferContext dstBatchBuffer = {};
+        vkh::BufferContext dstIterBuffer = {};
+        VkExtent2D bufferExtent = {0, 0};
 
         explicit ComputeShaderRenderManager(vkh::WindowContext & wc) : WindowContextHandler(wc){
             ComputeShaderRenderManager::init();
@@ -36,21 +37,32 @@ namespace merutilm::rff2 {
         ComputeShaderRenderManager & operator=(ComputeShaderRenderManager &&) = delete;
 
 
-        void tryCreateOrResizeBatchTransferDstBuffer(const vkh::BufferContext &batchCtx) {
+        void tryCreateOrResizeTransferDstBuffer(const vkh::BufferContext &batchCtx, const vkh::BufferContext &iterCtx, const VkExtent2D &extent) {
 
-            if (!dstBatchBufferExists || batchCtx.bufferSize != dstBatchBuffer.bufferSize) {
+            if (extent.width != bufferExtent.width || extent.height != bufferExtent.height) {
+                if (bufferExtent.width > 0 && bufferExtent.height > 0) {
+                    vkh::BufferContext::destroyContext(wc.core, dstBatchBuffer);
+                    vkh::BufferContext::destroyContext(wc.core, dstIterBuffer);
+                }
 
-                if (dstBatchBufferExists) vkh::BufferContext::destroyContext(wc.core, dstBatchBuffer);
+                bufferExtent = extent;
 
                 dstBatchBuffer = vkh::BufferContext::createContext(
                    wc.core, {.size = batchCtx.bufferSize,
                                        .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                                       .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT});
+                                       .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT});
+                dstIterBuffer = vkh::BufferContext::createContext(
+                   wc.core, {.size = iterCtx.bufferSize,
+                                       .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                       .properties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT});
 
                 vkh::BufferContext::mapMemory(wc.core, dstBatchBuffer);
-                dstBatchBufferExists = true;
+                vkh::BufferContext::mapMemory(wc.core, dstIterBuffer);
+
             }
         }
+
+
 
     protected:
         void init() override {
@@ -60,7 +72,10 @@ namespace merutilm::rff2 {
         }
 
         void cleanup() override {
-            if (dstBatchBufferExists) vkh::BufferContext::destroyContext(wc.core, dstBatchBuffer);
+            if (bufferExtent.width > 0 && bufferExtent.height > 0) {
+                vkh::BufferContext::destroyContext(wc.core, dstBatchBuffer);
+                vkh::BufferContext::destroyContext(wc.core, dstIterBuffer);
+            }
             commandBuffer = nullptr;
             commandPool = nullptr;
             fence = nullptr;

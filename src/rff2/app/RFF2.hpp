@@ -54,6 +54,8 @@ namespace merutilm::rff2 {
 
         RFF2 &operator=(RFF2 &&) = delete;
 
+        void updateMouseInteraction();
+
         void update();
 
 

@@ -2,8 +2,10 @@
 #include <common.glsl>
 
 // define descriptors
+#define DESC_SMOOTH_ZOOM 1
 
 // include descriptors
+#include <desc_smooth_zoom.glsl>
 
 // include utilities
 
@@ -14,10 +16,7 @@ layout (set = 0, binding = 1) uniform ResampleUBO{
     uvec2 extent;
 } resample_settings;
 
-layout(set = 1, binding = 0) uniform SmoothZoomUBO{
-    vec2 pos_delta;
-    float log_zoom_delta;
-} smooth_zoom_settings;
+
 
 
 layout(location = 0) in vec3 fragColor;

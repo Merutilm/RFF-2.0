@@ -181,10 +181,10 @@ namespace merutilm::rff2 {
 
         vkh::BufferContext::mapMemory(wc.core, dstBuffer);
         {
-            vkh::ScopedCommandBufferExecutor executor(wc, wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex),
-                                                      wc.getSyncObject().getFence(frameIndex).getFenceHandle(),
+            vkh::ScopedCommandBufferExecutor executor(wc, wc.getCommandBufferGroup().getCommandBuffer(frameIndex),
+                                                      wc.getSyncObject().getFence(frameIndex),
                                                       VK_NULL_HANDLE, VK_NULL_HANDLE);
-            vkh::BufferImageContextUtils::cmdCopyBuffer(wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex),
+            vkh::BufferImageContextUtils::cmdCopyBuffer(wc.getCommandBufferGroup().getCommandBuffer(frameIndex),
                                                         srcBuffer, dstBuffer);
         }
         wc.getSyncObject().getFence(frameIndex).wait();

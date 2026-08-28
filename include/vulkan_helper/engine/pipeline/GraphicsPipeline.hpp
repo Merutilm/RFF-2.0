@@ -8,11 +8,9 @@
 namespace merutilm::vkh {
  
     class GraphicsPipeline final : public Pipeline {
-
-        std::vector<VkGraphicsPipelineCreateInfo> createInfo;
-
+        std::vector<VkGraphicsPipelineCreateInfo> createInfos;
     public:
-        explicit GraphicsPipeline(Core &core, PipelineManager &&pipelineManager, std::vector<VkGraphicsPipelineCreateInfo> &&createInfo);
+        explicit GraphicsPipeline(Core &core, PipelineManager &&pipelineManager, std::vector<VkGraphicsPipelineCreateInfo> &&createInfos);
 
         ~GraphicsPipeline() override;
 

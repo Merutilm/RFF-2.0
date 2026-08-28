@@ -9,8 +9,10 @@
 
 namespace merutilm::vkh {
     class ComputePipeline final : public Pipeline {
+        std::vector<VkComputePipelineCreateInfo> createInfos;
     public:
-        explicit ComputePipeline(Core &core, PipelineManager &&pipelineManager);
+        explicit ComputePipeline(Core &core, PipelineManager &&pipelineManager,
+                        std::vector<VkComputePipelineCreateInfo> &&createInfos);
 
         ~ComputePipeline() override;
 

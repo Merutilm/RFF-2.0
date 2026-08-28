@@ -14,7 +14,7 @@ namespace merutilm::vkh {
     uint32_t SwapchainUtils::begin(WindowContext &wc, const uint32_t frameIndex) {
         const Swapchain &swapchain = wc.getSwapchain();
         const VkDevice device = wc.core.getLogicalDevice().getLogicalDeviceHandle();
-        const VkSemaphore imageAvailableSemaphore = wc.getSyncObject().getSemaphore(frameIndex).getImageAvailable();
+        const VkSemaphore imageAvailableSemaphore = wc.getSyncObject().getWaitSemaphore(frameIndex).getSemaphoreHandle();
         const VkSwapchainKHR swapchainHandle = swapchain.getSwapchainHandle();
 
 
@@ -30,7 +30,7 @@ namespace merutilm::vkh {
     }
     void SwapchainUtils::end(WindowContext &wc, const uint32_t frameIndex, uint32_t swapchainImageIndex) {
         VkSwapchainKHR swapchainHandle = wc.getSwapchain().getSwapchainHandle();
-        VkSemaphore renderFinishedSemaphore = wc.getSyncObject().getSemaphore(frameIndex).getRenderFinished();
+        VkSemaphore renderFinishedSemaphore = wc.getSyncObject().getSignalSemaphore(frameIndex).getSemaphoreHandle();
         const VkPresentInfoKHR presentInfo = {.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
                                               .pNext = nullptr,
                                               .waitSemaphoreCount = 1,

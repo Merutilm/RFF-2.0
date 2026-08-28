@@ -6,8 +6,6 @@
 
 #include <thread>
 
-#include "../../settings/RndCmpMPAMode.hpp"
-
 
 namespace merutilm::rff2 {
     std::string RenderPresets::Potato::getName() const { return "Potato"; }
@@ -16,9 +14,10 @@ namespace merutilm::rff2 {
         return RenderSettings{0.1f,
                               60,
                               {.use = false,
-                               .mpaMode = RndCmpMPAMode::FULL,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
+                               .completelyIgnoreMpa = false,
+                               .automaticAcceptMpaBatches = 32,
                                .interpolateIsolated = true}};
     }
 
@@ -29,9 +28,10 @@ namespace merutilm::rff2 {
         return RenderSettings{0.3f,
                               60,
                               {.use = false,
-                               .mpaMode = RndCmpMPAMode::FULL,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
+                               .completelyIgnoreMpa = false,
+                               .automaticAcceptMpaBatches = 32,
                                .interpolateIsolated = true}};
     }
 
@@ -41,9 +41,10 @@ namespace merutilm::rff2 {
         return RenderSettings{0.5f,
                               60,
                               {.use = false,
-                               .mpaMode = RndCmpMPAMode::FULL,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
+                               .completelyIgnoreMpa = false,
+                               .automaticAcceptMpaBatches = 32,
                                .interpolateIsolated = true}};
     }
 
@@ -53,9 +54,10 @@ namespace merutilm::rff2 {
         return RenderSettings{1.0f,
                               60,
                               {.use = false,
-                               .mpaMode = RndCmpMPAMode::FULL,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
+                               .completelyIgnoreMpa = false,
+                               .automaticAcceptMpaBatches = 32,
                                .interpolateIsolated = true}};
     }
 
@@ -65,9 +67,10 @@ namespace merutilm::rff2 {
         return RenderSettings{2.0f,
                               60,
                               {.use = false,
-                               .mpaMode = RndCmpMPAMode::FULL,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
+                               .completelyIgnoreMpa = false,
+                               .automaticAcceptMpaBatches = 32,
                                .interpolateIsolated = true}};
     }
 
@@ -77,9 +80,10 @@ namespace merutilm::rff2 {
         return RenderSettings{4.0f,
                               60,
                               {.use = false,
-                               .mpaMode = RndCmpMPAMode::FULL,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
+                               .completelyIgnoreMpa = false,
+                               .automaticAcceptMpaBatches = 32,
                                .interpolateIsolated = true}};
     }
 } // namespace merutilm::rff2

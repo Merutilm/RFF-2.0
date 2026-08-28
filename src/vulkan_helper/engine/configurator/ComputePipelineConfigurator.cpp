@@ -36,7 +36,29 @@ namespace merutilm::vkh {
         pipelineManager.attachDescriptor(std::move(descriptors));
         pipelineManager.attachShader(&computeShader);
 
-        pipeline = std::make_unique<ComputePipeline>(wc.core, std::move(pipelineManager));
+        std::vector<VkSpecializationInfo> specializationInfos = pipelineManager.specialization.buildSpecializationInfo();
+        std::vector<VkComputePipelineCreateInfo> createInfos;
+        createInfos.reserve(specializationInfos.size());
+
+        for (auto &specializationInfo : specializationInfos) {
+            const VkComputePipelineCreateInfo info = {
+                .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .stage = {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                          .pNext = nullptr,
+                          .flags = 0,
+                          .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+                          .module = computeShader.getShaderModuleHandle(),
+                          .pName = "main",
+                          .pSpecializationInfo = pipelineManager.specialization.isEmpty() ? nullptr : &specializationInfo},
+                .layout = pipelineLayout.getLayoutHandle(),
+                .basePipelineHandle = nullptr,
+                .basePipelineIndex = -1};
+            createInfos.emplace_back(std::move(info));
+        }
+
+        pipeline = std::make_unique<ComputePipeline>(wc.core, std::move(pipelineManager), std::move(createInfos));
     }
 
 }

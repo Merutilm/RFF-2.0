@@ -7,6 +7,9 @@
 #include <vulkan_helper/handle/CoreHandler.hpp>
 #include <vulkan_helper/core/Core.hpp>
 
+#include "vulkan_helper/engine/sync/Fence.hpp"
+#include "vulkan_helper/engine/sync/Semaphore.hpp"
+
 namespace merutilm::vkh {
     class CommandBuffer final : public CoreHandler {
         VkCommandBuffer commandBuffer = {};
@@ -31,6 +34,12 @@ namespace merutilm::vkh {
         [[nodiscard]] CommandPool &getCommandPool() const {
             return commandPool;
         }
+
+        void begin() const;
+
+        void end() const;
+
+        void submit(const Fence *fence, const std::vector<const Semaphore *> &waitSemaphores, const std::vector<const Semaphore *> &signalSemaphores) const;
 
     protected:
         void init() override;

@@ -126,7 +126,7 @@ namespace merutilm::rff2 {
 
             ImGui::Begin("Compute Shader");
 
-            auto &[use, mpaMode, preferredBatchDuration, allowedGlitchPixelCount, interpolateIsolated] = app.getSettings().render.computeShader;
+            auto &[use, preferredBatchDuration, allowedGlitchPixelCount,  completelyIgnoreMpa, automaticAcceptMpaBatches, interpolateIsolated] = app.getSettings().render.computeShader;
 
             if (app.engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceFeatures().shaderInt64) {
                 if (ImGui::Checkbox("Use", &use)) {
@@ -136,9 +136,6 @@ namespace merutilm::rff2 {
                                            "it is only available for single-precision values down to 1e-35, "
                                            "uncompressed MP table and uncompressed reference.");
 
-                Utilities::imguiDropdown("MPA Mode", &mpaMode);
-                Utilities::imguiHelpMarker(
-                        "Sets MPA Mode. finding appropriate pa from mp-table on gpu-level is so expensive.");
 
                 if (ImGui::InputFloat("Preferred Batch Duration", &preferredBatchDuration)) {
                     preferredBatchDuration = std::clamp(preferredBatchDuration, 0.01f, 10.f);
@@ -150,6 +147,20 @@ namespace merutilm::rff2 {
                     allowedGlitchPixelCount = std::max(allowedGlitchPixelCount, 0u);
                 }
                 Utilities::imguiHelpMarker("If a few pixels are abnormally iterated, skip those pixels.");
+
+                ImGui::Checkbox("Completely Ignore MP-Approx", &completelyIgnoreMpa);
+                Utilities::imguiHelpMarker(
+                        "Ignores MPA. finding appropriate pa from mp-table on gpu-level is so expensive.");
+
+                if (completelyIgnoreMpa) {
+                    ImGui::BeginDisabled();
+                }
+                ImGui::InputScalar("Automatic Accept Batches", ImGuiDataType_U32, &automaticAcceptMpaBatches);
+                Utilities::imguiHelpMarker("MP-Approximation is automatically used for the first few batches. After that, it is no longer used. set 0 to fully use.");
+
+                if (completelyIgnoreMpa) {
+                    ImGui::EndDisabled();
+                }
 
                 ImGui::Checkbox("Interpolate Isolated Pixel", &interpolateIsolated);
             }

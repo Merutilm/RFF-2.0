@@ -204,6 +204,25 @@ namespace merutilm::vkh {
         throw exception_init("failed to find suitable memory type!");
     }
 
+    VkImageAspectFlags BufferImageUtils::getImageAspect(const VkFormat format) {
+        switch (format) {
+            case VK_FORMAT_D16_UNORM:
+            case VK_FORMAT_D32_SFLOAT:
+                return VK_IMAGE_ASPECT_DEPTH_BIT;
+
+            case VK_FORMAT_S8_UINT:
+                return VK_IMAGE_ASPECT_STENCIL_BIT;
+
+            case VK_FORMAT_D16_UNORM_S8_UINT:
+            case VK_FORMAT_D24_UNORM_S8_UINT:
+            case VK_FORMAT_D32_SFLOAT_S8_UINT:
+                return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+            default:
+                return VK_IMAGE_ASPECT_COLOR_BIT;
+        }
+    }
+
     uint32_t BufferImageUtils::genMipLevels(const ImageInitInfo &iii) {
         if (!iii.useMipmap) return 1;
         return getAvailableMipLevels({iii.extent.width, iii.extent.height});

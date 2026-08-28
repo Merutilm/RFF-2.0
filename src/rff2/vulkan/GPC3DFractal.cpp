@@ -115,9 +115,10 @@ namespace merutilm::rff2 {
                                                                     vkh::GraphicsPipelineConfiguration &pipelineConfiguration) {
         const auto &modules = pipelineManager.shaderModules;
 
-        pipelineConfiguration.shaderStageCreateInfos.resize(modules.size());
+        pipelineConfiguration.shaderStageCreateInfos.resize(1);
+        pipelineConfiguration.shaderStageCreateInfos[0].resize(modules.size());
         for (size_t i = 0; i < modules.size(); ++i) {
-            pipelineConfiguration.shaderStageCreateInfos[i] = {
+            pipelineConfiguration.shaderStageCreateInfos[0][i] = {
                     .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                     .pNext = nullptr,
                     .flags = 0,
@@ -232,8 +233,8 @@ namespace merutilm::rff2 {
         return {{.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
-                .stageCount = static_cast<uint32_t>(pipelineConfiguration.shaderStageCreateInfos.size()),
-                .pStages = pipelineConfiguration.shaderStageCreateInfos.data(),
+                .stageCount = static_cast<uint32_t>(pipelineConfiguration.shaderStageCreateInfos[0].size()),
+                .pStages = pipelineConfiguration.shaderStageCreateInfos[0].data(),
                 .pVertexInputState = &pipelineConfiguration.vertexInputStateCreateInfo,
                 .pInputAssemblyState = &pipelineConfiguration.inputAssemblyStateCreateInfo,
                 .pTessellationState = nullptr,

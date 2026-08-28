@@ -8,7 +8,7 @@
 
 #include "FrtDecimalizeIterationMethod.h"
 #include "FrtMPASelectionMethod.h"
-#include "RndCmpMPAMode.hpp"
+#include "PerturbationMainIterator.hpp"
 #include "ShdIterationColoringMethod.hpp"
 #include "ShdPalSingleIterationColoringMethod.h"
 #include "ShdStripeType.h"
@@ -61,12 +61,11 @@ namespace merutilm::rff2 {
                     SQUARED
                 };
             }
-            if constexpr (std::is_same_v<E, RndCmpMPAMode>) {
-                using enum RndCmpMPAMode;
+            if constexpr (std::is_same_v<E, PerturbationMainIterator>) {
+                using enum PerturbationMainIterator;
                 return {
-                    OFF,
-                    FIRST_REFITERATION_ONLY,
-                    FULL,
+                    CPU,
+                    GPU
                 };
             }
             return {};
@@ -121,12 +120,11 @@ namespace merutilm::rff2 {
                     default: break;
                 }
             }
-            if constexpr (std::is_same_v<E, RndCmpMPAMode>) {
+            if constexpr (std::is_same_v<E, PerturbationMainIterator>) {
                 switch (value) {
-                    using enum RndCmpMPAMode;
-                    case OFF: return "Off";
-                    case FIRST_REFITERATION_ONLY: return "First Ref Iteration Only";
-                    case FULL: return "Fully Use";
+                    using enum PerturbationMainIterator;
+                    case CPU: return "CPU";
+                    case GPU: return "GPU";
                     default: break;
                 }
             }

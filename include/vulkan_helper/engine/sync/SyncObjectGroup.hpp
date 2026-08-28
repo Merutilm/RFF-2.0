@@ -5,12 +5,13 @@
 #pragma once
 #include <vulkan_helper/handle/CoreHandler.hpp>
 #include "Fence.hpp"
-#include "SemaphoreGroup.hpp"
+#include "Semaphore.hpp"
 
 namespace merutilm::vkh {
     class SyncObjectGroup final : public CoreHandler {
         std::vector<std::unique_ptr<Fence>> fences = {};
-        std::vector<std::unique_ptr<SemaphoreGroup>> semaphoreGroups = {};
+        std::vector<std::unique_ptr<Semaphore>> waitSemaphores = {};
+        std::vector<std::unique_ptr<Semaphore>> signalSemaphores = {};
 
 
     public:
@@ -26,8 +27,11 @@ namespace merutilm::vkh {
 
         SyncObjectGroup &operator=(SyncObjectGroup &&) = delete;
 
-        [[nodiscard]] SemaphoreGroup & getSemaphore(const uint32_t frameIndex) const {
-            return *semaphoreGroups[frameIndex];
+        [[nodiscard]] Semaphore & getWaitSemaphore(const uint32_t frameIndex) const {
+            return *waitSemaphores[frameIndex];
+        }
+        [[nodiscard]] Semaphore & getSignalSemaphore(const uint32_t frameIndex) const {
+            return *signalSemaphores[frameIndex];
         }
 
         [[nodiscard]] Fence & getFence(const uint32_t frameIndex) const { return *fences[frameIndex]; }

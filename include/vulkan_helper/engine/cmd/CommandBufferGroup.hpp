@@ -7,9 +7,11 @@
 #include <vulkan_helper/handle/CoreHandler.hpp>
 #include <vulkan_helper/core/Core.hpp>
 
+#include "CommandBuffer.hpp"
+
 namespace merutilm::vkh {
     class CommandBufferGroup final : public CoreHandler {
-        std::vector<VkCommandBuffer> commandBuffers = {};
+        std::vector<std::unique_ptr<CommandBuffer>> commandBuffers = {};
         CommandPool & commandPool;
     public:
         explicit CommandBufferGroup(Core & core, CommandPool & commandPool);
@@ -24,7 +26,7 @@ namespace merutilm::vkh {
 
         CommandBufferGroup &operator=(CommandBufferGroup &&) = delete;
 
-        [[nodiscard]] VkCommandBuffer getCommandBufferHandle(const uint32_t frameIndex) const { return commandBuffers[frameIndex]; }
+        [[nodiscard]] CommandBuffer &getCommandBuffer(const uint32_t frameIndex) const { return *commandBuffers[frameIndex]; }
 
         [[nodiscard]] CommandPool &getCommandPool() const {
             return commandPool;

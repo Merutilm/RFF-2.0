@@ -18,15 +18,18 @@ namespace merutilm::vkh {
         const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
 
         fences.reserve(maxFramesInFlight);
-        semaphoreGroups.reserve(maxFramesInFlight);
+        waitSemaphores.reserve(maxFramesInFlight);
+        signalSemaphores.reserve(maxFramesInFlight);
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
             fences.emplace_back(std::make_unique<Fence>(core));
-            semaphoreGroups.emplace_back(std::make_unique<SemaphoreGroup>(core));
+            waitSemaphores.emplace_back(std::make_unique<Semaphore>(core));
+            signalSemaphores.emplace_back(std::make_unique<Semaphore>(core));
         }
     }
 
     void SyncObjectGroup::cleanup() {
-        semaphoreGroups.clear();
+        signalSemaphores.clear();
+        waitSemaphores.clear();
         fences.clear();
     }
 }

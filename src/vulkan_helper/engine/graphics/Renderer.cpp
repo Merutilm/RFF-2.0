@@ -32,15 +32,13 @@ namespace merutilm::vkh {
 
             DescriptorUpdater::write(device, queue);
 
-            const VkCommandBuffer commandBuffer = wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex);
-            const VkFence fence = wc.getSyncObject().getFence(frameIndex).getFenceHandle();
-            const VkSemaphore imageAvailableSemaphore = wc.getSyncObject().getSemaphore(frameIndex).
-                    getImageAvailable();
-            const VkSemaphore renderFinishedSemaphore = wc.getSyncObject().getSemaphore(frameIndex).
-                    getRenderFinished();
+            const CommandBuffer &commandBuffer = wc.getCommandBufferGroup().getCommandBuffer(frameIndex);
+            const Fence &fence = wc.getSyncObject().getFence(frameIndex);
+            const Semaphore &imageAvailableSemaphore = wc.getSyncObject().getWaitSemaphore(frameIndex);
+            const Semaphore &renderFinishedSemaphore = wc.getSyncObject().getSignalSemaphore(frameIndex);
+
             beforeCmdRender();
-            ScopedCommandBufferExecutor executor(wc, commandBuffer, fence, imageAvailableSemaphore,
-                                                 renderFinishedSemaphore);
+            ScopedCommandBufferExecutor executor(wc, commandBuffer, fence, &imageAvailableSemaphore, &renderFinishedSemaphore);
             cmdRender(swapchainImageIndex);
         });
     }

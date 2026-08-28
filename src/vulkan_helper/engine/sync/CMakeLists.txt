@@ -1,6 +1,6 @@
 add_library(engine_sync OBJECT
         Fence.cpp
-        SemaphoreGroup.cpp
+        Semaphore.cpp
         SyncObjectGroup.cpp
 )
 

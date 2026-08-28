@@ -135,11 +135,11 @@ namespace merutilm::vkh {
                 const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
 
                 for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-                    BarrierUtils::cmdBufferMemoryBarrier(cex.getCommandBufferHandle(), VK_ACCESS_HOST_WRITE_BIT,
+                    BarrierUtils::cmdBufferMemoryBarrier(cex.getCommandBuffer().getCommandBufferHandle(), VK_ACCESS_HOST_WRITE_BIT,
                                                          VK_ACCESS_TRANSFER_READ_BIT, getBufferContextMF(i).buffer, 0,
                                                          hostDataObject.getTotalSizeByte(), VK_PIPELINE_STAGE_HOST_BIT,
                                                          VK_PIPELINE_STAGE_TRANSFER_BIT);
-                    vkCmdCopyBuffer(cex.getCommandBufferHandle(), getBufferContextMF(i).buffer, lockedBuffer[i].buffer,
+                    vkCmdCopyBuffer(cex.getCommandBuffer().getCommandBufferHandle(), getBufferContextMF(i).buffer, lockedBuffer[i].buffer,
                                     1, &copyRegion);
                 }
             }
@@ -158,11 +158,11 @@ namespace merutilm::vkh {
             // NEW COMMAND BUFFER
             {
                 const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
-                BarrierUtils::cmdBufferMemoryBarrier(cex.getCommandBufferHandle(), VK_ACCESS_HOST_WRITE_BIT,
+                BarrierUtils::cmdBufferMemoryBarrier(cex.getCommandBuffer().getCommandBufferHandle(), VK_ACCESS_HOST_WRITE_BIT,
                                                      VK_ACCESS_TRANSFER_READ_BIT, getBufferContext().buffer, 0,
                                                      hostDataObject.getTotalSizeByte(), VK_PIPELINE_STAGE_HOST_BIT,
                                                      VK_PIPELINE_STAGE_TRANSFER_BIT);
-                vkCmdCopyBuffer(cex.getCommandBufferHandle(), getBufferContext().buffer, lockedBuffer.buffer, 1,
+                vkCmdCopyBuffer(cex.getCommandBuffer().getCommandBufferHandle(), getBufferContext().buffer, lockedBuffer.buffer, 1,
                                 &copyRegion);
             }
 
@@ -219,10 +219,10 @@ namespace merutilm::vkh {
                 const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
                 for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
                     BarrierUtils::cmdBufferMemoryBarrier(
-                            cex.getCommandBufferHandle(), VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                            cex.getCommandBuffer().getCommandBufferHandle(), VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
                             getBufferContextMF(i).buffer, 0, hostDataObject.getTotalSizeByte(),
                             VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-                    vkCmdCopyBuffer(cex.getCommandBufferHandle(), getBufferContextMF(i).buffer,
+                    vkCmdCopyBuffer(cex.getCommandBuffer().getCommandBufferHandle(), getBufferContextMF(i).buffer,
                                     unlockedBuffer[i].buffer, 1, &copyRegion);
                 }
             }
@@ -241,10 +241,10 @@ namespace merutilm::vkh {
             {
                 const auto cex = ScopedNewCommandBufferExecutor(core, commandPool);
                 BarrierUtils::cmdBufferMemoryBarrier(
-                        cex.getCommandBufferHandle(), VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                        cex.getCommandBuffer().getCommandBufferHandle(), VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
                         getBufferContext().buffer, 0, hostDataObject.getTotalSizeByte(),
                         VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-                vkCmdCopyBuffer(cex.getCommandBufferHandle(), getBufferContext().buffer, unlockedBuffer.buffer, 1,
+                vkCmdCopyBuffer(cex.getCommandBuffer().getCommandBufferHandle(), getBufferContext().buffer, unlockedBuffer.buffer, 1,
                                 &copyRegion);
             }
             if (fence == VK_NULL_HANDLE) {

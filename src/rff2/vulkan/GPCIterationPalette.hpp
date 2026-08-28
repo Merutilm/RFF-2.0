@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "../settings/PerturbationMainIterator.hpp"
 #include "../settings/ShdPaletteSettings.h"
 #include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
@@ -12,7 +13,11 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_ITERATION = 0;
         static constexpr uint32_t SET_PALETTE = 1;
         static constexpr uint32_t SET_TIME = 2;
-        static constexpr uint32_t SET_COLORING = 3;
+        static constexpr uint32_t SET_BATCH_RESULT = 3;
+        static constexpr uint32_t SET_SMOOTH_ZOOM = 4;
+
+
+        static constexpr uint32_t SPECIALIZATION_PERTURBATION_MAIN_ITERATOR = 0;
 
         uint32_t iterWidth = 0;
         uint32_t iterHeight = 0;
@@ -30,9 +35,13 @@ namespace merutilm::rff2 {
 
         GPCIterationPalette &operator=(GPCIterationPalette &&) = delete;
 
+        vkh::PipelineSpecialization createSpecializationInfo() override;
+
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
-        void cmdRefreshIterations(VkCommandBuffer cbh, const vkh::BufferContext &src) const;
+        void setPerturbationMainIterator(PerturbationMainIterator mainIterator);
+
+        void cmdRefreshIterations(const vkh::CommandBuffer &commandBuffer, const vkh::BufferContext &src) const;
 
         [[nodiscard]] const vkh::BufferContext &getResultIterationBuffer() const;
 

@@ -29,7 +29,7 @@ namespace merutilm::rff2 {
 
 
     void CPCBoxBlur::cmdGaussianBlur(const uint32_t frameIndex, const uint32_t blurSizeDescIndex) {
-        const VkCommandBuffer cbh = wc.getCommandBufferGroup().getCommandBufferHandle(frameIndex);
+        const VkCommandBuffer cbh = wc.getCommandBufferGroup().getCommandBuffer(frameIndex).getCommandBufferHandle();
         auto &blurDesc = getDescriptor(SET_BLUR_IMAGE);
 
         auto ctxGetter = [&blurDesc, &frameIndex](const uint32_t descIndex, const uint32_t binding) {
@@ -40,16 +40,16 @@ namespace merutilm::rff2 {
 
         vkh::BarrierUtils::cmdImageMemoryBarrier(cbh, dst.image, 0,
                                                  VK_ACCESS_SHADER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
-                                                 VK_IMAGE_LAYOUT_GENERAL, 0, 1,
+                                                 VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, 0, 1,
                                                  VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                                                  VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 
         cmdRender(cbh, frameIndex, {0u, blurSizeDescIndex});
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh, dst.image, VK_IMAGE_LAYOUT_GENERAL, 0, 1,
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh, dst.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, 0, 1,
                                                           VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                                           VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
         cmdRender(cbh, frameIndex, {1u, blurSizeDescIndex});
-        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh, dst.image, VK_IMAGE_LAYOUT_GENERAL, 0, 1,
+        vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(cbh, dst.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, 0, 1,
                                                           VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                                                           VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
         cmdRender(cbh, frameIndex, {2u, blurSizeDescIndex});

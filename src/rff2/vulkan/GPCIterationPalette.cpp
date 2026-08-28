@@ -5,12 +5,22 @@
 #include "../vulkan/GPCIterationPalette.hpp"
 
 #include "../app/Utilities.h"
+#include "../settings/PerturbationMainIterator.hpp"
 #include "../settings/ShdPaletteSettings.h"
+#include "GPCSmoothZoom.hpp"
 #include "SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/util/BufferImageContextUtils.hpp"
 #include "vulkan_helper/util/DescriptorUpdater.hpp"
 
 namespace merutilm::rff2 {
+    vkh::PipelineSpecialization GPCIterationPalette::createSpecializationInfo() {
+        auto values = Selectable::values<PerturbationMainIterator>();
+        vkh::PipelineSpecialization specialization(values.size());
+        specialization.appendEntry(SPECIALIZATION_PERTURBATION_MAIN_ITERATOR, std::move(values));
+        return specialization;
+    }
+
+
     void GPCIterationPalette::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
         using namespace SharedDescriptorTemplate;
         auto &timeDesc = getDescriptor(SET_TIME);
@@ -19,9 +29,14 @@ namespace merutilm::rff2 {
         timeBinding.getHostObject().set(DescTime::TARGET_TIME_CURRENT, wc.getWindow()->getTime());
         timeBinding.updateMF(frameIndex);
     }
+    void GPCIterationPalette::setPerturbationMainIterator(PerturbationMainIterator mainIterator) {
+        specializationIndex = static_cast<uint32_t>(mainIterator);
+    }
 
-    void GPCIterationPalette::cmdRefreshIterations(const VkCommandBuffer cbh, const vkh::BufferContext &src) const {
-        vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, src, getResultIterationBuffer());
+
+    void GPCIterationPalette::cmdRefreshIterations(const vkh::CommandBuffer &commandBuffer,
+                                                   const vkh::BufferContext &src) const {
+        vkh::BufferImageContextUtils::cmdCopyBuffer(commandBuffer, src, getResultIterationBuffer());
     }
 
     const vkh::BufferContext &GPCIterationPalette::getResultIterationBuffer() const {
@@ -51,6 +66,7 @@ namespace merutilm::rff2 {
             iterDesc.queue(queue, frameIndex, {}, {DescIteration::BINDING_SSBO_ITERATION_MATRIX});
         });
     }
+
 
 
     void GPCIterationPalette::applyMaxIteration() const {
@@ -120,5 +136,7 @@ namespace merutilm::rff2 {
         appendDescriptor<DescIteration>(SET_ITERATION, descriptors);
         appendDescriptor<DescPalette>(SET_PALETTE, descriptors);
         appendDescriptor<DescTime>(SET_TIME, descriptors);
+        appendDescriptor<DescBatchResult>(SET_BATCH_RESULT, descriptors);
+        appendDescriptor<DescSmoothZoom>(SET_SMOOTH_ZOOM, descriptors);
     }
 } // namespace merutilm::rff2

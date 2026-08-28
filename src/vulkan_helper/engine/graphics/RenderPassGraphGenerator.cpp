@@ -11,13 +11,13 @@ namespace merutilm::vkh {
 
 
     void RenderPassGraphGenerator::createPipelines(RenderPass *rp) const {
-        for (auto &node: pipelines) {
+        for (auto &node: pipelineNodes) {
             node->getPipelineConfigurator().configure(rp, node->getSubpass());
         }
     }
 
     void RenderPassGraphGenerator::generate() {
-        if (pipelines.empty())
+        if (pipelineNodes.empty())
             return;
 
         // auto-generate render pass graph. (Topological sort)
@@ -25,7 +25,7 @@ namespace merutilm::vkh {
         std::unordered_map<const GraphicsPipelineNode *, uint32_t> referenceCount;
         std::queue<const GraphicsPipelineNode *> queue;
 
-        for (auto &pipeline: pipelines) {
+        for (auto &pipeline: pipelineNodes) {
             if (pipeline->getSubpass() == 0) {
                 assert(pipeline->getDepends().empty()); // it should not be happened
 
@@ -73,7 +73,7 @@ namespace merutilm::vkh {
             }
         }
 
-        std::ranges::sort(pipelines, [](const std::unique_ptr<GraphicsPipelineNode> &a,
+        std::ranges::sort(pipelineNodes, [](const std::unique_ptr<GraphicsPipelineNode> &a,
                                         const std::unique_ptr<GraphicsPipelineNode> &b) {
             return a->getSubpass() < b->getSubpass();
         });

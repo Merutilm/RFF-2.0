@@ -17,6 +17,19 @@ namespace merutilm::vkh {
 
     RenderPass::~RenderPass() { RenderPass::cleanup(); }
 
+    void RenderPass::begin(const VkCommandBuffer cbh, const VkFramebuffer framebuffer, const VkOffset2D offset,
+                           const VkExtent2D extent, std::vector<VkClearValue> clearValues) const {
+        const VkRenderPassBeginInfo renderPassBeginInfo = {.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                                                           .pNext = nullptr,
+                                                           .renderPass = renderPass,
+                                                           .framebuffer = framebuffer,
+                                                           .renderArea = {.offset = offset, .extent = extent},
+                                                           .clearValueCount = static_cast<uint32_t>(clearValues.size()),
+                                                           .pClearValues = clearValues.data()};
+        vkCmdBeginRenderPass(cbh, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    }
+    void RenderPass::end(const VkCommandBuffer cbh) { vkCmdEndRenderPass(cbh); }
+
     void RenderPass::init() {
         const uint32_t subpasses = getSubpassCount();
         std::vector<VkSubpassDescription> subpassDescription(subpasses);

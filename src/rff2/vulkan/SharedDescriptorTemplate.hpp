@@ -363,8 +363,6 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t BINDING_RM_BATCH_SSBO = 4;
         static constexpr uint32_t TARGET_RM_BATCH_STAGING_DATA = 0;
 
-        static constexpr uint32_t BINDING_RM_BATCH_RESULT_SSBO = 5;
-        static constexpr uint32_t TARGET_RM_BATCH_RESULT_COMPLETED = 0;
 
         void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
 
@@ -399,8 +397,6 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             vkh::HostDataObjectManager homRmBatch;
             homRmBatch.reserveArray<ComputeShaderBatchStagingData>(TARGET_RM_BATCH_STAGING_DATA, 1);
 
-            vkh::HostDataObjectManager homRmBatchResult;
-            homRmBatchResult.reserveArray<uint32_t>(TARGET_RM_BATCH_RESULT_COMPLETED, 1);
 
             auto rmSSBO = std::make_unique<vkh::ShaderStorage>(core, std::move(homRm),
                                                                vkh::BufferLocalization::UNIDIRECTIONAL, false);
@@ -413,8 +409,6 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
                                                                  vkh::BufferLocalization::UNIDIRECTIONAL, false);
             auto rmBatchSSBO = std::make_unique<vkh::ShaderStorage>(core, std::move(homRmBatch),
                                                                     vkh::BufferLocalization::UNIDIRECTIONAL, false);
-            auto rmBatchResultSSBO = std::make_unique<vkh::ShaderStorage>(
-                    core, std::move(homRmBatchResult), vkh::BufferLocalization::BIDIRECTIONAL, false);
 
 
             vkh::DescriptorManager descManagerRenderMeta;
@@ -427,8 +421,6 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
                                             std::move(rmBatchInfoUBO));
             descManagerRenderMeta.appendSSBO(BINDING_RM_BATCH_SSBO, VK_SHADER_STAGE_COMPUTE_BIT,
                                              std::move(rmBatchSSBO));
-            descManagerRenderMeta.appendSSBO(BINDING_RM_BATCH_RESULT_SSBO, VK_SHADER_STAGE_COMPUTE_BIT,
-                                             std::move(rmBatchResultSSBO));
             
             managers.emplace_back(std::move(descManagerRenderMeta));
         }
@@ -442,5 +434,45 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
             DescIteration().configure(core, managers);
         };
+    };
+
+
+    struct DescBatchResult : public vkh::DescriptorTemplate {
+        static constexpr uint32_t ID = 14;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        static constexpr uint32_t BINDING_BATCH_RESULT_SSBO = 0;
+        static constexpr uint32_t TARGET_BATCH_RESULT_COMPLETED = 0;
+        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+
+            vkh::HostDataObjectManager homRmBatchResult;
+            homRmBatchResult.reserveArray<uint32_t>(TARGET_BATCH_RESULT_COMPLETED, 1);
+            auto rmBatchResultSSBO = std::make_unique<vkh::ShaderStorage>(
+                    core, std::move(homRmBatchResult), vkh::BufferLocalization::BIDIRECTIONAL, false);
+
+
+            vkh::DescriptorManager descManager;
+            descManager.appendSSBO(BINDING_BATCH_RESULT_SSBO, VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                                             std::move(rmBatchResultSSBO));
+            managers.emplace_back(std::move(descManager));
+        }
+    };
+
+    struct DescSmoothZoom : public vkh::DescriptorTemplate {
+        static constexpr uint32_t ID = 15;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
+        static constexpr uint32_t BINDING_SMOOTH_ZOOM_UBO = 0;
+        static constexpr uint32_t TARGET_SMOOTH_ZOOM_POSITION_DELTA = 0;
+        static constexpr uint32_t TARGET_SMOOTH_ZOOM_LOG_ZOOM_DELTA = 1;
+
+        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+            vkh::DescriptorManager descManager;
+            vkh::HostDataObjectManager hdm;
+            hdm.reserve<glm::vec2>(TARGET_SMOOTH_ZOOM_POSITION_DELTA);
+            hdm.reserve<float>(TARGET_SMOOTH_ZOOM_LOG_ZOOM_DELTA);
+            auto uniform = std::make_unique<vkh::Uniform>(core, std::move(hdm), vkh::BufferLocalization::BIDIRECTIONAL, false);
+            descManager.appendUBO(BINDING_SMOOTH_ZOOM_UBO, VK_SHADER_STAGE_FRAGMENT_BIT, std::move(uniform));
+            managers.emplace_back(std::move(descManager));
+        }
     };
 } // namespace merutilm::rff2::SharedDescriptorTemplate

@@ -75,7 +75,7 @@ namespace merutilm::vkh {
             if (result)
                 *result = ptr;
 
-            return pipelines
+            return pipelineNodes
                     .emplace_back(std::make_unique<GraphicsPipelineNode>(std::move(depends), ptr, std::move(reference),
                                                                          subpassIndex,
                                                                          std::forward<Func>(descIndexPickerFunc)))

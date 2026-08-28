@@ -50,6 +50,11 @@ namespace merutilm::vkh {
 
         [[nodiscard]] VkRenderPass getRenderPassHandle() const { return renderPass; }
 
+        void begin(VkCommandBuffer cbh, VkFramebuffer framebuffer, VkOffset2D offset, VkExtent2D extent, std::vector<VkClearValue> clearValues) const;
+
+        static void end(const VkCommandBuffer cbh);
+
+
     protected:
         void init() override;
 

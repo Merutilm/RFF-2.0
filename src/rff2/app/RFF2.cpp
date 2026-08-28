@@ -110,7 +110,25 @@ namespace merutilm::rff2 {
         }
     }
 
+    void RFF2::updateMouseInteraction() {
+        double mdx;
+        double mdy;
+        glfwGetCursorPos(rootWindowContext->getWindow()->getWindow(), &mdx, &mdy);
+        const int mx = static_cast<int>(mdx);
+        const int my = static_cast<int>(mdy);
+        const uint16_t x = getMouseXOnIterationBuffer(mx);
+        const uint16_t y = getMouseYOnIterationBuffer(my);
+        if (renderer->visibleIterationBufferContext == nullptr || x >= getIterationBufferWidth() ||
+            y >= getIterationBufferHeight()) {
+            return;
+        }
+        auto it = static_cast<uint64_t>((*renderer->visibleIterationBufferContext)(x, y));
+        setStatusMessage(Constants::Status::ITERATION_STATUS,
+                         std::format(std::locale("en_US.UTF-8"), "Iterations : {:L}", it, x, y));
+    }
+
     void RFF2::update() {
+        updateMouseInteraction();
         resolveRequests();
         invokeUpdaters();
         renderer->render();
@@ -144,8 +162,12 @@ namespace merutilm::rff2 {
                                                     .absoluteIterationMode = false}},
                 .render = {.clarityMultiplier = 0.25f,
                            .fps = 30,
-                           .computeShader{
-                                   .use = true, .mpaMode = RndCmpMPAMode::FULL, .preferredBatchDuration = 0.5f, .interpolateIsolated = true}},
+                           .computeShader{.use = true,
+                                          .preferredBatchDuration = 0.5f,
+                                          .allowedGlitchPixelCount = 0,
+                                          .completelyIgnoreMpa = false,
+                                          .automaticAcceptMpaBatches = 32,
+                                          .interpolateIsolated = true}},
                 .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .slope = ShdSlopePresets::Disabled().genSlope(),
@@ -263,18 +285,6 @@ namespace merutilm::rff2 {
                 [this] { glfwSetCursor(cursorManager->window, cursorManager->crosshairCursor); });
         eventSystem.mouse.onMouseExit.add([this] { glfwSetCursor(cursorManager->window, nullptr); });
 
-
-        eventSystem.mouse.onMouseMove.add([this](const int mx, const int my) {
-            const uint16_t x = getMouseXOnIterationBuffer(mx);
-            const uint16_t y = getMouseYOnIterationBuffer(my);
-            if (renderer->visibleIterationBufferContext == nullptr) {
-                return;
-            }
-            auto it = static_cast<uint64_t>((*renderer->visibleIterationBufferContext)(x, y));
-            setStatusMessage(Constants::Status::ITERATION_STATUS,
-                             std::format(std::locale("en_US.UTF-8"), "Iterations : {:L}", it, x, y));
-        });
-
         eventSystem.mouseDrag.onMouseDrag.add(
                 [this](const int mb, const int mx, const int my, const int mdx, const int mdy) {
                     const int16_t x = getMouseXOnIterationBuffer(mx);
@@ -379,11 +389,11 @@ namespace merutilm::rff2 {
             const auto executor =
                     vkh::ScopedNewCommandBufferExecutor(rootWindowContext->core, rootWindowContext->getCommandPool());
             vkh::BarrierUtils::cmdImageMemoryBarrier(
-                    executor.getCommandBufferHandle(), imgCtx.image, VK_ACCESS_SHADER_WRITE_BIT,
+                    executor.getCommandBuffer().getCommandBufferHandle(), imgCtx.image, VK_ACCESS_SHADER_WRITE_BIT,
                     VK_ACCESS_TRANSFER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                    VK_PIPELINE_STAGE_TRANSFER_BIT);
-            vkh::BufferImageContextUtils::cmdCopyImageToBuffer(executor.getCommandBufferHandle(), imgCtx, bufCtx);
+                    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, 0, 1, VK_IMAGE_ASPECT_COLOR_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+            vkh::BufferImageContextUtils::cmdCopyImageToBuffer(executor.getCommandBuffer(), imgCtx, bufCtx);
         }
         vkh::BufferContext::unmapMemory(rootWindowContext->core, bufCtx);
 
@@ -439,15 +449,19 @@ namespace merutilm::rff2 {
         renderer->rccPresentPrepare->smoothZoom->setRescaledResolution({sWidth, sHeight});
         renderer->rg0->iterationPalette->resetIterationBuffer(iw, ih);
         renderer->rg1->fractal3d->resetBuffer(iw, ih);
+        renderer->computeIterate->setExtent({iw, ih});
+        renderer->computeIgnoreIsolated->setExtent({iw, ih});
+        renderer->computeIterate->resetBatchResultBuffer();
         renderer->visibleIterationBufferContext = std::make_unique<GraphicsMatrixBuffer<double>>(
                 rootWindowContext->core, iw, ih, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+                        VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
         renderer->updateStagingBuffer = true;
     }
 
     void RFF2::registerRenderers() {
         renderer = registerRenderer<RFF2Renderer>(*engine, *rootWindowContext, settings, zoomAnimationInfo,
-                                                 [this] { renderImGui(); });
+                                                  [this] { renderImGui(); });
         createImGuiContext(renderer->imguiRenderContext);
     }
 
@@ -852,41 +866,42 @@ namespace merutilm::rff2 {
 
         const uint32_t width = getIterationBufferWidth();
         const uint32_t height = getIterationBufferHeight();
+        const VkExtent2D extent{width, height};
 
         vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
 
         setStatusMessage(Constants::Status::RENDER_STATUS, "Preparing Render Meta...");
-        {
-            const auto tableLen = cache ? cache->tableSizeUsed : 0;
-            const auto mapperLen = cache ? cache->mapperSizeUsed : 0;
 
-            renderer->computeIterate->setBatchSize(commandPool, Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
-            renderer->computeIterate->resetWriteBuffer(VkExtent2D{width, height}, commandPool);
-            renderer->computeIgnoreIsolated->setExtent(VkExtent2D{width, height});
-            renderer->computeIterate->setRenderMeta(
-                    renderData->fractalSettings, s.render, lightRef->refOrbit,
-                    static_cast<complex<float>>(renderData->getPerturbator()->off),
-                    static_cast<uint32_t>(renderData->fractalSettings.perturb.maxIteration), tableData, tableLen,
-                    mapperData, mapperLen, commandPool);
-        } // preparing render meta scope
+        const auto tableLen = cache ? cache->tableSizeUsed : 0;
+        const auto mapperLen = cache ? cache->mapperSizeUsed : 0;
+
+        renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
+        renderer->computeIterate->resetWriteBuffer(commandPool);
+        renderer->computeIterate->setMPAIgnore(s.render.computeShader.completelyIgnoreMpa);
+        renderer->computeIterate->setRenderMeta(renderData->fractalSettings, s.render, lightRef->refOrbit,
+                                                static_cast<complex<float>>(renderData->getPerturbator()->off),
+                                                static_cast<uint32_t>(renderData->fractalSettings.perturb.maxIteration),
+                                                tableData, tableLen, mapperData, mapperLen, commandPool);
+        // preparing render meta scope
 
 
         if (state.interruptRequested()) {
             return;
         }
 
-        auto &resultLocalIterBuffer = renderer->computeIterate->getWriteBuffer();
-        auto &visibleIterBuffer = renderer->visibleIterationBufferContext->getContext();
-
+        const vkh::BufferContext &iterResultCtx = renderer->computeIterate->getIterResultBuffer();
         const vkh::BufferContext &batchResultCtx = renderer->computeIterate->getBatchResultBuffer();
-        computeShaderManager->tryCreateOrResizeBatchTransferDstBuffer(batchResultCtx);
+        computeShaderManager->tryCreateOrResizeTransferDstBuffer(batchResultCtx, iterResultCtx, extent);
+
         const vkh::BufferContext &dstBatchBuffer = computeShaderManager->dstBatchBuffer;
+        const vkh::BufferContext &dstIterBuffer = computeShaderManager->dstIterBuffer;
 
 
         std::vector<uint32_t> stagingData(width * height);
         uint64_t glitches = width * height;
         uint64_t currentBatchIteration = 0;
         uint32_t batchSizeMultiplier = 1;
+        bool prevIgnoreMpa = s.render.computeShader.completelyIgnoreMpa;
 
         for (uint32_t i = 0; glitches > s.render.computeShader.allowedGlitchPixelCount; ++i) {
 
@@ -897,13 +912,12 @@ namespace merutilm::rff2 {
 
             computeShaderManager->fence->waitAndReset();
 
-
             const auto actualTime = std::chrono::high_resolution_clock::now();
             const float time = rootWindowContext->getWindow()->getTime();
-            currentBatchIteration += Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier;
             setStatusMessage(Constants::Status::TIME_STATUS,
                              std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Batching... ({:L}, {:L})", currentBatchIteration, glitches));
+            setStatusMessage(Constants::Status::RENDER_STATUS,
+                             std::format("Batching... ({:L}, {:L})", currentBatchIteration, glitches));
 
 
             {
@@ -911,50 +925,75 @@ namespace merutilm::rff2 {
                 vkh::Fence &fence = *computeShaderManager->fence;
                 const VkCommandBuffer cbh = commandBuffer.getCommandBufferHandle();
 
-                const vkh::ScopedCommandBufferExecutor executor(*rootWindowContext, cbh, fence.getFenceHandle(),
+                const vkh::ScopedCommandBufferExecutor executor(*rootWindowContext, commandBuffer, fence,
                                                                 VK_NULL_HANDLE, VK_NULL_HANDLE);
 
                 renderer->computeIterate->cmdRender(cbh, 0, {});
 
 
-
                 if (s.render.computeShader.interpolateIsolated) {
-                    vkh::BarrierUtils::cmdBufferMemoryBarrier(
-                        cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, resultLocalIterBuffer.buffer, 0,
-                        resultLocalIterBuffer.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
-
-                    vkh::BarrierUtils::cmdBufferMemoryBarrier(
-                            cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, batchResultCtx.buffer, 0,
-                            batchResultCtx.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+                    {
+                        vkh::ScopedPipelineBarrierRecorder spr(cbh);
+                        spr.cmdBufferMemoryBarrier(
+                                VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+                                iterResultCtx.buffer, 0, iterResultCtx.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+                        spr.cmdBufferMemoryBarrier(
+                                VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+                                batchResultCtx.buffer, 0, batchResultCtx.bufferSize,
+                                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+                    }
 
                     renderer->computeIgnoreIsolated->cmdRender(cbh, 0, {});
                 }
-                vkh::BarrierUtils::cmdBufferMemoryBarrier(
-                                       cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
-                                       resultLocalIterBuffer.buffer, 0, resultLocalIterBuffer.bufferSize,
-                                       VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+                {
+                    vkh::ScopedPipelineBarrierRecorder spr(cbh);
+                    spr.cmdBufferMemoryBarrier(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                                               iterResultCtx.buffer, 0, iterResultCtx.bufferSize,
+                                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
-                vkh::BarrierUtils::cmdBufferMemoryBarrier(
-                        cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT, batchResultCtx.buffer, 0,
-                        batchResultCtx.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-
-                vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, resultLocalIterBuffer, visibleIterBuffer);
-                vkh::BufferImageContextUtils::cmdCopyBuffer(cbh, batchResultCtx, dstBatchBuffer);
+                    spr.cmdBufferMemoryBarrier(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                                               batchResultCtx.buffer, 0, batchResultCtx.bufferSize,
+                                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+                }
+                vkh::BufferImageContextUtils::cmdCopyBuffer(commandBuffer, iterResultCtx, dstIterBuffer);
+                vkh::BufferImageContextUtils::cmdCopyBuffer(commandBuffer, batchResultCtx, dstBatchBuffer);
+                {
+                    vkh::ScopedPipelineBarrierRecorder spr(cbh);
+                    spr.cmdBufferMemoryBarrier(VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT,
+                                               dstBatchBuffer.buffer, 0, dstBatchBuffer.bufferSize,
+                                               VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+                    spr.cmdBufferMemoryBarrier(VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT,
+                                               dstIterBuffer.buffer, 0, dstIterBuffer.bufferSize,
+                                               VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+                }
             }
 
             computeShaderManager->fence->wait();
+            const auto elapsed = std::chrono::duration_cast<std::chrono::duration<float>>(
+                    std::chrono::high_resolution_clock::now() - actualTime);
 
-            const auto elapsed = std::chrono::duration_cast<std::chrono::duration<float>>(std::chrono::high_resolution_clock::now() - actualTime);
+            currentBatchIteration += Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier;
 
-            if (elapsed.count() < s.render.computeShader.preferredBatchDuration) {
+            if (elapsed.count() < settings.render.computeShader.preferredBatchDuration) {
                 batchSizeMultiplier *= 2;
-                renderer->computeIterate->setBatchSize(commandPool, Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier);
+                renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
+                                                       batchSizeMultiplier);
+            }
+            bool currIgnoreMpa = settings.render.computeShader.completelyIgnoreMpa ||
+                                 (i > settings.render.computeShader.automaticAcceptMpaBatches &&
+                                  settings.render.computeShader.automaticAcceptMpaBatches != 0);
+            if (prevIgnoreMpa != currIgnoreMpa) {
+                batchSizeMultiplier = 1;
+                renderer->computeIterate->setMPAIgnore(currIgnoreMpa);
+                renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
+                prevIgnoreMpa = currIgnoreMpa;
             }
 
+
             memcpy(stagingData.data(), dstBatchBuffer.mappedMemory, dstBatchBuffer.bufferSize);
-            memcpy(renderer->visibleIterationBufferContext->getData().data(), visibleIterBuffer.mappedMemory,
-                   visibleIterBuffer.bufferSize);
+            memcpy(renderer->visibleIterationBufferContext->getData().data(), dstIterBuffer.mappedMemory,
+                   dstIterBuffer.bufferSize);
 
             glitches = std::ranges::count_if(stagingData, [](const uint32_t data) { return data != 1; });
 
@@ -1039,12 +1078,13 @@ namespace merutilm::rff2 {
         if (state.interruptRequested())
             return false;
 
-
         if (const auto lightRef = dynamic_cast<NormalMB2Reference *>(renderData->getReference());
             lightRef && s.render.computeShader.use && !s.fractal.mpa.useCompress &&
             s.fractal.reference.compression.compressCriteria == 0) {
+            renderer->rg0->iterationPalette->setPerturbationMainIterator(PerturbationMainIterator::GPU);
             fillIterationComputeShader(lightRef, startTime, s);
         } else {
+            renderer->rg0->iterationPalette->setPerturbationMainIterator(PerturbationMainIterator::CPU);
             fillIterationMultithreaded(startTime, s);
         }
 

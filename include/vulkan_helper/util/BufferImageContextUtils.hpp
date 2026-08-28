@@ -4,9 +4,9 @@
 
 #pragma once
 #include <vulkan_helper/engine/cmd/CommandPool.hpp>
+#include <vulkan_helper/engine/cmd/CommandBuffer.hpp>
 #include <vulkan_helper/engine/context/BufferContext.hpp>
 #include <vulkan_helper/engine/context/ImageContext.hpp>
-#include <vulkan_helper/util/BufferImageUtils.hpp>
 
 namespace merutilm::vkh {
     struct BufferImageContextUtils {
@@ -32,23 +32,23 @@ namespace merutilm::vkh {
          * @param srcBuffer The source buffer to copy.
          * @param dstBuffer The destination buffer to copy.
          */
-        static void cmdCopyBuffer(VkCommandBuffer commandBuffer, const BufferContext &srcBuffer,
-                                         const BufferContext &dstBuffer);
+        static void cmdCopyBuffer(const CommandBuffer &commandBuffer, const BufferContext &srcBuffer,
+                                  const BufferContext &dstBuffer);
 
         /**
          * Copies whole image to buffer.
          * @param commandBuffer The command buffer to record
-         * @param image The source image to copy. its layout must be <b>VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL</b>
+         * @param context The source image to copy. its layout must be <b>VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL</b>
          * @param buffer The destination buffer to copy.
          */
-        static void cmdCopyImageToBuffer(VkCommandBuffer commandBuffer, const ImageContext &image,
+        static void cmdCopyImageToBuffer(const CommandBuffer &commandBuffer, const ImageContext &context,
                                          const BufferContext &buffer);
 
 
         /**
          * Generates the Mipmap. Input layout of image Context must be <b>VK_IMAGE_LAYOUT_TRANSFER_SRC_BIT</b>.
          */
-        static void cmdGenerateMipmaps(VkCommandBuffer commandBuffer, const ImageContext &imageContext,
+        static void cmdGenerateMipmaps(const CommandBuffer &commandBuffer, const ImageContext &context,
                                        VkImageLayout dstLayout);
 
         /**

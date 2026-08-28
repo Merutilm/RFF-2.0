@@ -57,6 +57,8 @@ namespace merutilm::vkh {
         static uint32_t findMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties &memProperties,
                                             uint32_t memoryTypeBits, VkMemoryPropertyFlags properties);
 
+        static VkImageAspectFlags getImageAspect(const VkFormat format);
+
         static uint32_t genMipLevels(const ImageInitInfo &iii);
 
         static uint32_t getAvailableMipLevels(const VkExtent2D &extent);

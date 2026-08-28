@@ -1,19 +1,20 @@
 #version 450
 #include <common.glsl>
-#extension GL_EXT_shader_explicit_arithmetic_types_int64: require
 
 // define descriptors
 #define DESC_ITERATION 0
-#define DESC_ITERATION_BUFFER_ACCESS writeonly
+#define DESC_ITERATION_BUFFER_ACCESS
 #define DESC_RENDER_META 1
+#define DESC_BATCH_RESULT 2
 
 // include descriptors
 #include <desc_iteration.glsl>
 #include <desc_render_meta.glsl>
+#include <desc_batch_result.glsl>
 
 // include utilities
 
-layout (constant_id = 0) const uint mpa_mode = 0;
+layout (constant_id = 0) const uint ignore_mpa = 0;
 
 layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
@@ -65,10 +66,7 @@ float norm_approx(vec2 v) {
 }
 
 PA lookup(uint64_t ref_iteration, vec2 dz) {
-    if (mpa_mode == MM_OFF) {
-        return invalid_sentinel();
-    }
-    if (mpa_mode == MM_REFITERATION && ref_iteration != 1) {
+    if (ignore_mpa == 1) {
         return invalid_sentinel();
     }
     if (ref_iteration == 0) {
@@ -178,6 +176,7 @@ void main() {
     uint index = py * iteration_info_settings.extent.x + px;
 
     if (px >= int(iteration_info_settings.extent.x) || py >= int(iteration_info_settings.extent.y)) return;
+    if (iteration_settings.iterations[index] == 0) batch_result_data.completed[index] = 0;
     if (batch_result_data.completed[index] != 0) return;
 
     vec2 dz = batch_data.staging_values[index].dz;
@@ -190,8 +189,9 @@ void main() {
     float prev_distance2 = 0;
     float curr_distance2 = batch_data.staging_values[index].distance2;
     uint batch_iteration = 0;
+    uint batch_size = batch_info.batch_size;
 
-    while (iteration < render_meta.max_iteration && batch_iteration < batch_info.batch_size)
+    while (iteration < render_meta.max_iteration && batch_iteration < batch_size)
     {
         if (mp_table_meta.len != 0) {
             PA pa = lookup(ref_iteration, dz);
@@ -202,7 +202,6 @@ void main() {
                 ++batch_iteration;
 
                 if (iteration >= render_meta.max_iteration) {
-                    iteration_settings.iterations[index] = render_meta.max_iteration;
                     break;
                 }
             }
@@ -235,7 +234,7 @@ void main() {
             float curr_distance = sqrt(curr_distance2);
             iteration_settings.iterations[index] = double(iteration) + get_exterior_double_value_iteration_ratio(prev_distance, curr_distance);
             batch_result_data.completed[index] = 1;
-            break;
+            return;
         }
     }
 
@@ -245,7 +244,7 @@ void main() {
         return;
     }
 
-
+    iteration_settings.iterations[index] = iteration;
     batch_data.staging_values[index].dz = dz;
     batch_data.staging_values[index].ref_iteration = ref_iteration;
     batch_data.staging_values[index].iteration = iteration;

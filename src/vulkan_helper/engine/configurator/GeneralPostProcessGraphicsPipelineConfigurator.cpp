@@ -26,13 +26,6 @@ namespace merutilm::vkh {
     std::vector<VkGraphicsPipelineCreateInfo> GeneralPostProcessGraphicsPipelineConfigurator::generatePipelineInfo(
             const PipelineManager &pipelineManager, RenderPass *rp, const uint32_t subpass,
             GraphicsPipelineConfiguration &pipelineConfiguration) {
-        const auto &modules = pipelineManager.shaderModules;
-
-        pipelineConfiguration.shaderStageCreateInfos.resize(modules.size());
-        pipelineConfiguration.specializationInfo = pipelineManager.specialization.buildSpecializationInfo();
-
-
-        std::vector<VkGraphicsPipelineCreateInfo> pipelineInfos(pipelineConfiguration.specializationInfo.size());
 
 
         auto &vertInputAttributeDescription = getVertexBuffer().getVertexInputAttributeDescriptions();
@@ -136,22 +129,32 @@ namespace merutilm::vkh {
                 .pDynamicStates = pipelineConfiguration.dynamicStates.data(),
         };
 
-        for (uint32_t i = 0; i < pipelineConfiguration.specializationInfo.size(); i++) {
-            for (size_t j = 0; j < modules.size(); ++j) {
-                pipelineConfiguration.shaderStageCreateInfos[j] = {.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        const auto &modules = pipelineManager.shaderModules;
+
+        pipelineConfiguration.specializationInfos = pipelineManager.specialization.buildSpecializationInfo();
+        std::vector<VkGraphicsPipelineCreateInfo> createInfos;
+        createInfos.reserve(pipelineConfiguration.specializationInfos.size());
+        pipelineConfiguration.shaderStageCreateInfos.reserve(pipelineConfiguration.specializationInfos.size());
+
+        for (auto &specializationInfo : pipelineConfiguration.specializationInfos) {
+            pipelineConfiguration.shaderStageCreateInfos.emplace_back();
+            auto &shaderStageCreateInfos = pipelineConfiguration.shaderStageCreateInfos.back();
+            shaderStageCreateInfos.reserve(modules.size());
+            for (const auto module : modules) {
+                shaderStageCreateInfos.emplace_back(VkPipelineShaderStageCreateInfo{.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
                                              .pNext = nullptr,
                                              .flags = 0,
-                                             .stage = modules[j]->getShaderStage(),
-                                             .module = modules[j]->getShaderModuleHandle(),
+                                             .stage = module->getShaderStage(),
+                                             .module = module->getShaderModuleHandle(),
                                              .pName = "main",
-                                             .pSpecializationInfo = pipelineManager.specialization.isEmpty() ? nullptr : &pipelineConfiguration.specializationInfo[i]};
+                                             .pSpecializationInfo = pipelineManager.specialization.isEmpty() ? nullptr : &specializationInfo});
             }
 
-            pipelineInfos[i] = {.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+            VkGraphicsPipelineCreateInfo info = {.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
                 .pNext = nullptr,
                 .flags = 0,
-                .stageCount = static_cast<uint32_t>(pipelineConfiguration.shaderStageCreateInfos.size()),
-                .pStages = pipelineConfiguration.shaderStageCreateInfos.data(),
+                .stageCount = static_cast<uint32_t>(shaderStageCreateInfos.size()),
+                .pStages = shaderStageCreateInfos.data(),
                 .pVertexInputState = &pipelineConfiguration.vertexInputStateCreateInfo,
                 .pInputAssemblyState = &pipelineConfiguration.inputAssemblyStateCreateInfo,
                 .pTessellationState = nullptr,
@@ -166,10 +169,12 @@ namespace merutilm::vkh {
                 .subpass = subpass,
                 .basePipelineHandle = nullptr,
                 .basePipelineIndex = -1};
+
+            createInfos.emplace_back(std::move(info));
         }
 
 
-        return pipelineInfos;
+        return createInfos;
     }
 
     void GeneralPostProcessGraphicsPipelineConfigurator::configure(RenderPass *rp, const uint32_t subpass) {

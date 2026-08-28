@@ -6,8 +6,8 @@
 
 namespace merutilm::vkh {
     GraphicsPipeline::GraphicsPipeline(Core &core, PipelineManager &&pipelineManager,
-                                       std::vector<VkGraphicsPipelineCreateInfo> &&createInfo) :
-        Pipeline(core, std::move(pipelineManager)), createInfo(createInfo) {
+                                       std::vector<VkGraphicsPipelineCreateInfo> &&createInfos) :
+        Pipeline(core, std::move(pipelineManager)), createInfos(createInfos) {
         GraphicsPipeline::init();
     }
 
@@ -26,15 +26,13 @@ namespace merutilm::vkh {
 
     void GraphicsPipeline::init() {
 
-        const uint32_t cnt = std::max(static_cast<uint32_t>(specialization.entries.size()), static_cast<uint32_t>(1));
 
-        for (uint32_t i = 0; i < cnt; ++i) {
-            VkPipeline pipeline = VK_NULL_HANDLE;
-            if (vkCreateGraphicsPipelines(core.getLogicalDevice().getLogicalDeviceHandle(), nullptr, 1, &createInfo[i],
-                                          nullptr, &pipeline) != VK_SUCCESS) {
-                throw exception_init("Failed to create graphics pipeline!");
-            }
-            pipelines.push_back(pipeline);
-        }
+        pipelines.resize(createInfos.size());
+        if (vkCreateGraphicsPipelines(core.getLogicalDevice().getLogicalDeviceHandle(), nullptr,
+                                     static_cast<uint32_t>(createInfos.size()), createInfos.data(), nullptr,
+                                     pipelines.data()) != VK_SUCCESS) {
+            throw exception_init("Failed to create graphics pipeline!");
+                                     }
+        createInfos.clear();
     }
 } // namespace merutilm::vkh

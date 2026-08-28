@@ -20,15 +20,18 @@ namespace merutilm::vkh {
         VkImageView mipmappedImageView = VK_NULL_HANDLE;
         VkExtent2D extent = {};
         VkDeviceSize capacity = 0;
+        VkImageAspectFlags aspect;
 
-        static ImageContext createContext(Core & core, const ImageInitInfo &imageInitInfo);
+        static ImageContext createContext(Core &core, const ImageInitInfo &imageInitInfo);
 
-        static MultiframeImageContext createMultiframeContext(Core & core, const ImageInitInfo &imageInitInfo);
+        static MultiframeImageContext createMultiframeContext(Core &core, const ImageInitInfo &imageInitInfo);
 
-        static void destroyContext(Core & core, const ImageContext & imgCtx);
+        static void destroyContext(Core &core, const ImageContext &imgCtx);
 
-        static void destroyContext(Core & core, const MultiframeImageContext & imgCtx);
+        static void destroyContext(Core &core, const MultiframeImageContext &imgCtx);
 
-        static MultiframeImageContext fromSwapchain(Core & core, const Swapchain & swapchain);
+        static MultiframeImageContext fromSwapchain(Core &core, const Swapchain &swapchain);
+
+
     };
-}
+} // namespace merutilm::vkh

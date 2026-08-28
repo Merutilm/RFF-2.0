@@ -29,6 +29,9 @@ namespace merutilm::vkh {
         commandPool.emplace(core);
         commandBuffers.emplace(core, *commandPool);
         syncObject.emplace(core);
+        for (uint32_t i = 0; i < core.getPhysicalDeviceLoader().getMaxFramesInFlight(); i++) {
+            syncObject->getWaitSemaphore(i).setWaitStageMask(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        }
         sharedImageContext.emplace(core);
     }
 

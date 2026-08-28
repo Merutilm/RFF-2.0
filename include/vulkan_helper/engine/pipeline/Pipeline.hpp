@@ -9,6 +9,8 @@
 #include "PipelineSpecialization.hpp"
 
 namespace merutilm::vkh {
+
+
     struct Pipeline : CoreHandler {
         std::vector<VkPipeline> pipelines = {};
         PipelineLayout &pipelineLayout;

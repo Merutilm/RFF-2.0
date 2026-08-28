@@ -1,6 +1,7 @@
 #ifndef DESC_RENDER_META_INCLUDE
 #define DESC_RENDER_META_INCLUDE
 
+#extension GL_EXT_shader_explicit_arithmetic_types_int64: require
 
 struct BatchStagingData {
     uint64_t iteration;
@@ -55,10 +56,5 @@ layout (set = DESC_RENDER_META, binding = 3) uniform BatchInfo{
 layout (std430, set = DESC_RENDER_META, binding = 4) buffer BatchData{
     BatchStagingData[] staging_values;
 } batch_data;
-
-layout (std430, set = DESC_RENDER_META, binding = 5) buffer BatchResultData{
-    uint[] completed;
-} batch_result_data;
-
 
 #endif

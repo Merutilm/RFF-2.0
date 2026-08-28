@@ -6,10 +6,12 @@
 #define DESC_ITERATION 0
 #define DESC_ITERATION_BUFFER_ACCESS
 #define DESC_RENDER_META 1
+#define DESC_BATCH_RESULT 2
 
 // include descriptors
 #include <desc_iteration.glsl>
 #include <desc_render_meta.glsl>
+#include <desc_batch_result.glsl>
 
 // include utilities
 
