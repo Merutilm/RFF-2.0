@@ -134,7 +134,7 @@ namespace merutilm::rff2 {
                     "Sets the synchronization interval between the reference array\n"
                     "and arbitrary-precision operation when calculating references. When the value is small,\n"
                     "it guarantees high quality but is slow because the synchronization happens every iterations.\n"
-                    "when the value is high, resulting lower quality but is faster. set 1 to fully sync.");
+                    "when the value is high, resulting lower quality but is faster. single-precision reference synchronization interval is divided by 4.  set 1 to fully sync.");
 
             ImGui::InputScalar("Reference Synchronization Radius", ImGuiDataType_U8,
                                &frt.reference.sync.referenceSynchronizationRadiusPower);

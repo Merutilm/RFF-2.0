@@ -9,7 +9,6 @@
 #include "../io/RFFLocationBinary.h"
 #include "../mb/MB2Locator.h"
 #include "../parallel/ParallelArrayDispatcher.h"
-#include "../parallel/ParallelDispatcher.h"
 #include "../preset/calc/CalculationPresets.h"
 #include "../preset/render/RenderPresets.h"
 #include "../preset/shader/bloom/ShdBloomPresets.h"
@@ -161,6 +160,7 @@ namespace merutilm::rff2 {
                                                     .absoluteIterationMode = false}},
                 .render = {.clarityMultiplier = 0.25f,
                            .fps = 30,
+                           .pixelRenderPriority = RndPixelRenderPriority::SWIZZLE,
                            .computeShader{.use = true,
                                           .preferredBatchDuration = 0.5f,
                                           .allowedGlitchPixelCount = 0,
@@ -835,7 +835,7 @@ namespace merutilm::rff2 {
                 renderData = std::make_unique<DexMB2RenderData>(
                         state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
                         actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
-            } else if (logZoom > Constants::Fractal::NM_ZOOM_DEADLINE) {
+            } else if (logZoom > Constants::Fractal::NM_ZOOM_DEADLINE || !s.render.computeShader.use) {
                 renderData = std::make_unique<DoubleMB2RenderData>(
                         state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
                         actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
@@ -1047,7 +1047,7 @@ namespace merutilm::rff2 {
             ++renderPixelsCount;
             return iteration;
         };
-        auto previewer = ParallelArrayDispatcher<double>(state, actualIterationMatrix, w, h, s.fractal.general.threads,
+        const auto previewer = ParallelArrayDispatcher<double>(state, actualIterationMatrix, w, h, s.fractal.general.threads, s.render.pixelRenderPriority,
                                                          std::move(func));
 
 
@@ -1075,10 +1075,11 @@ namespace merutilm::rff2 {
         if (state.interruptRequested())
             return;
 
-        const auto syncer = ParallelDispatcher(
-                state, w, h, s.fractal.general.threads,
-                [this](const uint16_t x, const uint16_t y, const uint16_t xRes, uint16_t, float, float, uint32_t) {
-                    renderer->visibleIterationBufferContext->set(x, y, actualIterationMatrix[y * xRes + x]);
+        const auto syncer = ParallelArrayDispatcher<double>(
+                state, actualIterationMatrix, w, h, s.fractal.general.threads, RndPixelRenderPriority::SEQUENTIAL,
+                [this](const uint16_t x, const uint16_t y, uint16_t, uint16_t, float, float, uint32_t, const double a) {
+                    renderer->visibleIterationBufferContext->set(x, y, a);
+                    return 0;
                 });
 
         syncer.dispatch();
