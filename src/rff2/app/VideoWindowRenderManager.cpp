@@ -33,19 +33,23 @@ namespace merutilm::rff2 {
     }
 
     void VideoWindowRenderManager::setMaxIterationDynamic(const double maxIteration) const {
-        renderer->compute2MapIterationStripe->setInfo(maxIteration);
+        renderer->descriptorStorage->iteration->setMaxIteration(maxIteration);
+        renderer->descriptorStorage->iteration->applyMaxIteration();
     }
 
     void VideoWindowRenderManager::applyShader() const {
         engine.getCore().getLogicalDevice().waitDeviceIdle();
-        renderer->compute2MapIterationStripe->setPalette(targetSettings.shader.palette);
+        //shared
+        renderer->descriptorStorage->palette->set(targetSettings.shader.palette);
+        renderer->descriptorStorage->stripe->set(targetSettings.shader.stripe);
+        renderer->descriptorStorage->color->set(targetSettings.shader.color);
+        renderer->descriptorStorage->fog->set(targetSettings.shader.fog);
+        renderer->descriptorStorage->bloom->set(targetSettings.shader.bloom);
+        renderer->descriptorStorage->noiseReduction->set(targetSettings.shader.noiseReduction);
+        renderer->descriptorStorage->video->setDefaultZoomIncrement(targetSettings.video.data.defaultZoomIncrement);
+
+        //unique
         renderer->compute2MapIterationStripe->set2MapSize(videoExtent);
-        renderer->compute2MapIterationStripe->setDefaultZoomIncrement(targetSettings.video.data.defaultZoomIncrement);
-        renderer->compute2MapIterationStripe->setStripe(targetSettings.shader.stripe);
-        renderer->rg2->color->setColor(targetSettings.shader.color);
-        renderer->rg3->fog->setFog(targetSettings.shader.fog);
-        renderer->rg4->bloom->setBloom(targetSettings.shader.bloom);
-        renderer->rg4->noiseReduction->setNoiseReduction(targetSettings.shader.noiseReduction);
     }
 
     void VideoWindowRenderManager::setTime(const float currentSec) const { renderer->currentSec = currentSec; }

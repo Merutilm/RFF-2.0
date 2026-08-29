@@ -4,8 +4,8 @@
 
 #include "GPCNoiseReduction.hpp"
 
-#include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
+#include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 
 namespace merutilm::rff2 {
@@ -13,23 +13,8 @@ namespace merutilm::rff2 {
         //noop
     }
 
-    void GPCNoiseReduction::setNoiseReduction(const ShdNoiseReduction &noiseReduction) const {
-        using namespace SharedDescriptorTemplate;
-        auto &interDesc = getDescriptor(SET_NOISE_REDUCTION);
-        auto &interUBO = interDesc.get<vkh::Uniform>(
-            0, DescNoiseReduction::BINDING_UBO_NOISE_REDUCTION);
-        auto &interUBOHost = interUBO.getHostObject();
-        interUBOHost.set<bool>(DescNoiseReduction::TARGET_NOISE_REDUCTION_USE, noiseReduction.use);
-        interUBOHost.set<uint32_t>(DescNoiseReduction::TARGET_NOISE_REDUCTION_SIMILAR_COUNT_THRESHOLD, noiseReduction.similarCountThreshold);
-        interUBOHost.set<float>(DescNoiseReduction::TARGET_NOISE_REDUCTION_DIFFERENCE_THRESHOLD, noiseReduction.differenceThreshold);
-        interUBO.update();
-    }
-
     void GPCNoiseReduction::pipelineInitialized() {
-        using namespace SharedDescriptorTemplate;
-        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_NOISE_REDUCTION).queue(queue, frameIndex, {}, {DescBloom::BINDING_UBO_BLOOM});
-        });
+        //noop
     }
 
     void GPCNoiseReduction::renderContextRefreshed() {

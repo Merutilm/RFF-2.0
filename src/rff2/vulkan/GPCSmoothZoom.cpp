@@ -4,8 +4,8 @@
 
 #include "GPCSmoothZoom.hpp"
 
-#include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
+#include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 
 namespace merutilm::rff2 {
@@ -18,9 +18,7 @@ namespace merutilm::rff2 {
     void GPCSmoothZoom::pipelineInitialized() {
         using namespace SharedDescriptorTemplate;
         writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_SMOOTH_ZOOM).queue(queue, frameIndex, {}, {DescSmoothZoom::BINDING_SMOOTH_ZOOM_UBO});
             getDescriptor(SET_SAMPLE).queue(queue, frameIndex, {}, {BINDING_SAMPLE_RESOLUTION_UBO});
-
         });
     }
 
@@ -50,21 +48,7 @@ namespace merutilm::rff2 {
         // noop
     }
 
-    void GPCSmoothZoom::resetSmoothZoom() const {
-        setSmoothZoomData(glm::vec2(0.0f, 0.0f), 0.0f);
-    }
 
-    void GPCSmoothZoom::setSmoothZoomData(const glm::vec2 &positionDelta, const float logZoomDelta) const {
-
-        using namespace SharedDescriptorTemplate;
-        vkh::Descriptor &smoothZoomDesc = getDescriptor(SET_SMOOTH_ZOOM);
-        auto &smoothZoomUBO = smoothZoomDesc.get<vkh::Uniform>(0, DescSmoothZoom::BINDING_SMOOTH_ZOOM_UBO);
-        vkh::HostDataObject &smoothZoomUBOHost = smoothZoomUBO.getHostObject();
-        smoothZoomUBOHost.set(DescSmoothZoom::TARGET_SMOOTH_ZOOM_POSITION_DELTA, positionDelta);
-        smoothZoomUBOHost.set(DescSmoothZoom::TARGET_SMOOTH_ZOOM_LOG_ZOOM_DELTA, logZoomDelta);
-        smoothZoomUBO.update();
-
-    }
 
     void GPCSmoothZoom::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
         using namespace SharedDescriptorTemplate;

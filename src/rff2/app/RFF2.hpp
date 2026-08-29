@@ -11,6 +11,7 @@
 #include "../parallel/BackgroundThreads.h"
 #include "../preset/Presets.h"
 #include "../settings/Settings.h"
+#include "../vulkan/desc/SharedDescriptorStorage.hpp"
 #include "ComputeShaderRenderManager.hpp"
 #include "CursorManager.hpp"
 #include "RFF2Renderer.hpp"

@@ -4,8 +4,8 @@
 
 #include "GPCSlope.hpp"
 
-#include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
+#include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 
 namespace merutilm::rff2 {
@@ -15,24 +15,8 @@ namespace merutilm::rff2 {
     }
 
 
-    void GPCSlope::setSlope(const ShdSlopeSettings &slope, const float depthMultiplier, const uint32_t frameIndex) const {
-        using namespace SharedDescriptorTemplate;
-        auto &slopeDesc = getDescriptor(SET_SLOPE);
-        auto &slopeUBO = slopeDesc.get<vkh::Uniform>(0, DescSlope::BINDING_UBO_SLOPE);
-        auto &slopeUBOHost = slopeUBO.getHostObject();
-        slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_DEPTH, slope.depth * depthMultiplier);
-        slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_REFLECTION_RATIO, slope.reflectionRatio);
-        slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_OPACITY, slope.opacity);
-        slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_ZENITH, slope.zenith);
-        slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_AZIMUTH, slope.azimuth);
-        slopeUBO.updateMF(frameIndex);
-    }
-
     void GPCSlope::pipelineInitialized() {
-        using namespace SharedDescriptorTemplate;
-        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_SLOPE).queue(queue, frameIndex, {}, {DescSlope::BINDING_UBO_SLOPE});
-        });
+
     }
 
     void GPCSlope::renderContextRefreshed() {

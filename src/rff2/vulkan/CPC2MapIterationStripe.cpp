@@ -5,8 +5,8 @@
 #include "CPC2MapIterationStripe.hpp"
 
 #include "../settings/ShdPaletteSettings.h"
-#include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
+#include "desc/SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
     void CPC2MapIterationStripe::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
@@ -15,18 +15,7 @@ namespace merutilm::rff2 {
 
 
     void CPC2MapIterationStripe::pipelineInitialized() {
-        using namespace SharedDescriptorTemplate;
-        auto &iterDesc = getDescriptor(SET_OUTPUT_ITERATION);
-        auto &stripeDesc = getDescriptor(SET_STRIPE);
-        auto &timeDesc = getDescriptor(SET_TIME);
-        auto &vidDesc = getDescriptor(SET_VIDEO);
-        writeDescriptorMF([&iterDesc, &stripeDesc, &timeDesc, &vidDesc](vkh::DescriptorUpdateQueue &queue,
-                                                                        const uint32_t frameIndex) {
-            iterDesc.queue(queue, frameIndex, {}, {DescIteration::BINDING_UBO_ITERATION_INFO});
-            stripeDesc.queue(queue, frameIndex, {}, {DescStripe::BINDING_UBO_STRIPE});
-            timeDesc.queue(queue, frameIndex, {}, {DescTime::BINDING_UBO_TIME});
-            vidDesc.queue(queue, frameIndex, {}, {DescVideo::BINDING_UBO_VIDEO});
-        });
+        //noop
     }
 
     void CPC2MapIterationStripe::renderContextRefreshed() {
@@ -37,69 +26,6 @@ namespace merutilm::rff2 {
         writeDescriptorMF([&outDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             outDesc.queue(queue, frameIndex, {}, {BINDING_OUTPUT_MERGED_IMAGE});
         });
-    }
-
-
-    void CPC2MapIterationStripe::setCurrentFrame(const float currentFrame, const uint32_t frameIndex) const {
-        using namespace SharedDescriptorTemplate;
-        auto &vidDesc = getDescriptor(SET_VIDEO);
-        auto &vidUBO = vidDesc.get<vkh::Uniform>(0, DescVideo::BINDING_UBO_VIDEO);
-        auto &vidUBOHost = vidUBO.getHostObject();
-        vidUBOHost.set<float>(DescVideo::TARGET_VIDEO_CURRENT_FRAME, currentFrame);
-        vidUBO.updateMF(frameIndex);
-    }
-
-
-    void CPC2MapIterationStripe::setPalette(const ShdPaletteSettings &palette) const {
-        using namespace SharedDescriptorTemplate;
-        auto &paletteDesc = getDescriptor(SET_PALETTE);
-        auto &paletteSSBO = paletteDesc.get<vkh::ShaderStorage>(0, DescPalette::BINDING_SSBO_PALETTE);
-        auto &paletteSSBOHost = paletteSSBO.getHostObject();
-
-        const auto paletteLength = static_cast<uint32_t>(palette.colors.size());
-
-        paletteSSBOHost.set<uint32_t>(DescPalette::TARGET_PALETTE_SIZE, paletteLength);
-        paletteSSBOHost.set<float>(DescPalette::TARGET_PALETTE_INTERVAL, palette.iterationInterval);
-        paletteSSBOHost.set<double>(DescPalette::TARGET_PALETTE_OFFSET, palette.offsetRatio);
-        paletteSSBOHost.set<uint32_t>(DescPalette::TARGET_PALETTE_SMOOTHING,
-                                      static_cast<uint32_t>(palette.iterationColoring));
-        paletteSSBOHost.set<uint32_t>(DescPalette::TARGET_PALETTE_SINGLE_SMOOTHING,
-                                      static_cast<uint32_t>(palette.singleIterationColoring));
-        paletteSSBOHost.set<float>(DescPalette::TARGET_PALETTE_ANIMATION_SPEED, palette.animationSpeed);
-        paletteSSBOHost.resizeArray<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, paletteLength);
-        paletteSSBOHost.set<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, palette.colors);
-        paletteSSBO.reloadBuffer();
-        paletteSSBO.update();
-        paletteSSBO.localize(wc.getCommandPool());
-
-        writeDescriptorMF([&paletteDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            paletteDesc.queue(queue, frameIndex, {}, {DescPalette::BINDING_SSBO_PALETTE});
-        });
-    }
-
-    void CPC2MapIterationStripe::setStripe(const ShdStripeSettings &stripe) const {
-        using namespace SharedDescriptorTemplate;
-        auto &stripeDesc = getDescriptor(SET_STRIPE);
-        auto &stripeUBO = stripeDesc.get<vkh::Uniform>(0, DescStripe::BINDING_UBO_STRIPE);
-        auto &stripeUBOHost = stripeUBO.getHostObject();
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_TYPE, static_cast<uint32_t>(stripe.stripeType));
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_FIRST_INTERVAL, stripe.firstInterval);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_SECOND_INTERVAL, stripe.secondInterval);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_OPACITY, stripe.opacity);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_OFFSET, stripe.offset);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_ANIMATION_SPEED, stripe.animationSpeed);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_ITERATION_COLORING, stripe.iterationColoring);
-        stripeUBO.update();
-    }
-
-
-    void CPC2MapIterationStripe::setDefaultZoomIncrement(const float defaultZoomIncrement) const {
-        using namespace SharedDescriptorTemplate;
-        auto &vidDesc = getDescriptor(SET_VIDEO);
-        auto &vidUBO = vidDesc.get<vkh::Uniform>(0, DescVideo::BINDING_UBO_VIDEO);
-        auto &vidUBOHost = vidUBO.getHostObject();
-        vidUBOHost.set<float>(DescVideo::TARGET_VIDEO_DEFAULT_ZOOM_INCREMENT, defaultZoomIncrement);
-        updateBufferMF([&vidUBO](const uint32_t frameIndex) { vidUBO.updateMF(frameIndex); });
     }
 
 
@@ -147,23 +73,6 @@ namespace merutilm::rff2 {
         });
     }
 
-
-    void CPC2MapIterationStripe::setInfo(const double maxIteration) const {
-        using namespace SharedDescriptorTemplate;
-
-        auto &iter = getDescriptor(SET_OUTPUT_ITERATION);
-        auto &iterOutUBO = iter.get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
-        iterOutUBO.getHostObject().set<double>(DescIteration::TARGET_UBO_ITERATION_MAX, maxIteration);
-        iterOutUBO.update(DescIteration::TARGET_UBO_ITERATION_MAX);
-    }
-
-    void CPC2MapIterationStripe::setTime(const float currentSec, const uint32_t frameIndex) const {
-        using namespace SharedDescriptorTemplate;
-        auto &time = getDescriptor(SET_TIME);
-        auto &timeUBO = time.get<vkh::Uniform>(0, DescTime::BINDING_UBO_TIME);
-        timeUBO.getHostObject().set<float>(DescTime::TARGET_TIME_CURRENT, currentSec);
-        timeUBO.updateMF(frameIndex, DescTime::TARGET_TIME_CURRENT);
-    }
 
     void CPC2MapIterationStripe::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
         // noop

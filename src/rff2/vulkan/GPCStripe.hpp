@@ -33,8 +33,6 @@ namespace merutilm::rff2 {
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
-        void setStripe(const ShdStripeSettings &stripe) const;
-
         void pipelineInitialized() override;
 
         void renderContextRefreshed() override;

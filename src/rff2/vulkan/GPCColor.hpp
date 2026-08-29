@@ -29,8 +29,6 @@ namespace merutilm::rff2 {
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
-        void setColor(const ShdColorSettings &color) const;
-
         void pipelineInitialized() override;
 
         void renderContextRefreshed() override;

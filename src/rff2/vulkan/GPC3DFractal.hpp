@@ -29,8 +29,7 @@ namespace merutilm::rff2 {
         void pipelineInitialized() override;
         void renderContextRefreshed() override;
 
-        void resetBuffer(uint32_t width, uint32_t height);
-        void setFractal3D(const ShdFractal3DSettings &fractal3DSettings) const;
+        void resetPiplineVI(uint32_t width, uint32_t height);
 
     protected:
         std::vector<VkGraphicsPipelineCreateInfo> generatePipelineInfo(const vkh::PipelineManager &pipelineManager, vkh::RenderPass *rp, uint32_t subpass,

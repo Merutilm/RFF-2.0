@@ -4,10 +4,10 @@
 
 #include "GPCStaticImage2Map.hpp"
 
-#include "SharedDescriptorTemplate.hpp"
+#include "../io/RFFStaticMapBinary.h"
+#include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 #include "vulkan_helper/util/BufferImageContextUtils.hpp"
-#include "../io/RFFStaticMapBinary.h"
 
 namespace merutilm::rff2 {
     void GPCStaticImage2Map::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {

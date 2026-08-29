@@ -46,6 +46,7 @@ namespace merutilm::rff2 {
         CPCBoxBlur *computeBoxBlur = nullptr;
 
 
+        std::unique_ptr<SharedDescriptorStorage> descriptorStorage = nullptr;
         std::unique_ptr<GraphicsMatrixBuffer<double>> visibleIterationBufferContext = nullptr;
         bool updateStagingBuffer;
 
@@ -76,6 +77,8 @@ namespace merutilm::rff2 {
                 const auto &swapchain = wc.getSwapchain();
                 return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
             };
+            descriptorStorage = std::make_unique<SharedDescriptorStorage>(engine, wc);
+
             computeIterate = vkh::ComputePipelineConfigurator::createComputePipeline<CPCIterate>(configurators, engine, wc);
             computeIgnoreIsolated = vkh::ComputePipelineConfigurator::createComputePipeline<CPCInterpolateIsolated>(configurators, engine, wc);
             computeBoxBlur = vkh::ComputePipelineConfigurator::createComputePipeline<CPCBoxBlur>(configurators, engine, wc);
@@ -125,11 +128,14 @@ namespace merutilm::rff2 {
         void beforeCmdRender() override {
             RendererImGui::beforeCmdRender();
             const float mul = std::pow(10.0f, -zoomAnimationInfo.targetLogZoomOffset);
+
+            descriptorStorage->time->setToCurrentTime(frameIndex);
+            descriptorStorage->slope->set(settings.shader.slope, mul, frameIndex);
+
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
                                         std::min(1.0f, settings.shader.fog.radius * mul), frameIndex);
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM,
                                         std::min(1.0f, settings.shader.bloom.radius * mul), frameIndex);
-            rg0->slope->setSlope(settings.shader.slope, mul, frameIndex);
         }
 
 
@@ -144,8 +150,8 @@ namespace merutilm::rff2 {
             if (updateStagingBuffer) {
                 updateStagingBuffer = false;
 
-                rg0->iterationPalette->cmdRefreshIterations(commandBuffer, visibleIterationBufferContext->getContext());
-                auto &ctx = rg0->iterationPalette->getResultIterationBuffer();
+                descriptorStorage->iteration->cmdRefreshIterations(commandBuffer, visibleIterationBufferContext->getContext());
+                auto &ctx = descriptorStorage->iteration->getResultIterationBuffer();
                 vkh::BarrierUtils::cmdBufferMemoryBarrier(commandBuffer.getCommandBufferHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
                                                           ctx.buffer, 0, ctx.bufferSize, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                                           VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);

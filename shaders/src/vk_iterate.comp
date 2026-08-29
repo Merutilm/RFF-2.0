@@ -3,7 +3,7 @@
 
 // define descriptors
 #define DESC_ITERATION 0
-#define DESC_ITERATION_BUFFER_ACCESS
+#define DESC_ITERATION_BUFFER_ACCESS writeonly
 #define DESC_RENDER_META 1
 #define DESC_BATCH_RESULT 2
 
@@ -176,7 +176,7 @@ void main() {
     uint index = py * iteration_info_settings.extent.x + px;
 
     if (px >= int(iteration_info_settings.extent.x) || py >= int(iteration_info_settings.extent.y)) return;
-    if (iteration_settings.iterations[index] == 0) batch_result_data.completed[index] = 0;
+    if (batch_data.staging_values[index].iteration == 0) batch_result_data.completed[index] = 0;
     if (batch_result_data.completed[index] != 0) return;
 
     vec2 dz = batch_data.staging_values[index].dz;

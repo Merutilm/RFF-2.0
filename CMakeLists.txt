@@ -68,6 +68,7 @@ add_executable(
         src/rff2/vulkan/GPCSmoothZoom.cpp
         src/rff2/vulkan/CPCInterpolateIsolated.cpp
         src/rff2/vulkan/CPCInterpolateIsolated.hpp
+        include/vulkan_helper/engine/wrapped/DescriptorTemplateManager.hpp
 )
 
 target_compile_options(RFF PRIVATE

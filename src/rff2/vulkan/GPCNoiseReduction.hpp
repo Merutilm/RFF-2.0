@@ -3,7 +3,6 @@
 //
 
 #pragma once
-#include "../settings/ShdNoiseReduction.hpp"
 #include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
@@ -19,8 +18,6 @@ namespace merutilm::rff2 {
 
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
-
-        void setNoiseReduction(const ShdNoiseReduction &noiseReduction) const;
 
         void pipelineInitialized() override;
 

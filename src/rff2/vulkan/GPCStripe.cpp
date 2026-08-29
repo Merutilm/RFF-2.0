@@ -5,8 +5,8 @@
 #include "GPCStripe.hpp"
 
 #include "../settings/ShdStripeSettings.h"
-#include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
+#include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 #include "vulkan_helper/util/DescriptorUpdater.hpp"
 
@@ -16,31 +16,9 @@ namespace merutilm::rff2 {
         //no operation
     }
 
-    void GPCStripe::setStripe(const ShdStripeSettings &stripe) const {
-        using namespace SharedDescriptorTemplate;
-        auto &stripeDesc = getDescriptor(SET_STRIPE);
-        auto &stripeUBO = stripeDesc.get<vkh::Uniform>(0, DescStripe::BINDING_UBO_STRIPE);
-        auto &stripeUBOHost = stripeUBO.getHostObject();
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_TYPE, static_cast<uint32_t>(stripe.stripeType));
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_FIRST_INTERVAL,
-                          stripe.firstInterval);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_SECOND_INTERVAL,
-                          stripe.secondInterval);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_OPACITY, stripe.opacity);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_OFFSET, stripe.offset);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_ANIMATION_SPEED,
-                          stripe.animationSpeed);
-        stripeUBOHost.set(DescStripe::TARGET_STRIPE_ITERATION_COLORING,
-                          stripe.iterationColoring);
-        stripeUBO.update();
-
-    }
 
     void GPCStripe::pipelineInitialized() {
-        using namespace SharedDescriptorTemplate;
-        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_STRIPE).queue(queue, frameIndex, {}, {DescStripe::BINDING_UBO_STRIPE});
-        });
+        //noop
     }
 
     void GPCStripe::renderContextRefreshed() {

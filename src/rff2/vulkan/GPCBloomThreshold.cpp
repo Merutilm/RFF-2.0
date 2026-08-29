@@ -4,8 +4,8 @@
 
 #include "GPCBloomThreshold.hpp"
 
-#include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
+#include "desc/SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
     void GPCBloomThreshold::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {

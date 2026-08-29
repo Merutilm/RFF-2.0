@@ -19,8 +19,6 @@ namespace merutilm::rff2 {
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
-        void setSlope(const ShdSlopeSettings &slope, float depthMultiplier, uint32_t frameIndex) const;
-
         void pipelineInitialized() override;
 
         void renderContextRefreshed() override;

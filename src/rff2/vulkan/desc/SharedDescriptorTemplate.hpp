@@ -3,11 +3,10 @@
 //
 
 #pragma once
-#include <glm/glm.hpp>
 #include <memory>
-#include "../mrthy/PA.h"
-#include "../mrthy/MPAIndexMapper.hpp"
-#include "../data/ComputeShaderBatchStagingData.hpp"
+#include "../../data/ComputeShaderBatchStagingData.hpp"
+#include "../../mrthy/MPAIndexMapper.hpp"
+#include "../../mrthy/PA.h"
 #include "vulkan_helper/engine/manage/DescriptorManager.hpp"
 #include "vulkan_helper/engine/wrapped/DescriptorTemplate.hpp"
 
@@ -421,7 +420,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
                                             std::move(rmBatchInfoUBO));
             descManagerRenderMeta.appendSSBO(BINDING_RM_BATCH_SSBO, VK_SHADER_STAGE_COMPUTE_BIT,
                                              std::move(rmBatchSSBO));
-            
+
             managers.emplace_back(std::move(descManagerRenderMeta));
         }
     };
@@ -452,8 +451,9 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
 
             vkh::DescriptorManager descManager;
-            descManager.appendSSBO(BINDING_BATCH_RESULT_SSBO, VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-                                             std::move(rmBatchResultSSBO));
+            descManager.appendSSBO(BINDING_BATCH_RESULT_SSBO,
+                                   VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+                                   std::move(rmBatchResultSSBO));
             managers.emplace_back(std::move(descManager));
         }
     };
@@ -470,7 +470,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             vkh::HostDataObjectManager hdm;
             hdm.reserve<glm::vec2>(TARGET_SMOOTH_ZOOM_POSITION_DELTA);
             hdm.reserve<float>(TARGET_SMOOTH_ZOOM_LOG_ZOOM_DELTA);
-            auto uniform = std::make_unique<vkh::Uniform>(core, std::move(hdm), vkh::BufferLocalization::BIDIRECTIONAL, false);
+            auto uniform =
+                    std::make_unique<vkh::Uniform>(core, std::move(hdm), vkh::BufferLocalization::BIDIRECTIONAL, false);
             descManager.appendUBO(BINDING_SMOOTH_ZOOM_UBO, VK_SHADER_STAGE_FRAGMENT_BIT, std::move(uniform));
             managers.emplace_back(std::move(descManager));
         }

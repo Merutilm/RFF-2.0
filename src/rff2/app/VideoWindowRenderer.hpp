@@ -14,7 +14,8 @@
 #include "../vulkan/RenderGraphDownsampleForBlur.hpp"
 #include "../vulkan/RenderGraphPresent.hpp"
 #include "../vulkan/RenderGraphStatic2Image.hpp"
-#include "../vulkan/SharedDescriptorTemplate.hpp"
+#include "../vulkan/desc/SharedDescriptorStorage.hpp"
+#include "../vulkan/desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/base/vkh.hpp"
 #include "vulkan_helper/engine/configurator/PipelineConfigurator.hpp"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
@@ -42,6 +43,8 @@ namespace merutilm::rff2 {
         CPC2MapIterationStripe *compute2MapIterationStripe = nullptr;
         CPCBoxBlur *computeBoxBlur = nullptr;
         CPCImageRGBA2BGR *computeImageRGBA2BGR = nullptr;
+
+        std::unique_ptr<SharedDescriptorStorage> descriptorStorage;
 
         const VkExtent2D &videoExtent;
 
@@ -71,6 +74,7 @@ namespace merutilm::rff2 {
                 const auto &swapchain = wc.getSwapchain();
                 return vkh::ImageContext::fromSwapchain(wc.core, swapchain);
             };
+            descriptorStorage = std::make_unique<SharedDescriptorStorage>(engine, wc);
             compute2MapIterationStripe =
                     vkh::ComputePipelineConfigurator::createComputePipeline<CPC2MapIterationStripe>(configurators,
                                                                                                     engine, wc);
@@ -100,9 +104,9 @@ namespace merutilm::rff2 {
         }
 
         void beforeCmdRender() override {
-            compute2MapIterationStripe->setTime(currentSec, frameIndex);
-            compute2MapIterationStripe->setCurrentFrame(currentFrame, frameIndex);
-            rg2->slope->setSlope(settings.shader.slope, 1, frameIndex);
+            descriptorStorage->time->setManualTime(currentSec, frameIndex);
+            descriptorStorage->slope->set(settings.shader.slope, 1, frameIndex);
+            descriptorStorage->video->setCurrentFrame(currentFrame, frameIndex);
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, settings.shader.fog.radius,
                                         frameIndex);
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM, settings.shader.bloom.radius,

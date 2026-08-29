@@ -26,11 +26,9 @@ namespace merutilm::rff2 {
         void renderContextRefreshed() override;
 
         void setRescaledResolution(const glm::vec2 &newResolution) const;
-        void setSmoothZoomData(const glm::vec2 &positionDelta, float logZoomDelta) const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;
-        void resetSmoothZoom() const;
         void configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) override;
     };
 }

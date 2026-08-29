@@ -4,8 +4,8 @@
 
 #include "GPCDownsampleForBlur.hpp"
 
-#include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
+#include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 
 

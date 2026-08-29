@@ -3,8 +3,8 @@
 //
 
 #include "GPCBloom.hpp"
-#include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
+#include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 
 namespace merutilm::rff2 {
@@ -12,27 +12,6 @@ namespace merutilm::rff2 {
         //no operation
     }
 
-    void GPCBloom::setBloom(const ShdBloomSettings &bloom) const {
-        using namespace SharedDescriptorTemplate;
-        auto &bloomDesc = getDescriptor(SET_BLOOM);
-        auto &bloomUBO = bloomDesc.get<vkh::Uniform>(0, DescBloom::BINDING_UBO_BLOOM);
-        auto &bloomUBOHost = bloomUBO.getHostObject();
-
-        if (bloomUBO.isLocalized()) {
-            bloomUBO.expose(wc.getCommandPool());
-        }
-
-        bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_THRESHOLD, bloom.threshold);
-        bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_RADIUS, bloom.radius);
-        bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_SOFTNESS, bloom.softness);
-        bloomUBOHost.set<float>(DescBloom::TARGET_BLOOM_INTENSITY, bloom.intensity);
-        bloomUBO.update();
-        bloomUBO.localize(wc.getCommandPool());
-
-        writeDescriptorMF([&bloomDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            bloomDesc.queue(queue, frameIndex, {}, {DescBloom::BINDING_UBO_BLOOM});
-        });
-    }
 
     void GPCBloom::pipelineInitialized() {
         //noop

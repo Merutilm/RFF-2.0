@@ -16,11 +16,7 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_BATCH_RESULT = 3;
         static constexpr uint32_t SET_SMOOTH_ZOOM = 4;
 
-
         static constexpr uint32_t SPECIALIZATION_PERTURBATION_MAIN_ITERATOR = 0;
-
-        uint32_t iterWidth = 0;
-        uint32_t iterHeight = 0;
 
         GPCIterationPalette(vkh::Engine &engine, vkh::WindowContext &wc) :
             GeneralPostProcessGraphicsPipelineConfigurator(engine, wc, "vk_iteration_palette.frag") {}
@@ -40,22 +36,6 @@ namespace merutilm::rff2 {
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
         void setPerturbationMainIterator(PerturbationMainIterator mainIterator);
-
-        void cmdRefreshIterations(const vkh::CommandBuffer &commandBuffer, const vkh::BufferContext &src) const;
-
-        [[nodiscard]] const vkh::BufferContext &getResultIterationBuffer() const;
-
-        void resetIterationBuffer(uint32_t width, uint32_t height);
-
-        void applyMaxIteration() const;
-
-        /**
-         * call applyMaxIteration to update params for gpu
-         */
-        void setMaxIteration(double maxIteration) const;
-
-        void setPalette(const ShdPaletteSettings &palette) const;
-
 
         void pipelineInitialized() override;
 

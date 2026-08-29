@@ -4,7 +4,6 @@
 
 #pragma once
 #include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
-#include "../settings/ShdBloomSettings.h"
 
 namespace merutilm::rff2 {
     struct GPCBloom final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
@@ -19,8 +18,6 @@ namespace merutilm::rff2 {
         }
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
-
-        void setBloom(const ShdBloomSettings &bloom) const;
 
         void pipelineInitialized() override;
 

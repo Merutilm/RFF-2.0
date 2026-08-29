@@ -47,21 +47,9 @@ namespace merutilm::rff2 {
 
         void renderContextRefreshed() override;
 
-        void setCurrentFrame(float currentFrame, uint32_t frameIndex) const;
-
-        void setPalette(const ShdPaletteSettings &palette) const;
-
-        void setStripe(const ShdStripeSettings &stripe) const;
-
-        void setDefaultZoomIncrement(float defaultZoomIncrement) const;
-
         void setAllIterations(const std::vector<double> &normal, const std::vector<double> &zoomed) const;
 
         void set2MapSize(const VkExtent2D &extent);
-
-        void setInfo(double maxIteration) const;
-
-        void setTime(float currentSec, uint32_t frameIndex) const;
 
     protected:
         void configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) override;

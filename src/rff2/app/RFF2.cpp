@@ -6,7 +6,6 @@
 
 #include <ranges>
 
-#include "../data/ComputeShaderBatchStagingData.hpp"
 #include "../io/RFFLocationBinary.h"
 #include "../mb/MB2Locator.h"
 #include "../parallel/ParallelArrayDispatcher.h"
@@ -20,8 +19,8 @@
 #include "../preset/shader/slope/ShdSlopePresets.h"
 #include "../preset/shader/stripe/ShdStripePresets.h"
 #include "../vulkan/GPCDownsampleForBlur.hpp"
-#include "../vulkan/SharedDescriptorTemplate.hpp"
 #include "../vulkan/SharedImageContextIndices.hpp"
+#include "../vulkan/desc/SharedDescriptorTemplate.hpp"
 #include "FnExplore.hpp"
 #include "FnFile.hpp"
 #include "FnFractal.hpp"
@@ -258,9 +257,9 @@ namespace merutilm::rff2 {
                                      multiplier);
     }
 
-    uint16_t RFF2::getIterationBufferWidth() const { return renderer->rg0->iterationPalette->iterWidth; }
+    uint16_t RFF2::getIterationBufferWidth() const { return renderer->visibleIterationBufferContext->getWidth(); }
 
-    uint16_t RFF2::getIterationBufferHeight() const { return renderer->rg0->iterationPalette->iterHeight; }
+    uint16_t RFF2::getIterationBufferHeight() const { return renderer->visibleIterationBufferContext->getHeight(); }
 
 
     void RFF2::addListeners() {
@@ -412,26 +411,30 @@ namespace merutilm::rff2 {
 
         if (canShowPreview && !zoomAnimationInfo.aimChanged) {
             renderer->updateStagingBuffer |= renderer->visibleIterationBufferContext->fill();
-            renderer->rg0->iterationPalette->applyMaxIteration();
+            renderer->descriptorStorage->iteration->applyMaxIteration();
             zoomAnimationInfo.reset();
         }
 
         zoomAnimationInfo.update(dt);
 
-        renderer->rccPresentPrepare->smoothZoom->setSmoothZoomData(zoomAnimationInfo.targetMouseDragOffset +
+        renderer->descriptorStorage->smoothZoom->set(zoomAnimationInfo.targetMouseDragOffset +
                                                                            zoomAnimationInfo.targetMouseZoomOffset,
                                                                    zoomAnimationInfo.targetLogZoomOffset);
     }
 
     void RFF2::applyShaderSettings(const Settings &s) const {
-        rootWindowContext->core.getLogicalDevice().waitDeviceIdle();
-        renderer->rg0->iterationPalette->setPalette(s.shader.palette);
-        renderer->rg0->stripe->setStripe(s.shader.stripe);
-        renderer->rg0->color->setColor(s.shader.color);
-        renderer->rg3->fog->setFog(s.shader.fog);
-        renderer->rg4->bloom->setBloom(s.shader.bloom);
-        renderer->rg4->noiseReduction->setNoiseReduction(s.shader.noiseReduction);
-        renderer->rg1->fractal3d->setFractal3D(s.shader.fractal3D);
+        using namespace SharedDescriptorTemplate;
+        vkh::Core &core = rootWindowContext->core;
+        core.getLogicalDevice().waitDeviceIdle();
+
+        renderer->descriptorStorage->palette->set(s.shader.palette);
+        renderer->descriptorStorage->stripe->set(s.shader.stripe);
+        renderer->descriptorStorage->color->set(s.shader.color);
+        renderer->descriptorStorage->fog->set(s.shader.fog);
+        renderer->descriptorStorage->bloom->set(s.shader.bloom);
+        renderer->descriptorStorage->noiseReduction->set(s.shader.noiseReduction);
+        renderer->descriptorStorage->camera3d->set(s.shader.fractal3D);
+        renderer->descriptorStorage->fractal3d->set(s.shader.fractal3D);
     }
 
     void RFF2::refreshResizeParams(const VkExtent2D swapchainExtent) const {
@@ -441,17 +444,24 @@ namespace merutilm::rff2 {
                 RendererUtils::getBlurredImageExtent(swapchainExtent, settings.render.clarityMultiplier);
         const auto &[sWidth, sHeight] = rootWindowContext->getSwapchain().getSwapchainExtent();
 
+        //shared
+        renderer->descriptorStorage->iteration->resetIterationBuffer(iw, ih);
+        renderer->descriptorStorage->batchResult->resizeBatchResultBuffer(iw, ih);
+        renderer->descriptorStorage->renderMeta->resizeWriteBuffer(iw, ih);
+        renderer->descriptorStorage->renderMetaIterationVariant->resetIterationBuffer(iw, ih);
+
+        //unique
         renderer->rccDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG,
                                                                    {dWidth, dHeight});
         renderer->rccDownsample->downsample->setRescaledResolution(
                 GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_BLOOM, {dWidth, dHeight});
-
         renderer->rccPresentPrepare->smoothZoom->setRescaledResolution({sWidth, sHeight});
-        renderer->rg0->iterationPalette->resetIterationBuffer(iw, ih);
-        renderer->rg1->fractal3d->resetBuffer(iw, ih);
+
+
+        renderer->rg1->fractal3d->resetPiplineVI(iw, ih);
         renderer->computeIterate->setExtent({iw, ih});
         renderer->computeIgnoreIsolated->setExtent({iw, ih});
-        renderer->computeIterate->resetBatchResultBuffer();
+
         renderer->visibleIterationBufferContext = std::make_unique<GraphicsMatrixBuffer<double>>(
                 rootWindowContext->core, iw, ih, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
@@ -664,8 +674,8 @@ namespace merutilm::rff2 {
             return;
         }
 
-        renderer->rg0->iterationPalette->setMaxIteration(static_cast<double>(map.maxIteration));
-        renderer->rg0->iterationPalette->applyMaxIteration();
+        renderer->descriptorStorage->iteration->setMaxIteration(static_cast<double>(map.maxIteration));
+        renderer->descriptorStorage->iteration->applyMaxIteration();
         renderer->visibleIterationBufferContext->fill(map.iterations);
         renderer->updateStagingBuffer = true;
     }
@@ -765,7 +775,7 @@ namespace merutilm::rff2 {
         if (settings.explore.autoMoveCursorToCenter) {
             moveCursorToCenter();
         }
-        renderer->rg0->iterationPalette->setMaxIteration(
+        renderer->descriptorStorage->iteration->setMaxIteration(
                 static_cast<double>(renderData->fractalSettings.perturb.maxIteration));
 
         saveBackup();
@@ -875,13 +885,15 @@ namespace merutilm::rff2 {
         const auto tableLen = cache ? cache->tableSizeUsed : 0;
         const auto mapperLen = cache ? cache->mapperSizeUsed : 0;
 
-        renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
-        renderer->computeIterate->resetWriteBuffer(commandPool);
         renderer->computeIterate->setMPAIgnore(s.render.computeShader.completelyIgnoreMpa);
-        renderer->computeIterate->setRenderMeta(renderData->fractalSettings, s.render, lightRef->refOrbit,
+
+        renderer->descriptorStorage->renderMeta->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
+        renderer->descriptorStorage->renderMeta->clearWriteBuffer(commandPool);
+        renderer->descriptorStorage->renderMeta->set(renderData->fractalSettings, s.render, lightRef->refOrbit,
                                                 static_cast<complex<float>>(renderData->getPerturbator()->off),
                                                 static_cast<uint32_t>(renderData->fractalSettings.perturb.maxIteration),
                                                 tableData, tableLen, mapperData, mapperLen, commandPool);
+
         // preparing render meta scope
 
 
@@ -889,8 +901,8 @@ namespace merutilm::rff2 {
             return;
         }
 
-        const vkh::BufferContext &iterResultCtx = renderer->computeIterate->getIterResultBuffer();
-        const vkh::BufferContext &batchResultCtx = renderer->computeIterate->getBatchResultBuffer();
+        const vkh::BufferContext &iterResultCtx = renderer->descriptorStorage->renderMetaIterationVariant->getResultIterationBuffer();
+        const vkh::BufferContext &batchResultCtx = renderer->descriptorStorage->batchResult->getBatchResultBuffer();
         computeShaderManager->tryCreateOrResizeTransferDstBuffer(batchResultCtx, iterResultCtx, extent);
 
         const vkh::BufferContext &dstBatchBuffer = computeShaderManager->dstBatchBuffer;
@@ -977,7 +989,7 @@ namespace merutilm::rff2 {
 
             if (elapsed.count() < settings.render.computeShader.preferredBatchDuration) {
                 batchSizeMultiplier *= 2;
-                renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
+                renderer->descriptorStorage->renderMeta->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
                                                        batchSizeMultiplier);
             }
             bool currIgnoreMpa = settings.render.computeShader.completelyIgnoreMpa ||
@@ -986,7 +998,7 @@ namespace merutilm::rff2 {
             if (prevIgnoreMpa != currIgnoreMpa) {
                 batchSizeMultiplier = 1;
                 renderer->computeIterate->setMPAIgnore(currIgnoreMpa);
-                renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
+                renderer->descriptorStorage->renderMeta->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
                 prevIgnoreMpa = currIgnoreMpa;
             }
 

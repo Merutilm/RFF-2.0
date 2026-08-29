@@ -4,35 +4,17 @@
 
 #include "GPCColor.hpp"
 
-#include "../constants/VulkanWindowConstants.hpp"
-#include "../settings/ShdColorSettings.h"
-#include "SharedDescriptorTemplate.hpp"
+
 #include "SharedImageContextIndices.hpp"
+#include "desc/SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
     void GPCColor::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
         //no operation
     }
 
-    void GPCColor::setColor(const ShdColorSettings &color) const {
-        using namespace SharedDescriptorTemplate;
-        auto &colorDesc = getDescriptor(SET_COLOR);
-        auto &colorUBO = colorDesc.get<vkh::Uniform>(0, DescColor::BINDING_UBO_COLOR);
-        auto &colorUBOHost = colorUBO.getHostObject();
-        colorUBOHost.set<float>(DescColor::TARGET_COLOR_GAMMA, color.gamma);
-        colorUBOHost.set<float>(DescColor::TARGET_COLOR_EXPOSURE, color.exposure);
-        colorUBOHost.set<float>(DescColor::TARGET_COLOR_HUE, color.hue);
-        colorUBOHost.set<float>(DescColor::TARGET_COLOR_SATURATION, color.saturation);
-        colorUBOHost.set<float>(DescColor::TARGET_COLOR_BRIGHTNESS, color.brightness);
-        colorUBOHost.set<float>(DescColor::TARGET_COLOR_CONTRAST, color.contrast);
-        colorUBO.update();
-    }
-
     void GPCColor::pipelineInitialized() {
-        using namespace SharedDescriptorTemplate;
-        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_COLOR).queue(queue, frameIndex, {}, {DescColor::BINDING_UBO_COLOR});
-        });
+        //noop
     }
 
     void GPCColor::renderContextRefreshed() {

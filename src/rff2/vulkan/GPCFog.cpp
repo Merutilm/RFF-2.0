@@ -4,8 +4,8 @@
 
 #include "GPCFog.hpp"
 
-#include "SharedDescriptorTemplate.hpp"
 #include "SharedImageContextIndices.hpp"
+#include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 
 namespace merutilm::rff2 {
@@ -13,22 +13,8 @@ namespace merutilm::rff2 {
         //no operation
     }
 
-
-    void GPCFog::setFog(const ShdFogSettings &fog) const {
-        using namespace SharedDescriptorTemplate;
-        auto &fogDesc = getDescriptor(SET_FOG);
-        auto &fogUBO = fogDesc.get<vkh::Uniform>(0, DescFog::BINDING_UBO_FOG);
-        auto &fogUBOHost = fogUBO.getHostObject();
-        fogUBOHost.set<float>(DescFog::TARGET_FOG_RADIUS, fog.radius);
-        fogUBOHost.set<float>(DescFog::TARGET_FOG_OPACITY, fog.opacity);
-        fogUBO.update();
-    }
-
     void GPCFog::pipelineInitialized() {
-        using namespace SharedDescriptorTemplate;
-        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            getDescriptor(SET_FOG).queue(queue, frameIndex, {}, {DescFog::BINDING_UBO_FOG});
-        });
+
     }
 
     void GPCFog::renderContextRefreshed() {
