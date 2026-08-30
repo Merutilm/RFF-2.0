@@ -919,12 +919,6 @@ namespace merutilm::rff2 {
             computeShaderManager->fence->waitAndReset();
 
             const auto actualTime = std::chrono::high_resolution_clock::now();
-            const float time = rootWindowContext->getWindow()->getTime();
-            setStatusMessage(Constants::Status::TIME_STATUS,
-                             std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            setStatusMessage(Constants::Status::RENDER_STATUS,
-                             std::format("Batching... ({:L}, {:L})", currentBatchIteration, glitches));
-
 
             {
                 vkh::CommandBuffer &commandBuffer = *computeShaderManager->commandBuffer;
@@ -978,6 +972,13 @@ namespace merutilm::rff2 {
             computeShaderManager->fence->wait();
             const auto elapsed = std::chrono::duration_cast<std::chrono::duration<float>>(
                     std::chrono::high_resolution_clock::now() - actualTime);
+
+            const float time = rootWindowContext->getWindow()->getTime();
+            setStatusMessage(Constants::Status::TIME_STATUS,
+                             std::format("Time : {}", Utilities::formatTime(time - startTime)));
+            setStatusMessage(Constants::Status::RENDER_STATUS,
+                             std::format("Batching... ({:L}, {:L}, {:L}ms)", currentBatchIteration, glitches, static_cast<uint32_t>(elapsed.count() * 1000)));
+
 
             currentBatchIteration += Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier;
 
