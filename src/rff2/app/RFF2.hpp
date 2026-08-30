@@ -16,6 +16,7 @@
 #include "CursorManager.hpp"
 #include "RFF2Renderer.hpp"
 #include "UpdateRequests.hpp"
+#include "VideoKeyframeProgressInfo.hpp"
 #include "VideoProgressInfo.hpp"
 #include "ZoomAnimationInfo.hpp"
 #include "vulkan_helper/Application.hpp"
@@ -39,6 +40,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<ComputeShaderRenderManager> computeShaderManager = nullptr;
 
         ZoomAnimationInfo zoomAnimationInfo;
+        VideoKeyframeProgressInfo videoKeyframeProgressInfo = {};
         VideoProgressInfo videoProgressInfo = {};
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
@@ -91,7 +93,6 @@ namespace merutilm::rff2 {
 
         void registerRenderers() override;
 
-
         void refreshSharedImgContexts(VkExtent2D extent) override;
 
         void overwriteMatrixFromMap(const RFFDynamicMapBinary &map) const;
@@ -107,6 +108,7 @@ namespace merutilm::rff2 {
         [[nodiscard]] int16_t getMouseXOnIterationBuffer(int mx) const;
 
         [[nodiscard]] int16_t getMouseYOnIterationBuffer(int my) const;
+        void checkBackupLoad();
 
         void recomputeThreaded();
 
@@ -164,10 +166,14 @@ namespace merutilm::rff2 {
 
         void onStart();
 
+        void initialize();
+
         void onResize(VkExtent2D newExtent);
 
         void onQuit();
         void resolveRequests();
+
+        VideoKeyframeProgressInfo &getKeyframeProgressInfo() { return videoKeyframeProgressInfo; }
 
         VideoProgressInfo &getVideoProgressInfo() { return videoProgressInfo; }
 

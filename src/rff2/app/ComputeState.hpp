@@ -5,6 +5,6 @@
 #pragma once
 namespace merutilm::rff2 {
     enum class ComputeState {
-        IDLE, REQUESTED, RUNNING,
+        IDLE, CANCELLED, REQUESTED, RUNNING
     };
 }

@@ -43,14 +43,18 @@ namespace merutilm::rff2 {
 
 
     void RFF2::onStart() {
-        cursorManager = std::make_unique<CursorManager>(rootWindowContext->getWindow()->getWindow());
-        computeShaderManager = std::make_unique<ComputeShaderRenderManager>(*rootWindowContext);
-
+        initialize();
         applyShaderSettings(settings);
         refreshResizeParams(rootWindowContext->getSwapchain().getSwapchainExtent());
+        checkBackupLoad();
         requests.requestRecompute();
-        initImGui();
+    }
+
+    void RFF2::initialize() {
+        cursorManager = std::make_unique<CursorManager>(rootWindowContext->getWindow()->getWindow());
+        computeShaderManager = std::make_unique<ComputeShaderRenderManager>(*rootWindowContext);
         NFD::Init();
+        initImGui();
     }
 
     void RFF2::onResize(const VkExtent2D newExtent) {
@@ -101,8 +105,8 @@ namespace merutilm::rff2 {
             }
         }
 
-
-        if (requests.recomputeRequestedState.exchange(ComputeState::RUNNING) == ComputeState::REQUESTED) {
+        auto expected = ComputeState::REQUESTED;
+        if (requests.recomputeRequestedState.compare_exchange_weak(expected, ComputeState::RUNNING)) {
             recomputeThreaded();
             // it is threaded, do not notify
         }
@@ -158,15 +162,7 @@ namespace merutilm::rff2 {
                                                     .interiorDetectRadiusPower = 7,
                                                     .autoIterationMultiplier = 100,
                                                     .absoluteIterationMode = false}},
-                .render = {.clarityMultiplier = 0.25f,
-                           .fps = 30,
-                           .pixelRenderPriority = RndPixelRenderPriority::SWIZZLE,
-                           .computeShader{.use = true,
-                                          .preferredBatchDuration = 0.5f,
-                                          .allowedGlitchPixelCount = 0,
-                                          .completelyIgnoreMpa = false,
-                                          .automaticAcceptMpaBatches = 32,
-                                          .interpolateIsolated = true}},
+                .render = RenderPresets::Low().genRender(),
                 .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .slope = ShdSlopePresets::Disabled().genSlope(),
@@ -418,8 +414,8 @@ namespace merutilm::rff2 {
         zoomAnimationInfo.update(dt);
 
         renderer->descriptorStorage->smoothZoom->set(zoomAnimationInfo.targetMouseDragOffset +
-                                                                           zoomAnimationInfo.targetMouseZoomOffset,
-                                                                   zoomAnimationInfo.targetLogZoomOffset);
+                                                             zoomAnimationInfo.targetMouseZoomOffset,
+                                                     zoomAnimationInfo.targetLogZoomOffset);
     }
 
     void RFF2::applyShaderSettings(const Settings &s) const {
@@ -444,13 +440,13 @@ namespace merutilm::rff2 {
                 RendererUtils::getBlurredImageExtent(swapchainExtent, settings.render.clarityMultiplier);
         const auto &[sWidth, sHeight] = rootWindowContext->getSwapchain().getSwapchainExtent();
 
-        //shared
+        // shared
         renderer->descriptorStorage->iteration->resetIterationBuffer(iw, ih);
         renderer->descriptorStorage->batchResult->resizeBatchResultBuffer(iw, ih);
         renderer->descriptorStorage->renderMeta->resizeWriteBuffer(iw, ih);
         renderer->descriptorStorage->renderMetaIterationVariant->resetIterationBuffer(iw, ih);
 
-        //unique
+        // unique
         renderer->rccDownsample->downsample->setRescaledResolution(GPCDownsampleForBlur::DESC_INDEX_RESAMPLE_IMAGE_FOG,
                                                                    {dWidth, dHeight});
         renderer->rccDownsample->downsample->setRescaledResolution(
@@ -719,23 +715,19 @@ namespace merutilm::rff2 {
                                     static_cast<float>(my) * multiplier);
     }
 
+    void RFF2::checkBackupLoad() {
+        const auto path = getBackupLocationPath();
+        if (std::filesystem::exists(path) &&
+            vkh::logger::messagebox_yn("Info", "Last rendered location has been found. Do you want to load it?")) {
+            if (!std::filesystem::exists(path))
+                return; // user deleted file manually
+            loadLocation(path);
+        }
+    }
+
     void RFF2::recomputeThreaded() {
 
         state.createThread([this] {
-            static bool backUpLoadConfirmed = false;
-            if (!backUpLoadConfirmed) {
-                backUpLoadConfirmed = true;
-                const auto path = getBackupLocationPath();
-                if (std::filesystem::exists(path) &&
-                    vkh::logger::messagebox_yn("Info",
-                                               "Last rendered location has been found. Do you want to load it?")) {
-                    if (!std::filesystem::exists(path))
-                        return; // user deleted file manually
-                    loadLocation(path);
-                    return;
-                }
-            }
-
             const Settings s = this->settings; // clone the settings
             const auto start = rootWindowContext->getWindow()->getTime();
             bool success = false;
@@ -889,10 +881,11 @@ namespace merutilm::rff2 {
 
         renderer->descriptorStorage->renderMeta->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
         renderer->descriptorStorage->renderMeta->clearWriteBuffer(commandPool);
-        renderer->descriptorStorage->renderMeta->set(renderData->fractalSettings, s.render, lightRef->refOrbit,
-                                                static_cast<complex<float>>(renderData->getPerturbator()->off),
-                                                static_cast<uint32_t>(renderData->fractalSettings.perturb.maxIteration),
-                                                tableData, tableLen, mapperData, mapperLen, commandPool);
+        renderer->descriptorStorage->renderMeta->set(
+                renderData->fractalSettings, s.render, lightRef->refOrbit,
+                static_cast<complex<float>>(renderData->getPerturbator()->off),
+                static_cast<uint32_t>(renderData->fractalSettings.perturb.maxIteration), tableData, tableLen,
+                mapperData, mapperLen, commandPool);
 
         // preparing render meta scope
 
@@ -901,7 +894,8 @@ namespace merutilm::rff2 {
             return;
         }
 
-        const vkh::BufferContext &iterResultCtx = renderer->descriptorStorage->renderMetaIterationVariant->getResultIterationBuffer();
+        const vkh::BufferContext &iterResultCtx =
+                renderer->descriptorStorage->renderMetaIterationVariant->getResultIterationBuffer();
         const vkh::BufferContext &batchResultCtx = renderer->descriptorStorage->batchResult->getBatchResultBuffer();
         computeShaderManager->tryCreateOrResizeTransferDstBuffer(batchResultCtx, iterResultCtx, extent);
 
@@ -989,8 +983,8 @@ namespace merutilm::rff2 {
 
             if (elapsed.count() < settings.render.computeShader.preferredBatchDuration) {
                 batchSizeMultiplier *= 2;
-                renderer->descriptorStorage->renderMeta->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
-                                                       batchSizeMultiplier);
+                renderer->descriptorStorage->renderMeta->setBatchSize(
+                        Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier);
             }
             bool currIgnoreMpa = settings.render.computeShader.completelyIgnoreMpa ||
                                  (i > settings.render.computeShader.automaticAcceptMpaBatches &&
@@ -998,7 +992,8 @@ namespace merutilm::rff2 {
             if (prevIgnoreMpa != currIgnoreMpa) {
                 batchSizeMultiplier = 1;
                 renderer->computeIterate->setMPAIgnore(currIgnoreMpa);
-                renderer->descriptorStorage->renderMeta->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
+                renderer->descriptorStorage->renderMeta->setBatchSize(
+                        Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
                 prevIgnoreMpa = currIgnoreMpa;
             }
 
@@ -1047,8 +1042,9 @@ namespace merutilm::rff2 {
             ++renderPixelsCount;
             return iteration;
         };
-        const auto previewer = ParallelArrayDispatcher<double>(state, actualIterationMatrix, w, h, s.fractal.general.threads, s.render.pixelRenderPriority,
-                                                         std::move(func));
+        const auto previewer =
+                ParallelArrayDispatcher<double>(state, actualIterationMatrix, w, h, s.fractal.general.threads,
+                                                s.render.pixelRenderPriority, std::move(func));
 
 
         auto statusThread = std::jthread([&renderPixelsCount, len, this, startTime](const std::stop_token &stop) {
@@ -1113,7 +1109,7 @@ namespace merutilm::rff2 {
         if (!success) {
             // vkh::logger::log("Recompute cancelled.");
         }
-        requests.recomputeRequestedState = ComputeState::IDLE;
+        requests.recomputeRequestedState = success ? ComputeState::IDLE : ComputeState::CANCELLED;
         backgroundThreads.notifyAll();
     }
 } // namespace merutilm::rff2

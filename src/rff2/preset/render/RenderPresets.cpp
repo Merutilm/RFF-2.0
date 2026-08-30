@@ -11,9 +11,9 @@ namespace merutilm::rff2 {
     std::string RenderPresets::Potato::getName() const { return "Potato"; }
 
     RenderSettings RenderPresets::Potato::genRender() const {
-        return RenderSettings{0.1f,
+        return RenderSettings{0.125f,
                               60,
-                              RndPixelRenderPriority::SWIZZLE,
+                              RndPixelRenderPriority::SEQUENTIAL,
                               {.use = false,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
@@ -26,9 +26,9 @@ namespace merutilm::rff2 {
     std::string RenderPresets::Low::getName() const { return "Low"; }
 
     RenderSettings RenderPresets::Low::genRender() const {
-        return RenderSettings{0.3f,
+        return RenderSettings{0.25f,
                               60,
-                              RndPixelRenderPriority::SWIZZLE,
+                              RndPixelRenderPriority::SEQUENTIAL,
                               {.use = false,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
     RenderSettings RenderPresets::Medium::genRender() const {
         return RenderSettings{0.5f,
                               60,
-                              RndPixelRenderPriority::SWIZZLE,
+                              RndPixelRenderPriority::SEQUENTIAL,
                               {.use = false,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
@@ -56,7 +56,7 @@ namespace merutilm::rff2 {
     RenderSettings RenderPresets::High::genRender() const {
         return RenderSettings{1.0f,
                               60,
-                              RndPixelRenderPriority::SWIZZLE,
+                              RndPixelRenderPriority::SEQUENTIAL,
                               {.use = false,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
@@ -70,7 +70,7 @@ namespace merutilm::rff2 {
     RenderSettings RenderPresets::Ultra::genRender() const {
         return RenderSettings{2.0f,
                               60,
-                              RndPixelRenderPriority::SWIZZLE,
+                              RndPixelRenderPriority::SEQUENTIAL,
                               {.use = false,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
@@ -84,7 +84,7 @@ namespace merutilm::rff2 {
     RenderSettings RenderPresets::Extreme::genRender() const {
         return RenderSettings{4.0f,
                               60,
-                              RndPixelRenderPriority::SWIZZLE,
+                              RndPixelRenderPriority::SEQUENTIAL,
                               {.use = false,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,

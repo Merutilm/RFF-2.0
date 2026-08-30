@@ -13,13 +13,12 @@
 
 namespace merutilm::rff2::SharedDescriptorManager {
 
-    using namespace SharedDescriptorTemplate;
-
     struct DescManagerCamera3D : vkh::DescriptorTemplateManager {
 
         using DescriptorTemplateManager::DescriptorTemplateManager;
 
         void set(const ShdFractal3DSettings &fractal3DSettings) const {
+            using namespace SharedDescriptorTemplate;
             auto &cameraUBO = desc.get<vkh::Uniform>(0, DescCamera3D::BINDING_UBO_CAMERA);
             auto &cameraUBOHost = cameraUBO.getHostObject();
 
@@ -52,6 +51,7 @@ namespace merutilm::rff2::SharedDescriptorManager {
         using DescriptorTemplateManager::DescriptorTemplateManager;
 
         void setManualTime(const float time, const uint32_t frameIndex) const {
+            using namespace SharedDescriptorTemplate;
             auto &timeBinding = desc.get<vkh::Uniform>(0, DescTime::BINDING_UBO_TIME);
 
             timeBinding.getHostObject().set(DescTime::TARGET_TIME_CURRENT, time);
@@ -68,12 +68,14 @@ namespace merutilm::rff2::SharedDescriptorManager {
         }
 
 
-        const vkh::BufferContext &getResultIterationBuffer() const {
+        [[nodiscard]] const vkh::BufferContext &getResultIterationBuffer() const {
+            using namespace SharedDescriptorTemplate;
             auto &iterSSBO = desc.get<vkh::ShaderStorage>(0, DescIteration::BINDING_SSBO_ITERATION_MATRIX);
             return iterSSBO.getBufferContext();
         }
 
         void resetIterationBuffer(const uint32_t width, const uint32_t height) const {
+            using namespace SharedDescriptorTemplate;
             auto &iterUBO = desc.get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
             auto &iterUBOHost = iterUBO.getHostObject();
             auto &iterSSBO = desc.get<vkh::ShaderStorage>(0, DescIteration::BINDING_SSBO_ITERATION_MATRIX);
@@ -94,12 +96,14 @@ namespace merutilm::rff2::SharedDescriptorManager {
         }
 
         void applyMaxIteration() const {
+            using namespace SharedDescriptorTemplate;
             const auto &iterUBO = desc.get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
             iterUBO.update();
         }
 
 
         void setMaxIteration(const double maxIteration) const {
+            using namespace SharedDescriptorTemplate;
             auto &iterUBO = desc.get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
 
             iterUBO.getHostObject().set<double>(DescIteration::TARGET_UBO_ITERATION_MAX, maxIteration);
@@ -261,6 +265,7 @@ namespace merutilm::rff2::SharedDescriptorManager {
 
         using DescriptorTemplateManager::DescriptorTemplateManager;
         void set(const ShdFractal3DSettings &fractal3DSettings) const {
+            using namespace SharedDescriptorTemplate;
             auto &f3dUBO = desc.get<vkh::Uniform>(0, DescFractal3D::BINDING_UBO_F3D);
             auto &f3dUBOHost = f3dUBO.getHostObject();
 
@@ -400,7 +405,7 @@ namespace merutilm::rff2::SharedDescriptorManager {
             vkh::DescriptorUpdater::write(wc.core.getLogicalDevice().getLogicalDeviceHandle(), queue);
         }
 
-        const vkh::BufferContext &getBatchResultBuffer() const {
+        [[nodiscard]] const vkh::BufferContext &getBatchResultBuffer() const {
             using namespace SharedDescriptorTemplate;
             return desc.get<vkh::ShaderStorage>(0, DescBatchResult::BINDING_BATCH_RESULT_SSBO).getBufferContext();
         }

@@ -32,7 +32,7 @@ namespace merutilm::rff2 {
 
             ImGui::Checkbox("Static data", &isStatic);
             Utilities::imguiHelpMarker("Generates using .png image instead of data file. all shaders will be disabled "
-                    "when trying to generate video data.");
+                                       "when trying to generate video data.");
             ImGui::End();
         }
     }
@@ -67,97 +67,130 @@ namespace merutilm::rff2 {
 
             ImGui::End();
         }
-
     }
     void FnVideo::generateVidKeyframes(RFF2 &app) {
-        if (ImGui::Button("Generate Video Keyframes", ImVec2(-FLT_MIN, 0))) {
-            app.getBackgroundThreads().createThread([&app](BackgroundThread &thread) {
-                const auto &state = app.getState();
-                const auto dirPtr = IOUtilities::ioDirectoryDialog();
+        if (!app.getKeyframeProgressInfo().keyframeGenerating) {
+            if (ImGui::Button("Generate Video Keyframes", ImVec2(-FLT_MIN, 0))) {
+                auto dirPtr = IOUtilities::ioDirectoryDialog();
 
-                float &logZoom = app.getSettings().fractal.general.logZoom;
                 if (dirPtr == nullptr) {
                     return;
                 }
 
-                if (!app.getWindowContext().getWindow()->canRenderNow()) {
-                    vkh::logger::log_err("Window not found");
-                    return;
-                }
 
-                const auto &dir = *dirPtr;
-                bool nextFrame = false;
-                Settings &settings = app.getSettings();
-                const VideoSettings &videoSettings = settings.video;
+                app.getBackgroundThreads().createThread([&app, dirPtr = std::move(dirPtr)](BackgroundThread &thread) {
+                    auto &state = app.getState();
+                    float &logZoom = app.getSettings().fractal.general.logZoom;
 
-                if (videoSettings.data.isStatic) {
-                    settings.shader.stripe = ShdStripePresets::Disabled().genStripe();
-                    settings.shader.slope = ShdSlopePresets::Disabled().genSlope();
-                    settings.shader.fog = ShdFogPresets::Disabled().genFog();
-                    settings.shader.bloom = BloomPresets::Disabled().genBloom();
-                    app.getRequests().requestShader();
-                    thread.waitUntil([&app] { return !app.getRequests().shaderRequested; });
-                }
-                const float increment = std::log10(videoSettings.data.defaultZoomIncrement);
-                while (logZoom > Constants::Fractal::ZOOM_MIN) {
-                    if (nextFrame || state.interruptRequested()) {
-                        // incomplete frame
-                        app.getRequests().requestRecompute();
-                        thread.waitUntil([&app, &state] {
-                            return app.getRequests().recomputeRequestedState == ComputeState::IDLE || state.interruptRequested();
-                        });
-                    }
-                    if (state.interruptRequested()) {
-                        vkh::logger::log("Keyframe generation cancelled.");
+                    if (!app.getWindowContext().getWindow()->canRenderNow()) {
+                        vkh::logger::log_err("Window is currently minimized or inactive");
                         return;
                     }
 
+                    const auto &dir = *dirPtr;
+                    bool nextFrame = false;
+                    Settings &settings = app.getSettings();
+                    const VideoSettings &videoSettings = settings.video;
 
                     if (videoSettings.data.isStatic) {
-                        app.getRequests().requestCreateImage(IOUtilities::generateFilename(dir, Constants::File::EXT_IMAGE, nullptr).string());
-                        thread.waitUntil([&app] { return !app.getRequests().createImageRequested; });
-                        RFFStaticMapBinary(logZoom, app.getIterationBufferWidth(),
-                                           app.getIterationBufferHeight())
-                                .exportAsKeyframe(dir);
-                    } else {
-                        app.generateMap().exportAsKeyframe(dir);
+                        settings.shader.stripe = ShdStripePresets::Disabled().genStripe();
+                        settings.shader.slope = ShdSlopePresets::Disabled().genSlope();
+                        settings.shader.fog = ShdFogPresets::Disabled().genFog();
+                        settings.shader.bloom = BloomPresets::Disabled().genBloom();
+                        app.getRequests().requestShader();
+                        thread.waitUntil([&app] { return !app.getRequests().shaderRequested; });
                     }
+                    const float increment = std::log10(videoSettings.data.defaultZoomIncrement);
 
-                    auto &center = settings.fractal.reference.center;
-                    RFFLocationBinary(settings.fractal.general.logZoom, center.real.to_string(),
-                                      center.imag.to_string(), settings.fractal.perturb.maxIteration)
-                            .exportFile(IOUtilities::generateFilename(dir, Constants::File::EXT_LOCATION, nullptr).string());
-                    logZoom -= increment;
-                    nextFrame = true;
-                }
-            });
-        };
+                    app.getKeyframeProgressInfo().keyframeGenerating = true;
+
+
+                    while (logZoom > Constants::Fractal::ZOOM_MIN) {
+                        if (nextFrame || app.getRequests().recomputeRequestedState == ComputeState::CANCELLED) {
+                            // incomplete frame
+                            app.getRequests().requestRecompute();
+                        }
+                        thread.waitUntil([&app, &state] {
+                            const ComputeState cs = app.getRequests().recomputeRequestedState;
+
+                            return cs == ComputeState::IDLE || cs == ComputeState::CANCELLED ||
+                                   app.getKeyframeProgressInfo().setCurrentframeAsCompleted;
+                        });
+
+                        {
+                            std::scoped_lock lock(app.getKeyframeProgressInfo().mutex);
+                            if (app.getRequests().recomputeRequestedState == ComputeState::CANCELLED) {
+                                vkh::logger::log("Keyframe generation cancelled.");
+                                app.getKeyframeProgressInfo().keyframeGenerating = false;
+                                return;
+                            }
+
+                            if (app.getKeyframeProgressInfo().setCurrentframeAsCompleted) {
+                                state.cancel();
+                                app.getKeyframeProgressInfo().setCurrentframeAsCompleted = false;
+                            }
+                        }
+
+
+                        if (videoSettings.data.isStatic) {
+                            app.getRequests().requestCreateImage(
+                                    IOUtilities::generateFilename(dir, Constants::File::EXT_IMAGE, nullptr).string());
+                            thread.waitUntil([&app] { return !app.getRequests().createImageRequested; });
+                            RFFStaticMapBinary(logZoom, app.getIterationBufferWidth(), app.getIterationBufferHeight())
+                                    .exportAsKeyframe(dir);
+                        } else {
+                            app.generateMap().exportAsKeyframe(dir);
+                        }
+
+                        auto &center = settings.fractal.reference.center;
+                        RFFLocationBinary(settings.fractal.general.logZoom, center.real.to_string(),
+                                          center.imag.to_string(), settings.fractal.perturb.maxIteration)
+                                .exportFile(IOUtilities::generateFilename(dir, Constants::File::EXT_LOCATION, nullptr)
+                                                    .string());
+                        logZoom -= increment;
+                        nextFrame = true;
+                    }
+                    app.getKeyframeProgressInfo().keyframeGenerating = false;
+                });
+            }
+        }
+
+
+        if (app.getKeyframeProgressInfo().keyframeGenerating) {
+            if (ImGui::Button("Mark Current Keyframe As Completed", ImVec2(-FLT_MIN, 0))) {
+                std::scoped_lock lock(app.getKeyframeProgressInfo().mutex);
+                app.getKeyframeProgressInfo().setCurrentframeAsCompleted = true;
+                app.getBackgroundThreads().notifyAll();
+            }
+        }
     }
     void FnVideo::exportZoomVideo(RFF2 &app) {
         if (ImGui::Button("Export Zooming Video", ImVec2(-FLT_MIN, 0))) {
-            app.getBackgroundThreads().createThread([&app, settingsClone = app.getSettings()](const BackgroundThread &) {
-                const auto openPtr = IOUtilities::ioDirectoryDialog();
+            auto openPtr = IOUtilities::ioDirectoryDialog();
 
-                if (openPtr == nullptr) {
-                    return;
-                }
+            if (openPtr == nullptr) {
+                return;
+            }
+            auto savePtr = IOUtilities::ioFileDialog(Constants::File::DESC_VIDEO, IOUtilities::SAVE_FILE,
+                                                     Constants::File::EXT_VIDEO);
+            if (savePtr == nullptr) {
+                return;
+            }
+
+            app.getBackgroundThreads().createThread([&app, settingsClone = app.getSettings(),
+                                                     openPtr = std::move(openPtr),
+                                                     savePtr = std::move(savePtr)](const BackgroundThread &) {
                 const auto &open = *openPtr;
-                const auto savePtr = IOUtilities::ioFileDialog(Constants::File::DESC_VIDEO, IOUtilities::SAVE_FILE,
-                                                               Constants::File::EXT_VIDEO);
-                if (savePtr == nullptr) {
-                    return;
-                }
                 const auto &save = *savePtr;
                 VideoWindow::createVideo(app, open, save, settingsClone);
             });
         }
 
         auto &[mutex, ratio, remainedTimeStr] = app.getVideoProgressInfo();
-        if (ratio > 0)
-        {
+        if (ratio > 0) {
             std::scoped_lock lock(mutex);
             ImGui::ProgressBar(ratio);
-            ImGui::Text("%s",  remainedTimeStr.data());
+            ImGui::Text("%s", remainedTimeStr.data());
         }
     }
 
