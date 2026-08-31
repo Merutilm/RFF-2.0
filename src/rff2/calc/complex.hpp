@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "rff_math.h"
+#include "rff_math.hpp"
 namespace merutilm::rff2 {
 
     template<Number Num>

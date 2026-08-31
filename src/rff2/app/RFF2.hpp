@@ -117,7 +117,7 @@ namespace merutilm::rff2 {
         void beforeIterationFill() const;
 
         bool prepareRenderData(float startTime, const Settings &s);
-        void fillIterationComputeShader(const NormalMB2Reference *lightRef, float startTime, const Settings &s);
+        void fillIterationComputeShader(const MB2RenderDataBase *renderDataBase, float startTime, const Settings &s);
 
         void fillIterationMultithreaded(float startTime, const Settings &s);
         bool fillIteration(float startTime, const Settings &s);

@@ -112,8 +112,4 @@ namespace merutilm::rff2 {
         an = (an * z2).try_normalized_value();
         bn = (bn * z2 + Num(1)).try_normalized_value();
     }
-
-
-    using DeepPAGenerator = PAGenerator<dex>;
-    using LightPAGenerator = PAGenerator<double>;
 } // namespace merutilm::rff2

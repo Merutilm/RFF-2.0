@@ -987,7 +987,4 @@ namespace merutilm::rff2 {
     size_t MPATable<Num>::getLength() const {
         return tableCache ? tableCache->tableSizeUsed : 0;
     }
-
-    using LightMPATable = MPATable<double>;
-    using DeepMPATable = MPATable<dex>;
 } // namespace merutilm::rff2

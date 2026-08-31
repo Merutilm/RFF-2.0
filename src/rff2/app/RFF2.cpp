@@ -853,7 +853,7 @@ namespace merutilm::rff2 {
         return true;
     }
 
-    void RFF2::fillIterationComputeShader(const NormalMB2Reference *lightRef, const float startTime,
+    void RFF2::fillIterationComputeShader(const MB2RenderDataBase *renderDataBase, const float startTime,
                                           const Settings &s) {
         setStatusMessage(Constants::Status::RENDER_STATUS, "Computing...");
         const auto cache = dynamic_cast<ApproxTableCache<float> *>(approxTableCache.get());
@@ -882,7 +882,7 @@ namespace merutilm::rff2 {
         renderer->descriptorStorage->renderMeta->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
         renderer->descriptorStorage->renderMeta->clearWriteBuffer(commandPool);
         renderer->descriptorStorage->renderMeta->set(
-                renderData->fractalSettings, s.render, lightRef->refOrbit,
+                renderData->fractalSettings, s.render, dynamic_cast<MB2Reference<float> *>(renderDataBase->getReference())->refOrbit,
                 static_cast<complex<float>>(renderData->getPerturbator()->off),
                 static_cast<uint32_t>(renderData->fractalSettings.perturb.maxIteration), tableData, tableLen,
                 mapperData, mapperLen, commandPool);
@@ -1093,11 +1093,11 @@ namespace merutilm::rff2 {
         if (state.interruptRequested())
             return false;
 
-        if (const auto lightRef = dynamic_cast<NormalMB2Reference *>(renderData->getReference());
-            lightRef && s.render.computeShader.use && !s.fractal.mpa.useCompress &&
+        if (const auto lightDat = dynamic_cast<NormalMB2RenderData *>(renderData.get());
+            lightDat && s.render.computeShader.use && !s.fractal.mpa.useCompress &&
             s.fractal.reference.compression.compressCriteria == 0) {
             renderer->rg0->iterationPalette->setPerturbationMainIterator(PerturbationMainIterator::GPU);
-            fillIterationComputeShader(lightRef, startTime, s);
+            fillIterationComputeShader(lightDat, startTime, s);
         } else {
             renderer->rg0->iterationPalette->setPerturbationMainIterator(PerturbationMainIterator::CPU);
             fillIterationMultithreaded(startTime, s);

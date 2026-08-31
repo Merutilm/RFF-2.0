@@ -265,9 +265,4 @@ namespace merutilm::rff2 {
     size_t MB2Reference<Num>::length() const {
         return refOrbit.size();
     }
-
-    using NormalMB2Reference = MB2Reference<float>;
-    using DoubleMB2Reference = MB2Reference<double>;
-    using DexMB2Reference = MB2Reference<dex>;
-
 } // namespace merutilm::rff2

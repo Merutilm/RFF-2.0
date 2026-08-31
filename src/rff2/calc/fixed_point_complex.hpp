@@ -9,6 +9,7 @@
 #include "fixed_point_decimal.hpp"
 #include "spin_thread_pool.hpp"
 #include <sstream>
+#include <utility>
 
 #include "complex.hpp"
 
@@ -33,9 +34,10 @@ namespace merutilm::rff2 {
 
         explicit fixed_point_complex(double re, double im, int dec_exp10, int int_exp10);
 
-        explicit fixed_point_complex(dex re, dex im, int dec_exp10, int int_exp10);
+        template<Number Exp, Number Mantissa, Number Bit>
+        explicit fixed_point_complex(exponent<Exp, Mantissa, Bit> re, exponent<Exp, Mantissa, Bit> im, int dec_exp10, int int_exp10);
 
-        explicit fixed_point_complex(const fixed_point_decimal &re, const fixed_point_decimal &im, int dec_exp10,
+        explicit fixed_point_complex(fixed_point_decimal re, fixed_point_decimal im, int dec_exp10,
                                      int int_exp10);
 
         /**
@@ -144,7 +146,9 @@ namespace merutilm::rff2 {
             temp.set_exp10(dec_exp10, int_exp10);
         }
     }
-    inline fixed_point_complex::fixed_point_complex(const dex re, const dex im, const int dec_exp10,
+
+    template<Number Exp, Number Mantissa, Number Bit>
+    inline fixed_point_complex::fixed_point_complex(const exponent<Exp, Mantissa, Bit> re, const exponent<Exp, Mantissa, Bit> im, const int dec_exp10,
                                                     const int int_exp10) :
         real(re, dec_exp10, int_exp10), imag(im, dec_exp10, int_exp10) {
         for (auto &temp: temps) {
@@ -152,8 +156,8 @@ namespace merutilm::rff2 {
         }
     }
 
-    inline fixed_point_complex::fixed_point_complex(const fixed_point_decimal &re, const fixed_point_decimal &im,
-                                                    const int dec_exp10, const int int_exp10) : real(re), imag(im) {
+    inline fixed_point_complex::fixed_point_complex(fixed_point_decimal re, fixed_point_decimal im,
+                                                    const int dec_exp10, const int int_exp10) : real(std::move(re)), imag(std::move(im)) {
         set_exp10(dec_exp10, int_exp10);
         for (auto &temp: temps) {
             temp.set_exp10(dec_exp10, int_exp10);

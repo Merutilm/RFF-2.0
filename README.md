@@ -160,7 +160,7 @@ cmake -B build -G "Ninja" -S . \
 -DCMAKE_C_COMPILER=clang \
 -DCMAKE_CXX_COMPILER=clang++ \
 -DCMAKE_BUILD_TYPE=Release \
--DSAFE_DEX_OPERATOR=ON
+-DSAFE_EXP_OPERATOR=ON
 
 cmake --build build
 ```

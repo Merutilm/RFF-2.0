@@ -4,7 +4,7 @@
 
 #pragma once
 #include <glm/glm.hpp>
-#include "../calc/rff_math.h"
+#include "../calc/rff_math.hpp"
 
 namespace merutilm::rff2 {
     struct ColorUtils {

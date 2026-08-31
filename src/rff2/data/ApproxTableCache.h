@@ -105,8 +105,4 @@ namespace merutilm::rff2 {
             mapperSizeUsed = mapperLen;
         }
     };
-
-    using LightApproxTableCache = ApproxTableCache<double>;
-    using DeepApproxTableCache = ApproxTableCache<dex>;
-
 } // namespace merutilm::rff2

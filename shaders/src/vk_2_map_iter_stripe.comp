@@ -44,8 +44,8 @@ double get_iteration_normal(ivec2 iter_coord, ivec2 offset) {
 }
 
 
-double get_iteration_zoomed(ivec2 iter_coord, ivec2 offset) {
-    return it2map_zoomed_settings.iterations[get_iteration_index(iter_coord, offset)];
+double get_iteration_zoomed(ivec2 iter_coord) {
+    return it2map_zoomed_settings.iterations[get_iteration_index(iter_coord)];
 }
 
 void set_iteration_output(ivec2 iter_coord, double value) {
@@ -63,55 +63,71 @@ void main() {
     float zsr = pow(video_settings.default_zoom_increment, r);// r = -1 ~ 0
 
     vec2 ntx = coord / nsr + center;
-    vec2 ztx = coord / zsr + center;
 
     ivec2 ntx_i = ivec2(floor(ntx));
-    ivec2 ztx_i = ivec2(floor(ztx));
     vec2 nrt = fract(ntx);
-    vec2 zrt = fract(ztx);
 
     double n00 = get_iteration_normal(ntx_i, ivec2(0, 0));
     double n10 = get_iteration_normal(ntx_i, ivec2(1, 0));
     double n01 = get_iteration_normal(ntx_i, ivec2(0, 1));
     double n11 = get_iteration_normal(ntx_i, ivec2(1, 1));
 
-    double z00 = get_iteration_zoomed(ztx_i, ivec2(0, 0));
-    double z10 = get_iteration_zoomed(ztx_i, ivec2(1, 0));
-    double z01 = get_iteration_zoomed(ztx_i, ivec2(0, 1));
-    double z11 = get_iteration_zoomed(ztx_i, ivec2(1, 1));
-
     vec3 nc00 = palette_get_color(n00).rgb * stripe_get_multiplier(n00);
     vec3 nc10 = palette_get_color(n10).rgb * stripe_get_multiplier(n10);
     vec3 nc01 = palette_get_color(n01).rgb * stripe_get_multiplier(n01);
     vec3 nc11 = palette_get_color(n11).rgb * stripe_get_multiplier(n11);
 
-    vec3 zc00 = palette_get_color(z00).rgb * stripe_get_multiplier(z00);
-    vec3 zc10 = palette_get_color(z10).rgb * stripe_get_multiplier(z10);
-    vec3 zc01 = palette_get_color(z01).rgb * stripe_get_multiplier(z01);
-    vec3 zc11 = palette_get_color(z11).rgb * stripe_get_multiplier(z11);
-
     vec3 nc0 = nc00 - (nc00 - nc10) * nrt.x;
     vec3 nc1 = nc01 - (nc01 - nc11) * nrt.x;
     vec3 nc = nc1 - (nc1 - nc0) * nrt.y;
-
-    vec3 zc0 = zc00 - (zc00 - zc10) * zrt.x;
-    vec3 zc1 = zc01 - (zc01 - zc11) * zrt.x;
-    vec3 zc = zc1 - (zc1 - zc0) * zrt.y;
 
     double n0 = n00 - (n00 - n10) * nrt.x;
     double n1 = n01 - (n01 - n11) * nrt.x;
     double n = n1 - (n1 - n0) * nrt.y;
 
-    double z0 = z00 - (z00 - z10) * zrt.x;
-    double z1 = z01 - (z01 - z11) * zrt.x;
-    double z = z1 - (z1 - z0) * zrt.y;
+    vec2 ztx = coord / zsr + center;
+    vec2 ztx_min = max((coord - vec2(0.5, 0.5)) / zsr + center, vec2(0));
+    vec2 ztx_max = min((coord + vec2(0.5, 0.5)) / zsr + center, vec2(iteration_info_settings.extent));
+
+    ivec2 ztx_i = ivec2(floor(ztx));
+    double z00 = get_iteration_zoomed(ztx_i);
 
     if (ztx.x >= iteration_info_settings.extent.x - 1 || ztx.y >= iteration_info_settings.extent.y - 1 || ztx.x < 0 || ztx.y < 0 || z00 == 0) {
         set_iteration_output(ivec2(gl_GlobalInvocationID.xy), n);
         imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), vec4(nc, 1));
-
-    } else {
-        set_iteration_output(ivec2(gl_GlobalInvocationID.xy), z);
-        imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), vec4(nc * (-r) + zc * (r + 1), 1));
+        return;
     }
+
+    ivec2 ztx_i_min = ivec2(floor(ztx_min));
+    ivec2 ztx_i_max = ivec2(ceil(ztx_max));
+
+    double z_sum = 0;
+    vec3 zc_sum = vec3(0);
+    float w_sum = 0;
+
+    ztx_i.y = ztx_i_min.y;
+
+    while (ztx_i.y < ztx_i_max.y) {
+        ztx_i.x = ztx_i_min.x;
+
+        while (ztx_i.x < ztx_i_max.x) {
+            vec2 w = min(min(ztx_i + ivec2(1, 1) - ztx_min, ztx_max - ztx_i), vec2(1, 1));
+            float weight = w.x * w.y;
+
+            double z_temp = get_iteration_zoomed(ztx_i);
+            vec3 zc_temp = palette_get_color(z_temp).rgb * stripe_get_multiplier(z_temp);
+            z_sum += z_temp * weight;
+            zc_sum += zc_temp * weight;
+            w_sum += weight;
+            ++ztx_i.x;
+        }
+        ++ztx_i.y;
+    }
+
+    double z = z_sum / w_sum;
+    vec3 zc = zc_sum / w_sum;
+
+    set_iteration_output(ivec2(gl_GlobalInvocationID.xy), z);
+    imageStore(merged_image_output, ivec2(gl_GlobalInvocationID.xy), vec4(nc * (-r) + zc * (r + 1), 1));
+
 }

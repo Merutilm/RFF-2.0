@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../calc/complex.hpp"
-#include "../calc/dex.h"
+#include "../calc/exponent.hpp"
 namespace merutilm::rff2 {
 
     template<Number Num>
@@ -32,7 +32,4 @@ namespace merutilm::rff2 {
             return dzRad < radius;
         }
     };
-
-    using LightPA = PA<double>;
-    using DeepPA = PA<dex>;
 }

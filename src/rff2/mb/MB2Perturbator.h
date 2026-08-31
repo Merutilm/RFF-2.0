@@ -127,7 +127,7 @@ namespace merutilm::rff2 {
             }
 
 
-            std::array<complex<Num>, 8> pdz = {complex<Num>::ONE, complex<Num>::ONE, complex<Num>::ONE};
+            std::array<complex<Num>, 8> pdz = {};
             int pdzIndex = 0;
 
             while (iteration < maxIteration) {

@@ -193,6 +193,8 @@ namespace merutilm::rff2 {
 
     using NormalMB2RenderData = MB2RenderData<float>;
     using DoubleMB2RenderData = MB2RenderData<double>;
+
+    using FexMB2RenderData = MB2RenderData<fex>;
     using DexMB2RenderData = MB2RenderData<dex>;
 
 } // namespace merutilm::rff2

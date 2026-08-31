@@ -6,8 +6,8 @@
 #include <cmath>
 #include <random>
 
-#include "dex.h"
 #include <numbers>
+#include "exponent.hpp"
 #include "templates.hpp"
 
 namespace merutilm::rff2::rff_math {
@@ -83,7 +83,7 @@ namespace merutilm::rff2::rff_math {
         //mantissa = decimal value of exp2
         const double raw_exp2 = v / std::numbers::ln2;
         const auto exp2 = static_cast<int>(raw_exp2);
-        return {exp2, std::exp2(raw_exp2 - exp2)};
+        return dex{exp2, std::exp2(raw_exp2 - exp2)};
     }
 
     inline dex exp10(const double v) {
@@ -93,7 +93,7 @@ namespace merutilm::rff2::rff_math {
         //mantissa = decimal value of exp2
         const double raw_exp2 = v * std::numbers::ln10 / std::numbers::ln2;
         const auto exp2 = static_cast<int>(raw_exp2);
-        return {exp2, std::exp2(raw_exp2 - exp2)};
+        return dex{exp2, std::exp2(raw_exp2 - exp2)};
     }
 
 
