@@ -40,7 +40,7 @@ namespace merutilm::rff2 {
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
         [[nodiscard]] const vkh::ImageContext &getOutputColorImage() const {
-            return getDescriptor(SET_OUTPUT_IMAGE).get<vkh::StorageImage>(0, BINDING_OUTPUT_MERGED_IMAGE).ctx[0];
+            return getDescriptor(SET_OUTPUT_IMAGE).get<vkh::StorageImage>(0, BINDING_OUTPUT_MERGED_IMAGE).getImageContext();
         }
 
         void pipelineInitialized() override;

@@ -6,12 +6,12 @@
 
 
 namespace merutilm::vkh {
-    Descriptor::Descriptor(Core &core, DescriptorSetLayout &descriptorSetLayout, std::vector<DescriptorManager> &&manager) :
+    Descriptor::Descriptor(Core &core, DescriptorSetLayout &descriptorSetLayout,
+                           std::vector<DescriptorManager> &&manager) :
         CoreHandler(core), descriptorSetLayout(descriptorSetLayout) {
         data.resize(manager.size());
 
-        std::transform(std::make_move_iterator(manager.begin()),
-                       std::make_move_iterator(manager.end()), data.begin(),
+        std::transform(std::make_move_iterator(manager.begin()), std::make_move_iterator(manager.end()), data.begin(),
                        [](DescriptorManager &&element) { return std::move(element.data); });
         Descriptor::init();
     }
@@ -137,11 +137,14 @@ namespace merutilm::vkh {
                     };
                 }
                 if (std::holds_alternative<std::unique_ptr<StorageImage>>(raw)) {
-                    const auto &[ctx] = *std::get<std::unique_ptr<StorageImage>>(raw);
+                    const auto &img = *std::get<std::unique_ptr<StorageImage>>(raw);
                     updateQueue.push_back(
-                            {.imageInfo = VkDescriptorImageInfo{.sampler = VK_NULL_HANDLE,
-                                                                .imageView = ctx[frameIndex].mipmappedImageView,
-                                                                .imageLayout = VK_IMAGE_LAYOUT_GENERAL}});
+                            {.imageInfo = VkDescriptorImageInfo{
+                                     .sampler = VK_NULL_HANDLE,
+                                     .imageView = img.isMultiframe()
+                                                          ? img.getImageContextMF()[frameIndex].mipmappedImageView
+                                                          : img.getImageContext().mipmappedImageView,
+                                     .imageLayout = VK_IMAGE_LAYOUT_GENERAL}});
 
                     updateQueue.back().writeSet = {
                             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -201,8 +204,8 @@ namespace merutilm::vkh {
         descriptorPools.resize(maxFramesInFlight);
 
         for (uint32_t i = 0; i < maxFramesInFlight; ++i) {
-            if (vkCreateDescriptorPool(core.getLogicalDevice().getLogicalDeviceHandle(),
-                                  &descriptorPoolInfo, nullptr, &descriptorPools[i]) != VK_SUCCESS) {
+            if (vkCreateDescriptorPool(core.getLogicalDevice().getLogicalDeviceHandle(), &descriptorPoolInfo, nullptr,
+                                       &descriptorPools[i]) != VK_SUCCESS) {
                 throw exception_init("Failed to create descriptor pool!");
             }
         }
@@ -220,8 +223,8 @@ namespace merutilm::vkh {
                          .descriptorPool = descriptorPools[i],
                          .descriptorSetCount = descriptorCount,
                          .pSetLayouts = layouts.data()};
-                vkAllocateDescriptorSets(core.getLogicalDevice().getLogicalDeviceHandle(),
-                                  &descriptorSetAllocateInfo, descriptorSets[i].data()) != VK_SUCCESS) {
+                vkAllocateDescriptorSets(core.getLogicalDevice().getLogicalDeviceHandle(), &descriptorSetAllocateInfo,
+                                         descriptorSets[i].data()) != VK_SUCCESS) {
                 throw exception_init("Failed to allocate descriptor sets!");
             }
         }
@@ -234,8 +237,7 @@ namespace merutilm::vkh {
         const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
 
         for (int i = 0; i < maxFramesInFlight; ++i) {
-            vkDestroyDescriptorPool(core.getLogicalDevice().getLogicalDeviceHandle(),
-                              descriptorPools[i], nullptr);
+            vkDestroyDescriptorPool(core.getLogicalDevice().getLogicalDeviceHandle(), descriptorPools[i], nullptr);
         }
     }
 } // namespace merutilm::vkh

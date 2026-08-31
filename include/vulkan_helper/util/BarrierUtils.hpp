@@ -25,6 +25,10 @@ namespace merutilm::vkh {
                                                    uint32_t mipLevel, uint32_t mipLevelCount,
                                                    VkPipelineStageFlags srcStageMask,
                                                    VkPipelineStageFlags dstStageMask);
+        static void cmdSynchronizeImageReadToWrite(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout currentLayout,
+                                            VkImageAspectFlags imageAspectMask, uint32_t mipLevel,
+                                            uint32_t mipLevelCount, VkPipelineStageFlags srcStageMask,
+                                            VkPipelineStageFlags dstStageMask);
 
         static void cmdOverlaySwapchain(VkCommandBuffer commandBuffer, VkImage swapchainImage);
 

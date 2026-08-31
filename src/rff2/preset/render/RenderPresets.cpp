@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 32,
+                               .automaticAcceptMpaBatches = 12,
                                .interpolateIsolated = true}};
     }
 
@@ -33,7 +33,7 @@ namespace merutilm::rff2 {
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 32,
+                               .automaticAcceptMpaBatches = 12,
                                .interpolateIsolated = true}};
     }
 
@@ -47,7 +47,7 @@ namespace merutilm::rff2 {
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 32,
+                               .automaticAcceptMpaBatches = 12,
                                .interpolateIsolated = true}};
     }
 
@@ -61,7 +61,7 @@ namespace merutilm::rff2 {
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 32,
+                               .automaticAcceptMpaBatches = 12,
                                .interpolateIsolated = true}};
     }
 
@@ -75,7 +75,7 @@ namespace merutilm::rff2 {
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 32,
+                               .automaticAcceptMpaBatches = 12,
                                .interpolateIsolated = true}};
     }
 
@@ -89,7 +89,7 @@ namespace merutilm::rff2 {
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 32,
+                               .automaticAcceptMpaBatches = 12,
                                .interpolateIsolated = true}};
     }
 } // namespace merutilm::rff2

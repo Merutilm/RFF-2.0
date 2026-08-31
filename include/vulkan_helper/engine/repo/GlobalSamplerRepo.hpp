@@ -4,7 +4,7 @@
 
 #pragma once
 #include <vulkan_helper/base/vkh_base.hpp>
-#include <vulkan_helper/engine/sampler/Sampler.hpp>
+#include <vulkan_helper/engine/img/Sampler.hpp>
 #include <vulkan_helper/hash/SamplerCreateInfoEquals.hpp>
 #include <vulkan_helper/hash/SamplerCreateInfoHasher.hpp>
 #include "Repository.hpp"

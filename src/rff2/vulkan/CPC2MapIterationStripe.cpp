@@ -21,8 +21,8 @@ namespace merutilm::rff2 {
     void CPC2MapIterationStripe::renderContextRefreshed() {
         using namespace SharedImageContextIndices;
         auto &outDesc = getDescriptor(SET_OUTPUT_IMAGE);
-        auto &[outImg] = outDesc.get<vkh::StorageImage>(0, BINDING_OUTPUT_MERGED_IMAGE);
-        outImg = wc.getSharedImageContext().getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY);
+        auto &outImg = outDesc.get<vkh::StorageImage>(0, BINDING_OUTPUT_MERGED_IMAGE);
+        outImg.setImageContextMF(wc.getSharedImageContext().getImageContextMF(MF_MAIN_RENDER_IMAGE_PRIMARY));
         writeDescriptorMF([&outDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             outDesc.queue(queue, frameIndex, {}, {BINDING_OUTPUT_MERGED_IMAGE});
         });
@@ -98,7 +98,7 @@ namespace merutilm::rff2 {
         appendDescriptor<DescTime>(SET_TIME, descriptors);
 
         auto outputManager = vkh::DescriptorManager();
-        outputManager.appendStorageImage(BINDING_OUTPUT_MERGED_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);
+        outputManager.appendStorageImage(BINDING_OUTPUT_MERGED_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT, std::make_unique<vkh::StorageImage>(wc.core, true));
         appendUniqueDescriptor(SET_OUTPUT_IMAGE, descriptors, std::move(outputManager));
         appendDescriptor<DescIteration>(SET_OUTPUT_ITERATION, descriptors);
         appendDescriptor<DescStripe>(SET_STRIPE, descriptors);

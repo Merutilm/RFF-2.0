@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-08-13.
 //
 
-#include <vulkan_helper/engine/sampler/Sampler.hpp>
+#include <vulkan_helper/engine/img/Sampler.hpp>
 
 namespace merutilm::vkh {
     Sampler::Sampler(Core & core, const VkSamplerCreateInfo &samplerInfo) : CoreHandler(core), samplerInfo(samplerInfo) {

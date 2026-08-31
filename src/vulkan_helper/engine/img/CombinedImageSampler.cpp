@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-07-18.
 //
 
-#include <vulkan_helper/engine/sampler/CombinedImageSampler.hpp>
+#include <vulkan_helper/engine/img/CombinedImageSampler.hpp>
 
 #include <vulkan_helper/util/BufferImageContextUtils.hpp>
 

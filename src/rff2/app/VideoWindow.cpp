@@ -151,7 +151,7 @@ namespace merutilm::rff2 {
                 } else {
                     manager.setMap(&normalDynamic, &zoomedDynamic);
                     manager.applyCurrentDynamicMap(normalDynamic, zoomedDynamic, currentFrame);
-                    manager.setMaxIterationDynamic(static_cast<double>(normalDynamic.maxIteration));
+                    manager.setMaxIterationDynamic(static_cast<double>(currentFrame < 1 ? normalDynamic.maxIteration : std::min(normalDynamic.maxIteration, zoomedDynamic.maxIteration)));
                 }
             }
 

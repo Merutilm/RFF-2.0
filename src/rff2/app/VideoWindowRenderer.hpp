@@ -16,7 +16,6 @@
 #include "../vulkan/RenderGraphStatic2Image.hpp"
 #include "../vulkan/desc/SharedDescriptorStorage.hpp"
 #include "../vulkan/desc/SharedDescriptorTemplate.hpp"
-#include "vulkan_helper/base/vkh.hpp"
 #include "vulkan_helper/engine/configurator/PipelineConfigurator.hpp"
 #include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
 #include "vulkan_helper/engine/graphics/Renderer.hpp"
@@ -138,6 +137,7 @@ namespace merutilm::rff2 {
                 // [IN] EXTERNAL
                 // [OUT] SSBO (Iteration Buffer)
                 // [OUT] PRIMARY
+
 
                 const auto &outputBuffer =
                         compute2MapIterationStripe->getDescriptor(CPC2MapIterationStripe::SET_OUTPUT_ITERATION)

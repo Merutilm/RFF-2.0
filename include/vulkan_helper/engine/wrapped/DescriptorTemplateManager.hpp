@@ -10,9 +10,9 @@ namespace merutilm::vkh {
     struct DescriptorTemplateManager {
 
         WindowContext &wc;
-        Descriptor &desc;
+        Descriptor & desc;
 
-        explicit DescriptorTemplateManager(WindowContext &wc, Descriptor &target) : wc(wc), desc(target) {
+        explicit DescriptorTemplateManager(WindowContext &wc,  Descriptor &target) : wc(wc), desc(target) {
 
         }
 

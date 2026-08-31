@@ -4,12 +4,12 @@
 
 #pragma once
 
+#include <vulkan_helper/engine/img/StorageImage.hpp>
 #include <vulkan_helper/engine/buffer/ShaderStorage.hpp>
 #include <vulkan_helper/engine/buffer/Uniform.hpp>
-#include <vulkan_helper/engine/sampler/CombinedImageSampler.hpp>
+#include <vulkan_helper/engine/img/CombinedImageSampler.hpp>
 #include <vulkan_helper/engine/wrapped/DescriptorSetLayoutBuildType.hpp>
 #include <vulkan_helper/engine/wrapped/InputAttachment.hpp>
-#include <vulkan_helper/engine/wrapped/StorageImage.hpp>
 #include <vulkan_helper/hash/DescriptorSetLayoutBuildTypeHasher.hpp>
 #include <vulkan_helper/hash/VectorHasher.hpp>
 
@@ -49,7 +49,8 @@ namespace merutilm::vkh {
 
         void appendInputAttachment(uint32_t bindingExpected, VkShaderStageFlags useStage);
 
-        void appendStorageImage(uint32_t bindingExpected, VkShaderStageFlags useStage);
+        void appendStorageImage(uint32_t bindingExpected, VkShaderStageFlags useStage,
+                                std::unique_ptr<StorageImage> &&image);
     };
 
 

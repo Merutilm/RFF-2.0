@@ -23,11 +23,11 @@ add_library(vulkan_helper SHARED
         $<TARGET_OBJECTS:engine_descriptor>
         $<TARGET_OBJECTS:engine_executor>
         $<TARGET_OBJECTS:engine_graphics>
+        $<TARGET_OBJECTS:engine_img>
         $<TARGET_OBJECTS:engine_internal>
         $<TARGET_OBJECTS:engine_manage>
         $<TARGET_OBJECTS:engine_pipeline>
         $<TARGET_OBJECTS:engine_repo>
-        $<TARGET_OBJECTS:engine_sampler>
         $<TARGET_OBJECTS:engine_sync>
         $<TARGET_OBJECTS:engine_window>
 )

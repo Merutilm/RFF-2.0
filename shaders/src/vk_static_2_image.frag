@@ -32,7 +32,7 @@ void main(){
     float zsr = pow(video_settings.default_zoom_increment, r);// r = -1 ~ 0
 
 
-    int off = 3;
+    float off = 3;
     vec2 ntx = (coord - 0.5) / nsr + 0.5;
     vec2 ztx = (coord - 0.5) / zsr + 0.5;
     vec2 px = off / resolution;

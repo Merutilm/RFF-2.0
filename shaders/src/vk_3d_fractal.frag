@@ -8,7 +8,6 @@
 #define DESC_SLOPE 6
 
 // include descriptors
-
 #include <desc_iteration.glsl>
 #include <desc_stripe.glsl>
 #include <desc_slope.glsl>

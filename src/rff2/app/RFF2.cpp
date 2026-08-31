@@ -987,6 +987,11 @@ namespace merutilm::rff2 {
                 renderer->descriptorStorage->renderMeta->setBatchSize(
                         Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier);
             }
+            if (elapsed.count() > settings.render.computeShader.preferredBatchDuration * 2) {
+                batchSizeMultiplier = std::max(static_cast<uint32_t>(1), batchSizeMultiplier / 2);
+                renderer->descriptorStorage->renderMeta->setBatchSize(
+                        Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier);
+            }
             bool currIgnoreMpa = settings.render.computeShader.completelyIgnoreMpa ||
                                  (i > settings.render.computeShader.automaticAcceptMpaBatches &&
                                   settings.render.computeShader.automaticAcceptMpaBatches != 0);
