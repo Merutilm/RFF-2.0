@@ -79,7 +79,7 @@ namespace merutilm::rff2 {
     void MB2Reference<Num>::syncReference(fixed_point_complex_i1 &z, const uint64_t intervalCounter,
                                           uint32_t refSyncInterval, const uint8_t refSyncRadiusPower,
                                           const Num refSyncRadius2, complex<Num> &z0, complex<Num> &c0) {
-        if constexpr(std::is_same_v<Num, float>) {
+        if constexpr(std::is_same_v<Num, float> || std::is_same_v<Num, fex>) {
             z0 = static_cast<complex<Num>>(z);
             return;
         }

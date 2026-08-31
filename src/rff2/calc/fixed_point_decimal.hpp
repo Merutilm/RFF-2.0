@@ -583,7 +583,7 @@ namespace merutilm::rff2 {
         const auto mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
 
         return exponent<Exp, Mantissa, Bit>(sgn) *
-               exponent<Exp, Mantissa, Bit>::mul_2exp(exponent<Exp, Mantissa, Bit>(mantissa), static_cast<int>(f_exp2));
+               exponent<Exp, Mantissa, Bit>::mul_2exp(exponent<Exp, Mantissa, Bit>(static_cast<Mantissa>(mantissa)), static_cast<int>(f_exp2));
     }
 
     inline bool fixed_point_decimal::is_strict_zero() const { return mpn_zero_p(get_value_ptr(), limbs_read_count()); }

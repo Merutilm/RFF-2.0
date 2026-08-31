@@ -101,6 +101,11 @@ namespace merutilm::rff2 {
 
         explicit operator float() const { return static_cast<float>(ldexp(mantissa, static_cast<int>(exp2))); }
 
+        template<Number ExpCast, Number MantissaCast, Number BitCast>
+        explicit operator exponent<ExpCast, MantissaCast, BitCast>() const {
+            return exponent<ExpCast, MantissaCast, BitCast>{static_cast<ExpCast>(exp2), static_cast<MantissaCast>(mantissa)};
+        }
+
         friend exponent operator-(const exponent a) { return exponent{a.exp2, -a.mantissa}; }
 
         friend exponent operator+(const exponent a, const exponent b) {
