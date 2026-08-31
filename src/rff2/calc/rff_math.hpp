@@ -20,10 +20,10 @@ namespace merutilm::rff2::rff_math {
 
 
     template<typename Tp>
-    concept is_prim = Number<Tp> && std::is_same_v<Tp, double> || std::is_same_v<Tp, float>;
+    concept is_prim = Number<Tp> && (std::is_same_v<Tp, double> || std::is_same_v<Tp, float>);
 
     template<typename Tp>
-    concept is_dex = Number<Tp> &&  std::is_same_v<Tp, dex>;
+    concept is_exponent = Number<Tp> && (std::is_same_v<Tp, dex> || std::is_same_v<Tp, fex>);
 
 
     template<Number Num>
@@ -31,7 +31,7 @@ namespace merutilm::rff2::rff_math {
         if constexpr (is_prim<Num>) {
             return fabs(n);
         } else {
-            static_assert(is_dex<Num>);
+            static_assert(is_exponent<Num>);
             return n.sgn() == -1 ? -n : n;
         }
     }
@@ -41,7 +41,7 @@ namespace merutilm::rff2::rff_math {
         if constexpr (is_prim<Num>) {
             return n == 0;
         } else {
-            static_assert(is_dex<Num>);
+            static_assert(is_exponent<Num>);
             return n.is_zero();
         }
     }
@@ -51,7 +51,7 @@ namespace merutilm::rff2::rff_math {
         if constexpr (is_prim<Num>) {
             return n;
         } else {
-            static_assert(is_dex<Num>);
+            static_assert(is_exponent<Num>);
             n.try_normalize();
             return n;
         }
@@ -105,7 +105,7 @@ namespace merutilm::rff2::rff_math {
         if constexpr (is_prim<Num>) {
             return std::log(v);
         } else {
-            static_assert(is_dex<Num>);
+            static_assert(is_exponent<Num>);
 
             // w_log(v)
             // = w_log(m * 2^n)

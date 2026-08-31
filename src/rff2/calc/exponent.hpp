@@ -69,13 +69,13 @@ namespace merutilm::rff2 {
         constexpr explicit exponent(const Mantissa value) noexcept : exp2(0), mantissa(value) {}
 
 
-        static double ldexp_neg(const Mantissa mantissa, const Exp exp2) {
+        static Mantissa ldexp_neg(const Mantissa mantissa, const Exp exp2) {
             const auto mts_bits = std::bit_cast<Bit>(mantissa);
             const auto mts_ubits = mts_bits & exp_traits<Mantissa>::EXP_MANTISSA_MASK;
             const auto f_shift = static_cast<int>(mts_ubits >> exp_traits<Mantissa>::MANTISSA_BIT_COUNT) + exp2;
             // do not consider < smallest normalized value
             return f_shift < 0 ? 0
-                               : std::bit_cast<double>(mts_bits - (static_cast<uint64_t>(-exp2)
+                               : std::bit_cast<Mantissa>(mts_bits - (static_cast<Bit>(-exp2)
                                                                    << exp_traits<Mantissa>::MANTISSA_BIT_COUNT));
         }
 
@@ -87,7 +87,7 @@ namespace merutilm::rff2 {
             // valid when d < 32, v.mantissa > 0
             const int64_t k = (v.exp2 % d + d) % d;
             const int64_t exp2 = v.exp2 - k;
-            double mantissa = pow(v.mantissa * (1u << k), 1.0 / d);
+            Mantissa mantissa = std::pow(v.mantissa * (1u << k), 1.0 / d);
             return exponent{exp2 / d, mantissa};
         }
 
@@ -139,9 +139,9 @@ namespace merutilm::rff2 {
             return exponent{std::max(a.exp2, b.exp2), ldexp_neg(a.mantissa, std::min(static_cast<Exp>(0), d_exp2)) +
                                                       ldexp_neg(b.mantissa, std::min(static_cast<Exp>(0), -d_exp2))};
         }
-        friend exponent operator+(const exponent a, const double b) { return a + exponent(b); }
+        friend exponent operator+(const exponent a, const Mantissa b) { return a + exponent(b); }
 
-        friend exponent operator+(const double a, const exponent b) { return exponent(a) + b; }
+        friend exponent operator+(const Mantissa a, const exponent b) { return exponent(a) + b; }
 
         friend exponent operator-(const exponent a, const exponent b) {
 #ifdef SAFE_EXP_OPERATOR
@@ -175,11 +175,11 @@ namespace merutilm::rff2 {
         }
 
 
-        friend exponent operator-(const exponent a, const double b) { return a - exponent(b); }
+        friend exponent operator-(const exponent a, const Mantissa b) { return a - exponent(b); }
 
-        friend exponent operator-(const double a, const exponent b) { return exponent(a) - b; }
+        friend exponent operator-(const Mantissa a, const exponent b) { return exponent(a) - b; }
 
-        friend exponent operator*(const exponent a, const double b) {
+        friend exponent operator*(const exponent a, const Mantissa b) {
 #ifdef SAFE_EXP_OPERATOR
             if (a.isnan() || std::isnan(b)) {
                 return NN;
@@ -191,7 +191,7 @@ namespace merutilm::rff2 {
             return exponent{a.exp2, a.mantissa * b};
         }
 
-        friend exponent operator*(const double a, const exponent b) {
+        friend exponent operator*(const Mantissa a, const exponent b) {
 #ifdef SAFE_EXP_OPERATOR
             if (std::isnan(a) || b.isnan()) {
                 return NN;
@@ -277,7 +277,7 @@ namespace merutilm::rff2 {
             }
 #endif
 
-            const auto mts_bits = std::bit_cast<uint64_t>(mantissa);
+            const auto mts_bits = std::bit_cast<Bit>(mantissa);
             mantissa = std::bit_cast<Mantissa>(mts_bits & exp_traits<Mantissa>::SGN_MANTISSA_MASK |
                                                exp_traits<Mantissa>::NORMALIZED_EXP_BITS);
             exp2 += static_cast<Exp>((mts_bits & exp_traits<Mantissa>::EXP_MASK) >>
@@ -355,9 +355,6 @@ namespace merutilm::rff2 {
         }
     };
 
-    // DEFINITION OF DOUBLE EXP
-    // add definition on header to improve performance by 20-30%
-
     template<Number Exp, Number Mantissa, Number Bit>
     inline const exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::ZERO = exponent{0, 0};
 
@@ -367,10 +364,10 @@ namespace merutilm::rff2 {
 #ifdef SAFE_EXP_OPERATOR
 
     template<Number Exp, Number Mantissa, Number Bit>
-    inline const exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::NN = exponent{0, NAN};
+    inline const exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::NN = exponent{0, static_cast<Mantissa>(NAN)};
 
     template<Number Exp, Number Mantissa, Number Bit>
-    inline const exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::PINF = exponent{0, INFINITY};
+    inline const exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::PINF = exponent{0, static_cast<Mantissa>(INFINITY)};
 
     template<Number Exp, Number Mantissa, Number Bit>
     inline const exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::NINF = exponent{0, -static_cast<Mantissa>(INFINITY)};

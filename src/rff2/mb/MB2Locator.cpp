@@ -128,7 +128,7 @@ namespace merutilm::rff2 {
             doubledZoomCalc.reference.center = center;
             ++centerFixCount;
 
-            if (doubledLogZoom < Constants::Fractal::NM_ZOOM_DEADLINE) {
+            if (doubledLogZoom < Constants::Fractal::COMPUTESHADER_ZOOM_DEADLINE) {
                 doubledZoomData = std::make_unique<NormalMB2RenderData>(
                     state, doubledZoomCalc, cache, doubledZoomDcMax,
                     Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
@@ -136,7 +136,7 @@ namespace merutilm::rff2 {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileSeriesApprox, actionWhileCreatingTable);
 
-            } else if (doubledLogZoom < Constants::Fractal::DB_ZOOM_DEADLINE) {
+            } else if (doubledLogZoom < Constants::Fractal::MULTITHREAD_ZOOM_DEADLINE) {
                 doubledZoomData = std::make_unique<DoubleMB2RenderData>(
                     state, doubledZoomCalc, cache, doubledZoomDcMax,
                     Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,

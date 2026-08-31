@@ -728,7 +728,7 @@ namespace merutilm::rff2 {
     void RFF2::recomputeThreaded() {
 
         state.createThread([this] {
-            const Settings s = this->settings; // clone the settings
+            Settings s = this->settings; // clone the settings
             const auto start = rootWindowContext->getWindow()->getTime();
             bool success = false;
 
@@ -773,7 +773,7 @@ namespace merutilm::rff2 {
         saveBackup();
     }
 
-    bool RFF2::prepareRenderData(const float startTime, const Settings &s) {
+    bool RFF2::prepareRenderData(const float startTime, Settings &s) {
 
 
         canShowPreview = false;
@@ -823,18 +823,28 @@ namespace merutilm::rff2 {
                                   actionPerSeriesApproxIteration);
         } else {
             renderData = nullptr;
-            if (logZoom > Constants::Fractal::DB_ZOOM_DEADLINE) {
-                renderData = std::make_unique<DexMB2RenderData>(
-                        state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
-                        actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
-            } else if (logZoom > Constants::Fractal::NM_ZOOM_DEADLINE || !s.render.computeShader.use) {
-                renderData = std::make_unique<DoubleMB2RenderData>(
-                        state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
-                        actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
-            } else {
-                renderData = std::make_unique<NormalMB2RenderData>(
-                        state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
-                        actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
+
+            if (s.render.computeShader.use) {
+                s.fractal.reference.sync.referenceSynchronizationInterval = 1;
+                if (logZoom > Constants::Fractal::COMPUTESHADER_ZOOM_DEADLINE) {
+                    renderData = std::make_unique<FexMB2RenderData>(
+                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
+                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
+                } else {
+                    renderData = std::make_unique<NormalMB2RenderData>(
+                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
+                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
+                }
+            }else {
+                if (logZoom > Constants::Fractal::MULTITHREAD_ZOOM_DEADLINE) {
+                    renderData = std::make_unique<DexMB2RenderData>(
+                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
+                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
+                } else {
+                    renderData = std::make_unique<DoubleMB2RenderData>(
+                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
+                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
+                }
             }
         }
 
