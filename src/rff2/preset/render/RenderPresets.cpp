@@ -14,11 +14,11 @@ namespace merutilm::rff2 {
         return RenderSettings{0.125f,
                               60,
                               RndPixelRenderPriority::SEQUENTIAL,
-                              {.use = false,
+                              {.use = true,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 12,
+                               .automaticAcceptMpaBatches = 0,
                                .interpolateIsolated = true}};
     }
 
@@ -29,11 +29,11 @@ namespace merutilm::rff2 {
         return RenderSettings{0.25f,
                               60,
                               RndPixelRenderPriority::SEQUENTIAL,
-                              {.use = false,
+                              {.use = true,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 12,
+                               .automaticAcceptMpaBatches = 0,
                                .interpolateIsolated = true}};
     }
 
@@ -43,11 +43,11 @@ namespace merutilm::rff2 {
         return RenderSettings{0.5f,
                               60,
                               RndPixelRenderPriority::SEQUENTIAL,
-                              {.use = false,
+                              {.use = true,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 12,
+                               .automaticAcceptMpaBatches = 0,
                                .interpolateIsolated = true}};
     }
 
@@ -57,11 +57,11 @@ namespace merutilm::rff2 {
         return RenderSettings{1.0f,
                               60,
                               RndPixelRenderPriority::SEQUENTIAL,
-                              {.use = false,
+                              {.use = true,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 12,
+                               .automaticAcceptMpaBatches = 0,
                                .interpolateIsolated = true}};
     }
 
@@ -71,11 +71,11 @@ namespace merutilm::rff2 {
         return RenderSettings{2.0f,
                               60,
                               RndPixelRenderPriority::SEQUENTIAL,
-                              {.use = false,
+                              {.use = true,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 12,
+                               .automaticAcceptMpaBatches = 0,
                                .interpolateIsolated = true}};
     }
 
@@ -85,11 +85,11 @@ namespace merutilm::rff2 {
         return RenderSettings{4.0f,
                               60,
                               RndPixelRenderPriority::SEQUENTIAL,
-                              {.use = false,
+                              {.use = true,
                                .preferredBatchDuration = 0.1f,
                                .allowedGlitchPixelCount = 0,
                                .completelyIgnoreMpa = false,
-                               .automaticAcceptMpaBatches = 12,
+                               .automaticAcceptMpaBatches = 0,
                                .interpolateIsolated = true}};
     }
 } // namespace merutilm::rff2
