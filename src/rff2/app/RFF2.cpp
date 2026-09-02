@@ -828,7 +828,7 @@ namespace merutilm::rff2 {
 
             if (s.render.computeShader.use) {
                 s.fractal.reference.sync.referenceSynchronizationInterval = 1;
-                if (logZoom > Constants::Fractal::COMPUTESHADER_ZOOM_DEADLINE) {
+                if (logZoom > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
                     renderData = std::make_unique<FexMB2RenderData>(
                             state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
                             actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
@@ -838,7 +838,7 @@ namespace merutilm::rff2 {
                             actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
                 }
             }else {
-                if (logZoom > Constants::Fractal::MULTITHREAD_ZOOM_DEADLINE) {
+                if (logZoom > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
                     renderData = std::make_unique<DexMB2RenderData>(
                             state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
                             actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
