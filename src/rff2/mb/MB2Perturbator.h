@@ -111,8 +111,8 @@ namespace merutilm::rff2 {
             const uint64_t maxRefIteration = reference.longestPeriod();
 
             int absIteration = 0;
-            Num currDistance2 = Num(0);
-            Num prevDistance2 = currDistance2;
+            float currDistance2 = 0;
+            float prevDistance2 = currDistance2;
 
             const float interiorDetectRadius =
                     ptbSettings.interiorDetectRadiusPower == 0 ? 0 : pow(10, -ptbSettings.interiorDetectRadiusPower);
@@ -162,10 +162,10 @@ namespace merutilm::rff2 {
 
 
                 prevDistance2 = currDistance2;
-                currDistance2 = z.norm_sqr();
+                currDistance2 = static_cast<complex<float>>(z).norm_sqr();
 
 
-                if (refIteration == maxRefIteration || currDistance2 < dz.norm_sqr()) {
+                if (refIteration == maxRefIteration || z.norm_approx() < dz.norm_approx()) {
                     refIteration = 0;
                     dz = z;
 
@@ -186,7 +186,7 @@ namespace merutilm::rff2 {
 
                 dz = dz.try_normalized_value();
 
-                if (static_cast<double>(currDistance2) > bailout2)
+                if (currDistance2 > bailout2)
                     break;
                 if (absIteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 &&
                     state.interruptRequested())
@@ -201,8 +201,8 @@ namespace merutilm::rff2 {
                 return static_cast<double>(maxIteration);
             }
 
-            const double prevDistance = sqrt(static_cast<double>(prevDistance2));
-            const double currDistance = sqrt(static_cast<double>(currDistance2));
+            const float prevDistance = std::sqrt(prevDistance2);
+            const float currDistance = std::sqrt(currDistance2);
 
             return static_cast<double>(iteration) +
                    FrtDecimalizeIterationMethodUtil::getExteriorDoubleValueIterationRatio(

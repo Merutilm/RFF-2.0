@@ -1,3 +1,5 @@
+#include <mpa.glsl>
+
 #ifndef DESC_RENDER_META_INCLUDE
 #define DESC_RENDER_META_INCLUDE
 
@@ -8,19 +10,6 @@ struct BatchStagingData {
     uint64_t ref_iteration;
     vec2 dz;
     float distance2;
-};
-
-struct PA {
-    uint64_t skip;
-    vec2 an;
-    vec2 bn;
-    float radius;
-    float _padd; // Explicitly pad the struct to 32 bytes for array stride
-};
-
-struct MPIndexMapper {
-    uint64_t mapped;
-    uint64_t levels;
 };
 
 

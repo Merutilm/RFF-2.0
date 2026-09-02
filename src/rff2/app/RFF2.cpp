@@ -149,6 +149,7 @@ namespace merutilm::rff2 {
                                                         .useParallelRefCalculation = false,
                                                         .sync = CalculationPresets::UltraFast().genRefSync(),
                                                         .compression = CalculationPresets::UltraFast().genRefComp(),
+                                                        .periodMultiplier = 1,
                                                         .reuse = false,
                                                 },
                                         .sa = {.use = false,
@@ -188,6 +189,7 @@ namespace merutilm::rff2 {
                                                         .useParallelRefCalculation = false,
                                                         .sync = CalculationPresets::UltraFast().genRefSync(),
                                                         .compression = CalculationPresets::UltraFast().genRefComp(),
+                                                        .periodMultiplier = 1,
                                                         .reuse = false,
                                                 },
                                         .sa = {.use = false,
@@ -831,7 +833,7 @@ namespace merutilm::rff2 {
                             state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
                             actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
                 } else {
-                    renderData = std::make_unique<NormalMB2RenderData>(
+                    renderData = std::make_unique<FloatMB2RenderData>(
                             state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
                             actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
                 }
@@ -1103,7 +1105,7 @@ namespace merutilm::rff2 {
         if (state.interruptRequested())
             return false;
 
-        if (const auto lightDat = dynamic_cast<NormalMB2RenderData *>(renderData.get());
+        if (const auto lightDat = dynamic_cast<FloatMB2RenderData *>(renderData.get());
             lightDat && s.render.computeShader.use && !s.fractal.mpa.useCompress &&
             s.fractal.reference.compression.compressCriteria == 0) {
             renderer->rg0->iterationPalette->setPerturbationMainIterator(PerturbationMainIterator::GPU);

@@ -1,13 +1,12 @@
-#include <desc_render_meta.glsl>
+
 #include <utils_complex.glsl>
 
 #ifndef UTILS_PERTURBATION_INCLUDE
 #define UTILS_PERTURBATION_INCLUDE
 
 
-
-vec2 offset_conversion(uvec2 pixel, uvec2 extent) {
-    return (vec2(pixel) - vec2(extent) / 2) / pow(10, render_meta.log_zoom) / render_meta.clarity_multiplier;
+FexComplex offset_conversion(uvec2 pixel, uvec2 extent) {
+    return fex_complex_div(fex_complex((vec2(pixel) - vec2(extent) / 2) / render_meta.clarity_multiplier), fex_exp10(render_meta.log_zoom));
 }
 
 

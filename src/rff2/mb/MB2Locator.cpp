@@ -129,7 +129,7 @@ namespace merutilm::rff2 {
             ++centerFixCount;
 
             if (doubledLogZoom < Constants::Fractal::COMPUTESHADER_ZOOM_DEADLINE) {
-                doubledZoomData = std::make_unique<NormalMB2RenderData>(
+                doubledZoomData = std::make_unique<FloatMB2RenderData>(
                     state, doubledZoomCalc, cache, doubledZoomDcMax,
                     Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {

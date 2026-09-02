@@ -55,7 +55,7 @@ namespace merutilm::rff2 {
         static CreationResult generateReference(const ParallelRenderState &state,
                                                 const FrtGeneralSettings &generalSettings,
                                                 const FrtReferenceSettings &refSettings, int exp10,
-                                                uint64_t refInitialCapacity, uint64_t forcedStrictFPGPeriod, dex dcMax,
+                                                uint64_t refInitialCapacity, uint64_t forcedPeriodForAccurateFPG, dex dcMax,
                                                 const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                                 std::unique_ptr<MB2Reference> *result);
 
@@ -117,7 +117,7 @@ namespace merutilm::rff2 {
     template<Number Num>
     Reference::CreationResult MB2Reference<Num>::generateReference(
             const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
-            const FrtReferenceSettings &refSettings, int exp10, uint64_t refInitialCapacity, uint64_t forcedStrictFPGPeriod,
+            const FrtReferenceSettings &refSettings, int exp10, uint64_t refInitialCapacity, uint64_t forcedPeriodForAccurateFPG,
             dex dcMax, const std::function<void(uint64_t)> &actionPerRefCalcIteration,
             std::unique_ptr<MB2Reference> *result) {
         if (state.interruptRequested()) {
@@ -130,7 +130,7 @@ namespace merutilm::rff2 {
         ref.push_back(complex<Num>::ZERO);
 
         int strictIntExp10 = -exp10;
-        int fpgIntExp10 = forcedStrictFPGPeriod != 0 ? strictIntExp10 : 1;
+        int fpgIntExp10 = forcedPeriodForAccurateFPG != 0 ? strictIntExp10 : 1;
 
         fixed_point_complex_i1 c = refSettings.center.create_variant(exp10);
         auto z = fixed_point_complex_i1(0.0, 0.0, exp10);
@@ -165,6 +165,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<fixed_point_complex> fpgReference = nullptr;
 
         uint64_t period = 0;
+        uint64_t fpgPeriod = 0;
 
         for (period = 0; z0.norm_sqr() < bailoutSqr; ++period) {
             if (state.interruptRequested()) {
@@ -173,12 +174,8 @@ namespace merutilm::rff2 {
 
             // use Fast-Period-Guessing to prepare MPA Table creation
             // fpg
-            if (period > 0) {
+            if (period > 0 && fpgPeriod == 0) {
                 Num radius2 = z0.norm_sqr();
-                Num fpgLimit = radius2 / Num(dcMax);
-                complex<Num> fpgBnTemp = fpgBn0 * z0 * Num(2) + Num(1);
-
-                Num fpgRadius = fpgBnTemp.norm_approx();
 
                 if (minZRadius > radius2) {
                     minZRadius = radius2;
@@ -186,17 +183,24 @@ namespace merutilm::rff2 {
                 }
 
 
-                if (fpgRadius > fpgLimit || forcedStrictFPGPeriod == period) {
-                    periodArray.push_back(period);
-                    fpgReference = std::make_unique<fixed_point_complex>(z);
-                    break;
-                }
+                Num fpgLimit = radius2 / Num(dcMax);
+                complex<Num> fpgBnTemp = fpgBn0 * z0 * Num(2) + Num(1);
+                Num fpgRadius = fpgBnTemp.norm_approx();
 
-                fpgBn0 = fpgBnTemp.try_normalized_value();
+                if (fpgRadius > fpgLimit || forcedPeriodForAccurateFPG == period) {
+                    fpgReference = std::make_unique<fixed_point_complex>(z);
+                    fpgPeriod = period;
+                }else {
+                    fpgBn0 = fpgBnTemp.try_normalized_value();
+                }
+            }
+
+            if (fpgPeriod != 0 && period == fpgPeriod * refSettings.periodMultiplier) {
+                break;
             }
 
             // strict fpg
-            if (forcedStrictFPGPeriod != 0) {
+            if (forcedPeriodForAccurateFPG != 0) {
                 fixed_point_complex::dbl(temp, z);
                 fixed_point_complex::mul(fpgBn, fpgBn, temp, tpStrict);
                 fixed_point_complex::add(fpgBn, fpgBn, one);
@@ -238,12 +242,12 @@ namespace merutilm::rff2 {
             }
         }
 
-        if (forcedStrictFPGPeriod == 0)
+        if (forcedPeriodForAccurateFPG == 0)
             fpgBn = fixed_point_complex(fpgBn0.re, fpgBn0.im, exp10, strictIntExp10);
         if (fpgReference == nullptr)
             fpgReference = std::make_unique<fixed_point_complex>(z);
 
-        periodArray = periodArray.empty() ? std::vector(1, period) : periodArray;
+        periodArray.push_back(period);
 
         *result = std::make_unique<MB2Reference>(std::move(c), std::move(ref), std::move(tools),
                                                  std::move(periodArray), std::move(*fpgReference), std::move(fpgBn), generalSettings.logZoom, dcMax);

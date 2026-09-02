@@ -97,9 +97,9 @@ namespace merutilm::rff2 {
 
         static exponent div_2exp(const exponent v, const int exp2) { return exponent{v.exp2 - exp2, v.mantissa}; }
 
-        explicit operator double() const { return ldexp(mantissa, static_cast<int>(exp2)); }
+        explicit operator double() const { return std::ldexp(mantissa, static_cast<int>(exp2)); }
 
-        explicit operator float() const { return static_cast<float>(ldexp(mantissa, static_cast<int>(exp2))); }
+        explicit operator float() const { return static_cast<float>(std::ldexp(mantissa, static_cast<int>(exp2))); }
 
         template<Number ExpCast, Number MantissaCast, Number BitCast>
         explicit operator exponent<ExpCast, MantissaCast, BitCast>() const {

@@ -5,7 +5,6 @@
 #include "FnFractal.hpp"
 
 #include "../mb/Perturbator.h"
-#include "../settings/Selectable.h"
 #include "RFF2.hpp"
 #include "Utilities.h"
 #include "imgui.h"
@@ -125,6 +124,13 @@ namespace merutilm::rff2 {
                     "equal.\n"
                     "Reference compression slows down the calculation but frees up memory space.\n"
                     "set 0 to disable.");
+            if (ImGui::InputScalar("FPG Period Multiplier", ImGuiDataType_U32, &frt.reference.periodMultiplier)) {
+                frt.reference.periodMultiplier = std::max(frt.reference.periodMultiplier, 1u);
+            }
+            Utilities::imguiHelpMarker(
+                    "Some Complex swirl patterns, the orbit perturbation may cause some trouble.\n"
+                    "you can set the period multiplier manually.");
+
 
             if (ImGui::InputScalar("Reference Synchronization Interval", ImGuiDataType_U32,
                                &frt.reference.sync.referenceSynchronizationInterval)) {
