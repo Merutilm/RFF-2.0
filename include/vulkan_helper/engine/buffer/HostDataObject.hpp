@@ -10,17 +10,17 @@
 #include <vulkan_helper/engine/manage/HostDataObjectManager.hpp>
 
 namespace merutilm::vkh {
-    struct HostDataObject final {
-
+    class HostDataObject final {
         std::vector<std::byte> data;
         std::vector<uint32_t> elements;
-        std::vector<uint32_t> sizes;
-        std::vector<uint32_t> paddingsPerElem;
         std::vector<uint32_t> offsets;
+        std::vector<uint32_t> aligns;
+        std::vector<uint32_t> strides;
 
+    public:
         explicit HostDataObject(HostDataObjectManager &&manager) :
-            data(std::move(manager.data)), elements(std::move(manager.elements)), sizes(std::move(manager.sizes)),
-            paddingsPerElem(std::move(manager.paddingsPerElem)), offsets(std::move(manager.offsets)) {}
+            data(std::move(manager.data)), elements(std::move(manager.elements)),
+            offsets(std::move(manager.offsets)), aligns(std::move(manager.aligns)),strides(std::move(manager.strides)) {}
 
         ~HostDataObject() = default;
 
@@ -68,15 +68,19 @@ namespace merutilm::vkh {
             requires std::is_trivially_copyable_v<T>
         void resizeAndClear(uint32_t target, uint32_t elementCount);
 
+        [[nodiscard]] std::vector<std::byte> &getData() { return data; }
+
         [[nodiscard]] const std::vector<std::byte> &getData() const { return data; }
 
         [[nodiscard]] uint32_t getOffset(const uint32_t target) const { return offsets[target]; }
 
-        [[nodiscard]] uint32_t getSizeByte(const uint32_t target) const { return sizes[target]; }
+        [[nodiscard]] uint32_t getAlign(const uint32_t target) const { return aligns[target]; }
+
+        [[nodiscard]] uint32_t getStride(const uint32_t target) const { return strides[target]; }
 
         [[nodiscard]] uint32_t getTotalSizeByte() const { return static_cast<uint32_t>(data.size()); }
 
-        [[nodiscard]] uint32_t getObjectCount() const { return static_cast<uint32_t>(sizes.size()); }
+        [[nodiscard]] uint32_t getObjectCount() const { return static_cast<uint32_t>(elements.size()); }
 
         [[nodiscard]] uint32_t getElementCount(const uint32_t target) const { return elements[target]; }
     };
@@ -85,75 +89,75 @@ namespace merutilm::vkh {
     template<typename T>
         requires std::is_trivially_copyable_v<T>
     const T &HostDataObject::get(const uint32_t target) const {
-        safe_array::check_size_equal(sizes[target], sizeof(T), "Buffer Object get");
-        auto view = std::span(data.begin() + offsets[target], data.begin() + offsets[target] + sizes[target]);
+        safe_array::check_size_equal(strides[target], sizeof(T), "Buffer Object get");
+        auto view = std::span(data.begin() + offsets[target], data.begin() + offsets[target] + strides[target]);
         return *reinterpret_cast<const T *>(view.data());
     }
     template<typename T>
         requires std::is_trivially_copyable_v<T>
     const T &HostDataObject::get(const uint32_t target, const uint32_t index) const {
-        const uint32_t size = sizeof(T) * elements.size();
-        safe_array::check_size_equal(sizes[target], size, "Buffer Object Vector get");
-        auto view = std::span(data.begin() + offsets[target] + sizeof(T) * index,
-                              data.begin() + offsets[target] + sizeof(T) * (index + 1));
+        safe_array::check_size_equal(strides[target], sizeof(T), "Buffer Object Vector get");
+        auto view = std::span(data.begin() + offsets[target] + strides[target] * index,
+                              data.begin() + offsets[target] + strides[target] * (index + 1));
         return *reinterpret_cast<const T *>(view.data());
     }
     template<typename T>
         requires std::is_trivially_copyable_v<T>
     void HostDataObject::set(const uint32_t target, const T &t) {
-        safe_array::check_size_equal(sizes[target], sizeof(T), "Buffer Object set");
+        safe_array::check_size_equal(strides[target], sizeof(T), "Buffer Object set");
         const uint32_t offset = offsets[target];
-        memcpy(&data[offset], &t, sizeof(T));
+        memcpy(&data[offset], &t, strides[target]);
     }
     template<typename T>
         requires std::is_trivially_copyable_v<T>
     void HostDataObject::set(const uint32_t target, const std::vector<T> &arr) {
-        const uint32_t size = sizeof(T) * arr.size();
-        safe_array::check_size_equal(sizes[target], size, "Buffer Object Vector set");
+        safe_array::check_size_equal(strides[target], sizeof(T), "Buffer Object Vector set");
         const uint32_t offset = offsets[target];
-        memcpy(&data[offset], arr.data(), size);
+        memcpy(&data[offset], arr.data(), strides[target] * arr.size());
     }
     template<typename T>
         requires std::is_trivially_copyable_v<T>
     void HostDataObject::set(const uint32_t target, const T *rawArr) {
         const uint32_t offset = offsets[target];
-        memcpy(&data[offset], rawArr, sizes[target]);
+        memcpy(&data[offset], rawArr, strides[target] * elements[target]);
     }
 
     template<typename T>
         requires std::is_trivially_copyable_v<T>
     void HostDataObject::set(const uint32_t target, const uint32_t arrIndex, T &t) {
-        const uint32_t offset = offsets[target] + arrIndex * sizeof(T);
-        memcpy(&data[offset], &t, sizeof(T));
+        safe_array::check_size_equal(strides[target], sizeof(T), "Buffer Object Vector Element set");
+        const uint32_t offset = offsets[target] + arrIndex * strides[target];
+        memcpy(&data[offset], &t, strides[target]);
     }
     inline void HostDataObject::reset(const uint32_t target) {
-        std::fill_n(data.begin() + offsets[target], sizes[target], static_cast<std::byte>(0));
+        std::fill_n(data.begin() + offsets[target], strides[target] * elements[target], static_cast<std::byte>(0));
     }
     template<typename T>
         requires std::is_trivially_copyable_v<T>
     void HostDataObject::resizeArray(const uint32_t target, const uint32_t elementCount) {
+        safe_array::check_size_equal(strides[target], sizeof(T), "Buffer Object Vector resize");
         if (elementCount < elements[target]) {
-            data.erase(data.begin() + offsets[target] + elementCount * sizeof(T),
-                       data.begin() + offsets[target] + elements[target] * sizeof(T));
+            data.erase(data.begin() + offsets[target] + elementCount * strides[target],
+                       data.begin() + offsets[target] + elements[target] * strides[target]);
         }
         if (elementCount > elements[target]) {
-            const auto fill = std::vector<std::byte>((elementCount - elements[target]) * sizeof(T));
-            data.insert(data.begin() + offsets[target] + elements[target] * sizeof(T), fill.begin(), fill.end());
+            const auto fill = std::vector<std::byte>((elementCount - elements[target]) * strides[target]);
+            data.insert(data.begin() + offsets[target] + elements[target] * strides[target], fill.begin(), fill.end());
         }
 
-        sizes[target] = sizeof(T) * elementCount;
         elements[target] = elementCount;
         uint32_t sizeSum = 0;
 
-        for (uint32_t i = 0; i < static_cast<uint32_t>(sizes.size()); ++i) {
+        for (uint32_t i = 0; i < static_cast<uint32_t>(strides.size()); ++i) {
+            sizeSum = HostDataObjectManager::getAlignedOffset(sizeSum, aligns[i]);
             offsets[i] = sizeSum;
-            sizeSum += sizes[i] + paddingsPerElem[i] * elements[i];
+            sizeSum += strides[i] * elements[i];
         }
     }
     template<typename T>
         requires std::is_trivially_copyable_v<T>
     void HostDataObject::resizeAndClear(const uint32_t target, const uint32_t elementCount) {
         resizeArray<T>(target, elementCount);
-        std::fill_n(data.begin() + offsets[target], sizes[target], static_cast<std::byte>(0));
+        std::fill_n(data.begin() + offsets[target], strides[target] * elementCount, static_cast<std::byte>(0));
     }
 } // namespace merutilm::vkh

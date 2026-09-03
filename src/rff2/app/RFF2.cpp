@@ -116,8 +116,8 @@ namespace merutilm::rff2 {
         double mdx;
         double mdy;
         glfwGetCursorPos(rootWindowContext->getWindow()->getWindow(), &mdx, &mdy);
-        const int mx = static_cast<int>(mdx);
-        const int my = static_cast<int>(mdy);
+        const auto mx = static_cast<int>(mdx);
+        const auto my = static_cast<int>(mdy);
         const uint16_t x = getMouseXOnIterationBuffer(mx);
         const uint16_t y = getMouseYOnIterationBuffer(my);
         if (renderer->visibleIterationBufferContext == nullptr || x >= getIterationBufferWidth() ||
@@ -126,7 +126,7 @@ namespace merutilm::rff2 {
         }
         auto it = static_cast<uint64_t>((*renderer->visibleIterationBufferContext)(x, y));
         setStatusMessage(Constants::Status::ITERATION_STATUS,
-                         std::format(std::locale("en_US.UTF-8"), "Iterations : {:L}", it, x, y));
+                         std::format(std::locale("en_US.UTF-8"), "Iterations : {:L}", it));
     }
 
     void RFF2::update() {
@@ -222,20 +222,20 @@ namespace merutilm::rff2 {
     complex<dex> RFF2::offsetConversion(const Settings &s, const int px, const int py) const {
         const double bufOffX = static_cast<double>(px) - static_cast<double>(getIterationBufferWidth()) / 2.0;
         const double bufOffY = static_cast<double>(py) - static_cast<double>(getIterationBufferHeight()) / 2.0;
-        return complex(dex(bufOffX), dex(bufOffY)) / getDivisor(s) / dex(s.render.clarityMultiplier);
+        return complex{dex(bufOffX), dex(bufOffY)} / getDivisor(s) / dex(s.render.clarityMultiplier);
     }
 
     std::array<int, 2> RFF2::iterationBufferConversion(const Settings &s, const complex<dex> &offset) const {
         const auto [re, im] = static_cast<complex<double>>(offset * dex(s.render.clarityMultiplier) * getDivisor(s));
 
-        const int px = static_cast<int>((re < 0 ? std::round(re) : std::ceil(re)) + getIterationBufferWidth() / 2.0);
-        const int py = static_cast<int>((im < 0 ? std::round(im) : std::ceil(im)) + getIterationBufferHeight() / 2.0);
+        const auto px = static_cast<int>((re < 0 ? std::round(re) : std::ceil(re)) + getIterationBufferWidth() / 2.0);
+        const auto py = static_cast<int>((im < 0 ? std::round(im) : std::ceil(im)) + getIterationBufferHeight() / 2.0);
         return {px, py};
     }
 
     void RFF2::moveCursor(const int px, const int py) const {
-        const int mx = static_cast<int>(static_cast<float>(px) / settings.render.clarityMultiplier);
-        const int my = static_cast<int>(static_cast<float>(py) / settings.render.clarityMultiplier);
+        const auto mx = static_cast<int>(static_cast<float>(px) / settings.render.clarityMultiplier);
+        const auto my = static_cast<int>(static_cast<float>(py) / settings.render.clarityMultiplier);
         glfwSetCursorPos(rootWindowContext->getWindow()->getWindow(), mx,
                          rootWindowContext->getSwapchain().getSwapchainExtent().height - my);
     }
@@ -266,7 +266,7 @@ namespace merutilm::rff2 {
         eventSystem.applicationLifecycle.onUpdate.add([this] { update(); });
 
         eventSystem.resize.onResize.add([this](const int w, const int h) {
-            const auto extent = VkExtent2D(w, h);
+            const auto extent = VkExtent2D{static_cast<uint32_t>(w), static_cast<uint32_t>(h)};
             requests.requestResize(extent);
         });
 
@@ -314,8 +314,8 @@ namespace merutilm::rff2 {
             double mdx;
             double mdy;
             glfwGetCursorPos(rootWindowContext->getWindow()->getWindow(), &mdx, &mdy);
-            const int mx = static_cast<int>(mdx);
-            const int my = static_cast<int>(mdy);
+            const auto mx = static_cast<int>(mdx);
+            const auto my = static_cast<int>(mdy);
             const int16_t mix = getMouseXOnIterationBuffer(mx);
             const int16_t miy = getMouseYOnIterationBuffer(my);
             zoom(mix, miy, value > 0 ? Constants::Fractal::ZOOM_INTERVAL : -Constants::Fractal::ZOOM_INTERVAL);
@@ -445,7 +445,7 @@ namespace merutilm::rff2 {
         // shared
         renderer->descriptorStorage->iteration->resetIterationBuffer(iw, ih);
         renderer->descriptorStorage->batchResult->resizeBatchResultBuffer(iw, ih);
-        renderer->descriptorStorage->renderMeta->resizeWriteBuffer(iw, ih);
+        renderer->computeIterate->resizeWriteBuffer(iw, ih);
         renderer->descriptorStorage->renderMetaIterationVariant->resetIterationBuffer(iw, ih);
 
         // unique
@@ -680,7 +680,7 @@ namespace merutilm::rff2 {
 
     std::filesystem::path RFF2::getBackupLocationPath() {
         return vkh::ExecutableUtils::getExecutableDirectory() /
-               std::format("{0}.{1}", Constants::File::BACKUP_FILE_NAME, Constants::File::EXT_LOCATION);
+               std::format("{}.{}", Constants::File::BACKUP_FILE_NAME, Constants::File::EXT_LOCATION);
     }
 
     void RFF2::saveBackup() const {
@@ -891,9 +891,9 @@ namespace merutilm::rff2 {
 
         renderer->computeIterate->setMPAIgnore(s.render.computeShader.completelyIgnoreMpa);
 
-        renderer->descriptorStorage->renderMeta->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
-        renderer->descriptorStorage->renderMeta->clearWriteBuffer(commandPool);
-        renderer->descriptorStorage->renderMeta->set(
+        renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
+        renderer->computeIterate->clearWriteBuffer(commandPool);
+        renderer->computeIterate->setMeta(
                 renderData->fractalSettings, s.render, dynamic_cast<MB2Reference<float> *>(renderDataBase->getReference())->refOrbit,
                 static_cast<complex<float>>(renderData->getPerturbator()->off),
                 static_cast<uint32_t>(renderData->fractalSettings.perturb.maxIteration), tableData, tableLen,
@@ -933,8 +933,8 @@ namespace merutilm::rff2 {
             const auto actualTime = std::chrono::high_resolution_clock::now();
 
             {
-                vkh::CommandBuffer &commandBuffer = *computeShaderManager->commandBuffer;
-                vkh::Fence &fence = *computeShaderManager->fence;
+                const vkh::CommandBuffer &commandBuffer = *computeShaderManager->commandBuffer;
+                const vkh::Fence &fence = *computeShaderManager->fence;
                 const VkCommandBuffer cbh = commandBuffer.getCommandBufferHandle();
 
                 const vkh::ScopedCommandBufferExecutor executor(*rootWindowContext, commandBuffer, fence,
@@ -996,12 +996,12 @@ namespace merutilm::rff2 {
 
             if (elapsed.count() < settings.render.computeShader.preferredBatchDuration) {
                 batchSizeMultiplier *= 2;
-                renderer->descriptorStorage->renderMeta->setBatchSize(
+                renderer->computeIterate->setBatchSize(
                         Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier);
             }
             if (elapsed.count() > settings.render.computeShader.preferredBatchDuration * 2) {
                 batchSizeMultiplier = std::max(static_cast<uint32_t>(1), batchSizeMultiplier / 2);
-                renderer->descriptorStorage->renderMeta->setBatchSize(
+                renderer->computeIterate->setBatchSize(
                         Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier);
             }
             bool currIgnoreMpa = settings.render.computeShader.completelyIgnoreMpa ||
@@ -1010,7 +1010,7 @@ namespace merutilm::rff2 {
             if (prevIgnoreMpa != currIgnoreMpa) {
                 batchSizeMultiplier = 1;
                 renderer->computeIterate->setMPAIgnore(currIgnoreMpa);
-                renderer->descriptorStorage->renderMeta->setBatchSize(
+                renderer->computeIterate->setBatchSize(
                         Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
                 prevIgnoreMpa = currIgnoreMpa;
             }

@@ -14,7 +14,6 @@ namespace merutilm::rff2 {
     void CPCInterpolateIsolated::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
         using namespace SharedDescriptorTemplate;
         appendDescriptor<DescRenderMetaIterationVariant>(SET_ITERATION, descriptors);
-        appendDescriptor<DescRenderMeta>(SET_RENDER_META, descriptors);
         appendDescriptor<DescBatchResult>(SET_BATCH_RESULT, descriptors);
     }
 } // namespace merutilm::rff2

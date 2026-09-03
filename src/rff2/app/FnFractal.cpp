@@ -188,7 +188,7 @@ namespace merutilm::rff2 {
                     "Set auto iteration multiplier. It is disabled when Auto iteration is disabled.");
 
             if (ImGui::InputFloat("Set Bailout", &calc.general.bailout)) {
-                calc.general.bailout = std::clamp(calc.general.bailout, 2.f, 8.f);
+                calc.general.bailout = std::clamp(calc.general.bailout, 2.f, 32767.f);
             }
             Utilities::imguiHelpMarker("Sets The Bailout radius");
 

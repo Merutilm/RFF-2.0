@@ -41,7 +41,8 @@ namespace merutilm::rff2 {
         RenderGraph4 *rg4 = nullptr;
         RenderGraphPresentPrepareImgui *rccPresentPrepare = nullptr;
 
-        CPCIterate *computeIterate = nullptr;
+        CPCIterate<float> *computeIterate = nullptr;
+        CPCIterate<fex> *computeIterateFex = nullptr;
         CPCInterpolateIsolated *computeIgnoreIsolated = nullptr;
         CPCBoxBlur *computeBoxBlur = nullptr;
 
@@ -79,7 +80,8 @@ namespace merutilm::rff2 {
             };
             descriptorStorage = std::make_unique<SharedDescriptorStorage>(engine, wc);
 
-            computeIterate = vkh::ComputePipelineConfigurator::createComputePipeline<CPCIterate>(configurators, engine, wc);
+            computeIterate = vkh::ComputePipelineConfigurator::createComputePipeline<CPCIterate<float>>(configurators, engine, wc);
+            computeIterateFex = vkh::ComputePipelineConfigurator::createComputePipeline<CPCIterate<fex>>(configurators, engine, wc);
             computeIgnoreIsolated = vkh::ComputePipelineConfigurator::createComputePipeline<CPCInterpolateIsolated>(configurators, engine, wc);
             computeBoxBlur = vkh::ComputePipelineConfigurator::createComputePipeline<CPCBoxBlur>(configurators, engine, wc);
             rc0 = vkh::RenderContextUtils::attachRenderContext<RenderGraph0>(

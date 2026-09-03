@@ -31,27 +31,27 @@ namespace merutilm::vkh {
 
     void BufferObject::update() const {
         checkFinalizedBeforeUpdate();
-        memcpy(getBufferContext().mappedMemory, hostDataObject.data.data(), hostDataObject.getTotalSizeByte());
+        memcpy(getBufferContext().mappedMemory, hostDataObject.getData().data(), hostDataObject.getTotalSizeByte());
     }
 
     void BufferObject::update(const uint32_t target) const {
         checkFinalizedBeforeUpdate();
         const uint32_t offset = hostDataObject.getOffset(target);
-        const uint32_t size = hostDataObject.getSizeByte(target);
-        memcpy(getBufferContext().mappedMemory + offset, hostDataObject.data.data() + offset, size);
+        const uint32_t size = hostDataObject.getStride(target) * hostDataObject.getElementCount(target);
+        memcpy(getBufferContext().mappedMemory + offset, hostDataObject.getData().data() + offset, size);
     }
 
     void BufferObject::updateMF(const uint32_t frameIndex) const {
         checkFinalizedBeforeUpdate();
-        memcpy(getBufferContextMF(frameIndex).mappedMemory, hostDataObject.data.data(),
+        memcpy(getBufferContextMF(frameIndex).mappedMemory, hostDataObject.getData().data(),
                hostDataObject.getTotalSizeByte());
     }
 
     void BufferObject::updateMF(const uint32_t frameIndex, const uint32_t target) const {
         checkFinalizedBeforeUpdate();
         const uint32_t offset = hostDataObject.getOffset(target);
-        const uint32_t size = hostDataObject.getSizeByte(target);
-        memcpy(getBufferContextMF(frameIndex).mappedMemory + offset, hostDataObject.data.data() + offset, size);
+        const uint32_t size = hostDataObject.getStride(target) * hostDataObject.getElementCount(target);
+        memcpy(getBufferContextMF(frameIndex).mappedMemory + offset, hostDataObject.getData().data() + offset, size);
     }
 
     void BufferObject::checkFinalizedBeforeUpdate() const {

@@ -31,7 +31,6 @@ namespace merutilm::rff2 {
         std::unique_ptr<SharedDescriptorManager::DescManagerNoiseReduction> noiseReduction;
         std::unique_ptr<SharedDescriptorManager::DescManagerVideo> video;
         std::unique_ptr<SharedDescriptorManager::DescManagerFractal3D> fractal3d;
-        std::unique_ptr<SharedDescriptorManager::DescManagerRenderMeta> renderMeta;
         std::unique_ptr<SharedDescriptorManager::DescManagerIteration> renderMetaIterationVariant;
         std::unique_ptr<SharedDescriptorManager::DescManagerBatchResult> batchResult;
         std::unique_ptr<SharedDescriptorManager::DescManagerSmoothZoom> smoothZoom;
@@ -68,7 +67,6 @@ namespace merutilm::rff2 {
             noiseReduction = pickAndQueue<DescNoiseReduction, DescManagerNoiseReduction>(queue);
             video = pickAndQueue<DescVideo, DescManagerVideo>(queue);
             fractal3d = pickAndQueue<DescFractal3D, DescManagerFractal3D>(queue);
-            renderMeta = pickAndQueue<DescRenderMeta, DescManagerRenderMeta>(queue);
             renderMetaIterationVariant = pickAndQueue<DescRenderMetaIterationVariant, DescManagerIteration>(queue);
             batchResult = pickAndQueue<DescBatchResult, DescManagerBatchResult>(queue);
             smoothZoom = pickAndQueue<DescSmoothZoom, DescManagerSmoothZoom>(queue);

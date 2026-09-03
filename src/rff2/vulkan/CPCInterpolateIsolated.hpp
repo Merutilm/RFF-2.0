@@ -9,8 +9,7 @@ namespace merutilm::rff2 {
 
     struct CPCInterpolateIsolated : vkh::ComputePipelineConfigurator{
         static constexpr uint32_t SET_ITERATION = 0;
-        static constexpr uint32_t SET_RENDER_META = 1;
-        static constexpr uint32_t SET_BATCH_RESULT = 2;
+        static constexpr uint32_t SET_BATCH_RESULT = 1;
 
 
         explicit CPCInterpolateIsolated(vkh::Engine &engine, vkh::WindowContext &wc) :

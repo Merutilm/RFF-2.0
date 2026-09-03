@@ -5,7 +5,7 @@
 #pragma once
 #include <memory>
 #include "../../data/ComputeShaderBatchStagingData.hpp"
-#include "../../mrthy/MPAIndexMapper.hpp"
+
 #include "../../mrthy/PA.h"
 #include "vulkan_helper/engine/manage/DescriptorManager.hpp"
 #include "vulkan_helper/engine/wrapped/DescriptorTemplate.hpp"
@@ -113,8 +113,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<double>(TARGET_PALETTE_OFFSET);
             bufferManager.reserve<uint32_t>(TARGET_PALETTE_SMOOTHING);
             bufferManager.reserve<uint32_t>(TARGET_PALETTE_SINGLE_SMOOTHING);
-            bufferManager.reserve<float>(TARGET_PALETTE_ANIMATION_SPEED, 4);
-            bufferManager.reserveArray<glm::vec4>(TARGET_PALETTE_COLORS, 0);
+            bufferManager.reserve<float>(TARGET_PALETTE_ANIMATION_SPEED);
+            bufferManager.reserveArray<glm::vec4>(TARGET_PALETTE_COLORS, 0, 16);
 
             auto ssbo = std::make_unique<vkh::ShaderStorage>(core, std::move(bufferManager),
                                                              vkh::BufferLocalization::BIDIRECTIONAL, false);
@@ -276,7 +276,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
         void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
-            bufferManager.reserve<bool>(TARGET_NOISE_REDUCTION_USE, 3);
+            bufferManager.reserve<bool>(TARGET_NOISE_REDUCTION_USE);
             bufferManager.reserve<uint32_t>(TARGET_NOISE_REDUCTION_SIMILAR_COUNT_THRESHOLD);
             bufferManager.reserve<float>(TARGET_NOISE_REDUCTION_DIFFERENCE_THRESHOLD);
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager),
@@ -333,102 +333,10 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         }
     };
 
-    struct DescRenderMeta final : public vkh::DescriptorTemplate {
-        static constexpr uint32_t ID = 12;
-        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_COMPUTE_BIT;
-        static constexpr uint32_t BINDING_RM_SSBO = 0;
-        static constexpr uint32_t TARGET_RM_MAX_ITERATION = 0;
-        static constexpr uint32_t TARGET_RM_MAX_REF_ITERATION = 1;
-        static constexpr uint32_t TARGET_RM_LOG_ZOOM = 2;
-        static constexpr uint32_t TARGET_RM_BAILOUT = 3;
-        static constexpr uint32_t TARGET_RM_CLARITY_MULTIPLIER = 4;
-        static constexpr uint32_t TARGET_RM_DECIMALIZE_ITERATION_METHOD = 5;
-        static constexpr uint32_t TARGET_RM_OFFSET = 6;
-        static constexpr uint32_t TARGET_RM_ORBIT = 7;
-
-
-        static constexpr uint32_t BINDING_RM_TABLE_SSBO = 1;
-        static constexpr uint32_t TARGET_RM_TABLE_LEN = 0;
-        static constexpr uint32_t TARGET_RM_TABLE_SELECTION_METHOD = 1;
-        static constexpr uint32_t TARGET_RM_TABLE_DATA = 2;
-
-        static constexpr uint32_t BINDING_RM_MAPPER_SSBO = 2;
-        static constexpr uint32_t TARGET_RM_MAPPER_LEN = 0;
-        static constexpr uint32_t TARGET_RM_MAPPER_DATA = 1;
-
-        static constexpr uint32_t BINDING_RM_BATCH_INFO_UBO = 3;
-        static constexpr uint32_t TARGET_RM_BATCH_SIZE = 0;
-
-        static constexpr uint32_t BINDING_RM_BATCH_SSBO = 4;
-        static constexpr uint32_t TARGET_RM_BATCH_STAGING_DATA = 0;
-
-
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
-
-            static_assert(sizeof(PA<float>) == 32);
-            static_assert(alignof(PA<float>) == 8);
-            static_assert(sizeof(ComputeShaderBatchStagingData) == 32);
-            static_assert(alignof(ComputeShaderBatchStagingData) == 8);
-
-            vkh::HostDataObjectManager homRm;
-            homRm.reserve<uint64_t>(TARGET_RM_MAX_ITERATION);
-            homRm.reserve<uint64_t>(TARGET_RM_MAX_REF_ITERATION);
-            homRm.reserve<float>(TARGET_RM_LOG_ZOOM);
-            homRm.reserve<float>(TARGET_RM_BAILOUT);
-            homRm.reserve<float>(TARGET_RM_CLARITY_MULTIPLIER);
-            homRm.reserve<uint32_t>(TARGET_RM_DECIMALIZE_ITERATION_METHOD);
-            homRm.reserve<complex<float>>(TARGET_RM_OFFSET);
-            homRm.reserveArray<complex<float>>(TARGET_RM_ORBIT, 0);
-
-
-            vkh::HostDataObjectManager homRmTable;
-            homRmTable.reserve<uint64_t>(TARGET_RM_TABLE_LEN);
-            homRmTable.reserve<uint32_t>(TARGET_RM_TABLE_SELECTION_METHOD, 4);
-            homRmTable.reserveArray<PA<float>>(TARGET_RM_TABLE_DATA, 0);
-
-            vkh::HostDataObjectManager homRmMapper;
-            homRmMapper.reserve<uint64_t>(TARGET_RM_MAPPER_LEN);
-            homRmMapper.reserveArray<MPAIndexMapper>(TARGET_RM_MAPPER_DATA, 0);
-
-            vkh::HostDataObjectManager homRmBatchInfo;
-            homRmBatchInfo.reserve<uint32_t>(TARGET_RM_BATCH_SIZE);
-
-            vkh::HostDataObjectManager homRmBatch;
-            homRmBatch.reserveArray<ComputeShaderBatchStagingData>(TARGET_RM_BATCH_STAGING_DATA, 1);
-
-
-            auto rmSSBO = std::make_unique<vkh::ShaderStorage>(core, std::move(homRm),
-                                                               vkh::BufferLocalization::UNIDIRECTIONAL, false);
-            auto rmTableSSBO = std::make_unique<vkh::ShaderStorage>(core, std::move(homRmTable),
-                                                                    vkh::BufferLocalization::UNIDIRECTIONAL, false);
-            auto rmMapperSSBO = std::make_unique<vkh::ShaderStorage>(core, std::move(homRmMapper),
-                                                                     vkh::BufferLocalization::UNIDIRECTIONAL, false);
-
-            auto rmBatchInfoUBO = std::make_unique<vkh::Uniform>(core, std::move(homRmBatchInfo),
-                                                                 vkh::BufferLocalization::UNIDIRECTIONAL, false);
-            auto rmBatchSSBO = std::make_unique<vkh::ShaderStorage>(core, std::move(homRmBatch),
-                                                                    vkh::BufferLocalization::UNIDIRECTIONAL, false);
-
-
-            vkh::DescriptorManager descManagerRenderMeta;
-            descManagerRenderMeta.appendSSBO(BINDING_RM_SSBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmSSBO));
-            descManagerRenderMeta.appendSSBO(BINDING_RM_TABLE_SSBO, VK_SHADER_STAGE_COMPUTE_BIT,
-                                             std::move(rmTableSSBO));
-            descManagerRenderMeta.appendSSBO(BINDING_RM_MAPPER_SSBO, VK_SHADER_STAGE_COMPUTE_BIT,
-                                             std::move(rmMapperSSBO));
-            descManagerRenderMeta.appendUBO(BINDING_RM_BATCH_INFO_UBO, VK_SHADER_STAGE_COMPUTE_BIT,
-                                            std::move(rmBatchInfoUBO));
-            descManagerRenderMeta.appendSSBO(BINDING_RM_BATCH_SSBO, VK_SHADER_STAGE_COMPUTE_BIT,
-                                             std::move(rmBatchSSBO));
-
-            managers.emplace_back(std::move(descManagerRenderMeta));
-        }
-    };
 
     struct DescRenderMetaIterationVariant : public vkh::DescriptorTemplate {
 
         static constexpr uint32_t ID = 13;
-        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_COMPUTE_BIT;
 
         void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
             DescIteration().configure(core, managers);
@@ -451,8 +359,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
 
             vkh::DescriptorManager descManager;
-            descManager.appendSSBO(BINDING_BATCH_RESULT_SSBO,
-                                   VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+            descManager.appendSSBO(BINDING_BATCH_RESULT_SSBO, STAGE,
                                    std::move(rmBatchResultSSBO));
             managers.emplace_back(std::move(descManager));
         }
@@ -472,7 +379,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             hdm.reserve<float>(TARGET_SMOOTH_ZOOM_LOG_ZOOM_DELTA);
             auto uniform =
                     std::make_unique<vkh::Uniform>(core, std::move(hdm), vkh::BufferLocalization::BIDIRECTIONAL, false);
-            descManager.appendUBO(BINDING_SMOOTH_ZOOM_UBO, VK_SHADER_STAGE_FRAGMENT_BIT, std::move(uniform));
+            descManager.appendUBO(BINDING_SMOOTH_ZOOM_UBO, STAGE, std::move(uniform));
             managers.emplace_back(std::move(descManager));
         }
     };

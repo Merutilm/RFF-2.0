@@ -22,10 +22,10 @@ namespace merutilm::vkh {
         const auto &host = getHostObject();
         const uint32_t len = host.getObjectCount();
         for (uint32_t i = 0; i < len; ++i) {
-            const uint32_t size = host.sizes[i];
-            const uint32_t offset = host.offsets[i];
-            if (const uint32_t element = host.elements[i]; size != sizeof(Vertex) * element) {
-                throw exception_invalid_args(std::format("size {} and {} is not match", size,
+            const uint32_t size = host.getStride(i) * host.getElementCount(i);
+            const uint32_t offset = host.getOffset(i);
+            if (const uint32_t element = host.getElementCount(i); size != sizeof(Vertex) * element) {
+                throw exception_invalid_args(std::format("size {} and {} does not match", size,
                                                          sizeof(Vertex) * element));
             }
             bindingDescriptions.emplace_back(i, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX);
