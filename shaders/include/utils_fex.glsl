@@ -72,6 +72,12 @@ int sgn(Fex a) {
 }
 
 void fex_normalize(inout Fex a) {
+    if(a.mantissa==0)
+    {
+        a.exponent=0;
+        return;
+    }
+
     uint mts_bits = floatBitsToUint(a.mantissa);
     a.mantissa = uintBitsToFloat(mts_bits & SGN_MANTISSA_MASK | NORMALIZED_EXP_BITS);
     a.exponent += int((mts_bits & EXP_MASK) >> MANTISSA_BIT_COUNT) - NORMALIZED_EXP_SUB;

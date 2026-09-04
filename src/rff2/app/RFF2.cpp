@@ -150,8 +150,8 @@ namespace merutilm::rff2 {
                                                         .center = fixed_point_complex_i1(
                                                                 "-0.85", "0", Perturbator::logZoomToExp10(2)),
                                                         .useParallelRefCalculation = false,
-                                                        .sync = ApproxPresets::UltraFast().genRefSync(),
-                                                        .compression = ApproxPresets::UltraFast().genRefComp(),
+                                                        .sync = ClcSyncPresets::Fast().genRefSync(),
+                                                        .compression = ClcCompressPresets::None().genRefComp(),
                                                         .periodMultiplier = 1,
                                                         .reuse = false,
                                                 },
@@ -159,7 +159,7 @@ namespace merutilm::rff2 {
                                                .appliedTermsCount = 8,
                                                .validatedTermsCount = 1,
                                                .epsilonPower = -5},
-                                        .mpa = ApproxPresets::UltraFast().genMPA(),
+                                        .mpa = ClcApproxPresets::UltraFast().genMPA(),
                                         .perturb = {.maxIteration = 300,
                                                     .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
                                                     .autoMaxIteration = true,
@@ -451,7 +451,8 @@ namespace merutilm::rff2 {
         // shared
         renderer->descriptorStorage->iteration->resetIterationBuffer(iw, ih);
         renderer->descriptorStorage->batchResult->resizeBatchResultBuffer(iw, ih);
-        renderer->computeIterate->resizeWriteBuffer(iw, ih);
+        renderer->computeIterateFloat->resizeWriteBuffer(iw, ih);
+        renderer->computeIterateFex->resizeWriteBuffer(iw, ih);
         renderer->descriptorStorage->renderMetaIterationVariant->resetIterationBuffer(iw, ih);
 
         // unique
@@ -463,7 +464,8 @@ namespace merutilm::rff2 {
 
 
         renderer->rg1->fractal3d->resetPiplineVI(iw, ih);
-        renderer->computeIterate->setExtent({iw, ih});
+        renderer->computeIterateFloat->setExtent({iw, ih});
+        renderer->computeIterateFex->setExtent({iw, ih});
         renderer->computeIgnoreIsolated->setExtent({iw, ih});
 
         renderer->visibleIterationBufferContext = std::make_unique<GraphicsMatrixBuffer<double>>(
@@ -872,168 +874,6 @@ namespace merutilm::rff2 {
         return true;
     }
 
-    void RFF2::fillIterationComputeShader(const MB2RenderDataBase *renderDataBase, const float startTime,
-                                          const Settings &s) {
-        setStatusMessage(Constants::Status::RENDER_STATUS, "Computing...");
-        const auto cache = dynamic_cast<ApproxTableCache<float> *>(approxTableCache.get());
-
-#ifndef NDEBUG
-        const auto tableData = cache ? cache->mpaTable.data() : nullptr;
-        const auto mapperData = cache ? cache->flattenIndexMapper.data() : nullptr;
-#else
-        const auto tableData = cache ? cache->mpaTable : nullptr;
-        const auto mapperData = cache ? cache->flattenIndexMapper : nullptr;
-#endif
-
-        const uint32_t width = getIterationBufferWidth();
-        const uint32_t height = getIterationBufferHeight();
-        const VkExtent2D extent{width, height};
-
-        vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
-
-        setStatusMessage(Constants::Status::RENDER_STATUS, "Preparing Render Meta...");
-
-        const auto tableLen = cache ? cache->tableSizeUsed : 0;
-        const auto mapperLen = cache ? cache->mapperSizeUsed : 0;
-
-        renderer->computeIterate->setMPAIgnore(s.render.computeShader.completelyIgnoreMpa);
-
-        renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
-        renderer->computeIterate->clearWriteBuffer(commandPool);
-        renderer->computeIterate->setMeta(renderData->fractalSettings, s.render,
-                                          dynamic_cast<MB2Reference<float> *>(renderDataBase->getReference())->refOrbit,
-                                          static_cast<complex<float>>(renderData->getPerturbator()->off),
-                                          renderData->fractalSettings.perturb.maxIteration,
-                                          tableData, tableLen, mapperData, mapperLen, commandPool);
-
-        // preparing render meta scope
-
-
-        if (state.interruptRequested()) {
-            return;
-        }
-
-        const vkh::BufferContext &iterResultCtx =
-                renderer->descriptorStorage->renderMetaIterationVariant->getResultIterationBuffer();
-        const vkh::BufferContext &batchResultCtx = renderer->descriptorStorage->batchResult->getBatchResultBuffer();
-        computeShaderManager->tryCreateOrResizeTransferDstBuffer(batchResultCtx, iterResultCtx, extent);
-
-        const vkh::BufferContext &dstBatchBuffer = computeShaderManager->dstBatchBuffer;
-        const vkh::BufferContext &dstIterBuffer = computeShaderManager->dstIterBuffer;
-
-
-        std::vector<uint32_t> stagingData(width * height);
-        uint64_t glitches = width * height;
-        uint64_t currentBatchIteration = 0;
-        uint32_t batchSizeMultiplier = 1;
-        bool prevIgnoreMpa = s.render.computeShader.completelyIgnoreMpa;
-
-        for (uint32_t i = 0; glitches > s.render.computeShader.allowedGlitchPixelCount; ++i) {
-
-            if (state.interruptRequested()) {
-                break;
-            }
-
-
-            computeShaderManager->fence->waitAndReset();
-
-            const auto actualTime = std::chrono::high_resolution_clock::now();
-
-            {
-                const vkh::CommandBuffer &commandBuffer = *computeShaderManager->commandBuffer;
-                const vkh::Fence &fence = *computeShaderManager->fence;
-                const VkCommandBuffer cbh = commandBuffer.getCommandBufferHandle();
-
-                const vkh::ScopedCommandBufferExecutor executor(*rootWindowContext, commandBuffer, fence,
-                                                                VK_NULL_HANDLE, VK_NULL_HANDLE);
-
-                renderer->computeIterate->cmdRender(cbh, 0, {});
-
-
-                if (s.render.computeShader.interpolateIsolated) {
-                    {
-                        vkh::ScopedPipelineBarrierRecorder spr(cbh);
-                        spr.cmdBufferMemoryBarrier(
-                                VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
-                                iterResultCtx.buffer, 0, iterResultCtx.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
-                        spr.cmdBufferMemoryBarrier(
-                                VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
-                                batchResultCtx.buffer, 0, batchResultCtx.bufferSize,
-                                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
-                    }
-
-                    renderer->computeIgnoreIsolated->cmdRender(cbh, 0, {});
-                }
-                {
-                    vkh::ScopedPipelineBarrierRecorder spr(cbh);
-                    spr.cmdBufferMemoryBarrier(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
-                                               iterResultCtx.buffer, 0, iterResultCtx.bufferSize,
-                                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-
-                    spr.cmdBufferMemoryBarrier(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
-                                               batchResultCtx.buffer, 0, batchResultCtx.bufferSize,
-                                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-                }
-                vkh::BufferImageContextUtils::cmdCopyBuffer(commandBuffer, iterResultCtx, dstIterBuffer);
-                vkh::BufferImageContextUtils::cmdCopyBuffer(commandBuffer, batchResultCtx, dstBatchBuffer);
-                {
-                    vkh::ScopedPipelineBarrierRecorder spr(cbh);
-                    spr.cmdBufferMemoryBarrier(VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT,
-                                               dstBatchBuffer.buffer, 0, dstBatchBuffer.bufferSize,
-                                               VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
-                    spr.cmdBufferMemoryBarrier(VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT,
-                                               dstIterBuffer.buffer, 0, dstIterBuffer.bufferSize,
-                                               VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
-                }
-            }
-
-            computeShaderManager->fence->wait();
-            const auto elapsed = std::chrono::duration_cast<std::chrono::duration<float>>(
-                    std::chrono::high_resolution_clock::now() - actualTime);
-
-            const float time = rootWindowContext->getWindow()->getTime();
-            setStatusMessage(Constants::Status::TIME_STATUS,
-                             std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            setStatusMessage(Constants::Status::RENDER_STATUS,
-                             std::format("Batching... ({:L}, {:L}, {:L}ms)", currentBatchIteration, glitches,
-                                         static_cast<uint32_t>(elapsed.count() * 1000)));
-
-
-            currentBatchIteration += Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier;
-
-            if (elapsed.count() < settings.render.computeShader.preferredBatchDuration) {
-                batchSizeMultiplier *= 2;
-                renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
-                                                       batchSizeMultiplier);
-            }
-            if (elapsed.count() > settings.render.computeShader.preferredBatchDuration * 2) {
-                batchSizeMultiplier = std::max(static_cast<uint32_t>(1), batchSizeMultiplier / 2);
-                renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
-                                                       batchSizeMultiplier);
-            }
-            bool currIgnoreMpa = settings.render.computeShader.completelyIgnoreMpa ||
-                                 (i > settings.render.computeShader.automaticAcceptMpaBatches &&
-                                  settings.render.computeShader.automaticAcceptMpaBatches != 0);
-            if (prevIgnoreMpa != currIgnoreMpa) {
-                batchSizeMultiplier = 1;
-                renderer->computeIterate->setMPAIgnore(currIgnoreMpa);
-                renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
-                prevIgnoreMpa = currIgnoreMpa;
-            }
-
-
-            memcpy(stagingData.data(), dstBatchBuffer.mappedMemory, dstBatchBuffer.bufferSize);
-            memcpy(renderer->visibleIterationBufferContext->getData().data(), dstIterBuffer.mappedMemory,
-                   dstIterBuffer.bufferSize);
-
-            glitches = std::ranges::count_if(stagingData, [](const uint32_t data) { return data != 1; });
-
-            renderer->visibleIterationBufferContext->markUpdate();
-            canShowPreview = true;
-        } // batching and checking scope
-    }
-
     void RFF2::fillIterationMultithreaded(const float startTime, const Settings &s) {
         std::atomic renderPixelsCount = 0;
         const uint16_t w = getIterationBufferWidth();
@@ -1112,11 +952,16 @@ namespace merutilm::rff2 {
         if (state.interruptRequested())
             return false;
 
-        if (const auto lightDat = dynamic_cast<FloatMB2RenderData *>(renderData.get());
-            lightDat && s.render.computeShader.use && !s.fractal.mpa.useCompress &&
+        const auto floatDat = dynamic_cast<FloatMB2RenderData *>(renderData.get());
+        const auto fexDat = dynamic_cast<FexMB2RenderData *>(renderData.get());
+        if ((floatDat || fexDat) && s.render.computeShader.use && !s.fractal.mpa.useCompress &&
             s.fractal.reference.compression.compressCriteria == 0) {
             renderer->rg0->iterationPalette->setPerturbationMainIterator(PerturbationMainIterator::GPU);
-            fillIterationComputeShader(lightDat, startTime, s);
+            if (floatDat) {
+                fillIterationComputeShader<float, fex>(startTime, s);
+            } else {
+                fillIterationComputeShader<fex, float>(startTime, s);
+            }
         } else {
             renderer->rg0->iterationPalette->setPerturbationMainIterator(PerturbationMainIterator::CPU);
             fillIterationMultithreaded(startTime, s);

@@ -37,18 +37,19 @@ namespace merutilm::rff2 {
     }
     void FnExplore::moveCursorToCenter(RFF2 &app) {
         if (ImGui::Checkbox("Auto Move Cursor To Center", &app.getSettings().explore.autoMoveCursorToCenter)) {
-            if (app.getSettings().explore.autoMoveCursorToCenter) app.moveCursorToCenter();
+            if (app.getSettings().explore.autoMoveCursorToCenter)
+                app.moveCursorToCenter();
         }
     }
 
     void FnExplore::reuseReference(RFF2 &app) {
-        auto& frt = app.getSettings().fractal;
+        auto &frt = app.getSettings().fractal;
         ImGui::Checkbox("Reuse Reference", &frt.reference.reuse);
     }
 
     void FnExplore::moveToCenter(RFF2 &app) {
-        const MB2RenderDataBase * renderData = app.getCurrentRenderData();
-        auto& frt = app.getSettings().fractal;
+        const MB2RenderDataBase *renderData = app.getCurrentRenderData();
+        auto &frt = app.getSettings().fractal;
         if (renderData && renderData->getPerturbator()) {
             if (ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
                 const int exp10 = Perturbator::logZoomToExp10(renderData->getReference()->logZoom);
@@ -64,15 +65,17 @@ namespace merutilm::rff2 {
 
     void FnExplore::goToOriginalReference(RFF2 &app) {
 
-        MB2RenderDataBase * renderData = app.getCurrentRenderData();
+        MB2RenderDataBase *renderData = app.getCurrentRenderData();
 
-        auto& frt = app.getSettings().fractal;
+        auto &frt = app.getSettings().fractal;
         if (frt.reference.reuse && renderData && renderData->getReference()) {
             if (ImGui::Button("Go to Original Reference", ImVec2(-FLT_MIN, 0))) {
                 const float startTime = app.rootWindowContext->getWindow()->getTime();
                 frt.reference.center = renderData->getReference()->center;
                 frt.general.logZoom = renderData->getReference()->logZoom;
-                renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax, app.getSettings().fractal.perturb, frt.reference.center, getActionWhileSeriesApprox(app, startTime));
+                renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
+                                      app.getSettings().fractal.perturb, frt.reference.center,
+                                      getActionWhileSeriesApprox(app, startTime));
                 app.getRequests().requestRecompute();
             }
         }
@@ -81,7 +84,7 @@ namespace merutilm::rff2 {
     void FnExplore::locateCenteredReference(RFF2 &app) {
 
         std::unique_ptr<MB2RenderDataBase> &data = app.getCurrentRenderDataOwnRef();
-                    Settings &settings = app.getSettings();
+        Settings &settings = app.getSettings();
         if (data && data->getReference() && data->getPerturbator() && !settings.fractal.reference.reuse) {
             if (ImGui::Button("Locate Centered Reference", ImVec2(-FLT_MIN, 0))) {
 
@@ -91,7 +94,8 @@ namespace merutilm::rff2 {
                     const float startTime = app.rootWindowContext->getWindow()->getTime();
                     const uint64_t period = data->getReference()->longestPeriod();
                     const auto center = MB2Locator::locateMinibrot(
-                            state, *data, *app.getApproxTableCache(), getActionWhileFindingMBCenter(app, period, startTime),
+                            state, *data, *app.getApproxTableCache(),
+                            getActionWhileFindingMBCenter(app, period, startTime),
                             getActionWhileSeriesApprox(app, startTime), getActionWhileCreatingTable(app, startTime),
                             getActionWhileFindingZoom(app, startTime));
                     if (center == nullptr)
@@ -99,18 +103,40 @@ namespace merutilm::rff2 {
 
                     FractalSettings refCalc = settings.fractal;
                     refCalc.reference.center = center->data->fractalSettings.reference.center;
-                    refCalc.general.logZoom = center->data->fractalSettings.general.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
+                    refCalc.general.logZoom =
+                            center->data->fractalSettings.general.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
                     int refExp10 = Perturbator::logZoomToExp10(refCalc.general.logZoom);
-                    if (refCalc.general.logZoom > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
-                        data = std::make_unique<DexMB2RenderData>(
-                                state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax, refExp10,
-                                data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime), getActionWhileSeriesApprox(app, startTime), getActionWhileCreatingTable(app, startTime));
-                    } else {
-                        data = std::make_unique<DoubleMB2RenderData>(
-                                state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax, refExp10,
-                                data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime), getActionWhileSeriesApprox(app, startTime), getActionWhileCreatingTable(app, startTime));
-                    }
 
+
+                    if (settings.render.computeShader.use) {
+                        if (refCalc.general.logZoom > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
+                            data = std::make_unique<FexMB2RenderData>(
+                                    state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax,
+                                    refExp10, data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime),
+                                    getActionWhileSeriesApprox(app, startTime),
+                                    getActionWhileCreatingTable(app, startTime));
+                        } else {
+                            data = std::make_unique<FloatMB2RenderData>(
+                                    state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax,
+                                    refExp10, data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime),
+                                    getActionWhileSeriesApprox(app, startTime),
+                                    getActionWhileCreatingTable(app, startTime));
+                        }
+                    } else {
+                        if (refCalc.general.logZoom > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
+                            data = std::make_unique<DexMB2RenderData>(
+                                    state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax,
+                                    refExp10, data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime),
+                                    getActionWhileSeriesApprox(app, startTime),
+                                    getActionWhileCreatingTable(app, startTime));
+                        } else {
+                            data = std::make_unique<DoubleMB2RenderData>(
+                                    state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax,
+                                    refExp10, data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime),
+                                    getActionWhileSeriesApprox(app, startTime),
+                                    getActionWhileCreatingTable(app, startTime));
+                        }
+                    }
                     settings.fractal.reference.reuse = true;
                     app.getRequests().requestRecompute();
                 });
@@ -153,15 +179,16 @@ namespace merutilm::rff2 {
                     }
                     const FractalSettings &locatorCalc = locator->data->fractalSettings;
                     settings.fractal.reference.center = locatorCalc.reference.center;
-                    settings.fractal.general.logZoom = locatorCalc.general.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
+                    settings.fractal.general.logZoom =
+                            locatorCalc.general.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
                     app.getRequests().requestRecompute();
                 });
             }
         }
     }
 
-    std::function<void(uint64_t, int)> FnExplore::getActionWhileFindingMBCenter(RFF2 &app,
-                                                                                const uint64_t longestPeriod, const float startTime) {
+    std::function<void(uint64_t, int)> FnExplore::getActionWhileFindingMBCenter(RFF2 &app, const uint64_t longestPeriod,
+                                                                                const float startTime) {
         return [&app, longestPeriod, startTime](const uint64_t p, int i) {
             static float time = app.rootWindowContext->getWindow()->getTime();
             const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
@@ -169,9 +196,9 @@ namespace merutilm::rff2 {
                 time = app.rootWindowContext->getWindow()->getTime();
                 app.setStatusMessage(Constants::Status::RENDER_STATUS,
                                      std::format("Location : {:.3f}%[{}]",
-                                     static_cast<float>(100 * p) / static_cast<float>(longestPeriod), i));
+                                                 static_cast<float>(100 * p) / static_cast<float>(longestPeriod), i));
                 app.setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
+                                     std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }
         };
     }
@@ -183,9 +210,9 @@ namespace merutilm::rff2 {
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = app.rootWindowContext->getWindow()->getTime();
                 app.setStatusMessage(Constants::Status::RENDER_STATUS,
-                std::format("Series-Approximation : {:.3f}%", i * 100, it));
+                                     std::format("Series-Approximation : {:.3f}%", i * 100, it));
                 app.setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
+                                     std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }
         };
     }
@@ -193,7 +220,6 @@ namespace merutilm::rff2 {
 
     std::function<void(uint64_t, float)> FnExplore::getActionWhileCreatingTable(RFF2 &app, const float startTime) {
         return [&app, startTime](const uint64_t, const float i) {
-
             static float time = app.rootWindowContext->getWindow()->getTime();
             const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
@@ -202,7 +228,7 @@ namespace merutilm::rff2 {
                                      std::format("MP-Approximation : {:.3f}%", i * 100));
 
                 app.setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
+                                     std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }
         };
     }
@@ -215,7 +241,7 @@ namespace merutilm::rff2 {
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Zoom : 10^{}", zoom));
                 app.setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
+                                     std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }
         };
     }
@@ -227,7 +253,7 @@ namespace merutilm::rff2 {
                 time = app.rootWindowContext->getWindow()->getTime();
                 app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "Period : {:L}", p));
                 app.setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
+                                     std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }
         };
     }

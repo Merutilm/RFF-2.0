@@ -28,8 +28,7 @@ layout (std430, set = DESC_RENDER_META, binding = 0) readonly buffer RenderMeta 
 layout (std430, set = DESC_RENDER_META, binding = 1) readonly buffer MPTableMeta {
     uint64_t len;
     uint selection_method;
-    //padding 4
-    PA[] table; //28 bytes, padding per elem 4
+    PA[] table;
 } mp_table_meta;
 
 layout (std430, set = DESC_RENDER_META, binding = 2) readonly buffer MPMapperMeta {

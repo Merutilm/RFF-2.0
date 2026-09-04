@@ -20,6 +20,7 @@
 #include "VideoProgressInfo.hpp"
 #include "ZoomAnimationInfo.hpp"
 #include "vulkan_helper/Application.hpp"
+#include "vulkan_helper/engine/executor/ScopedCommandBufferExecutor.hpp"
 
 namespace merutilm::rff2 {
     class RFF2 final : public vkh::Application {
@@ -117,7 +118,10 @@ namespace merutilm::rff2 {
         void beforeIterationFill() const;
 
         bool prepareRenderData(float startTime, Settings &s);
-        void fillIterationComputeShader(const MB2RenderDataBase *renderDataBase, float startTime, const Settings &s);
+
+
+        template<Number Num, Number Other>
+        void fillIterationComputeShader(float startTime, const Settings &s);
 
         void fillIterationMultithreaded(float startTime, const Settings &s);
         bool fillIteration(float startTime, const Settings &s);
@@ -186,6 +190,171 @@ namespace merutilm::rff2 {
         void renderControlImGui();
         void renderStatusImGui() const;
     };
+
+
+    template<Number Num, Number Other>
+    void RFF2::fillIterationComputeShader(float startTime, const Settings &s) {
+        setStatusMessage(Constants::Status::RENDER_STATUS, "Preparing Render Meta...");
+
+        const uint32_t width = getIterationBufferWidth();
+        const uint32_t height = getIterationBufferHeight();
+        const VkExtent2D extent{width, height};
+
+        CPCIterate<Num> *target = std::is_same_v<Num, float> ? dynamic_cast<CPCIterate<Num> *>(renderer->computeIterateFloat) : dynamic_cast<CPCIterate<Num> *>(renderer->computeIterateFex);
+        CPCIterate<Other> *other = std::is_same_v<Other, float> ? dynamic_cast<CPCIterate<Other> *>(renderer->computeIterateFloat) : dynamic_cast<CPCIterate<Other> *>(renderer->computeIterateFex);
+
+        vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
+
+        const auto cache = dynamic_cast<ApproxTableCache<Num> *>(approxTableCache.get());
+#ifndef NDEBUG
+        const auto tableData = cache ? cache->mpaTable.data() : nullptr;
+        const auto mapperData = cache ? cache->flattenIndexMapper.data() : nullptr;
+#else
+        const auto tableData = cache ? cache->mpaTable : nullptr;
+        const auto mapperData = cache ? cache->flattenIndexMapper : nullptr;
+#endif
+
+        const auto tableLen = cache ? approxTableCache->tableSizeUsed : 0;
+        const auto mapperLen = cache ? approxTableCache->mapperSizeUsed : 0;
+
+        other->clearMeta(commandPool);
+        target->setMPAIgnore(s.render.computeShader.completelyIgnoreMpa);
+        target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
+        target->clearWriteBuffer(commandPool);
+        target->setMeta(renderData->fractalSettings, s.render,
+                                          dynamic_cast<MB2Reference<Num> *>(renderData->getReference())->refOrbit,
+                                          static_cast<complex<Num>>(renderData->getPerturbator()->off),
+                                          renderData->fractalSettings.perturb.maxIteration, tableData, tableLen,
+                                          mapperData, mapperLen, commandPool);
+
+        // preparing render meta scope
+
+
+        if (state.interruptRequested()) {
+            return;
+        }
+
+        const vkh::BufferContext &iterResultCtx =
+                renderer->descriptorStorage->renderMetaIterationVariant->getResultIterationBuffer();
+        const vkh::BufferContext &batchResultCtx = renderer->descriptorStorage->batchResult->getBatchResultBuffer();
+        computeShaderManager->tryCreateOrResizeTransferDstBuffer(batchResultCtx, iterResultCtx, extent);
+
+        const vkh::BufferContext &dstBatchBuffer = computeShaderManager->dstBatchBuffer;
+        const vkh::BufferContext &dstIterBuffer = computeShaderManager->dstIterBuffer;
+
+
+        std::vector<uint32_t> stagingData(width * height);
+        uint64_t glitches = width * height;
+        uint64_t currentBatchIteration = 0;
+        uint32_t batchSizeMultiplier = 1;
+        bool prevIgnoreMpa = s.render.computeShader.completelyIgnoreMpa;
+
+        for (uint32_t i = 0; glitches > s.render.computeShader.allowedGlitchPixelCount; ++i) {
+
+            if (state.interruptRequested()) {
+                break;
+            }
+
+
+            computeShaderManager->fence->waitAndReset();
+
+            const auto actualTime = std::chrono::high_resolution_clock::now();
+
+            {
+                const vkh::CommandBuffer &commandBuffer = *computeShaderManager->commandBuffer;
+                const vkh::Fence &fence = *computeShaderManager->fence;
+                const VkCommandBuffer cbh = commandBuffer.getCommandBufferHandle();
+
+                const vkh::ScopedCommandBufferExecutor executor(*rootWindowContext, commandBuffer, fence,
+                                                                VK_NULL_HANDLE, VK_NULL_HANDLE);
+
+                target->cmdRender(cbh, 0, {});
+
+
+                if (s.render.computeShader.interpolateIsolated) {
+                    {
+                        vkh::ScopedPipelineBarrierRecorder spr(cbh);
+                        spr.cmdBufferMemoryBarrier(
+                                VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+                                iterResultCtx.buffer, 0, iterResultCtx.bufferSize, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+                        spr.cmdBufferMemoryBarrier(
+                                VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT,
+                                batchResultCtx.buffer, 0, batchResultCtx.bufferSize,
+                                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+                    }
+
+                    renderer->computeIgnoreIsolated->cmdRender(cbh, 0, {});
+                }
+                {
+                    vkh::ScopedPipelineBarrierRecorder spr(cbh);
+                    spr.cmdBufferMemoryBarrier(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                                               iterResultCtx.buffer, 0, iterResultCtx.bufferSize,
+                                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+                    spr.cmdBufferMemoryBarrier(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                                               batchResultCtx.buffer, 0, batchResultCtx.bufferSize,
+                                               VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+                }
+                vkh::BufferImageContextUtils::cmdCopyBuffer(commandBuffer, iterResultCtx, dstIterBuffer);
+                vkh::BufferImageContextUtils::cmdCopyBuffer(commandBuffer, batchResultCtx, dstBatchBuffer);
+                {
+                    vkh::ScopedPipelineBarrierRecorder spr(cbh);
+                    spr.cmdBufferMemoryBarrier(VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT,
+                                               dstBatchBuffer.buffer, 0, dstBatchBuffer.bufferSize,
+                                               VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+                    spr.cmdBufferMemoryBarrier(VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT,
+                                               dstIterBuffer.buffer, 0, dstIterBuffer.bufferSize,
+                                               VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
+                }
+            }
+
+            computeShaderManager->fence->wait();
+            const auto elapsed = std::chrono::duration_cast<std::chrono::duration<float>>(
+                    std::chrono::high_resolution_clock::now() - actualTime);
+
+            const float time = rootWindowContext->getWindow()->getTime();
+            setStatusMessage(Constants::Status::TIME_STATUS,
+                             std::format("Time : {}", Utilities::formatTime(time - startTime)));
+            setStatusMessage(Constants::Status::RENDER_STATUS,
+                             std::format("Batching... ({:L}, {:L}, {:L}ms)", currentBatchIteration, glitches,
+                                         static_cast<uint32_t>(elapsed.count() * 1000)));
+
+
+            currentBatchIteration += Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier;
+
+            if (elapsed.count() < settings.render.computeShader.preferredBatchDuration) {
+                batchSizeMultiplier *= 2;
+                target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
+                                                       batchSizeMultiplier);
+            }
+            if (elapsed.count() > settings.render.computeShader.preferredBatchDuration * 2) {
+                batchSizeMultiplier = std::max(static_cast<uint32_t>(1), batchSizeMultiplier / 2);
+                target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
+                                                       batchSizeMultiplier);
+            }
+            bool currIgnoreMpa = settings.render.computeShader.completelyIgnoreMpa ||
+                                 (i > settings.render.computeShader.automaticAcceptMpaBatches &&
+                                  settings.render.computeShader.automaticAcceptMpaBatches != 0);
+            if (prevIgnoreMpa != currIgnoreMpa) {
+                batchSizeMultiplier = 1;
+                target->setMPAIgnore(currIgnoreMpa);
+                target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
+                prevIgnoreMpa = currIgnoreMpa;
+            }
+
+
+            memcpy(stagingData.data(), dstBatchBuffer.mappedMemory, dstBatchBuffer.bufferSize);
+            memcpy(renderer->visibleIterationBufferContext->getData().data(), dstIterBuffer.mappedMemory,
+                   dstIterBuffer.bufferSize);
+
+            glitches = std::ranges::count_if(stagingData, [](const uint32_t data) { return data != 1; });
+
+            renderer->visibleIterationBufferContext->markUpdate();
+            canShowPreview = true;
+        } // batching and checking scope
+    }
+
 
 
     template<typename P>

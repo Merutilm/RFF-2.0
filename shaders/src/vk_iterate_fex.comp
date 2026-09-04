@@ -149,6 +149,8 @@ void main() {
             dz = z;
         }
 
+        fex_complex_try_normalize(dz);
+
         if (curr_distance2 > bailout2) {
             float prev_distance = sqrt(prev_distance2);
             float curr_distance = sqrt(curr_distance2);
@@ -156,6 +158,7 @@ void main() {
             batch_result_data.completed[index] = 1;
             return;
         }
+
     }
 
     if (iteration >= render_meta.max_iteration) {

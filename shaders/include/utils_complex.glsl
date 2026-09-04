@@ -33,6 +33,12 @@ FexComplex fex_complex_mul(FexComplex a, FexComplex b)
     );
 }
 
+void fex_complex_try_normalize(inout FexComplex a)
+{
+    fex_try_normalize(a.re);
+    fex_try_normalize(a.im);
+}
+
 vec2 fex_complex_cast(FexComplex a) {
     return vec2(fex_cast(a.re), fex_cast(a.im));
 }
@@ -79,7 +85,7 @@ Fex norm_approx(FexComplex v) {
         return fex(0);
     }
 
-    return fex_mul(fex_div(fex_add(max, fex_mul(fex(0.428f), min)), max), min);
+    return fex_add(max, fex_mul(fex_div(fex_mul(fex(0.428f), min), max), min));
 }
 
 

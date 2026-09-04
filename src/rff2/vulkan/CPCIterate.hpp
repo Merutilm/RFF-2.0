@@ -51,13 +51,14 @@ namespace merutilm::rff2 {
 
 
         explicit CPCIterate(vkh::Engine &engine, vkh::WindowContext &wc) :
-            ComputePipelineConfigurator(engine, wc, "vk_iterate.comp") {}
+            ComputePipelineConfigurator(engine, wc, std::is_same_v<Num, fex> ? "vk_iterate_fex.comp" : "vk_iterate.comp") {}
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
         void pipelineInitialized() override;
         void renderContextRefreshed() override;
 
         vkh::PipelineSpecialization createSpecializationInfo() override;
+        void clearMeta(vkh::CommandPool &commandPool) const;
 
         void setMeta(const FractalSettings &frt, const RenderSettings &render,
                      const std::vector<complex<Num>> &reference, complex<Num> offset, uint64_t maxIteration,
@@ -99,6 +100,39 @@ namespace merutilm::rff2 {
         specialization.appendEntry(SPECIALIZATION_MPA_MODE, std::vector{0, 1});
         return specialization;
     }
+    template<Number Num>
+    void CPCIterate<Num>::clearMeta(vkh::CommandPool &commandPool) const {
+        using namespace SharedDescriptorTemplate;
+        auto &desc = getDescriptor(SET_RENDER_META);
+        auto &rmSSBO = desc.template get<vkh::ShaderStorage>(0, BINDING_RM_SSBO);
+        auto &rmTableSSBO = desc.template get<vkh::ShaderStorage>(0, BINDING_RM_TABLE_SSBO);
+        auto &rmMapperSSBO = desc.template get<vkh::ShaderStorage>(0, BINDING_RM_MAPPER_SSBO);
+
+        auto &rmSSBOHost = rmSSBO.getHostObject();
+        auto &rmTableSSBOHost = rmTableSSBO.getHostObject();
+        auto &rmMapperSSBOHost = rmMapperSSBO.getHostObject();
+
+        rmSSBOHost.template resizeArray<complex<Num>>(TARGET_RM_ORBIT, 0);
+        rmTableSSBOHost.template resizeArray<PA<Num>>(TARGET_RM_TABLE_DATA, 0);
+        rmMapperSSBOHost.template resizeArray<MPAIndexMapper>(TARGET_RM_MAPPER_DATA, 0);
+
+        rmSSBO.reloadBuffer();
+        rmTableSSBO.reloadBuffer();
+        rmMapperSSBO.reloadBuffer();
+
+        rmSSBO.update();
+        rmTableSSBO.update();
+        rmMapperSSBO.update();
+
+        rmSSBO.localize(commandPool);
+        rmTableSSBO.localize(commandPool);
+        rmMapperSSBO.localize(commandPool);
+        writeDescriptorMF([&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            desc.queue(queue, frameIndex, {}, {BINDING_RM_SSBO, BINDING_RM_TABLE_SSBO, BINDING_RM_MAPPER_SSBO});
+        });
+    }
+
+
     template<Number Num>
     void CPCIterate<Num>::setMeta(const FractalSettings &frt, const RenderSettings &render,
                              const std::vector<complex<Num>> &reference, const complex<Num> offset,
@@ -161,7 +195,7 @@ namespace merutilm::rff2 {
         auto &rmBatchSSBO = desc.template get<vkh::ShaderStorage>(0, BINDING_RM_BATCH_SSBO);
         auto &rmBatchSSBOHost = rmBatchSSBO.getHostObject();
 
-        rmBatchSSBOHost.template resizeAndClear<ComputeShaderBatchStagingData<float>>(TARGET_RM_BATCH_STAGING_DATA,
+        rmBatchSSBOHost.template resizeAndClear<ComputeShaderBatchStagingData<Num>>(TARGET_RM_BATCH_STAGING_DATA,
                                                                              width * height);
 
         rmBatchSSBO.reloadBuffer();
@@ -210,7 +244,6 @@ namespace merutilm::rff2 {
         using namespace SharedDescriptorTemplate;
 
         appendDescriptor<DescRenderMetaIterationVariant>(SET_ITERATION, descriptors);
-
         vkh::HostDataObjectManager homRm;
         homRm.template reserve<uint64_t>(TARGET_RM_MAX_ITERATION);
         homRm.template reserve<uint64_t>(TARGET_RM_MAX_REF_ITERATION);
