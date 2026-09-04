@@ -157,12 +157,12 @@ void main() {
     }
 
     if (iteration >= render_meta.max_iteration) {
-        iteration_settings.iterations[index] = render_meta.max_iteration;
+        iteration_settings.iterations[index] = double(render_meta.max_iteration);
         batch_result_data.completed[index] = 1;
         return;
     }
 
-    iteration_settings.iterations[index] = iteration;
+    iteration_settings.iterations[index] = double(iteration);
     batch_data.staging_values[index].dz = dz;
     batch_data.staging_values[index].ref_iteration = ref_iteration;
     batch_data.staging_values[index].iteration = iteration;

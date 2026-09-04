@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../../settings/ShdStripeSettings.h"
-#include "../../Presets.h"
+#include "../../Presets.hpp"
 
 
 namespace merutilm::rff2::ShdStripePresets {

@@ -4,40 +4,73 @@
 
 #include "FnPreset.hpp"
 
-#include "../preset/calc/CalculationPresets.h"
-#include "../preset/render/RenderPresets.h"
-#include "../preset/resolution/ResolutionPresets.h"
-#include "../preset/shader/bloom/ShdBloomPresets.h"
-#include "../preset/shader/color/ShdColorPresets.h"
-#include "../preset/shader/fog/ShdFogPresets.h"
-#include "../preset/shader/palette/ShdPalettePresets.h"
-#include "../preset/shader/slope/ShdSlopePresets.h"
-#include "../preset/shader/stripe/ShdStripePresets.h"
+#include "../preset/calc/approx/ClcApproxPresets.hpp"
+#include "../preset/calc/compress/ClcCompressPresets.hpp"
+#include "../preset/calc/sync/ClcSyncPresets.hpp"
+#include "../preset/render/compute/RndComputePresets.hpp"
+#include "../preset/render/display/RndDisplayPresets.hpp"
+#include "../preset/resolution/ResolutionPresets.hpp"
+#include "../preset/shader/bloom/ShdBloomPresets.hpp"
+#include "../preset/shader/color/ShdColorPresets.hpp"
+#include "../preset/shader/fog/ShdFogPresets.hpp"
+#include "../preset/shader/palette/ShdPalettePresets.hpp"
+#include "../preset/shader/slope/ShdSlopePresets.hpp"
+#include "../preset/shader/stripe/ShdStripePresets.hpp"
 
 namespace merutilm::rff2 {
 
 
     void FnPreset::calculation(RFF2 &app) {
         if (ImGui::TreeNode("Calculation")) {
-            addPresetExecutor(app, CalculationPresets::UltraFast());
-            addPresetExecutor(app, CalculationPresets::Fast());
-            addPresetExecutor(app, CalculationPresets::Normal());
-            addPresetExecutor(app, CalculationPresets::Best());
-            addPresetExecutor(app, CalculationPresets::UltraBest());
-            addPresetExecutor(app, CalculationPresets::Stable());
-            addPresetExecutor(app, CalculationPresets::MoreStable());
-            addPresetExecutor(app, CalculationPresets::UltraStable());
+            if (ImGui::TreeNode("Approximation")) {
+
+
+                addPresetExecutor(app, ClcApproxPresets::UltraFast());
+                addPresetExecutor(app, ClcApproxPresets::Fast());
+                addPresetExecutor(app, ClcApproxPresets::Normal());
+                addPresetExecutor(app, ClcApproxPresets::Best());
+                addPresetExecutor(app, ClcApproxPresets::UltraBest());
+                addPresetExecutor(app, ClcApproxPresets::LightSpirals());
+                addPresetExecutor(app, ClcApproxPresets::DenseSpirals());
+                addPresetExecutor(app, ClcApproxPresets::ExtremelyDenseSpirals());
+                ImGui::TreePop();
+            }
+            if (ImGui::TreeNode("Compression")) {
+                addPresetExecutor(app, ClcCompressPresets::None());
+                addPresetExecutor(app, ClcCompressPresets::Stable());
+                addPresetExecutor(app, ClcCompressPresets::MoreStable());
+                addPresetExecutor(app, ClcCompressPresets::UltraStable());
+                ImGui::TreePop();
+            }
+            if (ImGui::TreeNode("Synchronization")) {
+                addPresetExecutor(app, ClcSyncPresets::Fast());
+                addPresetExecutor(app, ClcSyncPresets::Normal());
+                addPresetExecutor(app, ClcSyncPresets::Best());
+
+                ImGui::TreePop();
+            }
             ImGui::TreePop();
         }
     }
     void FnPreset::render(RFF2 &app) {
         if (ImGui::TreeNode("Render")) {
-            addPresetExecutor(app, RenderPresets::Potato());
-            addPresetExecutor(app, RenderPresets::Low());
-            addPresetExecutor(app, RenderPresets::Medium());
-            addPresetExecutor(app, RenderPresets::High());
-            addPresetExecutor(app, RenderPresets::Ultra());
-            addPresetExecutor(app, RenderPresets::Extreme());
+            if (ImGui::TreeNode("Display")) {
+                addPresetExecutor(app, RndDisplayPresets::Potato());
+                addPresetExecutor(app, RndDisplayPresets::Low());
+                addPresetExecutor(app, RndDisplayPresets::Medium());
+                addPresetExecutor(app, RndDisplayPresets::High());
+                addPresetExecutor(app, RndDisplayPresets::Ultra());
+                addPresetExecutor(app, RndDisplayPresets::Extreme());
+                ImGui::TreePop();
+            }
+            if (ImGui::TreeNode("Compute Shader")) {
+
+                addPresetExecutor(app, RndComputePresets::None());
+                addPresetExecutor(app, RndComputePresets::General());
+                addPresetExecutor(app, RndComputePresets::LightZoomSpirals());
+                addPresetExecutor(app, RndComputePresets::DeepZoomSpirals());
+                ImGui::TreePop();
+            }
             ImGui::TreePop();
         }
     }
@@ -101,12 +134,12 @@ namespace merutilm::rff2 {
                 ImGui::TreePop();
             }
             if (ImGui::TreeNode("Bloom")) {
-                addPresetExecutor(app, BloomPresets::Disabled());
-                addPresetExecutor(app, BloomPresets::Highlighted());
-                addPresetExecutor(app, BloomPresets::HighlightedStrong());
-                addPresetExecutor(app, BloomPresets::Weak());
-                addPresetExecutor(app, BloomPresets::Normal());
-                addPresetExecutor(app, BloomPresets::Strong());
+                addPresetExecutor(app, ShdBloomPresets::Disabled());
+                addPresetExecutor(app, ShdBloomPresets::Highlighted());
+                addPresetExecutor(app, ShdBloomPresets::HighlightedStrong());
+                addPresetExecutor(app, ShdBloomPresets::Weak());
+                addPresetExecutor(app, ShdBloomPresets::Normal());
+                addPresetExecutor(app, ShdBloomPresets::Strong());
                 ImGui::TreePop();
             }
             ImGui::TreePop();

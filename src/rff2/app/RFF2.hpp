@@ -9,7 +9,7 @@
 #include "../mb/MB2Perturbator.h"
 #include "../mb/MB2RenderData.hpp"
 #include "../parallel/BackgroundThreads.h"
-#include "../preset/Presets.h"
+#include "../preset/Presets.hpp"
 #include "../settings/Settings.h"
 #include "../vulkan/desc/SharedDescriptorStorage.hpp"
 #include "ComputeShaderRenderManager.hpp"
@@ -192,15 +192,31 @@ namespace merutilm::rff2 {
         requires std::is_base_of_v<Preset, P>
     void RFF2::applyPreset(P &preset) {
         if constexpr (std::is_base_of_v<Presets::CalculationPreset, P>) {
-            settings.fractal.reference.sync = preset.genRefSync();
-            settings.fractal.mpa = preset.genMPA();
-            settings.fractal.reference.compression = preset.genRefComp();
-            requests.requestRecompute();
+            if constexpr (std::is_base_of_v<Presets::CalculationPresets::ApproxPreset, P>) {
+                settings.fractal.mpa = preset.genMPA();
+                requests.requestRecompute();
+
+            }
+            if constexpr (std::is_base_of_v<Presets::CalculationPresets::CompressPreset, P>) {
+                settings.fractal.mpa = preset.genMPA();
+                settings.fractal.reference.compression = preset.genRefComp();
+                requests.requestRecompute();
+            }
+            if constexpr (std::is_base_of_v<Presets::CalculationPresets::ReferenceSyncPreset, P>) {
+                settings.fractal.reference.sync = preset.genRefSync();
+                requests.requestRecompute();
+            }
         }
         if constexpr (std::is_base_of_v<Presets::RenderPreset, P>) {
-            settings.render = preset.genRender();
-            requests.requestResize(rootWindowContext->getSwapchain().getSwapchainExtent());
-            requests.requestRecompute();
+            if constexpr (std::is_base_of_v<Presets::RenderPresets::DisplayPreset, P>) {
+                settings.render.display = preset.genDisplay();
+                requests.requestResize(rootWindowContext->getSwapchain().getSwapchainExtent());
+                requests.requestRecompute();
+            }
+            if constexpr (std::is_base_of_v<Presets::RenderPresets::ComputeShaderPreset, P>) {
+                settings.render.computeShader = preset.genComputeShader();
+                requests.requestRecompute();
+            }
         }
         if constexpr (std::is_base_of_v<Presets::ResolutionPreset, P>) {
             auto r = preset.genResolution();

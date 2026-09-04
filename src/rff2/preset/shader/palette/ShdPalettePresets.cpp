@@ -2,20 +2,20 @@
 // Created by Merutilm on 2025-05-28.
 //
 
-#include "ShdPalettePresets.h"
+#include "ShdPalettePresets.hpp"
 
 #include <algorithm>
 #include <glm/glm.hpp>
 
 #include "../../../util/ColorUtils.h"
 
-namespace merutilm::rff2 {
+namespace merutilm::rff2::ShdPalettePresets {
 #define PI static_cast<float>(M_PI)
-    std::string ShdPalettePresets::Classic1::getName() const {
+    std::string Classic1::getName() const {
         return "Classic 1";
     }
 
-    ShdPaletteSettings ShdPalettePresets::Classic1::genPalette() const {
+    ShdPaletteSettings Classic1::genPalette() const {
         ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
@@ -25,14 +25,17 @@ namespace merutilm::rff2 {
             p.colors.emplace_back(r, g, b, 1);
         }
         p.iterationInterval = 250;
+        p.offsetRatio = 0;
+        p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
 
-    std::string ShdPalettePresets::Classic2::getName() const {
+    std::string Classic2::getName() const {
         return "Classic 2";
     }
 
-    ShdPaletteSettings ShdPalettePresets::Classic2::genPalette() const {
+    ShdPaletteSettings Classic2::genPalette() const {
         ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
@@ -42,14 +45,17 @@ namespace merutilm::rff2 {
             p.colors.emplace_back(r, g, b, 1);
         }
         p.iterationInterval = 250;
+        p.offsetRatio = 0;
+        p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
 
-    std::string ShdPalettePresets::Azure::getName() const {
+    std::string Azure::getName() const {
         return "Azure";
     }
 
-    ShdPaletteSettings ShdPalettePresets::Azure::genPalette() const {
+    ShdPaletteSettings Azure::genPalette() const {
         ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
@@ -60,14 +66,16 @@ namespace merutilm::rff2 {
         }
         p.iterationInterval = 300;
         p.offsetRatio = 0.7f;
+        p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
 
-    std::string ShdPalettePresets::Cinematic::getName() const {
+    std::string Cinematic::getName() const {
         return "Cinematic";
     }
 
-    ShdPaletteSettings ShdPalettePresets::Cinematic::genPalette() const {
+    ShdPaletteSettings Cinematic::genPalette() const {
         ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
@@ -79,14 +87,16 @@ namespace merutilm::rff2 {
         }
         p.iterationInterval = 100;
         p.offsetRatio = 0.7f;
+        p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
 
-    std::string ShdPalettePresets::Desert::getName() const {
+    std::string Desert::getName() const {
         return "Desert";
     }
 
-    ShdPaletteSettings ShdPalettePresets::Desert::genPalette() const {
+    ShdPaletteSettings Desert::genPalette() const {
         ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
@@ -95,14 +105,16 @@ namespace merutilm::rff2 {
         }
         p.iterationInterval = 250;
         p.offsetRatio = 0.7f;
+        p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
 
-    std::string ShdPalettePresets::Flame::getName() const {
+    std::string Flame::getName() const {
         return "Flame";
     }
 
-    ShdPaletteSettings ShdPalettePresets::Flame::genPalette() const {
+    ShdPaletteSettings Flame::genPalette() const {
         ShdPaletteSettings p = {};
         for (uint8_t cnt = 0; cnt < 200; ++cnt) {
             const float i = PI * cnt / 100;
@@ -113,15 +125,17 @@ namespace merutilm::rff2 {
         }
         p.iterationInterval = 300;
         p.offsetRatio = 0.7f;
+        p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
 
 
-    std::string ShdPalettePresets::LongRandom64::getName() const {
+    std::string LongRandom64::getName() const {
         return "Long Random 64";
     }
 
-    ShdPaletteSettings ShdPalettePresets::LongRandom64::genPalette() const {
+    ShdPaletteSettings LongRandom64::genPalette() const {
         auto p = ShdPaletteSettings();
         p.colors.reserve(64);
 
@@ -171,11 +185,11 @@ namespace merutilm::rff2 {
         return p;
     }
 
-    std::string ShdPalettePresets::LongRainbow7::getName() const {
+    std::string LongRainbow7::getName() const {
         return "Long Rainbow 7";
     }
 
-    ShdPaletteSettings ShdPalettePresets::LongRainbow7::genPalette() const {
+    ShdPaletteSettings LongRainbow7::genPalette() const {
         auto p = ShdPaletteSettings();
         p.colors.reserve(7);
         p.colors.push_back(glm::vec4{0.909803f, 0.078431f, 0.086274f, 1.000000f});
@@ -228,11 +242,11 @@ namespace merutilm::rff2 {
         return p;
     }
 
-    std::string ShdPalettePresets::Rainbow::getName() const {
+    std::string Rainbow::getName() const {
         return "Rainbow";
     }
 
-    ShdPaletteSettings ShdPalettePresets::Rainbow::genPalette() const {
+    ShdPaletteSettings Rainbow::genPalette() const {
         auto p = ShdPaletteSettings();
         p.colors.reserve(7);
 

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../../settings/ShdPaletteSettings.h"
-#include "../../Presets.h"
+#include "../../Presets.hpp"
 
 
 namespace merutilm::rff2::ShdPalettePresets {

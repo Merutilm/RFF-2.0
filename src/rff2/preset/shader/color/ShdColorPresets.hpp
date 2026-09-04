@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../../../settings/ShdColorSettings.h"
-#include "../../Presets.h"
+#include "../../Presets.hpp"
 
 namespace merutilm::rff2::ShdColorPresets {
     struct Disabled final : public Presets::ShaderPresets::ColorPreset {

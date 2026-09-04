@@ -60,7 +60,7 @@ namespace merutilm::rff2 {
         vkh::PipelineSpecialization createSpecializationInfo() override;
 
         void setMeta(const FractalSettings &frt, const RenderSettings &render,
-                     const std::vector<complex<Num>> &reference, complex<Num> offset, uint32_t maxIteration,
+                     const std::vector<complex<Num>> &reference, complex<Num> offset, uint64_t maxIteration,
                      const PA<Num> *mpTableData, uint64_t tableLen, const MPAIndexMapper *mapperData,
                      uint64_t mapperLen, vkh::CommandPool &commandPool) const;
 
@@ -102,7 +102,7 @@ namespace merutilm::rff2 {
     template<Number Num>
     void CPCIterate<Num>::setMeta(const FractalSettings &frt, const RenderSettings &render,
                              const std::vector<complex<Num>> &reference, const complex<Num> offset,
-                             const uint32_t maxIteration, const PA<Num> *mpTableData, const uint64_t tableLen,
+                             const uint64_t maxIteration, const PA<Num> *mpTableData, const uint64_t tableLen,
                              const MPAIndexMapper *mapperData, const uint64_t mapperLen,
                              vkh::CommandPool &commandPool) const {
 
@@ -120,7 +120,7 @@ namespace merutilm::rff2 {
         rmSSBOHost.template set<uint64_t>(TARGET_RM_MAX_REF_ITERATION, reference.size() - 1);
         rmSSBOHost.template set<float>(TARGET_RM_LOG_ZOOM, frt.general.logZoom);
         rmSSBOHost.template set<float>(TARGET_RM_BAILOUT, frt.general.bailout);
-        rmSSBOHost.template set<float>(TARGET_RM_CLARITY_MULTIPLIER, render.clarityMultiplier);
+        rmSSBOHost.template set<float>(TARGET_RM_CLARITY_MULTIPLIER, render.display.clarityMultiplier);
         rmSSBOHost.template set<uint32_t>(TARGET_RM_DECIMALIZE_ITERATION_METHOD,
                                  static_cast<uint32_t>(frt.perturb.decimalizeIterationMethod));
         rmSSBOHost.template set<complex<Num>>(TARGET_RM_OFFSET, static_cast<complex<Num>>(offset));

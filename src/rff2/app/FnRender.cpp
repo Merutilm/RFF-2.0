@@ -11,25 +11,14 @@
 namespace merutilm::rff2 {
 
     void FnRender::setResolutionProperties(RFF2 &app) {
-        static bool setResolution = false;
-        static std::array<uint32_t, 2> resolutionTemp;
-        static float clarityMultiplierTemp;
-        static bool valueChanged = false;
+
         auto [width, height] = app.getWindowContext().getSwapchain().getSwapchainExtent();
-        float &clarityMultiplier = app.getSettings().render.clarityMultiplier;
+        const float clarityMultiplier = app.getSettings().render.display.clarityMultiplier;
+        static std::array resolutionTemp{width, height};
+        static float clarityMultiplierTemp = clarityMultiplier;
+        static bool valueChanged = false;
 
-
-        if (ImGui::Checkbox("Set Resolution Properties", &setResolution)) {
-            resolutionTemp[0] = width;
-            resolutionTemp[1] = height;
-            clarityMultiplierTemp = clarityMultiplier;
-            valueChanged = false;
-        }
-
-        if (setResolution) {
-
-
-            ImGui::Begin("Set Resolution Properties");
+        if (ImGui::TreeNode("Set Resolution Properties")) {
 
             if (ImGui::InputScalarN("Window size", ImGuiDataType_U32, resolutionTemp.data(), 2)) {
                 resolutionTemp[0] = std::max(resolutionTemp[0], Constants::Render::MIN_WINDOW_WIDTH);
@@ -64,35 +53,27 @@ namespace merutilm::rff2 {
             if (ImGui::Button(str.data(), ImVec2(-FLT_MIN, 0))) {
                 app.getWindowContext().getWindow()->setResolution(static_cast<int>(resolutionTemp[0]),
                                                                   static_cast<int>(resolutionTemp[1]));
-                app.getSettings().render.clarityMultiplier = clarityMultiplierTemp;
+                app.getSettings().render.display.clarityMultiplier = clarityMultiplierTemp;
                 app.getRequests().requestResize(swapchainExtent);
                 valueChanged = false;
             } else if (!valueChanged)
                 ImGui::EndDisabled();
 
-            if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0))) {
-                setResolution = false;
-            }
 
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
 
     void FnRender::setRenderProperties(RFF2 &app) {
-        static bool setRenderProperties = false;
 
-        ImGui::Checkbox("Set Render Properties", &setRenderProperties);
+        if (ImGui::TreeNode("Set Render Properties")) {
 
-        if (setRenderProperties) {
-
-            float &fps = app.getSettings().render.fps;
+            float &fps = app.getSettings().render.display.fps;
 
 
             constexpr uint32_t minThread = 1;
 
             const uint32_t maxThreads = std::thread::hardware_concurrency();
-
-            ImGui::Begin("Set Render Properties");
 
             if (ImGui::SliderFloat("Framerate", &fps, Constants::Render::MIN_FPS, Constants::Render::MAX_FPS)) {
                 fps = std::clamp(fps, Constants::Render::MIN_FPS, Constants::Render::MAX_FPS);
@@ -100,7 +81,7 @@ namespace merutilm::rff2 {
             }
             Utilities::imguiHelpMarker("Sets the Framerate.");
 
-            if (Utilities::imguiDropdown("Pixel Render Priority", &app.getSettings().render.pixelRenderPriority)) {
+            if (Utilities::imguiDropdown("Pixel Render Priority", &app.getSettings().render.display.pixelRenderPriority)) {
                 // noop
             }
 
@@ -111,24 +92,16 @@ namespace merutilm::rff2 {
             }
             Utilities::imguiHelpMarker("Sets the number of threads while rendering an image.");
 
-            if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0))) {
-                setRenderProperties = false;
-            }
-
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
 
     void FnRender::setComputeShader(RFF2 &app) {
-        static bool setComputeShader = false;
 
         if (!app.engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceFeatures().shaderInt64)
             return;
 
-        ImGui::Checkbox("Compute Shader", &setComputeShader);
-        if (setComputeShader) {
-
-            ImGui::Begin("Compute Shader");
+        if (ImGui::TreeNode("Compute Shader")) {
 
             auto &[use, preferredBatchDuration, allowedGlitchPixelCount,  completelyIgnoreMpa, automaticAcceptMpaBatches, interpolateIsolated] = app.getSettings().render.computeShader;
 
@@ -168,14 +141,8 @@ namespace merutilm::rff2 {
 
                 ImGui::Checkbox("Interpolate Isolated Pixel", &interpolateIsolated);
             }
-            if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
-                app.getRequests().requestRecompute();
-            }
-            if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0))) {
-                setComputeShader = false;
-            }
 
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
 

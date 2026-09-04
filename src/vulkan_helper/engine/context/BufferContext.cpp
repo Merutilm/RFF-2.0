@@ -8,7 +8,7 @@
 namespace merutilm::vkh {
     BufferContext BufferContext::createContext(Core & core, const BufferInitInfo &bufferInitInfo) {
         BufferContext result = {};
-        result.allocationSize = BufferImageUtils::initBuffer(core, bufferInitInfo, &result.buffer, &result.bufferMemory);
+        BufferImageUtils::initBuffer(core, bufferInitInfo, &result.buffer, &result.bufferMemory, &result.allocationSize);
         result.bufferSize = bufferInitInfo.size;
         return result;
     }

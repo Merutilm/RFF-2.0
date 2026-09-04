@@ -4,10 +4,10 @@
 
 #pragma once
 #include "../../../settings/ShdBloomSettings.h"
-#include "../../Presets.h"
+#include "../../Presets.hpp"
 
 
-namespace merutilm::rff2::BloomPresets {
+namespace merutilm::rff2::ShdBloomPresets {
     struct Disabled final : public Presets::ShaderPresets::BloomPreset {
         [[nodiscard]] std::string getName() const override;
 

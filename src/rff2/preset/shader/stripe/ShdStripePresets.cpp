@@ -2,47 +2,47 @@
 // Created by Merutilm on 2025-05-28.
 //
 
-#include "ShdStripePresets.h"
+#include "ShdStripePresets.hpp"
 
-namespace merutilm::rff2 {
+namespace merutilm::rff2::ShdStripePresets {
 
-    std::string ShdStripePresets::Disabled::getName() const {
+    std::string Disabled::getName() const {
         return "Disabled";
     }
 
-    ShdStripeSettings ShdStripePresets::Disabled::genStripe() const {
+    ShdStripeSettings Disabled::genStripe() const {
         return ShdStripeSettings{ShdStripeType::NONE, 10, 50, 1, 0, 0, ShdIterationColoringMethod::LINEAR};
     }
 
-    std::string ShdStripePresets::SlowAnimated::getName() const {
+    std::string SlowAnimated::getName() const {
         return "Slow Animated";
     }
 
-    ShdStripeSettings ShdStripePresets::SlowAnimated::genStripe() const {
+    ShdStripeSettings SlowAnimated::genStripe() const {
         return ShdStripeSettings{ShdStripeType::SINGLE_DIRECTION, 10, 50, 1, 0, 0.5f, ShdIterationColoringMethod::LINEAR};
     }
 
-    std::string ShdStripePresets::FastAnimated::getName() const {
+    std::string FastAnimated::getName() const {
         return "Fast Animated";
     }
 
-    ShdStripeSettings ShdStripePresets::FastAnimated::genStripe() const {
+    ShdStripeSettings FastAnimated::genStripe() const {
         return ShdStripeSettings{ShdStripeType::SINGLE_DIRECTION, 100, 500, 1, 0, 5, ShdIterationColoringMethod::LINEAR};
     }
 
-    std::string ShdStripePresets::Smooth::getName() const {
+    std::string Smooth::getName() const {
         return "Smooth";
     }
 
-    ShdStripeSettings ShdStripePresets::Smooth::genStripe() const {
+    ShdStripeSettings Smooth::genStripe() const {
         return ShdStripeSettings{ShdStripeType::SMOOTH, 1, 1, 1, 0, 0.25f, ShdIterationColoringMethod::LINEAR};
     }
 
-    std::string ShdStripePresets::SmoothTranslucent::getName() const {
+    std::string SmoothTranslucent::getName() const {
         return "Smooth Translucent";
     }
 
-    ShdStripeSettings ShdStripePresets::SmoothTranslucent::genStripe() const {
+    ShdStripeSettings SmoothTranslucent::genStripe() const {
         return ShdStripeSettings{ShdStripeType::SQUARED, 1, 1, 0.5f, 0, 1, ShdIterationColoringMethod::LINEAR};
     }
 }

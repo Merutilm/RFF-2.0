@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "../Presets.h"
+#include "../Presets.hpp"
 
 namespace merutilm::rff2::ResolutionPresets {
     struct L1 final : public Presets::ResolutionPreset {

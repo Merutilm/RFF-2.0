@@ -9,14 +9,17 @@
 #include "../io/RFFLocationBinary.h"
 #include "../mb/MB2Locator.h"
 #include "../parallel/ParallelArrayDispatcher.h"
-#include "../preset/calc/CalculationPresets.h"
-#include "../preset/render/RenderPresets.h"
-#include "../preset/shader/bloom/ShdBloomPresets.h"
-#include "../preset/shader/color/ShdColorPresets.h"
-#include "../preset/shader/fog/ShdFogPresets.h"
-#include "../preset/shader/palette/ShdPalettePresets.h"
-#include "../preset/shader/slope/ShdSlopePresets.h"
-#include "../preset/shader/stripe/ShdStripePresets.h"
+#include "../preset/calc/approx/ClcApproxPresets.hpp"
+#include "../preset/calc/compress/ClcCompressPresets.hpp"
+#include "../preset/calc/sync/ClcSyncPresets.hpp"
+#include "../preset/render/compute/RndComputePresets.hpp"
+#include "../preset/render/display/RndDisplayPresets.hpp"
+#include "../preset/shader/bloom/ShdBloomPresets.hpp"
+#include "../preset/shader/color/ShdColorPresets.hpp"
+#include "../preset/shader/fog/ShdFogPresets.hpp"
+#include "../preset/shader/palette/ShdPalettePresets.hpp"
+#include "../preset/shader/slope/ShdSlopePresets.hpp"
+#include "../preset/shader/stripe/ShdStripePresets.hpp"
 #include "../vulkan/GPCDownsampleForBlur.hpp"
 #include "../vulkan/SharedImageContextIndices.hpp"
 #include "../vulkan/desc/SharedDescriptorTemplate.hpp"
@@ -147,8 +150,8 @@ namespace merutilm::rff2 {
                                                         .center = fixed_point_complex_i1(
                                                                 "-0.85", "0", Perturbator::logZoomToExp10(2)),
                                                         .useParallelRefCalculation = false,
-                                                        .sync = CalculationPresets::UltraFast().genRefSync(),
-                                                        .compression = CalculationPresets::UltraFast().genRefComp(),
+                                                        .sync = ApproxPresets::UltraFast().genRefSync(),
+                                                        .compression = ApproxPresets::UltraFast().genRefComp(),
                                                         .periodMultiplier = 1,
                                                         .reuse = false,
                                                 },
@@ -156,20 +159,21 @@ namespace merutilm::rff2 {
                                                .appliedTermsCount = 8,
                                                .validatedTermsCount = 1,
                                                .epsilonPower = -5},
-                                        .mpa = CalculationPresets::UltraFast().genMPA(),
+                                        .mpa = ApproxPresets::UltraFast().genMPA(),
                                         .perturb = {.maxIteration = 300,
                                                     .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
                                                     .autoMaxIteration = true,
                                                     .interiorDetectRadiusPower = 7,
                                                     .autoIterationMultiplier = 100,
                                                     .absoluteIterationMode = false}},
-                .render = RenderPresets::Low().genRender(),
+                .render = {.display = RndDisplayPresets::Low().genDisplay(),
+                           .computeShader = RndComputePresets::General().genComputeShader()},
                 .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .slope = ShdSlopePresets::Disabled().genSlope(),
                            .color = ShdColorPresets::Disabled().genColor(),
                            .fog = ShdFogPresets::Disabled().genFog(),
-                           .bloom = BloomPresets::Disabled().genBloom(),
+                           .bloom = ShdBloomPresets::Disabled().genBloom(),
                            .noiseReduction = {true, 2, 0.1f},
                            .fractal3D = {false, 85, 0, 1, 0, 10.f}},
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
@@ -187,8 +191,8 @@ namespace merutilm::rff2 {
                                                         .center = fixed_point_complex_i1(
                                                                 "-0.85", "0", Perturbator::logZoomToExp10(2)),
                                                         .useParallelRefCalculation = false,
-                                                        .sync = CalculationPresets::UltraFast().genRefSync(),
-                                                        .compression = CalculationPresets::UltraFast().genRefComp(),
+                                                        .sync = ClcSyncPresets::Fast().genRefSync(),
+                                                        .compression = ClcCompressPresets::None().genRefComp(),
                                                         .periodMultiplier = 1,
                                                         .reuse = false,
                                                 },
@@ -196,20 +200,21 @@ namespace merutilm::rff2 {
                                                .appliedTermsCount = 8,
                                                .validatedTermsCount = 1,
                                                .epsilonPower = -5},
-                                        .mpa = CalculationPresets::UltraFast().genMPA(),
+                                        .mpa = ClcApproxPresets::UltraFast().genMPA(),
                                         .perturb = {.maxIteration = 300,
                                                     .decimalizeIterationMethod = FrtDecimalizeIterationMethod::LOG_LOG,
                                                     .autoMaxIteration = true,
                                                     .interiorDetectRadiusPower = 7,
                                                     .autoIterationMultiplier = 100,
                                                     .absoluteIterationMode = false}},
-                .render = RenderPresets::High().genRender(),
+                .render = {.display = RndDisplayPresets::High().genDisplay(),
+                           .computeShader = RndComputePresets::General().genComputeShader()},
                 .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .slope = ShdSlopePresets::Disabled().genSlope(),
                            .color = ShdColorPresets::Disabled().genColor(),
                            .fog = ShdFogPresets::Disabled().genFog(),
-                           .bloom = BloomPresets::Disabled().genBloom(),
+                           .bloom = ShdBloomPresets::Disabled().genBloom(),
                            .noiseReduction = {true, 2, 0.1f},
                            .fractal3D = {false, 85, 0, 1, 0, 10.f}},
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
@@ -222,11 +227,12 @@ namespace merutilm::rff2 {
     complex<dex> RFF2::offsetConversion(const Settings &s, const int px, const int py) const {
         const double bufOffX = static_cast<double>(px) - static_cast<double>(getIterationBufferWidth()) / 2.0;
         const double bufOffY = static_cast<double>(py) - static_cast<double>(getIterationBufferHeight()) / 2.0;
-        return complex{dex(bufOffX), dex(bufOffY)} / getDivisor(s) / dex(s.render.clarityMultiplier);
+        return complex{dex(bufOffX), dex(bufOffY)} / getDivisor(s) / dex(s.render.display.clarityMultiplier);
     }
 
     std::array<int, 2> RFF2::iterationBufferConversion(const Settings &s, const complex<dex> &offset) const {
-        const auto [re, im] = static_cast<complex<double>>(offset * dex(s.render.clarityMultiplier) * getDivisor(s));
+        const auto [re, im] =
+                static_cast<complex<double>>(offset * dex(s.render.display.clarityMultiplier) * getDivisor(s));
 
         const auto px = static_cast<int>((re < 0 ? std::round(re) : std::ceil(re)) + getIterationBufferWidth() / 2.0);
         const auto py = static_cast<int>((im < 0 ? std::round(im) : std::ceil(im)) + getIterationBufferHeight() / 2.0);
@@ -234,8 +240,8 @@ namespace merutilm::rff2 {
     }
 
     void RFF2::moveCursor(const int px, const int py) const {
-        const auto mx = static_cast<int>(static_cast<float>(px) / settings.render.clarityMultiplier);
-        const auto my = static_cast<int>(static_cast<float>(py) / settings.render.clarityMultiplier);
+        const auto mx = static_cast<int>(static_cast<float>(px) / settings.render.display.clarityMultiplier);
+        const auto my = static_cast<int>(static_cast<float>(py) / settings.render.display.clarityMultiplier);
         glfwSetCursorPos(rootWindowContext->getWindow()->getWindow(), mx,
                          rootWindowContext->getSwapchain().getSwapchainExtent().height - my);
     }
@@ -244,13 +250,13 @@ namespace merutilm::rff2 {
 
 
     uint16_t RFF2::calcIterationBufferWidth(const Settings &s) const {
-        const float multiplier = s.render.clarityMultiplier;
+        const float multiplier = s.render.display.clarityMultiplier;
         return static_cast<uint16_t>(static_cast<float>(rootWindowContext->getSwapchain().getSwapchainExtent().width) *
                                      multiplier);
     }
 
     uint16_t RFF2::calcIterationBufferHeight(const Settings &s) const {
-        const float multiplier = s.render.clarityMultiplier;
+        const float multiplier = s.render.display.clarityMultiplier;
         return static_cast<uint16_t>(static_cast<float>(rootWindowContext->getSwapchain().getSwapchainExtent().height) *
                                      multiplier);
     }
@@ -296,7 +302,7 @@ namespace merutilm::rff2 {
                     zoomAnimationInfo.targetMouseDragOffset += glm::vec2{dxr * dz, dyr * dz};
 
                     if (mb == GLFW_MOUSE_BUTTON_LEFT) {
-                        const float m = settings.render.clarityMultiplier;
+                        const float m = settings.render.display.clarityMultiplier;
                         const float logZoom = settings.fractal.general.logZoom;
                         const int exp10 = Perturbator::logZoomToExp10(logZoom);
 
@@ -439,7 +445,7 @@ namespace merutilm::rff2 {
         const uint16_t iw = calcIterationBufferWidth(settings);
         const uint16_t ih = calcIterationBufferHeight(settings);
         const auto &[dWidth, dHeight] =
-                RendererUtils::getBlurredImageExtent(swapchainExtent, settings.render.clarityMultiplier);
+                RendererUtils::getBlurredImageExtent(swapchainExtent, settings.render.display.clarityMultiplier);
         const auto &[sWidth, sHeight] = rootWindowContext->getSwapchain().getSwapchainExtent();
 
         // shared
@@ -635,8 +641,9 @@ namespace merutilm::rff2 {
         };
 
         const auto internalImageExtent =
-                RendererUtils::getInternalImageExtent(extent, settings.render.clarityMultiplier);
-        const auto blurredImageExtent = RendererUtils::getBlurredImageExtent(extent, settings.render.clarityMultiplier);
+                RendererUtils::getInternalImageExtent(extent, settings.render.display.clarityMultiplier);
+        const auto blurredImageExtent =
+                RendererUtils::getBlurredImageExtent(extent, settings.render.display.clarityMultiplier);
 
         sharedImg.appendMultiframeImageContext(MF_MAIN_RENDER_IMAGE_PRIMARY,
                                                iiiGetter(internalImageExtent, VK_FORMAT_R16G16B16A16_UNORM,
@@ -707,12 +714,12 @@ namespace merutilm::rff2 {
     }
 
     int16_t RFF2::getMouseXOnIterationBuffer(const int mx) const {
-        const float multiplier = settings.render.clarityMultiplier;
+        const float multiplier = settings.render.display.clarityMultiplier;
         return static_cast<int16_t>(static_cast<float>(mx) * multiplier);
     }
 
     int16_t RFF2::getMouseYOnIterationBuffer(const int my) const {
-        const float multiplier = settings.render.clarityMultiplier;
+        const float multiplier = settings.render.display.clarityMultiplier;
         return static_cast<int16_t>(static_cast<float>(getIterationBufferHeight()) -
                                     static_cast<float>(my) * multiplier);
     }
@@ -837,7 +844,7 @@ namespace merutilm::rff2 {
                             state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
                             actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
                 }
-            }else {
+            } else {
                 if (logZoom > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
                     renderData = std::make_unique<DexMB2RenderData>(
                             state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
@@ -893,11 +900,11 @@ namespace merutilm::rff2 {
 
         renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
         renderer->computeIterate->clearWriteBuffer(commandPool);
-        renderer->computeIterate->setMeta(
-                renderData->fractalSettings, s.render, dynamic_cast<MB2Reference<float> *>(renderDataBase->getReference())->refOrbit,
-                static_cast<complex<float>>(renderData->getPerturbator()->off),
-                static_cast<uint32_t>(renderData->fractalSettings.perturb.maxIteration), tableData, tableLen,
-                mapperData, mapperLen, commandPool);
+        renderer->computeIterate->setMeta(renderData->fractalSettings, s.render,
+                                          dynamic_cast<MB2Reference<float> *>(renderDataBase->getReference())->refOrbit,
+                                          static_cast<complex<float>>(renderData->getPerturbator()->off),
+                                          renderData->fractalSettings.perturb.maxIteration,
+                                          tableData, tableLen, mapperData, mapperLen, commandPool);
 
         // preparing render meta scope
 
@@ -989,20 +996,21 @@ namespace merutilm::rff2 {
             setStatusMessage(Constants::Status::TIME_STATUS,
                              std::format("Time : {}", Utilities::formatTime(time - startTime)));
             setStatusMessage(Constants::Status::RENDER_STATUS,
-                             std::format("Batching... ({:L}, {:L}, {:L}ms)", currentBatchIteration, glitches, static_cast<uint32_t>(elapsed.count() * 1000)));
+                             std::format("Batching... ({:L}, {:L}, {:L}ms)", currentBatchIteration, glitches,
+                                         static_cast<uint32_t>(elapsed.count() * 1000)));
 
 
             currentBatchIteration += Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier;
 
             if (elapsed.count() < settings.render.computeShader.preferredBatchDuration) {
                 batchSizeMultiplier *= 2;
-                renderer->computeIterate->setBatchSize(
-                        Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier);
+                renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
+                                                       batchSizeMultiplier);
             }
             if (elapsed.count() > settings.render.computeShader.preferredBatchDuration * 2) {
                 batchSizeMultiplier = std::max(static_cast<uint32_t>(1), batchSizeMultiplier / 2);
-                renderer->computeIterate->setBatchSize(
-                        Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier);
+                renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
+                                                       batchSizeMultiplier);
             }
             bool currIgnoreMpa = settings.render.computeShader.completelyIgnoreMpa ||
                                  (i > settings.render.computeShader.automaticAcceptMpaBatches &&
@@ -1010,8 +1018,7 @@ namespace merutilm::rff2 {
             if (prevIgnoreMpa != currIgnoreMpa) {
                 batchSizeMultiplier = 1;
                 renderer->computeIterate->setMPAIgnore(currIgnoreMpa);
-                renderer->computeIterate->setBatchSize(
-                        Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
+                renderer->computeIterate->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
                 prevIgnoreMpa = currIgnoreMpa;
             }
 
@@ -1062,7 +1069,7 @@ namespace merutilm::rff2 {
         };
         const auto previewer =
                 ParallelArrayDispatcher<double>(state, actualIterationMatrix, w, h, s.fractal.general.threads,
-                                                s.render.pixelRenderPriority, std::move(func));
+                                                s.render.display.pixelRenderPriority, std::move(func));
 
 
         auto statusThread = std::jthread([&renderPixelsCount, len, this, startTime](const std::stop_token &stop) {

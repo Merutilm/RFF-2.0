@@ -1,57 +1,57 @@
 //
 // Created by Merutilm on 2025-05-28.
 //
-#include "ShdBloomPresets.h"
+#include "ShdBloomPresets.hpp"
 
-namespace merutilm::rff2 {
+namespace merutilm::rff2::ShdBloomPresets {
 
-    std::string BloomPresets::Disabled::getName() const {
+    std::string Disabled::getName() const {
         return "Disabled";
     }
 
-    ShdBloomSettings BloomPresets::Disabled::genBloom() const {
+    ShdBloomSettings Disabled::genBloom() const {
         return ShdBloomSettings{0, 0.0f, 0, 0};
     }
 
-    std::string BloomPresets::Highlighted::getName() const {
+    std::string Highlighted::getName() const {
         return "Highlighted";
     }
 
-    ShdBloomSettings BloomPresets::Highlighted::genBloom() const {
+    ShdBloomSettings Highlighted::genBloom() const {
         return ShdBloomSettings{0, 0.05f, 0.2f, 1};
     }
 
-    std::string BloomPresets::HighlightedStrong::getName() const {
+    std::string HighlightedStrong::getName() const {
         return "Highlighted Strong";
     }
 
-    ShdBloomSettings BloomPresets::HighlightedStrong::genBloom() const {
+    ShdBloomSettings HighlightedStrong::genBloom() const {
         return ShdBloomSettings{0, 0.08f, 0.4f, 1.5f};
     }
 
-    std::string BloomPresets::Weak::getName() const {
+    std::string Weak::getName() const {
         return "Weak";
     }
 
-    ShdBloomSettings BloomPresets::Weak::genBloom() const {
+    ShdBloomSettings Weak::genBloom() const {
         return ShdBloomSettings{0, 0.1f, 0, 0.5f};
 
     }
 
 
-    std::string BloomPresets::Normal::getName() const {
+    std::string Normal::getName() const {
         return "Normal";
     }
 
-    ShdBloomSettings BloomPresets::Normal::genBloom() const {
+    ShdBloomSettings Normal::genBloom() const {
         return ShdBloomSettings{0, 0.1f, 0, 1};
     }
 
-    std::string BloomPresets::Strong::getName() const {
+    std::string Strong::getName() const {
         return "Strong";
     }
 
-    ShdBloomSettings BloomPresets::Strong::genBloom() const {
+    ShdBloomSettings Strong::genBloom() const {
         return ShdBloomSettings{0, 0.1f, 0, 1.5f};
 
     }

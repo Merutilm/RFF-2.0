@@ -40,7 +40,6 @@ namespace merutilm::vkh {
 
         template<typename... Args>
         static bool messagebox_yn(const std::string &title, std::format_string<Args...> message, Args &&...args) {
-            log_err_silent(message, std::forward<Args>(args)...);
             std::string fmt = std::format(message, std::forward<Args>(args)...);
 #ifdef _WIN32
             int result = MessageBox(nullptr, fmt.data(), title.data(), MB_ICONWARNING | MB_OKCANCEL);

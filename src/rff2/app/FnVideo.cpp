@@ -7,10 +7,10 @@
 #include "../constants/Constants.hpp"
 #include "../io/RFFLocationBinary.h"
 #include "../io/RFFStaticMapBinary.h"
-#include "../preset/shader/bloom/ShdBloomPresets.h"
-#include "../preset/shader/fog/ShdFogPresets.h"
-#include "../preset/shader/slope/ShdSlopePresets.h"
-#include "../preset/shader/stripe/ShdStripePresets.h"
+#include "../preset/shader/bloom/ShdBloomPresets.hpp"
+#include "../preset/shader/fog/ShdFogPresets.hpp"
+#include "../preset/shader/slope/ShdSlopePresets.hpp"
+#include "../preset/shader/stripe/ShdStripePresets.hpp"
 #include "IOUtilities.h"
 #include "Utilities.h"
 #include "VideoWindow.hpp"
@@ -19,11 +19,10 @@
 namespace merutilm::rff2 {
 
     void FnVideo::dataSettings(RFF2 &app) {
-        static bool enabled = false;
-        ImGui::Checkbox("Data Settings", &enabled);
-        if (enabled) {
+        
+        if (ImGui::TreeNode("Data Settings")) {
             auto &[defaultZoomIncrement, isStatic] = app.getSettings().video.data;
-            ImGui::Begin("Data Settings");
+
             if (ImGui::InputFloat("Default Zoom Increment", &defaultZoomIncrement)) {
                 defaultZoomIncrement = std::clamp(defaultZoomIncrement, 1.25f, 8.f);
             }
@@ -33,14 +32,12 @@ namespace merutilm::rff2 {
             ImGui::Checkbox("Static data", &isStatic);
             Utilities::imguiHelpMarker("Generates using .png image instead of data file. all shaders will be disabled "
                                        "when trying to generate video data.");
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnVideo::animationSettings(RFF2 &app) {
-        static bool enabled = false;
-        ImGui::Checkbox("Animation Settings", &enabled);
-        if (enabled) {
-            ImGui::Begin("Animation Settings");
+        
+        if (ImGui::TreeNode("Animation Settings")) {
             auto &[overZoom, showText, mps] = app.getSettings().video.animation;
             ImGui::InputFloat("Over Zoom", &overZoom);
             Utilities::imguiHelpMarker("Zoom the final video data.");
@@ -51,21 +48,19 @@ namespace merutilm::rff2 {
             ImGui::InputFloat("Zoom Speed", &mps);
             Utilities::imguiHelpMarker("Sets the zoom speed, Number of Map(.rfm) data used per second in video");
 
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnVideo::exportSettings(RFF2 &app) {
-        static bool enabled = false;
-        ImGui::Checkbox("Export Settings", &enabled);
-        if (enabled) {
-            ImGui::Begin("Export Settings");
+
+        if (ImGui::TreeNode("Export Settings")) {
             auto &[fps, bitrate] = app.getSettings().video.exportation;
             ImGui::InputFloat("FPS", &fps);
             Utilities::imguiHelpMarker("Set the fps of the video to export.");
             ImGui::InputScalar("Bitrate", ImGuiDataType_U16, &bitrate);
             Utilities::imguiHelpMarker("Sets the bitrate of the video to export.");
 
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnVideo::generateVidKeyframes(RFF2 &app) {
@@ -96,7 +91,7 @@ namespace merutilm::rff2 {
                         settings.shader.stripe = ShdStripePresets::Disabled().genStripe();
                         settings.shader.slope = ShdSlopePresets::Disabled().genSlope();
                         settings.shader.fog = ShdFogPresets::Disabled().genFog();
-                        settings.shader.bloom = BloomPresets::Disabled().genBloom();
+                        settings.shader.bloom = ShdBloomPresets::Disabled().genBloom();
                         app.getRequests().requestShader();
                         thread.waitUntil([&app] { return !app.getRequests().shaderRequested; });
                     }

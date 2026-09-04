@@ -14,7 +14,6 @@ namespace merutilm::rff2 {
 
     void FnFractal::reference(RFF2 &app) {
 
-        static bool enabled = false;
         auto &frt = app.getSettings().fractal;
 
         static bool mpfInit = false;
@@ -24,28 +23,16 @@ namespace merutilm::rff2 {
             mpfInit = true;
         }
 
-        static std::string real;
-        static std::string imag;
-        static float logZoom = 0;
+        static std::string real = frt.reference.center.real.to_string();
+        static std::string imag= frt.reference.center.imag.to_string();
+        static float logZoom = frt.general.logZoom;
         static std::string realCache = real;
         static std::string imagCache = imag;
         static float logZoomCache = logZoom;
         static bool locationChanged = false;
 
-        if (ImGui::Checkbox("Reference", &enabled)) {
-            real = frt.reference.center.real.to_string();
-            imag = frt.reference.center.imag.to_string();
-            logZoom = frt.general.logZoom;
-            realCache = real;
-            imagCache = imag;
-            logZoomCache = logZoom;
-            locationChanged = false;
-        }
+        if (ImGui::TreeNode("Reference")) {
 
-
-        if (enabled) {
-
-            ImGui::Begin("Reference");
             ImGui::InputText("Real", &realCache);
             if (ImGui::IsItemDeactivatedAfterEdit()) {
 
@@ -158,26 +145,13 @@ namespace merutilm::rff2 {
                                        "It is effective for deep-zoom.");
 
 
-
-
-            if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
-                app.getRequests().requestRecompute();
-            }
-
-            if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0))) {
-                enabled = false;
-            }
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnFractal::iterations(RFF2 &app) {
 
-        static bool enabled = false;
-        ImGui::Checkbox("Iterations", &enabled);
+        if (ImGui::TreeNode("Iterations")) {
 
-        if (enabled) {
-
-            ImGui::Begin("Iterations");
             auto &calc = app.getSettings().fractal;
             ImGui::InputScalar("Max Iteration", ImGuiDataType_U64, &calc.perturb.maxIteration);
             Utilities::imguiHelpMarker("Set maximum iteration. It is disabled when Auto iteration is enabled.");
@@ -202,23 +176,12 @@ namespace merutilm::rff2 {
             Utilities::imguiHelpMarker("Sets the decimalization method of iterations.");
 
 
-            if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
-                app.getRequests().requestRecompute();
-            }
-            if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0))) {
-                enabled = false;
-            }
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnFractal::sa(RFF2 &app) {
 
-
-        static bool enabled = false;
-        ImGui::Checkbox("Series Approximation", &enabled);
-
-        if (enabled) {
-            ImGui::Begin("Series Approximation");
+        if (ImGui::TreeNode("Series Approximation")) {
 
             auto &[use, appliedTermsCount, validatedTermsCount, epsilonPower] = app.getSettings().fractal.sa;
             ImGui::Checkbox("Use", &use);
@@ -250,24 +213,13 @@ namespace merutilm::rff2 {
                 ImGui::EndDisabled();
 
 
-            if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
-                app.getRequests().requestRecompute();
-            }
 
-            if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0))) {
-                enabled = false;
-            }
-
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnFractal::mpa(RFF2 &app) {
 
-        static bool enabled = false;
-        ImGui::Checkbox("MP-Approximation", &enabled);
-
-        if (enabled) {
-            ImGui::Begin("MP-Approximation");
+        if (ImGui::TreeNode("MP-Approximation")) {
             auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod,
                    useCompress, useParallelization] = app.getSettings().fractal.mpa;
 
@@ -308,14 +260,7 @@ namespace merutilm::rff2 {
             Utilities::imguiHelpMarker(
                     "Use parallelization during generation if possible.");
 
-            if (ImGui::Button("Recompute", ImVec2(-FLT_MIN, 0))) {
-                app.getRequests().requestRecompute();
-            }
-
-            if (ImGui::Button("Close", ImVec2(-FLT_MIN, 0))) {
-                enabled = false;
-            }
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
 

@@ -28,19 +28,45 @@ namespace merutilm::rff2 {
     namespace Presets {
         struct CalculationPreset : public Preset {
             ~CalculationPreset() override = default;
-
-            virtual FrtReferenceSyncSettings genRefSync() const = 0;
-
-            virtual FrtMPASettings genMPA() const = 0;
-
-            virtual FrtReferenceCompSettings genRefComp() const = 0;
         };
 
+        namespace CalculationPresets {
+            struct ReferenceSyncPreset : public CalculationPreset {
+                ~ReferenceSyncPreset() override = default;
+
+                virtual FrtReferenceSyncSettings genRefSync() const = 0;
+
+            };
+            struct ApproxPreset : public CalculationPreset {
+                ~ApproxPreset() override = default;
+
+                virtual FrtMPASettings genMPA() const = 0;
+            };
+            struct CompressPreset : public CalculationPreset {
+                ~CompressPreset() override = default;
+
+                virtual FrtMPASettings genMPA() const = 0;
+
+                virtual FrtReferenceCompSettings genRefComp() const = 0;
+            };
+        }
         struct RenderPreset : public Preset {
             ~RenderPreset() override = default;
-
-            virtual RenderSettings genRender() const = 0;
         };
+        namespace RenderPresets {
+            struct DisplayPreset : public RenderPreset {
+                ~DisplayPreset() override = default;
+
+                virtual RndDisplaySettings genDisplay() const = 0;
+            };
+
+
+            struct ComputeShaderPreset : public RenderPreset {
+                ~ComputeShaderPreset() override = default;
+
+                virtual RndComputeShader genComputeShader() const = 0;
+            };
+        }
 
         struct ResolutionPreset : public Preset {
             ~ResolutionPreset() override = default;

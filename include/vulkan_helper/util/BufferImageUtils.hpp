@@ -29,7 +29,11 @@ namespace merutilm::vkh {
 
 
         static void allocateImageMemory(VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
-                                        const ImageInitInfo &iii, VkImage image, VkDeviceMemory *imageMemory, VkDeviceSize *capacity);
+                                        VkMemoryPropertyFlags properties, VkImage image, VkDeviceMemory *imageMemory,
+                                        VkDeviceSize *capacity);
+        static void allocateMemory(VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
+                            const VkMemoryRequirements &memRequirements, VkMemoryPropertyFlags properties,
+                            VkDeviceMemory *memory);
 
         static void createImageView(VkDevice device, VkImage image, VkImageViewType imageViewType, VkFormat imageFormat, VkImageView *writeImageView);
 
@@ -38,20 +42,20 @@ namespace merutilm::vkh {
 
         static VkImageAspectFlags getAspectMask(VkFormat format);
 
-        static VkDeviceSize initBuffer(Core &core, const BufferInitInfo &bii, VkBuffer *buffer,
-                                       VkDeviceMemory *bufferMemory);
+        static void initBuffer(Core &core, const BufferInitInfo &bii, VkBuffer *buffer, VkDeviceMemory *bufferMemory,
+                               VkDeviceSize *allocationSize);
 
-        static VkDeviceSize initBuffer(VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
-                                       const BufferInitInfo &bii, VkBuffer *buffer, VkDeviceMemory *bufferMemory);
+        static void initBuffer(VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
+                               const BufferInitInfo &bii, VkBuffer *buffer, VkDeviceMemory *bufferMemory,
+                               VkDeviceSize *allocationSize);
 
         static void createBuffer(VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage,
                                  VkBuffer *buffer);
 
 
-        static VkDeviceSize allocateBufferMemory(VkDevice device,
-                                                 const VkPhysicalDeviceMemoryProperties &memProperties,
-                                                 VkMemoryPropertyFlags properties, VkBuffer buffer,
-                                                 VkDeviceMemory *bufferMemory);
+        static void allocateBufferMemory(VkDevice device, const VkPhysicalDeviceMemoryProperties &memProperties,
+                                         VkMemoryPropertyFlags properties, VkBuffer buffer,
+                                         VkDeviceMemory *bufferMemory, VkDeviceSize *allocationSize);
 
 
         static uint32_t findMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties &memProperties,

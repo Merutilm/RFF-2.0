@@ -36,8 +36,11 @@ add_executable(
         src/rff2/preset/shader/stripe/ShdStripePresets.cpp
         src/rff2/preset/shader/bloom/ShdBloomPresets.cpp
         src/rff2/preset/resolution/ResolutionPresets.cpp
-        src/rff2/preset/render/RenderPresets.cpp
-        src/rff2/preset/calc/CalculationPresets.cpp
+        src/rff2/preset/render/compute/RndComputePresets.cpp
+        src/rff2/preset/render/display/RndDisplayPresets.cpp
+        src/rff2/preset/calc/sync/ClcSyncPresets.cpp
+        src/rff2/preset/calc/compress/ClcCompressPresets.cpp
+        src/rff2/preset/calc/approx/ClcApproxPresets.cpp
         src/rff2/app/FnVideo.cpp
         src/rff2/app/IOUtilities.cpp
         src/rff2/io/RFFStaticMapBinary.cpp

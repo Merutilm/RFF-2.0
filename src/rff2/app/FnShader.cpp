@@ -12,12 +12,7 @@ namespace merutilm::rff2 {
 
     void FnShader::palette(RFF2 &app) {
 
-        static bool enabled = false;
-
-        ImGui::Checkbox("Palette", &enabled);
-
-        if (enabled) {
-            ImGui::Begin("Palette");
+        if (ImGui::TreeNode("Palette")) {
 
             auto &[colors, iterationColoring, singleIterationColoring, iterationInterval, offsetRatio, animationSpeed] =
                     app.getSettings().shader.palette;
@@ -211,17 +206,12 @@ namespace merutilm::rff2 {
                 app.getRequests().requestShader();
             }
 
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnShader::stripe(RFF2 &app) {
-
-        static bool enabled = false;
-
-        ImGui::Checkbox("Stripe", &enabled);
-
-        if (enabled) {
-            ImGui::Begin("Stripe");
+        
+        if (ImGui::TreeNode("Stripe")) {
             auto &[stripeType, firstInterval, secondInterval, opacity, offset, animationSpeed, iterationColoring] =
                     app.getSettings().shader.stripe;
 
@@ -271,16 +261,12 @@ namespace merutilm::rff2 {
             }
 
 
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnShader::slope(RFF2 &app) {
-        static bool enabled = false;
 
-        ImGui::Checkbox("Slope", &enabled);
-
-        if (enabled) {
-            ImGui::Begin("Slope");
+        if (ImGui::TreeNode("Slope")) {
             auto &[depth, reflectionRatio, opacity, zenith, azimuth] = app.getSettings().shader.slope;
 
 
@@ -311,17 +297,12 @@ namespace merutilm::rff2 {
             }
             Utilities::imguiHelpMarker("Sets the azimuth of the slope. 0 ~ 360 value is required.");
 
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnShader::color(RFF2 &app) {
 
-        static bool enabled = false;
-
-        ImGui::Checkbox("Color", &enabled);
-
-        if (enabled) {
-            ImGui::Begin("Color");
+        if (ImGui::TreeNode("Color")) {
             auto &[gamma, exposure, hue, saturation, brightness, contrast] = app.getSettings().shader.color;
 
             if (ImGui::SliderFloat("Gamma", &gamma, 0.5f, 1.5f)) {
@@ -348,21 +329,15 @@ namespace merutilm::rff2 {
                 app.getRequests().requestShader();
             }
             Utilities::imguiHelpMarker("Sets the contrast.");
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnShader::fog(RFF2 &app) {
 
-        static bool enabled = false;
-
-        ImGui::Checkbox("Fog", &enabled);
-
-        if (enabled) {
-            ImGui::Begin("Fog");
+        if (ImGui::TreeNode("Fog")) {
             auto &[radius, opacity] = app.getSettings().shader.fog;
 
-            ImGui::SliderFloat("Radius", &radius, 0, 1);
-            {
+            if (ImGui::SliderFloat("Radius", &radius, 0, 1)){
                 radius = std::clamp(radius, 0.0f, 1.0f);
                 app.getRequests().requestShader();
             }
@@ -372,16 +347,12 @@ namespace merutilm::rff2 {
             }
             Utilities::imguiHelpMarker("Sets the opacity of the fog.");
 
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnShader::bloom(RFF2 &app) {
-        static bool enabled = false;
 
-        ImGui::Checkbox("Bloom", &enabled);
-
-        if (enabled) {
-            ImGui::Begin("Bloom");
+        if (ImGui::TreeNode("Bloom")) {
             auto &[threshold, radius, softness, intensity] = app.getSettings().shader.bloom;
 
             if (ImGui::SliderFloat("Threshold", &threshold, 0, 1)) {
@@ -403,15 +374,12 @@ namespace merutilm::rff2 {
             }
             Utilities::imguiHelpMarker("Sets the intensity of the bloom.");
 
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
     void FnShader::noiseReduction(RFF2 &app) {
-        static bool enabled = false;
-
-        ImGui::Checkbox("Noise Reduction", &enabled);
-        if (enabled) {
-            ImGui::Begin("Noise Reduction");
+        
+        if (ImGui::TreeNode("Noise Reduction")) {
             auto &[use, similarCountThreshold, differenceThreshold] = app.getSettings().shader.noiseReduction;
 
             if (ImGui::Checkbox("Use", &use)) {
@@ -428,16 +396,13 @@ namespace merutilm::rff2 {
                 app.getRequests().requestShader();
             }
 
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
 
     void FnShader::fractal3D(RFF2 &app) {
-        static bool enabled = false;
 
-        ImGui::Checkbox("3D (Wow epic)", &enabled);
-        if (enabled) {
-            ImGui::Begin("3D");
+        if (ImGui::TreeNode("3D  (Wow epic)")) {
             auto &[use, altitude, rotation, distance, baseIteration, divisor] = app.getSettings().shader.fractal3D;
 
             ImGui::Checkbox("Use", &use);
@@ -469,7 +434,7 @@ namespace merutilm::rff2 {
                 app.getRequests().requestShader();
             }
 
-            ImGui::End();
+            ImGui::TreePop();
         }
     }
 
