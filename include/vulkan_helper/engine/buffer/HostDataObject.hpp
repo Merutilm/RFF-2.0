@@ -12,8 +12,8 @@
 namespace merutilm::vkh {
     class HostDataObject final {
         std::vector<std::byte> data;
-        std::vector<uint32_t> elements;
-        std::vector<uint32_t> offsets;
+        std::vector<uint64_t> elements;
+        std::vector<uint64_t> offsets;
         std::vector<uint32_t> aligns;
         std::vector<uint32_t> strides;
 
@@ -137,7 +137,7 @@ namespace merutilm::vkh {
     void HostDataObject::resizeArray(const uint32_t target, const uint32_t elementCount) {
         safe_array::check_size_equal(strides[target], sizeof(T), "Buffer Object Vector resize");
         if (elementCount < elements[target]) {
-            data.erase(data.begin() + offsets[target] + elementCount * strides[target],
+            data.erase(data.begin() + offsets[target] + static_cast<uint64_t>(elementCount) * strides[target],
                        data.begin() + offsets[target] + elements[target] * strides[target]);
         }
         if (elementCount > elements[target]) {
@@ -146,7 +146,7 @@ namespace merutilm::vkh {
         }
 
         elements[target] = elementCount;
-        uint32_t sizeSum = 0;
+        uint64_t sizeSum = 0;
 
         for (uint32_t i = 0; i < static_cast<uint32_t>(strides.size()); ++i) {
             sizeSum = HostDataObjectManager::getAlignedOffset(sizeSum, aligns[i]);

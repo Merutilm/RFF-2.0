@@ -8,8 +8,8 @@
 namespace merutilm::vkh {
     struct HostDataObjectManager final {
         std::vector<std::byte> data = {};
-        std::vector<uint32_t> elements = {};
-        std::vector<uint32_t> offsets = {};
+        std::vector<uint64_t> elements = {};
+        std::vector<uint64_t> offsets = {};
         std::vector<uint32_t> aligns = {};
         std::vector<uint32_t> strides = {};
 
@@ -25,8 +25,8 @@ namespace merutilm::vkh {
 
         HostDataObjectManager &operator=(HostDataObjectManager &&) noexcept = delete;
 
-        static uint32_t getAlignedOffset(const size_t currentDataLen, const uint32_t alignment) {
-            return static_cast<uint32_t>((currentDataLen + alignment - 1) / alignment * alignment);
+        static uint64_t getAlignedOffset(const uint64_t currentDataLen, const uint32_t alignment) {
+            return (currentDataLen + alignment - 1) / alignment * alignment;
         }
 
         template<typename T> requires std::is_trivially_copyable_v<T>
