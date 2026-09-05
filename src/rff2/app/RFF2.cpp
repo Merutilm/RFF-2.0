@@ -777,7 +777,9 @@ namespace merutilm::rff2 {
             bool success = false;
 
             try {
+                matchSettingsBeforeCreatingRenderData(s);
                 success = prepareRenderData(start, s);
+                matchSettingsAfterCreatingRenderData(s);
 
                 if (success) {
                     beforeIterationFill(s);
@@ -812,19 +814,24 @@ namespace merutilm::rff2 {
             moveCursorToCenter();
         }
 
-        //sync settings
-        s.fractal = renderData->fractalSettings;
-        if (s.render.computeShader.use) {
-            s.fractal.reference.sync.referenceSynchronizationInterval = 1;
-        }
-
         renderer->descriptorStorage->iteration->setMaxIteration(static_cast<double>(s.fractal.perturb.maxIteration));
 
         saveBackup();
     }
 
-    bool RFF2::prepareRenderData(const float startTime, Settings &s) {
+    void RFF2::matchSettingsBeforeCreatingRenderData(Settings &s) {
+        if (s.render.computeShader.use) {
+            s.fractal.reference.sync.referenceSynchronizationInterval = 1;
+            s.fractal.mpa.useCompress = false;
+            s.fractal.reference.compression.compressCriteria = 0;
+        }
+    }
 
+    void RFF2::matchSettingsAfterCreatingRenderData(Settings &s) const {
+        s.fractal = renderData->fractalSettings;
+    }
+
+    bool RFF2::prepareRenderData(const float startTime, Settings &s) {
 
         canShowPreview = false;
 
@@ -976,8 +983,7 @@ namespace merutilm::rff2 {
 
         const auto floatDat = dynamic_cast<FloatMB2RenderData *>(renderData.get());
         const auto fexDat = dynamic_cast<FexMB2RenderData *>(renderData.get());
-        if ((floatDat || fexDat) && s.render.computeShader.use && !s.fractal.mpa.useCompress &&
-            s.fractal.reference.compression.compressCriteria == 0) {
+        if ((floatDat || fexDat) && s.render.computeShader.use) {
             renderer->rg0->iterationPalette->setPerturbationMainIterator(PerturbationMainIterator::GPU);
             if (floatDat) {
                 fillIterationComputeShader<float, fex>(startTime, s);
@@ -1001,7 +1007,8 @@ namespace merutilm::rff2 {
         if (!success) {
             // vkh::logger::log("Recompute cancelled.");
         }
-        requests.recomputeRequestedState = success ? ComputeState::IDLE : ComputeState::CANCELLED;
+        auto expected = ComputeState::RUNNING;
+        requests.recomputeRequestedState.compare_exchange_strong(expected, success ? ComputeState::IDLE : ComputeState::CANCELLED);
         backgroundThreads.notifyAll();
     }
 } // namespace merutilm::rff2

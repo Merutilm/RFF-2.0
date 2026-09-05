@@ -117,6 +117,10 @@ namespace merutilm::rff2 {
 
         void beforeIterationFill(Settings &s) const;
 
+        static void matchSettingsBeforeCreatingRenderData(Settings &s);
+
+        void matchSettingsAfterCreatingRenderData(Settings &s) const;
+
         bool prepareRenderData(float startTime, Settings &s);
 
 
