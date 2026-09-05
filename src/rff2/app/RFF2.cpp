@@ -992,6 +992,8 @@ namespace merutilm::rff2 {
             }
         } else {
             renderer->rg0->iterationPalette->setPerturbationMainIterator(PerturbationMainIterator::CPU);
+            renderer->computeIterateFex->clearMeta(*computeShaderManager->commandPool);
+            renderer->computeIterateFloat->clearMeta(*computeShaderManager->commandPool);
             fillIterationMultithreaded(startTime, s);
         }
 
