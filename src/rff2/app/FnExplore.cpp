@@ -101,42 +101,15 @@ namespace merutilm::rff2 {
                     if (center == nullptr)
                         return;
 
-                    FractalSettings refCalc = settings.fractal;
-                    refCalc.reference.center = center->data->fractalSettings.reference.center;
-                    refCalc.general.logZoom =
+                    FractalSettings frt = settings.fractal;
+                    frt.reference.center = center->data->fractalSettings.reference.center;
+                    frt.general.logZoom =
                             center->data->fractalSettings.general.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
-                    int refExp10 = Perturbator::logZoomToExp10(refCalc.general.logZoom);
+                    const int refExp10 = Perturbator::logZoomToExp10(frt.general.logZoom);
+                    data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
+                                                           startTime, frt, center->data->getPerturbator()->dcMax,
+                                                           refExp10, data->getReference()->length(), 0);
 
-
-                    if (settings.render.computeShader.use) {
-                        if (refCalc.general.logZoom > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
-                            data = std::make_unique<FexMB2RenderData>(
-                                    state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax,
-                                    refExp10, data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime),
-                                    getActionWhileSeriesApprox(app, startTime),
-                                    getActionWhileCreatingTable(app, startTime));
-                        } else {
-                            data = std::make_unique<FloatMB2RenderData>(
-                                    state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax,
-                                    refExp10, data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime),
-                                    getActionWhileSeriesApprox(app, startTime),
-                                    getActionWhileCreatingTable(app, startTime));
-                        }
-                    } else {
-                        if (refCalc.general.logZoom > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
-                            data = std::make_unique<DexMB2RenderData>(
-                                    state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax,
-                                    refExp10, data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime),
-                                    getActionWhileSeriesApprox(app, startTime),
-                                    getActionWhileCreatingTable(app, startTime));
-                        } else {
-                            data = std::make_unique<DoubleMB2RenderData>(
-                                    state, refCalc, *app.getApproxTableCache(), center->data->getPerturbator()->dcMax,
-                                    refExp10, data->getReference()->length(), 0, getActionWhileRefCalc(app, startTime),
-                                    getActionWhileSeriesApprox(app, startTime),
-                                    getActionWhileCreatingTable(app, startTime));
-                        }
-                    }
                     settings.fractal.reference.reuse = true;
                     app.getRequests().requestRecompute();
                 });

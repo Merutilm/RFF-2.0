@@ -115,7 +115,7 @@ namespace merutilm::rff2 {
 
         void moveCursorToCenter() const;
 
-        void beforeIterationFill() const;
+        void beforeIterationFill(Settings &s) const;
 
         bool prepareRenderData(float startTime, Settings &s);
 
@@ -177,6 +177,11 @@ namespace merutilm::rff2 {
         void onQuit();
         void resolveRequests();
 
+        std::unique_ptr<MB2RenderDataBase>
+        createAppropriateRenderData(bool computeShader, float logZoomTest, float startTime, const FractalSettings &frt,
+                                    dex dcMax, int exp10, uint64_t refInitialCapacity, uint64_t forcedStrictFPGPeriod);
+
+
         VideoKeyframeProgressInfo &getKeyframeProgressInfo() { return videoKeyframeProgressInfo; }
 
         VideoProgressInfo &getVideoProgressInfo() { return videoProgressInfo; }
@@ -193,15 +198,19 @@ namespace merutilm::rff2 {
 
 
     template<Number Num, Number Other>
-    void RFF2::fillIterationComputeShader(float startTime, const Settings &s) {
+    void RFF2::fillIterationComputeShader(const float startTime, const Settings &s) {
         setStatusMessage(Constants::Status::RENDER_STATUS, "Preparing Render Meta...");
 
         const uint32_t width = getIterationBufferWidth();
         const uint32_t height = getIterationBufferHeight();
         const VkExtent2D extent{width, height};
 
-        CPCIterate<Num> *target = std::is_same_v<Num, float> ? dynamic_cast<CPCIterate<Num> *>(renderer->computeIterateFloat) : dynamic_cast<CPCIterate<Num> *>(renderer->computeIterateFex);
-        CPCIterate<Other> *other = std::is_same_v<Other, float> ? dynamic_cast<CPCIterate<Other> *>(renderer->computeIterateFloat) : dynamic_cast<CPCIterate<Other> *>(renderer->computeIterateFex);
+        CPCIterate<Num> *target = std::is_same_v<Num, float>
+                                          ? dynamic_cast<CPCIterate<Num> *>(renderer->computeIterateFloat)
+                                          : dynamic_cast<CPCIterate<Num> *>(renderer->computeIterateFex);
+        CPCIterate<Other> *other = std::is_same_v<Other, float>
+                                           ? dynamic_cast<CPCIterate<Other> *>(renderer->computeIterateFloat)
+                                           : dynamic_cast<CPCIterate<Other> *>(renderer->computeIterateFex);
 
         vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
 
@@ -221,11 +230,11 @@ namespace merutilm::rff2 {
         target->setMPAIgnore(s.render.computeShader.completelyIgnoreMpa);
         target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
         target->clearWriteBuffer(commandPool);
-        target->setMeta(renderData->fractalSettings, s.render,
-                                          dynamic_cast<MB2Reference<Num> *>(renderData->getReference())->refOrbit,
-                                          static_cast<complex<Num>>(renderData->getPerturbator()->off),
-                                          renderData->fractalSettings.perturb.maxIteration, tableData, tableLen,
-                                          mapperData, mapperLen, commandPool);
+        target->setMeta(s.fractal, s.render,
+                        dynamic_cast<MB2Reference<Num> *>(renderData->getReference())->refOrbit,
+                        static_cast<complex<Num>>(renderData->getPerturbator()->off),
+                        s.fractal.perturb.maxIteration, tableData, tableLen, mapperData, mapperLen,
+                        commandPool);
 
         // preparing render meta scope
 
@@ -268,6 +277,7 @@ namespace merutilm::rff2 {
                 const vkh::ScopedCommandBufferExecutor executor(*rootWindowContext, commandBuffer, fence,
                                                                 VK_NULL_HANDLE, VK_NULL_HANDLE);
 
+
                 target->cmdRender(cbh, 0, {});
 
 
@@ -288,25 +298,16 @@ namespace merutilm::rff2 {
                 }
                 {
                     vkh::ScopedPipelineBarrierRecorder spr(cbh);
-                    spr.cmdBufferMemoryBarrier(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                    spr.cmdBufferMemoryBarrier(VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
                                                iterResultCtx.buffer, 0, iterResultCtx.bufferSize,
                                                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
-                    spr.cmdBufferMemoryBarrier(VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                    spr.cmdBufferMemoryBarrier(VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
                                                batchResultCtx.buffer, 0, batchResultCtx.bufferSize,
                                                VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
                 }
                 vkh::BufferImageContextUtils::cmdCopyBuffer(commandBuffer, iterResultCtx, dstIterBuffer);
                 vkh::BufferImageContextUtils::cmdCopyBuffer(commandBuffer, batchResultCtx, dstBatchBuffer);
-                {
-                    vkh::ScopedPipelineBarrierRecorder spr(cbh);
-                    spr.cmdBufferMemoryBarrier(VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT,
-                                               dstBatchBuffer.buffer, 0, dstBatchBuffer.bufferSize,
-                                               VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
-                    spr.cmdBufferMemoryBarrier(VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT,
-                                               dstIterBuffer.buffer, 0, dstIterBuffer.bufferSize,
-                                               VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
-                }
             }
 
             computeShaderManager->fence->wait();
@@ -325,13 +326,11 @@ namespace merutilm::rff2 {
 
             if (elapsed.count() < settings.render.computeShader.preferredBatchDuration) {
                 batchSizeMultiplier *= 2;
-                target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
-                                                       batchSizeMultiplier);
+                target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier);
             }
             if (elapsed.count() > settings.render.computeShader.preferredBatchDuration * 2) {
                 batchSizeMultiplier = std::max(static_cast<uint32_t>(1), batchSizeMultiplier / 2);
-                target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE *
-                                                       batchSizeMultiplier);
+                target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE * batchSizeMultiplier);
             }
             bool currIgnoreMpa = settings.render.computeShader.completelyIgnoreMpa ||
                                  (i > settings.render.computeShader.automaticAcceptMpaBatches &&
@@ -356,7 +355,6 @@ namespace merutilm::rff2 {
     }
 
 
-
     template<typename P>
         requires std::is_base_of_v<Preset, P>
     void RFF2::applyPreset(P &preset) {
@@ -364,7 +362,6 @@ namespace merutilm::rff2 {
             if constexpr (std::is_base_of_v<Presets::CalculationPresets::ApproxPreset, P>) {
                 settings.fractal.mpa = preset.genMPA();
                 requests.requestRecompute();
-
             }
             if constexpr (std::is_base_of_v<Presets::CalculationPresets::CompressPreset, P>) {
                 settings.fractal.mpa = preset.genMPA();
@@ -384,7 +381,6 @@ namespace merutilm::rff2 {
             }
             if constexpr (std::is_base_of_v<Presets::RenderPresets::ComputeShaderPreset, P>) {
                 settings.render.computeShader = preset.genComputeShader();
-                requests.requestRecompute();
             }
         }
         if constexpr (std::is_base_of_v<Presets::ResolutionPreset, P>) {

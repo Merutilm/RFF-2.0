@@ -35,7 +35,6 @@
 #include "imgui.h"
 #include "nfd.hpp"
 #include "opencv2/opencv.hpp"
-#include "vulkan_helper/engine/executor/ScopedCommandBufferExecutor.hpp"
 #include "vulkan_helper/engine/executor/ScopedNewCommandBufferExecutor.hpp"
 #include "vulkan_helper/engine/window/PlatformWindow.hpp"
 #include "vulkan_helper/util/BarrierUtils.hpp"
@@ -112,6 +111,40 @@ namespace merutilm::rff2 {
         if (requests.recomputeRequestedState.compare_exchange_weak(expected, ComputeState::RUNNING)) {
             recomputeThreaded();
             // it is threaded, do not notify
+        }
+    }
+    std::unique_ptr<MB2RenderDataBase>
+    RFF2::createAppropriateRenderData(const bool computeShader, const float logZoomTest, const float startTime,
+                                      const FractalSettings &frt, const dex dcMax, const int exp10,
+                                      const uint64_t refInitialCapacity, const uint64_t forcedStrictFPGPeriod) {
+        if (computeShader) {
+            if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
+                return std::make_unique<FexMB2RenderData>(state, frt, approxTableCache, dcMax, exp10,
+                                                          refInitialCapacity, forcedStrictFPGPeriod,
+                                                          FnExplore::getActionWhileRefCalc(*this, startTime),
+                                                          FnExplore::getActionWhileSeriesApprox(*this, startTime),
+                                                          FnExplore::getActionWhileCreatingTable(*this, startTime));
+            } else {
+                return std::make_unique<FloatMB2RenderData>(state, frt, approxTableCache, dcMax, exp10,
+                                                            refInitialCapacity, forcedStrictFPGPeriod,
+                                                            FnExplore::getActionWhileRefCalc(*this, startTime),
+                                                            FnExplore::getActionWhileSeriesApprox(*this, startTime),
+                                                            FnExplore::getActionWhileCreatingTable(*this, startTime));
+            }
+        } else {
+            if (logZoomTest > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
+                return std::make_unique<DexMB2RenderData>(state, frt, approxTableCache, dcMax, exp10,
+                                                          refInitialCapacity, forcedStrictFPGPeriod,
+                                                          FnExplore::getActionWhileRefCalc(*this, startTime),
+                                                          FnExplore::getActionWhileSeriesApprox(*this, startTime),
+                                                          FnExplore::getActionWhileCreatingTable(*this, startTime));
+            } else {
+                return std::make_unique<DoubleMB2RenderData>(state, frt, approxTableCache, dcMax, exp10,
+                                                             refInitialCapacity, forcedStrictFPGPeriod,
+                                                             FnExplore::getActionWhileRefCalc(*this, startTime),
+                                                             FnExplore::getActionWhileSeriesApprox(*this, startTime),
+                                                             FnExplore::getActionWhileCreatingTable(*this, startTime));
+            }
         }
     }
 
@@ -747,7 +780,7 @@ namespace merutilm::rff2 {
                 success = prepareRenderData(start, s);
 
                 if (success) {
-                    beforeIterationFill();
+                    beforeIterationFill(s);
                     success = fillIteration(start, s);
                 }
             } catch (allocation_cancelled &) {
@@ -774,12 +807,18 @@ namespace merutilm::rff2 {
         }
     }
 
-    void RFF2::beforeIterationFill() const {
+    void RFF2::beforeIterationFill(Settings &s) const {
         if (settings.explore.autoMoveCursorToCenter) {
             moveCursorToCenter();
         }
-        renderer->descriptorStorage->iteration->setMaxIteration(
-                static_cast<double>(renderData->fractalSettings.perturb.maxIteration));
+
+        //sync settings
+        s.fractal = renderData->fractalSettings;
+        if (s.render.computeShader.use) {
+            s.fractal.reference.sync.referenceSynchronizationInterval = 1;
+        }
+
+        renderer->descriptorStorage->iteration->setMaxIteration(static_cast<double>(s.fractal.perturb.maxIteration));
 
         saveBackup();
     }
@@ -835,29 +874,12 @@ namespace merutilm::rff2 {
         } else {
             renderData = nullptr;
 
-            if (s.render.computeShader.use) {
-                s.fractal.reference.sync.referenceSynchronizationInterval = 1;
-                if (logZoom > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
-                    renderData = std::make_unique<FexMB2RenderData>(
-                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
-                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
-                } else {
-                    renderData = std::make_unique<FloatMB2RenderData>(
-                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
-                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
-                }
-            } else {
-                if (logZoom > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
-                    renderData = std::make_unique<DexMB2RenderData>(
-                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
-                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
-                } else {
-                    renderData = std::make_unique<DoubleMB2RenderData>(
-                            state, frt, approxTableCache, dcMax, exp10, capacity, 0, actionPerRefCalcIteration,
-                            actionPerSeriesApproxIteration, actionPerCreatingTableIteration);
-                }
-            }
+
+            renderData = createAppropriateRenderData(s.render.computeShader.use, logZoom, startTime, frt, dcMax, exp10,
+                                                     capacity, 0);
         }
+
+        // sync settings
 
         const MB2ReferenceBase *reference = renderData->getReference();
         if (!reference || state.interruptRequested())
