@@ -11,9 +11,15 @@
 
 
 namespace merutilm::rff2 {
+    /**
+     * fast fixed point arbitrary-precision decimal.
+     * the size of mp_limb must be 8. other case is undefined.
+     */
     struct fixed_point_decimal {
+        static_assert(sizeof(mp_limb_t) == 8);
+        static_assert(sizeof(mp_size_t) == 8);
+
         static constexpr size_t RAW_ARR_LEN = 7;
-        static constexpr size_t LIMB_BITS = sizeof(mp_limb_t) * 8;
         // 0~1 : add, sub, mul(hi), div(hi) | 2 (mul, div) | 3~6 temp
         mpz_t temp = {};
         int sgn = 0;
@@ -151,7 +157,7 @@ namespace merutilm::rff2 {
 
         void set_int_limbs_to_read(mp_size_t new_int_limbs_to_read);
 
-        void export_value(uint64_t *mantissa_bit, mp_size_t *f_exp2) const;
+        void export_value(uint64_t &mantissa_bit, mp_size_t &f_exp2) const;
     };
 
 
@@ -549,7 +555,7 @@ namespace merutilm::rff2 {
         uint64_t mantissa_bit;
         mp_size_t f_exp2;
 
-        export_value(&mantissa_bit, &f_exp2);
+        export_value(mantissa_bit, f_exp2);
         // 0100 0000 0000 : 2^1
         // 0000 0000 0000 : 2^-1023
         // 0111 1111 1111 : 2^1024
@@ -558,10 +564,13 @@ namespace merutilm::rff2 {
             return sgn == 1 ? INFINITY : -static_cast<double>(INFINITY);
         }
 #endif
+#ifdef SAFE_EXP_OPERATOR
         const int mantissa_shift = f_exp2 <= -0x03ff ? -0x03ff - f_exp2 + 1 : 0;
-        mantissa_bit = mantissa_bit >> mantissa_shift & 0x800fffffffffffffULL;
-
+        mantissa_bit = mantissa_bit >> mantissa_shift;
         const uint64_t exponent = f_exp2 <= -0x03ff ? 0 : 0x3ff0000000000000ULL + (static_cast<uint64_t>(f_exp2) << 52);
+#else
+        const uint64_t exponent = 0x3ff0000000000000ULL + (static_cast<uint64_t>(f_exp2) << 52);
+#endif
         const uint64_t sig = sgn == 1 ? 0 : 0x8000000000000000ULL;
         return std::bit_cast<double>(sig | exponent | mantissa_bit);
     }
@@ -574,7 +583,7 @@ namespace merutilm::rff2 {
         uint64_t mantissa_bit;
         mp_size_t f_exp2;
 
-        export_value(&mantissa_bit, &f_exp2);
+        export_value(mantissa_bit, f_exp2);
 
         const auto mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
 
@@ -588,12 +597,12 @@ namespace merutilm::rff2 {
 
     inline std::string fixed_point_decimal::to_string() {
         mpf_t d;
-        const int exp2 = -dec_limbs_count * LIMB_BITS;
+        const int exp2 = -dec_limbs_count * 64;
         temp_write_limbs(get_value_ptr(), limbs_read_count());
         if (sgn == -1)
             mpz_neg(temp, temp);
 
-        mpf_init2(d, limbs_read_count() * LIMB_BITS);
+        mpf_init2(d, limbs_read_count() * 64);
 
         if (exp2 < 0) {
             mpf_set_z(d, temp);
@@ -635,38 +644,32 @@ namespace merutilm::rff2 {
     }
 
 
-    inline void fixed_point_decimal::export_value(uint64_t *mantissa_bit, mp_size_t *f_exp2) const {
+    inline void fixed_point_decimal::export_value(uint64_t &mantissa_bit, mp_size_t &f_exp2) const {
 
-        const mp_size_t exp2 = -dec_limbs_count * LIMB_BITS;
+        static constexpr auto MANTISSA_MASK = 0x000fffffffffffffULL;
+        const mp_size_t exp2 = -dec_limbs_count * 64;
         const mp_size_t lc = limbs_count();
         const mp_limb_t *src_ptr = get_value_ptr();
         const mp_size_t nlc = normalized_limbs_count(src_ptr, lc);
-
-        mp_limb_t *ptr = raw + lc * 3;
-        const mp_size_t off = std::max(static_cast<mp_size_t>(0), nlc - 2);
-        const mp_size_t copy_cnt = std::min(lc - off, static_cast<mp_size_t>(2));
-        memcpy(ptr + off, src_ptr + off, copy_cnt * sizeof(mp_limb_t));
-        const size_t len = mpn_sizeinbase(src_ptr + nlc - 1, 1, 2) + (nlc - 1) * LIMB_BITS;
+        const mp_limb_t top = *(src_ptr + nlc - 1);
+        const size_t len = nlc * 64 - std::countl_zero(top);
 
         const int shift = static_cast<int>(len) - 53;
         if (shift < 0) {
-            mpn_lshift(ptr, ptr, 1, -shift);
-            *mantissa_bit = *ptr;
+            mantissa_bit = *src_ptr << -shift & MANTISSA_MASK;
         } else if (shift > 0) {
-            const mp_size_t limb_skip = shift / LIMB_BITS;
-            const mp_size_t shift_small = shift - limb_skip * LIMB_BITS;
-            const auto dst_ptr = ptr + limb_skip;
-            const mp_size_t read = shift_small <= 11 ? 1 : 2;
-
-#ifndef NDEBUG
-            if (limb_skip + read > lc) {
-                throw std::logic_error("limbs overflow");
+            const mp_size_t limb_skip = shift / 64;
+            const mp_size_t shift_small = shift - limb_skip * 64;
+            const auto dst0 = src_ptr + limb_skip;
+            if (shift_small <= 12) {
+                mantissa_bit = *dst0 >> shift_small & MANTISSA_MASK;
+            }else {
+                const auto dst1 = dst0 + 1;
+                mantissa_bit = (*dst1 << (64 - shift_small) | *dst0 >> shift_small) & MANTISSA_MASK;
             }
-#endif
-
-            if (shift_small > 0) mpn_rshift(dst_ptr, dst_ptr, read, shift_small);
-            *mantissa_bit = *dst_ptr;
+        }else {
+            mantissa_bit = *src_ptr & MANTISSA_MASK;
         }
-        *f_exp2 = exp2 + shift + 52;
+        f_exp2 = exp2 + shift + 52;
     }
 } // namespace merutilm::rff2

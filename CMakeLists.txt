@@ -181,4 +181,4 @@ FetchContent_MakeAvailable(nfd)
 
 target_link_libraries(RFF PRIVATE nfd)
 
-RFF_DEFINITION(SAFE_EXP_OPERATOR "Better Quality, Slower Speed for Deep Zoom" OFF)
+RFF_DEFINITION(SAFE_EXP_OPERATOR "Better Quality, Slower Speed (Safety checking)" OFF)
