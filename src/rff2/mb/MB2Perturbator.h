@@ -10,6 +10,7 @@
 #include "../settings/FrtSASettings.hpp"
 #include "Perturbator.h"
 #include "SeriesApproximationData.hpp"
+#include <fstream>
 
 namespace merutilm::rff2 {
 

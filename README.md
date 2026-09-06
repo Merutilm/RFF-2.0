@@ -18,7 +18,7 @@
 This value is unmodifiable.
 
 - This program uses an `Multi-level Periodic Approximation` algorithm which I developed.
-It completely replaces traditional `BLA`, achieving speedups of more than 2 times. \
+It is derived from `BLA` but completely replaces traditional `BLA`, achieving speedups of more than 2 times. \
 To put it simply, it skips to the `Periodic point` directly.
 
 
@@ -26,6 +26,10 @@ To put it simply, it skips to the `Periodic point` directly.
 Of course, the approximation table can also be compressed using this algorithm, and jumps a <u>**HUGE**</u> process! \
 Therefore, If you are trying to render long periods (over `10,000,000` or so), You should compress the references. \
 This will be <u>**SIGNIFICANTLY**</u> faster because it <u>**SUPERJUMPS**</u> process of table creation. 
+
+
+- If it is still slow, Try using a Compute Shader! it is extremely powerful for Spiral patterns like `Seahorse Valley`, `Elephant Valley`.
+
 
 - Save amazing images using shaders!
 
@@ -190,8 +194,12 @@ the extension of `info` file is `.rfsm`.
 
 ## Known Issues & Problems
 - The program was compiled with -ffast-math, so sometimes results incorrect image at some location.
-- 
+
 - This is weak for complex spiral patterns and mandelbrot plane, because there are only formulas for the  recursive julia sets.  
   I will add that formulas in the future.
+
+- Compute shader renders using single precision; it is fast but inaccurate. 
+This can lead to trouble in specific high-rotation count locations,
+the trouble was found at the following location: `1E20 main-bulb Elephant Valley` and `Elephant² Valley`.
 
 - An issue occurs where the reference calculation slows down unusually at the certain very deep locations.

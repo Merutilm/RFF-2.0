@@ -5,6 +5,15 @@
 
 #extension GL_EXT_shader_explicit_arithmetic_types_int64: require
 
+struct DoublePA {
+    uint64_t skip;
+    double anr;
+    double ani;
+    double bnr;
+    double bni;
+    double radius;
+};
+
 struct PA {
     uint64_t skip;
     vec2 an;

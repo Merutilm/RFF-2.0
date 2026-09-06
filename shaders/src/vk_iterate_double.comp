@@ -1,0 +1,179 @@
+#version 450
+#include <common.glsl>
+
+// define descriptors
+#define DESC_ITERATION 0
+#define DESC_ITERATION_BUFFER_ACCESS writeonly
+#define DESC_RENDER_META 1
+#define DESC_BATCH_RESULT 2
+
+// include descriptors
+#include <desc_iteration.glsl>
+#include <desc_render_meta_double.glsl>
+#include <desc_batch_result.glsl>
+
+// include utilities
+#include <utils_perturbation.glsl>
+#include <utils_complex.glsl>
+#include <utils_fex.glsl>
+
+
+#define RECALC_THRESHOLD 0.f
+
+layout (constant_id = 0) const uint ignore_mpa = 0;
+
+layout (local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+DoublePA invalid_sentinel() {
+    return DoublePA(0, 0, 0, 0, 0, 0);
+}
+
+bool is_valid(DoublePA pa, float r) {
+    return r < float(pa.radius);
+}
+
+
+DoublePA lookup(uint64_t ref_iteration, dvec2 dz) {
+    if (ref_iteration == 0) {
+        return invalid_sentinel();
+    }
+
+    MPIndexMapper mapper = mp_mapper_meta.mapper[uint(ref_iteration)];
+
+    if (mapper.mapped == UINT64_MAX) {
+        return invalid_sentinel();
+    }
+
+    float r = norm_approx(vec2(dz));
+
+    switch (mp_table_meta.selection_method) {
+        case MSM_LOWEST:
+            {
+                DoublePA pa = invalid_sentinel();
+
+                for (int i = 0; i < mapper.levels; ++i) {
+                    DoublePA test = mp_table_meta.table[int(mapper.mapped) + i];
+                    if (is_valid(test, r)) {
+                        pa = test;
+                    } else
+                    return pa;
+                }
+                return pa;
+                break;
+            }
+        case MSM_HIGHEST:
+            {
+                DoublePA pa = mp_table_meta.table[int(mapper.mapped)];
+
+                if (!is_valid(pa, r)) {
+                    return invalid_sentinel();
+                }
+
+                for (int j = int(mapper.levels); j > 1; --j) {
+                    DoublePA test = mp_table_meta.table[int(mapper.mapped) + j - 1];
+
+                    if (is_valid(test, r)) {
+                        return test;
+                    }
+                }
+
+                return pa;
+                break;
+            }
+    }
+    return invalid_sentinel();
+}
+
+vec2 apply(DoublePA pa, dvec2 dz, dvec2 dc) {
+    return complex_mul(vec2(pa.anr, pa.ani), vec2(dz)) + complex_mul(vec2(pa.bnr, pa.bni), vec2(dc));
+}
+
+void main() {
+
+
+    uint px = gl_GlobalInvocationID.x;
+    uint py = gl_GlobalInvocationID.y;
+    uvec2 pixel = uvec2(px, py);
+    uint index = py * iteration_info_settings.extent.x + px;
+
+    if (px >= int(iteration_info_settings.extent.x) || py >= int(iteration_info_settings.extent.y)) return;
+    if (batch_data.staging_values[index].iteration == 0) batch_result_data.completed[index] = 0;
+    if (batch_result_data.completed[index] != 0) return;
+
+    dvec2 dz = dvec2(batch_data.staging_values[index].dzr, batch_data.staging_values[index].dzi);
+    uvec2 extent = uvec2(iteration_info_settings.extent);
+    float bailout2 = render_meta.bailout * render_meta.bailout;
+
+    uint64_t iteration = batch_data.staging_values[index].iteration;
+    uint64_t ref_iteration = batch_data.staging_values[index].ref_iteration;
+    dvec2 dc = fex_complex_cast(offset_conversion(pixel, extent)) + vec2(render_meta.offset);
+    float prev_distance2 = 0;
+    float curr_distance2 = batch_data.staging_values[index].distance2;
+    uint batch_iteration = 0;
+    uint batch_size = batch_info.batch_size;
+
+    while (iteration < render_meta.max_iteration && batch_iteration < batch_size)
+    {
+        if (ignore_mpa == 0 && mp_table_meta.len != 0) {
+            DoublePA pa = lookup(ref_iteration, dz);
+            if (pa.skip > 0) {
+                dz = apply(pa, dz, dc);
+                iteration += pa.skip;
+                ref_iteration += pa.skip;
+                ++batch_iteration;
+
+                if (iteration >= render_meta.max_iteration) {
+                    break;
+                }
+            }
+        }
+
+
+
+        if (ref_iteration != render_meta.max_ref_iteration) {
+            dvec2 oldZ = render_meta.orbit[compress(ref_iteration)];
+            dvec2 oldPtbz = oldZ * 2 + dz;
+
+            dz = complex_mul(oldPtbz, dz) + dc;
+
+            ++ref_iteration;
+            ++iteration;
+            ++batch_iteration;
+        }
+
+        dvec2 orbit = render_meta.orbit[compress(ref_iteration)];
+        dvec2 z = orbit + dz;
+        prev_distance2 = curr_distance2;
+        curr_distance2 = norm2(vec2(z));
+
+        float norm_z = norm_approx(vec2(z));
+        float norm_dz = norm_approx(vec2(dz));
+
+        if (ref_iteration == render_meta.max_ref_iteration || norm_z < norm_dz) {
+            ref_iteration = 0;
+            dz = z;
+        }
+
+        if (curr_distance2 > bailout2) {
+            float prev_distance = sqrt(prev_distance2);
+            float curr_distance = sqrt(curr_distance2);
+            iteration_settings.iterations[index] = double(iteration) + get_exterior_double_value_iteration_ratio(prev_distance, curr_distance);
+            batch_result_data.completed[index] = 1;
+            return;
+        }
+    }
+
+    if (iteration >= render_meta.max_iteration) {
+        iteration_settings.iterations[index] = double(render_meta.max_iteration);
+        batch_result_data.completed[index] = 1;
+        return;
+    }
+
+    iteration_settings.iterations[index] = double(iteration);
+    batch_data.staging_values[index].dzr = dz.x;
+    batch_data.staging_values[index].dzi = dz.y;
+    batch_data.staging_values[index].ref_iteration = ref_iteration;
+    batch_data.staging_values[index].iteration = iteration;
+    batch_data.staging_values[index].distance2 = curr_distance2;
+
+}

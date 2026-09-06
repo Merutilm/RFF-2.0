@@ -43,6 +43,14 @@ vec2 fex_complex_cast(FexComplex a) {
     return vec2(fex_cast(a.re), fex_cast(a.im));
 }
 
+dvec2 complex_mul(dvec2 a, dvec2 b)
+{
+    return dvec2(
+    a.x * b.x - a.y * b.y,
+    a.x * b.y + a.y * b.x
+    );
+}
+
 vec2 complex_mul(vec2 a, vec2 b)
 {
     return vec2(

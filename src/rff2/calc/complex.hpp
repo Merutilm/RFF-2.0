@@ -69,14 +69,14 @@ namespace merutilm::rff2 {
         [[nodiscard]] complex try_normalized_value() const {
             return complex{rff_math::try_normalized_value(re), rff_math::try_normalized_value(im)};
         }
-        std::string to_string() {
-            if constexpr (std::is_same_v<Num, dex>) {
+        [[nodiscard]] std::string to_string() {
+            if constexpr (rff_math::is_exponent<Num>) {
                 return re.to_string() + " | " + im.to_string() + "i";
             } else if constexpr (std::is_same_v<Num, double>) {
-                return std::to_string(re) + " | " + std::to_string(im) + "i";
+                return std::format("{:.15e}", re) + " | " + std::format("{:.15e}",im) + "i";
             } else {
                 static_assert(std::is_same_v<Num, float>);
-                return std::to_string(re) + " | " + std::to_string(im) + "i";
+                return std::format("{:.6e}", re) + " | " + std::format("{:.6e}",im) + "i";
             }
         }
     };

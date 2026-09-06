@@ -648,9 +648,8 @@ namespace merutilm::rff2 {
 
         static constexpr auto MANTISSA_MASK = 0x000fffffffffffffULL;
         const mp_size_t exp2 = -dec_limbs_count * 64;
-        const mp_size_t lc = limbs_count();
         const mp_limb_t *src_ptr = get_value_ptr();
-        const mp_size_t nlc = normalized_limbs_count(src_ptr, lc);
+        const mp_size_t nlc = normalized_limbs_count(src_ptr, limbs_read_count());
         const mp_limb_t top = *(src_ptr + nlc - 1);
         const size_t len = nlc * 64 - std::countl_zero(top);
 
