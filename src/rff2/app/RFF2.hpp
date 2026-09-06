@@ -219,16 +219,10 @@ namespace merutilm::rff2 {
         vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
 
         const auto cache = dynamic_cast<ApproxTableCache<Num> *>(approxTableCache.get());
-#ifndef NDEBUG
-        const auto tableData = cache ? cache->mpaTable.data() : nullptr;
-        const auto mapperData = cache ? cache->flattenIndexMapper.data() : nullptr;
-#else
-        const auto tableData = cache ? cache->mpaTable : nullptr;
-        const auto mapperData = cache ? cache->flattenIndexMapper : nullptr;
-#endif
+        if (!cache) throw std::logic_error("cache is null");
 
-        const auto tableLen = cache ? approxTableCache->tableSizeUsed : 0;
-        const auto mapperLen = cache ? approxTableCache->mapperSizeUsed : 0;
+        const auto &tableData = cache->mpaTable;
+        const auto &mapperData = cache->flattenIndexMapper;
 
         other->clearMeta(commandPool);
         target->setMPAIgnore(s.render.computeShader.completelyIgnoreMpa);
@@ -237,7 +231,7 @@ namespace merutilm::rff2 {
         target->setMeta(s.fractal, s.render,
                         dynamic_cast<MB2Reference<Num> *>(renderData->getReference())->refOrbit,
                         static_cast<complex<Num>>(renderData->getPerturbator()->off),
-                        s.fractal.perturb.maxIteration, tableData, tableLen, mapperData, mapperLen,
+                        s.fractal.perturb.maxIteration, tableData, mapperData,
                         commandPool);
 
         // preparing render meta scope

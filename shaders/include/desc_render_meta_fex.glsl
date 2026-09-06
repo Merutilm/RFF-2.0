@@ -25,23 +25,25 @@ layout (std430, set = DESC_RENDER_META, binding = 0) readonly buffer FexRenderMe
 } render_meta;
 
 
-layout (std430, set = DESC_RENDER_META, binding = 1) readonly buffer FexMPTableMeta {
+layout (set = DESC_RENDER_META, binding = 1) uniform MPTableInfo {
     uint64_t len;
     uint selection_method;
-    FexPA[] table;
-} mp_table_meta;
+} mp_table_info;
 
-layout (std430, set = DESC_RENDER_META, binding = 2) readonly buffer FexMPMapperMeta {
-    uint64_t len;
+layout (std430, set = DESC_RENDER_META, binding = 2) readonly buffer MPTableData {
+    FexPA[] table;
+} mp_table_data;
+
+layout (std430, set = DESC_RENDER_META, binding = 3) readonly buffer FexMPMapperMeta {
     MPIndexMapper[] mapper;
 } mp_mapper_meta;
 
 
-layout (set = DESC_RENDER_META, binding = 3) uniform FexBatchInfo{
+layout (set = DESC_RENDER_META, binding = 4) uniform FexBatchInfo{
     uint batch_size;
 } batch_info;
 
-layout (std430, set = DESC_RENDER_META, binding = 4) buffer FexBatchData{
+layout (std430, set = DESC_RENDER_META, binding = 5) buffer FexBatchData{
     FexBatchStagingData[] staging_values;
 } batch_data;
 

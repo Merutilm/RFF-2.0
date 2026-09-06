@@ -8,9 +8,14 @@
 namespace merutilm::vkh {
     class ShaderStorage final : public BufferObject {
     public:
-        explicit ShaderStorage(Core & core, HostDataObjectManager &&manager, BufferLocalization bufferLocalization, bool multiframeEnabled);
+        ShaderStorage(Core &core, HostDataObjectManager &&manager, const BufferLocalization bufferLocalization,
+                      const bool multiframeEnabled) :
+            BufferObject(core, std::move(manager), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, bufferLocalization,
+                         multiframeEnabled) {
+            ShaderStorage::init();
+        }
 
-        ~ShaderStorage() override;
+        ~ShaderStorage() override { ShaderStorage::cleanup(); }
 
         ShaderStorage(const ShaderStorage &) = delete;
 
@@ -21,10 +26,15 @@ namespace merutilm::vkh {
         ShaderStorage operator=(ShaderStorage &&) = delete;
 
     protected:
-        void init() override;
+        void init() override {
+            // no operation
+        }
 
-        void cleanup() override;
+
+        void cleanup() override {
+            // no operation
+        }
     };
 
 
-}
+} // namespace merutilm::vkh

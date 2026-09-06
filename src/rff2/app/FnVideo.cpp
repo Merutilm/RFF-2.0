@@ -11,8 +11,8 @@
 #include "../preset/shader/fog/ShdFogPresets.hpp"
 #include "../preset/shader/slope/ShdSlopePresets.hpp"
 #include "../preset/shader/stripe/ShdStripePresets.hpp"
+#include "../util/Utilities.h"
 #include "IOUtilities.h"
-#include "Utilities.h"
 #include "VideoWindow.hpp"
 
 

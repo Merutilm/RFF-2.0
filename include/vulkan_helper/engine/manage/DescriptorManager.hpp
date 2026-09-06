@@ -13,6 +13,8 @@
 #include <vulkan_helper/hash/DescriptorSetLayoutBuildTypeHasher.hpp>
 #include <vulkan_helper/hash/VectorHasher.hpp>
 
+#include "vulkan_helper/engine/buffer/ExternShaderStorage.hpp"
+
 namespace merutilm::vkh {
     using DescriptorSetLayoutBuilder = std::vector<DescriptorSetLayoutBuildType>;
     using DescriptorSetLayoutBuilderHasher =
@@ -20,7 +22,7 @@ namespace merutilm::vkh {
 
     using DescriptorType = std::variant<std::unique_ptr<Uniform>, std::unique_ptr<ShaderStorage>,
                                         std::unique_ptr<CombinedImageSampler>, std::unique_ptr<InputAttachment>,
-                                        std::unique_ptr<StorageImage>>;
+                                        std::unique_ptr<StorageImage>, std::unique_ptr<ExternShaderStorage>>;
 
 
     struct DescriptorManager {
@@ -43,6 +45,8 @@ namespace merutilm::vkh {
         void appendUBO(uint32_t bindingExpected, VkShaderStageFlags useStage,  std::unique_ptr<Uniform> &&ubo);
 
         void appendSSBO(uint32_t bindingExpected, VkShaderStageFlags useStage,  std::unique_ptr<ShaderStorage> &&ssbo);
+
+        void appendExternSSBO(uint32_t bindingExpected, VkShaderStageFlags useStage,  std::unique_ptr<ExternShaderStorage> &&ssbo);
 
         void appendCombinedImgSampler(uint32_t bindingExpected, VkShaderStageFlags useStage,
                                        std::unique_ptr<CombinedImageSampler> &&sampler);

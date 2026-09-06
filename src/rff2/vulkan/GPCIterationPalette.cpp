@@ -4,9 +4,9 @@
 
 #include "../vulkan/GPCIterationPalette.hpp"
 
-#include "../app/Utilities.h"
 #include "../settings/PerturbationMainIterator.hpp"
 #include "../settings/ShdPaletteSettings.h"
+#include "../util/Utilities.h"
 #include "GPCSmoothZoom.hpp"
 #include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/util/BufferImageContextUtils.hpp"

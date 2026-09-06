@@ -5,8 +5,8 @@
 #include "KFRColorLoader.hpp"
 #include <fstream>
 #include "../app/IOUtilities.h"
-#include "../app/Utilities.h"
 #include "../constants/Constants.hpp"
+#include "../util/Utilities.h"
 #include "vulkan_helper/base/logger.hpp"
 
 namespace merutilm::rff2 {

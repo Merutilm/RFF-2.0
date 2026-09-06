@@ -28,19 +28,21 @@ namespace merutilm::rff2 {
         static constexpr uint32_t TARGET_RM_OFFSET = 6;
         static constexpr uint32_t TARGET_RM_ORBIT = 7;
 
-        static constexpr uint32_t BINDING_RM_TABLE_SSBO = 1;
+        static constexpr uint32_t BINDING_RM_TABLE_INFO_UBO = 1;
         static constexpr uint32_t TARGET_RM_TABLE_LEN = 0;
         static constexpr uint32_t TARGET_RM_TABLE_SELECTION_METHOD = 1;
-        static constexpr uint32_t TARGET_RM_TABLE_DATA = 2;
 
-        static constexpr uint32_t BINDING_RM_MAPPER_SSBO = 2;
+        static constexpr uint32_t BINDING_RM_TABLE_DATA_SSBO = 2;
+        static constexpr uint32_t TARGET_RM_TABLE_DATA = 0;
+
+        static constexpr uint32_t BINDING_RM_MAPPER_SSBO = 3;
         static constexpr uint32_t TARGET_RM_MAPPER_LEN = 0;
         static constexpr uint32_t TARGET_RM_MAPPER_DATA = 1;
 
-        static constexpr uint32_t BINDING_RM_BATCH_INFO_UBO = 3;
+        static constexpr uint32_t BINDING_RM_BATCH_INFO_UBO = 4;
         static constexpr uint32_t TARGET_RM_BATCH_SIZE = 0;
 
-        static constexpr uint32_t BINDING_RM_BATCH_SSBO = 4;
+        static constexpr uint32_t BINDING_RM_BATCH_SSBO = 5;
         static constexpr uint32_t TARGET_RM_BATCH_STAGING_DATA = 0;
 
 
@@ -51,7 +53,8 @@ namespace merutilm::rff2 {
 
 
         explicit CPCIterate(vkh::Engine &engine, vkh::WindowContext &wc) :
-            ComputePipelineConfigurator(engine, wc, std::is_same_v<Num, fex> ? "vk_iterate_fex.comp" : "vk_iterate.comp") {}
+            ComputePipelineConfigurator(engine, wc,
+                                        std::is_same_v<Num, fex> ? "vk_iterate_fex.comp" : "vk_iterate.comp") {}
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
         void pipelineInitialized() override;
@@ -62,8 +65,8 @@ namespace merutilm::rff2 {
 
         void setMeta(const FractalSettings &frt, const RenderSettings &render,
                      const std::vector<complex<Num>> &reference, complex<Num> offset, uint64_t maxIteration,
-                     const PA<Num> *mpTableData, uint64_t tableLen, const MPAIndexMapper *mapperData,
-                     uint64_t mapperLen, vkh::CommandPool &commandPool) const;
+                     const CachedPodVector<PA<Num>> &mpTableData, const CachedPodVector<MPAIndexMapper> &mapperData,
+                     vkh::CommandPool &commandPool) const;
 
         void resizeWriteBuffer(uint32_t width, uint32_t height) const;
 
@@ -85,9 +88,8 @@ namespace merutilm::rff2 {
     void CPCIterate<Num>::pipelineInitialized() {
         auto &desc = getDescriptor(SET_RENDER_META);
         writeDescriptorMF([&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            desc.queue(queue, frameIndex, {}, {BINDING_RM_BATCH_INFO_UBO});
+            desc.queue(queue, frameIndex, {}, {BINDING_RM_BATCH_INFO_UBO, BINDING_RM_TABLE_INFO_UBO});
         });
-
     }
 
     template<Number Num>
@@ -105,50 +107,34 @@ namespace merutilm::rff2 {
         using namespace SharedDescriptorTemplate;
         auto &desc = getDescriptor(SET_RENDER_META);
         auto &rmSSBO = desc.template get<vkh::ShaderStorage>(0, BINDING_RM_SSBO);
-        auto &rmTableSSBO = desc.template get<vkh::ShaderStorage>(0, BINDING_RM_TABLE_SSBO);
-        auto &rmMapperSSBO = desc.template get<vkh::ShaderStorage>(0, BINDING_RM_MAPPER_SSBO);
-
         auto &rmSSBOHost = rmSSBO.getHostObject();
-        auto &rmTableSSBOHost = rmTableSSBO.getHostObject();
-        auto &rmMapperSSBOHost = rmMapperSSBO.getHostObject();
-
         rmSSBOHost.template resizeArray<complex<Num>>(TARGET_RM_ORBIT, 0);
-        rmTableSSBOHost.template resizeArray<PA<Num>>(TARGET_RM_TABLE_DATA, 0);
-        rmMapperSSBOHost.template resizeArray<MPAIndexMapper>(TARGET_RM_MAPPER_DATA, 0);
-
         rmSSBO.reloadBuffer();
-        rmTableSSBO.reloadBuffer();
-        rmMapperSSBO.reloadBuffer();
-
         rmSSBO.update();
-        rmTableSSBO.update();
-        rmMapperSSBO.update();
-
         rmSSBO.localize(commandPool);
-        rmTableSSBO.localize(commandPool);
-        rmMapperSSBO.localize(commandPool);
+
         writeDescriptorMF([&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            desc.queue(queue, frameIndex, {}, {BINDING_RM_SSBO, BINDING_RM_TABLE_SSBO, BINDING_RM_MAPPER_SSBO});
+            desc.queue(queue, frameIndex, {}, {BINDING_RM_SSBO});
         });
     }
 
 
     template<Number Num>
     void CPCIterate<Num>::setMeta(const FractalSettings &frt, const RenderSettings &render,
-                             const std::vector<complex<Num>> &reference, const complex<Num> offset,
-                             const uint64_t maxIteration, const PA<Num> *mpTableData, const uint64_t tableLen,
-                             const MPAIndexMapper *mapperData, const uint64_t mapperLen,
-                             vkh::CommandPool &commandPool) const {
+                                  const std::vector<complex<Num>> &reference, const complex<Num> offset,
+                                  const uint64_t maxIteration, const CachedPodVector<PA<Num>> &mpTableData,
+                                  const CachedPodVector<MPAIndexMapper> &mapperData,
+                                  vkh::CommandPool &commandPool) const {
 
         using namespace SharedDescriptorTemplate;
         auto &desc = getDescriptor(SET_RENDER_META);
         auto &rmSSBO = desc.template get<vkh::ShaderStorage>(0, BINDING_RM_SSBO);
-        auto &rmTableSSBO = desc.template get<vkh::ShaderStorage>(0, BINDING_RM_TABLE_SSBO);
-        auto &rmMapperSSBO = desc.template get<vkh::ShaderStorage>(0, BINDING_RM_MAPPER_SSBO);
+        auto &rmTableUBO = desc.template get<vkh::Uniform>(0, BINDING_RM_TABLE_INFO_UBO);
+        auto &rmTableExtSSBO = desc.template get<vkh::ExternShaderStorage>(0, BINDING_RM_TABLE_DATA_SSBO);
+        auto &rmMapperExtSSBO = desc.template get<vkh::ExternShaderStorage>(0, BINDING_RM_MAPPER_SSBO);
 
         auto &rmSSBOHost = rmSSBO.getHostObject();
-        auto &rmTableSSBOHost = rmTableSSBO.getHostObject();
-        auto &rmMapperSSBOHost = rmMapperSSBO.getHostObject();
+        auto &rmTableUBOHost = rmTableUBO.getHostObject();
 
         rmSSBOHost.template set<uint64_t>(TARGET_RM_MAX_ITERATION, maxIteration);
         rmSSBOHost.template set<uint64_t>(TARGET_RM_MAX_REF_ITERATION, reference.size() - 1);
@@ -156,35 +142,26 @@ namespace merutilm::rff2 {
         rmSSBOHost.template set<float>(TARGET_RM_BAILOUT, frt.general.bailout);
         rmSSBOHost.template set<float>(TARGET_RM_CLARITY_MULTIPLIER, render.display.clarityMultiplier);
         rmSSBOHost.template set<uint32_t>(TARGET_RM_DECIMALIZE_ITERATION_METHOD,
-                                 static_cast<uint32_t>(frt.perturb.decimalizeIterationMethod));
+                                          static_cast<uint32_t>(frt.perturb.decimalizeIterationMethod));
         rmSSBOHost.template set<complex<Num>>(TARGET_RM_OFFSET, static_cast<complex<Num>>(offset));
         rmSSBOHost.template resizeArray<complex<Num>>(TARGET_RM_ORBIT, reference.size());
         rmSSBOHost.template set<complex<Num>>(TARGET_RM_ORBIT, reference);
-        rmTableSSBOHost.template set<uint64_t>(TARGET_RM_TABLE_LEN, tableLen);
+        rmTableUBOHost.template set<uint32_t>(TARGET_RM_TABLE_SELECTION_METHOD,
+                                              static_cast<uint32_t>(frt.mpa.selectionMethod));
 
-        rmTableSSBOHost.template set<uint32_t>(TARGET_RM_TABLE_SELECTION_METHOD, static_cast<uint32_t>(frt.mpa.selectionMethod));
-        rmTableSSBOHost.template resizeArray<PA<Num>>(TARGET_RM_TABLE_DATA, tableLen);
-        if (tableLen > 0)
-            rmTableSSBOHost.template set<PA<Num>>(TARGET_RM_TABLE_DATA, mpTableData);
-
-        rmMapperSSBOHost.template set<uint64_t>(TARGET_RM_MAPPER_LEN, mapperLen);
-        rmMapperSSBOHost.template resizeArray<MPAIndexMapper>(TARGET_RM_MAPPER_DATA, mapperLen);
-        if (mapperLen > 0)
-            rmMapperSSBOHost.template set<MPAIndexMapper>(TARGET_RM_MAPPER_DATA, mapperData);
+        rmTableUBOHost.template set<uint64_t>(TARGET_RM_TABLE_LEN, mpTableData.sizeUsed);
+        rmTableExtSSBO.context = mpTableData.sizeUsed == 0 ? engine.getSharedResource().dummyBuffer : mpTableData.ctx;
+        rmMapperExtSSBO.context = mapperData.sizeUsed == 0 ? engine.getSharedResource().dummyBuffer : mapperData.ctx;
 
         rmSSBO.reloadBuffer();
-        rmTableSSBO.reloadBuffer();
-        rmMapperSSBO.reloadBuffer();
-
         rmSSBO.update();
-        rmTableSSBO.update();
-        rmMapperSSBO.update();
-
         rmSSBO.localize(commandPool);
-        rmTableSSBO.localize(commandPool);
-        rmMapperSSBO.localize(commandPool);
+
+        rmTableUBO.update();
+
+
         writeDescriptorMF([&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            desc.queue(queue, frameIndex, {}, {BINDING_RM_SSBO, BINDING_RM_TABLE_SSBO, BINDING_RM_MAPPER_SSBO});
+            desc.queue(queue, frameIndex, {}, {BINDING_RM_SSBO, BINDING_RM_TABLE_DATA_SSBO, BINDING_RM_MAPPER_SSBO});
         });
     }
     template<Number Num>
@@ -196,7 +173,7 @@ namespace merutilm::rff2 {
         auto &rmBatchSSBOHost = rmBatchSSBO.getHostObject();
 
         rmBatchSSBOHost.template resizeAndClear<ComputeShaderBatchStagingData<Num>>(TARGET_RM_BATCH_STAGING_DATA,
-                                                                             width * height);
+                                                                                    width * height);
 
         rmBatchSSBO.reloadBuffer();
         rmBatchSSBO.update();
@@ -233,7 +210,9 @@ namespace merutilm::rff2 {
         rmBatchInfoUBO.update();
     }
     template<Number Num>
-    void CPCIterate<Num>::setMPAIgnore(const bool ignore) { specializationIndex = ignore ? 1 : 0; }
+    void CPCIterate<Num>::setMPAIgnore(const bool ignore) {
+        specializationIndex = ignore ? 1 : 0;
+    }
 
     template<Number Num>
     void CPCIterate<Num>::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
@@ -254,15 +233,9 @@ namespace merutilm::rff2 {
         homRm.template reserve<complex<Num>>(TARGET_RM_OFFSET);
         homRm.template reserveArray<complex<Num>>(TARGET_RM_ORBIT, 0);
 
-
-        vkh::HostDataObjectManager homRmTable;
-        homRmTable.template reserve<uint64_t>(TARGET_RM_TABLE_LEN);
-        homRmTable.template reserve<uint32_t>(TARGET_RM_TABLE_SELECTION_METHOD);
-        homRmTable.template reserveArray<PA<Num>>(TARGET_RM_TABLE_DATA, 0);
-
-        vkh::HostDataObjectManager homRmMapper;
-        homRmMapper.template reserve<uint64_t>(TARGET_RM_MAPPER_LEN);
-        homRmMapper.template reserveArray<MPAIndexMapper>(TARGET_RM_MAPPER_DATA, 0);
+        vkh::HostDataObjectManager homRmTableInfo;
+        homRmTableInfo.template reserve<uint64_t>(TARGET_RM_TABLE_LEN);
+        homRmTableInfo.template reserve<uint32_t>(TARGET_RM_TABLE_SELECTION_METHOD);
 
         vkh::HostDataObjectManager homRmBatchInfo;
         homRmBatchInfo.template reserve<uint32_t>(TARGET_RM_BATCH_SIZE);
@@ -273,10 +246,10 @@ namespace merutilm::rff2 {
 
         auto rmSSBO = std::make_unique<vkh::ShaderStorage>(wc.core, std::move(homRm),
                                                            vkh::BufferLocalization::UNIDIRECTIONAL, false);
-        auto rmTableSSBO = std::make_unique<vkh::ShaderStorage>(wc.core, std::move(homRmTable),
-                                                                vkh::BufferLocalization::UNIDIRECTIONAL, false);
-        auto rmMapperSSBO = std::make_unique<vkh::ShaderStorage>(wc.core, std::move(homRmMapper),
-                                                                 vkh::BufferLocalization::UNIDIRECTIONAL, false);
+        auto rmTableUBO = std::make_unique<vkh::Uniform>(wc.core, std::move(homRmTableInfo),
+                                                         vkh::BufferLocalization::UNIDIRECTIONAL, false);
+        auto rmTableExtSSBO = std::make_unique<vkh::ExternShaderStorage>(engine.getSharedResource().dummyBuffer);
+        auto rmMapperExtSSBO = std::make_unique<vkh::ExternShaderStorage>(engine.getSharedResource().dummyBuffer);
 
         auto rmBatchInfoUBO = std::make_unique<vkh::Uniform>(wc.core, std::move(homRmBatchInfo),
                                                              vkh::BufferLocalization::UNIDIRECTIONAL, false);
@@ -286,8 +259,10 @@ namespace merutilm::rff2 {
 
         vkh::DescriptorManager descManagerRenderMeta;
         descManagerRenderMeta.appendSSBO(BINDING_RM_SSBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmSSBO));
-        descManagerRenderMeta.appendSSBO(BINDING_RM_TABLE_SSBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmTableSSBO));
-        descManagerRenderMeta.appendSSBO(BINDING_RM_MAPPER_SSBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmMapperSSBO));
+        descManagerRenderMeta.appendUBO(BINDING_RM_TABLE_INFO_UBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmTableUBO));
+        descManagerRenderMeta.appendExternSSBO(BINDING_RM_TABLE_DATA_SSBO, VK_SHADER_STAGE_COMPUTE_BIT,
+                                               std::move(rmTableExtSSBO));
+        descManagerRenderMeta.appendExternSSBO(BINDING_RM_MAPPER_SSBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmMapperExtSSBO));
         descManagerRenderMeta.appendUBO(BINDING_RM_BATCH_INFO_UBO, VK_SHADER_STAGE_COMPUTE_BIT,
                                         std::move(rmBatchInfoUBO));
         descManagerRenderMeta.appendSSBO(BINDING_RM_BATCH_SSBO, VK_SHADER_STAGE_COMPUTE_BIT, std::move(rmBatchSSBO));

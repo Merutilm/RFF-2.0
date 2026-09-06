@@ -20,6 +20,7 @@
 #include "../preset/shader/palette/ShdPalettePresets.hpp"
 #include "../preset/shader/slope/ShdSlopePresets.hpp"
 #include "../preset/shader/stripe/ShdStripePresets.hpp"
+#include "../util/Utilities.h"
 #include "../vulkan/GPCDownsampleForBlur.hpp"
 #include "../vulkan/SharedImageContextIndices.hpp"
 #include "../vulkan/desc/SharedDescriptorTemplate.hpp"
@@ -31,7 +32,6 @@
 #include "FnShader.hpp"
 #include "FnVideo.hpp"
 #include "IOUtilities.h"
-#include "Utilities.h"
 #include "imgui.h"
 #include "nfd.hpp"
 #include "opencv2/opencv.hpp"
@@ -119,13 +119,13 @@ namespace merutilm::rff2 {
                                       const uint64_t refInitialCapacity, const uint64_t forcedStrictFPGPeriod) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
-                return std::make_unique<FexMB2RenderData>(state, frt, approxTableCache, dcMax, exp10,
+                return std::make_unique<FexMB2RenderData>(engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
                                                           refInitialCapacity, forcedStrictFPGPeriod,
                                                           FnExplore::getActionWhileRefCalc(*this, startTime),
                                                           FnExplore::getActionWhileSeriesApprox(*this, startTime),
                                                           FnExplore::getActionWhileCreatingTable(*this, startTime));
             } else {
-                return std::make_unique<FloatMB2RenderData>(state, frt, approxTableCache, dcMax, exp10,
+                return std::make_unique<FloatMB2RenderData>(engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
                                                             refInitialCapacity, forcedStrictFPGPeriod,
                                                             FnExplore::getActionWhileRefCalc(*this, startTime),
                                                             FnExplore::getActionWhileSeriesApprox(*this, startTime),
@@ -133,13 +133,13 @@ namespace merutilm::rff2 {
             }
         } else {
             if (logZoomTest > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
-                return std::make_unique<DexMB2RenderData>(state, frt, approxTableCache, dcMax, exp10,
+                return std::make_unique<DexMB2RenderData>(engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
                                                           refInitialCapacity, forcedStrictFPGPeriod,
                                                           FnExplore::getActionWhileRefCalc(*this, startTime),
                                                           FnExplore::getActionWhileSeriesApprox(*this, startTime),
                                                           FnExplore::getActionWhileCreatingTable(*this, startTime));
             } else {
-                return std::make_unique<DoubleMB2RenderData>(state, frt, approxTableCache, dcMax, exp10,
+                return std::make_unique<DoubleMB2RenderData>(engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
                                                              refInitialCapacity, forcedStrictFPGPeriod,
                                                              FnExplore::getActionWhileRefCalc(*this, startTime),
                                                              FnExplore::getActionWhileSeriesApprox(*this, startTime),
@@ -201,7 +201,7 @@ namespace merutilm::rff2 {
                                                     .absoluteIterationMode = false}},
                 .render = {.display = RndDisplayPresets::Low().genDisplay(),
                            .computeShader = RndComputePresets::General().genComputeShader()},
-                .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
+                .shader = {.palette = ShdPalettePresets::Classic1().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .slope = ShdSlopePresets::Disabled().genSlope(),
                            .color = ShdColorPresets::Disabled().genColor(),
@@ -242,7 +242,7 @@ namespace merutilm::rff2 {
                                                     .absoluteIterationMode = false}},
                 .render = {.display = RndDisplayPresets::High().genDisplay(),
                            .computeShader = RndComputePresets::None().genComputeShader()},
-                .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
+                .shader = {.palette = ShdPalettePresets::Classic1().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .slope = ShdSlopePresets::Disabled().genSlope(),
                            .color = ShdColorPresets::Disabled().genColor(),
@@ -893,7 +893,7 @@ namespace merutilm::rff2 {
             return false;
 
         size_t refLength = reference->length();
-        size_t mpaLen = approxTableCache ? approxTableCache->tableSizeUsed : 0;
+        size_t mpaLen = approxTableCache ? approxTableCache->getTableSizeUsed() : 0;
 
         setStatusMessage(Constants::Status::PERIOD_STATUS,
                          std::format("Period : {:L} ({:L}, {:L})", reference->longestPeriod(), refLength, mpaLen));

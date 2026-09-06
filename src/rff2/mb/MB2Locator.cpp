@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
         return std::make_unique<fixed_point_complex_i1>(z.real, z.imag, exp10);
     }
 
-    std::unique_ptr<MB2Locator> MB2Locator::locateMinibrot(ParallelRenderState &state,
+    std::unique_ptr<MB2Locator> MB2Locator::locateMinibrot(vkh::Core &core, ParallelRenderState &state,
                                                                          const MB2RenderDataBase &data,
                                                                          std::unique_ptr<ApproxTableCacheBase> &cache,
                                                                          const std::function<void(uint64_t, int)> &
@@ -43,7 +43,7 @@ namespace merutilm::rff2 {
         // specific small number. O(w_log N)
 
 
-        std::unique_ptr<MB2RenderDataBase> result = findAccurateCenterPerturbator(state, data, cache, actionWhileFindingMinibrotCenter,
+        std::unique_ptr<MB2RenderDataBase> result = findAccurateCenterPerturbator(core, state, data, cache, actionWhileFindingMinibrotCenter,
                                               actionWhileSeriesApprox, actionWhileCreatingTable);
 
         if (result == nullptr) {
@@ -83,7 +83,7 @@ namespace merutilm::rff2 {
      * @return result table
      */
     std::unique_ptr<MB2RenderDataBase> MB2Locator::findAccurateCenterPerturbator(
-            ParallelRenderState &state, const MB2RenderDataBase &data, std::unique_ptr<ApproxTableCacheBase> &cache,
+            vkh::Core &core, ParallelRenderState &state, const MB2RenderDataBase &data, std::unique_ptr<ApproxTableCacheBase> &cache,
             const std::function<void(uint64_t, int)> &actionWhileFindingMinibrotCenter,
             const std::function<void (uint64_t, float)> &actionWhileSeriesApprox,
             const std::function<void(uint64_t, float)> &actionWhileCreatingTable) {
@@ -128,17 +128,10 @@ namespace merutilm::rff2 {
             doubledZoomCalc.reference.center = center;
             ++centerFixCount;
 
-            if (doubledLogZoom < Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
-                doubledZoomData = std::make_unique<FloatMB2RenderData>(
-                    state, doubledZoomCalc, cache, doubledZoomDcMax,
-                    Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
-                    [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
-                        actionWhileFindingMinibrotCenter(p, centerFixCount);
-                    }, actionWhileSeriesApprox, actionWhileCreatingTable);
 
-            } else if (doubledLogZoom < Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
+            if (doubledLogZoom < Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
                 doubledZoomData = std::make_unique<DoubleMB2RenderData>(
-                    state, doubledZoomCalc, cache, doubledZoomDcMax,
+                    core, state, doubledZoomCalc, false, cache, doubledZoomDcMax,
                     Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
@@ -146,7 +139,7 @@ namespace merutilm::rff2 {
 
             } else {
                 doubledZoomData = std::make_unique<DexMB2RenderData>(
-                    state, doubledZoomCalc, cache, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
+                    core, state, doubledZoomCalc, false, cache, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileSeriesApprox, actionWhileCreatingTable);

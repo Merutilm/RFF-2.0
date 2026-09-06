@@ -26,23 +26,25 @@ layout (std430, set = DESC_RENDER_META, binding = 0) readonly buffer RenderMeta 
 } render_meta;
 
 
-layout (std430, set = DESC_RENDER_META, binding = 1) readonly buffer MPTableMeta {
+layout (set = DESC_RENDER_META, binding = 1) uniform MPTableInfo {
     uint64_t len;
     uint selection_method;
-    DoublePA[] table;
-} mp_table_meta;
+} mp_table_info;
 
-layout (std430, set = DESC_RENDER_META, binding = 2) readonly buffer MPMapperMeta {
-    uint64_t len;
+layout (std430, set = DESC_RENDER_META, binding = 2) readonly buffer MPTableData {
+    DoublePA[] table;
+} mp_table_data;
+
+layout (std430, set = DESC_RENDER_META, binding = 3) readonly buffer MPMapperMeta {
     MPIndexMapper[] mapper;
 } mp_mapper_meta;
 
 
-layout (set = DESC_RENDER_META, binding = 3) uniform BatchInfo{
+layout (set = DESC_RENDER_META, binding = 4) uniform BatchInfo{
     uint batch_size;
 } batch_info;
 
-layout (std430, set = DESC_RENDER_META, binding = 4) buffer BatchData{
+layout (std430, set = DESC_RENDER_META, binding = 5) buffer BatchData{
     BatchStagingData[] staging_values;
 } batch_data;
 

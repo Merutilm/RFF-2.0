@@ -22,6 +22,13 @@ namespace merutilm::vkh {
         layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, useStage);
     }
 
+    void DescriptorManager::appendExternSSBO(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
+                                       std::unique_ptr<ExternShaderStorage> &&ssbo) {
+        safe_array::check_index_equal(bindingExpected, static_cast<uint32_t>(data.size()), "Descriptor Extern SSBO add");
+        data.emplace_back(std::move(ssbo));
+        layoutBuilder.emplace_back(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, useStage);
+    }
+
     void DescriptorManager::appendCombinedImgSampler(const uint32_t bindingExpected, const VkShaderStageFlags useStage,
                                                      std::unique_ptr<CombinedImageSampler> &&sampler) {
         safe_array::check_index_equal(bindingExpected, static_cast<uint32_t>(data.size()), "Descriptor Sampler add");

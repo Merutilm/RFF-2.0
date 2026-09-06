@@ -10,8 +10,10 @@
 namespace merutilm::vkh {
 
     struct SharedResource final : CoreHandler {
+
         std::unique_ptr<VertexBuffer> vertexBufferIdentity;
         std::unique_ptr<IndexBuffer> indexBufferIdentity;
+        BufferContext dummyBuffer;
 
         explicit SharedResource(Core &core);
 

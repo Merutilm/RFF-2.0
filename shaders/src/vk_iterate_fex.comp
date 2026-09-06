@@ -45,13 +45,13 @@ FexPA lookup(uint64_t ref_iteration, FexComplex dz) {
 
     Fex r = norm_approx(dz);
 
-    switch (mp_table_meta.selection_method) {
+    switch (mp_table_info.selection_method) {
         case MSM_LOWEST:
             {
                 FexPA pa = invalid_sentinel();
 
                 for (int i = 0; i < mapper.levels; ++i) {
-                    FexPA test = mp_table_meta.table[int(mapper.mapped) + i];
+                    FexPA test = mp_table_data.table[int(mapper.mapped) + i];
                     if (is_valid(test, r)) {
                         pa = test;
                     } else
@@ -62,14 +62,14 @@ FexPA lookup(uint64_t ref_iteration, FexComplex dz) {
             }
         case MSM_HIGHEST:
             {
-                FexPA pa = mp_table_meta.table[int(mapper.mapped)];
+                FexPA pa = mp_table_data.table[int(mapper.mapped)];
 
                 if (!is_valid(pa, r)) {
                     return invalid_sentinel();
                 }
 
                 for (int j = int(mapper.levels); j > 1; --j) {
-                    FexPA test = mp_table_meta.table[int(mapper.mapped) + j - 1];
+                    FexPA test = mp_table_data.table[int(mapper.mapped) + j - 1];
 
                     if (is_valid(test, r)) {
                         return test;
@@ -113,7 +113,7 @@ void main() {
 
     while (iteration < render_meta.max_iteration && batch_iteration < batch_size)
     {
-        if (ignore_mpa == 0 && mp_table_meta.len != 0) {
+        if (ignore_mpa == 0 && mp_table_info.len != 0) {
             FexPA pa = lookup(ref_iteration, dz);
             if (pa.skip > 0) {
                 dz = apply(pa, dz, dc);

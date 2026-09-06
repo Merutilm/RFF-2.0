@@ -7,7 +7,7 @@
 #include <format>
 
 #include <cassert>
-#include "Utilities.h"
+#include "../util/Utilities.h"
 
 #include "../constants/Constants.hpp"
 #include "../mb/MB2Locator.h"
@@ -94,7 +94,7 @@ namespace merutilm::rff2 {
                     const float startTime = app.rootWindowContext->getWindow()->getTime();
                     const uint64_t period = data->getReference()->longestPeriod();
                     const auto center = MB2Locator::locateMinibrot(
-                            state, *data, *app.getApproxTableCache(),
+                            app.engine->getCore(), state, *data, *app.getApproxTableCache(),
                             getActionWhileFindingMBCenter(app, period, startTime),
                             getActionWhileSeriesApprox(app, startTime), getActionWhileCreatingTable(app, startTime),
                             getActionWhileFindingZoom(app, startTime));
@@ -142,7 +142,8 @@ namespace merutilm::rff2 {
                     const float startTime = app.rootWindowContext->getWindow()->getTime();
 
                     const std::unique_ptr<MB2Locator> locator = MB2Locator::locateMinibrot(
-                            app.getState(), *data, *cache, getActionWhileFindingMBCenter(app, longestPeriod, startTime),
+                            app.engine->getCore(), app.getState(), *data, *cache,
+                            getActionWhileFindingMBCenter(app, longestPeriod, startTime),
                             getActionWhileSeriesApprox(app, startTime), getActionWhileCreatingTable(app, startTime),
                             getActionWhileFindingZoom(app, startTime));
 

@@ -5,8 +5,8 @@
 
 #include "../io/RFFDynamicMapBinary.h"
 #include "../io/RFFStaticMapBinary.h"
+#include "../util/Utilities.h"
 #include "IOUtilities.h"
-#include "Utilities.h"
 #include "opencv2/opencv.hpp"
 
 namespace merutilm::rff2 {

@@ -91,6 +91,30 @@ namespace merutilm::vkh {
                             .pTexelBufferView = nullptr,
                     };
                 }
+                if (std::holds_alternative<std::unique_ptr<ExternShaderStorage>>(raw)) {
+                    auto &ssbo = *std::get<std::unique_ptr<ExternShaderStorage>>(raw);
+
+
+                    updateQueue.push_back({
+                            .bufferInfo =
+                                    VkDescriptorBufferInfo{
+                                            .buffer = ssbo.context.buffer,
+                                            .offset = 0,
+                                            .range = ssbo.context.bufferSize},
+                    });
+                    updateQueue.back().writeSet = {
+                        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                        .pNext = nullptr,
+                        .dstSet = descriptorSets[frameIndex][descIndex],
+                        .dstBinding = binding,
+                        .dstArrayElement = 0,
+                        .descriptorCount = 1,
+                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                        .pImageInfo = nullptr,
+                        .pBufferInfo = &updateQueue.back().bufferInfo,
+                        .pTexelBufferView = nullptr,
+                };
+                }
                 if (std::holds_alternative<std::unique_ptr<CombinedImageSampler>>(raw)) {
                     auto &tex = *std::get<std::unique_ptr<CombinedImageSampler>>(raw);
 
@@ -166,7 +190,7 @@ namespace merutilm::vkh {
     void Descriptor::init() {
         const uint32_t maxFramesInFlight = core.getPhysicalDeviceLoader().getMaxFramesInFlight();
         const uint32_t ubo = getElementCount<Uniform>();
-        const uint32_t ssbo = getElementCount<ShaderStorage>();
+        const uint32_t ssbo = getElementCount<ShaderStorage>() + getElementCount<ExternShaderStorage>();
         const uint32_t sampler = getElementCount<CombinedImageSampler>();
         const uint32_t inputAttachment = getElementCount<InputAttachment>();
         const uint32_t storageImage = getElementCount<StorageImage>();

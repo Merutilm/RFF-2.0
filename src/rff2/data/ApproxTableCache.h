@@ -3,106 +3,59 @@
 //
 
 #pragma once
-#include <memory_resource>
 
-
-#include "../app/Utilities.h"
 #include "../mrthy/MPAIndexMapper.hpp"
 #include "../mrthy/PA.h"
+#include "CachedPodVector.hpp"
 #include "vulkan_helper/base/vkh.hpp"
 
 namespace merutilm::rff2 {
 
     struct ApproxTableCacheBase {
-        static constexpr uint64_t INITIAL_MAXIMUM_MEMORY = 17179869184;
-        uint64_t allowedMaximum = INITIAL_MAXIMUM_MEMORY;
-        size_t tableSizeUsed = 0;
-        size_t mapperSizeUsed = 0;
 
         virtual ~ApproxTableCacheBase() = default;
+        virtual void resize(size_t tableLen, size_t mapperLen, bool makeGpuReadable) = 0;
 
-        virtual void resize(size_t tableLen, size_t mapperLen) = 0;
+        virtual size_t getTableSizeUsed() = 0;
+        virtual size_t getMapperSizeUsed() = 0;
     };
 
-
-    struct allocation_cancelled : std::runtime_error {
-        explicit allocation_cancelled() : std::runtime_error("allocation cancelled") {}
-    };
 
     template<Number Num>
     struct ApproxTableCache : ApproxTableCacheBase {
-        using value_type = Num;
 
-#ifndef NDEBUG
+
         /**
          * flatten index table
          */
-        std::vector<PA<Num>> mpaTable;
+        CachedPodVector<PA<Num>> mpaTable;
+
         /**
          * for uncompressed table : iteration to flatten index
          * for compressed table : pulled compressed index to flatten index
          */
-        std::vector<MPAIndexMapper> flattenIndexMapper;
-#else
-        PA<Num> *mpaTable = nullptr;
-        MPAIndexMapper *flattenIndexMapper = nullptr;
-#endif
+        CachedPodVector<MPAIndexMapper> flattenIndexMapper;
 
-        explicit ApproxTableCache() = default;
-        ~ApproxTableCache() override = default;
+        explicit ApproxTableCache(vkh::Core &core) : mpaTable(core), flattenIndexMapper(core) {
+
+        }
+
         ApproxTableCache(const ApproxTableCache &) = delete;
         ApproxTableCache &operator=(const ApproxTableCache &) = delete;
         ApproxTableCache(ApproxTableCache &&) = delete;
         ApproxTableCache &operator=(ApproxTableCache &&) = delete;
 
-#ifndef NDEBUG
-        template<typename Pod>
-            requires std::is_trivially_copyable_v<Pod>
-        void resizeWithWarning(std::vector<Pod> *container, const size_t oldSize, const size_t newSize) {
-            if (newSize > oldSize || newSize < oldSize / 4) {
-                const uint64_t size = newSize * sizeof(Pod);
-
-                if (allowedMaximum < size &&
-                    !vkh::logger::messagebox_yn("Warning",
-                            "The application has requested more than {} of memory. Do you want to continue?",
-                            Utilities::formatByte(size))) {
-                    throw allocation_cancelled();
-                }
-
-                allowedMaximum = std::max(allowedMaximum, size);
-                container->resize(newSize);
-            }
-            std::ranges::fill_n(container->begin(), newSize, Pod{});
+        size_t getTableSizeUsed() override {
+            return mpaTable.sizeUsed;
         }
 
-#else
-        template<typename Pod>
-            requires std::is_trivially_copyable_v<Pod>
-        void resizeWithWarning(Pod **container, const size_t oldSize, const size_t newSize) {
-            if (newSize > oldSize || newSize < oldSize / 4) {
-                const uint64_t size = newSize * sizeof(Pod);
-
-                if (allowedMaximum < size &&
-                    !vkh::logger::messagebox_yn("Warning",
-                            "The application has requested more than {} of memory. Do you want to continue?",
-                            Utilities::formatByte(size))) {
-                    throw allocation_cancelled();
-                }
-
-                allowedMaximum = std::max(allowedMaximum, size);
-                free(*container);
-                *container = static_cast<Pod *>(malloc(sizeof(Pod) * newSize));
-            }
+        size_t getMapperSizeUsed() override {
+            return flattenIndexMapper.sizeUsed;
         }
 
-#endif
-
-
-        void resize(const size_t tableLen, const size_t mapperLen) override {
-            resizeWithWarning(&mpaTable, tableSizeUsed, tableLen);
-            resizeWithWarning(&flattenIndexMapper, mapperSizeUsed, mapperLen);
-            tableSizeUsed = tableLen;
-            mapperSizeUsed = mapperLen;
+        void resize(const size_t tableLen, const size_t mapperLen, const bool makeGpuReadable) override {
+            mpaTable.resizeWithWarning(tableLen, makeGpuReadable);
+            flattenIndexMapper.resizeWithWarning(mapperLen, makeGpuReadable);
         }
     };
 } // namespace merutilm::rff2

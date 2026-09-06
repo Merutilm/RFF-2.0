@@ -1,8 +1,6 @@
 add_library(engine_buffer OBJECT
         BufferObject.cpp
         IndexBuffer.cpp
-        ShaderStorage.cpp
-        Uniform.cpp
         VertexBuffer.cpp
 )
 

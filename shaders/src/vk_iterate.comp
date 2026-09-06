@@ -43,13 +43,13 @@ PA lookup(uint64_t ref_iteration, vec2 dz) {
 
     float r = norm_approx(dz);
 
-    switch (mp_table_meta.selection_method) {
+    switch (mp_table_info.selection_method) {
         case MSM_LOWEST:
             {
                 PA pa = invalid_sentinel();
 
                 for (int i = 0; i < mapper.levels; ++i) {
-                    PA test = mp_table_meta.table[int(mapper.mapped) + i];
+                    PA test = mp_table_data.table[int(mapper.mapped) + i];
                     if (is_valid(test, r)) {
                         pa = test;
                     } else
@@ -60,14 +60,14 @@ PA lookup(uint64_t ref_iteration, vec2 dz) {
             }
         case MSM_HIGHEST:
             {
-                PA pa = mp_table_meta.table[int(mapper.mapped)];
+                PA pa = mp_table_data.table[int(mapper.mapped)];
 
                 if (!is_valid(pa, r)) {
                     return invalid_sentinel();
                 }
 
                 for (int j = int(mapper.levels); j > 1; --j) {
-                    PA test = mp_table_meta.table[int(mapper.mapped) + j - 1];
+                    PA test = mp_table_data.table[int(mapper.mapped) + j - 1];
 
                     if (is_valid(test, r)) {
                         return test;
@@ -111,7 +111,7 @@ void main() {
 
     while (iteration < render_meta.max_iteration && batch_iteration < batch_size)
     {
-        if (ignore_mpa == 0 && mp_table_meta.len != 0) {
+        if (ignore_mpa == 0 && mp_table_info.len != 0) {
             PA pa = lookup(ref_iteration, dz);
             if (pa.skip > 0) {
                 dz = apply(pa, dz, dc);
