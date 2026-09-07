@@ -2,23 +2,23 @@
 // Created by Merutilm on 2025-09-06.
 //
 
-#include "CPC2MapIterationStripe.hpp"
+#include "CPCCombine2Map.hpp"
 
 #include "../settings/ShdPaletteSettings.h"
 #include "SharedImageContextIndices.hpp"
 #include "desc/SharedDescriptorTemplate.hpp"
 
 namespace merutilm::rff2 {
-    void CPC2MapIterationStripe::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
+    void CPCCombine2Map::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
         // noop
     }
 
 
-    void CPC2MapIterationStripe::pipelineInitialized() {
+    void CPCCombine2Map::pipelineInitialized() {
         //noop
     }
 
-    void CPC2MapIterationStripe::renderContextRefreshed() {
+    void CPCCombine2Map::renderContextRefreshed() {
         using namespace SharedImageContextIndices;
         auto &outDesc = getDescriptor(SET_OUTPUT_IMAGE);
         auto &outImg = outDesc.get<vkh::StorageImage>(0, BINDING_OUTPUT_MERGED_IMAGE);
@@ -29,7 +29,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPC2MapIterationStripe::setAllIterations(const std::vector<double> &normal,
+    void CPCCombine2Map::setAllIterations(const std::vector<double> &normal,
                                                   const std::vector<double> &zoomed) const {
         using namespace SharedDescriptorTemplate;
         auto &map2Desc = getDescriptor(SET_I2MAP);
@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
         map2DescZoomedSSBO.update();
     }
 
-    void CPC2MapIterationStripe::set2MapSize(const VkExtent2D &extent) {
+    void CPCCombine2Map::set2MapSize(const VkExtent2D &extent) {
         using namespace SharedDescriptorTemplate;
         const auto &[width, height] = extent;
         setExtent(extent);
@@ -57,7 +57,7 @@ namespace merutilm::rff2 {
 
         auto &iterOut = getDescriptor(SET_OUTPUT_ITERATION);
         auto &iterOutSSBO = iterOut.get<vkh::ShaderStorage>(0, DescIteration::BINDING_SSBO_ITERATION_MATRIX);
-        iterOutSSBO.getHostObject().resizeAndClear<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, width * height);
+        iterOutSSBO.getHostObject().resizeAndClear<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, 1);
         iterOutSSBO.reloadBuffer();
         iterOutSSBO.localize(wc.getCommandPool());
 
@@ -74,11 +74,11 @@ namespace merutilm::rff2 {
     }
 
 
-    void CPC2MapIterationStripe::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
+    void CPCCombine2Map::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
         // noop
     }
 
-    void CPC2MapIterationStripe::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
+    void CPCCombine2Map::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
         using namespace SharedDescriptorTemplate;
         auto normal = vkh::HostDataObjectManager();
         normal.reserveArray<double>(TARGET_I2MAP_SSBO_NORMAL_ITERATION, 1);
@@ -102,5 +102,7 @@ namespace merutilm::rff2 {
         appendUniqueDescriptor(SET_OUTPUT_IMAGE, descriptors, std::move(outputManager));
         appendDescriptor<DescIteration>(SET_OUTPUT_ITERATION, descriptors);
         appendDescriptor<DescStripe>(SET_STRIPE, descriptors);
+        appendDescriptor<DescSlope>(SET_SLOPE, descriptors);
+        appendDescriptor<DescColor>(SET_COLOR, descriptors);
     }
 } // namespace merutilm::rff2

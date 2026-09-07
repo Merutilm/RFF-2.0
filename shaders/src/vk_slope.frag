@@ -11,6 +11,7 @@
 
 // include utilities
 #include <utils_iteration.glsl>
+#include <utils_slope.glsl>
 
 layout (set = 0, binding = 0) uniform sampler2D canvas;
 
@@ -23,33 +24,8 @@ layout (location = 0) out vec4 color;
 void main() {
 
     ivec2 iter_coord = ivec2(gl_FragCoord.xy);
-
-    if(slope_settings.reflection_ratio >= 1 || slope_settings.depth == 0){
-        color = texelFetch(canvas, ivec2(iter_coord), 0);
-        return;
-    }
-
-    float multiplier = float(iteration_info_settings.extent.x) / 1280;
-
-    float aRad = radians(slope_settings.azimuth);
-    float zRad = radians(slope_settings.zenith);
-
-    double ld = get_iteration(iter_coord, ivec2(-1, -1));
-    double d = get_iteration(iter_coord, ivec2(0, -1));
-    double rd = get_iteration(iter_coord, ivec2(1, -1));
-    double l = get_iteration(iter_coord, ivec2(-1, 0));
-    double r = get_iteration(iter_coord, ivec2(1, 0));
-    double lu = get_iteration(iter_coord, ivec2(-1, 1));
-    double u = get_iteration(iter_coord, ivec2(0, 1));
-    double ru = get_iteration(iter_coord, ivec2(1, 1));
-
-    float dzDx = float((rd + 2 * r + ru) - (ld + 2 * l + lu)) * slope_settings.depth * multiplier;
-    float dzDy = float((lu + 2 * u + ru) - (ld + 2 * d + rd)) * slope_settings.depth * multiplier;
-    float slope = atan(length(vec2(dzDx, dzDy)));
-    float aspect = atan(dzDy, -dzDx);
-    float shade = max(slope_settings.reflection_ratio, cos(zRad) * cos(slope) + sin(zRad) * sin(slope) * cos(aRad + aspect));
-    float fShade = 1 - slope_settings.opacity * (1 - shade);
+    float shade = slope_get_shade(iter_coord);
 
 
-    color = vec4(texelFetch(canvas, ivec2(iter_coord), 0).rgb * fShade, 1);
+    color = vec4(texelFetch(canvas, ivec2(iter_coord), 0).rgb * shade, 1);
 }

@@ -159,7 +159,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
     struct DescSlope final : public vkh::DescriptorTemplate {
         static constexpr uint32_t ID = 5;
-        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
         static constexpr uint32_t BINDING_UBO_SLOPE = 0;
 
@@ -187,7 +187,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
     struct DescColor final : public vkh::DescriptorTemplate {
         static constexpr uint32_t ID = 6;
-        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT;
+        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
         static constexpr uint32_t BINDING_UBO_COLOR = 0;
 

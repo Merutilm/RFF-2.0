@@ -62,7 +62,7 @@ add_executable(
         src/rff2/vulkan/GPCPresent.cpp
         src/rff2/app/VideoWindow.cpp
         src/rff2/app/VideoWindowRenderManager.cpp
-        src/rff2/vulkan/CPC2MapIterationStripe.cpp
+        src/rff2/vulkan/CPCCombine2Map.cpp
         src/rff2/vulkan/GPCStaticImage2Map.cpp
         src/rff2/vulkan/CPCImageRGBA2BGR.cpp
         src/rff2/app/FnPreset.cpp

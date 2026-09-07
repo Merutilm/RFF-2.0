@@ -25,10 +25,10 @@ namespace merutilm::rff2 {
         auto &normalI = normal.iterations;
         if (currentFrame < 1) {
             const std::vector<double> zoomedDefault(normalI.size());
-            renderer->compute2MapIterationStripe->setAllIterations(normalI, zoomedDefault);
+            renderer->computeCombine2Map->setAllIterations(normalI, zoomedDefault);
         } else {
             auto &zoomedI = zoomed.iterations;
-            renderer->compute2MapIterationStripe->setAllIterations(normalI, zoomedI);
+            renderer->computeCombine2Map->setAllIterations(normalI, zoomedI);
         }
     }
 
@@ -49,7 +49,7 @@ namespace merutilm::rff2 {
         renderer->descriptorStorage->video->setDefaultZoomIncrement(targetSettings.video.data.defaultZoomIncrement);
 
         //unique
-        renderer->compute2MapIterationStripe->set2MapSize(videoExtent);
+        renderer->computeCombine2Map->set2MapSize(videoExtent);
     }
 
     void VideoWindowRenderManager::setTime(const float currentSec) const { renderer->currentSec = currentSec; }

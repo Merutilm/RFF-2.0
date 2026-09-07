@@ -160,7 +160,7 @@ namespace merutilm::rff2::SharedDescriptorManager {
     struct DescManagerSlope : vkh::DescriptorTemplateManager {
         using DescriptorTemplateManager::DescriptorTemplateManager;
 
-        void set(const ShdSlopeSettings &slope, const float depthMultiplier, uint32_t frameIndex) const {
+        void set(const ShdSlopeSettings &slope, const float depthMultiplier, const uint32_t frameIndex) const {
             using namespace SharedDescriptorTemplate;
             auto &slopeUBO = desc.get<vkh::Uniform>(0, DescSlope::BINDING_UBO_SLOPE);
             auto &slopeUBOHost = slopeUBO.getHostObject();

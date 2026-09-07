@@ -4,11 +4,9 @@
 
 #pragma once
 #include <vulkan_helper/engine/configurator/ComputePipelineConfigurator.hpp>
-#include "../settings/ShdPaletteSettings.h"
-#include "../settings/ShdStripeSettings.h"
 
 namespace merutilm::rff2 {
-    struct CPC2MapIterationStripe final : public vkh::ComputePipelineConfigurator {
+    struct CPCCombine2Map final : public vkh::ComputePipelineConfigurator {
 
         static constexpr uint32_t SET_I2MAP = 0;
         static constexpr uint32_t BINDING_I2MAP_SSBO_NORMAL = 0;
@@ -22,20 +20,22 @@ namespace merutilm::rff2 {
         static constexpr uint32_t BINDING_OUTPUT_MERGED_IMAGE = 0;
         static constexpr uint32_t SET_OUTPUT_ITERATION = 5;
         static constexpr uint32_t SET_STRIPE = 6;
+        static constexpr uint32_t SET_SLOPE = 7;
+        static constexpr uint32_t SET_COLOR = 8;
 
-        explicit CPC2MapIterationStripe(vkh::Engine &engine, vkh::WindowContext &wc)
-            : ComputePipelineConfigurator(engine, wc, "vk_2_map_iter_stripe.comp") {
+        explicit CPCCombine2Map(vkh::Engine &engine, vkh::WindowContext &wc)
+            : ComputePipelineConfigurator(engine, wc, "vk_combine_2map.comp") {
         }
 
-        ~CPC2MapIterationStripe() override = default;
+        ~CPCCombine2Map() override = default;
 
-        CPC2MapIterationStripe(const CPC2MapIterationStripe &) = delete;
+        CPCCombine2Map(const CPCCombine2Map &) = delete;
 
-        CPC2MapIterationStripe &operator=(const CPC2MapIterationStripe &) = delete;
+        CPCCombine2Map &operator=(const CPCCombine2Map &) = delete;
 
-        CPC2MapIterationStripe(CPC2MapIterationStripe &&) = delete;
+        CPCCombine2Map(CPCCombine2Map &&) = delete;
 
-        CPC2MapIterationStripe &operator=(CPC2MapIterationStripe &&) = delete;
+        CPCCombine2Map &operator=(CPCCombine2Map &&) = delete;
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 
