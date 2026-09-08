@@ -268,17 +268,19 @@ namespace merutilm::rff2 {
 
 
         mpz_set_f(temp, val);
+
         const mp_limb_t *lmb1 = mpz_limbs_read(temp);
         const size_t size = mpz_size(temp);
         if (size > limbs_count())
             throw std::overflow_error("limbs overflow");
         auto limbs = std::vector<mp_limb_t>(limbs_count());
         mpn_copyi(limbs.data(), lmb1, static_cast<mp_size_t>(size));
-        mpf_clear(val);
 
         this->sgn = mpf_sgn(val);
         this->raw = new mp_limb_t[limbs_count() * RAW_ARR_LEN];
         memcpy(raw, limbs.data(), limbs_count() * sizeof(mp_limb_t));
+
+        mpf_clear(val);
     }
 
     inline mp_limb_t *fixed_point_decimal::get_limbs_from_mpf(mpf_t src, const mp_size_t limbs_count) {
@@ -653,10 +655,10 @@ namespace merutilm::rff2 {
         const mp_limb_t top = *(src_ptr + nlc - 1);
         const size_t len = nlc * 64 - std::countl_zero(top);
 
-        const int shift = static_cast<int>(len) - 53;
-        if (shift < 0) {
+        const int32_t shift = static_cast<int32_t>(len) - 53;
+        if (shift <= 0) {
             mantissa_bit = *src_ptr << -shift & MANTISSA_MASK;
-        } else if (shift > 0) {
+        } else {
             const mp_size_t limb_skip = shift / 64;
             const mp_size_t shift_small = shift - limb_skip * 64;
             const auto dst0 = src_ptr + limb_skip;
@@ -666,8 +668,6 @@ namespace merutilm::rff2 {
                 const auto dst1 = dst0 + 1;
                 mantissa_bit = (*dst1 << (64 - shift_small) | *dst0 >> shift_small) & MANTISSA_MASK;
             }
-        }else {
-            mantissa_bit = *src_ptr & MANTISSA_MASK;
         }
         f_exp2 = exp2 + shift + 52;
     }
