@@ -13,7 +13,7 @@
 namespace merutilm::rff2 {
 
 
-    class VideoWindow final : vkh::Handler{
+    class VideoWindow final : public vkh::Handler{
 
         RFF2 &app;
         std::unique_ptr<VideoWindowRenderManager> scene = nullptr;

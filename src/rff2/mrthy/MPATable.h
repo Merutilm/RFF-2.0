@@ -270,7 +270,7 @@ namespace merutilm::rff2 {
         const auto mainReferenceMPA = getMPAFromMapper({0, generatedLevels});
 
         if (level >= mainReferenceMPA.size() || level + 1 > generatedLevels) {
-            throw std::logic_error("Invalid level detected. it might be a bug! Please contact the developer and "
+            throw vkh::exception_invalid_state("Invalid level detected. it might be a bug! Please contact the developer and "
                                    "attach the current location file (.rfl)");
         }
 
@@ -330,7 +330,7 @@ namespace merutilm::rff2 {
 
 #ifndef NDEBUG
         if (currentPASkips[level] > tablePeriod[level] - PERTURBATION_REQ) {
-            throw std::logic_error("skip count is exceeded");
+            throw vkh::exception_invalid_state("skip count is exceeded");
         }
 #endif
 
@@ -733,7 +733,7 @@ namespace merutilm::rff2 {
 
 #ifndef NDEBUG
                     if (!partialPAs[j][i].first.has_value())
-                        throw std::logic_error("that is a bug");
+                        throw vkh::exception_invalid_state("that is a bug");
 #endif
                     preservingPA->merge(*partialPAs[j][i].first);
 
@@ -743,7 +743,7 @@ namespace merutilm::rff2 {
                                 MPAIndexMapperUtils::iterationToFlattenTableIndex(*mpaPeriod, preservingPA->start) + i;
 #ifndef NDEBUG
                         if (flattenIndex == UINT64_MAX || tableCache->mpaTable.raw[flattenIndex].skip != 0)
-                            throw std::logic_error("already assigned or flatten index cannot be found");
+                            throw vkh::exception_invalid_state("already assigned or flatten index cannot be found");
 #endif
                         preservingPA.reset();
                         tableCache->mpaTable.raw[flattenIndex] = pa;
@@ -888,7 +888,7 @@ namespace merutilm::rff2 {
             auto &pa = tableCache->mpaTable.raw[i];
             if (state.interruptRequested()) return;
             if (pa.skip == 0) {
-                throw std::logic_error("zero skips detected at index " + std::to_string(i));
+                throw vkh::exception_invalid_state("zero skips detected at index " + std::to_string(i));
             }
         }
     }

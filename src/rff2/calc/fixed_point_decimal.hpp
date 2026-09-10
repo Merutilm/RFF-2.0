@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <vector>
 #include "exponent.hpp"
+#include <vulkan_helper/base/exception.hpp>
 
 
 namespace merutilm::rff2 {
@@ -157,7 +158,7 @@ namespace merutilm::rff2 {
 
         void set_int_limbs_to_read(mp_size_t new_int_limbs_to_read);
 
-        void export_value(uint64_t &mantissa_bit, mp_size_t &f_exp2) const;
+        bool export_value(uint64_t &mantissa_bit, mp_size_t &f_exp2) const;
     };
 
 
@@ -478,7 +479,6 @@ namespace merutilm::rff2 {
         mpn_tdiv_qr(result.raw, result.raw + lc * 5, 0, result.raw + lc * 3, dividend_size, rhs_value, divisor_size);
 
         const mp_size_t result_size = dividend_size - divisor_size + 1;
-        // result.dec_limbs_count + l_lc - divisor_size + 1
         const mp_size_t cpy_cnt = l_lc - result_size;
         // cpy_cnt = divisor_size - result.dec_limbs_count - 1
         // if cpy_cnt < 0, limbs can be overflowed
@@ -557,7 +557,9 @@ namespace merutilm::rff2 {
         uint64_t mantissa_bit;
         mp_size_t f_exp2;
 
-        export_value(mantissa_bit, f_exp2);
+        if (!export_value(mantissa_bit, f_exp2)) {
+            return 0;
+        }
         // 0100 0000 0000 : 2^1
         // 0000 0000 0000 : 2^-1023
         // 0111 1111 1111 : 2^1024
@@ -585,7 +587,9 @@ namespace merutilm::rff2 {
         uint64_t mantissa_bit;
         mp_size_t f_exp2;
 
-        export_value(mantissa_bit, f_exp2);
+        if (!export_value(mantissa_bit, f_exp2)) {
+            return exponent<Exp, Mantissa, Bit>::ZERO;
+        }
 
         const auto mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
 
@@ -599,7 +603,7 @@ namespace merutilm::rff2 {
 
     inline std::string fixed_point_decimal::to_string() {
         mpf_t d;
-        const int exp2 = -dec_limbs_count * 64;
+        const int32_t exp2 = -static_cast<int32_t>(dec_limbs_count) * 64;
         temp_write_limbs(get_value_ptr(), limbs_read_count());
         if (sgn == -1)
             mpz_neg(temp, temp);
@@ -636,7 +640,7 @@ namespace merutilm::rff2 {
     inline void fixed_point_decimal::set_int_limbs_to_read(const mp_size_t new_int_limbs_to_read) {
 #ifndef NDEBUG
         if (new_int_limbs_to_read > int_limbs_count)
-            throw std::logic_error("limbs overflow");
+            throw vkh::exception_invalid_state("limbs overflow");
 #endif
         if (int_limbs_to_read < new_int_limbs_to_read) {
             mp_limb_t *ptr = get_value_ptr();
@@ -646,17 +650,21 @@ namespace merutilm::rff2 {
     }
 
 
-    inline void fixed_point_decimal::export_value(uint64_t &mantissa_bit, mp_size_t &f_exp2) const {
+    inline bool fixed_point_decimal::export_value(uint64_t &mantissa_bit, mp_size_t &f_exp2) const {
 
         static constexpr auto MANTISSA_MASK = 0x000fffffffffffffULL;
         const mp_size_t exp2 = -dec_limbs_count * 64;
         const mp_limb_t *src_ptr = get_value_ptr();
         const mp_size_t nlc = normalized_limbs_count(src_ptr, limbs_read_count());
+
+        if (nlc == 0) return false;
+
         const mp_limb_t top = *(src_ptr + nlc - 1);
         const size_t len = nlc * 64 - std::countl_zero(top);
 
         const int32_t shift = static_cast<int32_t>(len) - 53;
         if (shift <= 0) {
+            assert(shift > -53);
             mantissa_bit = *src_ptr << -shift & MANTISSA_MASK;
         } else {
             const mp_size_t limb_skip = shift / 64;
@@ -670,5 +678,6 @@ namespace merutilm::rff2 {
             }
         }
         f_exp2 = exp2 + shift + 52;
+        return true;
     }
 } // namespace merutilm::rff2

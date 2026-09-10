@@ -25,7 +25,8 @@ namespace merutilm::vkh {
         std::vector<std::vector<DescriptorType>> data = {};
 
     public:
-        explicit Descriptor(Core &core, DescriptorSetLayout &descriptorSetLayout, std::vector<DescriptorManager> &&manager);
+        explicit Descriptor(Core &core, DescriptorSetLayout &descriptorSetLayout,
+                            std::vector<DescriptorManager> &&manager);
 
         ~Descriptor() override;
 
@@ -89,9 +90,27 @@ namespace merutilm::vkh {
         void cleanup() override;
 
     private:
-        void updateIndices(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex,
-                           const std::vector<uint32_t> &descIndices, const std::vector<uint32_t> &bindings);
+        void updateUBO(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t descIndex, uint32_t binding,
+                       const Uniform &ubo) const;
 
+        void updateSSBO(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t descIndex, uint32_t binding,
+                        const ShaderStorage &ssbo) const;
+
+        void updateExternSSBO(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t descIndex,
+                              uint32_t binding, const ExternShaderStorage &ssbo) const;
+
+        void updateCombinedImageSampler(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t descIndex,
+                                        uint32_t binding, const CombinedImageSampler &sampler) const;
+        void updateInputAttachment(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t descIndex,
+                                   uint32_t binding, const InputAttachment &inputAttachment) const;
+
+        void updateStorageImage(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, uint32_t descIndex,
+                                uint32_t binding, const StorageImage &storageImage) const;
+
+
+
+        void updateIndices(DescriptorUpdateQueue &updateQueue, uint32_t frameIndex, std::vector<uint32_t> &&descIndices,
+                           std::vector<uint32_t> &&bindings);
     };
 
 

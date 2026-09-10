@@ -219,7 +219,7 @@ namespace merutilm::rff2 {
         vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
 
         const auto cache = dynamic_cast<ApproxTableCache<Num> *>(approxTableCache.get());
-        if (!cache) throw std::logic_error("cache is null");
+        if (!cache) throw vkh::exception_invalid_state("cache is null");
 
         const auto &tableData = cache->mpaTable;
         const auto &mapperData = cache->flattenIndexMapper;

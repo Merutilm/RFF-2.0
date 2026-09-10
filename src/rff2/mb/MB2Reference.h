@@ -196,6 +196,10 @@ namespace merutilm::rff2 {
             }
 
             if (fpgPeriod != 0 && period == fpgPeriod * refSettings.periodMultiplier) {
+#ifndef NDEBUG
+                std::cout << "fpg ref : " << static_cast<complex<dex>>(*fpgReference).to_string() << std::endl;
+                std::cout << "fpg bn : " << static_cast<complex<dex>>(fpgBn).to_string() << std::endl;
+#endif
                 break;
             }
 

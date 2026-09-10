@@ -75,7 +75,7 @@ namespace merutilm::vkh {
             logger::log_err_silent("GPU Memory is fully used. using fallback allocation");
             allocInfo.memoryTypeIndex =
                     findMemoryTypeIndex(memProperties, memRequirements.memoryTypeBits,
-                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
             result = vkAllocateMemory(device, &allocInfo, nullptr, memory);
         }
 

@@ -37,152 +37,174 @@ namespace merutilm::vkh {
         updateIndices(updateQueue, frameIndex, std::move(descIndices), std::move(bindings));
     }
 
+
+    void Descriptor::updateUBO(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex, const uint32_t descIndex,
+                               const uint32_t binding, const Uniform &ubo) const {
+        updateQueue.push_back({
+                .bufferInfo =
+                        VkDescriptorBufferInfo{.buffer = ubo.isMultiframe() ? ubo.getBufferContextMF(frameIndex).buffer
+                                                                            : ubo.getBufferContext().buffer,
+                                               .offset = 0,
+                                               .range = ubo.getHostObject().getTotalSizeByte()},
+        });
+        updateQueue.back().writeSet = {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .pNext = nullptr,
+                .dstSet = descriptorSets[frameIndex][descIndex],
+                .dstBinding = binding,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                .pImageInfo = nullptr,
+                .pBufferInfo = &updateQueue.back().bufferInfo,
+                .pTexelBufferView = nullptr,
+        };
+    }
+    void Descriptor::updateSSBO(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex, const uint32_t descIndex,
+                                const uint32_t binding, const ShaderStorage &ssbo) const {
+
+        updateQueue.push_back({
+                .bufferInfo = VkDescriptorBufferInfo{.buffer = ssbo.isMultiframe()
+                                                                       ? ssbo.getBufferContextMF(frameIndex).buffer
+                                                                       : ssbo.getBufferContext().buffer,
+                                                     .offset = 0,
+                                                     .range = ssbo.getHostObject().getTotalSizeByte()},
+        });
+        updateQueue.back().writeSet = {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .pNext = nullptr,
+                .dstSet = descriptorSets[frameIndex][descIndex],
+                .dstBinding = binding,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .pImageInfo = nullptr,
+                .pBufferInfo = &updateQueue.back().bufferInfo,
+                .pTexelBufferView = nullptr,
+        };
+    }
+    void Descriptor::updateExternSSBO(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex,
+                                      const uint32_t descIndex, const uint32_t binding,
+                                      const ExternShaderStorage &ssbo) const {
+
+        updateQueue.push_back({
+                .bufferInfo = VkDescriptorBufferInfo{.buffer = ssbo.context.buffer,
+                                                     .offset = 0,
+                                                     .range = ssbo.context.bufferSize},
+        });
+        updateQueue.back().writeSet = {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .pNext = nullptr,
+                .dstSet = descriptorSets[frameIndex][descIndex],
+                .dstBinding = binding,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                .pImageInfo = nullptr,
+                .pBufferInfo = &updateQueue.back().bufferInfo,
+                .pTexelBufferView = nullptr,
+        };
+    }
+    void Descriptor::updateCombinedImageSampler(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex,
+                                                const uint32_t descIndex, const uint32_t binding,
+                                                const CombinedImageSampler &sampler) const {
+
+        updateQueue.push_back({.imageInfo = VkDescriptorImageInfo{
+                                       .sampler = sampler.getSampler().getSamplerHandle(),
+                                       .imageView = sampler.isMultiframe()
+                                                            ? sampler.getImageContextMF()[frameIndex].mipmappedImageView
+                                                            : sampler.getImageContext().mipmappedImageView,
+                                       .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                               }});
+
+        updateQueue.back().writeSet = {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .pNext = nullptr,
+                .dstSet = descriptorSets[frameIndex][descIndex],
+                .dstBinding = binding,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .pImageInfo = &updateQueue.back().imageInfo,
+                .pBufferInfo = nullptr,
+                .pTexelBufferView = nullptr,
+        };
+    }
+    void Descriptor::updateInputAttachment(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex,
+                                           const uint32_t descIndex, const uint32_t binding,
+                                           const InputAttachment &inputAttachment) const {
+        updateQueue.push_back(
+                {.imageInfo = VkDescriptorImageInfo{.sampler = VK_NULL_HANDLE,
+                                                    .imageView = inputAttachment.ctx[frameIndex].mipmappedImageView,
+                                                    .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}});
+
+        updateQueue.back().writeSet = {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .pNext = nullptr,
+                .dstSet = descriptorSets[frameIndex][descIndex],
+                .dstBinding = binding,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+                .pImageInfo = &updateQueue.back().imageInfo,
+                .pBufferInfo = nullptr,
+                .pTexelBufferView = nullptr,
+        };
+    }
+    void Descriptor::updateStorageImage(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex,
+                                        const uint32_t descIndex, const uint32_t binding,
+                                        const StorageImage &img) const {
+        updateQueue.push_back(
+                {.imageInfo = VkDescriptorImageInfo{
+                         .sampler = VK_NULL_HANDLE,
+                         .imageView = img.isMultiframe() ? img.getImageContextMF()[frameIndex].mipmappedImageView
+                                                         : img.getImageContext().mipmappedImageView,
+                         .imageLayout = VK_IMAGE_LAYOUT_GENERAL}});
+
+        updateQueue.back().writeSet = {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .pNext = nullptr,
+                .dstSet = descriptorSets[frameIndex][descIndex],
+                .dstBinding = binding,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+                .pImageInfo = &updateQueue.back().imageInfo,
+                .pBufferInfo = nullptr,
+                .pTexelBufferView = nullptr,
+        };
+    }
+
+
     void Descriptor::updateIndices(DescriptorUpdateQueue &updateQueue, const uint32_t frameIndex,
-                                   const std::vector<uint32_t> &descIndices, const std::vector<uint32_t> &bindings) {
-        for (const uint32_t descIndex: descIndices) {
-            for (const uint32_t binding: bindings) {
+                                   std::vector<uint32_t> &&descIndices, std::vector<uint32_t> &&bindings) {
+        for (const uint32_t descIndex: std::move(descIndices)) {
+            for (const uint32_t binding: std::move(bindings)) {
                 auto &raw = getRaw(descIndex, binding);
                 if (std::holds_alternative<std::unique_ptr<Uniform>>(raw)) {
-                    auto &ubo = *std::get<std::unique_ptr<Uniform>>(raw);
-
-                    updateQueue.push_back({
-                            .bufferInfo =
-                                    VkDescriptorBufferInfo{.buffer = ubo.isMultiframe()
-                                                                             ? ubo.getBufferContextMF(frameIndex).buffer
-                                                                             : ubo.getBufferContext().buffer,
-                                                           .offset = 0,
-                                                           .range = ubo.getHostObject().getTotalSizeByte()},
-                    });
-                    updateQueue.back().writeSet = {
-                            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                            .pNext = nullptr,
-                            .dstSet = descriptorSets[frameIndex][descIndex],
-                            .dstBinding = binding,
-                            .dstArrayElement = 0,
-                            .descriptorCount = 1,
-                            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                            .pImageInfo = nullptr,
-                            .pBufferInfo = &updateQueue.back().bufferInfo,
-                            .pTexelBufferView = nullptr,
-                    };
+                    const auto &ubo = *std::get<std::unique_ptr<Uniform>>(raw);
+                    updateUBO(updateQueue, frameIndex, descIndex, binding, ubo);
                 }
-                if (std::holds_alternative<std::unique_ptr<ShaderStorage>>(raw)) {
-                    auto &ssbo = *std::get<std::unique_ptr<ShaderStorage>>(raw);
-
-
-                    updateQueue.push_back({
-                            .bufferInfo =
-                                    VkDescriptorBufferInfo{
-                                            .buffer = ssbo.isMultiframe() ? ssbo.getBufferContextMF(frameIndex).buffer
-                                                                          : ssbo.getBufferContext().buffer,
-                                            .offset = 0,
-                                            .range = ssbo.getHostObject().getTotalSizeByte()},
-                    });
-                    updateQueue.back().writeSet = {
-                            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                            .pNext = nullptr,
-                            .dstSet = descriptorSets[frameIndex][descIndex],
-                            .dstBinding = binding,
-                            .dstArrayElement = 0,
-                            .descriptorCount = 1,
-                            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                            .pImageInfo = nullptr,
-                            .pBufferInfo = &updateQueue.back().bufferInfo,
-                            .pTexelBufferView = nullptr,
-                    };
+                else if (std::holds_alternative<std::unique_ptr<ShaderStorage>>(raw)) {
+                    const auto &ssbo = *std::get<std::unique_ptr<ShaderStorage>>(raw);
+                    updateSSBO(updateQueue, frameIndex, descIndex, binding, ssbo);
                 }
-                if (std::holds_alternative<std::unique_ptr<ExternShaderStorage>>(raw)) {
-                    auto &ssbo = *std::get<std::unique_ptr<ExternShaderStorage>>(raw);
-
-
-                    updateQueue.push_back({
-                            .bufferInfo =
-                                    VkDescriptorBufferInfo{
-                                            .buffer = ssbo.context.buffer,
-                                            .offset = 0,
-                                            .range = ssbo.context.bufferSize},
-                    });
-                    updateQueue.back().writeSet = {
-                        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                        .pNext = nullptr,
-                        .dstSet = descriptorSets[frameIndex][descIndex],
-                        .dstBinding = binding,
-                        .dstArrayElement = 0,
-                        .descriptorCount = 1,
-                        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                        .pImageInfo = nullptr,
-                        .pBufferInfo = &updateQueue.back().bufferInfo,
-                        .pTexelBufferView = nullptr,
-                };
+                else if (std::holds_alternative<std::unique_ptr<ExternShaderStorage>>(raw)) {
+                    const auto &ssbo = *std::get<std::unique_ptr<ExternShaderStorage>>(raw);
+                    updateExternSSBO(updateQueue, frameIndex, descIndex, binding, ssbo);
                 }
-                if (std::holds_alternative<std::unique_ptr<CombinedImageSampler>>(raw)) {
-                    auto &tex = *std::get<std::unique_ptr<CombinedImageSampler>>(raw);
-
-                    updateQueue.push_back(
-                            {.imageInfo = VkDescriptorImageInfo{
-                                     .sampler = tex.getSampler().getSamplerHandle(),
-                                     .imageView = tex.isMultiframe()
-                                                          ? tex.getImageContextMF()[frameIndex].mipmappedImageView
-                                                          : tex.getImageContext().mipmappedImageView,
-                                     .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                             }});
-
-                    updateQueue.back().writeSet = {
-                            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                            .pNext = nullptr,
-                            .dstSet = descriptorSets[frameIndex][descIndex],
-                            .dstBinding = binding,
-                            .dstArrayElement = 0,
-                            .descriptorCount = 1,
-                            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                            .pImageInfo = &updateQueue.back().imageInfo,
-                            .pBufferInfo = nullptr,
-                            .pTexelBufferView = nullptr,
-                    };
+                else if (std::holds_alternative<std::unique_ptr<CombinedImageSampler>>(raw)) {
+                    const auto &sampler = *std::get<std::unique_ptr<CombinedImageSampler>>(raw);
+                    updateCombinedImageSampler(updateQueue, frameIndex, descIndex, binding, sampler);
                 }
-                if (std::holds_alternative<std::unique_ptr<InputAttachment>>(raw)) {
-                    const auto &[ctx] = *std::get<std::unique_ptr<InputAttachment>>(raw);
-                    updateQueue.push_back({.imageInfo = VkDescriptorImageInfo{
-                                                   .sampler = VK_NULL_HANDLE,
-                                                   .imageView = ctx[frameIndex].mipmappedImageView,
-                                                   .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL}});
-
-                    updateQueue.back().writeSet = {
-                            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                            .pNext = nullptr,
-                            .dstSet = descriptorSets[frameIndex][descIndex],
-                            .dstBinding = binding,
-                            .dstArrayElement = 0,
-                            .descriptorCount = 1,
-                            .descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-                            .pImageInfo = &updateQueue.back().imageInfo,
-                            .pBufferInfo = nullptr,
-                            .pTexelBufferView = nullptr,
-                    };
+                else if (std::holds_alternative<std::unique_ptr<InputAttachment>>(raw)) {
+                    const auto &inputAttachment = *std::get<std::unique_ptr<InputAttachment>>(raw);
+                    updateInputAttachment(updateQueue, frameIndex, descIndex, binding, inputAttachment);
                 }
-                if (std::holds_alternative<std::unique_ptr<StorageImage>>(raw)) {
+                else if (std::holds_alternative<std::unique_ptr<StorageImage>>(raw)) {
                     const auto &img = *std::get<std::unique_ptr<StorageImage>>(raw);
-                    updateQueue.push_back(
-                            {.imageInfo = VkDescriptorImageInfo{
-                                     .sampler = VK_NULL_HANDLE,
-                                     .imageView = img.isMultiframe()
-                                                          ? img.getImageContextMF()[frameIndex].mipmappedImageView
-                                                          : img.getImageContext().mipmappedImageView,
-                                     .imageLayout = VK_IMAGE_LAYOUT_GENERAL}});
-
-                    updateQueue.back().writeSet = {
-                            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                            .pNext = nullptr,
-                            .dstSet = descriptorSets[frameIndex][descIndex],
-                            .dstBinding = binding,
-                            .dstArrayElement = 0,
-                            .descriptorCount = 1,
-                            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-                            .pImageInfo = &updateQueue.back().imageInfo,
-                            .pBufferInfo = nullptr,
-                            .pTexelBufferView = nullptr,
-                    };
-                }
+                    updateStorageImage(updateQueue, frameIndex, descIndex, binding, img);
+                } else throw exception_invalid_state("unhandled descriptor type");
             }
         }
     }

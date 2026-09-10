@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
             } else if constexpr (MODE == IndexMappingMode::FLATTEN || MODE == IndexMappingMode::PULLED) {
                 return UINT64_MAX;
             }
-            throw std::logic_error("invalid mapping mode");
+            throw vkh::exception_invalid_state("invalid mapping mode");
         }
 
         template<IndexMappingMode MODE, typename Ret>
@@ -30,7 +30,7 @@ namespace merutilm::rff2 {
             } else if constexpr (MODE == IndexMappingMode::FLATTEN || MODE == IndexMappingMode::PULLED) {
                 return 0;
             }
-            throw std::logic_error("invalid mapping mode");
+            throw vkh::exception_invalid_state("invalid mapping mode");
         }
 
         template<IndexMappingMode MODE, typename Ret>
@@ -93,7 +93,7 @@ namespace merutilm::rff2 {
             else if constexpr (MODE == IndexMappingMode::LEVELS)
                 return levels;
             else
-                throw std::logic_error("invalid mapping mode");
+                throw vkh::exception_invalid_state("invalid mapping mode");
         }
 
         static uint64_t iterationToNearestFlattenTableIndex(const MPAPeriod &mpaPeriod, uint64_t iteration) {

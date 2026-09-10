@@ -76,6 +76,8 @@ namespace merutilm::vkh {
 
         [[nodiscard]] HostDataObject & getHostObject() { return hostDataObject; }
 
+        [[nodiscard]] const HostDataObject & getHostObject() const { return hostDataObject; }
+
         [[nodiscard]] bool isLocalized() const { return localized; }
 
         [[nodiscard]] bool isMultiframe() const { return multiframeEnabled; }
