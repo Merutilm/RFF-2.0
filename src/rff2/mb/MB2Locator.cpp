@@ -110,19 +110,23 @@ namespace merutilm::rff2 {
         int centerFixCount = 0;
 
         std::unique_ptr<MB2RenderDataBase> doubledZoomData = nullptr;
+        MB2ReferenceBase *oldReference = data.getReference();
 
         while (doubledZoomData == nullptr || !doubledZoomData->getPerturbator() || !checkMaxIterationOnly(*doubledZoomData)) {
-            if (state.interruptRequested()) {
-                return nullptr;
-            }
 
             auto center = doubledZoomCalc.reference.center.create_variant(doubledExp10);
             auto centerOffset = findCenterOffset(doubledZoomData == nullptr ? data : *doubledZoomData)->create_variant(doubledExp10);
 
             fixed_point_complex::add(center, center, centerOffset);
 
-            if (centerOffset.is_zero()) {
-                vkh::logger::log_err("The center could not be found, or you are already in the center");
+            if (state.interruptRequested() || centerOffset.is_zero()) {
+                if (centerOffset.is_zero()) vkh::logger::log_err("The center could not be found, or you are already in the center");
+
+                if (doubledZoomData) {
+                    //recover
+                    data.getReference()->center = doubledZoomData->getReference()->extractCenter();
+                    data.getReference()->checkpoints = doubledZoomData->getReference()->extractCheckpoints();
+                }
                 return nullptr;
             }
             doubledZoomCalc.reference.center = center;
@@ -132,18 +136,20 @@ namespace merutilm::rff2 {
             if (doubledLogZoom < Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
                 doubledZoomData = std::make_unique<DoubleMB2RenderData>(
                     core, state, doubledZoomCalc, false, cache, doubledZoomDcMax,
-                    Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
+                    Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod, oldReference,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileSeriesApprox, actionWhileCreatingTable);
 
             } else {
                 doubledZoomData = std::make_unique<DexMB2RenderData>(
-                    core, state, doubledZoomCalc, false, cache, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod,
+                    core, state, doubledZoomCalc, false, cache, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom),
+                    refLen, longestPeriod, oldReference,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileSeriesApprox, actionWhileCreatingTable);
             }
+            oldReference = doubledZoomData->getReference();
         }
         return doubledZoomData;
     }

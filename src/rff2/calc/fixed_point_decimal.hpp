@@ -242,7 +242,7 @@ namespace merutilm::rff2 {
         size = std::abs(size);
         mp_size_t result_size = size * 2;
 
-        if (size == 0) {
+        if (size == 0 || result_size + result.exp2div64 <= 0) {
             mpz_set_ui(result.data, 0);
             return;
         }
@@ -260,6 +260,7 @@ namespace merutilm::rff2 {
 
         mpn_copyi(result_ptr, result_ptr - result.exp2div64, result_size + result.exp2div64);
         result_size += result.exp2div64;
+
         result.data->_mp_size = result_size;
     }
 
@@ -319,8 +320,7 @@ namespace merutilm::rff2 {
             std::swap(l, r);
             std::swap(lhs_size, rhs_size);
         }
-
-        if (rhs_size == 0) {
+        if (rhs_size == 0 || result_size + result.exp2div64 <= 0) {
             mpz_set_ui(result.data, 0);
             return;
         }
@@ -445,16 +445,13 @@ namespace merutilm::rff2 {
 
         assert(size > 0);
 
-        const mp_limb_t top = *(src_ptr + size - 1);
-        const size_t len = size * 64 - std::countl_zero(top);
-
-        const int32_t shift = static_cast<int32_t>(len) - 53;
+        const int32_t shift = (size << 6) - std::countl_zero(*(src_ptr + size - 1)) - 53;
         if (shift <= 0) {
             assert(shift > -53);
             mantissa_bit = *src_ptr << -shift & MANTISSA_MASK;
         } else {
-            const mp_size_t limb_skip = shift / 64;
-            const mp_size_t shift_small = shift - limb_skip * 64;
+            const mp_size_t limb_skip = shift >> 6;
+            const mp_size_t shift_small = shift - (limb_skip << 6);
             const auto dst0 = src_ptr + limb_skip;
             if (shift_small <= 12) {
                 mantissa_bit = *dst0 >> shift_small & MANTISSA_MASK;

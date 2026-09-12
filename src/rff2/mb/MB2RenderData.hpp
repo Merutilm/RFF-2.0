@@ -18,7 +18,8 @@ namespace merutilm::rff2 {
         std::unique_ptr<ApproxTableCacheBase> *cache;
         Reference::CreationResult lastCreationResult = Reference::CreationResult::UNDEFINED;
 
-        explicit MB2RenderDataBase(ParallelRenderState &state, FractalSettings frt, bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache) :
+        explicit MB2RenderDataBase(ParallelRenderState &state, FractalSettings frt, bool computeShaderUsed,
+                                   std::unique_ptr<ApproxTableCacheBase> &cache) :
             state(state), fractalSettings(std::move(frt)), computeShaderUsed(computeShaderUsed), cache(&cache) {}
 
         virtual ~MB2RenderDataBase() = default;
@@ -27,7 +28,8 @@ namespace merutilm::rff2 {
         [[nodiscard]] virtual MB2PerturbatorBase *getPerturbator() const = 0;
 
         virtual void translate(float logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
-                               const fixed_point_complex &newCenter, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) = 0;
+                               const fixed_point_complex &newCenter,
+                               const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) = 0;
 
         static int logZoomToExp10(const float logZoom) {
             return -static_cast<int>(logZoom) - Constants::Fractal::EXP10_ADDITION;
@@ -43,8 +45,9 @@ namespace merutilm::rff2 {
         std::unique_ptr<SeriesApproximationData> seriesApproxData;
         std::unique_ptr<MB2Perturbator<Num>> perturbator;
 
-        explicit MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt, bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache, dex dcMax, int exp10,
-                               uint64_t refInitialCapacity, uint64_t forcedStrictFPGPeriod,
+        explicit MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt,
+                               bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache, dex dcMax,
+                               int exp10, uint64_t refInitialCapacity, uint64_t forcedStrictFPGPeriod, MB2ReferenceBase *oldReference,
                                const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration,
                                const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
@@ -54,22 +57,29 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] MB2Perturbator<Num> *getPerturbator() const override { return perturbator.get(); }
 
-        void generateSeriesApproxTerms(dex dcMax, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration);
+        void generateSeriesApproxTerms(dex dcMax,
+                                       const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration);
 
         void translate(float logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
-                       const fixed_point_complex &newCenter, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) override;
+                       const fixed_point_complex &newCenter,
+                       const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) override;
 
         void applyAutoMaxIteration();
     };
 
     template<Number Num>
-    MB2RenderData<Num>::MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt, const bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache, const dex dcMax,
-                                      const int exp10, const uint64_t refInitialCapacity, const uint64_t forcedStrictFPGPeriod,
+    MB2RenderData<Num>::MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt,
+                                      const bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache,
+                                      const dex dcMax, const int exp10, const uint64_t refInitialCapacity,
+                                      const uint64_t forcedStrictFPGPeriod, MB2ReferenceBase *oldReference,
                                       const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                       const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration,
-                                      const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) : MB2RenderDataBase(state, frt, computeShaderUsed, cache) {
-        this->lastCreationResult = MB2Reference<Num>::generateReference(state, frt.general, frt.reference, exp10, refInitialCapacity,
-                                                     forcedStrictFPGPeriod, dcMax, actionPerRefCalcIteration, &reference);
+                                      const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) :
+        MB2RenderDataBase(state, frt, computeShaderUsed, cache) {
+        this->lastCreationResult = MB2Reference<Num>::generateReference(
+                state, frt.general, frt.reference, exp10, refInitialCapacity, forcedStrictFPGPeriod, dcMax,
+                actionPerRefCalcIteration, oldReference ? oldReference->extractCenter() : fixed_point_complex(0, 0, exp10),
+                oldReference ? oldReference->extractCheckpoints() : std::vector<ReferenceCheckpoint>{}, &reference);
 
         if (this->lastCreationResult != Reference::CreationResult::SUCCESS) {
             table = nullptr;
@@ -86,19 +96,20 @@ namespace merutilm::rff2 {
             cache = std::make_unique<ApproxTableCache<Num>>(core);
 
 
-        table = std::make_unique<MPATable<Num>>(state, *reference, cache, fractalSettings.general, fractalSettings.mpa, computeShaderUsed, Num(dcMax),
-                                                                   actionPerCreatingTableIteration);
-        perturbator = std::make_unique<MB2Perturbator<Num>>(
-                state, dcMax, fractalSettings.general, fractalSettings.sa, fractalSettings.perturb, *seriesApproxData, *reference,
-                dynamic_cast<MPATable<Num> *>(table.get()));
+        table = std::make_unique<MPATable<Num>>(state, *reference, cache, fractalSettings.general, fractalSettings.mpa,
+                                                computeShaderUsed, Num(dcMax), actionPerCreatingTableIteration);
+        perturbator = std::make_unique<MB2Perturbator<Num>>(state, dcMax, fractalSettings.general, fractalSettings.sa,
+                                                            fractalSettings.perturb, *seriesApproxData, *reference,
+                                                            dynamic_cast<MPATable<Num> *>(table.get()));
     }
 
 
-
     template<Number Num>
-    void MB2RenderData<Num>::generateSeriesApproxTerms(const dex dcMax, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) {
+    void MB2RenderData<Num>::generateSeriesApproxTerms(
+            const dex dcMax, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) {
 
-        if (!fractalSettings.sa.use) return;
+        if (!fractalSettings.sa.use)
+            return;
 
         auto &terms = seriesApproxData->terms;
         terms.clear();
@@ -112,7 +123,8 @@ namespace merutilm::rff2 {
 
 
         for (skip = 0; skip < reference->longestPeriod(); ++skip) {
-            if (state.interruptRequested()) return;
+            if (state.interruptRequested())
+                return;
 
             actionPerSeriesApproxIteration(skip, static_cast<double>(skip) / reference->longestPeriod());
 
@@ -154,7 +166,8 @@ namespace merutilm::rff2 {
             const complex znDex{dex(zn.re), dex(zn.im)};
             const complex<dex> point = lSum + znDex;
 
-            if (lSumMag * epsilon < rSumMag || point.norm_sqr() > dex(fractalSettings.general.bailout * fractalSettings.general.bailout))
+            if (lSumMag * epsilon < rSumMag ||
+                point.norm_sqr() > dex(fractalSettings.general.bailout * fractalSettings.general.bailout))
                 break;
 
             std::copy_n(termsTemp.begin(), terms.size(), terms.begin());
@@ -165,7 +178,8 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     void MB2RenderData<Num>::translate(const float logZoom, const dex dcMax, const FrtPerturbSettings &ptbSettings,
-                                       const fixed_point_complex &newCenter, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) {
+                                       const fixed_point_complex &newCenter,
+                                       const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) {
         if (lastCreationResult != Reference::CreationResult::SUCCESS) {
             // try to use incomplete reference
             vkh::logger::log_err("Please do not try to use incomplete Reference.");

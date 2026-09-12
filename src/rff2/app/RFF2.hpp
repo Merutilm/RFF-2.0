@@ -182,8 +182,11 @@ namespace merutilm::rff2 {
         void resolveRequests();
 
         std::unique_ptr<MB2RenderDataBase>
-        createAppropriateRenderData(bool computeShader, float logZoomTest, float startTime, const FractalSettings &frt,
-                                    dex dcMax, int exp10, uint64_t refInitialCapacity, uint64_t forcedStrictFPGPeriod);
+        createAppropriateRenderData(bool computeShader, float logZoomTest,
+                                                                       float startTime, const FractalSettings &frt,
+                                                                       dex dcMax, MB2ReferenceBase *oldReference,
+                                                                       int exp10, uint64_t refInitialCapacity,
+                                                                       uint64_t forcedStrictFPGPeriod);
 
 
         VideoKeyframeProgressInfo &getKeyframeProgressInfo() { return videoKeyframeProgressInfo; }

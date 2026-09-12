@@ -13,7 +13,7 @@ namespace merutilm::rff2 {
         bool useParallelRefCalculation{};
         FrtReferenceSyncSettings sync{};
         FrtReferenceCompSettings compression{};
-        uint32_t periodMultiplier{};
+        bool doCalculateReferenceViaPerturbation;
         bool reuse{};
     };
 }

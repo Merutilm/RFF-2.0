@@ -71,6 +71,7 @@ add_executable(
         src/rff2/vulkan/CPCInterpolateIsolated.cpp
         src/rff2/vulkan/CPCInterpolateIsolated.hpp
         include/vulkan_helper/engine/wrapped/DescriptorTemplateManager.hpp
+        src/rff2/mb/ReferenceCheckpoint.hpp
 )
 
 target_compile_options(RFF PRIVATE

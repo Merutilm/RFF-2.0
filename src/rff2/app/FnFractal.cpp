@@ -111,12 +111,11 @@ namespace merutilm::rff2 {
                     "equal.\n"
                     "Reference compression slows down the calculation but frees up memory space.\n"
                     "set 0 to disable.");
-            if (ImGui::InputScalar("FPG Period Multiplier", ImGuiDataType_U32, &frt.reference.periodMultiplier)) {
-                frt.reference.periodMultiplier = std::max(frt.reference.periodMultiplier, 1u);
-            }
+
+            ImGui::Checkbox("use CRVP", &frt.reference.doCalculateReferenceViaPerturbation);
             Utilities::imguiHelpMarker(
-                    "Some Complex swirl patterns, the orbit perturbation may cause some trouble.\n"
-                    "you can set the period multiplier manually.");
+                    "calculate reference via perturbation.\n"
+                    "While the reference calculation speed increases significantly, memory usage also increases.");
 
 
             if (ImGui::InputScalar("Reference Synchronization Interval", ImGuiDataType_U32,

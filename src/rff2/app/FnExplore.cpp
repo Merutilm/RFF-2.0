@@ -107,7 +107,7 @@ namespace merutilm::rff2 {
                             center->data->fractalSettings.general.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
                     const int refExp10 = Perturbator::logZoomToExp10(frt.general.logZoom);
                     data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
-                                                           startTime, frt, center->data->getPerturbator()->dcMax,
+                                                           startTime, frt, center->data->getPerturbator()->dcMax, center->data->getReference(),
                                                            refExp10, data->getReference()->length(), 0);
 
                     settings.fractal.reference.reuse = true;
@@ -151,6 +151,7 @@ namespace merutilm::rff2 {
                         vkh::logger::log("Locate Minibrot Cancelled.");
                         return;
                     }
+
                     const FractalSettings &locatorCalc = locator->data->fractalSettings;
                     settings.fractal.reference.center = locatorCalc.reference.center;
                     settings.fractal.general.logZoom =
