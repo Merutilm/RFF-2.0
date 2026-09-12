@@ -87,7 +87,7 @@ namespace merutilm::rff2 {
             if (ImGui::Button("Apply Location Changes", ImVec2(-FLT_MIN, 0))) {
                 const int exp10 = Perturbator::logZoomToExp10(logZoom);
                 if (locationChanged) {
-                    frt.reference.center = fixed_point_complex_i1(real, imag, exp10);
+                    frt.reference.center = fixed_point_complex(real, imag, exp10);
                     frt.general.logZoom = logZoom;
                     app.getRequests().requestRecompute();
                 }

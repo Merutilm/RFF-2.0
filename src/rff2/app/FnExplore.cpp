@@ -54,7 +54,7 @@ namespace merutilm::rff2 {
             if (ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
                 const int exp10 = Perturbator::logZoomToExp10(renderData->getReference()->logZoom);
                 const auto off = MB2Locator::findCenterOffset(*renderData)->create_variant(exp10);
-                fixed_point_complex_i1 center = frt.reference.center.create_variant(exp10);
+                fixed_point_complex center = frt.reference.center.create_variant(exp10);
                 fixed_point_complex::add(center, center, off);
                 frt.reference.center = center;
                 app.getRequests().requestRecompute();

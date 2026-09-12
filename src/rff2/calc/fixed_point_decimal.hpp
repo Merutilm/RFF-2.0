@@ -3,12 +3,10 @@
 //
 #pragma once
 #include <cmath>
-#include <cstring>
 #include <gmp.h>
-#include <stdexcept>
-#include <vector>
+#include <iostream>
+
 #include "exponent.hpp"
-#include <vulkan_helper/base/exception.hpp>
 
 
 namespace merutilm::rff2 {
@@ -17,29 +15,21 @@ namespace merutilm::rff2 {
      * the size of mp_limb must be 8. other case is undefined.
      */
     struct fixed_point_decimal {
-        static_assert(sizeof(mp_limb_t) == 8);
-        static_assert(sizeof(mp_size_t) == 8);
 
-        static constexpr size_t RAW_ARR_LEN = 7;
-        // 0~1 : add, sub, mul(hi), div(hi) | 2 (mul, div) | 3~6 temp
-        mpz_t temp = {};
-        int sgn = 0;
-        mp_size_t int_limbs_count = 1;
-        mp_size_t dec_limbs_count = 1;
+        mpz_t data;
+        /**
+         * must be negative
+         */
+        mp_size_t exp2div64;
 
-        mp_size_t int_limbs_to_read = 1;
+        explicit fixed_point_decimal() : fixed_point_decimal(0.0, 0) {}
 
-        mp_size_t offset = 0;
-        mp_limb_t *raw = nullptr;
+        explicit fixed_point_decimal(double v, int dec_exp10);
 
-        explicit fixed_point_decimal() : fixed_point_decimal(0.0, 0, 0) {}
-
-        explicit fixed_point_decimal(double v, int dec_exp10, int int_exp10);
-
-        explicit fixed_point_decimal(const std::string &str, int dec_exp10, int int_exp10);
+        explicit fixed_point_decimal(const std::string &str, int dec_exp10);
 
         template<Number Exp, Number Mantissa, Number Bit>
-        explicit fixed_point_decimal(exponent<Exp, Mantissa, Bit> v, int dec_exp10, int int_exp10);
+        explicit fixed_point_decimal(exponent<Exp, Mantissa, Bit> v, int dec_exp10);
 
         ~fixed_point_decimal();
 
@@ -53,42 +43,19 @@ namespace merutilm::rff2 {
 
         template<typename F>
             requires std::is_invocable_r_v<int, F, mpf_t, int>
-        void init_data(int dec_exp10, int int_exp10, F &&setter_exp2_getter);
+        void init_data(int dec_exp10, F &&setter_exp2_getter);
 
-        mp_limb_t *get_limbs_from_mpf(mpf_t src, mp_size_t limbs_count);
+        static int exp10_to_exp2div64(int exp10);
 
-        static int dec_exp10_to_exp2div64(int exp10);
-
-        /**
-         * Fast-addition. decimal limbs count must be the same for all, and int limbs to be read must be result == lhs
-         * >= rhs. If an overflow occurs, the most significant limbs are discarded. in-place operation is supported.
-         * @param result the reference of result.
-         * @param lhs left operand
-         * @param rhs right operand
-         */
         static void add(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
 
-        /**
-         * Fast-subtraction. decimal limbs count must be the same for all, and int limbs to be read must be result ==
-         * lhs >= rhs. If an overflow occurs, the most significant limbs are discarded. in-place operation is supported.
-         * @param result the reference of result.
-         * @param lhs left operand
-         * @param rhs right operand
-         */
         static void sub(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
 
-        /**
-         * Fast-square. decimal limbs count must be the same for all, and int limbs to be read must be result == v.
-         * If an overflow occurs, the most significant limbs are discarded.
-         * [CAUTION] in-place operation is not supported.
-         * @param result the reference of result.
-         * @param v operand
-         */
         static void sqr(fixed_point_decimal &result, const fixed_point_decimal &v);
 
 
         /**
-         * Fast-multiplication. decimal limbs count must be the same for all, and int limbs to be read must be result ==
+         * Fast-multiplication. decimal limbs count must be the same for all, and limbs length must be result ==
          * lhs >= rhs. If an overflow occurs, the most significant limbs are discarded. [CAUTION] in-place operation is
          * not supported.
          * @param result the reference of result.
@@ -97,46 +64,15 @@ namespace merutilm::rff2 {
          */
         static void mul(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
 
-
-        /**
-         * Fast-division. decimal limbs count must be the same for all, and int limbs to be read must be result == lhs
-         * >= rhs. If an overflow occurs, the most significant limbs are discarded. in-place operation is supported.
-         * @param result the reference of result.
-         * @param lhs left operand
-         * @param rhs right operand
-         */
         static void div(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
 
-        /**
-         * Fast-doubling.
-         * If an overflow occurs, the most significant limbs are discarded.
-         * in-place operation is supported.
-         * @param result the reference of result
-         * @param v operand
-         */
         static void dbl(fixed_point_decimal &result, const fixed_point_decimal &v);
 
-        /**
-         * Fast-halving.
-         * in-place operation is supported.
-         * @param result the reference of result
-         * @param v operand
-         */
         static void hlv(fixed_point_decimal &result, const fixed_point_decimal &v);
 
         static void neg(fixed_point_decimal &v);
 
-        void set_limbs_count(mp_size_t new_dec_limbs_count, mp_size_t new_int_limbs_count);
-
-        void set_exp10(int dec_exp10, int int_exp10);
-
-        static mp_size_t normalized_limbs_count(const mp_limb_t *limbs, mp_size_t limbs_count);
-
-        [[nodiscard]] mp_limb_t *get_value_ptr() const;
-
-        void temp_write_limbs(const mp_limb_t *limbs, mp_size_t limbs_read_count);
-
-        static int int_exp10_to_exp2div64(int exp10);
+        void set_exp10(int dec_exp10);
 
         explicit operator float() const;
 
@@ -145,60 +81,42 @@ namespace merutilm::rff2 {
         template<Number Exp, Number Mantissa, Number Bit>
         explicit operator exponent<Exp, Mantissa, Bit>() const;
 
-        [[nodiscard]] bool is_strict_zero() const;
+        std::string to_string() const;
 
-        std::string to_string();
-
-        [[nodiscard]] mp_size_t limbs_read_count() const;
-
-        [[nodiscard]] mp_size_t limbs_count() const;
-
-
-        static void make_operation_compatible(fixed_point_decimal &result, const fixed_point_decimal &v);
-
-        void set_int_limbs_to_read(mp_size_t new_int_limbs_to_read);
-
-        bool export_value(uint64_t &mantissa_bit, mp_size_t &f_exp2) const;
+        void export_value(uint64_t &mantissa_bit, mp_size_t &f_exp2) const;
     };
 
 
-    inline fixed_point_decimal::fixed_point_decimal(double v, const int dec_exp10, const int int_exp10) {
-        init_data(dec_exp10, int_exp10, [v](mpf_t val, const int exp2div64) {
+    inline fixed_point_decimal::fixed_point_decimal(double v, const int dec_exp10) {
+        init_data(dec_exp10, [v](mpf_t val, const int exp2div64) {
             mpf_set_d(val, v);
             return exp2div64 * 64;
         });
     }
 
 
-    inline fixed_point_decimal::fixed_point_decimal(const std::string &str, const int dec_exp10, const int int_exp10) {
-        init_data(dec_exp10, int_exp10, [str](mpf_t val, const int exp2div64) {
+    inline fixed_point_decimal::fixed_point_decimal(const std::string &str, const int dec_exp10) {
+        init_data(dec_exp10, [str](mpf_t val, const int exp2div64) {
             mpf_set_str(val, str.data(), 10);
             return exp2div64 * 64;
         });
     }
 
     template<Number Exp, Number Mantissa, Number Bit>
-    inline fixed_point_decimal::fixed_point_decimal(const exponent<Exp, Mantissa, Bit> v, const int dec_exp10,
-                                                    const int int_exp10) {
-        init_data(dec_exp10, int_exp10, [v](mpf_t val, const int exp2div64) {
+    fixed_point_decimal::fixed_point_decimal(const exponent<Exp, Mantissa, Bit> v, const int dec_exp10) {
+        init_data(dec_exp10, [v](mpf_t val, const int exp2div64) {
             mpf_set_d(val, v.get_mantissa());
             return exp2div64 * 64 - v.get_exp2();
         });
     }
 
 
-    inline fixed_point_decimal::~fixed_point_decimal() {
-        delete[] this->raw;
-        mpz_clear(this->temp);
-    }
+    inline fixed_point_decimal::~fixed_point_decimal() { mpz_clear(this->data); }
 
 
-    inline fixed_point_decimal::fixed_point_decimal(const fixed_point_decimal &other) :
-        sgn(other.sgn), int_limbs_count(other.int_limbs_count), dec_limbs_count(other.dec_limbs_count),
-        int_limbs_to_read(other.int_limbs_to_read), offset(other.offset),
-        raw(new mp_limb_t[limbs_count() * RAW_ARR_LEN]) {
-        mpz_init(this->temp);
-        memcpy(this->raw, other.raw, limbs_count() * RAW_ARR_LEN * sizeof(mp_limb_t));
+    inline fixed_point_decimal::fixed_point_decimal(const fixed_point_decimal &other) : exp2div64(other.exp2div64) {
+        mpz_init(this->data);
+        mpz_set(this->data, other.data);
     }
 
 
@@ -206,27 +124,15 @@ namespace merutilm::rff2 {
         if (&other == this)
             return *this;
 
-        if (this->limbs_count() != other.limbs_count()) {
-            delete[] this->raw;
-            this->raw = new mp_limb_t[other.limbs_count() * RAW_ARR_LEN];
-        }
-
-        this->sgn = other.sgn;
-        this->int_limbs_count = other.int_limbs_count;
-        this->dec_limbs_count = other.dec_limbs_count;
-        this->int_limbs_to_read = other.int_limbs_to_read;
-        this->offset = other.offset;
-        memcpy(this->raw, other.raw, limbs_count() * RAW_ARR_LEN * sizeof(mp_limb_t));
+        this->exp2div64 = other.exp2div64;
+        mpz_set(this->data, other.data);
         return *this;
     }
 
 
-    inline fixed_point_decimal::fixed_point_decimal(fixed_point_decimal &&other) noexcept :
-        sgn(other.sgn), int_limbs_count(other.int_limbs_count), dec_limbs_count(other.dec_limbs_count),
-        int_limbs_to_read(other.int_limbs_to_read), offset(other.offset), raw(other.raw) {
-        mpz_init(this->temp);
-        mpz_swap(this->temp, other.temp);
-        other.raw = nullptr;
+    inline fixed_point_decimal::fixed_point_decimal(fixed_point_decimal &&other) noexcept : exp2div64(other.exp2div64) {
+        mpz_init(this->data);
+        mpz_swap(this->data, other.data);
     }
 
 
@@ -234,85 +140,35 @@ namespace merutilm::rff2 {
         if (&other == this)
             return *this;
 
-        mpz_swap(this->temp, other.temp);
-
-        this->sgn = other.sgn;
-        this->int_limbs_count = other.int_limbs_count;
-        this->dec_limbs_count = other.dec_limbs_count;
-        this->int_limbs_to_read = other.int_limbs_to_read;
-        this->offset = other.offset;
-        std::swap(this->raw, other.raw);
+        mpz_swap(this->data, other.data);
+        this->exp2div64 = other.exp2div64;
         return *this;
     }
 
 
     template<typename F>
         requires std::is_invocable_r_v<int, F, mpf_t, int>
-    void fixed_point_decimal::init_data(const int dec_exp10, const int int_exp10, F &&setter_exp2_getter) {
-        mpz_init(this->temp);
-        const int dec_exp2div64 = dec_exp10_to_exp2div64(dec_exp10);
-        const int int_exp2div64 = int_exp10_to_exp2div64(int_exp10);
+    void fixed_point_decimal::init_data(const int dec_exp10, F &&setter_exp2_getter) {
+        mpz_init(this->data);
+        exp2div64 = exp10_to_exp2div64(dec_exp10);
         mpf_t val;
 
-        dec_limbs_count = -dec_exp2div64;
-        int_limbs_count = int_exp2div64;
-        int_limbs_to_read = int_limbs_count;
-
-        mpf_init2(val, static_cast<mp_bitcnt_t>(dec_limbs_count + int_limbs_count) * 64);
-        const int exp2 = setter_exp2_getter(val, dec_exp2div64);
+        mpf_init2(val, -exp2div64 * 64);
+        const int exp2 = setter_exp2_getter(val, exp2div64);
 
         if (exp2 < 0) {
             mpf_mul_2exp(val, val, -exp2);
-        } else {
+        } else if (exp2 > 0) {
             mpf_div_2exp(val, val, exp2);
         }
 
 
-        mpz_set_f(temp, val);
-
-        const mp_limb_t *lmb1 = mpz_limbs_read(temp);
-        const size_t size = mpz_size(temp);
-        if (size > limbs_count())
-            throw std::overflow_error("limbs overflow");
-        auto limbs = std::vector<mp_limb_t>(limbs_count());
-        mpn_copyi(limbs.data(), lmb1, static_cast<mp_size_t>(size));
-
-        this->sgn = mpf_sgn(val);
-        this->raw = new mp_limb_t[limbs_count() * RAW_ARR_LEN];
-        memcpy(raw, limbs.data(), limbs_count() * sizeof(mp_limb_t));
-
+        mpz_set_f(data, val);
         mpf_clear(val);
     }
 
-    inline mp_limb_t *fixed_point_decimal::get_limbs_from_mpf(mpf_t src, const mp_size_t limbs_count) {
-        mpz_set_f(temp, src);
-        const mp_limb_t *lmb1 = mpz_limbs_read(temp);
-        const size_t size = mpz_size(temp);
-        if (size > limbs_count)
-            throw std::overflow_error("limbs overflow");
-        const auto limbs = new mp_limb_t[limbs_count]();
-        mpn_copyi(limbs, lmb1, static_cast<mp_size_t>(size));
-        return limbs;
-    }
 
-
-    inline void fixed_point_decimal::temp_write_limbs(const mp_limb_t *limbs, const mp_size_t limbs_read_count) {
-        const size_t lc = limbs_count();
-        mp_limb_t *v = mpz_limbs_write(temp, static_cast<mp_size_t>(lc));
-        memcpy(v, limbs, limbs_read_count * sizeof(mp_limb_t));
-        std::fill(v + limbs_read_count, v + lc, 0);
-        mpz_limbs_finish(temp, static_cast<mp_size_t>(lc));
-    }
-
-    inline int fixed_point_decimal::int_exp10_to_exp2div64(const int exp10) {
-        constexpr double log10_2 = 0.301029995663981;
-        auto exp2div64 = static_cast<int>(static_cast<double>(exp10) / log10_2);
-        exp2div64 = (exp2div64 + 63) / 64;
-        return exp2div64;
-    }
-
-
-    inline int fixed_point_decimal::dec_exp10_to_exp2div64(const int exp10) {
+    inline int fixed_point_decimal::exp10_to_exp2div64(const int exp10) {
         constexpr double log10_2 = 0.301029995663981;
         auto exp2div64 = static_cast<int>(static_cast<double>(exp10) / log10_2);
         exp2div64 = (exp2div64 - 63) / 64;
@@ -322,244 +178,133 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::add(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {
-
-        const mp_size_t l_lc = lhs.limbs_read_count();
-        const mp_size_t r_lc = rhs.limbs_read_count();
-
-        if (lhs.sgn == 0) {
-            if (&result != &rhs) {
-                memcpy(result.raw, rhs.get_value_ptr(), r_lc * sizeof(mp_limb_t));
-                result.sgn = rhs.sgn;
-                std::fill(result.raw + rhs.int_limbs_to_read, result.raw + result.int_limbs_to_read, 0);
-                result.offset = 0;
-            }
-            return;
-        }
-        if (rhs.sgn == 0) {
-            if (&result != &lhs) {
-                memcpy(result.raw, lhs.get_value_ptr(), l_lc * sizeof(mp_limb_t));
-                result.sgn = lhs.sgn;
-                std::fill(result.raw + lhs.int_limbs_to_read, result.raw + result.int_limbs_to_read, 0);
-                result.offset = 0;
-            }
-            return;
-        }
-
-        const auto l_value = lhs.get_value_ptr();
-        const auto r_value = rhs.get_value_ptr();
-
-        result.offset = 0;
-
-        if (lhs.sgn == rhs.sgn) {
-            result.sgn = lhs.sgn;
-            mpn_add(result.raw, l_value, l_lc, r_value, r_lc);
-        } else {
-            const mp_limb_t borrow = mpn_sub(result.raw, l_value, l_lc, r_value, r_lc);
-            if (borrow == 0) {
-                result.sgn = lhs.sgn;
-            } else {
-                mpn_neg(result.raw, result.raw, l_lc);
-                result.sgn = rhs.sgn;
-            }
-        }
+        assert(result.exp2div64 == lhs.exp2div64);
+        assert(result.exp2div64 == rhs.exp2div64);
+        mpz_add(result.data, lhs.data, rhs.data);
     }
 
 
     inline void fixed_point_decimal::sub(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {
-        const mp_size_t l_lc = lhs.limbs_read_count();
-        const mp_size_t r_lc = rhs.limbs_read_count();
-
-        if (lhs.sgn == 0) {
-            if (&result != &rhs) {
-                memcpy(result.raw, rhs.get_value_ptr(), r_lc * sizeof(mp_limb_t));
-                result.sgn = -rhs.sgn;
-                std::fill(result.raw + rhs.int_limbs_to_read, result.raw + result.int_limbs_to_read, 0);
-                result.offset = 0;
-            }
-            return;
-        }
-        if (rhs.sgn == 0) {
-            if (&result != &lhs) {
-                memcpy(result.raw, lhs.get_value_ptr(), l_lc * sizeof(mp_limb_t));
-                result.sgn = lhs.sgn;
-                std::fill(result.raw + lhs.int_limbs_to_read, result.raw + result.int_limbs_to_read, 0);
-                result.offset = 0;
-            }
-            return;
-        }
-
-        const auto l_value = lhs.get_value_ptr();
-        const auto r_value = rhs.get_value_ptr();
-
-        result.offset = 0;
-
-        if (lhs.sgn == rhs.sgn) {
-            const mp_limb_t borrow = mpn_sub(result.raw, l_value, l_lc, r_value, r_lc);
-            if (borrow == 0) {
-                result.sgn = lhs.sgn;
-            } else {
-                mpn_neg(result.raw, result.raw, l_lc);
-                result.sgn = -rhs.sgn;
-            }
-        } else {
-            result.sgn = lhs.sgn;
-            mpn_add(result.raw, l_value, l_lc, r_value, r_lc);
-        }
+        assert(result.exp2div64 == lhs.exp2div64);
+        assert(result.exp2div64 == rhs.exp2div64);
+        mpz_sub(result.data, lhs.data, rhs.data);
     }
 
 
     inline void fixed_point_decimal::sqr(fixed_point_decimal &result, const fixed_point_decimal &v) {
+        const mpz_srcptr l = v.data;
+        mp_size_t size = l->_mp_size;
+        size = std::abs(size);
+        mp_size_t result_size = size * 2;
 
-        const mp_size_t lc = result.limbs_count();
-        const mp_size_t lrc = result.limbs_read_count();
-        const mp_limb_t *lhs_value = v.get_value_ptr();
-
-        if (v.sgn == 0) {
-            mpn_zero(result.raw, lrc);
-            result.offset = 0;
-            result.sgn = 0;
+        if (size == 0) {
+            mpz_set_ui(result.data, 0);
             return;
         }
 
-        mpn_sqr(result.raw + lc + result.int_limbs_count, lhs_value, lrc);
+        const mp_ptr ptr = l->_mp_d;
 
-        result.offset = lc * 2;
-        result.sgn = 1;
+        if (result.data->_mp_alloc < result_size) {
+            mpz_realloc2(result.data, result_size * 64);
+        }
+        const mp_ptr result_ptr = result.data->_mp_d;
+
+        mpn_sqr(result_ptr, ptr, size);
+        const mp_limb_t top = result_ptr[result_size - 1];
+        result_size -= top == 0;
+
+        mpn_copyi(result_ptr, result_ptr - result.exp2div64, result_size + result.exp2div64);
+        result_size += result.exp2div64;
+        result.data->_mp_size = result_size;
     }
 
 
     inline void fixed_point_decimal::mul(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {
-        const mp_size_t lc = result.limbs_count();
-        const mp_size_t l_lc = lhs.limbs_read_count();
-        const mp_size_t r_lc = rhs.limbs_read_count();
-        const mp_limb_t *lhs_value = lhs.get_value_ptr();
-        const mp_limb_t *rhs_value = rhs.get_value_ptr();
+        assert(result.exp2div64 == lhs.exp2div64);
+        assert(result.exp2div64 == rhs.exp2div64);
 
-        if (lhs.sgn == 0 || rhs.sgn == 0) {
-            mpn_zero(result.raw, l_lc);
-            result.offset = 0;
-            result.sgn = 0;
+
+        mpz_srcptr l = lhs.data;
+        mpz_srcptr r = rhs.data;
+        mp_size_t lhs_size = l->_mp_size;
+        mp_size_t rhs_size = r->_mp_size;
+        const mp_size_t sgn = lhs_size ^ rhs_size;
+        lhs_size = std::abs(lhs_size);
+        rhs_size = std::abs(rhs_size);
+        mp_size_t result_size = lhs_size + rhs_size;
+
+        if(lhs_size < rhs_size) {
+            std::swap(l, r);
+            std::swap(lhs_size, rhs_size);
+        }
+
+        if (rhs_size == 0) {
+            mpz_set_ui(result.data, 0);
             return;
         }
-        // offset 0 : [D][D][Z][Z][Z]
-        // offset lc : [D][D][D][D][Z][Z][Z][Z][Z][Z]
-        // [D][D][Z][Z][Z] | [X][X][X][D][D] | [D][D][Z][Z][Z] | [Z][Z][Z][X][X]
-        //                                      ^start      ^end
 
-        mpn_mul(result.raw + lc + result.int_limbs_count, lhs_value, l_lc, rhs_value, r_lc);
+        const mp_ptr lhs_ptr = l->_mp_d;
+        const mp_ptr rhs_ptr = r->_mp_d;
 
-        result.offset = lc * 2;
-        result.sgn = lhs.sgn * rhs.sgn;
+        if (result.data->_mp_alloc < result_size) {
+            mpz_realloc2(result.data, result_size * 64);
+        }
+        const mp_ptr result_ptr = result.data->_mp_d;
+
+        const mp_limb_t top = mpn_mul(result_ptr, lhs_ptr, lhs_size, rhs_ptr, rhs_size);
+        result_size -= top == 0;
+
+        mpn_copyi(result_ptr, result_ptr - result.exp2div64, result_size + result.exp2div64);
+        result_size += result.exp2div64;
+        result_size = sgn < 0 ? -result_size : result_size;
+        result.data->_mp_size = result_size;
     }
 
 
     inline void fixed_point_decimal::div(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {
-        const mp_size_t lc = result.limbs_count();
-
-        const auto l_lc = lhs.limbs_read_count();
-        const auto r_lc = rhs.limbs_read_count();
-        const mp_limb_t *lhs_value = lhs.get_value_ptr();
-        const mp_limb_t *rhs_value = rhs.get_value_ptr();
-        if (lhs.sgn == 0) {
-            mpn_zero(result.raw, lc);
-            result.sgn = 0;
-            return;
-        }
-        if (rhs.sgn == 0) {
-            throw std::overflow_error("divide by zero");
-        }
-        const mp_size_t dividend_size = result.dec_limbs_count + l_lc;
-        const mp_size_t divisor_size = normalized_limbs_count(rhs_value, r_lc);
-
-        mpn_zero(result.raw + lc * 3, result.dec_limbs_count);
-        mpn_copyi(result.raw + lc * 3 + result.dec_limbs_count, lhs_value, l_lc);
-        mpn_tdiv_qr(result.raw, result.raw + lc * 5, 0, result.raw + lc * 3, dividend_size, rhs_value, divisor_size);
-
-        const mp_size_t result_size = dividend_size - divisor_size + 1;
-        const mp_size_t cpy_cnt = l_lc - result_size;
-        // cpy_cnt = divisor_size - result.dec_limbs_count - 1
-        // if cpy_cnt < 0, limbs can be overflowed
-        if (cpy_cnt > 0)
-            std::fill_n(result.raw + result_size, cpy_cnt, 0);
-
-        result.sgn = lhs.sgn * rhs.sgn;
-        result.offset = 0;
+        assert(result.exp2div64 == lhs.exp2div64);
+        assert(result.exp2div64 == rhs.exp2div64);
+        mpz_mul_2exp(result.data, lhs.data, -lhs.exp2div64 * 64);
+        mpz_div(result.data, result.data, rhs.data);
     }
 
 
     inline void fixed_point_decimal::dbl(fixed_point_decimal &result, const fixed_point_decimal &v) {
-        mpn_lshift(result.raw, v.get_value_ptr(), v.limbs_read_count(), 1);
-        result.sgn = v.sgn;
-        result.offset = 0;
+        mpz_mul_2exp(result.data, v.data, 1);
     }
 
 
     inline void fixed_point_decimal::hlv(fixed_point_decimal &result, const fixed_point_decimal &v) {
-        mpn_rshift(result.raw, v.get_value_ptr(), v.limbs_read_count(), 1);
-        result.sgn = v.sgn;
-        result.offset = 0;
+        mpz_div_2exp(result.data, v.data, 1);
     }
 
-    inline void fixed_point_decimal::neg(fixed_point_decimal &v) { v.sgn = -v.sgn; }
+    inline void fixed_point_decimal::neg(fixed_point_decimal &v) { mpz_neg(v.data, v.data); }
 
-
-    inline void fixed_point_decimal::set_limbs_count(const mp_size_t new_dec_limbs_count,
-                                                     const mp_size_t new_int_limbs_count) {
-        if ((new_dec_limbs_count == SIZE_MAX || new_dec_limbs_count == dec_limbs_count) &&
-            (new_int_limbs_count == SIZE_MAX || new_int_limbs_count == int_limbs_count))
-            return;
-
-        const mp_size_t dec_copy_count = std::min(new_dec_limbs_count, dec_limbs_count);
-        const mp_size_t int_copy_count = std::min(new_int_limbs_count, int_limbs_to_read);
-        const mp_size_t src_offset = dec_limbs_count - dec_copy_count;
-        const mp_size_t dst_offset = new_dec_limbs_count - dec_copy_count;
-        const auto new_raw = new mp_limb_t[(new_dec_limbs_count + new_int_limbs_count) * RAW_ARR_LEN]();
-        memcpy(new_raw + dst_offset, get_value_ptr() + src_offset,
-               sizeof(mp_limb_t) * (dec_copy_count + int_copy_count));
-
-        delete[] raw;
-        raw = new_raw;
-        offset = 0;
-        dec_limbs_count = new_dec_limbs_count;
-        int_limbs_count = new_int_limbs_count;
-        int_limbs_to_read = new_int_limbs_count;
+    inline void fixed_point_decimal::set_exp10(const int dec_exp10) {
+        const int new_exp2div64 = exp10_to_exp2div64(dec_exp10);
+        if (exp2div64 < new_exp2div64) {
+            mpz_div_2exp(data, data, (new_exp2div64 - exp2div64) * 64);
+        } else if (exp2div64 > new_exp2div64) {
+            mpz_mul_2exp(data, data, (exp2div64 - new_exp2div64) * 64);
+        }
+        exp2div64 = new_exp2div64;
     }
 
-
-    inline void fixed_point_decimal::set_exp10(const int dec_exp10, const int int_exp10) {
-        const int dec_exp2div64 = dec_exp10_to_exp2div64(dec_exp10);
-        const int int_exp2div64 = int_exp10_to_exp2div64(int_exp10);
-
-        set_limbs_count(-dec_exp2div64, int_exp2div64);
-    }
-
-
-    inline mp_size_t fixed_point_decimal::normalized_limbs_count(const mp_limb_t *limbs, const mp_size_t limbs_count) {
-        mp_size_t cnt = limbs_count;
-        while (cnt > 0 && limbs[cnt - 1] == 0)
-            --cnt;
-        return cnt;
-    }
-
-
-    inline mp_limb_t *fixed_point_decimal::get_value_ptr() const { return raw + offset; }
 
     inline fixed_point_decimal::operator float() const { return static_cast<float>(operator double()); }
 
     inline fixed_point_decimal::operator double() const {
-        if (sgn == 0) {
+        if (mpz_sgn(data) == 0) {
             return 0;
         }
 
         uint64_t mantissa_bit;
         mp_size_t f_exp2;
 
-        if (!export_value(mantissa_bit, f_exp2)) {
-            return 0;
-        }
+        export_value(mantissa_bit, f_exp2);
         // 0100 0000 0000 : 2^1
         // 0000 0000 0000 : 2^-1023
         // 0111 1111 1111 : 2^1024
@@ -575,48 +320,32 @@ namespace merutilm::rff2 {
 #else
         const uint64_t exponent = 0x3ff0000000000000ULL + (static_cast<uint64_t>(f_exp2) << 52);
 #endif
-        const uint64_t sig = sgn == 1 ? 0 : 0x8000000000000000ULL;
+        const uint64_t sig = mpz_sgn(data) == 1 ? 0 : 0x8000000000000000ULL;
         return std::bit_cast<double>(sig | exponent | mantissa_bit);
     }
 
     template<Number Exp, Number Mantissa, Number Bit>
     fixed_point_decimal::operator exponent<Exp, Mantissa, Bit>() const {
-        if (sgn == 0) {
+        if (mpz_sgn(data) == 0) {
             return exponent<Exp, Mantissa, Bit>::ZERO;
         }
         uint64_t mantissa_bit;
         mp_size_t f_exp2;
-
-        if (!export_value(mantissa_bit, f_exp2)) {
-            return exponent<Exp, Mantissa, Bit>::ZERO;
-        }
+        export_value(mantissa_bit, f_exp2);
 
         const auto mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
 
-        return exponent<Exp, Mantissa, Bit>(sgn) *
+        return exponent<Exp, Mantissa, Bit>(mpz_sgn(data)) *
                exponent<Exp, Mantissa, Bit>::mul_2exp(exponent<Exp, Mantissa, Bit>(static_cast<Mantissa>(mantissa)),
                                                       static_cast<int>(f_exp2));
     }
 
-    inline bool fixed_point_decimal::is_strict_zero() const { return mpn_zero_p(get_value_ptr(), limbs_read_count()); }
-
-
-    inline std::string fixed_point_decimal::to_string() {
+    inline std::string fixed_point_decimal::to_string() const {
         mpf_t d;
-        const int32_t exp2 = -static_cast<int32_t>(dec_limbs_count) * 64;
-        temp_write_limbs(get_value_ptr(), limbs_read_count());
-        if (sgn == -1)
-            mpz_neg(temp, temp);
+        mpf_init2(d, -exp2div64 * 64);
+        mpf_set_z(d, data);
+        mpf_div_2exp(d, d, -exp2div64 * 64);
 
-        mpf_init2(d, limbs_read_count() * 64);
-
-        if (exp2 < 0) {
-            mpf_set_z(d, temp);
-            mpf_div_2exp(d, d, -exp2);
-        } else {
-            mpf_set_z(d, temp);
-            mpf_mul_2exp(d, d, exp2);
-        }
         char *str;
         gmp_asprintf(&str, "%.Ff", d);
         std::string result(str);
@@ -627,37 +356,14 @@ namespace merutilm::rff2 {
         return result;
     }
 
-    inline mp_size_t fixed_point_decimal::limbs_read_count() const { return int_limbs_to_read + dec_limbs_count; }
 
-    inline mp_size_t fixed_point_decimal::limbs_count() const { return int_limbs_count + dec_limbs_count; }
-
-    inline void fixed_point_decimal::make_operation_compatible(fixed_point_decimal &result,
-                                                               const fixed_point_decimal &v) {
-        result.set_int_limbs_to_read(v.int_limbs_to_read);
-    }
-
-
-    inline void fixed_point_decimal::set_int_limbs_to_read(const mp_size_t new_int_limbs_to_read) {
-#ifndef NDEBUG
-        if (new_int_limbs_to_read > int_limbs_count)
-            throw vkh::exception_invalid_state("limbs overflow");
-#endif
-        if (int_limbs_to_read < new_int_limbs_to_read) {
-            mp_limb_t *ptr = get_value_ptr();
-            std::fill(ptr + int_limbs_to_read, ptr + new_int_limbs_to_read, 0);
-        }
-        int_limbs_to_read = new_int_limbs_to_read;
-    }
-
-
-    inline bool fixed_point_decimal::export_value(uint64_t &mantissa_bit, mp_size_t &f_exp2) const {
+    inline void fixed_point_decimal::export_value(uint64_t &mantissa_bit, mp_size_t &f_exp2) const {
 
         static constexpr auto MANTISSA_MASK = 0x000fffffffffffffULL;
-        const mp_size_t exp2 = -dec_limbs_count * 64;
-        const mp_limb_t *src_ptr = get_value_ptr();
-        const mp_size_t nlc = normalized_limbs_count(src_ptr, limbs_read_count());
+        const mp_limb_t *src_ptr = data->_mp_d;
+        const mp_size_t nlc = std::abs(data->_mp_size);
 
-        if (nlc == 0) return false;
+        assert(nlc > 0);
 
         const mp_limb_t top = *(src_ptr + nlc - 1);
         const size_t len = nlc * 64 - std::countl_zero(top);
@@ -672,12 +378,11 @@ namespace merutilm::rff2 {
             const auto dst0 = src_ptr + limb_skip;
             if (shift_small <= 12) {
                 mantissa_bit = *dst0 >> shift_small & MANTISSA_MASK;
-            }else {
+            } else {
                 const auto dst1 = dst0 + 1;
                 mantissa_bit = (*dst1 << (64 - shift_small) | *dst0 >> shift_small) & MANTISSA_MASK;
             }
         }
-        f_exp2 = exp2 + shift + 52;
-        return true;
+        f_exp2 = exp2div64 * 64 + shift + 52;
     }
 } // namespace merutilm::rff2

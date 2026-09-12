@@ -180,7 +180,7 @@ namespace merutilm::rff2 {
                         FractalSettings{.general = {.bailout = 2.00001f, .logZoom = 2, .threads = 15},
                                         .reference =
                                                 {
-                                                        .center = fixed_point_complex_i1(
+                                                        .center = fixed_point_complex(
                                                                 "-0.85", "0", Perturbator::logZoomToExp10(2)),
                                                         .useParallelRefCalculation = false,
                                                         .sync = ClcSyncPresets::Fast().genRefSync(),
@@ -221,7 +221,7 @@ namespace merutilm::rff2 {
                                                     .threads = std::thread::hardware_concurrency() - 1},
                                         .reference =
                                                 {
-                                                        .center = fixed_point_complex_i1(
+                                                        .center = fixed_point_complex(
                                                                 "-0.85", "0", Perturbator::logZoomToExp10(2)),
                                                         .useParallelRefCalculation = false,
                                                         .sync = ClcSyncPresets::Fast().genRefSync(),
@@ -339,11 +339,11 @@ namespace merutilm::rff2 {
                         const float logZoom = settings.fractal.general.logZoom;
                         const int exp10 = Perturbator::logZoomToExp10(logZoom);
 
-                        fixed_point_complex_i1 &center = settings.fractal.reference.center;
+                        fixed_point_complex &center = settings.fractal.reference.center;
                         center.set_exp10(exp10);
-                        const fixed_point_complex_i1 add(dex(static_cast<float>(dx) / m) / getDivisor(settings),
+                        const fixed_point_complex add(dex(static_cast<float>(dx) / m) / getDivisor(settings),
                                                          dex(static_cast<float>(dy) / m) / getDivisor(settings), exp10);
-                        fixed_point_complex_i1::add(center, center, add);
+                        fixed_point_complex::add(center, center, add);
 
                         requests.requestRecompute();
                     }
@@ -373,14 +373,14 @@ namespace merutilm::rff2 {
 
         const auto [re, im] = offsetConversion(settings, mix, miy);
         float &logZoom = settings.fractal.general.logZoom;
-        fixed_point_complex_i1 &center = settings.fractal.reference.center;
+        fixed_point_complex &center = settings.fractal.reference.center;
         const int exp10 = Perturbator::logZoomToExp10(logZoom);
         center.set_exp10(exp10);
 
         const float mz = pow(10.0f, -logIncrement);
         logZoom += logIncrement;
-        const fixed_point_complex_i1 add(re * dex(1 - mz), im * dex(1 - mz), exp10);
-        fixed_point_complex_i1::add(center, center, add);
+        const fixed_point_complex add(re * dex(1 - mz), im * dex(1 - mz), exp10);
+        fixed_point_complex::add(center, center, add);
 
         zoomAnimationInfo.aimChanged = true;
         zoomAnimationInfo.stop();
@@ -741,7 +741,7 @@ namespace merutilm::rff2 {
     void RFF2::loadLocation(const std::filesystem::path &path) {
         const RFFLocationBinary location = RFFLocationBinary::read(path);
 
-        settings.fractal.reference.center = fixed_point_complex_i1(location.getReal(), location.getImag(),
+        settings.fractal.reference.center = fixed_point_complex(location.getReal(), location.getImag(),
                                                                    Perturbator::logZoomToExp10(location.getLogZoom()));
         settings.fractal.general.logZoom = location.getLogZoom();
         settings.fractal.perturb.maxIteration = location.getMaxIteration();
@@ -794,7 +794,7 @@ namespace merutilm::rff2 {
     }
 
     void RFF2::moveCursorToCenter() const {
-        const std::unique_ptr<fixed_point_complex_i1> off = MB2Locator::findCenterOffset(*renderData);
+        const std::unique_ptr<fixed_point_complex> off = MB2Locator::findCenterOffset(*renderData);
         auto offDex = static_cast<complex<dex>>(*off);
         if (renderData->getPerturbator()) {
             offDex -= renderData->getPerturbator()->off;
@@ -870,8 +870,8 @@ namespace merutilm::rff2 {
                 return false;
             }
 
-            fixed_point_complex_i1 center = frt.reference.center.create_variant(exp10);
-            const fixed_point_complex_i1 referenceCenter = renderData->getReference()->center.create_variant(exp10);
+            fixed_point_complex center = frt.reference.center.create_variant(exp10);
+            const fixed_point_complex referenceCenter = renderData->getReference()->center.create_variant(exp10);
             fixed_point_complex::sub(center, center, referenceCenter);
             const dex distance = static_cast<complex<dex>>(center).norm_approx();
 

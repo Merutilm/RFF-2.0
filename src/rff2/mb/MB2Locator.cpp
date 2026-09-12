@@ -11,16 +11,16 @@
 
 namespace merutilm::rff2 {
 
-    std::unique_ptr<fixed_point_complex_i1> MB2Locator::findCenterOffset(const MB2RenderDataBase &data) {
+    std::unique_ptr<fixed_point_complex> MB2Locator::findCenterOffset(const MB2RenderDataBase &data) {
         const int exp10 = Perturbator::logZoomToExp10(data.fractalSettings.general.logZoom);
         const MB2ReferenceBase *reference = data.getReference();
         if (!reference) return nullptr;
 
-        fixed_point_complex bn = reference->fpgBn.create_variant(exp10, -exp10 * 2);
-        fixed_point_complex z = reference->fpgReference.create_variant(exp10, -exp10 * 2);
+        fixed_point_complex bn = reference->fpgBn.create_variant(exp10);
+        fixed_point_complex z = reference->fpgReference.create_variant(exp10);
         fixed_point_complex::neg(bn);
         fixed_point_complex::div(z, z, bn);
-        return std::make_unique<fixed_point_complex_i1>(z.real, z.imag, exp10);
+        return std::make_unique<fixed_point_complex>(z.real, z.imag, exp10);
     }
 
     std::unique_ptr<MB2Locator> MB2Locator::locateMinibrot(vkh::Core &core, ParallelRenderState &state,
@@ -121,7 +121,7 @@ namespace merutilm::rff2 {
 
             fixed_point_complex::add(center, center, centerOffset);
 
-            if (centerOffset.is_strict_zero()) {
+            if (centerOffset.is_zero()) {
                 vkh::logger::log_err("The center could not be found, or you are already in the center");
                 return nullptr;
             }

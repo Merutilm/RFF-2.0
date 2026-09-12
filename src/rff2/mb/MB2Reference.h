@@ -16,7 +16,7 @@
 namespace merutilm::rff2 {
 
     struct MB2ReferenceBase {
-        const fixed_point_complex_i1 center;
+        const fixed_point_complex center;
         const std::vector<ArrayCompressionTool> compressor;
         const std::vector<uint64_t> period;
         const fixed_point_complex fpgReference;
@@ -24,7 +24,7 @@ namespace merutilm::rff2 {
         const float logZoom;
         const dex dcMax;
 
-        MB2ReferenceBase(fixed_point_complex_i1 &&center, std::vector<ArrayCompressionTool> &&compressor,
+        MB2ReferenceBase(fixed_point_complex &&center, std::vector<ArrayCompressionTool> &&compressor,
                          std::vector<uint64_t> &&period, fixed_point_complex &&fpgReference,
                          fixed_point_complex &&fpgBn, float logZoom, dex dcMax) :
             center(std::move(center)), compressor(std::move(compressor)), period(std::move(period)),
@@ -42,14 +42,14 @@ namespace merutilm::rff2 {
         const std::vector<complex<Num>> refOrbit;
 
 
-        explicit MB2Reference(fixed_point_complex_i1 &&center, std::vector<complex<Num>> &&orbit,
+        explicit MB2Reference(fixed_point_complex &&center, std::vector<complex<Num>> &&orbit,
                               std::vector<ArrayCompressionTool> &&compressor, std::vector<uint64_t> &&period,
                               fixed_point_complex &&fpgReference, fixed_point_complex &&fpgBn, float logZoom, dex dcMax);
 
-        static void syncReference(fixed_point_complex_i1 &z, uint64_t intervalCounter, uint32_t refSyncInterval,
+        static void syncReference(fixed_point_complex &z, uint64_t intervalCounter, uint32_t refSyncInterval,
                                   uint8_t refSyncRadiusPower, Num refSyncRadius2, complex<Num> &z0, complex<Num> &c0);
 
-        static void applyFormula(fixed_point_complex_i1 &z, const fixed_point_complex_i1 &c,
+        static void applyFormula(fixed_point_complex &z, const fixed_point_complex &c,
                                  const std::function<void(uint64_t)> &stepFunc, op_thread_pool *tp, uint64_t invoker);
 
         static CreationResult generateReference(const ParallelRenderState &state,
@@ -67,7 +67,7 @@ namespace merutilm::rff2 {
 
 
     template<Number Num>
-    MB2Reference<Num>::MB2Reference(fixed_point_complex_i1 &&center, std::vector<complex<Num>> &&orbit,
+    MB2Reference<Num>::MB2Reference(fixed_point_complex &&center, std::vector<complex<Num>> &&orbit,
                                     std::vector<ArrayCompressionTool> &&compressor, std::vector<uint64_t> &&period,
                                     fixed_point_complex &&fpgReference, fixed_point_complex &&fpgBn, float logZoom, const dex dcMax) :
         MB2ReferenceBase(std::move(center), std::move(compressor), std::move(period), std::move(fpgReference),
@@ -76,7 +76,7 @@ namespace merutilm::rff2 {
 
 
     template<Number Num>
-    void MB2Reference<Num>::syncReference(fixed_point_complex_i1 &z, const uint64_t intervalCounter,
+    void MB2Reference<Num>::syncReference(fixed_point_complex &z, const uint64_t intervalCounter,
                                           const uint32_t refSyncInterval, const uint8_t refSyncRadiusPower,
                                           const Num refSyncRadius2, complex<Num> &z0, complex<Num> &c0) {
 
@@ -105,7 +105,7 @@ namespace merutilm::rff2 {
         }
     }
     template<Number Num>
-    void MB2Reference<Num>::applyFormula(fixed_point_complex_i1 &z, const fixed_point_complex_i1 &c,
+    void MB2Reference<Num>::applyFormula(fixed_point_complex &z, const fixed_point_complex &c,
                                          const std::function<void(uint64_t)> &stepFunc, op_thread_pool *tp,
                                          const uint64_t invoker) {
         stepFunc(invoker);
@@ -129,14 +129,11 @@ namespace merutilm::rff2 {
         ref.reserve(refInitialCapacity);
         ref.push_back(complex<Num>::ZERO);
 
-        int strictIntExp10 = -exp10;
-        int fpgIntExp10 = forcedPeriodForAccurateFPG != 0 ? strictIntExp10 : 1;
-
-        fixed_point_complex_i1 c = refSettings.center.create_variant(exp10);
-        auto z = fixed_point_complex_i1(0.0, 0.0, exp10);
+        fixed_point_complex c = refSettings.center.create_variant(exp10);
+        auto z = fixed_point_complex(0.0, 0.0, exp10);
         auto temp = z;
-        auto fpgBn = fixed_point_complex(0.0, 0.0, exp10, fpgIntExp10);
-        auto one = fixed_point_complex_i1(1.0, 0.0, exp10);
+        auto fpgBn = fixed_point_complex(0.0, 0.0, exp10);
+        auto one = fixed_point_complex(1.0, 0.0, exp10);
         auto bailoutSqr = Num(generalSettings.bailout * generalSettings.bailout);
 
         op_thread_pool parallelReferenceThreadPoolForStrict{};
@@ -196,10 +193,6 @@ namespace merutilm::rff2 {
             }
 
             if (fpgPeriod != 0 && period == fpgPeriod * refSettings.periodMultiplier) {
-#ifndef NDEBUG
-                std::cout << "fpg ref : " << static_cast<complex<dex>>(*fpgReference).to_string() << std::endl;
-                std::cout << "fpg bn : " << static_cast<complex<dex>>(fpgBn).to_string() << std::endl;
-#endif
                 break;
             }
 
@@ -209,6 +202,7 @@ namespace merutilm::rff2 {
                 fixed_point_complex::mul(fpgBn, fpgBn, temp, tpStrict);
                 fixed_point_complex::add(fpgBn, fpgBn, one);
             }
+
 
             applyFormula(z, c, actionPerRefCalcIteration, tpRef, period);
             syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, z0, c0);
@@ -247,7 +241,7 @@ namespace merutilm::rff2 {
         }
 
         if (forcedPeriodForAccurateFPG == 0)
-            fpgBn = fixed_point_complex(fpgBn0.re, fpgBn0.im, exp10, strictIntExp10);
+            fpgBn = fixed_point_complex(fpgBn0.re, fpgBn0.im, exp10);
         if (fpgReference == nullptr)
             fpgReference = std::make_unique<fixed_point_complex>(z);
 

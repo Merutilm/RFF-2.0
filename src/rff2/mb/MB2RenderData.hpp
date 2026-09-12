@@ -27,7 +27,7 @@ namespace merutilm::rff2 {
         [[nodiscard]] virtual MB2PerturbatorBase *getPerturbator() const = 0;
 
         virtual void translate(float logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
-                               const fixed_point_complex_i1 &newCenter, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) = 0;
+                               const fixed_point_complex &newCenter, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) = 0;
 
         static int logZoomToExp10(const float logZoom) {
             return -static_cast<int>(logZoom) - Constants::Fractal::EXP10_ADDITION;
@@ -57,7 +57,7 @@ namespace merutilm::rff2 {
         void generateSeriesApproxTerms(dex dcMax, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration);
 
         void translate(float logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
-                       const fixed_point_complex_i1 &newCenter, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) override;
+                       const fixed_point_complex &newCenter, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) override;
 
         void applyAutoMaxIteration();
     };
@@ -165,15 +165,15 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     void MB2RenderData<Num>::translate(const float logZoom, const dex dcMax, const FrtPerturbSettings &ptbSettings,
-                                       const fixed_point_complex_i1 &newCenter, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) {
+                                       const fixed_point_complex &newCenter, const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration) {
         if (lastCreationResult != Reference::CreationResult::SUCCESS) {
             // try to use incomplete reference
             vkh::logger::log_err("Please do not try to use incomplete Reference.");
         } else {
             const int exp10 = logZoomToExp10(logZoom);
-            fixed_point_complex_i1 center = newCenter.create_variant(exp10);
-            const fixed_point_complex_i1 refCenter = reference->center.create_variant(exp10);
-            fixed_point_complex_i1::sub(center, center, refCenter);
+            fixed_point_complex center = newCenter.create_variant(exp10);
+            const fixed_point_complex refCenter = reference->center.create_variant(exp10);
+            fixed_point_complex::sub(center, center, refCenter);
 
             perturbator->off = {static_cast<dex>(center.get_real()), static_cast<dex>(center.get_imag())};
             perturbator->dcMax = dcMax;
