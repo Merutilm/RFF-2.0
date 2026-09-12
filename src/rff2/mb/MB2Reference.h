@@ -217,7 +217,7 @@ namespace merutilm::rff2 {
                 fixed_point_complex::add(fpgBn, fpgBn, one);
             }
 
-            if (period % partition == 0) checkpoints.emplace_back(z, period);
+            if (period % partition == 0 && checkpoints.size() < generalSettings.threads) checkpoints.emplace_back(z, period);
 
             applyFormula(z, c, actionPerRefCalcIteration, sqrTp, period);
             syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, z0, c0);
