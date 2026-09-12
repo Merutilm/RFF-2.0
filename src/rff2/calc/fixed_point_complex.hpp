@@ -48,7 +48,7 @@ namespace merutilm::rff2 {
         static void add(fixed_point_complex &result, const fixed_point_complex &lhs, const fixed_point_complex &rhs);
 
         /**
-         * Fast-subtraction. It assumes that the count of limbs of both numbers are the same.
+         * Fast-subtraction. It assumes that the exp2div64 of both numbers are the same.
          * in-place operation is supported.
          * @param result the pointer of result
          * @param lhs left operand
@@ -57,7 +57,7 @@ namespace merutilm::rff2 {
         static void sub(fixed_point_complex &result, const fixed_point_complex &lhs, const fixed_point_complex &rhs);
 
         /**
-         * Fast-multiplication. It assumes that the count of limbs of both numbers are the same.
+         * Fast-multiplication. It assumes that the exp2div64 of both numbers are the same.
          * in-place operation is supported. (but in-place multiplication of each decimal is not supported)
          * @param result the pointer of result
          * @param lhs left operand
@@ -68,7 +68,7 @@ namespace merutilm::rff2 {
                         op_thread_pool *tp = nullptr);
 
         /**
-         * Fast-division. It assumes that the count of limbs of both numbers are the same.
+         * Fast-division. It assumes that the exp2div64 of both numbers are the same.
          * in-place operation is supported.
          * @param result the pointer of result
          * @param lhs left operand
@@ -79,7 +79,7 @@ namespace merutilm::rff2 {
                         op_thread_pool *tp = nullptr);
 
         /**
-         * Fast-square. It assumes that the count of limbs of both numbers are the same.
+         * Fast-square. It assumes that the exp2div64 of both numbers are the same.
          * in-place operation is supported. (but in-place square of each decimal is not supported)
          * @param result the pointer of result
          * @param v operand
@@ -87,14 +87,14 @@ namespace merutilm::rff2 {
          */
         static void sqr(fixed_point_complex &result, const fixed_point_complex &v, op_thread_pool *tp = nullptr);
         /**
-         * Fast-doubling. It assumes that the count of limbs of both numbers are the same.
+         * Fast-doubling. It assumes that the exp2div64 of both numbers are the same.
          * in-place operation is supported.
          * @param result
          * @param v operand
          */
         static void dbl(fixed_point_complex &result, const fixed_point_complex &v);
         /**
-         * Fast-halving. It assumes that the count of limbs of both numbers are the same.
+         * Fast-halving. It assumes that the exp2div64 of both numbers are the same.
          * in-place operation is supported.
          * @param result
          * @param v operand

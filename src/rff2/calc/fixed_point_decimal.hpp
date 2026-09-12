@@ -15,6 +15,7 @@ namespace merutilm::rff2 {
      * the size of mp_limb must be 8. other case is undefined.
      */
     struct fixed_point_decimal {
+        static_assert(GMP_NUMB_BITS == 64);
 
         mpz_t data;
         /**
@@ -199,6 +200,7 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::sqr(fixed_point_decimal &result, const fixed_point_decimal &v) {
         assert(result.exp2div64 == v.exp2div64);
+        assert(&result != &v);
 
         /*
            This function contains modified gmp source code under mpz_mul.
@@ -266,6 +268,7 @@ namespace merutilm::rff2 {
                                          const fixed_point_decimal &rhs) {
         assert(result.exp2div64 == lhs.exp2div64);
         assert(result.exp2div64 == rhs.exp2div64);
+        assert(&result != &lhs && &result != &rhs);
 
         /*
          *  This function contains modified gmp source code under mpz_mul.
@@ -302,10 +305,11 @@ namespace merutilm::rff2 {
             see https://www.gnu.org/licenses/.
             */
 
+
         mpz_srcptr l = lhs.data;
         mpz_srcptr r = rhs.data;
-        mp_size_t lhs_size = mpz_size(l);
-        mp_size_t rhs_size = mpz_size(r);
+        mp_size_t lhs_size = l->_mp_size;
+        mp_size_t rhs_size = r->_mp_size;
         const mp_size_t sgn = lhs_size ^ rhs_size;
         lhs_size = std::abs(lhs_size);
         rhs_size = std::abs(rhs_size);
@@ -437,12 +441,12 @@ namespace merutilm::rff2 {
 
         static constexpr auto MANTISSA_MASK = 0x000fffffffffffffULL;
         const mp_limb_t *src_ptr = data->_mp_d;
-        const mp_size_t nlc = std::abs(data->_mp_size);
+        const mp_size_t size = std::abs(data->_mp_size);
 
-        assert(nlc > 0);
+        assert(size > 0);
 
-        const mp_limb_t top = *(src_ptr + nlc - 1);
-        const size_t len = nlc * 64 - std::countl_zero(top);
+        const mp_limb_t top = *(src_ptr + size - 1);
+        const size_t len = size * 64 - std::countl_zero(top);
 
         const int32_t shift = static_cast<int32_t>(len) - 53;
         if (shift <= 0) {
