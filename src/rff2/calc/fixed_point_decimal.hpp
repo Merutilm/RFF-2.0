@@ -51,13 +51,18 @@ namespace merutilm::rff2 {
 
         static void sub(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
 
+        /**
+         * Fast-square.
+         * [CAUTION] in-place operation is not supported.
+         * @param result the reference of result.
+         * @param v operand
+         */
         static void sqr(fixed_point_decimal &result, const fixed_point_decimal &v);
 
 
         /**
-         * Fast-multiplication. decimal limbs count must be the same for all, and limbs length must be result ==
-         * lhs >= rhs. If an overflow occurs, the most significant limbs are discarded. [CAUTION] in-place operation is
-         * not supported.
+         * Fast-multiplication.
+         * [CAUTION] in-place operation is not supported.
          * @param result the reference of result.
          * @param lhs left operand
          * @param rhs right operand
