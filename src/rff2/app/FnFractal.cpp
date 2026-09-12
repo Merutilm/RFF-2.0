@@ -112,12 +112,6 @@ namespace merutilm::rff2 {
                     "Reference compression slows down the calculation but frees up memory space.\n"
                     "set 0 to disable.");
 
-            ImGui::Checkbox("use CRVP", &frt.reference.doCalculateReferenceViaPerturbation);
-            Utilities::imguiHelpMarker(
-                    "calculate reference via perturbation.\n"
-                    "While the reference calculation speed increases significantly, memory usage also increases.");
-
-
             if (ImGui::InputScalar("Reference Synchronization Interval", ImGuiDataType_U32,
                                &frt.reference.sync.referenceSynchronizationInterval)) {
                 frt.reference.sync.referenceSynchronizationInterval = std::max(frt.reference.sync.referenceSynchronizationInterval, 1u);

@@ -115,20 +115,20 @@ namespace merutilm::rff2 {
     }
     std::unique_ptr<MB2RenderDataBase>
     RFF2::createAppropriateRenderData(const bool computeShader, const float logZoomTest, const float startTime,
-                                      const FractalSettings &frt, const dex dcMax, MB2ReferenceBase *oldReference, const int exp10,
-                                      const uint64_t refInitialCapacity, const uint64_t forcedStrictFPGPeriod) {
+                                      const FractalSettings &frt, const dex dcMax, const int exp10,
+                                      const uint64_t refInitialCapacity, const uint64_t oldLongestPeriod, const uint64_t forcedStrictFPGPeriod) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
                 return std::make_unique<FexMB2RenderData>(
                         engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
-                        refInitialCapacity, forcedStrictFPGPeriod, oldReference,
+                        refInitialCapacity,  oldLongestPeriod, forcedStrictFPGPeriod,
                         FnExplore::getActionWhileRefCalc(*this, startTime),
                         FnExplore::getActionWhileSeriesApprox(*this, startTime),
                         FnExplore::getActionWhileCreatingTable(*this, startTime));
             } else {
                 return std::make_unique<FloatMB2RenderData>(
                         engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
-                        refInitialCapacity, forcedStrictFPGPeriod, oldReference,
+                        refInitialCapacity,  oldLongestPeriod, forcedStrictFPGPeriod,
                         FnExplore::getActionWhileRefCalc(*this, startTime),
                         FnExplore::getActionWhileSeriesApprox(*this, startTime),
                         FnExplore::getActionWhileCreatingTable(*this, startTime));
@@ -137,14 +137,14 @@ namespace merutilm::rff2 {
             if (logZoomTest > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
                 return std::make_unique<DexMB2RenderData>(
                         engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
-                        refInitialCapacity, forcedStrictFPGPeriod, oldReference,
+                        refInitialCapacity, oldLongestPeriod, forcedStrictFPGPeriod,
                         FnExplore::getActionWhileRefCalc(*this, startTime),
                         FnExplore::getActionWhileSeriesApprox(*this, startTime),
                         FnExplore::getActionWhileCreatingTable(*this, startTime));
             } else {
                 return std::make_unique<DoubleMB2RenderData>(
                         engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
-                        refInitialCapacity, forcedStrictFPGPeriod, oldReference,
+                        refInitialCapacity, oldLongestPeriod, forcedStrictFPGPeriod,
                         FnExplore::getActionWhileRefCalc(*this, startTime),
                         FnExplore::getActionWhileSeriesApprox(*this, startTime),
                         FnExplore::getActionWhileCreatingTable(*this, startTime));
@@ -189,7 +189,6 @@ namespace merutilm::rff2 {
                                                         .useParallelRefCalculation = false,
                                                         .sync = ClcSyncPresets::Fast().genRefSync(),
                                                         .compression = ClcCompressPresets::None().genRefComp(),
-                                                        .doCalculateReferenceViaPerturbation = false,
                                                         .reuse = false,
                                                 },
                                         .sa = {.use = false,
@@ -230,7 +229,6 @@ namespace merutilm::rff2 {
                                                         .useParallelRefCalculation = false,
                                                         .sync = ClcSyncPresets::Fast().genRefSync(),
                                                         .compression = ClcCompressPresets::None().genRefComp(),
-                                                        .doCalculateReferenceViaPerturbation = false,
                                                         .reuse = false,
                                                 },
                                         .sa = {.use = false,
@@ -850,8 +848,10 @@ namespace merutilm::rff2 {
         const dex dcMax = offset.norm_approx();
 
         static uint64_t capacity = 0;
+        static uint64_t oldLongestPeriod = 1;
         if (renderData && renderData->getReference()) {
             capacity = renderData->getReference()->length();
+            oldLongestPeriod = renderData->getReference()->longestPeriod();
         }
 
         std::function actionPerRefCalcIteration = FnExplore::getActionWhileRefCalc(*this, startTime);
@@ -881,8 +881,10 @@ namespace merutilm::rff2 {
             renderData->translate(frt.general.logZoom, dcMax + distance, frt.perturb, frt.reference.center,
                                   actionPerSeriesApproxIteration);
         } else {
-            renderData = createAppropriateRenderData(s.render.computeShader.use, logZoom, startTime, frt, dcMax, renderData ? renderData->getReference() : nullptr,
-                                                     exp10, capacity, 0);
+            renderData = nullptr;
+
+            renderData = createAppropriateRenderData(s.render.computeShader.use, logZoom, startTime, frt, dcMax, exp10,
+                                                     capacity, oldLongestPeriod, 0);
         }
 
         // sync settings

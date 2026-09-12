@@ -47,7 +47,7 @@ namespace merutilm::rff2 {
 
         explicit MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt,
                                bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache, dex dcMax,
-                               int exp10, uint64_t refInitialCapacity, uint64_t forcedStrictFPGPeriod, MB2ReferenceBase *oldReference,
+                               int exp10, uint64_t refInitialCapacity, uint64_t oldLongestPeriod, uint64_t forcedStrictFPGPeriod,
                                const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration,
                                const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
@@ -70,16 +70,15 @@ namespace merutilm::rff2 {
     template<Number Num>
     MB2RenderData<Num>::MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt,
                                       const bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache,
-                                      const dex dcMax, const int exp10, const uint64_t refInitialCapacity,
-                                      const uint64_t forcedStrictFPGPeriod, MB2ReferenceBase *oldReference,
+                                      const dex dcMax, const int exp10, const uint64_t refInitialCapacity, uint64_t oldLongestPeriod,
+                                      const uint64_t forcedStrictFPGPeriod,
                                       const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                       const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration,
                                       const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) :
         MB2RenderDataBase(state, frt, computeShaderUsed, cache) {
-        this->lastCreationResult = MB2Reference<Num>::generateReference(
-                state, frt.general, frt.reference, exp10, refInitialCapacity, forcedStrictFPGPeriod, dcMax,
-                actionPerRefCalcIteration, oldReference ? oldReference->extractCenter() : fixed_point_complex(0, 0, exp10),
-                oldReference ? oldReference->extractCheckpoints() : std::vector<ReferenceCheckpoint>{}, &reference);
+        this->lastCreationResult = MB2Reference<Num>::generateReference(state, frt.general, frt.reference, exp10,
+                                                                        refInitialCapacity, oldLongestPeriod, forcedStrictFPGPeriod,
+                                                                        dcMax, actionPerRefCalcIteration, &reference);
 
         if (this->lastCreationResult != Reference::CreationResult::SUCCESS) {
             table = nullptr;

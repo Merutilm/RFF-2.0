@@ -107,8 +107,8 @@ namespace merutilm::rff2 {
                             center->data->fractalSettings.general.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
                     const int refExp10 = Perturbator::logZoomToExp10(frt.general.logZoom);
                     data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
-                                                           startTime, frt, center->data->getPerturbator()->dcMax, center->data->getReference(),
-                                                           refExp10, data->getReference()->length(), 0);
+                                                           startTime, frt, center->data->getPerturbator()->dcMax,
+                                                           refExp10, data->getReference()->length(), data->getReference()->longestPeriod(), 0);
 
                     settings.fractal.reference.reuse = true;
                     app.getRequests().requestRecompute();

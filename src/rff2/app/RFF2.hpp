@@ -184,8 +184,8 @@ namespace merutilm::rff2 {
         std::unique_ptr<MB2RenderDataBase>
         createAppropriateRenderData(bool computeShader, float logZoomTest,
                                                                        float startTime, const FractalSettings &frt,
-                                                                       dex dcMax, MB2ReferenceBase *oldReference,
-                                                                       int exp10, uint64_t refInitialCapacity,
+                                                                       dex dcMax, int exp10,
+                                                                       uint64_t refInitialCapacity, uint64_t oldLongestPeriod,
                                                                        uint64_t forcedStrictFPGPeriod);
 
 

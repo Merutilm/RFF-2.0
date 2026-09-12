@@ -13,7 +13,6 @@ namespace merutilm::rff2 {
         bool useParallelRefCalculation{};
         FrtReferenceSyncSettings sync{};
         FrtReferenceCompSettings compression{};
-        bool doCalculateReferenceViaPerturbation;
         bool reuse{};
     };
 }

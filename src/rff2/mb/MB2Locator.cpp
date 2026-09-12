@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
         if (!reference) return nullptr;
 
         fixed_point_complex bn = reference->fpgBn.create_variant(exp10);
-        fixed_point_complex z = reference->fpgReference.create_variant(exp10);
+        fixed_point_complex z = reference->checkpoints.back().complex.create_variant(exp10);
         fixed_point_complex::neg(bn);
         fixed_point_complex::div(z, z, bn);
         return std::make_unique<fixed_point_complex>(z.real, z.imag, exp10);
@@ -121,12 +121,6 @@ namespace merutilm::rff2 {
 
             if (state.interruptRequested() || centerOffset.is_zero()) {
                 if (centerOffset.is_zero()) vkh::logger::log_err("The center could not be found, or you are already in the center");
-
-                if (doubledZoomData) {
-                    //recover
-                    data.getReference()->center = doubledZoomData->getReference()->extractCenter();
-                    data.getReference()->checkpoints = doubledZoomData->getReference()->extractCheckpoints();
-                }
                 return nullptr;
             }
             doubledZoomCalc.reference.center = center;
@@ -136,7 +130,7 @@ namespace merutilm::rff2 {
             if (doubledLogZoom < Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
                 doubledZoomData = std::make_unique<DoubleMB2RenderData>(
                     core, state, doubledZoomCalc, false, cache, doubledZoomDcMax,
-                    Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod, oldReference,
+                    Perturbator::logZoomToExp10(doubledLogZoom), refLen, longestPeriod, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileSeriesApprox, actionWhileCreatingTable);
@@ -144,7 +138,7 @@ namespace merutilm::rff2 {
             } else {
                 doubledZoomData = std::make_unique<DexMB2RenderData>(
                     core, state, doubledZoomCalc, false, cache, doubledZoomDcMax, Perturbator::logZoomToExp10(doubledLogZoom),
-                    refLen, longestPeriod, oldReference,
+                    refLen, longestPeriod, longestPeriod,
                     [&actionWhileFindingMinibrotCenter, &centerFixCount](const uint64_t p) {
                         actionWhileFindingMinibrotCenter(p, centerFixCount);
                     }, actionWhileSeriesApprox, actionWhileCreatingTable);
