@@ -116,20 +116,19 @@ namespace merutilm::rff2 {
     std::unique_ptr<MB2RenderDataBase>
     RFF2::createAppropriateRenderData(const bool computeShader, const float logZoomTest, const float startTime,
                                       const FractalSettings &frt, const dex dcMax, const int exp10,
-                                      const uint64_t refInitialCapacity, const uint64_t knownLongestPeriod,
-                                      const uint64_t forcedStrictFPGPeriod) {
+                                      const uint64_t refInitialCapacity, const uint64_t knownLongestPeriod) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
                 return std::make_unique<FexMB2RenderData>(engine->getCore(), state, frt, computeShader,
                                                           approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                          knownLongestPeriod, forcedStrictFPGPeriod,
+                                                          knownLongestPeriod,
                                                           getActionWhileRefCalc(startTime),
                                                           getActionWhileSeriesApprox(startTime),
                                                           getActionWhileCreatingTable(startTime));
             } else {
                 return std::make_unique<FloatMB2RenderData>(engine->getCore(), state, frt, computeShader,
                                                             approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                            knownLongestPeriod, forcedStrictFPGPeriod,
+                                                            knownLongestPeriod,
                                                             getActionWhileRefCalc(startTime),
                                                             getActionWhileSeriesApprox(startTime),
                                                             getActionWhileCreatingTable(startTime));
@@ -138,14 +137,14 @@ namespace merutilm::rff2 {
             if (logZoomTest > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
                 return std::make_unique<DexMB2RenderData>(engine->getCore(), state, frt, computeShader,
                                                           approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                          knownLongestPeriod, forcedStrictFPGPeriod,
+                                                          knownLongestPeriod,
                                                           getActionWhileRefCalc(startTime),
                                                           getActionWhileSeriesApprox(startTime),
                                                           getActionWhileCreatingTable(startTime));
             } else {
                 return std::make_unique<DoubleMB2RenderData>(engine->getCore(), state, frt, computeShader,
                                                              approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                             knownLongestPeriod, forcedStrictFPGPeriod,
+                                                             knownLongestPeriod,
                                                              getActionWhileRefCalc(startTime),
                                                              getActionWhileSeriesApprox(startTime),
                                                              getActionWhileCreatingTable(startTime));
@@ -892,7 +891,7 @@ namespace merutilm::rff2 {
             renderData = nullptr;
 
             renderData = createAppropriateRenderData(s.render.computeShader.use, logZoom, startTime, frt, dcMax, exp10,
-                                                     capacity, knownLongestPeriod, 0);
+                                                     capacity, knownLongestPeriod);
         }
 
         // sync settings

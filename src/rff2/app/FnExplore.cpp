@@ -102,9 +102,9 @@ namespace merutilm::rff2 {
                     frt.general.logZoom = center->logZoom;
                     const dex dcMax = app.getDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
                     const int refExp10 = Perturbator::logZoomToExp10(frt.general.logZoom);
-                    data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
-                                                           startTime, frt, dcMax,
-                                                           refExp10, data->getReference()->length(), data->getReference()->longestPeriod(), 0);
+                    data = app.createAppropriateRenderData(
+                            settings.render.computeShader.use, frt.general.logZoom, startTime, frt, dcMax, refExp10,
+                            data->getReference()->length(), data->getReference()->longestPeriod());
 
                     settings.fractal.reference.reuse = true;
                     app.getRequests().requestRecompute();

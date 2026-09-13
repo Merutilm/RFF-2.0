@@ -24,18 +24,16 @@ namespace merutilm::rff2 {
         const std::vector<ArrayCompressionTool> compressor;
         const std::vector<uint64_t> period;
         std::vector<ReferenceCheckpoint> checkpoints;
-        const complex<dex> fzgAn;
-        const fixed_point_complex fpgBn;
+        const complex<dex> fpgBn;
         const float logZoom;
         const dex dcMax;
 
         MB2ReferenceBase(const FrtGeneralSettings &generalSettings, const FrtReferenceSettings &refSettings,
                          fixed_point_complex &&center, std::vector<ArrayCompressionTool> &&compressor,
-                         std::vector<uint64_t> &&period, std::vector<ReferenceCheckpoint> &&checkpoints,
-                         const complex<dex> &fzgAn, fixed_point_complex &&fpgBn, const float logZoom, const dex dcMax) :
+                         std::vector<uint64_t> &&period, std::vector<ReferenceCheckpoint> &&checkpoints, complex<dex> fpgBn, const float logZoom, const dex dcMax) :
             generalSettings(generalSettings), refSettings(refSettings), center(std::move(center)),
             compressor(std::move(compressor)), period(std::move(period)), checkpoints(std::move(checkpoints)),
-            fzgAn(fzgAn), fpgBn(std::move(fpgBn)), logZoom(logZoom), dcMax(dcMax) {}
+            fpgBn(std::move(fpgBn)), logZoom(logZoom), dcMax(dcMax) {}
 
         virtual ~MB2ReferenceBase() = default;
 
@@ -60,8 +58,7 @@ namespace merutilm::rff2 {
         static CreationResult generateReference(const ParallelRenderState &state,
                                                 const FrtGeneralSettings &generalSettings,
                                                 const FrtReferenceSettings &refSettings, int32_t exp10,
-                                                uint64_t refInitialCapacity, uint64_t oldLongestPeriod,
-                                                uint64_t forcedPeriodForAccurateFPG, dex dcMax,
+                                                uint64_t refInitialCapacity, uint64_t knownLongestPeriod, dex dcMax,
                                                 const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                                 std::unique_ptr<MB2Reference> *result);
 
@@ -115,8 +112,8 @@ namespace merutilm::rff2 {
     template<Number Num>
     Reference::CreationResult MB2Reference<Num>::generateReference(
             const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
-            const FrtReferenceSettings &refSettings, int32_t exp10, uint64_t refInitialCapacity,
-            uint64_t oldLongestPeriod, uint64_t forcedPeriodForAccurateFPG, dex dcMax,
+            const FrtReferenceSettings &refSettings, const int32_t exp10, uint64_t refInitialCapacity,
+            const uint64_t knownLongestPeriod, dex dcMax,
             const std::function<void(uint64_t)> &actionPerRefCalcIteration, std::unique_ptr<MB2Reference> *result) {
         if (state.interruptRequested()) {
             return CreationResult::TERMINATED;
@@ -134,18 +131,12 @@ namespace merutilm::rff2 {
 
 
         auto z = fixed_point_complex(0.0, 0.0, exp10);
-        auto temp = z;
-        auto fpgBn = fixed_point_complex(0.0, 0.0, exp10);
-        auto one = fixed_point_complex(1.0, 0.0, exp10);
         auto bailoutSqr = Num(generalSettings.bailout * generalSettings.bailout);
 
-        op_thread_pool parallelReferenceThreadPoolForStrict{};
         op_thread_pool parallelReferenceThreadPoolForRef{};
-        op_thread_pool *mulTp = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPoolForStrict : nullptr;
         op_thread_pool *sqrTp = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPoolForRef : nullptr;
 
-        auto fzgAn0 = complex<Num>::ONE;
-        auto fpgBn0 = complex<Num>::ZERO;
+        auto fpgBn = complex<Num>::ZERO;
 
         auto z0 = complex<Num>::ZERO;
         auto c0 = static_cast<complex<Num>>(c);
@@ -162,12 +153,12 @@ namespace merutilm::rff2 {
         auto [refSyncInterval, refSyncRadiusPower] = refSettings.sync;
         auto [compressCriteria, compressionThresholdPower] = refSettings.compression;
 
-        double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
+        const double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
         Num refSyncRadius2 = Num(pow(10, -refSyncRadiusPower * 2));
 
         uint64_t period = 0;
         uint64_t fpgPeriod = 0;
-        uint64_t partition = oldLongestPeriod / generalSettings.threads + 1;
+        const uint64_t partition = knownLongestPeriod / generalSettings.threads + 1;
 
         for (period = 0; z0.norm_sqr() < bailoutSqr; ++period) {
             if (state.interruptRequested()) {
@@ -186,28 +177,18 @@ namespace merutilm::rff2 {
 
 
                 Num fpgLimit = radius2 / Num(dcMax);
-                complex<Num> fpgBnTemp = fpgBn0 * z0 * Num(2) + Num(1);
+                complex<Num> fpgBnTemp = fpgBn * z0 * Num(2) + Num(1);
                 Num fpgRadius = fpgBnTemp.norm_approx();
 
-                if (period > 0 && (fpgRadius > fpgLimit || forcedPeriodForAccurateFPG == period)) {
+                if (period > 0 && fpgRadius > fpgLimit) {
                     fpgPeriod = period;
                 } else {
-                    if (period > 0)
-                        fzgAn0 = (fzgAn0 * z0 * Num(2)).try_normalized_value();
-
-                    fpgBn0 = fpgBnTemp.try_normalized_value();
+                    fpgBn = fpgBnTemp.try_normalized_value();
                 }
             }
 
             if (fpgPeriod != 0 && period == fpgPeriod) {
                 break;
-            }
-
-            // strict fpg
-            if (forcedPeriodForAccurateFPG != 0) {
-                fixed_point_complex::dbl(temp, z);
-                fixed_point_complex::mul(fpgBn, fpgBn, temp, mulTp);
-                fixed_point_complex::add(fpgBn, fpgBn, one);
             }
 
             if (period % partition == 0 && checkpoints.size() < generalSettings.threads)
@@ -248,15 +229,11 @@ namespace merutilm::rff2 {
             }
         }
 
-        if (forcedPeriodForAccurateFPG == 0)
-            fpgBn = fixed_point_complex(fpgBn0.re, fpgBn0.im, exp10);
-
         periodArray.push_back(period);
         checkpoints.emplace_back(z, period);
 
         *result = std::make_unique<MB2Reference>(generalSettings, refSettings, std::move(c), std::move(tools),
-                                                 std::move(periodArray), std::move(checkpoints),
-                                                 static_cast<complex<dex>>(fzgAn0), std::move(fpgBn),
+                                                 std::move(periodArray), std::move(checkpoints), static_cast<complex<dex>>(fpgBn),
                                                  generalSettings.logZoom, dcMax);
         (*result)->refOrbit = std::move(ref);
         return CreationResult::SUCCESS;

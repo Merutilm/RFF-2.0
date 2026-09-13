@@ -16,7 +16,7 @@ namespace merutilm::rff2 {
         const int exp10 = Perturbator::logZoomToExp10(reference.logZoom);
         fixed_point_complex off(0, 0, exp10);
         calcCenterOffset(off, reference.checkpoints.back().complex.create_variant(exp10),
-                         reference.fpgBn.create_variant(exp10));
+                         fixed_point_complex(reference.fpgBn, exp10));
         return off;
     }
 
@@ -42,8 +42,8 @@ namespace merutilm::rff2 {
 
 
         const float logZoom = data.fractalSettings.general.logZoom;
-        const float doubledLogZoom = logZoom * 2;
-        const int doubledExp10 = Perturbator::logZoomToExp10(doubledLogZoom);
+        int32_t minRefExp10 = Perturbator::logZoomToExp10(logZoom);
+        int32_t doubledExp10 = minRefExp10 * 2;
 
         const uint32_t threads = std::min(data.fractalSettings.general.threads,
                                           static_cast<uint32_t>(reference->checkpoints.size() - 1));
@@ -53,45 +53,71 @@ namespace merutilm::rff2 {
         // copy checkpoints
         std::vector<ReferenceCheckpoint> checkpoints = reference->checkpoints;
 
-        for (auto &checkpoint: checkpoints) {
-            checkpoint.complex = checkpoint.complex.create_variant(doubledExp10);
-        }
 
+        std::vector blockResults(threads, BlockResult{.residual = fixed_point_complex(0, 0, minRefExp10),
+                                                      .an = fixed_point_complex(0, 0, minRefExp10),
+                                                      .bn = fixed_point_complex(0, 0, minRefExp10)});
 
-        std::vector blockResults(threads, BlockResult{.residual = fixed_point_complex(0, 0, doubledExp10),
-                                                      .an = fixed_point_complex(0, 0, doubledExp10),
-                                                      .bn = fixed_point_complex(0, 0, doubledExp10)});
-
-        const fixed_point_complex srcCenter = reference->center.create_variant(doubledExp10);
-        fixed_point_complex dc(0, 0, doubledExp10);
-
-        fixed_point_complex currentCenter = srcCenter;
-        const fixed_point_complex one(1.0, 0.0, doubledExp10);
-
-        calcCenterOffset(dc, checkpoints.back().complex, reference->fpgBn.create_variant(doubledExp10));
 
         const dex dcMax = data.getPerturbator()->dcMax;
         const dex doubledZoomDcMax = dcMax * dcMax;
+
         complex<dex> fzgAn = complex<dex>::ONE;
         complex<dex> fpgBn = complex<dex>::ZERO;
 
+        fixed_point_complex currentCenter = reference->center.create_variant(minRefExp10);
+        fixed_point_complex dc(0, 0, minRefExp10);
+        fixed_point_complex temp(0, 0, minRefExp10);
+        fixed_point_complex one(1.0, 0.0, minRefExp10);
 
-        std::vector tt(checkpoints.size(), fixed_point_complex{0, 0, doubledExp10});
-        std::vector ut(checkpoints.size(), fixed_point_complex{0, 0, doubledExp10});
+        std::vector tt(checkpoints.size(), fixed_point_complex{0, 0, minRefExp10});
+        std::vector ut(checkpoints.size(), fixed_point_complex{0, 0, minRefExp10});
 
-        for (uint32_t repetition = 0; static_cast<complex<dex>>(dc).norm_approx() > doubledZoomDcMax; ++repetition) {
+
+        calcCenterOffset(dc, checkpoints.back().complex.create_variant(minRefExp10),
+                         fixed_point_complex(reference->fpgBn, minRefExp10));
+        fixed_point_complex::add(currentCenter, currentCenter, dc);
+
+        int32_t currentExp10 = minRefExp10;
+        int32_t maxExpDecrement = 0;
+
+        for (uint32_t repetition = 0; repetition == 0 || static_cast<complex<dex>>(dc).norm_approx() > doubledZoomDcMax;
+             ++repetition) {
+
 
             if (dcMax < static_cast<complex<dex>>(dc).norm_approx()) {
                 vkh::logger::log_err("The center could not be found");
                 return std::nullopt;
             }
 
-            fixed_point_complex::add(currentCenter, currentCenter, dc);
+            //initialize exp10
+            currentCenter.set_exp10(currentExp10);
+            dc.set_exp10(currentExp10);
+            temp.set_exp10(currentExp10);
+            one.set_exp10(currentExp10);
+            dc.set_exp10(currentExp10);
 
+            for (auto &tt0: tt) {
+                tt0.set_exp10(currentExp10);
+            }
+            for (auto &ut0: ut) {
+                ut0.set_exp10(currentExp10);
+            }
+            for (auto &checkpoint: checkpoints) {
+                checkpoint.complex.set_exp10(currentExp10);
+            }
+            for (auto &blockResult: blockResults) {
+                blockResult.an.set_exp10(currentExp10);
+                blockResult.bn.set_exp10(currentExp10);
+                blockResult.residual.set_exp10(currentExp10);
+            }
+
+
+            //thread creation
             for (uint32_t i = 0; i < threads; ++i) {
 
                 threadPool[i] = std::make_unique<std::jthread>(
-                        [&state, &checkpoints, &currentCenter, doubledExp10, &blockResults, &one, i,
+                        [&state, &checkpoints, &currentCenter, currentExp10, &blockResults, &one, i,
                          &actionWhileFindingMinibrotCenter, repetition, threads] {
                             assert(i + 1 < checkpoints.size());
 
@@ -104,11 +130,12 @@ namespace merutilm::rff2 {
 
                             // clone z
                             fixed_point_complex z = currentCheckpoint.complex;
-                            fixed_point_complex an(1, 0, doubledExp10);
-                            fixed_point_complex bn(0, 0, doubledExp10);
+                            fixed_point_complex an(1, 0, currentExp10);
+                            fixed_point_complex bn(0, 0, currentExp10);
 
                             complex<dex> fzgAnTemp = complex<dex>::ONE;
 
+                            // An, Bn generation
                             for (uint64_t iteration = startIteration; iteration < endIteration; ++iteration) {
 
                                 if (state.interruptRequested() &&
@@ -152,23 +179,26 @@ namespace merutilm::rff2 {
 #endif
             }
 
-            for (auto &thread: threadPool) {
+            //wait for complete
+            for (uint32_t i = 0; i < threadPool.size(); ++i) {
+                auto &thread = threadPool[i];
                 if (thread->joinable()) {
                     thread->join();
                 }
                 thread = nullptr;
             }
 
+
             if (state.interruptRequested())
                 return std::nullopt;
 
 
-
             fzgAn = complex<dex>::ONE;
 
-            tt[0] = fixed_point_complex(0, 0, doubledExp10);
-            ut[0] = fixed_point_complex(0, 0, doubledExp10);
+            fixed_point_complex::zero(tt[0]);
+            fixed_point_complex::zero(ut[0]);
 
+            // amplitude calculation
             for (uint32_t i = 0; i < threads; ++i) {
                 const auto &blockResult = blockResults[i];
 
@@ -181,11 +211,17 @@ namespace merutilm::rff2 {
                 fixed_point_complex::add(ut[i + 1], ut[i + 1], blockResult.bn);
             }
 
-            fixed_point_complex temp(0, 0, doubledExp10);
-
             fixed_point_complex::add(temp, tt.back(), checkpoints.back().complex);
-            calcCenterOffset(dc, temp, ut.back());
 
+            // set exp increment.
+            int32_t dcPrevExp10 = rff_math::log10(static_cast<complex<dex>>(dc).norm_approx());
+
+            // get center offset
+            fpgBn = static_cast<complex<dex>>(ut.back());
+            calcCenterOffset(dc, temp, ut.back());
+            fixed_point_complex::add(currentCenter, currentCenter, dc);
+
+            //rebase the checkpoints
             for (uint32_t i = 1; i < checkpoints.size(); ++i) {
                 auto &checkpoint = checkpoints[i];
 
@@ -194,7 +230,15 @@ namespace merutilm::rff2 {
                 fixed_point_complex::add(checkpoint.complex, checkpoint.complex, temp);
             }
 
-            fpgBn = static_cast<complex<dex>>(ut.back());
+            //set precision and log
+            int32_t dcCurrExp10 = rff_math::log10(static_cast<complex<dex>>(dc).norm_approx());
+            minRefExp10 = std::min(minRefExp10, dcCurrExp10 - Constants::Fractal::EXP10_ADDITION);
+            maxExpDecrement = std::max(maxExpDecrement, std::max(0, dcPrevExp10 - dcCurrExp10));
+            currentExp10 = std::max(minRefExp10 - maxExpDecrement * 4, doubledExp10);
+
+            vkh::logger::log("step {} done. exp10 set to {}, max decrement {}, Correction {}", repetition + 1,
+                             currentExp10, maxExpDecrement, static_cast<complex<dex>>(dc).norm_approx().to_string());
+
         }
 
         const float resultLogZoom = rff_math::log10((fzgAn * fpgBn).norm_approx()) + MINIBROT_LOG_ZOOM_OFFSET;

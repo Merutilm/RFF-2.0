@@ -52,6 +52,8 @@ namespace merutilm::rff2 {
 
         static void sub(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
 
+        static void zero(fixed_point_decimal &v);
+
         /**
          * Fast-square.
          * [CAUTION] in-place operation is not supported.
@@ -195,6 +197,10 @@ namespace merutilm::rff2 {
         assert(result.exp2div64 == lhs.exp2div64);
         assert(result.exp2div64 == rhs.exp2div64);
         mpz_sub(result.data, lhs.data, rhs.data);
+    }
+
+    inline void fixed_point_decimal::zero(fixed_point_decimal &v) {
+        mpz_set_ui(v.data, 0);
     }
 
 

@@ -36,6 +36,9 @@ namespace merutilm::rff2 {
         template<Number Exp, Number Mantissa, Number Bit>
         explicit fixed_point_complex(exponent<Exp, Mantissa, Bit> re, exponent<Exp, Mantissa, Bit> im, int dec_exp10);
 
+        template<Number Num>
+        explicit fixed_point_complex(complex<Num> c, int dec_exp10);
+
         explicit fixed_point_complex(fixed_point_decimal re, fixed_point_decimal im, int dec_exp10);
 
         /**
@@ -102,6 +105,8 @@ namespace merutilm::rff2 {
         static void hlv(fixed_point_complex &result, const fixed_point_complex &v);
 
 
+        static void zero(fixed_point_complex &v);
+
         static void neg(fixed_point_complex &v);
 
         template<Number Num>
@@ -143,8 +148,16 @@ namespace merutilm::rff2 {
     }
 
     template<Number Exp, Number Mantissa, Number Bit>
-    inline fixed_point_complex::fixed_point_complex(const exponent<Exp, Mantissa, Bit> re, const exponent<Exp, Mantissa, Bit> im, const int dec_exp10) :
+    fixed_point_complex::fixed_point_complex(const exponent<Exp, Mantissa, Bit> re, const exponent<Exp, Mantissa, Bit> im, const int dec_exp10) :
         real(re, dec_exp10), imag(im, dec_exp10) {
+        for (auto &temp: temps) {
+            temp.set_exp10(dec_exp10);
+        }
+    }
+
+    template<Number Num>
+    fixed_point_complex::fixed_point_complex(const complex<Num> c, const int dec_exp10) :
+        real(c.re, dec_exp10), imag(c.im, dec_exp10) {
         for (auto &temp: temps) {
             temp.set_exp10(dec_exp10);
         }
@@ -333,6 +346,11 @@ namespace merutilm::rff2 {
     inline void fixed_point_complex::hlv(fixed_point_complex &result, const fixed_point_complex &v) {
         fixed_point_decimal::hlv(result.real, v.real);
         fixed_point_decimal::hlv(result.imag, v.imag);
+    }
+
+    inline void fixed_point_complex::zero(fixed_point_complex &v) {
+        fixed_point_decimal::zero(v.real);
+        fixed_point_decimal::zero(v.imag);
     }
 
     inline void fixed_point_complex::neg(fixed_point_complex &v) {
