@@ -9,7 +9,6 @@
 #include <cassert>
 #include "../util/Utilities.h"
 
-#include "../constants/Constants.hpp"
 #include "../mb/MB2Locator.h"
 
 namespace merutilm::rff2 {
@@ -53,7 +52,7 @@ namespace merutilm::rff2 {
         if (renderData && renderData->getPerturbator()) {
             if (ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
                 const int exp10 = Perturbator::logZoomToExp10(renderData->getReference()->logZoom);
-                const auto off = MB2Locator::findCenterOffset(*renderData)->create_variant(exp10);
+                const auto off = MB2Locator::findCenterOffset(*renderData->getReference())->create_variant(exp10);
                 fixed_point_complex center = frt.reference.center.create_variant(exp10);
                 fixed_point_complex::add(center, center, off);
                 frt.reference.center = center;
@@ -75,7 +74,7 @@ namespace merutilm::rff2 {
                 frt.general.logZoom = renderData->getReference()->logZoom;
                 renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
                                       app.getSettings().fractal.perturb, frt.reference.center,
-                                      getActionWhileSeriesApprox(app, startTime));
+                                      app.getActionWhileSeriesApprox(startTime));
                 app.getRequests().requestRecompute();
             }
         }
@@ -94,20 +93,17 @@ namespace merutilm::rff2 {
                     const float startTime = app.rootWindowContext->getWindow()->getTime();
                     const uint64_t period = data->getReference()->longestPeriod();
                     const auto center = MB2Locator::locateMinibrot(
-                            app.engine->getCore(), state, *data, *app.getApproxTableCache(),
-                            getActionWhileFindingMBCenter(app, period, startTime),
-                            getActionWhileSeriesApprox(app, startTime), getActionWhileCreatingTable(app, startTime),
-                            getActionWhileFindingZoom(app, startTime));
-                    if (center == nullptr)
+                            state, *data, app.getActionWhileFindingMBCenter(period, startTime));
+                    if (center == std::nullopt)
                         return;
 
                     FractalSettings frt = settings.fractal;
-                    frt.reference.center = center->data->fractalSettings.reference.center;
-                    frt.general.logZoom =
-                            center->data->fractalSettings.general.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
+                    frt.reference.center = center->center;
+                    frt.general.logZoom = center->logZoom;
+                    const dex dcMax = app.getDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
                     const int refExp10 = Perturbator::logZoomToExp10(frt.general.logZoom);
                     data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
-                                                           startTime, frt, center->data->getPerturbator()->dcMax,
+                                                           startTime, frt, dcMax,
                                                            refExp10, data->getReference()->length(), data->getReference()->longestPeriod(), 0);
 
                     settings.fractal.reference.reuse = true;
@@ -141,95 +137,20 @@ namespace merutilm::rff2 {
                     const uint64_t longestPeriod = ref->longestPeriod();
                     const float startTime = app.rootWindowContext->getWindow()->getTime();
 
-                    const std::unique_ptr<MB2Locator> locator = MB2Locator::locateMinibrot(
-                            app.engine->getCore(), app.getState(), *data, *cache,
-                            getActionWhileFindingMBCenter(app, longestPeriod, startTime),
-                            getActionWhileSeriesApprox(app, startTime), getActionWhileCreatingTable(app, startTime),
-                            getActionWhileFindingZoom(app, startTime));
+                    const auto locator = MB2Locator::locateMinibrot(
+                            app.getState(), *data, app.getActionWhileFindingMBCenter(longestPeriod, startTime));
 
-                    if (locator == nullptr) {
+                    if (locator == std::nullopt) {
                         vkh::logger::log("Locate Minibrot Cancelled.");
                         return;
                     }
-
-                    const FractalSettings &locatorCalc = locator->data->fractalSettings;
-                    settings.fractal.reference.center = locatorCalc.reference.center;
-                    settings.fractal.general.logZoom =
-                            locatorCalc.general.logZoom - MB2Locator::MINIBROT_LOG_ZOOM_OFFSET;
+;
+                    settings.fractal.reference.center = locator->center;
+                    settings.fractal.general.logZoom = locator->logZoom;
                     app.getRequests().requestRecompute();
                 });
             }
         }
     }
 
-    std::function<void(uint64_t, int)> FnExplore::getActionWhileFindingMBCenter(RFF2 &app, const uint64_t longestPeriod,
-                                                                                const float startTime) {
-        return [&app, longestPeriod, startTime](const uint64_t p, int i) {
-            static float time = app.rootWindowContext->getWindow()->getTime();
-            const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = app.rootWindowContext->getWindow()->getTime();
-                app.setStatusMessage(Constants::Status::RENDER_STATUS,
-                                     std::format("Location : {:.3f}%[{}]",
-                                                 static_cast<float>(100 * p) / static_cast<float>(longestPeriod), i));
-                app.setStatusMessage(Constants::Status::TIME_STATUS,
-                                     std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
-    }
-
-    std::function<void(uint64_t, float)> FnExplore::getActionWhileSeriesApprox(RFF2 &app, const float startTime) {
-        return [&app, startTime](const uint64_t it, const float i) {
-            static float time = app.rootWindowContext->getWindow()->getTime();
-            const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = app.rootWindowContext->getWindow()->getTime();
-                app.setStatusMessage(Constants::Status::RENDER_STATUS,
-                                     std::format("Series-Approximation : {:.3f}%", i * 100, it));
-                app.setStatusMessage(Constants::Status::TIME_STATUS,
-                                     std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
-    }
-
-
-    std::function<void(uint64_t, float)> FnExplore::getActionWhileCreatingTable(RFF2 &app, const float startTime) {
-        return [&app, startTime](const uint64_t, const float i) {
-            static float time = app.rootWindowContext->getWindow()->getTime();
-            const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = app.rootWindowContext->getWindow()->getTime();
-                app.setStatusMessage(Constants::Status::RENDER_STATUS,
-                                     std::format("MP-Approximation : {:.3f}%", i * 100));
-
-                app.setStatusMessage(Constants::Status::TIME_STATUS,
-                                     std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
-    }
-
-
-    std::function<void(float)> FnExplore::getActionWhileFindingZoom(RFF2 &app, const float startTime) {
-        return [&app, startTime](float zoom) {
-            static float time = app.rootWindowContext->getWindow()->getTime();
-            const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Zoom : 10^{}", zoom));
-                app.setStatusMessage(Constants::Status::TIME_STATUS,
-                                     std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
-    }
-    std::function<void(uint64_t)> FnExplore::getActionWhileRefCalc(RFF2 &app, const float startTime) {
-        return [&app, startTime](const uint64_t p) {
-            static float time = app.rootWindowContext->getWindow()->getTime();
-            const float elapsed = app.rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = app.rootWindowContext->getWindow()->getTime();
-                app.setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "Period : {:L}", p));
-                app.setStatusMessage(Constants::Status::TIME_STATUS,
-                                     std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
-    }
 } // namespace merutilm::rff2

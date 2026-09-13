@@ -18,16 +18,5 @@ namespace merutilm::rff2 {
         static void goToOriginalReference(RFF2 &app);
         static void locateCenteredReference(RFF2 &app);
         static void locateMinibrot(RFF2 &app);
-
-        static std::function<void(uint64_t, int)> getActionWhileFindingMBCenter(RFF2 &app,
-                                                                                uint64_t longestPeriod, float startTime);
-
-        static std::function<void(uint64_t, float)> getActionWhileSeriesApprox(RFF2 &app, float startTime);
-
-        static std::function<void(uint64_t, float)> getActionWhileCreatingTable(RFF2 &app, float startTime);
-
-        static std::function<void(float)> getActionWhileFindingZoom(RFF2 &app, float startTime);
-
-        static std::function<void(uint64_t)> getActionWhileRefCalc(RFF2 &app, float startTime);
     };
 } // namespace merutilm::rff2

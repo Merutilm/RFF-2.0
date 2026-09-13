@@ -17,20 +17,25 @@
 namespace merutilm::rff2 {
 
     struct MB2ReferenceBase {
+
+        const FrtGeneralSettings generalSettings;
+        const FrtReferenceSettings refSettings;
         fixed_point_complex center;
         const std::vector<ArrayCompressionTool> compressor;
         const std::vector<uint64_t> period;
         std::vector<ReferenceCheckpoint> checkpoints;
+        const complex<dex> fzgAn;
         const fixed_point_complex fpgBn;
         const float logZoom;
         const dex dcMax;
 
-        MB2ReferenceBase(fixed_point_complex &&center, std::vector<ArrayCompressionTool> &&compressor,
+        MB2ReferenceBase(const FrtGeneralSettings &generalSettings, const FrtReferenceSettings &refSettings,
+                         fixed_point_complex &&center, std::vector<ArrayCompressionTool> &&compressor,
                          std::vector<uint64_t> &&period, std::vector<ReferenceCheckpoint> &&checkpoints,
-                         fixed_point_complex &&fpgBn, float logZoom, const dex dcMax) :
-            center(std::move(center)), compressor(std::move(compressor)), period(std::move(period)),
-            checkpoints(std::move(checkpoints)), fpgBn(std::move(fpgBn)),
-            logZoom(logZoom), dcMax(dcMax) {}
+                         const complex<dex> &fzgAn, fixed_point_complex &&fpgBn, const float logZoom, const dex dcMax) :
+            generalSettings(generalSettings), refSettings(refSettings), center(std::move(center)),
+            compressor(std::move(compressor)), period(std::move(period)), checkpoints(std::move(checkpoints)),
+            fzgAn(fzgAn), fpgBn(std::move(fpgBn)), logZoom(logZoom), dcMax(dcMax) {}
 
         virtual ~MB2ReferenceBase() = default;
 
@@ -41,13 +46,9 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     struct MB2Reference final : public Reference, public MB2ReferenceBase {
-        const std::vector<complex<Num>> refOrbit;
+        std::vector<complex<Num>> refOrbit;
 
-
-        explicit MB2Reference(fixed_point_complex &&center, std::vector<complex<Num>> &&orbit,
-                              std::vector<ArrayCompressionTool> &&compressor, std::vector<uint64_t> &&period,
-                              std::vector<ReferenceCheckpoint> &&checkpoints,
-                              fixed_point_complex &&fpgBn, float logZoom, dex dcMax);
+        using MB2ReferenceBase::MB2ReferenceBase;
 
         static void syncReference(fixed_point_complex &z, uint64_t intervalCounter, uint32_t refSyncInterval,
                                   uint8_t refSyncRadiusPower, Num refSyncRadius2, complex<Num> &z0, complex<Num> &c0);
@@ -56,8 +57,7 @@ namespace merutilm::rff2 {
                                  const std::function<void(uint64_t)> &stepFunc, op_thread_pool *sqrTp,
                                  uint64_t invoker);
 
-        static CreationResult
-        generateReference(const ParallelRenderState &state,
+        static CreationResult generateReference(const ParallelRenderState &state,
                                                 const FrtGeneralSettings &generalSettings,
                                                 const FrtReferenceSettings &refSettings, int32_t exp10,
                                                 uint64_t refInitialCapacity, uint64_t oldLongestPeriod,
@@ -70,16 +70,6 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] size_t length() const override;
     };
-
-
-    template<Number Num>
-    MB2Reference<Num>::MB2Reference(fixed_point_complex &&center, std::vector<complex<Num>> &&orbit,
-                                    std::vector<ArrayCompressionTool> &&compressor, std::vector<uint64_t> &&period,
-                                    std::vector<ReferenceCheckpoint> &&checkpoints,
-                                    fixed_point_complex &&fpgBn, const float logZoom, const dex dcMax) :
-        MB2ReferenceBase(std::move(center), std::move(compressor), std::move(period), std::move(checkpoints),
-                         std::move(fpgBn), logZoom, dcMax),
-        refOrbit(std::move(orbit)) {}
 
 
     template<Number Num>
@@ -119,17 +109,15 @@ namespace merutilm::rff2 {
 
         fixed_point_complex::sqr(z, z, sqrTp);
         fixed_point_complex::add(z, z, c);
-
     }
 
 
     template<Number Num>
-    Reference::CreationResult
-    MB2Reference<Num>::generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
-                                         const FrtReferenceSettings &refSettings, int32_t exp10,
-                                         uint64_t refInitialCapacity, uint64_t oldLongestPeriod, uint64_t forcedPeriodForAccurateFPG, dex dcMax,
-                                         const std::function<void(uint64_t)> &actionPerRefCalcIteration,
-                                         std::unique_ptr<MB2Reference> *result) {
+    Reference::CreationResult MB2Reference<Num>::generateReference(
+            const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
+            const FrtReferenceSettings &refSettings, int32_t exp10, uint64_t refInitialCapacity,
+            uint64_t oldLongestPeriod, uint64_t forcedPeriodForAccurateFPG, dex dcMax,
+            const std::function<void(uint64_t)> &actionPerRefCalcIteration, std::unique_ptr<MB2Reference> *result) {
         if (state.interruptRequested()) {
             return CreationResult::TERMINATED;
         }
@@ -156,7 +144,9 @@ namespace merutilm::rff2 {
         op_thread_pool *mulTp = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPoolForStrict : nullptr;
         op_thread_pool *sqrTp = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPoolForRef : nullptr;
 
-        auto fpgBn0 = complex<Num>::ONE;
+        auto fzgAn0 = complex<Num>::ONE;
+        auto fpgBn0 = complex<Num>::ZERO;
+
         auto z0 = complex<Num>::ZERO;
         auto c0 = static_cast<complex<Num>>(c);
 
@@ -186,10 +176,10 @@ namespace merutilm::rff2 {
 
             // use Fast-Period-Guessing to prepare MPA Table creation
             // fpg
-            if (period > 0 && fpgPeriod == 0) {
+            if (fpgPeriod == 0) {
                 Num radius2 = z0.norm_sqr();
 
-                if (minZRadius > radius2) {
+                if (period > 0 && minZRadius > radius2) {
                     minZRadius = radius2;
                     periodArray.push_back(period);
                 }
@@ -199,9 +189,12 @@ namespace merutilm::rff2 {
                 complex<Num> fpgBnTemp = fpgBn0 * z0 * Num(2) + Num(1);
                 Num fpgRadius = fpgBnTemp.norm_approx();
 
-                if (fpgRadius > fpgLimit || forcedPeriodForAccurateFPG == period) {
+                if (period > 0 && (fpgRadius > fpgLimit || forcedPeriodForAccurateFPG == period)) {
                     fpgPeriod = period;
                 } else {
+                    if (period > 0)
+                        fzgAn0 = (fzgAn0 * z0 * Num(2)).try_normalized_value();
+
                     fpgBn0 = fpgBnTemp.try_normalized_value();
                 }
             }
@@ -217,7 +210,8 @@ namespace merutilm::rff2 {
                 fixed_point_complex::add(fpgBn, fpgBn, one);
             }
 
-            if (period % partition == 0 && checkpoints.size() < generalSettings.threads) checkpoints.emplace_back(z, period);
+            if (period % partition == 0 && checkpoints.size() < generalSettings.threads)
+                checkpoints.emplace_back(z, period);
 
             applyFormula(z, c, actionPerRefCalcIteration, sqrTp, period);
             syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, z0, c0);
@@ -260,9 +254,11 @@ namespace merutilm::rff2 {
         periodArray.push_back(period);
         checkpoints.emplace_back(z, period);
 
-        *result = std::make_unique<MB2Reference>(std::move(c), std::move(ref), std::move(tools), std::move(periodArray),
-                                                 std::move(checkpoints), std::move(fpgBn),
+        *result = std::make_unique<MB2Reference>(generalSettings, refSettings, std::move(c), std::move(tools),
+                                                 std::move(periodArray), std::move(checkpoints),
+                                                 static_cast<complex<dex>>(fzgAn0), std::move(fpgBn),
                                                  generalSettings.logZoom, dcMax);
+        (*result)->refOrbit = std::move(ref);
         return CreationResult::SUCCESS;
     }
 

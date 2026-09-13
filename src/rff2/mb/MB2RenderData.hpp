@@ -47,7 +47,7 @@ namespace merutilm::rff2 {
 
         explicit MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt,
                                bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache, dex dcMax,
-                               int exp10, uint64_t refInitialCapacity, uint64_t oldLongestPeriod, uint64_t forcedStrictFPGPeriod,
+                               int exp10, uint64_t refInitialCapacity, uint64_t knownLongestPeriod, uint64_t forcedStrictFPGPeriod,
                                const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration,
                                const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
@@ -70,14 +70,14 @@ namespace merutilm::rff2 {
     template<Number Num>
     MB2RenderData<Num>::MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt,
                                       const bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache,
-                                      const dex dcMax, const int exp10, const uint64_t refInitialCapacity, uint64_t oldLongestPeriod,
+                                      const dex dcMax, const int exp10, const uint64_t refInitialCapacity, uint64_t knownLongestPeriod,
                                       const uint64_t forcedStrictFPGPeriod,
                                       const std::function<void(uint64_t)> &actionPerRefCalcIteration,
                                       const std::function<void(uint64_t, float)> &actionPerSeriesApproxIteration,
                                       const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) :
         MB2RenderDataBase(state, frt, computeShaderUsed, cache) {
         this->lastCreationResult = MB2Reference<Num>::generateReference(state, frt.general, frt.reference, exp10,
-                                                                        refInitialCapacity, oldLongestPeriod, forcedStrictFPGPeriod,
+                                                                        refInitialCapacity, knownLongestPeriod, forcedStrictFPGPeriod,
                                                                         dcMax, actionPerRefCalcIteration, &reference);
 
         if (this->lastCreationResult != Reference::CreationResult::SUCCESS) {

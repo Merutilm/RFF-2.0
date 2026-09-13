@@ -105,7 +105,7 @@ namespace merutilm::rff2 {
         static void neg(fixed_point_complex &v);
 
         template<Number Num>
-        explicit operator complex<Num>() {
+        explicit operator complex<Num>() const {
             return {static_cast<Num>(real), static_cast<Num>(imag)};
         }
 
