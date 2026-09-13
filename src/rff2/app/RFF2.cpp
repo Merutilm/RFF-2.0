@@ -7,7 +7,7 @@
 #include <ranges>
 
 #include "../io/RFFLocationBinary.h"
-#include "../mb/MB2Locator.h"
+#include "../mb/MB2Locator.hpp"
 #include "../parallel/ParallelArrayDispatcher.h"
 #include "../preset/calc/approx/ClcApproxPresets.hpp"
 #include "../preset/calc/compress/ClcCompressPresets.hpp"
@@ -802,8 +802,8 @@ namespace merutilm::rff2 {
         if (!renderData || !renderData->getReference())
             return;
 
-        const std::unique_ptr<fixed_point_complex> off = MB2Locator::findCenterOffset(*renderData->getReference());
-        auto offDex = static_cast<complex<dex>>(*off);
+        const fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
+        auto offDex = static_cast<complex<dex>>(off);
         if (renderData->getPerturbator()) {
             offDex -= renderData->getPerturbator()->off;
         }

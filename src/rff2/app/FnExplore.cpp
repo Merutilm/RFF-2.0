@@ -9,7 +9,7 @@
 #include <cassert>
 #include "../util/Utilities.h"
 
-#include "../mb/MB2Locator.h"
+#include "../mb/MB2Locator.hpp"
 
 namespace merutilm::rff2 {
 
@@ -52,7 +52,7 @@ namespace merutilm::rff2 {
         if (renderData && renderData->getPerturbator()) {
             if (ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
                 const int exp10 = Perturbator::logZoomToExp10(renderData->getReference()->logZoom);
-                const auto off = MB2Locator::findCenterOffset(*renderData->getReference())->create_variant(exp10);
+                fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
                 fixed_point_complex center = frt.reference.center.create_variant(exp10);
                 fixed_point_complex::add(center, center, off);
                 frt.reference.center = center;
@@ -126,7 +126,7 @@ namespace merutilm::rff2 {
                     throw vkh::exception_invalid_state("Perturbator cannot be null");
                 }
 
-                app.getState().createThread([&app, data, cache, &settings] {
+                app.getState().createThread([&app, data, &settings] {
                     const auto ref = data->getReference();
 
                     if (ref == nullptr) {
