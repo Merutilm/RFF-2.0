@@ -81,9 +81,9 @@ namespace merutilm::rff2 {
 
             blockResult.residual.set_exp10(exp10);
             fixed_point_complex::sub(blockResult.residual, z, zExpected);
-            blockResult.an = startIteration == 0 ? fixed_point_complex(0, 0, exp10) : std::move(an);
-            blockResult.bn = std::move(bn);
             blockResult.fzgAn = static_cast<complex<dex>>(an);
+            blockResult.an = std::move(an);
+            blockResult.bn = std::move(bn);
         }
 
         template<FnListeners::FnLocatingMB2 FnLocatingMB2>
@@ -279,7 +279,10 @@ namespace merutilm::rff2 {
             }
 
             const auto scale = fzgAn * fpgBn;
-            if (scale.is_zero()) throw vkh::exception_invalid_state("invalid operation");
+            if (scale.is_zero()) {
+                vkh::logger::log_err("minibrot size cannot be measured");
+                return std::nullopt;
+            }
             const auto resultLogZoom =
                     static_cast<float>(rff_math::log10(scale.norm_approx()) + MINIBROT_LOG_ZOOM_OFFSET);
 
