@@ -59,8 +59,6 @@ namespace merutilm::rff2 {
             fixed_point_complex an(1, 0, exp10);
             fixed_point_complex bn(0, 0, exp10);
 
-            complex<dex> fzgAnTemp = complex<dex>::ONE;
-
             // An, Bn generation
             for (uint64_t iteration = startIteration; iteration < endIteration; ++iteration) {
 
@@ -68,13 +66,11 @@ namespace merutilm::rff2 {
                     iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL)
                     return;
 
-
-                fixed_point_complex::mul(an, an, z);
-                fixed_point_complex::dbl(an, an);
-
                 if (iteration > 0) {
-                    fzgAnTemp = (fzgAnTemp * 2 * static_cast<complex<dex>>(z)).try_normalized_value();
+                    fixed_point_complex::mul(an, an, z);
+                    fixed_point_complex::dbl(an, an);
                 }
+
                 fixed_point_complex::mul(bn, bn, z);
                 fixed_point_complex::dbl(bn, bn);
                 fixed_point_complex::add(bn, bn, one);
@@ -85,9 +81,9 @@ namespace merutilm::rff2 {
 
             blockResult.residual.set_exp10(exp10);
             fixed_point_complex::sub(blockResult.residual, z, zExpected);
-            blockResult.an = std::move(an);
+            blockResult.an = startIteration == 0 ? fixed_point_complex(0, 0, exp10) : std::move(an);
             blockResult.bn = std::move(bn);
-            blockResult.fzgAn = fzgAnTemp;
+            blockResult.fzgAn = static_cast<complex<dex>>(an);
         }
 
         template<FnListeners::FnLocatingMB2 FnLocatingMB2>
@@ -101,12 +97,15 @@ namespace merutilm::rff2 {
                 {
                     std::scoped_lock lock(partitionPickerMutex);
                     partitionIndex = processedPartition++;
+
+                    if (partitionIndex >= checkpoints.size() - 1) {
+                        return;
+                    }
+
                     fnLocatingMB2(dcCurrExp10, partitionIndex, static_cast<uint32_t>(checkpoints.size() - 1));
                 }
 
-                if (partitionIndex >= checkpoints.size() - 1) {
-                    return;
-                }
+
                 BlockResult &blockResult = blockResults[partitionIndex];
 
                 processPartition(state, blockResult, currentCenter, checkpoints, partitionIndex, exp10);
@@ -239,7 +238,7 @@ namespace merutilm::rff2 {
 
                 int32_t dcCurrExp10 = rff_math::log10(dcd);
                 int32_t exp10Decrement = std::max(0, refExp10 - dcCurrExp10);
-                int32_t exp10 = std::max(refExp10 - exp10Decrement * 4, doubledExp10);
+                int32_t exp10 = std::max(refExp10 - exp10Decrement * 4 - Constants::Fractal::EXP10_ADDITION, doubledExp10);
 
                 // ReSharper disable once CppTooWideScope
                 std::mutex partitionPickerMutex;
@@ -279,8 +278,10 @@ namespace merutilm::rff2 {
                 dcd = static_cast<complex<dex>>(dc).norm_approx();
             }
 
+            const auto scale = fzgAn * fpgBn;
+            if (scale.is_zero()) throw vkh::exception_invalid_state("invalid operation");
             const auto resultLogZoom =
-                    static_cast<float>(rff_math::log10((fzgAn * fpgBn).norm_approx()) + MINIBROT_LOG_ZOOM_OFFSET);
+                    static_cast<float>(rff_math::log10(scale.norm_approx()) + MINIBROT_LOG_ZOOM_OFFSET);
 
             return MB2LocateResult{std::move(currentCenter), resultLogZoom};
         }
