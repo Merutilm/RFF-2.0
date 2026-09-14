@@ -192,19 +192,6 @@ namespace merutilm::rff2 {
             const int32_t doubledExp10 = refExp10 * 2;
 
 
-            fixed_point_complex currentCenter = reference->center.create_variant(refExp10);
-            fixed_point_complex dc(0, 0, refExp10);
-            fixed_point_complex temp(0, 0, refExp10);
-
-            calcCenterOffset(dc, reference->checkpoints.back().complex.create_variant(refExp10),
-                             fixed_point_complex(reference->fpgBn, refExp10));
-            fixed_point_complex::add(currentCenter, currentCenter, dc);
-
-            dex dcd = static_cast<complex<dex>>(dc).norm_approx();
-
-            if (dcd.is_zero()) return std::nullopt;
-
-
             const uint32_t threads = data.fractalSettings.general.threads;
             std::vector<std::unique_ptr<std::jthread>> threadPool;
             threadPool.resize(threads);
@@ -227,14 +214,23 @@ namespace merutilm::rff2 {
             std::vector tt(checkpoints.size(), fixed_point_complex{0, 0, refExp10});
             std::vector ut(checkpoints.size(), fixed_point_complex{0, 0, refExp10});
 
-            while (dcd > doubledZoomDcMax) {
 
+            fixed_point_complex currentCenter = reference->center.create_variant(refExp10);
+            fixed_point_complex dc(0, 0, refExp10);
+            fixed_point_complex temp(0, 0, refExp10);
 
-                if (dcMax < static_cast<complex<dex>>(dc).norm_approx()) {
-                    vkh::logger::log_err("The center could not be found");
-                    return std::nullopt;
-                }
+            calcCenterOffset(dc, reference->checkpoints.back().complex.create_variant(refExp10),
+                             fixed_point_complex(reference->fpgBn, refExp10));
+            fixed_point_complex::add(currentCenter, currentCenter, dc);
 
+            dex dcd = static_cast<complex<dex>>(dc).norm_approx();
+
+            if (dcMax < dcd) {
+                vkh::logger::log_err("Center could not be found");
+                return std::nullopt;
+            }
+
+            do {
 
                 int32_t dcCurrExp10 = rff_math::log10(dcd);
                 int32_t exp10Decrement = std::max(0, refExp10 - dcCurrExp10);
@@ -272,11 +268,10 @@ namespace merutilm::rff2 {
                 rebaseCheckpoints(dc, tt, ut, checkpoints, temp);
 
 
-
-
                 // set dc radius
                 dcd = static_cast<complex<dex>>(dc).norm_approx();
-            }
+
+            } while (dcd > doubledZoomDcMax);
 
             const auto scale = fzgAn * fpgBn;
             if (scale.is_zero()) {
