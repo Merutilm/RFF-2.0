@@ -74,7 +74,7 @@ namespace merutilm::rff2 {
                 frt.general.logZoom = renderData->getReference()->logZoom;
                 renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
                                       app.getSettings().fractal.perturb, frt.reference.center,
-                                      app.getActionWhileSeriesApprox(startTime));
+                                      app.getFnSeriesApprox(startTime));
                 app.getRequests().requestRecompute();
             }
         }
@@ -91,9 +91,8 @@ namespace merutilm::rff2 {
 
                 state.createThread([&] {
                     const float startTime = app.rootWindowContext->getWindow()->getTime();
-                    const uint64_t period = data->getReference()->longestPeriod();
                     const auto center = MB2Locator::locateMinibrot(
-                            state, *data, app.getActionWhileFindingMBCenter(period, startTime));
+                            state, *data, app.getFnFindingMBCenter(startTime));
                     if (center == std::nullopt)
                         return;
 
@@ -102,9 +101,9 @@ namespace merutilm::rff2 {
                     frt.general.logZoom = center->logZoom;
                     const dex dcMax = app.getDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
                     const int refExp10 = Perturbator::logZoomToExp10(frt.general.logZoom);
-                    data = app.createAppropriateRenderData(
-                            settings.render.computeShader.use, frt.general.logZoom, startTime, frt, dcMax, refExp10,
-                            data->getReference()->length(), data->getReference()->longestPeriod());
+                    data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
+                                                           startTime, frt, dcMax, refExp10,
+                                                           data->getReference()->length());
 
                     settings.fractal.reference.reuse = true;
                     app.getRequests().requestRecompute();
@@ -134,17 +133,16 @@ namespace merutilm::rff2 {
                         return;
                     }
 
-                    const uint64_t longestPeriod = ref->longestPeriod();
                     const float startTime = app.rootWindowContext->getWindow()->getTime();
 
                     const auto locator = MB2Locator::locateMinibrot(
-                            app.getState(), *data, app.getActionWhileFindingMBCenter(longestPeriod, startTime));
+                            app.getState(), *data, app.getFnFindingMBCenter(startTime));
 
                     if (locator == std::nullopt) {
                         vkh::logger::log("Locate Minibrot Cancelled.");
                         return;
                     }
-;
+
                     settings.fractal.reference.center = locator->center;
                     settings.fractal.general.logZoom = locator->logZoom;
                     app.getRequests().requestRecompute();

@@ -188,9 +188,10 @@ namespace merutilm::rff2 {
         void onQuit();
         void resolveRequests();
 
-        std::unique_ptr<MB2RenderDataBase>
-        createAppropriateRenderData(bool computeShader, float logZoomTest, float startTime, const FractalSettings &frt,
-                                    dex dcMax, int exp10, uint64_t refInitialCapacity, uint64_t knownLongestPeriod);
+        std::unique_ptr<MB2RenderDataBase> createAppropriateRenderData(bool computeShader, float logZoomTest,
+                                                                       float startTime, const FractalSettings &frt,
+                                                                       dex dcMax, int exp10,
+                                                                       uint64_t refInitialCapacity);
 
 
         VideoKeyframeProgressInfo &getKeyframeProgressInfo() { return videoKeyframeProgressInfo; }
@@ -198,14 +199,10 @@ namespace merutilm::rff2 {
         VideoProgressInfo &getVideoProgressInfo() { return videoProgressInfo; }
 
 
-        std::function<void(uint64_t, int)> getActionWhileFindingMBCenter(uint64_t longestPeriod,
-                                                                                float startTime);
-
-        std::function<void(uint64_t, float)> getActionWhileSeriesApprox(float startTime);
-
-        std::function<void(uint64_t, float)> getActionWhileCreatingTable(float startTime);
-
-        std::function<void(uint64_t)> getActionWhileRefCalc(float startTime);
+        auto getFnFindingMBCenter(float startTime);
+        auto getFnSeriesApprox(float startTime);
+        auto getFnCreatingTable(float startTime);
+        auto getFnRefCalc(float startTime);
 
     protected:
         void renderImGui() override;
@@ -424,5 +421,56 @@ namespace merutilm::rff2 {
             }
             requests.requestShader();
         }
+    }
+    inline auto RFF2::getFnFindingMBCenter(float startTime) {
+        return [this, startTime](int32_t exp10, const uint32_t partition, const uint32_t partitionCount) {
+            static float time = rootWindowContext->getWindow()->getTime();
+            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
+            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
+                time = rootWindowContext->getWindow()->getTime();
+                setStatusMessage(Constants::Status::RENDER_STATUS,
+                                 std::format("Locating : e{} [{}/{}]", exp10, partition, partitionCount));
+                setStatusMessage(Constants::Status::TIME_STATUS,
+                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
+            }
+        };
+    }
+    inline auto RFF2::getFnSeriesApprox(float startTime) {
+        return [this, startTime](const uint64_t it, const float i) {
+            static float time = rootWindowContext->getWindow()->getTime();
+            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
+            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
+                time = rootWindowContext->getWindow()->getTime();
+                setStatusMessage(Constants::Status::RENDER_STATUS,
+                                 std::format("Series-Approximation : {:.3f}%", i * 100, it));
+                setStatusMessage(Constants::Status::TIME_STATUS,
+                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
+            }
+        };
+    }
+    inline auto RFF2::getFnCreatingTable(float startTime) {
+        return [this, startTime](const uint64_t, const float i) {
+            static float time = rootWindowContext->getWindow()->getTime();
+            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
+            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
+                time = rootWindowContext->getWindow()->getTime();
+                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("MP-Approximation : {:.3f}%", i * 100));
+
+                setStatusMessage(Constants::Status::TIME_STATUS,
+                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
+            }
+        };
+    }
+    inline auto RFF2::getFnRefCalc(float startTime) {
+        return [this, startTime](const uint64_t p) {
+            static float time = rootWindowContext->getWindow()->getTime();
+            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
+            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
+                time = rootWindowContext->getWindow()->getTime();
+                setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "Period : {:L}", p));
+                setStatusMessage(Constants::Status::TIME_STATUS,
+                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
+            }
+        };
     }
 } // namespace merutilm::rff2

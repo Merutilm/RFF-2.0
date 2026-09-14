@@ -27,7 +27,6 @@ add_executable(
         src/rff2/app/FnFractal.cpp
         src/rff2/app/FnRender.cpp
         src/rff2/app/FnShader.cpp
-        src/rff2/mb/MB2Locator.cpp
         src/rff2/app/FnExplore.cpp
         src/rff2/preset/shader/palette/ShdPalettePresets.cpp
         src/rff2/preset/shader/fog/ShdFogPresets.cpp
@@ -72,6 +71,7 @@ add_executable(
         src/rff2/vulkan/CPCInterpolateIsolated.hpp
         include/vulkan_helper/engine/wrapped/DescriptorTemplateManager.hpp
         src/rff2/mb/ReferenceCheckpoint.hpp
+        src/rff2/app/FnListeners.hpp
 )
 
 target_compile_options(RFF PRIVATE

@@ -43,11 +43,11 @@ namespace merutilm::rff2 {
         // important data to generate
         std::unique_ptr<MPAPeriod> mpaPeriod = nullptr;
 
-
+        template<FnListeners::FnCreatingTable FnCreatingTable>
         explicit MPATable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
                           std::unique_ptr<ApproxTableCacheBase> &tableCache, const FrtGeneralSettings &generalSettings,
                           const FrtMPASettings &mpaSettings, bool computeShaderUsed, Num dcMax,
-                          const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
+                          FnCreatingTable &&fnCreatingTable);
 
 
     private:
@@ -87,28 +87,34 @@ namespace merutilm::rff2 {
         void refreshCounterCompressed(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
                                       const std::vector<uint64_t> &tablePeriod, std::vector<bool> &generationAvailable,
                                       std::vector<PAGenerator<Num>> &currentPA, uint64_t iteration);
+
         void refreshCounterUncompressed(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
                                         const std::vector<uint64_t> &tablePeriod,
                                         std::vector<bool> &generationAvailable,
                                         std::vector<PAGenerator<Num>> &currentPA, std::vector<uint64_t> &currentPASkips,
                                         std::vector<bool> *isPartial, uint64_t iteration);
+
         void uncompressedStepOnce(std::vector<uint64_t> &itCount, const std::vector<uint64_t> &itCountLim,
                                   const std::vector<uint64_t> &tablePeriod, std::vector<PAGenerator<Num>> &currentPA,
                                   std::vector<uint64_t> &currentPASkips, uint64_t &flattenTableIndex,
                                   uint64_t &iteration);
+
         void compressedStepOnce(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
                                 const std::vector<uint64_t> &tablePeriod, std::vector<bool> &generationAvailable,
                                 std::vector<PAGenerator<Num>> &currentPA, uint64_t &pulledTableIndex,
                                 uint64_t &flattenTableIndex, uint64_t &iteration);
 
-
+        template<FnListeners::FnCreatingTable FnCreatingTable>
         void generateTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
-                           const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
+                           FnCreatingTable &&fnCreatingTable);
+
         void generateIterationCountVec(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
                                        std::vector<bool> &generationAvailable, std::vector<bool> *isPartial,
                                        uint64_t iteration) const;
+
+        template<FnListeners::FnCreatingTable FnCreatingTable>
         void generateCompressedTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
-                                     const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
+                                     FnCreatingTable &&fnCreatingTable);
 
 
         void configurePartialPA(const std::vector<uint64_t> &tablePeriod, const std::vector<uint64_t> &itCountLim,
@@ -117,8 +123,10 @@ namespace merutilm::rff2 {
 
         void gluePartialPA(const std::vector<uint64_t> &tablePeriod, uint32_t threadCount,
                            std::vector<PartialPA> &partialPAs);
+
+        template<FnListeners::FnCreatingTable FnCreatingTable>
         void generateUncompressedTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
-                                       const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration);
+                                       FnCreatingTable &&fnCreatingTable);
 #ifndef NDEBUG
         void checkZero(const ParallelRenderState &state);
 #endif
@@ -137,14 +145,15 @@ namespace merutilm::rff2 {
 
 
     template<Number Num>
+    template<FnListeners::FnCreatingTable FnCreatingTable>
     MPATable<Num>::MPATable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
                             std::unique_ptr<ApproxTableCacheBase> &tableCache,
-                            const FrtGeneralSettings &generalSettings, const FrtMPASettings &mpaSettings, const bool computeShaderUsed, Num dcMax,
-                            const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) :
+                            const FrtGeneralSettings &generalSettings, const FrtMPASettings &mpaSettings,
+                            const bool computeShaderUsed, Num dcMax, FnCreatingTable &&fnCreatingTable) :
         generalSettings(generalSettings), mpaSettings(mpaSettings), computeShaderUsed(computeShaderUsed) {
 
         if (tryInit(reference, tableCache)) {
-            generateTable(state, reference, dcMax, actionPerCreatingTableIteration);
+            generateTable(state, reference, dcMax, fnCreatingTable);
         }
     }
 
@@ -270,8 +279,9 @@ namespace merutilm::rff2 {
         const auto mainReferenceMPA = getMPAFromMapper({0, generatedLevels});
 
         if (level >= mainReferenceMPA.size() || level + 1 > generatedLevels) {
-            throw vkh::exception_invalid_state("Invalid level detected. it might be a bug! Please contact the developer and "
-                                   "attach the current location file (.rfl)");
+            throw vkh::exception_invalid_state(
+                    "Invalid level detected. it might be a bug! Please contact the developer and "
+                    "attach the current location file (.rfl)");
         }
 
         const PA<Num> &mainReferencePA = mainReferenceMPA[level];
@@ -344,7 +354,8 @@ namespace merutilm::rff2 {
                     (*partialPA)[level].first.emplace(currentPA[level]);
                     (*isPartial)[level] = false;
                 } else {
-                    const MPAIndexMapper flattenIndexMapper = tableCache->flattenIndexMapper.raw[currentPA[level].start];
+                    const MPAIndexMapper flattenIndexMapper =
+                            tableCache->flattenIndexMapper.raw[currentPA[level].start];
 #ifndef NDEBUG
                     if (level >= flattenIndexMapper.generatedLevels) {
                         throw std::invalid_argument("invalid level provided");
@@ -566,8 +577,9 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
+    template<FnListeners::FnCreatingTable FnCreatingTable>
     void MPATable<Num>::generateTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
-                                      const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) {
+                                      FnCreatingTable &&fnCreatingTable) {
 
 
         const auto &tablePeriod = mpaPeriod->tablePeriods;
@@ -578,9 +590,9 @@ namespace merutilm::rff2 {
 
         fitBufferSize();
         if (mpaSettings.useCompress) {
-            generateCompressedTable(state, reference, dcMax, actionPerCreatingTableIteration);
+            generateCompressedTable(state, reference, dcMax, fnCreatingTable);
         } else {
-            generateUncompressedTable(state, reference, dcMax, actionPerCreatingTableIteration);
+            generateUncompressedTable(state, reference, dcMax, fnCreatingTable);
         }
     }
 
@@ -622,9 +634,9 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    void MPATable<Num>::generateCompressedTable(
-            const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
-            const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) {
+    template<FnListeners::FnCreatingTable FnCreatingTable>
+    void MPATable<Num>::generateCompressedTable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
+                                                Num dcMax, FnCreatingTable &&fnCreatingTable) {
 
 
         const auto &tablePeriod = mpaPeriod->tablePeriods;
@@ -652,8 +664,7 @@ namespace merutilm::rff2 {
                 return;
             }
 
-            actionPerCreatingTableIteration(iteration,
-                                            static_cast<double>(iteration) / static_cast<double>(longestPeriod));
+            fnCreatingTable(iteration, static_cast<double>(iteration) / static_cast<double>(longestPeriod));
 
             compressedStepOnce(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, pulledTableIndex,
                                flattenTableIndex, iteration);
@@ -753,9 +764,9 @@ namespace merutilm::rff2 {
         }
     }
     template<Number Num>
-    void MPATable<Num>::generateUncompressedTable(
-            const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
-            const std::function<void(uint64_t, float)> &actionPerCreatingTableIteration) {
+    template<FnListeners::FnCreatingTable FnCreatingTable>
+    void MPATable<Num>::generateUncompressedTable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
+                                                  Num dcMax, FnCreatingTable &&fnCreatingTable) {
 
         const auto &tablePeriod = mpaPeriod->tablePeriods;
         const uint64_t longestPeriod = tablePeriod.back();
@@ -777,9 +788,9 @@ namespace merutilm::rff2 {
             for (uint64_t i = 0; i < threadCount; ++i) {
 
 
-                threads[i] = std::make_unique<std::jthread>([this, &reference, &state, &actionPerCreatingTableIteration,
-                                                             dcMax, i, itInterval, &tablePeriod, longestPeriod, epsilon,
-                                                             levels, &partialPAs, threadCount] {
+                threads[i] = std::make_unique<std::jthread>([this, &reference, &state, &fnCreatingTable, dcMax, i,
+                                                             itInterval, &tablePeriod, longestPeriod, epsilon, levels,
+                                                             &partialPAs, threadCount] {
                     const uint64_t startIteration = itInterval * i + 1;
                     if (startIteration > longestPeriod || state.interruptRequested()) {
                         return;
@@ -802,20 +813,20 @@ namespace merutilm::rff2 {
 
                     while (iteration <= std::min(startIteration + itInterval - 1, longestPeriod)) {
                         if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0) {
-                            if (state.interruptRequested()) return;
+                            if (state.interruptRequested())
+                                return;
 
-#ifndef NDEBUG
-                            actionPerCreatingTableIteration(
-                                    std::min(longestPeriod, iteration),
-                                    std::min(1.0, static_cast<double>(iteration) / static_cast<double>(longestPeriod)));
-#else
+// #ifndef NDEBUG
+//                             fnCreatingTable(
+//                                     std::min(longestPeriod, iteration),
+//                                     std::min(1.0, static_cast<double>(iteration) / static_cast<double>(longestPeriod)));
+// #else
                             if (i == 0) {
-                                actionPerCreatingTableIteration(
-                                        std::min(longestPeriod, iteration * threadCount),
-                                        std::min(1.0, static_cast<double>(iteration) * threadCount /
-                                                              static_cast<double>(longestPeriod)));
+                                fnCreatingTable(std::min(longestPeriod, iteration * threadCount),
+                                                std::min(1.0, static_cast<double>(iteration) * threadCount /
+                                                                      static_cast<double>(longestPeriod)));
                             }
-#endif
+// #endif
                         }
 
                         uncompressedStepOnce(itCount, itCountLim, tablePeriod, currentPA, currentPASkips,
@@ -828,10 +839,10 @@ namespace merutilm::rff2 {
 
                     configurePartialPA(tablePeriod, itCountLim, currentPA, isPartial, partialPAs[i]);
                 });
-#ifndef NDEBUG
-                if (threads[i]->joinable())
-                    threads[i]->join();
-#endif
+// #ifndef NDEBUG
+//                 if (threads[i]->joinable())
+//                     threads[i]->join();
+// #endif
             }
 
             for (const auto &thread: threads) {
@@ -839,7 +850,8 @@ namespace merutilm::rff2 {
                     thread->join();
             }
 
-            if (state.interruptRequested()) return;
+            if (state.interruptRequested())
+                return;
 
             gluePartialPA(tablePeriod, threadCount, partialPAs);
 
@@ -859,9 +871,9 @@ namespace merutilm::rff2 {
             while (iteration <= longestPeriod) {
 
                 if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0) {
-                    if (state.interruptRequested()) return;
-                    actionPerCreatingTableIteration(iteration, static_cast<double>(iteration) /
-                                                                       static_cast<double>(longestPeriod));
+                    if (state.interruptRequested())
+                        return;
+                    fnCreatingTable(iteration, static_cast<double>(iteration) / static_cast<double>(longestPeriod));
                 }
 
 
@@ -877,8 +889,6 @@ namespace merutilm::rff2 {
             checkZero(state);
 #endif
         }
-
-
     }
 
 #ifndef NDEBUG
@@ -886,7 +896,8 @@ namespace merutilm::rff2 {
     void MPATable<Num>::checkZero(const ParallelRenderState &state) {
         for (size_t i = 0; i < tableCache->mpaTable.sizeUsed; ++i) {
             auto &pa = tableCache->mpaTable.raw[i];
-            if (state.interruptRequested()) return;
+            if (state.interruptRequested())
+                return;
             if (pa.skip == 0) {
                 throw vkh::exception_invalid_state("zero skips detected at index " + std::to_string(i));
             }

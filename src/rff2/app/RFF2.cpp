@@ -113,41 +113,34 @@ namespace merutilm::rff2 {
             // it is threaded, do not notify
         }
     }
-    std::unique_ptr<MB2RenderDataBase>
-    RFF2::createAppropriateRenderData(const bool computeShader, const float logZoomTest, const float startTime,
-                                      const FractalSettings &frt, const dex dcMax, const int exp10,
-                                      const uint64_t refInitialCapacity, const uint64_t knownLongestPeriod) {
+    std::unique_ptr<MB2RenderDataBase> RFF2::createAppropriateRenderData(const bool computeShader,
+                                                                         const float logZoomTest, const float startTime,
+                                                                         const FractalSettings &frt, const dex dcMax,
+                                                                         const int exp10,
+                                                                         const uint64_t refInitialCapacity) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
-                return std::make_unique<FexMB2RenderData>(engine->getCore(), state, frt, computeShader,
-                                                          approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                          knownLongestPeriod,
-                                                          getActionWhileRefCalc(startTime),
-                                                          getActionWhileSeriesApprox(startTime),
-                                                          getActionWhileCreatingTable(startTime));
+                return std::make_unique<FexMB2RenderData>(
+                        engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
+                        refInitialCapacity, getFnRefCalc(startTime), getFnSeriesApprox(startTime),
+                        getFnCreatingTable(startTime));
             } else {
-                return std::make_unique<FloatMB2RenderData>(engine->getCore(), state, frt, computeShader,
-                                                            approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                            knownLongestPeriod,
-                                                            getActionWhileRefCalc(startTime),
-                                                            getActionWhileSeriesApprox(startTime),
-                                                            getActionWhileCreatingTable(startTime));
+                return std::make_unique<FloatMB2RenderData>(
+                        engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
+                        refInitialCapacity, getFnRefCalc(startTime), getFnSeriesApprox(startTime),
+                        getFnCreatingTable(startTime));
             }
         } else {
             if (logZoomTest > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
-                return std::make_unique<DexMB2RenderData>(engine->getCore(), state, frt, computeShader,
-                                                          approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                          knownLongestPeriod,
-                                                          getActionWhileRefCalc(startTime),
-                                                          getActionWhileSeriesApprox(startTime),
-                                                          getActionWhileCreatingTable(startTime));
+                return std::make_unique<DexMB2RenderData>(
+                        engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
+                        refInitialCapacity, getFnRefCalc(startTime), getFnSeriesApprox(startTime),
+                        getFnCreatingTable(startTime));
             } else {
-                return std::make_unique<DoubleMB2RenderData>(engine->getCore(), state, frt, computeShader,
-                                                             approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                             knownLongestPeriod,
-                                                             getActionWhileRefCalc(startTime),
-                                                             getActionWhileSeriesApprox(startTime),
-                                                             getActionWhileCreatingTable(startTime));
+                return std::make_unique<DoubleMB2RenderData>(
+                        engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
+                        refInitialCapacity, getFnRefCalc(startTime), getFnSeriesApprox(startTime),
+                        getFnCreatingTable(startTime));
             }
         }
     }
@@ -855,15 +848,9 @@ namespace merutilm::rff2 {
         const dex dcMax = offset.norm_approx();
 
         static uint64_t capacity = 0;
-        static uint64_t knownLongestPeriod = 1;
         if (renderData && renderData->getReference()) {
             capacity = renderData->getReference()->length();
-            knownLongestPeriod = renderData->getReference()->longestPeriod();
         }
-
-        std::function actionPerRefCalcIteration = getActionWhileRefCalc(startTime);
-        std::function actionPerSeriesApproxIteration = getActionWhileSeriesApprox(startTime);
-        std::function actionPerCreatingTableIteration = getActionWhileCreatingTable(startTime);
 
 
         if (state.interruptRequested())
@@ -886,12 +873,12 @@ namespace merutilm::rff2 {
 
 
             renderData->translate(frt.general.logZoom, dcMax + distance, frt.perturb, frt.reference.center,
-                                  actionPerSeriesApproxIteration);
+                                  getFnSeriesApprox(startTime));
         } else {
             renderData = nullptr;
 
             renderData = createAppropriateRenderData(s.render.computeShader.use, logZoom, startTime, frt, dcMax, exp10,
-                                                     capacity, knownLongestPeriod);
+                                                     capacity);
         }
 
         // sync settings
@@ -1021,64 +1008,5 @@ namespace merutilm::rff2 {
         requests.recomputeRequestedState.compare_exchange_strong(expected, success ? ComputeState::IDLE
                                                                                    : ComputeState::CANCELLED);
         backgroundThreads.notifyAll();
-    }
-
-
-    std::function<void(uint64_t, int)> RFF2::getActionWhileFindingMBCenter(const uint64_t longestPeriod,
-                                                                           const float startTime) {
-        return [this, longestPeriod, startTime](const uint64_t p, int i) {
-            static float time = rootWindowContext->getWindow()->getTime();
-            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS,
-                                 std::format("Location : {:.3f}%[{}]",
-                                             static_cast<float>(100 * p) / static_cast<float>(longestPeriod), i));
-                setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
-    }
-
-    std::function<void(uint64_t, float)> RFF2::getActionWhileSeriesApprox(const float startTime) {
-        return [this, startTime](const uint64_t it, const float i) {
-            static float time = rootWindowContext->getWindow()->getTime();
-            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS,
-                                 std::format("Series-Approximation : {:.3f}%", i * 100, it));
-                setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
-    }
-
-
-    std::function<void(uint64_t, float)> RFF2::getActionWhileCreatingTable(const float startTime) {
-        return [this, startTime](const uint64_t, const float i) {
-            static float time = rootWindowContext->getWindow()->getTime();
-            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("MP-Approximation : {:.3f}%", i * 100));
-
-                setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
-    }
-
-    std::function<void(uint64_t)> RFF2::getActionWhileRefCalc(const float startTime) {
-        return [this, startTime](const uint64_t p) {
-            static float time = rootWindowContext->getWindow()->getTime();
-            const float elapsed = rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "Period : {:L}", p));
-                setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
     }
 } // namespace merutilm::rff2
