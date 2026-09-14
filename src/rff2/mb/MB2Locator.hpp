@@ -232,7 +232,7 @@ namespace merutilm::rff2 {
 
             do {
 
-                int32_t dcCurrExp10 = rff_math::log10(dcd);
+                int32_t dcCurrExp10 = dcd.is_zero() ? doubledExp10 : static_cast<int32_t>(rff_math::log10(dcd));
                 int32_t exp10Decrement = std::max(0, refExp10 - dcCurrExp10);
                 int32_t exp10 = std::max(refExp10 - exp10Decrement * 4 - Constants::Fractal::EXP10_ADDITION, doubledExp10);
 
