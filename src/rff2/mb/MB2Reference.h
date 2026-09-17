@@ -134,6 +134,7 @@ namespace merutilm::rff2 {
         op_thread_pool parallelReferenceThreadPoolForRef{};
         op_thread_pool *sqrTp = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPoolForRef : nullptr;
 
+        auto fzgAn = complex<Num>::ONE;
         auto fpgBn = complex<Num>::ZERO;
 
         auto z0 = complex<Num>::ZERO;
@@ -176,12 +177,18 @@ namespace merutilm::rff2 {
 
             fpgBn = fpgBnTemp.try_normalized_value();
 
+            if (period > 0) {
+                fzgAn = (fzgAn * z0 * Num(2)).try_normalized_value();
+            }
+
             if (period > 0 && minZRadius > radius2) {
                 minZRadius = radius2;
                 periodArray.push_back(period);
             }
+
             if (period % Constants::Fractal::PARTITION_SIZE == 0) {
-                checkpoints.emplace_back(z, period);
+                checkpoints.emplace_back(z, period, static_cast<complex<dex>>(fzgAn));
+                fzgAn = complex<Num>::ONE;
             }
 
             applyFormula(z, c, fnRefCalc, sqrTp, period);
@@ -220,7 +227,7 @@ namespace merutilm::rff2 {
         }
 
         periodArray.push_back(period);
-        checkpoints.emplace_back(z, period);
+        checkpoints.emplace_back(z, period, static_cast<complex<dex>>(fzgAn));
 
         *result = std::make_unique<MB2Reference>(generalSettings, refSettings, std::move(c), std::move(tools),
                                                  std::move(periodArray), std::move(checkpoints),

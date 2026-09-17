@@ -28,7 +28,7 @@ namespace merutilm::rff2 {
         static fixed_point_complex calcCenterOffset(const MB2ReferenceBase &reference) {
             const int exp10 = Perturbator::logZoomToExp10(reference.logZoom);
             fixed_point_complex off(0, 0, exp10);
-            calcCenterOffset(off, reference.checkpoints.back().complex.create_variant(exp10),
+            calcCenterOffset(off, reference.checkpoints.back().z.create_variant(exp10),
                              fixed_point_complex(reference.fpgBn, exp10));
             return off;
         }
@@ -55,8 +55,8 @@ namespace merutilm::rff2 {
             // clone z
             const fixed_point_complex one(1.0, 0.0, exp10);
             const fixed_point_complex c = currentCenter.create_variant(exp10);
-            const fixed_point_complex zExpected = nextCheckpoint.complex.create_variant(exp10);
-            fixed_point_complex z = currentCheckpoint.complex.create_variant(exp10);
+            const fixed_point_complex zExpected = nextCheckpoint.z.create_variant(exp10);
+            fixed_point_complex z = currentCheckpoint.z.create_variant(exp10);
             fixed_point_complex an(1, 0, exp10);
             fixed_point_complex bn(0, 0, exp10);
 
@@ -94,7 +94,7 @@ namespace merutilm::rff2 {
         static void processPartitions(const ParallelRenderState &state, std::vector<BlockResult> &blockResults,
                                       const fixed_point_complex &currentCenter,
                                       const std::vector<ReferenceCheckpoint> &checkpoints, const int32_t dcCurrExp10,
-                                      const int32_t preferredExp10, const int32_t doubledExp10, const std::vector<int32_t> &requiredAdditionalPrecisions,
+                                      const int32_t refExp10, const int32_t aimExp10, const std::vector<int32_t> &requiredAdditionalPrecisions,
                                       std::mutex &partitionPickerMutex, uint32_t &processedPartition,
                                       FnLocatingMB2 &&fnLocatingMB2) {
             while (true) {
@@ -112,10 +112,14 @@ namespace merutilm::rff2 {
 
                 BlockResult &blockResult = blockResults[partitionIndex];
 
+
+                const int32_t exp10Decrement = std::max(0, refExp10 - dcCurrExp10);
+
+                // ??? Why does it work ???
+                // magic number 3 and 64, appropriate value is unknown.
                 const int32_t exp10 =
-                        std::max(preferredExp10 - requiredAdditionalPrecisions[partitionIndex] + requiredAdditionalPrecisions[0] -
-                                         Constants::Fractal::EXP10_ADDITION * 2,
-                                 doubledExp10);
+                        std::max(-exp10Decrement * 3 - requiredAdditionalPrecisions[partitionIndex] - 64,
+                                 aimExp10);
                 processPartition(state, blockResult, currentCenter, checkpoints, partitionIndex, exp10);
             }
         }
@@ -134,13 +138,14 @@ namespace merutilm::rff2 {
                 auto &checkpoint = checkpoints[i];
 
                 fixed_point_complex::mul(temp, dc, ut[i]);
-                fixed_point_complex::add(checkpoint.complex, checkpoint.complex, tt[i]);
-                fixed_point_complex::add(checkpoint.complex, checkpoint.complex, temp);
+                fixed_point_complex::add(checkpoint.z, checkpoint.z, tt[i]);
+                fixed_point_complex::add(checkpoint.z, checkpoint.z, temp);
             }
         }
 
         static void calculateAmplitudes(complex<dex> &fzgAn, complex<dex> &fpgBn, std::vector<fixed_point_complex> &tt,
-                                        std::vector<fixed_point_complex> &ut, std::vector<BlockResult> &blockResults) {
+                                        std::vector<fixed_point_complex> &ut,
+                                        const std::vector<BlockResult> &blockResults) {
             fzgAn = complex<dex>::ONE;
             fixed_point_complex::zero(tt[0]);
             fixed_point_complex::zero(ut[0]);
@@ -186,7 +191,7 @@ namespace merutilm::rff2 {
                 ut0.set_exp10(doubledExp10);
             }
             for (auto &checkpoint: checkpoints) {
-                checkpoint.complex.set_exp10(doubledExp10);
+                checkpoint.z.set_exp10(doubledExp10);
             }
             for (auto &blockResult: blockResults) {
                 blockResult.an.set_exp10(doubledExp10);
@@ -210,8 +215,7 @@ namespace merutilm::rff2 {
 
             const float logZoom = data.fractalSettings.general.logZoom;
             const int32_t refExp10 = Perturbator::logZoomToExp10(logZoom);
-            const int32_t doubledExp10 = refExp10 * 2;
-
+            float aimLogZoom = logZoom * 2;
 
             const uint32_t threads = data.fractalSettings.general.threads;
             std::vector<std::unique_ptr<std::jthread>> threadPool;
@@ -224,6 +228,10 @@ namespace merutilm::rff2 {
                                                  .an = fixed_point_complex(0, 0, refExp10),
                                                  .bn = fixed_point_complex(0, 0, refExp10),
                                                  .fzgAn = complex<dex>::ONE});
+
+            for (uint32_t i = 0; i < blockResults.size(); i++) {
+                blockResults[i].fzgAn = checkpoints[i + 1].fzgAn;
+            }
 
             std::vector<int32_t> requiredAdditionalPrecisions(checkpoints.size() - 1);
 
@@ -242,11 +250,12 @@ namespace merutilm::rff2 {
             fixed_point_complex dc(0, 0, refExp10);
             fixed_point_complex temp(0, 0, refExp10);
 
-            calcCenterOffset(dc, reference->checkpoints.back().complex.create_variant(refExp10),
+            calcCenterOffset(dc, reference->checkpoints.back().z.create_variant(refExp10),
                              fixed_point_complex(reference->fpgBn, refExp10));
             fixed_point_complex::add(currentCenter, currentCenter, dc);
 
             dex dcd = static_cast<complex<dex>>(dc).norm_approx();
+            complex<dex> mbScale = complex<dex>::ONE;
 
             if (dcMax < dcd) {
                 vkh::logger::log_err("Center could not be found");
@@ -255,9 +264,8 @@ namespace merutilm::rff2 {
 
             do {
 
-                int32_t dcCurrExp10 = dcd.is_zero() ? doubledExp10 : static_cast<int32_t>(rff_math::log10(dcd));
-                int32_t exp10Decrement = std::max(0, refExp10 - dcCurrExp10);
-                int32_t preferredExp10 = std::max(refExp10 - exp10Decrement * 4, doubledExp10);
+                int32_t aimExp10 = Perturbator::logZoomToExp10(aimLogZoom);
+                int32_t dcCurrExp10 = dcd.is_zero() ? aimExp10 : static_cast<int32_t>(rff_math::log10(dcd));
 
                 prepareRequiredAdditionalPrecisions(requiredAdditionalPrecisions, blockResults);
 
@@ -268,10 +276,9 @@ namespace merutilm::rff2 {
 
                 for (uint32_t i = 0; i < threads; ++i) {
                     threadPool[i] = std::make_unique<std::jthread>(
-                            [&state, &blockResults, &currentCenter, &checkpoints, dcCurrExp10, preferredExp10,
-                             doubledExp10, &requiredAdditionalPrecisions, &partitionPickerMutex, &processedPartition, &fnLocatingMB2] {
+                            [&state, &blockResults, &currentCenter, &checkpoints, dcCurrExp10, refExp10, aimExp10, &requiredAdditionalPrecisions, &partitionPickerMutex, &processedPartition, &fnLocatingMB2] {
                                 processPartitions(state, blockResults, currentCenter, checkpoints, dcCurrExp10,
-                                                  preferredExp10, doubledExp10, requiredAdditionalPrecisions, partitionPickerMutex,
+                                                  refExp10, aimExp10, requiredAdditionalPrecisions, partitionPickerMutex,
                                                   processedPartition, std::forward<FnLocatingMB2>(fnLocatingMB2));
                             });
                 }
@@ -289,24 +296,24 @@ namespace merutilm::rff2 {
                     return std::nullopt;
 
 
-                setExp10(blockResults, currentCenter, checkpoints, dc, temp, tt, ut, doubledExp10);
+                setExp10(blockResults, currentCenter, checkpoints, dc, temp, tt, ut, aimExp10);
                 calculateAmplitudes(fzgAn, fpgBn, tt, ut, blockResults);
-                translateCenter(currentCenter, dc, tt.back(), ut.back(), checkpoints.back().complex, temp);
+                translateCenter(currentCenter, dc, tt.back(), ut.back(), checkpoints.back().z, temp);
                 rebaseCheckpoints(dc, tt, ut, checkpoints, temp);
 
 
+                mbScale = fzgAn * fpgBn;
+                if (mbScale.is_zero()) {
+                    vkh::logger::log_err("minibrot size cannot be measured");
+                    return std::nullopt;
+                }
+                aimLogZoom = static_cast<float>(rff_math::log10(mbScale.norm_approx()));
                 // set dc radius
                 dcd = static_cast<complex<dex>>(dc).norm_approx();
 
             } while (dcd > doubledZoomDcMax);
 
-            const auto scale = fzgAn * fpgBn;
-            if (scale.is_zero()) {
-                vkh::logger::log_err("minibrot size cannot be measured");
-                return std::nullopt;
-            }
-            const auto resultLogZoom =
-                    static_cast<float>(rff_math::log10(scale.norm_approx()) + MINIBROT_LOG_ZOOM_OFFSET);
+            const auto resultLogZoom = aimLogZoom + MINIBROT_LOG_ZOOM_OFFSET;
 
             return MB2LocateResult{std::move(currentCenter), resultLogZoom};
         }

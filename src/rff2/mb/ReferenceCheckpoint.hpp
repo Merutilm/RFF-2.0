@@ -4,9 +4,11 @@
 
 #pragma once
 #include "../calc/fixed_point_complex.hpp"
+
 namespace merutilm::rff2 {
     struct ReferenceCheckpoint {
-        fixed_point_complex complex;
-        uint64_t refIteration;
+        fixed_point_complex z;
+        uint64_t refIteration = 0;
+        complex<dex> fzgAn;
     };
 }
