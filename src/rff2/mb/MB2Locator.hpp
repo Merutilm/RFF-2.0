@@ -19,6 +19,7 @@ namespace merutilm::rff2 {
         fixed_point_complex an;
         fixed_point_complex bn;
         complex<dex> fzgAn;
+        int32_t requiredAdditionalPrecision;
     };
 
     struct MB2Locator {
@@ -59,6 +60,8 @@ namespace merutilm::rff2 {
             fixed_point_complex an(1, 0, exp10);
             fixed_point_complex bn(0, 0, exp10);
 
+            dex fzgAnMaxNorm = dex::ONE;
+
             // An, Bn generation
             for (uint64_t iteration = startIteration; iteration < endIteration; ++iteration) {
 
@@ -69,6 +72,7 @@ namespace merutilm::rff2 {
                 if (iteration > 0) {
                     fixed_point_complex::mul(an, an, z);
                     fixed_point_complex::dbl(an, an);
+                    fzgAnMaxNorm = std::max(fzgAnMaxNorm, static_cast<complex<dex>>(an).norm_approx());
                 }
 
                 fixed_point_complex::mul(bn, bn, z);
@@ -89,7 +93,8 @@ namespace merutilm::rff2 {
         template<FnListeners::FnLocatingMB2 FnLocatingMB2>
         static void processPartitions(const ParallelRenderState &state, std::vector<BlockResult> &blockResults,
                                       const fixed_point_complex &currentCenter,
-                                      const std::vector<ReferenceCheckpoint> &checkpoints, const int32_t dcCurrExp10, const int32_t exp10,
+                                      const std::vector<ReferenceCheckpoint> &checkpoints, const int32_t dcCurrExp10,
+                                      const int32_t preferredExp10, const int32_t doubledExp10, const std::vector<int32_t> &requiredAdditionalPrecisions,
                                       std::mutex &partitionPickerMutex, uint32_t &processedPartition,
                                       FnLocatingMB2 &&fnLocatingMB2) {
             while (true) {
@@ -105,21 +110,26 @@ namespace merutilm::rff2 {
                     fnLocatingMB2(dcCurrExp10, partitionIndex, static_cast<uint32_t>(checkpoints.size() - 1));
                 }
 
-
                 BlockResult &blockResult = blockResults[partitionIndex];
 
+                const int32_t exp10 =
+                        std::max(preferredExp10 - requiredAdditionalPrecisions[partitionIndex] + requiredAdditionalPrecisions[0] -
+                                         Constants::Fractal::EXP10_ADDITION * 2,
+                                 doubledExp10);
                 processPartition(state, blockResult, currentCenter, checkpoints, partitionIndex, exp10);
             }
         }
 
-
-        static void translateCenter(fixed_point_complex & c, fixed_point_complex & dc, const fixed_point_complex & t, const fixed_point_complex &u, const fixed_point_complex &lastCheckpoint, fixed_point_complex & temp) {
+        static void translateCenter(fixed_point_complex &c, fixed_point_complex &dc, const fixed_point_complex &t,
+                                    const fixed_point_complex &u, const fixed_point_complex &lastCheckpoint,
+                                    fixed_point_complex &temp) {
             fixed_point_complex::add(temp, t, lastCheckpoint);
             calcCenterOffset(dc, temp, u);
             fixed_point_complex::add(c, c, dc);
-
         }
-        static void rebaseCheckpoints(const fixed_point_complex & dc, const std::vector<fixed_point_complex> & tt, const std::vector<fixed_point_complex> & ut, std::vector<ReferenceCheckpoint> & checkpoints, fixed_point_complex & temp) {
+        static void rebaseCheckpoints(const fixed_point_complex &dc, const std::vector<fixed_point_complex> &tt,
+                                      const std::vector<fixed_point_complex> &ut,
+                                      std::vector<ReferenceCheckpoint> &checkpoints, fixed_point_complex &temp) {
             for (uint32_t i = 1; i < checkpoints.size(); ++i) {
                 auto &checkpoint = checkpoints[i];
 
@@ -129,15 +139,17 @@ namespace merutilm::rff2 {
             }
         }
 
-        static void calculateAmplitudes(complex<dex> & fzgAn, complex<dex> & fpgBn, std::vector<fixed_point_complex> & tt, std::vector<fixed_point_complex> & ut, const std::vector<BlockResult> & blockResults) {
+        static void calculateAmplitudes(complex<dex> &fzgAn, complex<dex> &fpgBn, std::vector<fixed_point_complex> &tt,
+                                        std::vector<fixed_point_complex> &ut, std::vector<BlockResult> &blockResults) {
             fzgAn = complex<dex>::ONE;
             fixed_point_complex::zero(tt[0]);
             fixed_point_complex::zero(ut[0]);
 
+
             for (uint32_t i = 0; i < blockResults.size(); ++i) {
                 const auto &blockResult = blockResults[i];
-
                 fzgAn = (fzgAn * blockResult.fzgAn).try_normalized_value();
+
 
                 fixed_point_complex::mul(tt[i + 1], tt[i], blockResult.an);
                 fixed_point_complex::add(tt[i + 1], tt[i + 1], blockResult.residual);
@@ -145,12 +157,22 @@ namespace merutilm::rff2 {
                 fixed_point_complex::mul(ut[i + 1], ut[i], blockResult.an);
                 fixed_point_complex::add(ut[i + 1], ut[i + 1], blockResult.bn);
             }
-
             fpgBn = static_cast<complex<dex>>(ut.back());
         }
 
-        static void setExp10( std::vector<BlockResult> &blockResults, fixed_point_complex &currentCenter, std::vector<ReferenceCheckpoint> &checkpoints,
-                             fixed_point_complex &dc, fixed_point_complex &temp, std::vector<fixed_point_complex> &tt,
+        static void prepareRequiredAdditionalPrecisions(std::vector<int32_t> &result, const std::vector<BlockResult> &blockResults) {
+
+            complex<dex> anRevMerged = complex<dex>::ONE;
+            for (auto i = static_cast<uint32_t>(blockResults.size()); i > 0; --i) {
+                anRevMerged *= blockResults[i - 1].fzgAn;
+                anRevMerged = anRevMerged.try_normalized_value();
+                result[i - 1] = static_cast<int32_t>(rff_math::log10(anRevMerged.norm_approx()));
+            }
+        }
+
+        static void setExp10(std::vector<BlockResult> &blockResults, fixed_point_complex &currentCenter,
+                             std::vector<ReferenceCheckpoint> &checkpoints, fixed_point_complex &dc,
+                             fixed_point_complex &temp, std::vector<fixed_point_complex> &tt,
                              std::vector<fixed_point_complex> &ut, const int32_t doubledExp10) {
 
             currentCenter.set_exp10(doubledExp10);
@@ -173,9 +195,8 @@ namespace merutilm::rff2 {
             }
         }
         template<FnListeners::FnLocatingMB2 FnLocatingMB2>
-        static std::optional<MB2LocateResult> locateMinibrot(const ParallelRenderState &state,
-                                                             const MB2RenderDataBase &data,
-                                                             FnLocatingMB2 &&fnLocatingMB2) {
+        static std::optional<MB2LocateResult>
+        locateMinibrot(const ParallelRenderState &state, const MB2RenderDataBase &data, FnLocatingMB2 &&fnLocatingMB2) {
             // multiply zoom by 2 and find center offset.
             // set the center to center + centerOffset.
 
@@ -201,8 +222,10 @@ namespace merutilm::rff2 {
             std::vector blockResults(checkpoints.size() - 1,
                                      BlockResult{.residual = fixed_point_complex(0, 0, refExp10),
                                                  .an = fixed_point_complex(0, 0, refExp10),
-                                                 .bn = fixed_point_complex(0, 0, refExp10)});
+                                                 .bn = fixed_point_complex(0, 0, refExp10),
+                                                 .fzgAn = complex<dex>::ONE});
 
+            std::vector<int32_t> requiredAdditionalPrecisions(checkpoints.size() - 1);
 
 
             const dex dcMax = data.getPerturbator()->dcMax;
@@ -234,7 +257,9 @@ namespace merutilm::rff2 {
 
                 int32_t dcCurrExp10 = dcd.is_zero() ? doubledExp10 : static_cast<int32_t>(rff_math::log10(dcd));
                 int32_t exp10Decrement = std::max(0, refExp10 - dcCurrExp10);
-                int32_t exp10 = std::max(refExp10 - exp10Decrement * 4 - Constants::Fractal::EXP10_ADDITION, doubledExp10);
+                int32_t preferredExp10 = std::max(refExp10 - exp10Decrement * 4, doubledExp10);
+
+                prepareRequiredAdditionalPrecisions(requiredAdditionalPrecisions, blockResults);
 
                 // ReSharper disable once CppTooWideScope
                 std::mutex partitionPickerMutex;
@@ -242,11 +267,13 @@ namespace merutilm::rff2 {
                 uint32_t processedPartition = 0;
 
                 for (uint32_t i = 0; i < threads; ++i) {
-                    threadPool[i] = std::make_unique<std::jthread>([&state, &blockResults, &currentCenter, &checkpoints, dcCurrExp10, exp10, &partitionPickerMutex, &processedPartition,
-                                                                    &fnLocatingMB2] {
-                        processPartitions(state, blockResults, currentCenter, checkpoints, dcCurrExp10, exp10, partitionPickerMutex,
-                                          processedPartition, std::forward<FnLocatingMB2>(fnLocatingMB2));
-                    });
+                    threadPool[i] = std::make_unique<std::jthread>(
+                            [&state, &blockResults, &currentCenter, &checkpoints, dcCurrExp10, preferredExp10,
+                             doubledExp10, &requiredAdditionalPrecisions, &partitionPickerMutex, &processedPartition, &fnLocatingMB2] {
+                                processPartitions(state, blockResults, currentCenter, checkpoints, dcCurrExp10,
+                                                  preferredExp10, doubledExp10, requiredAdditionalPrecisions, partitionPickerMutex,
+                                                  processedPartition, std::forward<FnLocatingMB2>(fnLocatingMB2));
+                            });
                 }
 
                 // wait for complete
@@ -262,7 +289,7 @@ namespace merutilm::rff2 {
                     return std::nullopt;
 
 
-                setExp10(blockResults, currentCenter, checkpoints, dc, temp, tt, ut, exp10);
+                setExp10(blockResults, currentCenter, checkpoints, dc, temp, tt, ut, doubledExp10);
                 calculateAmplitudes(fzgAn, fpgBn, tt, ut, blockResults);
                 translateCenter(currentCenter, dc, tt.back(), ut.back(), checkpoints.back().complex, temp);
                 rebaseCheckpoints(dc, tt, ut, checkpoints, temp);

@@ -13,7 +13,7 @@ namespace merutilm::rff2::Constants::Fractal {
     constexpr float COMPUTESHADER_ZOOM_THRESHOLD = 35;
     constexpr float MULTITHREAD_ZOOM_THRESHOLD = 300;
     constexpr uint16_t GAUSSIAN_MAX_WIDTH = 200;
-    constexpr uint32_t PARTITION_SIZE = 1024;
+    constexpr uint32_t PARTITION_SIZE = 512;
     constexpr double MAX_LOC_LEN = 5;
     constexpr int EXP10_ADDITION = 15;
     constexpr size_t MAX_PALETTE_LEN = 1000000;
