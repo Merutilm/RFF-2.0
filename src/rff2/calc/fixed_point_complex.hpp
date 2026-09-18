@@ -127,7 +127,7 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] bool is_zero() const;
 
-        std::string to_string() const;
+        [[nodiscard]] std::string to_string() const;
     };
 
 
@@ -135,14 +135,14 @@ namespace merutilm::rff2 {
                                                     const int dec_exp10) :
         real(re_str, dec_exp10), imag(im_str, dec_exp10) {
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10);
+            temp.set_exp10(dec_exp10, false);
         }
     }
 
     inline fixed_point_complex::fixed_point_complex(const double re, const double im, const int dec_exp10) :
         real(re, dec_exp10), imag(im, dec_exp10) {
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10);
+            temp.set_exp10(dec_exp10, false);
         }
     }
 
@@ -150,7 +150,7 @@ namespace merutilm::rff2 {
     fixed_point_complex::fixed_point_complex(const exponent<Exp, Mantissa, Bit> re, const exponent<Exp, Mantissa, Bit> im, const int dec_exp10) :
         real(re, dec_exp10), imag(im, dec_exp10) {
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10);
+            temp.set_exp10(dec_exp10, false);
         }
     }
 
@@ -158,7 +158,7 @@ namespace merutilm::rff2 {
     fixed_point_complex::fixed_point_complex(const complex<Num> c, const int dec_exp10) :
         real(c.re, dec_exp10), imag(c.im, dec_exp10) {
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10);
+            temp.set_exp10(dec_exp10, false);
         }
     }
 
@@ -166,7 +166,7 @@ namespace merutilm::rff2 {
                                                     const int dec_exp10) : real(std::move(re)), imag(std::move(im)) {
         set_exp10(dec_exp10);
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10);
+            temp.set_exp10(dec_exp10, false);
         }
     }
 
@@ -378,7 +378,7 @@ namespace merutilm::rff2 {
         imag.set_exp10(dec_exp10);
 
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10);
+            temp.set_exp10(dec_exp10, false);
         }
     }
     inline bool fixed_point_complex::is_zero() const {

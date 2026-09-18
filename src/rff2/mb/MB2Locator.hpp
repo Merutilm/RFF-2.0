@@ -27,7 +27,7 @@ namespace merutilm::rff2 {
 
         static fixed_point_complex calcCenterOffset(const MB2ReferenceBase &reference) {
             const int exp10 = Perturbator::logZoomToExp10(reference.logZoom);
-            fixed_point_complex off(0, 0, exp10);
+            fixed_point_complex off(0.0, 0.0, exp10);
             calcCenterOffset(off, reference.checkpoints.back().z.create_variant(exp10),
                              fixed_point_complex(reference.fpgBn, exp10));
             return off;
@@ -53,14 +53,13 @@ namespace merutilm::rff2 {
 
 
             // clone z
-            const fixed_point_complex one(1.0, 0.0, exp10);
+
             const fixed_point_complex c = currentCenter.create_variant(exp10);
             const fixed_point_complex zExpected = nextCheckpoint.z.create_variant(exp10);
             fixed_point_complex z = currentCheckpoint.z.create_variant(exp10);
             fixed_point_complex an(1, 0, exp10);
             fixed_point_complex bn(0, 0, exp10);
-
-            dex fzgAnMaxNorm = dex::ONE;
+            const fixed_point_complex one(1, 0, exp10);
 
             // An, Bn generation
             for (uint64_t iteration = startIteration; iteration < endIteration; ++iteration) {
@@ -72,7 +71,6 @@ namespace merutilm::rff2 {
                 if (iteration > 0) {
                     fixed_point_complex::mul(an, an, z);
                     fixed_point_complex::dbl(an, an);
-                    fzgAnMaxNorm = std::max(fzgAnMaxNorm, static_cast<complex<dex>>(an).norm_approx());
                 }
 
                 fixed_point_complex::mul(bn, bn, z);
@@ -224,9 +222,9 @@ namespace merutilm::rff2 {
             // copy checkpoints
             std::vector<ReferenceCheckpoint> checkpoints = reference->checkpoints;
             std::vector blockResults(checkpoints.size() - 1,
-                                     BlockResult{.residual = fixed_point_complex(0, 0, refExp10),
-                                                 .an = fixed_point_complex(0, 0, refExp10),
-                                                 .bn = fixed_point_complex(0, 0, refExp10),
+                                     BlockResult{.residual = fixed_point_complex(0.0, 0.0, refExp10),
+                                                 .an = fixed_point_complex(0.0, 0.0, refExp10),
+                                                 .bn = fixed_point_complex(0.0, 0.0, refExp10),
                                                  .fzgAn = complex<dex>::ONE});
 
             for (uint32_t i = 0; i < blockResults.size(); i++) {
@@ -242,13 +240,13 @@ namespace merutilm::rff2 {
             complex<dex> fzgAn = complex<dex>::ONE;
             complex<dex> fpgBn = complex<dex>::ZERO;
 
-            std::vector tt(checkpoints.size(), fixed_point_complex{0, 0, refExp10});
-            std::vector ut(checkpoints.size(), fixed_point_complex{0, 0, refExp10});
+            std::vector tt(checkpoints.size(), fixed_point_complex{0.0, 0.0, refExp10});
+            std::vector ut(checkpoints.size(), fixed_point_complex{0.0, 0.0, refExp10});
 
 
             fixed_point_complex currentCenter = reference->center.create_variant(refExp10);
-            fixed_point_complex dc(0, 0, refExp10);
-            fixed_point_complex temp(0, 0, refExp10);
+            fixed_point_complex dc(0.0, 0.0, refExp10);
+            fixed_point_complex temp(0.0, 0.0, refExp10);
 
             calcCenterOffset(dc, reference->checkpoints.back().z.create_variant(refExp10),
                              fixed_point_complex(reference->fpgBn, refExp10));
