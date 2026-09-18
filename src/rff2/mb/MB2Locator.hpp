@@ -44,8 +44,7 @@ namespace merutilm::rff2 {
                                      const fixed_point_complex &currentCenter,
                                      const std::vector<ReferenceCheckpoint> &checkpoints,
                                      const std::vector<complex<dex>> &amplitudes, const uint32_t partitionIndex,
-                                     const int32_t dcCurrExp10, const int32_t aimExp10, const float bailout,
-                                     const bool burst) {
+                                     const int32_t dcCurrExp10, const int32_t aimExp10, const bool burst) {
 
             const ReferenceCheckpoint &currentCheckpoint = checkpoints[partitionIndex];
             const ReferenceCheckpoint &nextCheckpoint = checkpoints[partitionIndex + 1];
@@ -54,14 +53,14 @@ namespace merutilm::rff2 {
             const uint64_t endIteration = nextCheckpoint.refIteration;
 
 
-
             const int32_t cutDigitCount = getCutDigitCount(amplitudes[partitionIndex]);
             const int32_t srcExp10 = aimExp10 / 2;
             const int32_t exp10Decrement = std::max(1, srcExp10 - dcCurrExp10);
 
             // magic number 3 and 64 is experimental, appropriate value is unknown.
             // magic number 4 in latter is double-step behind newton precision.
-            const int32_t exp10 = burst ? std::max(srcExp10 - exp10Decrement * 3 + cutDigitCount - 64, aimExp10) : std::max(srcExp10 - exp10Decrement * 4, aimExp10);
+            const int32_t exp10 = burst ? std::max(srcExp10 - exp10Decrement * 3 + cutDigitCount - 64, aimExp10)
+                                        : std::max(srcExp10 - exp10Decrement * 4, aimExp10);
 
             fixed_point_complex z = currentCheckpoint.z.create_variant(exp10);
             fixed_point_complex an(1, 0, exp10);
@@ -70,6 +69,7 @@ namespace merutilm::rff2 {
             fixed_point_complex one(1, 0, exp10);
 
             int32_t currentExp10 = exp10;
+            int32_t prevExp2div64 = 0;
 
             // An, Bn generation
             for (uint64_t iteration = startIteration; iteration < endIteration; ++iteration) {
@@ -95,21 +95,18 @@ namespace merutilm::rff2 {
                 if (burst) {
                     const int32_t cutDigit = getCutDigitCount(static_cast<complex<dex>>(an));
                     currentExp10 = std::min(-1, exp10 + cutDigit);
-                    z.set_exp10(currentExp10);
-                    c = currentCenter;
-                    c.set_exp10(currentExp10);
-                    an.set_exp10(currentExp10);
-                    bn.set_exp10(currentExp10);
-                    one.set_exp10(currentExp10);
-                }
+                    const int32_t exp2div64 = fixed_point_decimal::exp10_to_exp2div64(currentExp10);
 
-#ifndef NDEBUG
-                auto z0 = static_cast<complex<dex>>(z);
-                if (z0.norm_sqr() > dex(bailout * bailout)) {
-                    throw vkh::exception_invalid_state(std::format("Z {} escaped", z0.to_string()));
+                    if (exp2div64 != prevExp2div64) {
+                        z.set_exp10(currentExp10);
+                        c = currentCenter;
+                        c.set_exp10(currentExp10);
+                        an.set_exp10(currentExp10);
+                        bn.set_exp10(currentExp10);
+                        one.set_exp10(currentExp10);
+                        prevExp2div64 = exp2div64;
+                    }
                 }
-#endif
-
             }
 
 
@@ -125,7 +122,7 @@ namespace merutilm::rff2 {
         static void processPartitions(const ParallelRenderState &state, std::vector<BlockResult> &blockResults,
                                       const fixed_point_complex &currentCenter,
                                       const std::vector<ReferenceCheckpoint> &checkpoints, const int32_t dcCurrExp10,
-                                      const int32_t aimExp10, const float bailout, const bool burst,
+                                      const int32_t aimExp10, const bool burst,
                                       const std::vector<complex<dex>> &amplitudes, std::mutex &partitionPickerMutex,
                                       uint32_t &processedPartition, FnLocatingMB2 &&fnLocatingMB2) {
             while (true) {
@@ -144,7 +141,7 @@ namespace merutilm::rff2 {
                 BlockResult &blockResult = blockResults[partitionIndex];
 
                 processPartition(state, blockResult, currentCenter, checkpoints, amplitudes, partitionIndex,
-                                 dcCurrExp10, aimExp10, bailout, burst);
+                                 dcCurrExp10, aimExp10, burst);
             }
         }
 
@@ -189,10 +186,9 @@ namespace merutilm::rff2 {
             fpgBn = static_cast<complex<dex>>(ut.back());
         }
 
-        static int32_t getCutDigitCount(const complex<dex> &an) {
-            return static_cast<int32_t>(rff_math::log10(an.norm_approx()));
-        }
-        static void prepareApproxAmplitudes(std::vector<complex<dex>> &amplitudes, const std::vector<BlockResult> &blockResults) {
+        static int32_t getCutDigitCount(const complex<dex> &an) { return rff_math::log10Approx(an.norm_approx()); }
+        static void prepareApproxAmplitudes(std::vector<complex<dex>> &amplitudes,
+                                            const std::vector<BlockResult> &blockResults) {
 
             complex<dex> an = complex<dex>::ONE;
             for (uint32_t i = 0; i < static_cast<uint32_t>(blockResults.size()); ++i) {
@@ -226,7 +222,7 @@ namespace merutilm::rff2 {
                 blockResult.residual.set_exp10(doubledExp10);
             }
         }
-        static bool checkAndUpdateHistory(std::array<int32_t, 10> & exp10History, const int32_t dcCurrExp10,
+        static bool checkAndUpdateHistory(std::array<int32_t, 10> &exp10History, const int32_t dcCurrExp10,
                                           const bool burst) {
             for (uint32_t i = 1; i < static_cast<uint32_t>(exp10History.size()); ++i) {
                 exp10History[i - 1] = exp10History[i];
@@ -234,18 +230,21 @@ namespace merutilm::rff2 {
             exp10History.back() = dcCurrExp10;
             if (exp10History.front() - dcCurrExp10 <= 1) {
                 if (burst) {
-                    vkh::logger::log_err("Failed to locate minibrot using 'Burst-locate'. Please uncheck the “Use Burst-locate” box and try again.");
+                    vkh::logger::log_err("Failed to locate minibrot using 'Burst-locate'. Please uncheck the “Use "
+                                         "Burst-locate” box and try again.");
                     return false;
-                }else {
-                    vkh::logger::log_err("Failed to locate minibrot. it might be a bug! please report this issue to developer.");
+                } else {
+                    vkh::logger::log_err(
+                            "Failed to locate minibrot. it might be a bug! please report this issue to developer.");
                     return false;
                 }
             }
             return true;
         }
         template<FnListeners::FnLocatingMB2 FnLocatingMB2>
-        static std::optional<MB2LocateResult>
-        locateMinibrot(const ParallelRenderState &state, const MB2RenderDataBase &data, FnLocatingMB2 &&fnLocatingMB2, bool burst) {
+        static std::optional<MB2LocateResult> locateMinibrot(const ParallelRenderState &state,
+                                                             const MB2RenderDataBase &data,
+                                                             FnLocatingMB2 &&fnLocatingMB2, bool burst) {
             // multiply zoom by 2 and find center offset.
             // set the center to center + centerOffset.
 
@@ -310,8 +309,8 @@ namespace merutilm::rff2 {
 
             do {
 
-                int32_t dcCurrExp10 = dcd.is_zero() ? aimExp10 : static_cast<int32_t>(rff_math::log10(dcd));
-                if (!checkAndUpdateHistory(exp10History, dcCurrExp10,  burst)) {
+                int32_t dcCurrExp10 = dcd.is_zero() ? aimExp10 : rff_math::log10Approx(dcd);
+                if (!checkAndUpdateHistory(exp10History, dcCurrExp10, burst)) {
                     return std::nullopt;
                 }
 
@@ -324,11 +323,11 @@ namespace merutilm::rff2 {
 
                 for (uint32_t i = 0; i < threads; ++i) {
                     threadPool[i] = std::make_unique<std::jthread>(
-                            [&state, &blockResults, &currentCenter, &checkpoints, dcCurrExp10, &reference, aimExp10, burst, &approxAmplitudes, &partitionPickerMutex, &processedPartition, &fnLocatingMB2] {
-                                processPartitions(state, blockResults, currentCenter, checkpoints, dcCurrExp10, aimExp10,
-                                          reference->generalSettings.bailout, burst, approxAmplitudes,
-                                          partitionPickerMutex, processedPartition,
-                                          std::forward<FnLocatingMB2>(fnLocatingMB2));
+                            [&state, &blockResults, &currentCenter, &checkpoints, dcCurrExp10, aimExp10, burst,
+                             &approxAmplitudes, &partitionPickerMutex, &processedPartition, &fnLocatingMB2] {
+                                processPartitions(state, blockResults, currentCenter, checkpoints, dcCurrExp10,
+                                                  aimExp10, burst, approxAmplitudes, partitionPickerMutex,
+                                                  processedPartition, std::forward<FnLocatingMB2>(fnLocatingMB2));
                             });
                 }
 
@@ -358,11 +357,11 @@ namespace merutilm::rff2 {
                 }
 
                 aimLogZoom = static_cast<float>(rff_math::log10(mbScale.norm_approx()));
-                aimExp10 = Perturbator::logZoomToExp10(aimLogZoom);
+                aimExp10 = Perturbator::logZoomToExp10(aimLogZoom + MINIBROT_LOG_ZOOM_OFFSET);
+
                 dcd = static_cast<complex<dex>>(dc).norm_approx();
 
-
-            } while (rff_math::log10(dcd) > aimExp10);
+            } while (rff_math::log10(dcd) > -aimLogZoom);
 
             const auto resultLogZoom = aimLogZoom + MINIBROT_LOG_ZOOM_OFFSET;
 
