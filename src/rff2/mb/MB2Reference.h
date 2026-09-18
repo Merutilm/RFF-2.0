@@ -68,15 +68,9 @@ namespace merutilm::rff2 {
 
         static void appendCandidatePeriod(std::vector<uint64_t> &periodArray, Num &minZRadius, uint64_t period, Num radius2);
 
-        template<typename F>
-            requires std::is_invocable_r_v<void, F, uint64_t>
-        static void applyFormula(fixed_point_complex &z, const fixed_point_complex &c, F &&stepFunc,
-                                 op_thread_pool *sqrTp, const uint64_t invoker) {
-            stepFunc(invoker);
-
-            fixed_point_complex::sqr(z, z, sqrTp);
-            fixed_point_complex::add(z, z, c);
-        }
+        template<FnListeners::FnRefCalc FnRefCalc>
+        static void applyFormula(fixed_point_complex &z, const fixed_point_complex &c, FnRefCalc &&fnRefCalc,
+                                 op_thread_pool *sqrTp, uint64_t invoker);
 
         template<FnListeners::FnRefCalc FnRefCalc>
         static CreationResult
@@ -199,6 +193,15 @@ namespace merutilm::rff2 {
             minZRadius = radius2;
             periodArray.push_back(period);
         }
+    }
+    template<Number Num>
+    template<FnListeners::FnRefCalc FnRefCalc>
+    void MB2Reference<Num>::applyFormula(fixed_point_complex &z, const fixed_point_complex &c, FnRefCalc &&fnRefCalc,
+                                         op_thread_pool *sqrTp, const uint64_t invoker) {
+        fnRefCalc(invoker);
+
+        fixed_point_complex::sqr(z, z, sqrTp);
+        fixed_point_complex::add(z, z, c);
     }
 
     template<Number Num>
