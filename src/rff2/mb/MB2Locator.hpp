@@ -22,6 +22,12 @@ namespace merutilm::rff2 {
         int32_t requiredAdditionalPrecision;
     };
 
+    enum class PartitionStatus : uint8_t {
+        SUCCESS,
+        INTERRUPTED,
+        ERROR_BURST_Z_ESCAPED
+    };
+
     struct MB2Locator {
         static constexpr float MINIBROT_LOG_ZOOM_OFFSET = 2.f;
 
@@ -40,11 +46,11 @@ namespace merutilm::rff2 {
         }
 
 
-        static void processPartition(const ParallelRenderState &state, BlockResult &blockResult,
-                                     const fixed_point_complex &currentCenter,
-                                     const std::vector<ReferenceCheckpoint> &checkpoints,
-                                     const std::vector<complex<dex>> &amplitudes, const uint32_t partitionIndex,
-                                     const int32_t dcCurrExp10, const int32_t aimExp10, const bool burst) {
+        static PartitionStatus processPartition(const ParallelRenderState &state, BlockResult &blockResult,
+                                        const fixed_point_complex &currentCenter,
+                                        const std::vector<ReferenceCheckpoint> &checkpoints,
+                                        const std::vector<complex<dex>> &amplitudes, const uint32_t partitionIndex,
+                                        const int32_t dcCurrExp10, const int32_t aimExp10, const bool burst) {
 
             const ReferenceCheckpoint &currentCheckpoint = checkpoints[partitionIndex];
             const ReferenceCheckpoint &nextCheckpoint = checkpoints[partitionIndex + 1];
@@ -76,7 +82,7 @@ namespace merutilm::rff2 {
 
                 if (state.interruptRequested() &&
                     iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL)
-                    return;
+                    return PartitionStatus::INTERRUPTED;
 
                 if (iteration > 0) {
                     fixed_point_complex::mul(an, an, z);
@@ -90,9 +96,15 @@ namespace merutilm::rff2 {
                 fixed_point_complex::sqr(z, z);
                 fixed_point_complex::add(z, z, c);
 
+
                 // the code below is currently not working for specific location, i dont know why
 
                 if (burst) {
+
+                    if (static_cast<complex<dex>>(z).norm_approx() > dex(1e8)) {
+                        return PartitionStatus::ERROR_BURST_Z_ESCAPED;
+                    }
+
                     const int32_t cutDigit = getCutDigitCount(static_cast<complex<dex>>(an));
                     currentExp10 = std::min(-1, exp10 + cutDigit);
                     const int32_t exp2div64 = fixed_point_decimal::exp10_to_exp2div64(currentExp10);
@@ -116,15 +128,16 @@ namespace merutilm::rff2 {
             blockResult.fzgAn = static_cast<complex<dex>>(an);
             blockResult.an = std::move(an);
             blockResult.bn = std::move(bn);
+            return PartitionStatus::SUCCESS;
         }
 
         template<FnListeners::FnLocatingMB2 FnLocatingMB2>
-        static void processPartitions(const ParallelRenderState &state, std::vector<BlockResult> &blockResults,
-                                      const fixed_point_complex &currentCenter,
-                                      const std::vector<ReferenceCheckpoint> &checkpoints, const int32_t dcCurrExp10,
-                                      const int32_t aimExp10, const bool burst,
-                                      const std::vector<complex<dex>> &amplitudes, std::mutex &partitionPickerMutex,
-                                      uint32_t &processedPartition, FnLocatingMB2 &&fnLocatingMB2) {
+        static PartitionStatus processPartitions(const ParallelRenderState &state, std::vector<BlockResult> &blockResults,
+                                         const fixed_point_complex &currentCenter,
+                                         const std::vector<ReferenceCheckpoint> &checkpoints, const int32_t dcCurrExp10,
+                                         const int32_t aimExp10, const bool burst,
+                                         const std::vector<complex<dex>> &amplitudes, std::mutex &partitionPickerMutex,
+                                         uint32_t &processedPartition, FnLocatingMB2 &&fnLocatingMB2) {
             while (true) {
                 uint32_t partitionIndex = 0;
                 {
@@ -132,7 +145,7 @@ namespace merutilm::rff2 {
                     partitionIndex = processedPartition++;
 
                     if (partitionIndex >= checkpoints.size() - 1) {
-                        return;
+                        return PartitionStatus::SUCCESS;
                     }
 
                     fnLocatingMB2(dcCurrExp10, partitionIndex, static_cast<uint32_t>(checkpoints.size() - 1));
@@ -140,8 +153,11 @@ namespace merutilm::rff2 {
 
                 BlockResult &blockResult = blockResults[partitionIndex];
 
-                processPartition(state, blockResult, currentCenter, checkpoints, amplitudes, partitionIndex,
-                                 dcCurrExp10, aimExp10, burst);
+                const PartitionStatus result = processPartition(state, blockResult, currentCenter, checkpoints, amplitudes,
+                                                        partitionIndex, dcCurrExp10, aimExp10, burst);
+
+                if (result != PartitionStatus::SUCCESS)
+                    return result;
             }
         }
 
@@ -228,7 +244,7 @@ namespace merutilm::rff2 {
                 exp10History[i - 1] = exp10History[i];
             }
             exp10History.back() = dcCurrExp10;
-            if (exp10History.front() - dcCurrExp10 <= 1) {
+            if (exp10History.front() - dcCurrExp10 <= 1 || dcCurrExp10 - exp10History[exp10History.size() - 2] > 10) {
                 if (burst) {
                     vkh::logger::log_err("Failed to locate minibrot using 'Burst-locate'. Please uncheck the “Use "
                                          "Burst-locate” box and try again.");
@@ -259,7 +275,7 @@ namespace merutilm::rff2 {
             const float logZoom = data.fractalSettings.general.logZoom;
             const int32_t refExp10 = Perturbator::logZoomToExp10(logZoom);
             float aimLogZoom = logZoom * 2;
-            int32_t aimExp10 = Perturbator::logZoomToExp10(aimLogZoom);
+            int32_t aimExp10 = Perturbator::logZoomToExp10(aimLogZoom + MINIBROT_LOG_ZOOM_OFFSET);
 
             const uint32_t threads = data.fractalSettings.general.threads;
             std::vector<std::unique_ptr<std::jthread>> threadPool;
@@ -278,6 +294,7 @@ namespace merutilm::rff2 {
             }
 
             std::vector<complex<dex>> approxAmplitudes(checkpoints.size() - 1);
+            std::vector<PartitionStatus> status(threads);
 
 
             const dex dcMax = data.getPerturbator()->dcMax;
@@ -321,14 +338,16 @@ namespace merutilm::rff2 {
                 // ReSharper disable once CppTooWideScope
                 uint32_t processedPartition = 0;
 
+
                 for (uint32_t i = 0; i < threads; ++i) {
-                    threadPool[i] = std::make_unique<std::jthread>(
-                            [&state, &blockResults, &currentCenter, &checkpoints, dcCurrExp10, aimExp10, burst,
-                             &approxAmplitudes, &partitionPickerMutex, &processedPartition, &fnLocatingMB2] {
-                                processPartitions(state, blockResults, currentCenter, checkpoints, dcCurrExp10,
-                                                  aimExp10, burst, approxAmplitudes, partitionPickerMutex,
-                                                  processedPartition, std::forward<FnLocatingMB2>(fnLocatingMB2));
-                            });
+                    threadPool[i] = std::make_unique<std::jthread>([&state, &blockResults, &currentCenter, &checkpoints,
+                                                                    dcCurrExp10, aimExp10, burst, &approxAmplitudes,
+                                                                    &partitionPickerMutex, &processedPartition,
+                                                                    &status, &fnLocatingMB2, i] {
+                        status[i] = processPartitions(state, blockResults, currentCenter, checkpoints, dcCurrExp10,
+                                                       aimExp10, burst, approxAmplitudes, partitionPickerMutex,
+                                                       processedPartition, std::forward<FnLocatingMB2>(fnLocatingMB2));
+                    });
                 }
 
                 // wait for complete
@@ -343,6 +362,13 @@ namespace merutilm::rff2 {
                 if (state.interruptRequested())
                     return std::nullopt;
 
+
+                for (auto s: status) {
+                    if (s != PartitionStatus::SUCCESS) {
+                        vkh::logger::log_err("Locate minibrot failed with status code : {}", static_cast<uint8_t>(s));
+                        return std::nullopt;
+                    }
+                }
 
                 setExp10(blockResults, currentCenter, checkpoints, dc, temp, tt, ut, aimExp10);
                 calculateAmplitudes(fzgAn, fpgBn, tt, ut, blockResults);
