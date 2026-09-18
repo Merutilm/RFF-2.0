@@ -92,7 +92,7 @@ namespace merutilm::rff2 {
         static void processPartitions(const ParallelRenderState &state, std::vector<BlockResult> &blockResults,
                                       const fixed_point_complex &currentCenter,
                                       const std::vector<ReferenceCheckpoint> &checkpoints, const int32_t dcCurrExp10,
-                                      const int32_t refExp10, const int32_t aimExp10, const std::vector<int32_t> &requiredAdditionalPrecisions,
+                                      const int32_t refExp10, const int32_t aimExp10, const std::vector<int32_t> &cutDigitCounts,
                                       std::mutex &partitionPickerMutex, uint32_t &processedPartition,
                                       FnLocatingMB2 &&fnLocatingMB2) {
             while (true) {
@@ -116,7 +116,7 @@ namespace merutilm::rff2 {
                 // ??? Why does it work ???
                 // magic number 3 and 64, appropriate value is unknown.
                 const int32_t exp10 =
-                        std::max(-exp10Decrement * 3 - requiredAdditionalPrecisions[partitionIndex] - 64,
+                        std::max(refExp10 - exp10Decrement * 3 + cutDigitCounts[partitionIndex] - 64,
                                  aimExp10);
                 processPartition(state, blockResult, currentCenter, checkpoints, partitionIndex, exp10);
             }
@@ -163,13 +163,13 @@ namespace merutilm::rff2 {
             fpgBn = static_cast<complex<dex>>(ut.back());
         }
 
-        static void prepareRequiredAdditionalPrecisions(std::vector<int32_t> &result, const std::vector<BlockResult> &blockResults) {
+        static void prepareCutDigitCounts(std::vector<int32_t> &result, const std::vector<BlockResult> &blockResults) {
 
             complex<dex> anRevMerged = complex<dex>::ONE;
-            for (auto i = static_cast<uint32_t>(blockResults.size()); i > 0; --i) {
-                anRevMerged *= blockResults[i - 1].fzgAn;
+            for (uint32_t i = 0; i < static_cast<uint32_t>(blockResults.size()); ++i) {
+                result[i] = static_cast<int32_t>(rff_math::log10(anRevMerged.norm_approx()));
+                anRevMerged *= blockResults[i].fzgAn;
                 anRevMerged = anRevMerged.try_normalized_value();
-                result[i - 1] = static_cast<int32_t>(rff_math::log10(anRevMerged.norm_approx()));
             }
         }
 
@@ -214,6 +214,7 @@ namespace merutilm::rff2 {
             const float logZoom = data.fractalSettings.general.logZoom;
             const int32_t refExp10 = Perturbator::logZoomToExp10(logZoom);
             float aimLogZoom = logZoom * 2;
+            int32_t aimExp10 = Perturbator::logZoomToExp10(aimLogZoom);
 
             const uint32_t threads = data.fractalSettings.general.threads;
             std::vector<std::unique_ptr<std::jthread>> threadPool;
@@ -231,11 +232,10 @@ namespace merutilm::rff2 {
                 blockResults[i].fzgAn = checkpoints[i + 1].fzgAn;
             }
 
-            std::vector<int32_t> requiredAdditionalPrecisions(checkpoints.size() - 1);
+            std::vector<int32_t> cutDigitCounts(checkpoints.size() - 1);
 
 
             const dex dcMax = data.getPerturbator()->dcMax;
-            const dex doubledZoomDcMax = dcMax * dcMax;
 
             complex<dex> fzgAn = complex<dex>::ONE;
             complex<dex> fpgBn = complex<dex>::ZERO;
@@ -262,10 +262,9 @@ namespace merutilm::rff2 {
 
             do {
 
-                int32_t aimExp10 = Perturbator::logZoomToExp10(aimLogZoom);
                 int32_t dcCurrExp10 = dcd.is_zero() ? aimExp10 : static_cast<int32_t>(rff_math::log10(dcd));
 
-                prepareRequiredAdditionalPrecisions(requiredAdditionalPrecisions, blockResults);
+                prepareCutDigitCounts(cutDigitCounts, blockResults);
 
                 // ReSharper disable once CppTooWideScope
                 std::mutex partitionPickerMutex;
@@ -274,9 +273,9 @@ namespace merutilm::rff2 {
 
                 for (uint32_t i = 0; i < threads; ++i) {
                     threadPool[i] = std::make_unique<std::jthread>(
-                            [&state, &blockResults, &currentCenter, &checkpoints, dcCurrExp10, refExp10, aimExp10, &requiredAdditionalPrecisions, &partitionPickerMutex, &processedPartition, &fnLocatingMB2] {
+                            [&state, &blockResults, &currentCenter, &checkpoints, dcCurrExp10, refExp10, aimExp10, &cutDigitCounts, &partitionPickerMutex, &processedPartition, &fnLocatingMB2] {
                                 processPartitions(state, blockResults, currentCenter, checkpoints, dcCurrExp10,
-                                                  refExp10, aimExp10, requiredAdditionalPrecisions, partitionPickerMutex,
+                                                  refExp10, aimExp10, cutDigitCounts, partitionPickerMutex,
                                                   processedPartition, std::forward<FnLocatingMB2>(fnLocatingMB2));
                             });
                 }
@@ -305,11 +304,12 @@ namespace merutilm::rff2 {
                     vkh::logger::log_err("minibrot size cannot be measured");
                     return std::nullopt;
                 }
+
                 aimLogZoom = static_cast<float>(rff_math::log10(mbScale.norm_approx()));
-                // set dc radius
+                aimExp10 = Perturbator::logZoomToExp10(aimLogZoom);
                 dcd = static_cast<complex<dex>>(dc).norm_approx();
 
-            } while (dcd > doubledZoomDcMax);
+            } while (rff_math::log10(dcd) > aimExp10);
 
             const auto resultLogZoom = aimLogZoom + MINIBROT_LOG_ZOOM_OFFSET;
 
