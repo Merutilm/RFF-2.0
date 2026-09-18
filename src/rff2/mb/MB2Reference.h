@@ -90,17 +90,7 @@ namespace merutilm::rff2 {
             if (radius2 < refSyncRadius2 || intervalCounter % refSyncInterval == 0) {
                 z0 = static_cast<complex<Num>>(z);
             } else {
-
                 z0 = next.try_normalized_value();
-
-                // if constexpr(std::is_same_v<Num, double>) {
-                //     complex<Num> z2 = static_cast<complex<Num>>(z);
-                //
-                //     // if (z0.re/z2.re <0.99 || z0.re/z2.re >1.01 || z0.im/z2.im <0.99 || z0.im/z2.im >1.01) {
-                //         std::cout << intervalCounter % refSyncInterval << " | " << z0.re - z2.re  << " " << z0.im -
-                //         z2.im << "i" << std::endl;
-                //     // }
-                // }
             }
         }
     }
@@ -125,7 +115,8 @@ namespace merutilm::rff2 {
         std::vector<ReferenceCheckpoint> checkpoints{};
         checkpoints.reserve(generalSettings.threads + 1);
 
-        fixed_point_complex c = refSettings.center.create_variant(exp10);
+        fixed_point_complex cOrig = refSettings.center.create_variant(exp10);
+        fixed_point_complex c = cOrig;
 
 
         auto z = fixed_point_complex(0.0, 0.0, exp10);
@@ -135,6 +126,7 @@ namespace merutilm::rff2 {
         op_thread_pool *sqrTp = refSettings.useParallelRefCalculation ? &parallelReferenceThreadPoolForRef : nullptr;
 
         auto fzgAn = complex<Num>::ONE;
+        auto fzgAnPartition = fzgAn;
         auto fpgBn = complex<Num>::ZERO;
 
         auto z0 = complex<Num>::ZERO;
@@ -156,6 +148,7 @@ namespace merutilm::rff2 {
         Num refSyncRadius2 = Num(pow(10, -refSyncRadiusPower * 2));
 
         uint64_t period = 0;
+        int32_t prevExp2div64 = 0;
 
         for (period = 0; z0.norm_sqr() < bailoutSqr; ++period) {
             if (state.interruptRequested()) {
@@ -179,6 +172,7 @@ namespace merutilm::rff2 {
 
             if (period > 0) {
                 fzgAn = (fzgAn * z0 * Num(2)).try_normalized_value();
+                fzgAnPartition = (fzgAnPartition * z0 * Num(2)).try_normalized_value();
             }
 
             if (period > 0 && minZRadius > radius2) {
@@ -187,8 +181,17 @@ namespace merutilm::rff2 {
             }
 
             if (period % Constants::Fractal::PARTITION_SIZE == 0) {
-                checkpoints.emplace_back(z, period, static_cast<complex<dex>>(fzgAn));
-                fzgAn = complex<Num>::ONE;
+                checkpoints.emplace_back(z, period, static_cast<complex<dex>>(fzgAnPartition));
+                fzgAnPartition = complex<Num>::ONE;
+            }
+
+            const int32_t currentExp10 = std::min(-1, exp10 + static_cast<int>(rff_math::log10Approx(fzgAn.norm_approx())));
+            const int32_t exp2div64 = fixed_point_decimal::exp10_to_exp2div64(currentExp10);
+            if (prevExp2div64 != exp2div64) {
+                z.set_exp10(currentExp10);
+                c = cOrig;
+                c.set_exp10(currentExp10);
+                prevExp2div64 = exp2div64;
             }
 
             applyFormula(z, c, fnRefCalc, sqrTp, period);
@@ -227,9 +230,9 @@ namespace merutilm::rff2 {
         }
 
         periodArray.push_back(period);
-        checkpoints.emplace_back(z, period, static_cast<complex<dex>>(fzgAn));
+        checkpoints.emplace_back(z, period, static_cast<complex<dex>>(fzgAnPartition));
 
-        *result = std::make_unique<MB2Reference>(generalSettings, refSettings, std::move(c), std::move(tools),
+        *result = std::make_unique<MB2Reference>(generalSettings, refSettings, std::move(cOrig), std::move(tools),
                                                  std::move(periodArray), std::move(checkpoints),
                                                  static_cast<complex<dex>>(fpgBn), generalSettings.logZoom, dcMax);
         (*result)->refOrbit = std::move(ref);

@@ -122,13 +122,13 @@ namespace merutilm::rff2 {
 
         void moveCursorToCenter() const;
 
-        void beforeIterationFill(Settings &s) const;
+        void beforeIterationFill(const Settings &s) const;
 
         static void matchSettingsBeforeCreatingRenderData(Settings &s);
 
         void matchSettingsAfterCreatingRenderData(Settings &s) const;
 
-        bool prepareRenderData(float startTime, Settings &s);
+        bool prepareRenderData(float startTime, const Settings &s);
 
 
         template<Number Num, Number Other>

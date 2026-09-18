@@ -72,6 +72,7 @@ add_executable(
         include/vulkan_helper/engine/wrapped/DescriptorTemplateManager.hpp
         src/rff2/mb/ReferenceCheckpoint.hpp
         src/rff2/app/FnListeners.hpp
+        src/rff2/calc/rff_random.hpp
 )
 
 target_compile_options(RFF PRIVATE

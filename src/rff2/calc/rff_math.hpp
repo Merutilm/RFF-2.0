@@ -4,19 +4,12 @@
 
 #pragma once
 #include <cmath>
-#include <random>
 
 #include <numbers>
 #include "exponent.hpp"
 #include "templates.hpp"
 
 namespace merutilm::rff2::rff_math {
-
-    inline auto rd = std::random_device();
-    inline auto gen = std::mt19937(rd());
-    inline auto urd_i = std::uniform_int_distribution(0, 255);
-    inline auto urd_f = std::uniform_real_distribution(0.0f, 1.0f);
-    inline auto urd_d = std::uniform_real_distribution(0.0, 1.0);
 
 
     template<typename Tp>
@@ -124,14 +117,15 @@ namespace merutilm::rff2::rff_math {
         }
     }
 
-    inline double log10(const dex v) {
+    template<Number Num>
+    double log10(const Num v) {
         // log10(v)
         // = w_log(v) / w_log(10)
 #ifndef __FINITE_MATH_ONLY__
-        if (v.sgn() == -1) {
+        if (v < 0) {
             return NAN;
         }
-        if (v.is_zero()) {
+        if (is_zero(v)) {
             return -INFINITY;
         }
 #endif
@@ -139,8 +133,18 @@ namespace merutilm::rff2::rff_math {
     }
 
 
-    inline int random_i() { return urd_i(gen); }
-    inline float random_f() { return urd_f(gen); }
+    template<Number Num>
+    int32_t log10Approx(const Num v) {
+        if constexpr (is_prim<Num>) {
+            const auto bits = std::bit_cast<uint64_t>(static_cast<double>(v));
+            const auto rawExp = static_cast<int32_t>((bits >> 52u) & 0x07ffu);
+            return static_cast<int32_t>(static_cast<double>(rawExp - 1023) / std::numbers::ln10 * std::numbers::ln2);
+        } else {
+            static_assert(is_exponent<Num>);
+            const auto bits = std::bit_cast<uint64_t>(static_cast<double>(v.mantissa));
+            const auto rawExp = static_cast<int32_t>((bits >> 52u) & 0x07ffu);
+            return static_cast<int32_t>(static_cast<double>(rawExp - 1023 + v.exp2) / std::numbers::ln10 * std::numbers::ln2);
+        }
+    }
 
-    inline double random_d() { return urd_f(gen); };
 } // namespace merutilm::rff2::rff_math

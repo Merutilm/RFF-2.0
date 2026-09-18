@@ -377,9 +377,9 @@ namespace merutilm::rff2 {
         const int new_exp2div64 = exp10_to_exp2div64(dec_exp10);
         if (preserveLimbs) {
             if (exp2div64 < new_exp2div64) {
-                mpz_div_2exp(data, data, static_cast<uint32_t>(new_exp2div64 - exp2div64) << 6u);
+                mpz_div_2exp(data, data, static_cast<uint32_t>(new_exp2div64 - exp2div64) * 64);
             } else if (exp2div64 > new_exp2div64) {
-                mpz_mul_2exp(data, data, static_cast<uint32_t>(exp2div64 - new_exp2div64) << 6u);
+                mpz_mul_2exp(data, data, static_cast<uint32_t>(exp2div64 - new_exp2div64) * 64);
             }
         }
         exp2div64 = new_exp2div64;

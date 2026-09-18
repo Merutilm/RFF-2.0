@@ -6,5 +6,6 @@
 namespace merutilm::rff2 {
     struct ExploreSettings {
         bool autoMoveCursorToCenter;
+        bool useBurstLocating;
     };
 }

@@ -5,6 +5,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include "../calc/rff_math.hpp"
+#include "../calc/rff_random.hpp"
 
 namespace merutilm::rff2 {
     struct ColorUtils {
@@ -22,7 +23,7 @@ namespace merutilm::rff2 {
     };
 
     inline glm::vec4 ColorUtils::random() {
-        return glm::vec4{rff_math::random_f(), rff_math::random_f(), rff_math::random_f(), 1};
+        return glm::vec4{rff_random::random_f(), rff_random::random_f(), rff_random::random_f(), 1};
     }
 
     template<typename F> requires std::is_invocable_r_v<float, F, float>

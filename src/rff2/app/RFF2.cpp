@@ -120,27 +120,27 @@ namespace merutilm::rff2 {
                                                                          const uint64_t refInitialCapacity) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
-                return std::make_unique<FexMB2RenderData>(
-                        engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
-                        refInitialCapacity, getFnRefCalc(startTime), getFnSeriesApprox(startTime),
-                        getFnCreatingTable(startTime));
+                return std::make_unique<FexMB2RenderData>(engine->getCore(), state, frt, computeShader,
+                                                          approxTableCache, dcMax, exp10, refInitialCapacity,
+                                                          getFnRefCalc(startTime), getFnSeriesApprox(startTime),
+                                                          getFnCreatingTable(startTime));
             } else {
-                return std::make_unique<FloatMB2RenderData>(
-                        engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
-                        refInitialCapacity, getFnRefCalc(startTime), getFnSeriesApprox(startTime),
-                        getFnCreatingTable(startTime));
+                return std::make_unique<FloatMB2RenderData>(engine->getCore(), state, frt, computeShader,
+                                                            approxTableCache, dcMax, exp10, refInitialCapacity,
+                                                            getFnRefCalc(startTime), getFnSeriesApprox(startTime),
+                                                            getFnCreatingTable(startTime));
             }
         } else {
             if (logZoomTest > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
-                return std::make_unique<DexMB2RenderData>(
-                        engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
-                        refInitialCapacity, getFnRefCalc(startTime), getFnSeriesApprox(startTime),
-                        getFnCreatingTable(startTime));
+                return std::make_unique<DexMB2RenderData>(engine->getCore(), state, frt, computeShader,
+                                                          approxTableCache, dcMax, exp10, refInitialCapacity,
+                                                          getFnRefCalc(startTime), getFnSeriesApprox(startTime),
+                                                          getFnCreatingTable(startTime));
             } else {
-                return std::make_unique<DoubleMB2RenderData>(
-                        engine->getCore(), state, frt, computeShader, approxTableCache, dcMax, exp10,
-                        refInitialCapacity, getFnRefCalc(startTime), getFnSeriesApprox(startTime),
-                        getFnCreatingTable(startTime));
+                return std::make_unique<DoubleMB2RenderData>(engine->getCore(), state, frt, computeShader,
+                                                             approxTableCache, dcMax, exp10, refInitialCapacity,
+                                                             getFnRefCalc(startTime), getFnSeriesApprox(startTime),
+                                                             getFnCreatingTable(startTime));
             }
         }
     }
@@ -208,7 +208,7 @@ namespace merutilm::rff2 {
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
-                .explore = {.autoMoveCursorToCenter = false}};
+                .explore = {.autoMoveCursorToCenter = false, .useBurstLocating = false}};
 #else
         return Settings{
                 .fractal =
@@ -248,7 +248,7 @@ namespace merutilm::rff2 {
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
-                .explore = {.autoMoveCursorToCenter = false}};
+                .explore = {.autoMoveCursorToCenter = false, .useBurstLocating = false}};
 #endif
     }
 
@@ -811,7 +811,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    void RFF2::beforeIterationFill(Settings &s) const {
+    void RFF2::beforeIterationFill(const Settings &s) const {
         if (settings.explore.autoMoveCursorToCenter) {
             moveCursorToCenter();
         }
@@ -831,14 +831,14 @@ namespace merutilm::rff2 {
 
     void RFF2::matchSettingsAfterCreatingRenderData(Settings &s) const { s.fractal = renderData->fractalSettings; }
 
-    bool RFF2::prepareRenderData(const float startTime, Settings &s) {
+    bool RFF2::prepareRenderData(const float startTime, const Settings &s) {
 
         canShowPreview = false;
 
         if (state.interruptRequested())
             return false;
 
-        auto &frt = s.fractal;
+        const auto &frt = s.fractal;
         const float logZoom = frt.general.logZoom;
 
         setStatusMessage(Constants::Status::ZOOM_STATUS,

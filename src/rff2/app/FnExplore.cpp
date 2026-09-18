@@ -35,9 +35,9 @@ namespace merutilm::rff2 {
         }
     }
     void FnExplore::moveCursorToCenter(RFF2 &app) {
-        if (ImGui::Checkbox("Auto Move Cursor To Center", &app.getSettings().explore.autoMoveCursorToCenter)) {
-            if (app.getSettings().explore.autoMoveCursorToCenter)
-                app.moveCursorToCenter();
+        if (ImGui::Checkbox("Auto Move Cursor To Center", &app.getSettings().explore.autoMoveCursorToCenter) &&
+            app.getSettings().explore.autoMoveCursorToCenter) {
+            app.moveCursorToCenter();
         }
     }
 
@@ -49,15 +49,13 @@ namespace merutilm::rff2 {
     void FnExplore::moveToCenter(RFF2 &app) {
         const MB2RenderDataBase *renderData = app.getCurrentRenderData();
         auto &frt = app.getSettings().fractal;
-        if (renderData && renderData->getPerturbator()) {
-            if (ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
-                const int exp10 = Perturbator::logZoomToExp10(renderData->getReference()->logZoom);
-                fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
-                fixed_point_complex center = frt.reference.center.create_variant(exp10);
-                fixed_point_complex::add(center, center, off);
-                frt.reference.center = center;
-                app.getRequests().requestRecompute();
-            }
+        if (renderData && renderData->getPerturbator() && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
+            const int exp10 = Perturbator::logZoomToExp10(renderData->getReference()->logZoom);
+            fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
+            fixed_point_complex center = frt.reference.center.create_variant(exp10);
+            fixed_point_complex::add(center, center, off);
+            frt.reference.center = std::move(center);
+            app.getRequests().requestRecompute();
         }
     }
 
@@ -67,16 +65,15 @@ namespace merutilm::rff2 {
         MB2RenderDataBase *renderData = app.getCurrentRenderData();
 
         auto &frt = app.getSettings().fractal;
-        if (frt.reference.reuse && renderData && renderData->getReference()) {
-            if (ImGui::Button("Go to Original Reference", ImVec2(-FLT_MIN, 0))) {
-                const float startTime = app.rootWindowContext->getWindow()->getTime();
-                frt.reference.center = renderData->getReference()->center;
-                frt.general.logZoom = renderData->getReference()->logZoom;
-                renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
-                                      app.getSettings().fractal.perturb, frt.reference.center,
-                                      app.getFnSeriesApprox(startTime));
-                app.getRequests().requestRecompute();
-            }
+        if (frt.reference.reuse && renderData && renderData->getReference() &&
+            ImGui::Button("Go to Original Reference", ImVec2(-FLT_MIN, 0))) {
+            const float startTime = app.rootWindowContext->getWindow()->getTime();
+            frt.reference.center = renderData->getReference()->center;
+            frt.general.logZoom = renderData->getReference()->logZoom;
+            renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
+                                  app.getSettings().fractal.perturb, frt.reference.center,
+                                  app.getFnSeriesApprox(startTime));
+            app.getRequests().requestRecompute();
         }
     }
 
@@ -84,31 +81,28 @@ namespace merutilm::rff2 {
 
         std::unique_ptr<MB2RenderDataBase> &data = app.getCurrentRenderDataOwnRef();
         Settings &settings = app.getSettings();
-        if (data && data->getReference() && data->getPerturbator() && !settings.fractal.reference.reuse) {
-            if (ImGui::Button("Locate Centered Reference", ImVec2(-FLT_MIN, 0))) {
+        if (data && data->getReference() && data->getPerturbator() && !settings.fractal.reference.reuse &&
+            ImGui::Button("Locate Centered Reference", ImVec2(-FLT_MIN, 0))) {
+            ParallelRenderState &state = app.getState();
 
-                ParallelRenderState &state = app.getState();
+            state.createThread([&] {
+                const float startTime = app.rootWindowContext->getWindow()->getTime();
+                const auto center = MB2Locator::locateMinibrot(state, *data, app.getFnFindingMBCenter(startTime),
+                                                               settings.explore.useBurstLocating);
+                if (center == std::nullopt)
+                    return;
 
-                state.createThread([&] {
-                    const float startTime = app.rootWindowContext->getWindow()->getTime();
-                    const auto center = MB2Locator::locateMinibrot(
-                            state, *data, app.getFnFindingMBCenter(startTime));
-                    if (center == std::nullopt)
-                        return;
+                FractalSettings frt = settings.fractal;
+                frt.reference.center = center->center;
+                frt.general.logZoom = center->logZoom;
+                const dex dcMax = app.getDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
+                const int refExp10 = Perturbator::logZoomToExp10(frt.general.logZoom);
+                data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
+                                                       startTime, frt, dcMax, refExp10, data->getReference()->length());
 
-                    FractalSettings frt = settings.fractal;
-                    frt.reference.center = center->center;
-                    frt.general.logZoom = center->logZoom;
-                    const dex dcMax = app.getDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
-                    const int refExp10 = Perturbator::logZoomToExp10(frt.general.logZoom);
-                    data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
-                                                           startTime, frt, dcMax, refExp10,
-                                                           data->getReference()->length());
-
-                    settings.fractal.reference.reuse = true;
-                    app.getRequests().requestRecompute();
-                });
-            }
+                settings.fractal.reference.reuse = true;
+                app.getRequests().requestRecompute();
+            });
         }
     }
 
@@ -116,6 +110,10 @@ namespace merutilm::rff2 {
 
         Settings &settings = app.getSettings();
         if (!settings.fractal.reference.reuse) {
+            ImGui::Separator();
+
+            ImGui::Checkbox("Use Burst-locate", &settings.explore.useBurstLocating);
+            Utilities::imguiHelpMarker("It significantly increases locate speed at the expense of stability.");
             if (ImGui::Button("Locate Minibrot", ImVec2(-FLT_MIN, 0))) {
 
                 app.getState().cancel();
@@ -135,8 +133,9 @@ namespace merutilm::rff2 {
 
                     const float startTime = app.rootWindowContext->getWindow()->getTime();
 
-                    const auto locator = MB2Locator::locateMinibrot(
-                            app.getState(), *data, app.getFnFindingMBCenter(startTime));
+                    const auto locator =
+                            MB2Locator::locateMinibrot(app.getState(), *data, app.getFnFindingMBCenter(startTime),
+                                                       settings.explore.useBurstLocating);
 
                     if (locator == std::nullopt) {
                         vkh::logger::log("Locate Minibrot Cancelled.");

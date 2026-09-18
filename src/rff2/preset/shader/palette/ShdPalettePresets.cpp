@@ -173,7 +173,7 @@ namespace merutilm::rff2::ShdPalettePresets {
             const float o = 0.5f + 0.5f * std::sin(std::fmod(irv, 1.0f) * 150.0f);
 
             p.colors.push_back(ColorUtils::forEachExceptAlpha(c2, [v, o](const float c) {
-                return std::lerp(c, v / (1 + rff_math::random_f() * 2.0f), o);
+                return std::lerp(c, v / (1 + rff_random::random_f() * 2.0f), o);
             }));
         }
 
@@ -230,7 +230,7 @@ namespace merutilm::rff2::ShdPalettePresets {
             const float o = 0.5f + 0.5f * std::sin(std::fmod(irv, 1.0f) * 150.0f);
 
             p.colors.push_back(ColorUtils::forEachExceptAlpha(c2, [v, o](const float c) {
-                return std::lerp(c, v / (1 + rff_math::random_f() * 2.0f), o);
+                return std::lerp(c, v / (1 + rff_random::random_f() * 2.0f), o);
             }));
         }
 
