@@ -66,7 +66,7 @@ namespace merutilm::rff2 {
                                  std::vector<ArrayCompressionTool> &tools, uint64_t &compressed,
                                  uint32_t compressCriteria, double compressionThreshold, uint64_t period);
 
-        static void appendCandidatePeriod(std::vector<uint64_t> &periodArray, Num &minZRadius, uint64_t period, Num radius2);
+        static void appendPeriodCandidate(std::vector<uint64_t> &periodArray, Num &minZRadius, uint64_t period, Num radius2);
 
         template<FnListeners::FnRefCalc FnRefCalc>
         static void applyFormula(fixed_point_complex &z, const fixed_point_complex &c, FnRefCalc &&fnRefCalc,
@@ -182,12 +182,14 @@ namespace merutilm::rff2 {
             const uint64_t index = period - compressed + 1;
             if (index == ref.size()) {
                 ref.push_back(z0);
+            }else {
+                ref[index] = z0;
             }
         }
     }
 
     template<Number Num>
-    void MB2Reference<Num>::appendCandidatePeriod(std::vector<uint64_t> &periodArray, Num &minZRadius, const uint64_t period,
+    void MB2Reference<Num>::appendPeriodCandidate(std::vector<uint64_t> &periodArray, Num &minZRadius, const uint64_t period,
                                                   Num radius2) {
         if (period > 0 && minZRadius > radius2) {
             minZRadius = radius2;
@@ -270,8 +272,8 @@ namespace merutilm::rff2 {
             if (fxgABnShouldEscapeWithUpdate(dcMax, fzgAn, fpgBn, z0, period, radius2))
                 break;
 
+            appendPeriodCandidate(periodArray, minZRadius, period, radius2);
             addCheckpointWithFzgAnStep(checkpoints, z, fzgAnPartition, z0, period);
-            appendCandidatePeriod(periodArray, minZRadius, period, radius2);
             updatePrecision(exp10, cOrig, c, z, fzgAn, prevExp2div64);
             applyFormula(z, c, fn, sqrTp, period);
             syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, z0, c0);
