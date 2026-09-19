@@ -189,7 +189,7 @@ namespace merutilm::rff2 {
 
                 if (currDistance2 > bailout2)
                     break;
-                if (absIteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 &&
+                if (absIteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
                     state.interruptRequested())
                     return 0.0;
             }

@@ -659,7 +659,7 @@ namespace merutilm::rff2 {
         uint64_t flattenTableIndex = 0;
 
         while (iteration <= longestPeriod) {
-            if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 &&
+            if (iteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
                 state.interruptRequested()) {
                 return;
             }
@@ -812,7 +812,7 @@ namespace merutilm::rff2 {
 
 
                     while (iteration <= std::min(startIteration + itInterval - 1, longestPeriod)) {
-                        if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0) {
+                        if (iteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0) {
                             if (state.interruptRequested())
                                 return;
 
@@ -870,7 +870,7 @@ namespace merutilm::rff2 {
 
             while (iteration <= longestPeriod) {
 
-                if (iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0) {
+                if (iteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0) {
                     if (state.interruptRequested())
                         return;
                     fnCreatingTable(iteration, static_cast<double>(iteration) / static_cast<double>(longestPeriod));

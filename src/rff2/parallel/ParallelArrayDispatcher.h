@@ -137,7 +137,7 @@ namespace merutilm::rff2 {
 
 
         for (const uint32_t i: indexOff) {
-            if (i % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 &&
+            if (i % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
                 state.interruptRequested()) {
                 return;
             }
@@ -161,7 +161,7 @@ namespace merutilm::rff2 {
     void ParallelArrayDispatcher<T>::renderBackward(const uint32_t len,
                                                     std::vector<std::atomic<bool>> &rendered) const {
         for (uint32_t i = len - 1; i > 0; --i) {
-            if (i % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL == 0 &&
+            if (i % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
                 state.interruptRequested()) {
                 return;
             }

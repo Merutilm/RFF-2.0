@@ -260,11 +260,11 @@ namespace merutilm::rff2 {
         Num radius2;
 
         for (period = 0; tryUpdateFxgABn(dcMax, fzgAn, fzgAnPartition, fpgBn, z0, period, radius2) && z0.norm_sqr() < bailoutSqr; ++period) {
-            if (state.interruptRequested()) {
+            if (period % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return CreationResult::TERMINATED;
             }
 
-            tryAppendPeriodCandidate(periodArray, minZRadius, period, radius2);\
+            tryAppendPeriodCandidate(periodArray, minZRadius, period, radius2);
 
             if (period % Constants::Fractal::PARTITION_SIZE == 0)
                 placeCheckpoint(checkpoints, z, fzgAnPartition, period);

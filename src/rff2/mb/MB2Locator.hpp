@@ -78,7 +78,7 @@ namespace merutilm::rff2 {
             for (uint64_t iteration = startIteration; iteration < endIteration; ++iteration) {
 
                 if (state.interruptRequested() &&
-                    iteration % Constants::Fractal::PARALLEL_OPERATION_INTERRUPT_CHECK_INTERVAL)
+                    iteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL)
                     return PartitionStatus::INTERRUPTED;
 
                 if (iteration > 0) {
