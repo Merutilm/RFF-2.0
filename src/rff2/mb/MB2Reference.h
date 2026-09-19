@@ -56,17 +56,17 @@ namespace merutilm::rff2 {
         static void updatePrecision(int32_t exp10, const fixed_point_complex &cOrig, fixed_point_complex &c,
                                     fixed_point_complex &z, const complex<Num> &fzgAn, int32_t &prevExp2div64);
 
-        static bool fxgABnShouldEscapeWithUpdate(dex dcMax, complex<Num> &fzgAn, complex<Num> &fpgBn, complex<Num> &z0, uint64_t period, Num &radius2);
+        static bool tryUpdateFxgABn(dex dcMax, complex<Num> &fzgAn, complex<Num> &fzgAnPartition, complex<Num> &fpgBn, complex<Num> &z0, uint64_t period, Num &radius2);
 
 
-        static void addCheckpointWithFzgAnStep(std::vector<ReferenceCheckpoint> &checkpoints, fixed_point_complex &z,
-                                               complex<Num> &fzgAnPartition, complex<Num> &z0, uint64_t period);
+        static void placeCheckpoint(std::vector<ReferenceCheckpoint> &checkpoints, fixed_point_complex &z,
+                                               complex<Num> &fzgAnPartition, uint64_t period);
 
-        static void appendOrbit(std::vector<complex<Num>> &ref, const complex<Num> &z0, uint64_t &reuseIndex,
+        static void processOrbitPoint(std::vector<complex<Num>> &ref, const complex<Num> &z0, uint64_t &reuseIndex,
                                  std::vector<ArrayCompressionTool> &tools, uint64_t &compressed,
                                  uint32_t compressCriteria, double compressionThreshold, uint64_t period);
 
-        static void appendPeriodCandidate(std::vector<uint64_t> &periodArray, Num &minZRadius, uint64_t period, Num radius2);
+        static void tryAppendPeriodCandidate(std::vector<uint64_t> &periodArray, Num &minZRadius, uint64_t period, Num radius2);
 
         template<FnListeners::FnRefCalc FnRefCalc>
         static void applyFormula(fixed_point_complex &z, const fixed_point_complex &c, FnRefCalc &&fnRefCalc,
@@ -120,38 +120,33 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    bool MB2Reference<Num>::fxgABnShouldEscapeWithUpdate(const dex dcMax, complex<Num> &fzgAn, complex<Num> &fpgBn, complex<Num> &z0, const uint64_t period, Num &radius2) {
+    bool MB2Reference<Num>::tryUpdateFxgABn(const dex dcMax, complex<Num> &fzgAn, complex<Num> &fzgAnPartition, complex<Num> &fpgBn, complex<Num> &z0, const uint64_t period, Num &radius2) {
         radius2 = z0.norm_sqr();
         Num fpgLimit = radius2 / Num(dcMax);
         complex<Num> fpgBnTemp = fpgBn * z0 * Num(2) + Num(1);
         Num fpgRadius = fpgBnTemp.norm_approx();
 
         if (period > 0 && fpgRadius > fpgLimit) {
-            return true;
+            return false;
         }
         if (period > 0) {
             fzgAn = (fzgAn * z0 * Num(2)).try_normalized_value();
-        }
-        fpgBn = fpgBnTemp.try_normalized_value();
-        return false;
-    }
-
-    template<Number Num>
-    void MB2Reference<Num>::addCheckpointWithFzgAnStep(std::vector<ReferenceCheckpoint> &checkpoints,
-                                                       fixed_point_complex &z, complex<Num> &fzgAnPartition, complex<Num> &z0,
-                                                       const uint64_t period) {
-        if (period > 0) {
             fzgAnPartition = (fzgAnPartition * z0 * Num(2)).try_normalized_value();
         }
-
-        if (period % Constants::Fractal::PARTITION_SIZE == 0) {
-            checkpoints.emplace_back(z, period, static_cast<complex<dex>>(fzgAnPartition));
-            fzgAnPartition = complex<Num>::ONE;
-        }
+        fpgBn = fpgBnTemp.try_normalized_value();
+        return true;
     }
 
     template<Number Num>
-    void MB2Reference<Num>::appendOrbit(std::vector<complex<Num>> &ref, const complex<Num> &z0, uint64_t &reuseIndex,
+    void MB2Reference<Num>::placeCheckpoint(std::vector<ReferenceCheckpoint> &checkpoints,
+                                                       fixed_point_complex &z, complex<Num> &fzgAnPartition,
+                                                       const uint64_t period) {
+        checkpoints.emplace_back(z, period, static_cast<complex<dex>>(fzgAnPartition));
+        fzgAnPartition = complex<Num>::ONE;
+    }
+
+    template<Number Num>
+    void MB2Reference<Num>::processOrbitPoint(std::vector<complex<Num>> &ref, const complex<Num> &z0, uint64_t &reuseIndex,
                                          std::vector<ArrayCompressionTool> &tools, uint64_t &compressed,
                                          const uint32_t compressCriteria, const double compressionThreshold,
                                          const uint64_t period) {
@@ -189,7 +184,7 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    void MB2Reference<Num>::appendPeriodCandidate(std::vector<uint64_t> &periodArray, Num &minZRadius, const uint64_t period,
+    void MB2Reference<Num>::tryAppendPeriodCandidate(std::vector<uint64_t> &periodArray, Num &minZRadius, const uint64_t period,
                                                   Num radius2) {
         if (period > 0 && minZRadius > radius2) {
             minZRadius = radius2;
@@ -262,22 +257,22 @@ namespace merutilm::rff2 {
         int32_t prevExp2div64 = 0;
 
         auto fn = std::forward<FnRefCalc>(fnRefCalc);
+        Num radius2;
 
-        for (period = 0; z0.norm_sqr() < bailoutSqr; ++period) {
+        for (period = 0; tryUpdateFxgABn(dcMax, fzgAn, fzgAnPartition, fpgBn, z0, period, radius2) && z0.norm_sqr() < bailoutSqr; ++period) {
             if (state.interruptRequested()) {
                 return CreationResult::TERMINATED;
             }
 
-            Num radius2;
-            if (fxgABnShouldEscapeWithUpdate(dcMax, fzgAn, fpgBn, z0, period, radius2))
-                break;
+            tryAppendPeriodCandidate(periodArray, minZRadius, period, radius2);\
 
-            appendPeriodCandidate(periodArray, minZRadius, period, radius2);
-            addCheckpointWithFzgAnStep(checkpoints, z, fzgAnPartition, z0, period);
+            if (period % Constants::Fractal::PARTITION_SIZE == 0)
+                placeCheckpoint(checkpoints, z, fzgAnPartition, period);
+
             updatePrecision(exp10, cOrig, c, z, fzgAn, prevExp2div64);
             applyFormula(z, c, fn, sqrTp, period);
             syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, z0, c0);
-            appendOrbit(ref, z0, reuseIndex, tools, compressed, compressCriteria, compressionThreshold, period);
+            processOrbitPoint(ref, z0, reuseIndex, tools, compressed, compressCriteria, compressionThreshold, period);
 
         }
 
