@@ -90,6 +90,7 @@ namespace merutilm::rff2 {
                     frt.reference.center = fixed_point_complex(real, imag, exp10);
                     frt.general.logZoom = logZoom;
                     app.getRequests().requestRecompute();
+                    locationChanged = false;
                 }
             }
             ImGui::Checkbox("Reuse Reference", &frt.reference.reuse);

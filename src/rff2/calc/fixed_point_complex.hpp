@@ -416,7 +416,7 @@ namespace merutilm::rff2 {
             temp.set_exp10(dec_exp10, false);
         }
     }
-    inline bool fixed_point_complex::is_zero() const { return mpz_sgn(real.data) == 0 && mpz_sgn(imag.data) == 0; }
+    inline bool fixed_point_complex::is_zero() const { return real.size == 0 && imag.size == 0; }
 
 
     inline std::string fixed_point_complex::to_string() const {
@@ -427,11 +427,11 @@ namespace merutilm::rff2 {
         const std::string im = imag.to_string();
         std::ostringstream oss;
 
-        if (mpz_sgn(real.data) != 0) {
+        if (real.size != 0) {
             oss << re;
         }
-        if (mpz_sgn(imag.data) != 0) {
-            if (mpz_sgn(real.data) != 0 && mpz_sgn(imag.data) == 1)
+        if (imag.size != 0) {
+            if (real.size != 0 && imag.size > 0)
                 oss << "+";
             oss << im;
             oss << "i";

@@ -4,35 +4,24 @@
 #pragma once
 #include <cmath>
 #include <gmp.h>
+#include<iostream>
 
 #include "exponent.hpp"
 
 namespace merutilm::rff2 {
 
     // CAUTION : hacking internal mpz
-    constexpr static int &fpd_mpz_size(const mpz_ptr mpz) {
-        return mpz[0]._mp_size;
-    }
+    constexpr static int &fpd_mpz_size(const mpz_ptr mpz) { return mpz[0]._mp_size; }
 
-    constexpr static int fpd_mpz_size(const mpz_srcptr mpz) {
-        return mpz[0]._mp_size;
-    }
+    constexpr static int fpd_mpz_size(const mpz_srcptr mpz) { return mpz[0]._mp_size; }
 
-    constexpr static int &fpd_mpz_alloc(const mpz_ptr mpz) {
-        return mpz[0]._mp_alloc;
-    }
+    constexpr static int &fpd_mpz_alloc(const mpz_ptr mpz) { return mpz[0]._mp_alloc; }
 
-    constexpr static int fpd_mpz_alloc(const mpz_srcptr mpz) {
-        return mpz[0]._mp_alloc;
-    }
+    constexpr static int fpd_mpz_alloc(const mpz_srcptr mpz) { return mpz[0]._mp_alloc; }
 
-    constexpr static mp_limb_t *fpd_mpz_raw(const mpz_ptr mpz) {
-        return mpz[0]._mp_d;
-    }
+    constexpr static mp_limb_t *fpd_mpz_raw(const mpz_ptr mpz) { return mpz[0]._mp_d; }
 
-    constexpr static const mp_limb_t *fpd_mpz_raw(const mpz_srcptr mpz) {
-        return mpz[0]._mp_d;
-    }
+    constexpr static const mp_limb_t *fpd_mpz_raw(const mpz_srcptr mpz) { return mpz[0]._mp_d; }
 
 
     /**
@@ -49,11 +38,14 @@ namespace merutilm::rff2 {
     struct fixed_point_decimal {
         static_assert(GMP_NUMB_BITS == 64);
 
-        mpz_t data{};
+        mp_limb_t *data = nullptr;
+        int64_t size = 0;
+        uint64_t alloc = 0;
+
         /**
          * must be negative
          */
-        int exp2div64 = 0;
+        int64_t exp2div64 = 0;
 
         fixed_point_decimal() : fixed_point_decimal(0.0, -1) {}
 
@@ -73,6 +65,7 @@ namespace merutilm::rff2 {
         fixed_point_decimal(fixed_point_decimal &&) noexcept;
 
         fixed_point_decimal &operator=(fixed_point_decimal &&) noexcept;
+        bool try_realloc_inc(uint64_t new_limbs_alloc);
 
         template<typename F>
             requires std::is_invocable_r_v<int, F, mpf_t, int>
@@ -88,6 +81,7 @@ namespace merutilm::rff2 {
         static void add_one(fixed_point_decimal &v);
 
         static void add(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
+        void normalize_size(int64_t known_size);
 
         static void sub(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
 
@@ -112,7 +106,18 @@ namespace merutilm::rff2 {
          */
         static void mul(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
 
+        /**
+         * Fast-division.
+         * [CAUTION] in-place operation is not supported.
+         * @param result the reference of result.
+         * @param lhs left operand
+         * @param rhs right operand
+         */
         static void div(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
+
+        static void limbs_lshift(fixed_point_decimal &result, fixed_point_decimal const &v, int64_t limb_shift);
+
+        static void limbs_rshift(fixed_point_decimal &result, fixed_point_decimal const &v, int64_t limb_shift);
 
         static void dbl(fixed_point_decimal &result, const fixed_point_decimal &v);
 
@@ -136,7 +141,7 @@ namespace merutilm::rff2 {
 
 
     inline fixed_point_decimal::fixed_point_decimal(double v, const int dec_exp10) {
-        init_data(dec_exp10, [v](mpf_t val, const int exp2div64) {
+        init_data(dec_exp10, [v](mpf_t val, const int64_t exp2div64) {
             mpf_set_d(val, v);
             return exp2div64 * 64;
         });
@@ -144,7 +149,7 @@ namespace merutilm::rff2 {
 
 
     inline fixed_point_decimal::fixed_point_decimal(const std::string &str, const int dec_exp10) {
-        init_data(dec_exp10, [str](mpf_t val, const int exp2div64) {
+        init_data(dec_exp10, [str](mpf_t val, const int64_t exp2div64) {
             mpf_set_str(val, str.data(), 10);
             return exp2div64 * 64;
         });
@@ -152,19 +157,19 @@ namespace merutilm::rff2 {
 
     template<Number Exp, Number Mantissa, Number Bit>
     fixed_point_decimal::fixed_point_decimal(const exponent<Exp, Mantissa, Bit> v, const int dec_exp10) {
-        init_data(dec_exp10, [v](mpf_t val, const int exp2div64) {
+        init_data(dec_exp10, [v](mpf_t val, const int64_t exp2div64) {
             mpf_set_d(val, v.get_mantissa());
             return exp2div64 * 64 - v.get_exp2();
         });
     }
 
 
-    inline fixed_point_decimal::~fixed_point_decimal() { mpz_clear(this->data); }
+    inline fixed_point_decimal::~fixed_point_decimal() { delete[] this->data; }
 
 
-    inline fixed_point_decimal::fixed_point_decimal(const fixed_point_decimal &other) : exp2div64(other.exp2div64) {
-        mpz_init(this->data);
-        mpz_set(this->data, other.data);
+    inline fixed_point_decimal::fixed_point_decimal(const fixed_point_decimal &other) :
+        data(new mp_limb_t[other.alloc]), size(other.size), alloc(other.alloc), exp2div64(other.exp2div64) {
+        memcpy(data, other.data, std::abs(other.size) * sizeof(mp_limb_t));
     }
 
 
@@ -172,15 +177,21 @@ namespace merutilm::rff2 {
         if (&other == this)
             return *this;
 
-        this->exp2div64 = other.exp2div64;
-        mpz_set(this->data, other.data);
+        if (this->alloc < std::abs(other.size)) {
+            delete[] data;
+            data = new mp_limb_t[other.alloc];
+        }
+        size = other.size;
+        alloc = other.alloc;
+        exp2div64 = other.exp2div64;
+        memcpy(data, other.data, std::abs(other.size) * sizeof(mp_limb_t));
         return *this;
     }
 
 
-    inline fixed_point_decimal::fixed_point_decimal(fixed_point_decimal &&other) noexcept : exp2div64(other.exp2div64) {
-        mpz_init(this->data);
-        mpz_swap(this->data, other.data);
+    inline fixed_point_decimal::fixed_point_decimal(fixed_point_decimal &&other) noexcept :
+        data(new mp_limb_t[1]), size(other.size), alloc(other.alloc), exp2div64(other.exp2div64) {
+        std::swap(data, other.data);
     }
 
 
@@ -188,21 +199,36 @@ namespace merutilm::rff2 {
         if (&other == this)
             return *this;
 
-        mpz_swap(this->data, other.data);
-        this->exp2div64 = other.exp2div64;
+        size = other.size;
+        alloc = other.alloc;
+        exp2div64 = other.exp2div64;
+        std::swap(data, other.data);
         return *this;
     }
 
 
+    inline bool fixed_point_decimal::try_realloc_inc(const uint64_t new_limbs_alloc) {
+        if (alloc >= new_limbs_alloc)
+            return false;
+        const auto temp = new mp_limb_t[new_limbs_alloc];
+        alloc = new_limbs_alloc;
+        memcpy(temp, data, std::abs(size) * sizeof(mp_limb_t));
+        delete[] data;
+        data = temp;
+        return true;
+    }
+
     template<typename F>
         requires std::is_invocable_r_v<int, F, mpf_t, int>
     void fixed_point_decimal::init_data(const int dec_exp10, F &&setter_exp2_getter) {
-        mpz_init(this->data);
+
+        mpz_t temp;
+        mpz_init(temp);
         exp2div64 = exp10_to_exp2div64(dec_exp10);
         mpf_t val;
 
         mpf_init2(val, (1 - exp2div64) * 64);
-        const int exp2 = setter_exp2_getter(val, exp2div64);
+        const int64_t exp2 = setter_exp2_getter(val, exp2div64);
 
         if (exp2 < 0) {
             mpf_mul_2exp(val, val, -exp2);
@@ -211,8 +237,18 @@ namespace merutilm::rff2 {
         }
 
 
-        mpz_set_f(data, val);
+        mpz_set_f(temp, val);
+
+        const mp_limb_t *lmb1 = mpz_limbs_read(temp);
+
+        size = static_cast<int64_t>(mpz_size(temp));
+        alloc = size;
+        data = new mp_limb_t[alloc];
+        mpn_copyi(data, lmb1, size);
+        size *= mpz_sgn(temp);
+
         mpf_clear(val);
+        mpz_clear(temp);
     }
 
 
@@ -225,69 +261,55 @@ namespace merutilm::rff2 {
 
 
     inline void fixed_point_decimal::add_one(fixed_point_decimal &v) {
-        const int dec_limbs = -v.exp2div64;
-        const int required_minimum = dec_limbs + 1;
-        const int alloc = fpd_mpz_alloc(v.data);
-        auto &size_access = fpd_mpz_size(v.data);
-        int size = size_access;
+        const int64_t dec_limbs = -v.exp2div64;
+        const int64_t required_minimum = dec_limbs + 1;
+        const uint64_t alloc = v.alloc;
+        int64_t size = v.size;
         const bool neg = size < 0;
         size = std::abs(size);
 
 
         if (size < required_minimum) {
             // smaller than 1
-            if (alloc < required_minimum) [[unlikely]] {
-                mpz_realloc2(v.data, required_minimum * 64);
-            }
 
-            mp_limb_t *raw = fpd_mpz_raw(v.data);
+            v.try_realloc_inc(required_minimum);
+            mp_limb_t *raw = v.data;
             if (neg) {
                 // after this operation, the result sign will be changed
                 // example: -0.3 + 1 = 0.7
                 mpn_zero(raw + size, required_minimum - size);
-                mpn_neg(raw, raw, required_minimum - 1); //invert decimal parts
-
-                size_access = required_minimum - 1;
-                while (size_access >= 0 && raw[size_access] == 0) {
-                    --size_access;
-                }
-                ++size_access;
+                mpn_neg(raw, raw, required_minimum - 1); // invert decimal parts
+                v.normalize_size(required_minimum);
             } else {
                 // 0.xxx + 1 = 1.xxx, preserving decimal limbs.
                 mpn_zero(raw + size, required_minimum - size);
-                size_access = required_minimum;
+                v.size = required_minimum;
                 raw[required_minimum - 1] = 1;
             }
             return;
         }
 
-        mp_limb_t *raw = fpd_mpz_raw(v.data);
+        mp_limb_t *raw = v.data;
         if (neg) {
             uint32_t carries = 0;
             while (--raw[dec_limbs + carries] == UINT64_MAX) {
                 ++carries;
             }
-            //mp_size is negative.
-            //truncating size if msb is zero
-            size_access += dec_limbs + carries == size - 1 && raw[dec_limbs + carries] == 0;
+            // mp_size is negative.
+            // truncating size if msb is zero
+            v.size += dec_limbs + carries == size - 1 && raw[dec_limbs + carries] == 0;
 
-
-            //solve -1.xxx + 1
-            if (-size_access == dec_limbs) {
-                ++size_access;
-                while (size_access <= 0 && raw[-size_access] == 0) {
-                    ++size_access;
-                }
-                --size_access;
+            // solve -1.xxx + 1
+            if (-v.size == dec_limbs) {
+                v.normalize_size(v.size);
             }
-        }else {
+        } else {
             for (uint32_t carries = 0; ++raw[dec_limbs + carries] == 0; ++carries) {
 
                 // solve (2^64n - 1) + 1
                 if (dec_limbs + carries == size - 1) [[unlikely]] {
-                    mpz_realloc2(v.data, (alloc + 1) * 64);
-                    ++size_access;
-                    fpd_mpz_raw(v.data)[size_access - 1] = 1;
+                    v.try_realloc_inc(alloc + 1);
+                    v.data[v.size++] = 1;
                     return;
                 }
             }
@@ -298,7 +320,67 @@ namespace merutilm::rff2 {
                                          const fixed_point_decimal &rhs) {
         assert(result.exp2div64 == lhs.exp2div64);
         assert(result.exp2div64 == rhs.exp2div64);
-        mpz_add(result.data, lhs.data, rhs.data);
+
+        int64_t lhs_size = std::abs(lhs.size);
+        int64_t rhs_size = std::abs(rhs.size);
+
+
+        if (lhs.size == 0) {
+            if (&result != &rhs) {
+                result.try_realloc_inc(rhs_size);
+                memcpy(result.data, rhs.data, rhs_size * sizeof(mp_limb_t));
+                result.size = rhs.size;
+            }
+            return;
+        }
+        if (rhs.size == 0) {
+            if (&result != &lhs) {
+                result.try_realloc_inc(lhs_size);
+                memcpy(result.data, lhs.data, lhs_size * sizeof(mp_limb_t));
+                result.size = lhs.size;
+            }
+            return;
+        }
+
+
+
+        bool lhs_neg = lhs.size < 0;
+        bool rhs_neg = rhs.size < 0;
+        result.try_realloc_inc(std::max(lhs_size, rhs_size) + 1);
+
+        mp_limb_t *l = lhs.data;
+        mp_limb_t *r = rhs.data;
+        if (lhs_size < rhs_size) {
+            std::swap(l, r);
+            std::swap(lhs_size, rhs_size);
+            std::swap(lhs_neg, rhs_neg);
+        }
+
+
+        if (lhs_neg == rhs_neg) {
+            result.data[lhs_size] = mpn_add(result.data, l, lhs_size, r, rhs_size);
+            result.size = lhs_size + (result.data[lhs_size] != 0);
+            result.size = lhs_neg ? -result.size : result.size;
+        } else {
+
+            if (mpn_sub(result.data, l, lhs_size, r, rhs_size)) {
+                mpn_neg(result.data, result.data, lhs_size);
+                result.normalize_size(lhs_size);
+                result.size *= rhs_neg ? -1 : 1;
+            } else {
+                result.normalize_size(lhs_size);
+                result.size *= lhs_neg ? -1 : 1;
+            }
+        }
+    }
+
+    inline void fixed_point_decimal::normalize_size(const int64_t known_size) {
+        size = std::abs(known_size) - 1;
+        while (size >= 0 && data[size] == 0) {
+            --size;
+        }
+        ++size;
+        size = known_size < 0 ? -size : size;
     }
 
 
@@ -306,65 +388,83 @@ namespace merutilm::rff2 {
                                          const fixed_point_decimal &rhs) {
         assert(result.exp2div64 == lhs.exp2div64);
         assert(result.exp2div64 == rhs.exp2div64);
-        mpz_sub(result.data, lhs.data, rhs.data);
+
+        int64_t lhs_size = std::abs(lhs.size);
+        int64_t rhs_size = std::abs(rhs.size);
+
+
+        if (lhs.size == 0) {
+            if (&result != &rhs) {
+                result.try_realloc_inc(rhs_size);
+                memcpy(result.data, rhs.data, rhs_size * sizeof(mp_limb_t));
+                result.size = -rhs.size;
+            }
+            return;
+        }
+        if (rhs.size == 0) {
+            if (&result != &lhs) {
+                result.try_realloc_inc(lhs_size);
+                memcpy(result.data, lhs.data, lhs_size * sizeof(mp_limb_t));
+                result.size = lhs.size;
+            }
+            return;
+        }
+
+
+
+        bool lhs_neg = lhs.size < 0;
+        bool rhs_neg = rhs.size < 0;
+        result.try_realloc_inc(std::max(lhs_size, rhs_size) + 1);
+
+        mp_limb_t *l = lhs.data;
+        mp_limb_t *r = rhs.data;
+        if (lhs_size < rhs_size) {
+            std::swap(l, r);
+            std::swap(lhs_size, rhs_size);
+            std::swap(lhs_neg, rhs_neg);
+            lhs_neg = !lhs_neg;
+            rhs_neg = !rhs_neg;
+        }
+
+
+        if (lhs_neg == rhs_neg) {
+            result.size = lhs_size;
+            if (mpn_sub(result.data, l, lhs_size, r, rhs_size)) {
+                mpn_neg(result.data, result.data, lhs_size);
+                result.normalize_size(lhs_size);
+                result.size *= rhs_neg ? 1 : -1;
+            } else {
+                result.normalize_size(lhs_size);
+                result.size *= lhs_neg ? -1 : 1;
+            }
+        } else {
+            result.data[lhs_size] = mpn_add(result.data, l, lhs_size, r, rhs_size);
+            result.size = lhs_size + (result.data[lhs_size] != 0);
+            result.size = lhs_neg ? -result.size : result.size;
+        }
     }
 
-    inline void fixed_point_decimal::zero(fixed_point_decimal &v) { mpz_set_ui(v.data, 0); }
+    inline void fixed_point_decimal::zero(fixed_point_decimal &v) {
+        v.data[0] = 0;
+        v.size = 0;
+    }
 
     inline void fixed_point_decimal::sqr(fixed_point_decimal &result, const fixed_point_decimal &v) {
         assert(result.exp2div64 == v.exp2div64);
         assert(&result != &v);
 
-        /*
-           This function contains modified gmp source code under mpz_mul.
-
-           mpz_mul -- Multiply two integers.
-
-           Copyright 1991, 1993, 1994, 1996, 2000, 2001, 2005, 2009, 2011, 2012,
-           2015 Free Software Foundation, Inc.
-
-           This file is part of the GNU MP Library.
-
-           The GNU MP Library is free software; you can redistribute it and/or modify
-           it under the terms of either:
-
-           * the GNU Lesser General Public License as published by the Free
-             Software Foundation; either version 3 of the License, or (at your
-            option) any later version.
-
-           or
-
-            * the GNU General Public License as published by the Free Software
-             Foundation; either version 2 of the License, or (at your option) any
-             later version.
-
-           or both in parallel, as here.
-
-           The GNU MP Library is distributed in the hope that it will be useful, but
-           WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-           or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-           for more details.
-
-           You should have received copies of the GNU General Public License and the
-           GNU Lesser General Public License along with the GNU MP Library.  If not,
-           see https://www.gnu.org/licenses/.
-           */
-
-        const mpz_srcptr l = v.data;
-        const uint32_t size = std::abs(fpd_mpz_size(l));
-        uint32_t result_size = size * 2;
+        const int64_t size = std::abs(v.size);
+        int64_t result_size = size * 2;
 
         if (size == 0 || result_size + result.exp2div64 <= 0) {
-            mpz_set_ui(result.data, 0);
+            zero(result);
             return;
         }
 
-        const mp_limb_t *ptr = fpd_mpz_raw(l);
+        const mp_limb_t *ptr = v.data;
 
-        if (fpd_mpz_alloc(result.data) < result_size) {
-            mpz_realloc2(result.data, result_size * 64);
-        }
-        mp_limb_t *result_ptr = fpd_mpz_raw(result.data);
+        result.try_realloc_inc(result_size);
+        mp_limb_t *result_ptr = result.data;
 
         mpn_sqr(result_ptr, ptr, size);
         const mp_limb_t top = result_ptr[result_size - 1];
@@ -372,14 +472,23 @@ namespace merutilm::rff2 {
 
         mpn_copyi(result_ptr, result_ptr - result.exp2div64, result_size + result.exp2div64);
         result_size += result.exp2div64;
-
-        fpd_mpz_size(result.data) = static_cast<int>(result_size);
+        result.size = result_size;
     }
 
     inline void fixed_point_decimal::mul(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const uint64_t rhs) {
         assert(result.exp2div64 == lhs.exp2div64);
-        mpz_mul_ui(result.data, lhs.data, rhs);
+        const int64_t lhs_size = std::abs(lhs.size);
+
+        if (rhs == 0 || lhs_size == 0) {
+            result.size = 0;
+            return;
+        }
+
+        result.try_realloc_inc(lhs_size + 1);
+        result.data[lhs_size] = mpn_mul_1(result.data, lhs.data, lhs_size, rhs);
+        result.size = lhs_size + (result.data[lhs_size] != 0);
+        result.size = lhs.size < 0 ? -result.size : result.size;
     }
 
     inline void fixed_point_decimal::mul(fixed_point_decimal &result, const fixed_point_decimal &lhs,
@@ -388,75 +497,34 @@ namespace merutilm::rff2 {
         assert(result.exp2div64 == rhs.exp2div64);
         assert(&result != &lhs && &result != &rhs);
 
-        /*
-         *  This function contains modified gmp source code under mpz_mul.
-
-            mpz_mul -- Multiply two integers.
-
-            Copyright 1991, 1993, 1994, 1996, 2000, 2001, 2005, 2009, 2011, 2012,
-            2015 Free Software Foundation, Inc.
-
-            This file is part of the GNU MP Library.
-
-            The GNU MP Library is free software; you can redistribute it and/or modify
-            it under the terms of either:
-
-            * the GNU Lesser General Public License as published by the Free
-              Software Foundation; either version 3 of the License, or (at your
-             option) any later version.
-
-            or
-
-             * the GNU General Public License as published by the Free Software
-              Foundation; either version 2 of the License, or (at your option) any
-              later version.
-
-            or both in parallel, as here.
-
-            The GNU MP Library is distributed in the hope that it will be useful, but
-            WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-            or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-            for more details.
-
-            You should have received copies of the GNU General Public License and the
-            GNU Lesser General Public License along with the GNU MP Library.  If not,
-            see https://www.gnu.org/licenses/.
-            */
-
-
-        mpz_srcptr l = lhs.data;
-        mpz_srcptr r = rhs.data;
-        int lhs_size = fpd_mpz_size(l);
-        int rhs_size = fpd_mpz_size(r);
+        mp_limb_t *l = lhs.data;
+        mp_limb_t *r = rhs.data;
+        int64_t lhs_size = lhs.size;
+        int64_t rhs_size = rhs.size;
         const mp_size_t sgn = lhs_size * rhs_size;
         lhs_size = std::abs(lhs_size);
         rhs_size = std::abs(rhs_size);
-        int result_size = lhs_size + rhs_size;
+        int64_t result_size = lhs_size + rhs_size;
 
         if (lhs_size < rhs_size) {
             std::swap(l, r);
             std::swap(lhs_size, rhs_size);
         }
         if (rhs_size == 0 || result_size + result.exp2div64 <= 0) {
-            mpz_set_ui(result.data, 0);
+            zero(result);
             return;
         }
 
-        const mp_limb_t *lhs_ptr = fpd_mpz_raw(l);
-        const mp_limb_t *rhs_ptr = fpd_mpz_raw(r);
 
-        if (fpd_mpz_alloc(result.data) < result_size) {
-            mpz_realloc2(result.data, result_size * 64);
-        }
-        const mp_ptr result_ptr = fpd_mpz_raw(result.data);
-
-        const mp_limb_t top = mpn_mul(result_ptr, lhs_ptr, lhs_size, rhs_ptr, rhs_size);
+        result.try_realloc_inc(result_size);
+        mp_limb_t *result_ptr = result.data;
+        const mp_limb_t top = mpn_mul(result_ptr, l, lhs_size, r, rhs_size);
         result_size -= top == 0;
 
         mpn_copyi(result_ptr, result_ptr - result.exp2div64, result_size + result.exp2div64);
         result_size += result.exp2div64;
         result_size = sgn < 0 ? -result_size : result_size;
-        fpd_mpz_size(result.data) = result_size;
+        result.size = result_size;
     }
 
 
@@ -464,29 +532,83 @@ namespace merutilm::rff2 {
                                          const fixed_point_decimal &rhs) {
         assert(result.exp2div64 == lhs.exp2div64);
         assert(result.exp2div64 == rhs.exp2div64);
-        mpz_mul_2exp(result.data, lhs.data, -lhs.exp2div64 * 64);
-        mpz_div(result.data, result.data, rhs.data);
+
+        limbs_lshift(result, lhs, -lhs.exp2div64);
+        const int64_t lhs_size = std::abs(result.size);
+        const int64_t rhs_size = std::abs(rhs.size);
+
+        assert(lhs_size >= rhs_size);
+
+        result.try_realloc_inc(lhs_size * 2 + 1);
+        mpn_tdiv_qr(result.data + lhs_size, result.data + lhs_size * 2 - rhs_size + 1, 0, result.data, lhs_size, rhs.data, rhs_size);
+        mpn_copyi(result.data, result.data + lhs_size, lhs_size - rhs_size + 1);
+        result.size = lhs_size - rhs_size;
+        result.size += result.data[result.size] != 0;
+        if (rhs.size * lhs.size < 0)
+            result.size = -result.size;
+    }
+
+    inline void fixed_point_decimal::limbs_lshift(fixed_point_decimal &result, const fixed_point_decimal &v,
+                                                  const int64_t limb_shift) {
+        const int64_t limbs_cnt = std::abs(v.size);
+        const int64_t result_limbs_cnt = limbs_cnt + limb_shift;
+        result.try_realloc_inc(result_limbs_cnt);
+        mpn_copyd(result.data + limb_shift, v.data, limbs_cnt);
+        mpn_zero(result.data, limb_shift);
+        result.size = v.size < 0 ? -result_limbs_cnt : result_limbs_cnt;
+    }
+
+    inline void fixed_point_decimal::limbs_rshift(fixed_point_decimal &result, const fixed_point_decimal &v,
+                                                  const int64_t limb_shift) {
+        const int64_t limbs_cnt = std::abs(v.size);
+        const int64_t result_limbs_cnt = std::max(static_cast<int64_t>(0), limbs_cnt - limb_shift);
+        result.try_realloc_inc(result_limbs_cnt);
+        result.size = v.size < 0 ? -result_limbs_cnt : result_limbs_cnt;
+        if (result_limbs_cnt > 0)
+            mpn_copyi(result.data, v.data + limb_shift, result_limbs_cnt);
     }
 
 
     inline void fixed_point_decimal::dbl(fixed_point_decimal &result, const fixed_point_decimal &v) {
-        mpz_mul_2exp(result.data, v.data, 1);
+        assert(result.exp2div64 == v.exp2div64);
+        result.size = v.size;
+        const int64_t limbs_cnt = std::abs(result.size);
+        if (limbs_cnt == 0) {
+            result.size = 0;
+            return;
+        }
+        result.try_realloc_inc(limbs_cnt + 1);
+        const mp_limb_t carry = mpn_lshift(result.data, v.data, limbs_cnt, 1);
+        if (carry > 0) {
+            result.data[limbs_cnt] = carry;
+            result.size = result.size < 0 ? result.size - 1 : result.size + 1;
+        }
     }
 
 
     inline void fixed_point_decimal::hlv(fixed_point_decimal &result, const fixed_point_decimal &v) {
-        mpz_div_2exp(result.data, v.data, 1);
+        assert(result.exp2div64 == v.exp2div64);
+        result.size = v.size;
+        const int64_t limbs_cnt = std::abs(result.size);
+        if (limbs_cnt == 0) {
+            result.size = 0;
+            return;
+        }
+        result.try_realloc_inc(limbs_cnt);
+        mpn_rshift(result.data, v.data, limbs_cnt, 1);
+        if (result.data[limbs_cnt - 1] == 0)
+            result.size = result.size < 0 ? result.size + 1 : result.size - 1;
     }
 
-    inline void fixed_point_decimal::neg(fixed_point_decimal &v) { mpz_neg(v.data, v.data); }
+    inline void fixed_point_decimal::neg(fixed_point_decimal &v) { v.size = -v.size; }
 
-    inline void fixed_point_decimal::set_exp10(const int dec_exp10, bool preserveLimbs) {
+    inline void fixed_point_decimal::set_exp10(const int dec_exp10, const bool preserveLimbs) {
         const int new_exp2div64 = exp10_to_exp2div64(dec_exp10);
         if (preserveLimbs) {
             if (exp2div64 < new_exp2div64) {
-                mpz_div_2exp(data, data, static_cast<uint32_t>(new_exp2div64 - exp2div64) * 64);
+                limbs_rshift(*this, *this, new_exp2div64 - exp2div64);
             } else if (exp2div64 > new_exp2div64) {
-                mpz_mul_2exp(data, data, static_cast<uint32_t>(exp2div64 - new_exp2div64) * 64);
+                limbs_lshift(*this, *this, exp2div64 - new_exp2div64);
             }
         }
         exp2div64 = new_exp2div64;
@@ -496,7 +618,7 @@ namespace merutilm::rff2 {
     inline fixed_point_decimal::operator float() const { return static_cast<float>(operator double()); }
 
     inline fixed_point_decimal::operator double() const {
-        if (mpz_sgn(data) == 0) {
+        if (size == 0) {
             return 0;
         }
 
@@ -519,13 +641,13 @@ namespace merutilm::rff2 {
 #else
         const uint64_t exponent = 0x3ff0000000000000ULL + (static_cast<uint64_t>(f_exp2) << 52u);
 #endif
-        const uint64_t sig = mpz_sgn(data) == 1 ? 0 : 0x8000000000000000ULL;
+        const uint64_t sig = size > 0 ? 0 : 0x8000000000000000ULL;
         return std::bit_cast<double>(sig | exponent | mantissa_bit);
     }
 
     template<Number Exp, Number Mantissa, Number Bit>
     fixed_point_decimal::operator exponent<Exp, Mantissa, Bit>() const {
-        if (mpz_sgn(data) == 0) {
+        if (size == 0) {
             return exponent<Exp, Mantissa, Bit>::ZERO;
         }
         uint64_t mantissa_bit;
@@ -534,43 +656,51 @@ namespace merutilm::rff2 {
 
         const auto mantissa = std::bit_cast<double>(0x3ff0000000000000ULL | mantissa_bit);
 
-        return exponent<Exp, Mantissa, Bit>(mpz_sgn(data)) *
-               exponent<Exp, Mantissa, Bit>::mul_2exp(exponent<Exp, Mantissa, Bit>(static_cast<Mantissa>(mantissa)),
-                                                      static_cast<int>(f_exp2));
+        auto result = exponent<Exp, Mantissa, Bit>::mul_2exp(
+                exponent<Exp, Mantissa, Bit>(static_cast<Mantissa>(mantissa)), static_cast<int>(f_exp2));
+        return size > 0 ? result : -result;
     }
 
     inline std::string fixed_point_decimal::to_string() const {
-        mpf_t d;
-        mpf_init2(d, -exp2div64 * 64);
-        mpf_set_z(d, data);
-        mpf_div_2exp(d, d, -exp2div64 * 64);
+        mpf_t f;
+        mpz_t z;
+        mpf_init2(f, -exp2div64 * 64);
+        mpz_init(z);
+        const int64_t limbs_cnt = std::abs(size);
+        mp_limb_t *limbs = mpz_limbs_write(z, limbs_cnt);
+        memcpy(limbs, data, limbs_cnt * sizeof(mp_limb_t));
+        mpz_limbs_finish(z, limbs_cnt);
+        if (size < 0) mpz_neg(z, z);
+        mpf_set_z(f, z);
+        mpf_div_2exp(f, f, -exp2div64 * 64);
 
+        const auto digits = static_cast<int>(-static_cast<double>(exp2div64) * 64 * std::numbers::ln2 / std::numbers::ln10);
         char *str;
-        gmp_asprintf(&str, "%.Ff", d);
+        gmp_asprintf(&str, "%.*Ff", digits, f);
         std::string result(str);
 
         // gmp_asprinf uses malloc(), Do not remove this
         free(str);
-        mpf_clear(d);
+        mpf_clear(f);
         return result;
     }
 
 
     inline void fixed_point_decimal::export_value(uint64_t &mantissa_bit, mp_size_t &f_exp2) const {
 
-        const mp_limb_t *src_ptr = fpd_mpz_raw(data);
+        const mp_limb_t *src_ptr = data;
         static constexpr auto MANTISSA_MASK = 0x000fffffffffffffULL;
-        const uint32_t size = std::abs(fpd_mpz_size(data));
+        const int64_t limbs_cnt = std::abs(size);
 
-        assert(size > 0);
+        assert(limbs_cnt > 0);
 
-        const int32_t shift = static_cast<int32_t>(size << 6u) - std::countl_zero(*(src_ptr + size - 1)) - 53;
+        const int64_t shift = limbs_cnt * 64 - std::countl_zero(*(src_ptr + limbs_cnt - 1)) - 53;
         if (shift <= 0) {
             assert(shift > -53);
-            mantissa_bit = *src_ptr << static_cast<uint32_t>(-shift) & MANTISSA_MASK;
+            mantissa_bit = *src_ptr << static_cast<uint64_t>(-shift) & MANTISSA_MASK;
         } else {
-            const uint32_t limb_skip = static_cast<uint32_t>(shift) >> 6u;
-            const uint32_t shift_small = shift - (limb_skip << 6u);
+            const uint64_t limb_skip = static_cast<uint64_t>(shift) >> 6u;
+            const uint64_t shift_small = shift - limb_skip * 64;
             const auto dst0 = src_ptr + limb_skip;
             if (shift_small <= 12) {
                 mantissa_bit = *dst0 >> shift_small & MANTISSA_MASK;

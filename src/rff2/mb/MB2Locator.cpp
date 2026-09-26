@@ -309,7 +309,7 @@ namespace merutilm::rff2 {
 
         do {
 
-            int32_t dcCurrExp10 = dcd.is_zero() ? aimExp10 : rff_math::log10Approx(dcd);
+            const int32_t dcCurrExp10 = dcd.is_zero() ? aimExp10 : rff_math::log10Approx(dcd);
             if (!checkAndUpdateHistory(exp10History, dcCurrExp10, burst)) {
                 return std::nullopt;
             }

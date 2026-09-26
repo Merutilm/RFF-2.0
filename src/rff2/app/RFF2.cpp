@@ -728,8 +728,8 @@ namespace merutilm::rff2 {
     }
 
     void RFF2::saveCurrentLocation(const std::filesystem::path &path) const {
-        auto frt = settings.fractal; // clone the settings
-        auto &center = frt.reference.center;
+        const auto frt = settings.fractal; // clone the settings
+        const auto &center = frt.reference.center;
         RFFLocationBinary(frt.general.logZoom, center.real.to_string(), center.imag.to_string(),
                           frt.perturb.maxIteration)
                 .exportFile(path);
