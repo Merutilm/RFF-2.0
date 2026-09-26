@@ -28,7 +28,7 @@ namespace merutilm::rff2 {
          */
         int exp2div64 = 0;
 
-        explicit fixed_point_decimal() : fixed_point_decimal(0.0, 0) {}
+        fixed_point_decimal() : fixed_point_decimal(0.0, -1) {}
 
         explicit fixed_point_decimal(double v, int dec_exp10);
 
@@ -68,6 +68,7 @@ namespace merutilm::rff2 {
         static void sqr(fixed_point_decimal &result, const fixed_point_decimal &v);
 
 
+        static void mul(fixed_point_decimal &result, const fixed_point_decimal &lhs, uint64_t rhs);
         /**
          * Fast-multiplication.
          * [CAUTION] in-place operation is not supported.
@@ -208,7 +209,6 @@ namespace merutilm::rff2 {
         mpz_set_ui(v.data, 0);
     }
 
-
     inline void fixed_point_decimal::sqr(fixed_point_decimal &result, const fixed_point_decimal &v) {
         assert(result.exp2div64 == v.exp2div64);
         assert(&result != &v);
@@ -274,6 +274,10 @@ namespace merutilm::rff2 {
         result.data[0]._mp_size = static_cast<int>(result_size);
     }
 
+    inline void fixed_point_decimal::mul(fixed_point_decimal &result, const fixed_point_decimal &lhs, const uint64_t rhs) {
+        assert(result.exp2div64 == lhs.exp2div64);
+        mpz_mul_ui(result.data, lhs.data, rhs);
+    }
 
     inline void fixed_point_decimal::mul(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {

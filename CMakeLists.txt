@@ -73,6 +73,7 @@ add_executable(
         src/rff2/mb/ReferenceCheckpoint.hpp
         src/rff2/app/FnListeners.hpp
         src/rff2/calc/rff_random.hpp
+        src/rff2/mb/MB2Locator.cpp
 )
 
 target_compile_options(RFF PRIVATE

@@ -5,10 +5,10 @@
 #pragma once
 #include <array>
 
-#include "fixed_point_decimal.hpp"
-#include "spin_thread_pool.hpp"
 #include <sstream>
 #include <utility>
+#include "fixed_point_decimal.hpp"
+#include "spin_thread_pool.hpp"
 
 #include "complex.hpp"
 
@@ -22,11 +22,16 @@ namespace merutilm::rff2 {
             spin_thread_pool<fixed_point_complex *, const fixed_point_complex *, const fixed_point_complex *>;
 
 
+    using op_thread_pool_s = spin_thread_pool<fixed_point_complex *, const fixed_point_complex *, const uint64_t *>;
+
+
     struct fixed_point_complex {
         static constexpr int TEMPS_COUNT = 6;
         fixed_point_decimal real;
         fixed_point_decimal imag;
         std::array<fixed_point_decimal, TEMPS_COUNT> temps;
+
+        fixed_point_complex() : fixed_point_complex(0.0, 0.0, -1) {}
 
         explicit fixed_point_complex(const std::string &re_str, const std::string &im_str, int dec_exp10);
 
@@ -57,6 +62,8 @@ namespace merutilm::rff2 {
          * @param rhs right operand
          */
         static void sub(fixed_point_complex &result, const fixed_point_complex &lhs, const fixed_point_complex &rhs);
+        static void mul(fixed_point_complex &result, const fixed_point_complex &lhs, uint64_t rhs,
+                        op_thread_pool_s *tp_s = nullptr);
 
         /**
          * Fast-multiplication. It assumes that the exp2div64 of both numbers are the same.
@@ -147,7 +154,8 @@ namespace merutilm::rff2 {
     }
 
     template<Number Exp, Number Mantissa, Number Bit>
-    fixed_point_complex::fixed_point_complex(const exponent<Exp, Mantissa, Bit> re, const exponent<Exp, Mantissa, Bit> im, const int dec_exp10) :
+    fixed_point_complex::fixed_point_complex(const exponent<Exp, Mantissa, Bit> re,
+                                             const exponent<Exp, Mantissa, Bit> im, const int dec_exp10) :
         real(re, dec_exp10), imag(im, dec_exp10) {
         for (auto &temp: temps) {
             temp.set_exp10(dec_exp10, false);
@@ -184,6 +192,29 @@ namespace merutilm::rff2 {
         fixed_point_decimal::sub(result.imag, lhs.imag, rhs.imag);
     }
 
+    inline void fixed_point_complex::mul(fixed_point_complex &result, const fixed_point_complex &lhs,
+                                         const uint64_t rhs, op_thread_pool_s *tp_s) {
+
+
+        if (tp_s) {
+            if (tp_s->is_empty()) {
+                tp_s->add_func([](fixed_point_complex *res, const fixed_point_complex *l, const uint64_t *r) {
+                    fixed_point_decimal::mul(res->real, l->real, *r);
+                });
+                tp_s->add_func([](fixed_point_complex *res, const fixed_point_complex *l, const uint64_t *r) {
+                    fixed_point_decimal::mul(res->imag, l->imag, *r);
+                });
+            }
+
+
+            tp_s->run_all(&result, &lhs, &rhs);
+            tp_s->wait_all();
+
+        } else {
+            fixed_point_decimal::mul(result.real, lhs.real, rhs);
+            fixed_point_decimal::mul(result.imag, lhs.imag, rhs);
+        }
+    }
 
     inline void fixed_point_complex::mul(fixed_point_complex &result, const fixed_point_complex &lhs,
                                          const fixed_point_complex &rhs, op_thread_pool *tp) {
@@ -205,7 +236,6 @@ namespace merutilm::rff2 {
                     fixed_point_decimal::mul(res->temps[4], l->imag, r->real);
                 });
             }
-
 
 
             tp->run_all(&result, &lhs, &rhs);
@@ -381,9 +411,7 @@ namespace merutilm::rff2 {
             temp.set_exp10(dec_exp10, false);
         }
     }
-    inline bool fixed_point_complex::is_zero() const {
-        return mpz_sgn(real.data) == 0 && mpz_sgn(imag.data) == 0;
-    }
+    inline bool fixed_point_complex::is_zero() const { return mpz_sgn(real.data) == 0 && mpz_sgn(imag.data) == 0; }
 
 
     inline std::string fixed_point_complex::to_string() const {

@@ -51,7 +51,7 @@ namespace merutilm::rff2 {
         auto &frt = app.getSettings().fractal;
         if (renderData && renderData->getPerturbator() && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
             const int exp10 = Perturbator::logZoomToExp10(renderData->getReference()->logZoom);
-            fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
+            const fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
             fixed_point_complex center = frt.reference.center.create_variant(exp10);
             fixed_point_complex::add(center, center, off);
             frt.reference.center = std::move(center);
@@ -85,16 +85,25 @@ namespace merutilm::rff2 {
             ImGui::Button("Locate Centered Reference", ImVec2(-FLT_MIN, 0))) {
             ParallelRenderState &state = app.getState();
 
-            state.createThread([&] {
+            state.createThread([&app, &data, &settings] {
                 const float startTime = app.rootWindowContext->getWindow()->getTime();
-                const auto center = MB2Locator::locateMinibrot(state, *data, app.getFnFindingMBCenter(startTime),
-                                                               settings.explore.useBurstLocating);
-                if (center == std::nullopt)
+
+                const auto ref = data->getReference();
+
+                if (ref == nullptr) {
+                    vkh::logger::log_err("Please wait until the calculation is complete.");
+                    return;
+                }
+
+                MB2Locator locator(app.getState(), *data, settings.explore.useBurstLocating,
+                                   app.getFnFindingMBCenter(startTime));
+                const std::optional<MB2LocateResult> result = locator.locate();
+                if (result == std::nullopt)
                     return;
 
                 FractalSettings frt = settings.fractal;
-                frt.reference.center = center->center;
-                frt.general.logZoom = center->logZoom;
+                frt.reference.center = result->center;
+                frt.general.logZoom = result->logZoom;
                 const dex dcMax = app.getDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
                 const int refExp10 = Perturbator::logZoomToExp10(frt.general.logZoom);
                 data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
@@ -133,17 +142,17 @@ namespace merutilm::rff2 {
 
                     const float startTime = app.rootWindowContext->getWindow()->getTime();
 
-                    const auto locator =
-                            MB2Locator::locateMinibrot(app.getState(), *data, app.getFnFindingMBCenter(startTime),
-                                                       settings.explore.useBurstLocating);
+                    MB2Locator locator(app.getState(), *data, settings.explore.useBurstLocating,
+                                       app.getFnFindingMBCenter(startTime));
+                    const std::optional<MB2LocateResult> result = locator.locate();
 
-                    if (locator == std::nullopt) {
+                    if (result == std::nullopt) {
                         vkh::logger::log("Locate Minibrot Cancelled.");
                         return;
                     }
 
-                    settings.fractal.reference.center = locator->center;
-                    settings.fractal.general.logZoom = locator->logZoom;
+                    settings.fractal.reference.center = result->center;
+                    settings.fractal.general.logZoom = result->logZoom;
                     app.getRequests().requestRecompute();
                 });
             }
