@@ -45,6 +45,8 @@ namespace merutilm::rff2 {
 
         explicit fixed_point_complex(fixed_point_decimal re, fixed_point_decimal im, int dec_exp10);
 
+        static void add_one(fixed_point_complex &v);
+
         /**
          * Fast-addition. It assumes that the count of limbs of both numbers are the same.
          * in-place operation is supported.
@@ -178,6 +180,9 @@ namespace merutilm::rff2 {
         }
     }
 
+    inline void fixed_point_complex::add_one(fixed_point_complex &v) {
+        fixed_point_decimal::add_one(v.real);
+    }
 
     inline void fixed_point_complex::add(fixed_point_complex &result, const fixed_point_complex &lhs,
                                          const fixed_point_complex &rhs) {

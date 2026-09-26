@@ -52,7 +52,6 @@ namespace merutilm::rff2 {
         fixed_point_complex an(1, 0, exp10);
         fixed_point_complex bn(0, 0, exp10);
         fixed_point_complex c = currentCenter.create_variant(exp10);
-        fixed_point_complex one(1, 0, exp10);
 
         int32_t currentExp10 = exp10;
         int32_t prevExp2div64 = 0;
@@ -70,7 +69,7 @@ namespace merutilm::rff2 {
 
             fixed_point_complex::mul(bn, bn, z);
             fixed_point_complex::dbl(bn, bn);
-            fixed_point_complex::add(bn, bn, one);
+            fixed_point_complex::add_one(bn);
 
             fixed_point_complex::sqr(z, z);
             fixed_point_complex::add(z, z, c);
@@ -94,7 +93,6 @@ namespace merutilm::rff2 {
                     c.set_exp10(currentExp10);
                     an.set_exp10(currentExp10);
                     bn.set_exp10(currentExp10);
-                    one.set_exp10(currentExp10);
                     prevExp2div64 = exp2div64;
                 }
             }
@@ -151,7 +149,7 @@ namespace merutilm::rff2 {
     }
 
     void MB2Locator::calculateAmplitudes(complex<dex> &fzgAn, complex<dex> &fpgBn, std::vector<fixed_point_complex> &tt,
-                                         std::vector<fixed_point_complex> &ut) {
+                                         std::vector<fixed_point_complex> &ut) const {
         fzgAn = complex<dex>::ONE;
         fixed_point_complex::zero(tt[0]);
         fixed_point_complex::zero(ut[0]);
@@ -181,7 +179,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    void MB2Locator::setExp10(fixed_point_complex &dc, fixed_point_complex &temp, std::vector<fixed_point_complex> &tt,
+    void MB2Locator::setExp10(fixed_point_complex &dc, std::vector<fixed_point_complex> &tt,
                               std::vector<fixed_point_complex> &ut, const int32_t exp10) {
 
         currentCenter.set_exp10(exp10);
@@ -261,14 +259,9 @@ namespace merutilm::rff2 {
             return true;
         }
 
-
-        for (auto s: status) {
-            if (s != PartitionStatus::SUCCESS) {
-                vkh::logger::log_err("Locate minibrot failed with status code : {}", static_cast<uint8_t>(s));
-                return true;
-            }
-        }
-        return false;
+        return std::ranges::any_of(status, [](const PartitionStatus &s) {
+            return s != PartitionStatus::SUCCESS;
+        });
     }
 
     std::optional<MB2LocateResult> MB2Locator::locate() {
@@ -325,7 +318,7 @@ namespace merutilm::rff2 {
             solvePartitionsParallel(aimExp10, dcCurrExp10);
             if (shouldAbort(state, status))
                 return std::nullopt;
-            setExp10(dc, temp, tt, ut, aimExp10);
+            setExp10(dc, tt, ut, aimExp10);
             calculateAmplitudes(fzgAn, fpgBn, tt, ut);
             translateCenter(dc, tt.back(), ut.back());
             rebaseCheckpoints(dc, tt, ut);

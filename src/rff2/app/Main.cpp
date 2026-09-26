@@ -11,40 +11,40 @@
 #include "VideoWindow.hpp"
 
 
-#ifndef NDEBUG
-
-void counter(const std::filesystem::path &path, uint32_t *lines) {
-    if (std::filesystem::is_directory(path)) {
-        for (std::filesystem::directory_iterator it(path); it != std::filesystem::directory_iterator(); ++it) {
-            auto child = it->path();
-            counter(child, lines);
-        }
-    } else if (path.string().ends_with(".cpp") || path.string().ends_with(".hpp")) {
-
-        std::ifstream ifs(path);
-        std::string v;
-        while (std::getline(ifs, v)) {
-            ++*lines;
-        }
-    }
-}
-
-void countLines() {
-    uint32_t lines = 0;
-    counter(std::filesystem::path("../src"), &lines);
-    counter(std::filesystem::path("../include"), &lines);
-    std::cout << "Lines : " << lines << std::endl;
-}
-#endif
+// #ifndef NDEBUG
+//
+// static void counter(const std::filesystem::path &path, uint32_t *cnt) {
+//     if (std::filesystem::is_directory(path)) {
+//         for (std::filesystem::directory_iterator it(path); it != std::filesystem::directory_iterator(); ++it) {
+//             auto child = it->path();
+//             counter(child, cnt);
+//         }
+//     } else if (path.string().ends_with(".cpp") || path.string().ends_with(".hpp")) {
+//
+//         std::ifstream ifs(path);
+//         std::string v;
+//         while (std::getline(ifs, v)) {
+//             ++*cnt;
+//         }
+//     }
+// }
+//
+// static void count() {
+//     uint32_t cnt = 0;
+//     counter(std::filesystem::path("../src"), &cnt);
+//     counter(std::filesystem::path("../include"), &cnt);
+//     std::cout << cnt << std::endl;
+// }
+// #endif
 
 
 int main() {
     using namespace merutilm::rff2;
     using namespace merutilm::vkh;
 
-#ifndef NDEBUG
-    countLines();
-#endif
+// #ifndef NDEBUG
+//     count();
+// #endif
     Application::start<RFF2>({.framerate = Constants::Render::INIT_FPS,
                                      .name = "RFF 2.0",
                                      .icon = "../res/icon.png",

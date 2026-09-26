@@ -63,15 +63,16 @@ namespace merutilm::rff2 {
                                const std::vector<fixed_point_complex> &ut);
 
         void calculateAmplitudes(complex<dex> &fzgAn, complex<dex> &fpgBn, std::vector<fixed_point_complex> &tt,
-                                 std::vector<fixed_point_complex> &ut);
+                                 std::vector<fixed_point_complex> &ut) const;
 
         static int32_t getCutDigitCount(const complex<dex> &an);
 
         void prepareApproxAmplitudes();
 
-        void setExp10(fixed_point_complex &dc, fixed_point_complex &temp, std::vector<fixed_point_complex> &tt,
+        void setExp10(fixed_point_complex &dc, std::vector<fixed_point_complex> &tt,
                       std::vector<fixed_point_complex> &ut, int32_t exp10);
         static bool checkAndUpdateHistory(std::array<int32_t, 10> &exp10History, int32_t dcCurrExp10, bool burst);
+
         void solvePartitionsParallel(int32_t aimExp10, int32_t dcCurrExp10);
 
         static void refreshInfos(const complex<dex> &fzgAn, const complex<dex> &fpgBn, const fixed_point_complex &dc,
