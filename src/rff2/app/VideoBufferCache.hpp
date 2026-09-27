@@ -12,11 +12,11 @@ namespace merutilm::rff2 {
         vkh::BufferContext bufferContext;
         int width;
         int height;
-        float logZoom;
+        double logZoom;
         cv::Mat image;
 
         explicit VideoBufferCache(vkh::Core &core, vkh::BufferContext &&ctx, const int width,
-                                  const int height, const float zoom) : CoreHandler(core), bufferContext(std::move(ctx)), width(width), height(height), logZoom(zoom) {
+                                  const int height, const double zoom) : CoreHandler(core), bufferContext(std::move(ctx)), width(width), height(height), logZoom(zoom) {
             VideoBufferCache::init();
         }
 

@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
         public:
         static const RFFLocationBinary DEFAULT;
 
-        explicit RFFLocationBinary(float logZoom, std::string real, std::string imag, uint64_t maxIteration);
+        explicit RFFLocationBinary(double logZoom, std::string real, std::string imag, uint64_t maxIteration);
 
         [[nodiscard]] static RFFLocationBinary read(const std::filesystem::path &path);
 

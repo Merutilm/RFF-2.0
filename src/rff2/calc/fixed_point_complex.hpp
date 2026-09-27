@@ -26,26 +26,36 @@ namespace merutilm::rff2 {
 
 
     struct fixed_point_complex {
-        static constexpr int TEMPS_COUNT = 6;
+        static constexpr uint64_t TEMPS_COUNT = 6;
         fixed_point_decimal real;
         fixed_point_decimal imag;
         std::array<fixed_point_decimal, TEMPS_COUNT> temps;
 
         fixed_point_complex() : fixed_point_complex(0.0, 0.0, -1) {}
 
-        explicit fixed_point_complex(const std::string &re_str, const std::string &im_str, int dec_exp10);
+        explicit fixed_point_complex(const std::string &re_str, const std::string &im_str, int64_t exp10);
 
-        explicit fixed_point_complex(double re, double im, int dec_exp10);
+        explicit fixed_point_complex(double re, double im, int64_t exp10);
 
         template<Number Exp, Number Mantissa, Number Bit>
-        explicit fixed_point_complex(exponent<Exp, Mantissa, Bit> re, exponent<Exp, Mantissa, Bit> im, int dec_exp10);
+        explicit fixed_point_complex(exponent<Exp, Mantissa, Bit> re, exponent<Exp, Mantissa, Bit> im, int64_t exp10);
 
         template<Number Num>
-        explicit fixed_point_complex(complex<Num> c, int dec_exp10);
+        explicit fixed_point_complex(complex<Num> c, int64_t exp10);
 
-        explicit fixed_point_complex(fixed_point_decimal re, fixed_point_decimal im, int dec_exp10);
+        explicit fixed_point_complex(fixed_point_decimal re, fixed_point_decimal im, int64_t exp10);
 
-        static void add_one(fixed_point_complex &v);
+        ~fixed_point_complex() = default;
+
+        fixed_point_complex(const fixed_point_complex &other);
+
+        fixed_point_complex &operator=(const fixed_point_complex &other);
+
+        fixed_point_complex(fixed_point_complex &&other) noexcept = default;
+
+        fixed_point_complex &operator=(fixed_point_complex &&other) noexcept = default;
+
+        void add_one();
 
         /**
          * Fast-addition. It assumes that the count of limbs of both numbers are the same.
@@ -130,9 +140,9 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] fixed_point_decimal clone_imag() const;
 
-        [[nodiscard]] fixed_point_complex create_variant(int dec_exp10) const;
+        [[nodiscard]] fixed_point_complex create_variant(int64_t exp10) const;
 
-        void set_exp10(int dec_exp10);
+        void set_exp10(int64_t exp10);
 
         [[nodiscard]] bool is_zero() const;
 
@@ -141,47 +151,61 @@ namespace merutilm::rff2 {
 
 
     inline fixed_point_complex::fixed_point_complex(const std::string &re_str, const std::string &im_str,
-                                                    const int dec_exp10) :
-        real(re_str, dec_exp10), imag(im_str, dec_exp10) {
+                                                    const int64_t exp10) :
+        real(re_str, exp10), imag(im_str, exp10) {
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10, false);
+            temp.set_exp10(exp10, false);
         }
     }
 
-    inline fixed_point_complex::fixed_point_complex(const double re, const double im, const int dec_exp10) :
-        real(re, dec_exp10), imag(im, dec_exp10) {
+    inline fixed_point_complex::fixed_point_complex(const double re, const double im, const int64_t exp10) :
+        real(re, exp10), imag(im, exp10) {
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10, false);
+            temp.set_exp10(exp10, false);
         }
     }
 
     template<Number Exp, Number Mantissa, Number Bit>
     fixed_point_complex::fixed_point_complex(const exponent<Exp, Mantissa, Bit> re,
-                                             const exponent<Exp, Mantissa, Bit> im, const int dec_exp10) :
-        real(re, dec_exp10), imag(im, dec_exp10) {
+                                             const exponent<Exp, Mantissa, Bit> im, const int64_t exp10) :
+        real(re, exp10), imag(im, exp10) {
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10, false);
+            temp.set_exp10(exp10, false);
         }
     }
 
     template<Number Num>
-    fixed_point_complex::fixed_point_complex(const complex<Num> c, const int dec_exp10) :
-        real(c.re, dec_exp10), imag(c.im, dec_exp10) {
+    fixed_point_complex::fixed_point_complex(const complex<Num> c, const int64_t exp10) :
+        real(c.re, exp10), imag(c.im, exp10) {
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10, false);
+            temp.set_exp10(exp10, false);
         }
     }
 
     inline fixed_point_complex::fixed_point_complex(fixed_point_decimal re, fixed_point_decimal im,
-                                                    const int dec_exp10) : real(std::move(re)), imag(std::move(im)) {
-        set_exp10(dec_exp10);
+                                                    const int64_t exp10) : real(std::move(re)), imag(std::move(im)) {
+        set_exp10(exp10);
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10, false);
+            temp.set_exp10(exp10, false);
         }
     }
+    inline fixed_point_complex::fixed_point_complex(const fixed_point_complex &other) : real(other.real), imag(other.imag) {
+        for (auto &temp: temps) {
+            temp.set_exp2div64(other.real.exp2div64, false);
+        }
+    }
+    inline fixed_point_complex &fixed_point_complex::operator=(const fixed_point_complex &other) {
+        if (this == &other) return *this;
+        real = other.real;
+        imag = other.imag;
+        for (auto &temp: temps) {
+            temp.set_exp2div64(other.real.exp2div64, false);
+        }
+        return *this;
+    }
 
-    inline void fixed_point_complex::add_one(fixed_point_complex &v) {
-        fixed_point_decimal::add_one(v.real);
+    inline void fixed_point_complex::add_one() {
+        real.add_one();
     }
 
     inline void fixed_point_complex::add(fixed_point_complex &result, const fixed_point_complex &lhs,
@@ -403,17 +427,17 @@ namespace merutilm::rff2 {
 
     inline fixed_point_decimal fixed_point_complex::clone_imag() const { return imag; }
 
-    inline fixed_point_complex fixed_point_complex::create_variant(const int dec_exp10) const {
-        return fixed_point_complex(real, imag, dec_exp10);
+    inline fixed_point_complex fixed_point_complex::create_variant(const int64_t exp10) const {
+        return fixed_point_complex(real, imag, exp10);
     }
 
 
-    inline void fixed_point_complex::set_exp10(const int dec_exp10) {
-        real.set_exp10(dec_exp10);
-        imag.set_exp10(dec_exp10);
+    inline void fixed_point_complex::set_exp10(const int64_t exp10) {
+        real.set_exp10(exp10);
+        imag.set_exp10(exp10);
 
         for (auto &temp: temps) {
-            temp.set_exp10(dec_exp10, false);
+            temp.set_exp10(exp10, false);
         }
     }
     inline bool fixed_point_complex::is_zero() const { return real.size == 0 && imag.size == 0; }

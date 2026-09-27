@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
 
 
     void VideoWindowRenderManager::applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed,
-                                                  const float currentFrame) const {
+                                                  const double currentFrame) const {
         wc.core.getLogicalDevice().waitDeviceIdle();
         auto &normalI = normal.iterations;
         if (currentFrame < 1) {
@@ -52,10 +52,10 @@ namespace merutilm::rff2 {
         renderer->computeCombine2Map->set2MapSize(videoExtent);
     }
 
-    void VideoWindowRenderManager::setTime(const float currentSec) const { renderer->currentSec = currentSec; }
+    void VideoWindowRenderManager::setTime(const double currentSec) const { renderer->currentSec = currentSec; }
 
 
-    void VideoWindowRenderManager::setCurrentFrame(const float currentFrame) const { renderer->currentFrame = currentFrame; }
+    void VideoWindowRenderManager::setCurrentFrame(const double currentFrame) const { renderer->currentFrame = currentFrame; }
 
     void VideoWindowRenderManager::setStatic(const bool isStatic) const { renderer->isStaticImages = isStatic; }
 
@@ -145,28 +145,28 @@ namespace merutilm::rff2 {
         renderer->render();
     }
 
-    float VideoWindowRenderManager::calculateLogZoom(const float defaultZoomIncrement, const float currentFrame) const {
+    double VideoWindowRenderManager::calculateLogZoom(const double defaultZoomIncrement, const double currentFrame) const {
         if (currentFrame < 1) {
-            const float r = 1 - currentFrame;
+            const double r = 1 - currentFrame;
 
             if (!normal->hasData()) {
                 return 0;
             }
 
-            const float z1 = normal->getLogZoom();
+            const double z1 = normal->logZoom;
             return std::lerp(z1, z1 + std::log10(defaultZoomIncrement), r);
         }
-        const auto f1 = static_cast<int>(currentFrame); // it is smaller
+        const auto f1 = static_cast<int32_t>(currentFrame); // it is smaller
         const auto f2 = f1 + 1;
         // frame size : f1 = 1x, f2 = 2x
-        const float r = static_cast<float>(f2) - currentFrame;
+        const double r = static_cast<double>(f2) - currentFrame;
 
         if (!zoomed->hasData() || !normal->hasData()) {
             return 0;
         }
 
-        const float z1 = zoomed->getLogZoom();
-        const float z2 = normal->getLogZoom();
+        const double z1 = zoomed->logZoom;
+        const double z2 = normal->logZoom;
         return std::lerp(z2, z1, r);
     }
 

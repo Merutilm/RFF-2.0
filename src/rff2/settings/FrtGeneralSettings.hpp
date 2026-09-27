@@ -7,7 +7,7 @@
 namespace merutilm::rff2 {
     struct FrtGeneralSettings {
         float bailout;
-        float logZoom;
+        double logZoom;
         uint32_t threads;
     };
 }

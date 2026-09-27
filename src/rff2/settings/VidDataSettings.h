@@ -6,7 +6,7 @@
 
 namespace merutilm::rff2 {
     struct VidDataSettings {
-        float defaultZoomIncrement;
+        double defaultZoomIncrement;
         bool isStatic;
     };
 }

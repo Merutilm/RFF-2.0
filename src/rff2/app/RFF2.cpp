@@ -114,9 +114,9 @@ namespace merutilm::rff2 {
         }
     }
     std::unique_ptr<MB2RenderDataBase> RFF2::createAppropriateRenderData(const bool computeShader,
-                                                                         const float logZoomTest, const float startTime,
+                                                                         const double logZoomTest, const double startTime,
                                                                          const FractalSettings &frt, const dex dcMax,
-                                                                         const int exp10,
+                                                                         const int64_t exp10,
                                                                          const uint64_t refInitialCapacity) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
@@ -208,7 +208,8 @@ namespace merutilm::rff2 {
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
-                .explore = {.autoMoveCursorToCenter = false, .useBurstLocating = false}};
+                .explore = {.autoMoveCursorToCenter = false,
+                            .locator = {.burst = false, .crvp = false}}};
 #else
         return Settings{
                 .fractal =
@@ -248,18 +249,19 @@ namespace merutilm::rff2 {
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
-                .explore = {.autoMoveCursorToCenter = false, .useBurstLocating = false}};
+                .explore = {.autoMoveCursorToCenter = false,
+                            .locator = {.burst = false, .crvp = false}}};
 #endif
     }
 
-    complex<dex> RFF2::offsetConversion(const float logZoom, const float clarityMultiplier, const int px,
+    complex<dex> RFF2::offsetConversion(const double logZoom, const float clarityMultiplier, const int px,
                                         const int py) const {
         const double bufOffX = static_cast<double>(px) - static_cast<double>(getIterationBufferWidth()) / 2.0;
         const double bufOffY = static_cast<double>(py) - static_cast<double>(getIterationBufferHeight()) / 2.0;
         return complex{dex(bufOffX), dex(bufOffY)} / getDivisor(logZoom) / dex(clarityMultiplier);
     }
 
-    std::array<int, 2> RFF2::iterationBufferConversion(const float logZoom, const float clarityMultiplier,
+    std::array<int, 2> RFF2::iterationBufferConversion(const double logZoom, const float clarityMultiplier,
                                                        const complex<dex> &offset) const {
         const auto [re, im] = static_cast<complex<double>>(offset * dex(clarityMultiplier) * getDivisor(logZoom));
 
@@ -275,7 +277,7 @@ namespace merutilm::rff2 {
                          rootWindowContext->getSwapchain().getSwapchainExtent().height - my);
     }
 
-    dex RFF2::getDivisor(const float logZoom) { return rff_math::exp10(logZoom); }
+    dex RFF2::getDivisor(const double logZoom) { return rff_math::exp10(logZoom); }
 
 
     uint16_t RFF2::calcIterationBufferWidth(const Settings &s) const {
@@ -332,13 +334,13 @@ namespace merutilm::rff2 {
 
                     if (mb == GLFW_MOUSE_BUTTON_LEFT) {
                         const float m = settings.render.display.clarityMultiplier;
-                        const float logZoom = settings.fractal.general.logZoom;
-                        const int exp10 = Perturbator::logZoomToExp10(logZoom);
+                        const double logZoom = settings.fractal.general.logZoom;
+                        const int64_t exp10 = Perturbator::logZoomToExp10(logZoom);
 
                         fixed_point_complex &center = settings.fractal.reference.center;
                         center.set_exp10(exp10);
-                        const fixed_point_complex add(dex(static_cast<float>(dx) / m) / getDivisor(logZoom),
-                                                      dex(static_cast<float>(dy) / m) / getDivisor(logZoom), exp10);
+                        const fixed_point_complex add(dex(static_cast<double>(dx) / m) / getDivisor(logZoom),
+                                                      dex(static_cast<double>(dy) / m) / getDivisor(logZoom), exp10);
                         fixed_point_complex::add(center, center, add);
 
                         requests.requestRecompute();
@@ -369,9 +371,9 @@ namespace merutilm::rff2 {
 
         const auto [re, im] =
                 offsetConversion(settings.fractal.general.logZoom, settings.render.display.clarityMultiplier, mix, miy);
-        float &logZoom = settings.fractal.general.logZoom;
+        double &logZoom = settings.fractal.general.logZoom;
         fixed_point_complex &center = settings.fractal.reference.center;
-        const int exp10 = Perturbator::logZoomToExp10(logZoom);
+        const int64_t exp10 = Perturbator::logZoomToExp10(logZoom);
         center.set_exp10(exp10);
 
         const float mz = pow(10.0f, -logIncrement);
@@ -438,9 +440,9 @@ namespace merutilm::rff2 {
     }
 
     void RFF2::invokeUpdaters() {
-        static float time = rootWindowContext->getWindow()->getTime();
-        const float t = rootWindowContext->getWindow()->getTime();
-        const float dt = t - time;
+        static double time = rootWindowContext->getWindow()->getTime();
+        const double t = rootWindowContext->getWindow()->getTime();
+        const double dt = t - time;
         time = t;
 
         if (canShowPreview && !zoomAnimationInfo.aimChanged) {
@@ -739,8 +741,8 @@ namespace merutilm::rff2 {
         const RFFLocationBinary location = RFFLocationBinary::read(path);
 
         settings.fractal.reference.center = fixed_point_complex(location.getReal(), location.getImag(),
-                                                                Perturbator::logZoomToExp10(location.getLogZoom()));
-        settings.fractal.general.logZoom = location.getLogZoom();
+                                                                Perturbator::logZoomToExp10(location.logZoom));
+        settings.fractal.general.logZoom = location.logZoom;
         settings.fractal.perturb.maxIteration = location.getMaxIteration();
         requests.requestRecompute();
     }
@@ -831,7 +833,7 @@ namespace merutilm::rff2 {
 
     void RFF2::matchSettingsAfterCreatingRenderData(Settings &s) const { s.fractal = renderData->fractalSettings; }
 
-    bool RFF2::prepareRenderData(const float startTime, const Settings &s) {
+    bool RFF2::prepareRenderData(const double startTime, const Settings &s) {
 
         canShowPreview = false;
 
@@ -839,7 +841,7 @@ namespace merutilm::rff2 {
             return false;
 
         const auto &frt = s.fractal;
-        const float logZoom = frt.general.logZoom;
+        const double logZoom = frt.general.logZoom;
 
         setStatusMessage(Constants::Status::ZOOM_STATUS,
                          std::format("Zoom : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
@@ -857,7 +859,7 @@ namespace merutilm::rff2 {
             return false;
 
 
-        const int exp10 = Perturbator::logZoomToExp10(logZoom);
+        const int64_t exp10 = Perturbator::logZoomToExp10(logZoom);
         if (frt.reference.reuse) {
             if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
                 vkh::logger::log_err("Do not reuse Reference during reference calculation!!!");
@@ -898,7 +900,7 @@ namespace merutilm::rff2 {
         return true;
     }
 
-    void RFF2::fillIterationMultithreaded(const float startTime, const Settings &s) {
+    void RFF2::fillIterationMultithreaded(const double startTime, const Settings &s) {
         std::atomic renderPixelsCount = 0;
         const uint16_t w = getIterationBufferWidth();
         const uint16_t h = getIterationBufferHeight();
@@ -937,9 +939,9 @@ namespace merutilm::rff2 {
 
 
         auto statusThread = std::jthread([&renderPixelsCount, len, this, startTime](const std::stop_token &stop) {
-            static float time = rootWindowContext->getWindow()->getTime();
+            static double time = rootWindowContext->getWindow()->getTime();
             while (!stop.stop_requested()) {
-                const float elapsed = rootWindowContext->getWindow()->getTime() - time;
+                const double elapsed = rootWindowContext->getWindow()->getTime() - time;
                 if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                     time = rootWindowContext->getWindow()->getTime();
                     float ratio = static_cast<float>(renderPixelsCount.load()) / static_cast<float>(len) * 100;
@@ -971,7 +973,7 @@ namespace merutilm::rff2 {
     }
 
 
-    bool RFF2::fillIteration(const float startTime, const Settings &s) {
+    bool RFF2::fillIteration(const double startTime, const Settings &s) {
 
         if (state.interruptRequested())
             return false;

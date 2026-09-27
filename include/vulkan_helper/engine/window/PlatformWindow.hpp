@@ -17,7 +17,7 @@ namespace merutilm::vkh {
 
         GLFWwindow *window = nullptr;
         std::chrono::high_resolution_clock::time_point startTime;
-        float time = 0;
+        double time = 0;
 
     protected:
         bool mouseHovered = false;
@@ -99,7 +99,7 @@ namespace merutilm::vkh {
 
         void updateTime();
 
-        float getTime() const {return time;}
+        [[nodiscard]] double getTime() const {return time;}
 
     protected:
         void init() override;

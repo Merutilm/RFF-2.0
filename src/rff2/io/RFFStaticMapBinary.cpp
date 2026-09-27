@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
 
     const RFFStaticMapBinary RFFStaticMapBinary::DEFAULT = RFFStaticMapBinary(0, 0, 0);
 
-    RFFStaticMapBinary::RFFStaticMapBinary(const float logZoom, const uint32_t width, const uint32_t height) : RFFBinary(logZoom), width(width), height(height) {
+    RFFStaticMapBinary::RFFStaticMapBinary(const double logZoom, const uint32_t width, const uint32_t height) : RFFBinary(logZoom), width(width), height(height) {
 
     }
 
@@ -34,8 +34,16 @@ namespace merutilm::rff2 {
             return DEFAULT;
         }
 
-        float lz;
-        IOUtilities::readAndDecode(in, &lz);
+        float v;
+        const uint32_t version = readVersion(in, reinterpret_cast<std::byte *>(&v));
+
+        double lz;
+        if (version == 0) {
+            lz = v;
+        }else {
+            IOUtilities::readAndDecode(in, &lz);
+        }
+
         uint32_t w;
         IOUtilities::readAndDecode(in, &w);
         uint32_t h;
@@ -58,7 +66,8 @@ namespace merutilm::rff2 {
 
     void RFFStaticMapBinary::exportFile(const std::filesystem::path &path) const {
         if (std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc); out.is_open()) {
-            IOUtilities::encodeAndWrite(out, getLogZoom());
+            IOUtilities::encodeAndWrite(out, VERSION);
+            IOUtilities::encodeAndWrite(out, logZoom);
             IOUtilities::encodeAndWrite(out, getWidth());
             IOUtilities::encodeAndWrite(out, getHeight());
             out.close();

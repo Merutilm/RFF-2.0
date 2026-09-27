@@ -43,8 +43,8 @@ namespace merutilm::rff2 {
         const VkExtent2D &videoExtent;
 
         bool isStaticImages = false;
-        float currentSec = 0.0f;
-        float currentFrame = 0.0f;
+        double currentSec = 0.0f;
+        double currentFrame = 0.0f;
 
         explicit VideoWindowRenderer(vkh::Engine &engine, vkh::WindowContext &wc, const Settings &settings,
                                      const VkExtent2D &videoExtent) :
@@ -96,7 +96,7 @@ namespace merutilm::rff2 {
         }
 
         void beforeCmdRender() override {
-            descriptorStorage->time->setManualTime(currentSec, frameIndex);
+            descriptorStorage->time->setTimeManually(currentSec, frameIndex);
             descriptorStorage->slope->set(settings.shader.slope, 1, frameIndex);
             descriptorStorage->video->setCurrentFrame(currentFrame, frameIndex);
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, settings.shader.fog.radius,

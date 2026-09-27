@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
         uint16_t height;
         static const RFFDynamicMapBinary DEFAULT;
 
-        RFFDynamicMapBinary(float logZoom, uint64_t period, uint64_t maxIteration, std::vector<double> iterations,
+        RFFDynamicMapBinary(double logZoom, uint64_t period, uint64_t maxIteration, std::vector<double> iterations,
                             uint16_t width, uint16_t height);
         [[nodiscard]] bool hasData() const override;
 

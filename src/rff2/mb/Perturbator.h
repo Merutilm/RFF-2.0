@@ -10,12 +10,12 @@ namespace merutilm::rff2 {
 
         virtual ~Perturbator() = default;
 
-        static int32_t logZoomToExp10(float logZoom);
+        static int64_t logZoomToExp10(double logZoom);
 
     };
 
-    inline int32_t Perturbator::logZoomToExp10(const float logZoom) {
-        return -static_cast<int>(logZoom) - Constants::Fractal::EXP10_ADDITION;
+    inline int64_t Perturbator::logZoomToExp10(const double logZoom) {
+        return -static_cast<int64_t>(logZoom) - Constants::Fractal::EXP10_ADDITION;
     }
 
 

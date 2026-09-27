@@ -47,7 +47,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
         void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
-            bufferManager.reserve<float>(TARGET_TIME_CURRENT);
+            bufferManager.reserve<double>(TARGET_TIME_CURRENT);
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager),
                                                       vkh::BufferLocalization::ALWAYS_EXPOSED, true);
             auto descManager = vkh::DescriptorManager();
@@ -299,8 +299,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
         void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
-            bufferManager.reserve<float>(TARGET_VIDEO_DEFAULT_ZOOM_INCREMENT);
-            bufferManager.reserve<float>(TARGET_VIDEO_CURRENT_FRAME);
+            bufferManager.reserve<double>(TARGET_VIDEO_DEFAULT_ZOOM_INCREMENT);
+            bufferManager.reserve<double>(TARGET_VIDEO_CURRENT_FRAME);
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager),
                                                       vkh::BufferLocalization::BIDIRECTIONAL, true);
             auto descManager = vkh::DescriptorManager();
@@ -376,7 +376,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             vkh::DescriptorManager descManager;
             vkh::HostDataObjectManager hdm;
             hdm.reserve<glm::vec2>(TARGET_SMOOTH_ZOOM_POSITION_DELTA);
-            hdm.reserve<float>(TARGET_SMOOTH_ZOOM_LOG_ZOOM_DELTA);
+            hdm.reserve<double>(TARGET_SMOOTH_ZOOM_LOG_ZOOM_DELTA);
             auto uniform =
                     std::make_unique<vkh::Uniform>(core, std::move(hdm), vkh::BufferLocalization::BIDIRECTIONAL, false);
             descManager.appendUBO(BINDING_SMOOTH_ZOOM_UBO, STAGE, std::move(uniform));

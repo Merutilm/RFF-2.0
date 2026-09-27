@@ -50,7 +50,7 @@ namespace merutilm::rff2::SharedDescriptorManager {
     struct DescManagerTime : vkh::DescriptorTemplateManager {
         using DescriptorTemplateManager::DescriptorTemplateManager;
 
-        void setManualTime(const float time, const uint32_t frameIndex) const {
+        void setTimeManually(const double time, const uint32_t frameIndex) const {
             using namespace SharedDescriptorTemplate;
             auto &timeBinding = desc.get<vkh::Uniform>(0, DescTime::BINDING_UBO_TIME);
 
@@ -58,7 +58,7 @@ namespace merutilm::rff2::SharedDescriptorManager {
             timeBinding.updateMF(frameIndex);
         }
 
-        void setToCurrentTime(const uint32_t frameIndex) const { setManualTime(wc.getWindow()->getTime(), frameIndex); }
+        void setToCurrentTime(const uint32_t frameIndex) const { setTimeManually(wc.getWindow()->getTime(), frameIndex); }
     };
     struct DescManagerIteration : vkh::DescriptorTemplateManager {
 
@@ -242,20 +242,20 @@ namespace merutilm::rff2::SharedDescriptorManager {
     struct DescManagerVideo : vkh::DescriptorTemplateManager {
         using DescriptorTemplateManager::DescriptorTemplateManager;
 
-        void setCurrentFrame(const float currentFrame, const uint32_t frameIndex) const {
+        void setCurrentFrame(const double currentFrame, const uint32_t frameIndex) const {
             using namespace SharedDescriptorTemplate;
             auto &vidUBO = desc.get<vkh::Uniform>(0, DescVideo::BINDING_UBO_VIDEO);
             auto &vidUBOHost = vidUBO.getHostObject();
-            vidUBOHost.set<float>(DescVideo::TARGET_VIDEO_CURRENT_FRAME, currentFrame);
+            vidUBOHost.set<double>(DescVideo::TARGET_VIDEO_CURRENT_FRAME, currentFrame);
             vidUBO.updateMF(frameIndex);
         }
 
 
-        void setDefaultZoomIncrement(const float defaultZoomIncrement) const {
+        void setDefaultZoomIncrement(const double defaultZoomIncrement) const {
             using namespace SharedDescriptorTemplate;
             auto &vidUBO = desc.get<vkh::Uniform>(0, DescVideo::BINDING_UBO_VIDEO);
             auto &vidUBOHost = vidUBO.getHostObject();
-            vidUBOHost.set<float>(DescVideo::TARGET_VIDEO_DEFAULT_ZOOM_INCREMENT, defaultZoomIncrement);
+            vidUBOHost.set<double>(DescVideo::TARGET_VIDEO_DEFAULT_ZOOM_INCREMENT, defaultZoomIncrement);
             for (uint32_t i = 0; i < wc.core.getPhysicalDeviceLoader().getMaxFramesInFlight(); ++i) {
                 vidUBO.updateMF(i);
             }
@@ -309,7 +309,7 @@ namespace merutilm::rff2::SharedDescriptorManager {
 
         void reset() const { set(glm::vec2(0.0f, 0.0f), 0.0f); }
 
-        void set(const glm::vec2 &positionDelta, const float logZoomDelta) const {
+        void set(const glm::vec2 &positionDelta, const double logZoomDelta) const {
 
             using namespace SharedDescriptorTemplate;
             auto &smoothZoomUBO = desc.get<vkh::Uniform>(0, DescSmoothZoom::BINDING_SMOOTH_ZOOM_UBO);

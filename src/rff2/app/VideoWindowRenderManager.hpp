@@ -33,15 +33,15 @@ namespace merutilm::rff2 {
 
         VideoWindowRenderManager &operator=(VideoWindowRenderManager &&) = delete;
 
-        void applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed, float currentFrame) const;
+        void applyCurrentDynamicMap(const RFFDynamicMapBinary &normal, const RFFDynamicMapBinary &zoomed, double currentFrame) const;
 
         void setMaxIterationDynamic(double maxIteration) const;
 
         void applyShader() const;
 
-        void setTime(float currentSec) const;
+        void setTime(double currentSec) const;
 
-        void setCurrentFrame(float currentFrame) const;
+        void setCurrentFrame(double currentFrame) const;
 
         void setStatic(bool isStatic) const;
 
@@ -65,7 +65,7 @@ namespace merutilm::rff2 {
             return wc;
         }
 
-        [[nodiscard]] float calculateLogZoom(float defaultZoomIncrement, float currentFrame) const;
+        [[nodiscard]] double calculateLogZoom(double defaultZoomIncrement, double currentFrame) const;
 
         [[nodiscard]] VideoBufferCache createImage() const;
 

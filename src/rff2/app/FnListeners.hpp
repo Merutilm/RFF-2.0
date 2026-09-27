@@ -21,7 +21,7 @@ namespace merutilm::rff2::FnListeners {
     template<typename F>
     concept FnCreatingTable = std::is_convertible_v<F, FnCreatingTableW>;
 
-    using FnLocatingMB2W = std::function<void(int32_t, uint32_t, uint32_t)>;
+    using FnLocatingMB2W = std::function<void(int64_t, uint32_t, uint32_t)>;
     template<typename F>
     concept FnLocatingMB2 = std::is_convertible_v<F, FnLocatingMB2W>;
 

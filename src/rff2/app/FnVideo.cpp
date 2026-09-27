@@ -23,8 +23,8 @@ namespace merutilm::rff2 {
         if (ImGui::TreeNode("Data Settings")) {
             auto &[defaultZoomIncrement, isStatic] = app.getSettings().video.data;
 
-            if (ImGui::InputFloat("Default Zoom Increment", &defaultZoomIncrement)) {
-                defaultZoomIncrement = std::clamp(defaultZoomIncrement, 1.25f, 8.f);
+            if (ImGui::InputDouble("Default Zoom Increment", &defaultZoomIncrement)) {
+                defaultZoomIncrement = std::clamp(defaultZoomIncrement, 1.25, 8.0);
             }
 
             Utilities::imguiHelpMarker("Set the log-Zoom interval between two adjacent video keyframes.");
@@ -75,7 +75,7 @@ namespace merutilm::rff2 {
 
                 app.getBackgroundThreads().createThread([&app, dirPtr = std::move(dirPtr)](BackgroundThread &thread) {
                     auto &state = app.getState();
-                    float &logZoom = app.getSettings().fractal.general.logZoom;
+                    double &logZoom = app.getSettings().fractal.general.logZoom;
 
                     if (!app.getWindowContext().getWindow()->canRenderNow()) {
                         vkh::logger::log_err("Window is currently minimized or inactive");
@@ -95,7 +95,7 @@ namespace merutilm::rff2 {
                         app.getRequests().requestShader();
                         thread.waitUntil([&app] { return !app.getRequests().shaderRequested; });
                     }
-                    const float increment = std::log10(videoSettings.data.defaultZoomIncrement);
+                    const double increment = std::log10(videoSettings.data.defaultZoomIncrement);
 
                     app.getKeyframeProgressInfo().keyframeGenerating = true;
 
@@ -184,7 +184,7 @@ namespace merutilm::rff2 {
         auto &[mutex, ratio, remainedTimeStr] = app.getVideoProgressInfo();
         if (ratio > 0) {
             std::scoped_lock lock(mutex);
-            ImGui::ProgressBar(ratio);
+            ImGui::ProgressBar(static_cast<float>(ratio));
             ImGui::Text("%s", remainedTimeStr.data());
         }
     }

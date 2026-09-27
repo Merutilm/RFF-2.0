@@ -5,12 +5,13 @@
 
 #pragma once
 #include "../parallel/ParallelRenderState.h"
+#include "../settings/ExpLocatorSettings.hpp"
 #include "MB2RenderData.hpp"
 
 namespace merutilm::rff2 {
     struct MB2LocateResult {
         fixed_point_complex center;
-        float logZoom{};
+        double logZoom{};
     };
 
     struct BlockResult {
@@ -23,24 +24,25 @@ namespace merutilm::rff2 {
     enum class PartitionStatus : uint8_t { SUCCESS, INTERRUPTED, ERROR_BURST_Z_ESCAPED };
 
     class MB2Locator {
-        static constexpr float MINIBROT_LOG_ZOOM_OFFSET = 2.f;
+        static constexpr double MB2_LOG_ZOOM_OFFSET = 2.f;
         static constexpr uint32_t EXP10_HISTORY_LENGTH = 10;
 
         const ParallelRenderState &state;
-        const bool burst;
+        const ExpLocatorSettings locSettings;
         const uint32_t threads;
-        const float refLogZoom;
+        const double refLogZoom;
         const dex refDcMax;
         const complex<dex> refFpgBn;
         fixed_point_complex currentCenter;
         fixed_point_complex temp;
+        std::vector<fixed_point_complex> knownOrbit;
         std::vector<ReferenceCheckpoint> checkpoints;
         std::vector<BlockResult> blockResults;
         std::vector<complex<dex>> approxAmplitudes;
         std::vector<PartitionStatus> status;
         FnListeners::FnLocatingMB2W fnLocatingMB2W;
     public:
-        explicit MB2Locator(const ParallelRenderState &state, const MB2RenderDataBase &data, bool burst,
+        explicit MB2Locator(const ParallelRenderState &state, const MB2RenderDataBase &data, const ExpLocatorSettings &locSettings,
                             FnListeners::FnLocatingMB2W &&fnLocatingMB2W);
 
         std::optional<MB2LocateResult> locate();
@@ -52,9 +54,9 @@ namespace merutilm::rff2 {
         static void calcCenterOffset(fixed_point_complex &result, const fixed_point_complex &z,
                                      const fixed_point_complex &bn);
 
-        PartitionStatus processPartition(uint32_t partitionIndex, int32_t dcCurrExp10, int32_t aimExp10);
+        PartitionStatus processPartition(uint32_t partitionIndex, int64_t dcCurrExp10, int64_t aimExp10);
 
-        PartitionStatus processPartitions(int32_t dcCurrExp10, int32_t aimExp10, std::mutex &partitionPickerMutex,
+        PartitionStatus processPartitions(int64_t dcCurrExp10, int64_t aimExp10, std::mutex &partitionPickerMutex,
                                           uint32_t &processedPartition);
 
         void translateCenter(fixed_point_complex &dc, const fixed_point_complex &t, const fixed_point_complex &u);
@@ -65,18 +67,18 @@ namespace merutilm::rff2 {
         void calculateAmplitudes(complex<dex> &fzgAn, complex<dex> &fpgBn, std::vector<fixed_point_complex> &tt,
                                  std::vector<fixed_point_complex> &ut) const;
 
-        static int32_t getCutDigitCount(const complex<dex> &an);
+        static int64_t getCutDigitCount(const complex<dex> &an);
 
         void prepareApproxAmplitudes();
 
         void setExp10(fixed_point_complex &dc, std::vector<fixed_point_complex> &tt,
-                      std::vector<fixed_point_complex> &ut, int32_t exp10);
-        static bool checkAndUpdateHistory(std::array<int32_t, 10> &exp10History, int32_t dcCurrExp10, bool burst);
+                      std::vector<fixed_point_complex> &ut, int64_t exp10);
+        static bool checkAndUpdateHistory(std::array<int64_t, EXP10_HISTORY_LENGTH> &exp10History, int64_t dcCurrExp10, bool burst);
 
-        void solvePartitionsParallel(int32_t aimExp10, int32_t dcCurrExp10);
+        void solvePartitionsParallel(int64_t aimExp10, int64_t dcCurrExp10);
 
         static void refreshInfos(const complex<dex> &fzgAn, const complex<dex> &fpgBn, const fixed_point_complex &dc,
-                                 complex<dex> &mbScale, float &aimLogZoom, int32_t &aimExp10, dex &dcd);
+                                 complex<dex> &mbScale, double &aimLogZoom, int64_t &aimExp10, dex &dcd);
 
         static bool shouldAbort(const ParallelRenderState &state, const std::vector<PartitionStatus> &status);
 

@@ -247,7 +247,7 @@ namespace merutilm::vkh {
 
         using namespace std::chrono;
         const time_point<high_resolution_clock> currentTime = high_resolution_clock::now();
-        time = std::chrono::duration_cast<duration<float>>(currentTime - startTime).count();
+        time = std::chrono::duration_cast<duration<double>>(currentTime - startTime).count();
     }
 
 

@@ -43,7 +43,6 @@ add_executable(
         src/rff2/app/FnVideo.cpp
         src/rff2/app/IOUtilities.cpp
         src/rff2/io/RFFStaticMapBinary.cpp
-        src/rff2/io/RFFBinary.cpp
         src/rff2/io/RFFLocationBinary.cpp
         src/rff2/io/KFRColorLoader.cpp
         extern/stb_image.c
@@ -74,6 +73,7 @@ add_executable(
         src/rff2/app/FnListeners.hpp
         src/rff2/calc/rff_random.hpp
         src/rff2/mb/MB2Locator.cpp
+        src/rff2/settings/ExpLocatorSettings.hpp
 )
 
 target_compile_options(RFF PRIVATE

@@ -88,11 +88,11 @@ namespace merutilm::rff2 {
         }
         --maxNumber;
 
-        const float minNumber = -overZoom;
-        auto currentFrame = static_cast<float>(maxNumber);
-        float currentSec = 0;
+        const double minNumber = -overZoom;
+        double currentFrame = maxNumber;
+        double currentSec = 0;
         uint32_t pf1 = UINT32_MAX;
-        const float startSec = std::chrono::duration_cast<std::chrono::duration<float>>(
+        const double startSec = std::chrono::duration_cast<std::chrono::duration<double>>(
                                        std::chrono::high_resolution_clock::now().time_since_epoch())
                                        .count();
 
@@ -165,17 +165,17 @@ namespace merutilm::rff2 {
             VideoBufferCache buffer = manager.createImage();
             writer << generateFrame(buffer, imgWidth, showText);
 
-            const float progressRatio =
-                    (static_cast<float>(maxNumber) - currentFrame) / (static_cast<float>(maxNumber) + overZoom);
-            const float spentSec = std::chrono::duration_cast<std::chrono::duration<float>>(
+            const double progressRatio =
+                    (static_cast<double>(maxNumber) - currentFrame) / (static_cast<double>(maxNumber) + overZoom);
+            const double spentSec = std::chrono::duration_cast<std::chrono::duration<double>>(
                                            std::chrono::high_resolution_clock::now().time_since_epoch())
                                            .count() -
                                    startSec;
-            const auto remainedSec = static_cast<uint32_t>((1 - progressRatio) / progressRatio * spentSec);
+            const auto remainedSec = static_cast<uint64_t>((1 - progressRatio) / progressRatio * spentSec);
 
             std::scoped_lock lock(mutex);
             ratio = progressRatio;
-            remainedTimeStr = std::format("Processing... {:.2f}% [{}]", std::clamp(progressRatio, 0.0f, 1.0f) * 100,
+            remainedTimeStr = std::format("Processing... {:.2f}% [{}]", std::clamp(progressRatio, 0.0, 1.0) * 100,
                                               Utilities::formatTime(remainedSec));
         }
 
@@ -201,7 +201,7 @@ namespace merutilm::rff2 {
             const int tkn = std::max(1, off / 2);
 
             const std::string zoomStr = std::format("Zoom : {:6f}E{:d}", std::pow(10, std::fmod(buffer.logZoom, 1)),
-                                                    static_cast<int>(buffer.logZoom));
+                                                    static_cast<int64_t>(buffer.logZoom));
             cv::putText(img, zoomStr, cv::Point(xg + off, loc + yg + off), cv::FONT_HERSHEY_PLAIN, size,
                         cv::Scalar(0, 0, 0));
             cv::putText(img, zoomStr, cv::Point(xg, loc + yg), cv::FONT_HERSHEY_PLAIN, size, cv::Scalar(255, 255, 255),

@@ -28,11 +28,11 @@ namespace merutilm::rff2 {
         [[nodiscard]] virtual MB2ReferenceBase *getReference() const = 0;
         [[nodiscard]] virtual MB2PerturbatorBase *getPerturbator() const = 0;
 
-        virtual void translate(float logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
+        virtual void translate(double logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
                                const fixed_point_complex &newCenter,
                                FnListeners::FnSeriesApproxW &&fnSeriesApprox) = 0;
 
-        static int logZoomToExp10(const float logZoom) {
+        static int logZoomToExp10(const double logZoom) {
             return -static_cast<int>(logZoom) - Constants::Fractal::EXP10_ADDITION;
         }
     };
@@ -49,7 +49,7 @@ namespace merutilm::rff2 {
         template<FnListeners::FnRefCalc FnRefCalc, FnListeners::FnSeriesApprox FnSeriesApprox,
                  FnListeners::FnCreatingTable FnCreatingTable>
         explicit MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt,
-                               bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache, dex dcMax, int exp10, uint64_t refInitialCapacity,
+                               bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache, dex dcMax, int64_t exp10, uint64_t refInitialCapacity,
                                FnRefCalc &&fnRefCalc, FnSeriesApprox &&fnSeriesApprox,
                                FnCreatingTable &&fnCreatingTable);
 
@@ -58,12 +58,12 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] MB2Perturbator<Num> *getPerturbator() const override { return perturbator.get(); }
 
-        template<FnListeners::FnSeriesApprox FnSeriesApprox>
-        void generateSeriesApproxTerms(dex dcMax, FnSeriesApprox &&fnSeriesApprox);
-
-        void translate(float logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
+        void translate(double logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
                        const fixed_point_complex &newCenter,
                        FnListeners::FnSeriesApproxW &&fnSeriesApprox) override;
+
+        template<FnListeners::FnSeriesApprox FnSeriesApprox>
+        void generateSeriesApproxTerms(dex dcMax, FnSeriesApprox &&fnSeriesApprox);
 
         void applyAutoMaxIteration();
     };
@@ -74,7 +74,7 @@ namespace merutilm::rff2 {
              FnListeners::FnCreatingTable FnCreatingTable>
     MB2RenderData<Num>::MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt,
                                       const bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache,
-                                      const dex dcMax, const int exp10, const uint64_t refInitialCapacity,
+                                      const dex dcMax, const int64_t exp10, const uint64_t refInitialCapacity,
                                       FnRefCalc &&fnRefCalc, FnSeriesApprox &&fnSeriesApprox,
                                       FnCreatingTable &&fnCreatingTable) :
         MB2RenderDataBase(state, frt, computeShaderUsed, cache) {
@@ -179,14 +179,14 @@ namespace merutilm::rff2 {
 
 
     template<Number Num>
-    void MB2RenderData<Num>::translate(const float logZoom, const dex dcMax, const FrtPerturbSettings &ptbSettings,
+    void MB2RenderData<Num>::translate(const double logZoom, const dex dcMax, const FrtPerturbSettings &ptbSettings,
                                        const fixed_point_complex &newCenter,
                                        FnListeners::FnSeriesApproxW &&fnSeriesApprox) {
         if (lastCreationResult != Reference::CreationResult::SUCCESS) {
             // try to use incomplete reference
             vkh::logger::log_err("Please do not try to use incomplete Reference.");
         } else {
-            const int exp10 = logZoomToExp10(logZoom);
+            const int64_t exp10 = logZoomToExp10(logZoom);
             fixed_point_complex center = newCenter.create_variant(exp10);
             const fixed_point_complex refCenter = reference->center.create_variant(exp10);
             fixed_point_complex::sub(center, center, refCenter);

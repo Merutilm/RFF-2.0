@@ -16,7 +16,7 @@ namespace merutilm::rff2 {
 
         static const RFFStaticMapBinary DEFAULT;
 
-        explicit RFFStaticMapBinary(float logZoom, uint32_t width, uint32_t height);
+        explicit RFFStaticMapBinary(double logZoom, uint32_t width, uint32_t height);
 
         [[nodiscard]] bool hasData() const override;
 

@@ -26,13 +26,13 @@ namespace merutilm::rff2 {
         const std::vector<uint64_t> period;
         std::vector<ReferenceCheckpoint> checkpoints;
         const complex<dex> fpgBn;
-        const float logZoom;
+        const double logZoom;
         const dex dcMax;
 
         MB2ReferenceBase(FrtGeneralSettings generalSettings, FrtReferenceSettings refSettings,
                          fixed_point_complex &&center, std::vector<ArrayCompressionTool> &&compressor,
                          std::vector<uint64_t> &&period, std::vector<ReferenceCheckpoint> &&checkpoints,
-                         complex<dex> fpgBn, const float logZoom, const dex dcMax) :
+                         complex<dex> fpgBn, const double logZoom, const dex dcMax) :
             generalSettings(std::move(generalSettings)), refSettings(std::move(refSettings)), center(std::move(center)),
             compressor(std::move(compressor)), period(std::move(period)), checkpoints(std::move(checkpoints)),
             fpgBn(std::move(fpgBn)), logZoom(logZoom), dcMax(dcMax) {}

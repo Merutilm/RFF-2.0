@@ -13,10 +13,11 @@
 namespace merutilm::rff2 {
     inline const RFFLocationBinary RFFLocationBinary::DEFAULT = RFFLocationBinary(0, "", "", 0);
 
-    RFFLocationBinary::RFFLocationBinary(const float logZoom, std::string real, std::string imag,
+    RFFLocationBinary::RFFLocationBinary(const double logZoom, std::string real, std::string imag,
                              const uint64_t maxIteration) : RFFBinary(logZoom), real(std::move(real)), imag(std::move(imag)),
                                                       maxIteration(maxIteration) {
     }
+
 
     RFFLocationBinary RFFLocationBinary::read(const std::filesystem::path &path) {
         if (!std::filesystem::exists(path)) {
@@ -27,25 +28,34 @@ namespace merutilm::rff2 {
         if (!in.is_open()) {
             return DEFAULT;
         }
-        float logZoom;
-        IOUtilities::readAndDecode(in, &logZoom);
-        uint64_t maxIteration;
-        IOUtilities::readAndDecode(in, &maxIteration);
+
+        float v;
+        const uint32_t version = readVersion(in, reinterpret_cast<std::byte *>(&v));
+
+        double lz;
+        if (version == 0) {
+            lz = v;
+        }else {
+            IOUtilities::readAndDecode(in, &lz);
+        }
+
+        uint64_t max;
+        IOUtilities::readAndDecode(in, &max);
         uint64_t len;
         IOUtilities::readAndDecode(in, &len);
-        std::vector<char> re(len);
+        std::vector<char> re(len + 1);
         IOUtilities::readAndDecode(in, len, re.data());
         IOUtilities::readAndDecode(in, &len);
-        std::vector<char> im(len);
+        std::vector<char> im(len + 1);
         IOUtilities::readAndDecode(in, len, im.data());
 
         re.push_back('\0');
         im.push_back('\0');
 
-        std::string real = re.data();
-        std::string imag = im.data();
+        std::string r = re.data();
+        std::string i = im.data();
 
-        return RFFLocationBinary(logZoom, std::move(real), std::move(imag), maxIteration);
+        return RFFLocationBinary{lz, std::move(r), std::move(i), max};
     }
 
 
@@ -62,7 +72,8 @@ namespace merutilm::rff2 {
     void RFFLocationBinary::exportFile(const std::filesystem::path &path) const {
         if (std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc); out.is_open()) {
             uint64_t len = 0;
-            IOUtilities::encodeAndWrite(out, getLogZoom());
+            IOUtilities::encodeAndWrite(out, VERSION);
+            IOUtilities::encodeAndWrite(out, logZoom);
             IOUtilities::encodeAndWrite(out, maxIteration);
             len = real.length();
             IOUtilities::encodeAndWrite(out, len);

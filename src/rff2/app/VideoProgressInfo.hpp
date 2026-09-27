@@ -6,7 +6,7 @@
 namespace merutilm::rff2 {
     struct VideoProgressInfo {
         std::mutex mutex;
-        float ratio;
+        double ratio;
         std::string remainedTimeStr;
     };
 }

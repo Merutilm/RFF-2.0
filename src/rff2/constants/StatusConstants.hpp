@@ -11,5 +11,5 @@ namespace merutilm::rff2::Constants::Status {
     constexpr int TIME_STATUS = 3;
     constexpr int RENDER_STATUS = 4;
     constexpr int LENGTH = 5;
-    constexpr float UI_REFRESH_INTERVAL = .01f;
+    constexpr double UI_REFRESH_INTERVAL = .01f;
 }

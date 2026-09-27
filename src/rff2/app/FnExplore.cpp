@@ -50,7 +50,7 @@ namespace merutilm::rff2 {
         const MB2RenderDataBase *renderData = app.getCurrentRenderData();
         auto &frt = app.getSettings().fractal;
         if (renderData && renderData->getPerturbator() && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
-            const int exp10 = Perturbator::logZoomToExp10(renderData->getReference()->logZoom);
+            const int64_t exp10 = Perturbator::logZoomToExp10(renderData->getReference()->logZoom);
             const fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
             fixed_point_complex center = frt.reference.center.create_variant(exp10);
             fixed_point_complex::add(center, center, off);
@@ -67,7 +67,7 @@ namespace merutilm::rff2 {
         auto &frt = app.getSettings().fractal;
         if (frt.reference.reuse && renderData && renderData->getReference() &&
             ImGui::Button("Go to Original Reference", ImVec2(-FLT_MIN, 0))) {
-            const float startTime = app.rootWindowContext->getWindow()->getTime();
+            const double startTime = app.rootWindowContext->getWindow()->getTime();
             frt.reference.center = renderData->getReference()->center;
             frt.general.logZoom = renderData->getReference()->logZoom;
             renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
@@ -86,7 +86,7 @@ namespace merutilm::rff2 {
             ParallelRenderState &state = app.getState();
 
             state.createThread([&app, &data, &settings] {
-                const float startTime = app.rootWindowContext->getWindow()->getTime();
+                const double startTime = app.rootWindowContext->getWindow()->getTime();
 
                 const auto ref = data->getReference();
 
@@ -95,7 +95,7 @@ namespace merutilm::rff2 {
                     return;
                 }
 
-                MB2Locator locator(app.getState(), *data, settings.explore.useBurstLocating,
+                MB2Locator locator(app.getState(), *data, settings.explore.locator,
                                    app.getFnFindingMBCenter(startTime));
                 const std::optional<MB2LocateResult> result = locator.locate();
                 if (result == std::nullopt)
@@ -105,7 +105,7 @@ namespace merutilm::rff2 {
                 frt.reference.center = result->center;
                 frt.general.logZoom = result->logZoom;
                 const dex dcMax = app.getDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
-                const int refExp10 = Perturbator::logZoomToExp10(frt.general.logZoom);
+                const int64_t refExp10 = Perturbator::logZoomToExp10(frt.general.logZoom);
                 data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
                                                        startTime, frt, dcMax, refExp10, data->getReference()->length());
 
@@ -121,8 +121,12 @@ namespace merutilm::rff2 {
         if (!settings.fractal.reference.reuse) {
             ImGui::Separator();
 
-            ImGui::Checkbox("Use Burst-locate", &settings.explore.useBurstLocating);
+            ImGui::Checkbox("Burst-locate", &settings.explore.locator.burst);
             Utilities::imguiHelpMarker("It significantly increases locate speed at the expense of stability.");
+
+            ImGui::Checkbox("CRVP", &settings.explore.locator.crvp);
+            Utilities::imguiHelpMarker("It significantly increases locate speed using more memory space.");
+
             if (ImGui::Button("Locate Minibrot", ImVec2(-FLT_MIN, 0))) {
 
                 app.getState().cancel();
@@ -140,9 +144,9 @@ namespace merutilm::rff2 {
                         return;
                     }
 
-                    const float startTime = app.rootWindowContext->getWindow()->getTime();
+                    const double startTime = app.rootWindowContext->getWindow()->getTime();
 
-                    MB2Locator locator(app.getState(), *data, settings.explore.useBurstLocating,
+                    MB2Locator locator(app.getState(), *data, settings.explore.locator,
                                        app.getFnFindingMBCenter(startTime));
                     const std::optional<MB2LocateResult> result = locator.locate();
 

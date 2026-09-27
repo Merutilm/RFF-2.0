@@ -4,7 +4,6 @@
 #pragma once
 #include <cmath>
 #include <gmp.h>
-#include<iostream>
 
 #include "exponent.hpp"
 
@@ -49,12 +48,12 @@ namespace merutilm::rff2 {
 
         fixed_point_decimal() : fixed_point_decimal(0.0, -1) {}
 
-        explicit fixed_point_decimal(double v, int dec_exp10);
+        explicit fixed_point_decimal(double v, int64_t exp10);
 
-        explicit fixed_point_decimal(const std::string &str, int dec_exp10);
+        explicit fixed_point_decimal(const std::string &str, int64_t exp10);
 
         template<Number Exp, Number Mantissa, Number Bit>
-        explicit fixed_point_decimal(exponent<Exp, Mantissa, Bit> v, int dec_exp10);
+        explicit fixed_point_decimal(exponent<Exp, Mantissa, Bit> v, int64_t exp10);
 
         ~fixed_point_decimal();
 
@@ -69,18 +68,17 @@ namespace merutilm::rff2 {
 
         template<typename F>
             requires std::is_invocable_r_v<int, F, mpf_t, int>
-        void init_data(int dec_exp10, F &&setter_exp2_getter);
+        void init_data(int64_t exp10, F &&setter_exp2_getter);
 
-        static int exp10_to_exp2div64(int exp10);
+        static int64_t exp10_to_exp2div64(int64_t exp10);
 
         /**
-         * adding 1.
-         * @param v value to change
-         * @return v + 1
+         * Adds 1 to current instance.
          */
-        static void add_one(fixed_point_decimal &v);
+        void add_one();
 
         static void add(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
+
         void normalize_size(int64_t known_size);
 
         static void sub(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
@@ -125,7 +123,8 @@ namespace merutilm::rff2 {
 
         static void neg(fixed_point_decimal &v);
 
-        void set_exp10(int dec_exp10, bool preserveLimbs = true);
+        void set_exp10(int64_t exp10, bool preserveValue = true);
+        void set_exp2div64(int64_t new_exp2div64, bool preserveValue);
 
         explicit operator float() const;
 
@@ -140,31 +139,33 @@ namespace merutilm::rff2 {
     };
 
 
-    inline fixed_point_decimal::fixed_point_decimal(double v, const int dec_exp10) {
-        init_data(dec_exp10, [v](mpf_t val, const int64_t exp2div64) {
+    inline fixed_point_decimal::fixed_point_decimal(double v, const int64_t exp10) {
+        init_data(exp10, [v](mpf_t val, const int64_t exp2div64) {
             mpf_set_d(val, v);
             return exp2div64 * 64;
         });
     }
 
 
-    inline fixed_point_decimal::fixed_point_decimal(const std::string &str, const int dec_exp10) {
-        init_data(dec_exp10, [str](mpf_t val, const int64_t exp2div64) {
+    inline fixed_point_decimal::fixed_point_decimal(const std::string &str, const int64_t exp10) {
+        init_data(exp10, [str](mpf_t val, const int64_t exp2div64) {
             mpf_set_str(val, str.data(), 10);
             return exp2div64 * 64;
         });
     }
 
     template<Number Exp, Number Mantissa, Number Bit>
-    fixed_point_decimal::fixed_point_decimal(const exponent<Exp, Mantissa, Bit> v, const int dec_exp10) {
-        init_data(dec_exp10, [v](mpf_t val, const int64_t exp2div64) {
+    fixed_point_decimal::fixed_point_decimal(const exponent<Exp, Mantissa, Bit> v, const int64_t exp10) {
+        init_data(exp10, [v](mpf_t val, const int64_t exp2div64) {
             mpf_set_d(val, v.get_mantissa());
             return exp2div64 * 64 - v.get_exp2();
         });
     }
 
 
-    inline fixed_point_decimal::~fixed_point_decimal() { delete[] this->data; }
+    inline fixed_point_decimal::~fixed_point_decimal() {
+        delete[] data;
+    }
 
 
     inline fixed_point_decimal::fixed_point_decimal(const fixed_point_decimal &other) :
@@ -189,8 +190,7 @@ namespace merutilm::rff2 {
     }
 
 
-    inline fixed_point_decimal::fixed_point_decimal(fixed_point_decimal &&other) noexcept :
-        data(new mp_limb_t[1]), size(other.size), alloc(other.alloc), exp2div64(other.exp2div64) {
+    inline fixed_point_decimal::fixed_point_decimal(fixed_point_decimal &&other) noexcept : size(other.size), alloc(other.alloc), exp2div64(other.exp2div64) {
         std::swap(data, other.data);
     }
 
@@ -220,11 +220,11 @@ namespace merutilm::rff2 {
 
     template<typename F>
         requires std::is_invocable_r_v<int, F, mpf_t, int>
-    void fixed_point_decimal::init_data(const int dec_exp10, F &&setter_exp2_getter) {
+    void fixed_point_decimal::init_data(const int64_t exp10, F &&setter_exp2_getter) {
 
         mpz_t temp;
         mpz_init(temp);
-        exp2div64 = exp10_to_exp2div64(dec_exp10);
+        exp2div64 = exp10_to_exp2div64(exp10);
         mpf_t val;
 
         mpf_init2(val, (1 - exp2div64) * 64);
@@ -252,7 +252,7 @@ namespace merutilm::rff2 {
     }
 
 
-    inline int fixed_point_decimal::exp10_to_exp2div64(const int exp10) {
+    inline int64_t fixed_point_decimal::exp10_to_exp2div64(const int64_t exp10) {
         constexpr double log10_2 = 0.301029995663981;
         auto exp2div64 = static_cast<int>(static_cast<double>(exp10) / log10_2);
         exp2div64 = (exp2div64 - 63) / 64;
@@ -260,56 +260,52 @@ namespace merutilm::rff2 {
     }
 
 
-    inline void fixed_point_decimal::add_one(fixed_point_decimal &v) {
-        const int64_t dec_limbs = -v.exp2div64;
+    inline void fixed_point_decimal::add_one() {
+        const int64_t dec_limbs = -exp2div64;
         const int64_t required_minimum = dec_limbs + 1;
-        const uint64_t alloc = v.alloc;
-        int64_t size = v.size;
         const bool neg = size < 0;
-        size = std::abs(size);
+        const int64_t limbs_cnt = std::abs(size);
 
 
-        if (size < required_minimum) {
+        if (limbs_cnt < required_minimum) {
             // smaller than 1
 
-            v.try_realloc_inc(required_minimum);
-            mp_limb_t *raw = v.data;
+            try_realloc_inc(required_minimum);
             if (neg) {
                 // after this operation, the result sign will be changed
                 // example: -0.3 + 1 = 0.7
-                mpn_zero(raw + size, required_minimum - size);
-                mpn_neg(raw, raw, required_minimum - 1); // invert decimal parts
-                v.normalize_size(required_minimum);
+                mpn_zero(data + limbs_cnt, required_minimum - limbs_cnt);
+                mpn_neg(data, data, required_minimum - 1); // invert decimal parts
+                normalize_size(required_minimum);
             } else {
                 // 0.xxx + 1 = 1.xxx, preserving decimal limbs.
-                mpn_zero(raw + size, required_minimum - size);
-                v.size = required_minimum;
-                raw[required_minimum - 1] = 1;
+                mpn_zero(data + limbs_cnt, required_minimum - limbs_cnt);
+                size = required_minimum;
+                data[required_minimum - 1] = 1;
             }
             return;
         }
 
-        mp_limb_t *raw = v.data;
         if (neg) {
             uint32_t carries = 0;
-            while (--raw[dec_limbs + carries] == UINT64_MAX) {
+            while (--data[dec_limbs + carries] == UINT64_MAX) {
                 ++carries;
             }
             // mp_size is negative.
             // truncating size if msb is zero
-            v.size += dec_limbs + carries == size - 1 && raw[dec_limbs + carries] == 0;
+            size += dec_limbs + carries == limbs_cnt - 1 && data[dec_limbs + carries] == 0;
 
             // solve -1.xxx + 1
-            if (-v.size == dec_limbs) {
-                v.normalize_size(v.size);
+            if (-size == dec_limbs) {
+                normalize_size(size);
             }
         } else {
-            for (uint32_t carries = 0; ++raw[dec_limbs + carries] == 0; ++carries) {
+            for (uint32_t carries = 0; ++data[dec_limbs + carries] == 0; ++carries) {
 
                 // solve (2^64n - 1) + 1
-                if (dec_limbs + carries == size - 1) [[unlikely]] {
-                    v.try_realloc_inc(alloc + 1);
-                    v.data[v.size++] = 1;
+                if (dec_limbs + carries == limbs_cnt - 1) [[unlikely]] {
+                    try_realloc_inc(alloc + 1);
+                    data[size++] = 1;
                     return;
                 }
             }
@@ -550,6 +546,11 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::limbs_lshift(fixed_point_decimal &result, const fixed_point_decimal &v,
                                                   const int64_t limb_shift) {
+        if (v.size == 0) {
+            result.size = 0;
+            return;
+        }
+
         const int64_t limbs_cnt = std::abs(v.size);
         const int64_t result_limbs_cnt = limbs_cnt + limb_shift;
         result.try_realloc_inc(result_limbs_cnt);
@@ -560,6 +561,12 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::limbs_rshift(fixed_point_decimal &result, const fixed_point_decimal &v,
                                                   const int64_t limb_shift) {
+        if (v.size == 0) {
+            result.size = 0;
+            return;
+        }
+
+
         const int64_t limbs_cnt = std::abs(v.size);
         const int64_t result_limbs_cnt = std::max(static_cast<int64_t>(0), limbs_cnt - limb_shift);
         result.try_realloc_inc(result_limbs_cnt);
@@ -602,9 +609,13 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::neg(fixed_point_decimal &v) { v.size = -v.size; }
 
-    inline void fixed_point_decimal::set_exp10(const int dec_exp10, const bool preserveLimbs) {
-        const int new_exp2div64 = exp10_to_exp2div64(dec_exp10);
-        if (preserveLimbs) {
+    inline void fixed_point_decimal::set_exp10(const int64_t exp10, const bool preserveValue) {
+        const int64_t new_exp2div64 = exp10_to_exp2div64(exp10);
+        set_exp2div64(new_exp2div64, preserveValue);
+    }
+
+    inline void fixed_point_decimal::set_exp2div64(const int64_t new_exp2div64, const bool preserveValue) {
+        if (preserveValue) {
             if (exp2div64 < new_exp2div64) {
                 limbs_rshift(*this, *this, new_exp2div64 - exp2div64);
             } else if (exp2div64 > new_exp2div64) {

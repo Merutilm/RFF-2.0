@@ -16,10 +16,10 @@ namespace merutilm::rff2 {
         glm::vec2 targetMouseZoomOffsetAim = glm::vec2(0.0f, 0.0f);
 
         bool aimChanged = false;
-        float targetLogZoomOffsetStart = 0.0f;
-        float targetLogZoomOffset = 0.0f;
-        float targetLogZoomOffsetAim = 0.0f;
-        float timeAccumulator = 0.0f;
+        double targetLogZoomOffsetStart = 0.0f;
+        double targetLogZoomOffset = 0.0f;
+        double targetLogZoomOffsetAim = 0.0f;
+        double timeAccumulator = 0.0f;
 
 
         void reset() {
@@ -39,7 +39,7 @@ namespace merutilm::rff2 {
             timeAccumulator = 0;
         }
 
-        void update(const float dt) {
+        void update(const double dt) {
             if (!animating) {
                 animating = true;
                 targetLogZoomOffsetStart = targetLogZoomOffset;
@@ -53,14 +53,12 @@ namespace merutilm::rff2 {
                 aimChanged = false;
                 animating = false;
             }
-            const float t = timeAccumulator / DURATION;
+            const double t = timeAccumulator / DURATION;
             targetLogZoomOffset = std::lerp(targetLogZoomOffsetStart, targetLogZoomOffsetAim, t);
 
-            const float dz = std::pow(10.0f, targetLogZoomOffsetStart - targetLogZoomOffset);
-            const float cz = std::pow(10.0f, targetLogZoomOffsetStart - targetLogZoomOffsetAim);
-            const float mt = cz == 1 ? t : (dz - 1) / (cz - 1);
-
-
+            const double dz = std::pow(10.0, targetLogZoomOffsetStart - targetLogZoomOffset);
+            const double cz = std::pow(10.0, targetLogZoomOffsetStart - targetLogZoomOffsetAim);
+            const double mt = cz == 1 ? t : (dz - 1) / (cz - 1);
 
             targetMouseZoomOffset = {
                 std::lerp(targetMouseZoomOffsetStart.x, targetMouseZoomOffsetAim.x, mt),

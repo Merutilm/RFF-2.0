@@ -25,10 +25,10 @@ namespace merutilm::rff2 {
 
         static std::string real = frt.reference.center.real.to_string();
         static std::string imag= frt.reference.center.imag.to_string();
-        static float logZoom = frt.general.logZoom;
+        static double logZoom = frt.general.logZoom;
         static std::string realCache = real;
         static std::string imagCache = imag;
-        static float logZoomCache = logZoom;
+        static double logZoomCache = logZoom;
         static bool locationChanged = false;
 
         if (ImGui::TreeNode("Reference")) {
@@ -69,7 +69,7 @@ namespace merutilm::rff2 {
             Utilities::imguiHelpMarker("Sets the imaginary part of center.");
 
 
-            if (ImGui::InputFloat("Log Zoom", &logZoomCache)) {
+            if (ImGui::InputDouble("Log Zoom", &logZoomCache)) {
                 logZoom = std::max(logZoomCache, Constants::Fractal::ZOOM_MIN);
                 locationChanged = true;
             }
@@ -85,7 +85,7 @@ namespace merutilm::rff2 {
                 locationChanged = false;
             }
             if (ImGui::Button("Apply Location Changes", ImVec2(-FLT_MIN, 0))) {
-                const int exp10 = Perturbator::logZoomToExp10(logZoom);
+                const int64_t exp10 = Perturbator::logZoomToExp10(logZoom);
                 if (locationChanged) {
                     frt.reference.center = fixed_point_complex(real, imag, exp10);
                     frt.general.logZoom = logZoom;
