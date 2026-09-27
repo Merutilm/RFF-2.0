@@ -3,8 +3,8 @@
 //
 #include "VideoWindow.hpp"
 
-#include "../io/RFFDynamicMapBinary.h"
-#include "../io/RFFStaticMapBinary.h"
+#include "../io/RFFDynamicMapBinary.hpp"
+#include "../io/RFFStaticMapBinary.hpp"
 #include "../util/Utilities.h"
 #include "IOUtilities.h"
 #include "opencv2/opencv.hpp"

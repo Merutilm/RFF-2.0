@@ -4,7 +4,7 @@
 
 #include "GPCStaticImage2Map.hpp"
 
-#include "../io/RFFStaticMapBinary.h"
+#include "../io/RFFStaticMapBinary.hpp"
 #include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 #include "vulkan_helper/util/BufferImageContextUtils.hpp"

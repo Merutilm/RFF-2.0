@@ -6,7 +6,8 @@
 
 #include <ranges>
 
-#include "../io/RFFLocationBinary.h"
+#include "../io/RFFLocationBinary.hpp"
+#include "../io/RFFShaderBinary.hpp"
 #include "../mb/MB2Locator.hpp"
 #include "../parallel/ParallelArrayDispatcher.h"
 #include "../preset/calc/approx/ClcApproxPresets.hpp"
@@ -563,9 +564,11 @@ namespace merutilm::rff2 {
         ImGui::Begin("Control");
         if (ImGui::BeginTabBar("Control")) {
             if (ImGui::BeginTabItem("File")) {
+                FnFile::saveShader(*this);
                 FnFile::saveMap(*this);
                 FnFile::saveImage(*this);
                 FnFile::saveLocation(*this);
+                FnFile::loadShader(*this);
                 FnFile::loadMap(*this);
                 FnFile::loadLocation(*this);
                 ImGui::EndTabItem();
@@ -719,31 +722,46 @@ namespace merutilm::rff2 {
         renderer->updateStagingBuffer = true;
     }
 
-    std::filesystem::path RFF2::getBackupLocationPath() {
+    std::filesystem::path RFF2::getBackupPath(const char * ext) {
         return vkh::ExecutableUtils::getExecutableDirectory() /
-               std::format("{}.{}", Constants::File::BACKUP_FILE_NAME, Constants::File::EXT_LOCATION);
+               std::format("{}.{}", Constants::File::BACKUP_FILE_NAME, ext);
     }
 
+
     void RFF2::saveBackup() const {
-        const auto path = getBackupLocationPath();
+        auto path = getBackupPath(Constants::File::EXT_LOCATION);
         saveCurrentLocation(path);
+        path = getBackupPath(Constants::File::EXT_SHADER);
+        saveCurrentShader(path);
     }
 
     void RFF2::saveCurrentLocation(const std::filesystem::path &path) const {
         const auto frt = settings.fractal; // clone the settings
         const auto &center = frt.reference.center;
-        RFFLocationBinary(frt.general.logZoom, center.real.to_string(), center.imag.to_string(),
-                          frt.perturb.maxIteration)
-                .exportFile(path);
+        RFFBinary::exportFile(RFFLocationBinary(frt.general.logZoom, center.real.to_string(), center.imag.to_string(),
+                  frt.perturb.maxIteration), path);
     }
 
-    void RFF2::loadLocation(const std::filesystem::path &path) {
-        const RFFLocationBinary location = RFFLocationBinary::read(path);
 
-        settings.fractal.reference.center = fixed_point_complex(location.getReal(), location.getImag(),
-                                                                Perturbator::logZoomToExp10(location.logZoom));
-        settings.fractal.general.logZoom = location.logZoom;
-        settings.fractal.perturb.maxIteration = location.getMaxIteration();
+    void RFF2::saveCurrentShader(const std::filesystem::path &path) const {
+        auto shd = settings.shader; // clone the settings
+        RFFBinary::exportFile(RFFShaderBinary(std::move(shd)), path);
+    }
+
+    void RFF2::loadShader(const std::filesystem::path &path) {
+        const auto shaderBinary = RFFBinary::importFile<RFFShaderBinary>(path);
+        settings.shader = shaderBinary.shaderSettings;
+        requests.requestShader();
+    }
+
+
+    void RFF2::loadLocation(const std::filesystem::path &path) {
+        const auto locationBinary = RFFBinary::importFile<RFFLocationBinary>(path);
+
+        settings.fractal.reference.center = fixed_point_complex(locationBinary.real, locationBinary.imag,
+                                                                Perturbator::logZoomToExp10(locationBinary.logZoom));
+        settings.fractal.general.logZoom = locationBinary.logZoom;
+        settings.fractal.perturb.maxIteration = locationBinary.maxIteration;
         requests.requestRecompute();
     }
 
@@ -759,12 +777,17 @@ namespace merutilm::rff2 {
     }
 
     void RFF2::checkBackupLoad() {
-        const auto path = getBackupLocationPath();
+        auto path = getBackupPath(Constants::File::EXT_LOCATION);
         if (std::filesystem::exists(path) &&
-            vkh::logger::messagebox_yn("Info", "Last rendered location has been found. Do you want to load it?")) {
+            vkh::logger::messagebox_yn("Info", "Last rendered data has been found. Do you want to load it?")) {
             if (!std::filesystem::exists(path))
                 return; // user deleted file manually
+
             loadLocation(path);
+
+            //also load shaders
+            path = getBackupPath(Constants::File::EXT_SHADER);
+            if (std::filesystem::exists(path)) loadShader(path);
         }
     }
 

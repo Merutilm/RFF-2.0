@@ -5,11 +5,12 @@
 #pragma once
 #include <filesystem>
 
-#include "RFFBinary.h"
+#include "RFFMapBinary.hpp"
 #include "opencv2/core/mat.hpp"
 
 namespace merutilm::rff2 {
-    struct RFFStaticMapBinary final : public RFFBinary {
+    struct RFFStaticMapBinary final : RFFMapBinary {
+
         uint32_t width;
         uint32_t height;
 
@@ -17,19 +18,15 @@ namespace merutilm::rff2 {
 
         explicit RFFStaticMapBinary(double logZoom, uint32_t width, uint32_t height);
 
-        [[nodiscard]] bool hasData() const override;
-
-        [[nodiscard]] static RFFStaticMapBinary read(const std::filesystem::path &path);
+        [[nodiscard]] static RFFStaticMapBinary read(std::ifstream &in);
 
         [[nodiscard]] static cv::Mat loadImageByID(const std::filesystem::path &dir, uint32_t id);
 
         [[nodiscard]] static RFFStaticMapBinary readByID(const std::filesystem::path &dir, uint32_t id);
 
-        void exportAsKeyframe(const std::filesystem::path &dir) const override;
+        void exportAsKeyframe(const std::filesystem::path &dir) const;
 
-        void exportFile(const std::filesystem::path &path) const override;
+        void write(std::ofstream &out) const;
 
     };
-
-
 }

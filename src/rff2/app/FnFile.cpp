@@ -11,6 +11,18 @@
 
 namespace merutilm::rff2 {
 
+
+    void FnFile::saveShader(RFF2 &app) {
+
+        if (ImGui::Button("Save Shader", ImVec2(-FLT_MIN, 0))) {
+            const auto path = IOUtilities::ioFileDialog(Constants::File::DESC_SHADER, IOUtilities::SAVE_FILE,
+                        Constants::File::EXT_SHADER);
+            if (path == nullptr) {
+                return;
+            }
+            app.saveCurrentShader(*path);
+        }
+    }
     void FnFile::saveMap(RFF2 &app) {
         if (ImGui::Button("Save Map", ImVec2(-FLT_MIN, 0))) {
             const auto path = IOUtilities::ioFileDialog(Constants::File::DESC_DYNAMIC_MAP, IOUtilities::SAVE_FILE,
@@ -18,7 +30,7 @@ namespace merutilm::rff2 {
             if (path == nullptr) {
                 return;
             }
-            app.generateMap().exportFile(*path);
+            RFFBinary::exportFile(app.generateMap(), *path);
         }
     }
     void FnFile::saveImage(RFF2 &app) {
@@ -37,6 +49,17 @@ namespace merutilm::rff2 {
             app.saveCurrentLocation(*path);
         }
     }
+    void FnFile::loadShader(RFF2 &app) {
+
+        if (ImGui::Button("Load Shader", ImVec2(-FLT_MIN, 0))) {
+            const auto path = IOUtilities::ioFileDialog(Constants::File::DESC_SHADER, IOUtilities::OPEN_FILE,
+                        Constants::File::EXT_SHADER);
+            if (path == nullptr) {
+                return;
+            }
+            app.loadShader(*path);
+        }
+    }
     void FnFile::loadMap(RFF2 &app) {
 
         if (ImGui::Button("Load Map", ImVec2(-FLT_MIN, 0))) {
@@ -45,7 +68,7 @@ namespace merutilm::rff2 {
             if (path == nullptr) {
                 return;
             }
-            app.overwriteMatrixFromMap(RFFDynamicMapBinary::read(*path));
+            app.overwriteMatrixFromMap(RFFBinary::importFile<RFFDynamicMapBinary>(*path));
         }
     }
 

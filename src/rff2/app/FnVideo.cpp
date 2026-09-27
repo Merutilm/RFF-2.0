@@ -5,8 +5,8 @@
 #include "FnVideo.hpp"
 
 #include "../constants/Constants.hpp"
-#include "../io/RFFLocationBinary.h"
-#include "../io/RFFStaticMapBinary.h"
+#include "../io/RFFLocationBinary.hpp"
+#include "../io/RFFStaticMapBinary.hpp"
 #include "../preset/shader/bloom/ShdBloomPresets.hpp"
 #include "../preset/shader/fog/ShdFogPresets.hpp"
 #include "../preset/shader/slope/ShdSlopePresets.hpp"
@@ -138,9 +138,9 @@ namespace merutilm::rff2 {
                         }
 
                         auto &center = settings.fractal.reference.center;
-                        RFFLocationBinary(settings.fractal.general.logZoom, center.real.to_string(),
-                                          center.imag.to_string(), settings.fractal.perturb.maxIteration)
-                                .exportFile(IOUtilities::generateFilename(dir, Constants::File::EXT_LOCATION, nullptr)
+
+                        RFFBinary::exportFile(RFFLocationBinary(settings.fractal.general.logZoom, center.real.to_string(),
+                                          center.imag.to_string(), settings.fractal.perturb.maxIteration), IOUtilities::generateFilename(dir, Constants::File::EXT_LOCATION, nullptr)
                                                     .string());
                         logZoom -= increment;
                         nextFrame = true;

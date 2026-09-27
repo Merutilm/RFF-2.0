@@ -74,6 +74,9 @@ add_executable(
         src/rff2/calc/rff_random.hpp
         src/rff2/mb/MB2Locator.cpp
         src/rff2/settings/ExpLocatorSettings.hpp
+        src/rff2/io/RFFShaderBinary.cpp
+        src/rff2/io/RFFShaderBinary.hpp
+        src/rff2/io/RFFMapBinary.hpp
 )
 
 target_compile_options(RFF PRIVATE

@@ -14,7 +14,7 @@ namespace merutilm::rff2 {
         float offsetRatio;
         float animationSpeed;
 
-        glm::vec4 getMidColor(float rat) const;
+        [[nodiscard]] glm::vec4 getMidColor(float rat) const;
     };
 
     inline glm::vec4 ShdPaletteSettings::getMidColor(const float rat) const {

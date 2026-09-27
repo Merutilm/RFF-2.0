@@ -5,7 +5,7 @@
 #pragma once
 #include <atomic>
 
-#include "../io/RFFDynamicMapBinary.h"
+#include "../io/RFFDynamicMapBinary.hpp"
 #include "../mb/MB2Perturbator.h"
 #include "../mb/MB2RenderData.hpp"
 #include "../parallel/BackgroundThreads.h"
@@ -105,11 +105,15 @@ namespace merutilm::rff2 {
 
         void overwriteMatrixFromMap(const RFFDynamicMapBinary &map) const;
 
-        [[nodiscard]] static std::filesystem::path getBackupLocationPath();
+        [[nodiscard]] static std::filesystem::path getBackupPath(const char *ext);
 
         void saveBackup() const;
 
         void saveCurrentLocation(const std::filesystem::path &path) const;
+
+        void saveCurrentShader(const std::filesystem::path &path) const;
+
+        void loadShader(const std::filesystem::path &path);
 
         void loadLocation(const std::filesystem::path &path);
 

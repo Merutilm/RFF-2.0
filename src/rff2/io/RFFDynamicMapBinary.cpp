@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-05-08.
 //
 
-#include "RFFDynamicMapBinary.h"
+#include "RFFDynamicMapBinary.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -14,30 +14,21 @@
 
 namespace merutilm::rff2 {
 
-    inline const RFFDynamicMapBinary RFFDynamicMapBinary::DEFAULT = RFFDynamicMapBinary(0, 0, 0, std::vector<double>(), 0, 0);
+    inline const RFFDynamicMapBinary RFFDynamicMapBinary::DEFAULT =
+            RFFDynamicMapBinary(0, 0, 0, std::vector<double>(), 0, 0);
 
     RFFDynamicMapBinary::RFFDynamicMapBinary(const double logZoom, const uint64_t period, const uint64_t maxIteration,
-                                  std::vector<double> iterations, const uint16_t width, const uint16_t height) : RFFBinary(logZoom), period(period), maxIteration(maxIteration),
-                                                               iterations(std::move(iterations)), width(width), height(height) {
+                                             std::vector<double> iterations, const uint16_t width,
+                                             const uint16_t height) :
+        RFFMapBinary(logZoom), period(period), maxIteration(maxIteration), iterations(std::move(iterations)),
+        width(width), height(height) {
+        static_assert(RFFBinaryRequirements<RFFDynamicMapBinary>);
     }
 
 
-    bool RFFDynamicMapBinary::hasData() const {
-        return width > 0;
-    }
+    RFFDynamicMapBinary RFFDynamicMapBinary::read(std::ifstream &in) {
 
-
-    RFFDynamicMapBinary RFFDynamicMapBinary::read(const std::filesystem::path &path) {
-        if (!std::filesystem::exists(path)) {
-            return DEFAULT;
-        }
-        std::ifstream in(path, std::ios::in | std::ios::binary);
-
-        if (!in.is_open()) {
-            return DEFAULT;
-        }
-
-        uint32_t wh;
+        uint32_t wh = 0;
         const uint32_t version = readVersion(in, reinterpret_cast<std::byte *>(&wh));
         uint16_t w;
         uint16_t h;
@@ -48,7 +39,7 @@ namespace merutilm::rff2 {
             float z;
             IOUtilities::readAndDecode(in, &z);
             lz = z;
-        }else {
+        } else {
             IOUtilities::readAndDecode(in, &w);
             IOUtilities::readAndDecode(in, &h);
             IOUtilities::readAndDecode(in, &lz);
@@ -63,28 +54,22 @@ namespace merutilm::rff2 {
         return RFFDynamicMapBinary{lz, p, m, i, w, h};
     }
 
-    RFFDynamicMapBinary RFFDynamicMapBinary::readByID(const std::filesystem::path& dir, const uint32_t id) {
-        return read(dir / IOUtilities::fileNameFormat(id, Constants::File::EXT_DYNAMIC_MAP));
+    RFFDynamicMapBinary RFFDynamicMapBinary::readByID(const std::filesystem::path &dir, const uint32_t id) {
+        return importFile<RFFDynamicMapBinary>(dir / IOUtilities::fileNameFormat(id, Constants::File::EXT_DYNAMIC_MAP));
     }
 
 
     void RFFDynamicMapBinary::exportAsKeyframe(const std::filesystem::path &dir) const {
-        exportFile(IOUtilities::generateFilename(dir, Constants::File::EXT_DYNAMIC_MAP, nullptr));
+        exportFile(*this, IOUtilities::generateFilename(dir, Constants::File::EXT_DYNAMIC_MAP, nullptr));
     }
 
-    void RFFDynamicMapBinary::exportFile(const std::filesystem::path &path) const {
-        if (std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc); out.is_open()) {
-            IOUtilities::encodeAndWrite(out, VERSION);
-            IOUtilities::encodeAndWrite(out, width);
-            IOUtilities::encodeAndWrite(out, height);
-            IOUtilities::encodeAndWrite(out, logZoom);
-            IOUtilities::encodeAndWrite(out, period);
-            IOUtilities::encodeAndWrite(out, maxIteration);
-            IOUtilities::encodeAndWrite(out, iterations);
-            out.close();
-        } else {
-            vkh::logger::log("ERROR : Cannot save file");
-        }
+    void RFFDynamicMapBinary::write(std::ofstream &out) const {
+        IOUtilities::encodeAndWrite(out, width);
+        IOUtilities::encodeAndWrite(out, height);
+        IOUtilities::encodeAndWrite(out, logZoom);
+        IOUtilities::encodeAndWrite(out, period);
+        IOUtilities::encodeAndWrite(out, maxIteration);
+        IOUtilities::encodeAndWrite(out, iterations);
     }
 
-}
+} // namespace merutilm::rff2

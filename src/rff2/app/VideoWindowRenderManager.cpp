@@ -59,7 +59,7 @@ namespace merutilm::rff2 {
 
     void VideoWindowRenderManager::setStatic(const bool isStatic) const { renderer->isStaticImages = isStatic; }
 
-    void VideoWindowRenderManager::setMap(RFFBinary *normal, RFFBinary *zoomed) {
+    void VideoWindowRenderManager::setMap(RFFMapBinary *normal, RFFMapBinary *zoomed) {
         this->normal = normal;
         this->zoomed = zoomed;
     }

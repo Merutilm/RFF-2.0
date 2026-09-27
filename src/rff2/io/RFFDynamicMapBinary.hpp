@@ -6,10 +6,12 @@
 #include <filesystem>
 #include <vector>
 
-#include "RFFBinary.h"
+#include "RFFBinary.hpp"
+#include "RFFMapBinary.hpp"
 
 namespace merutilm::rff2 {
-    struct RFFDynamicMapBinary final : RFFBinary{
+    struct RFFDynamicMapBinary final : RFFMapBinary{
+
         uint64_t period;
         uint64_t maxIteration;
         std::vector<double> iterations;
@@ -19,15 +21,14 @@ namespace merutilm::rff2 {
 
         RFFDynamicMapBinary(double logZoom, uint64_t period, uint64_t maxIteration, std::vector<double> iterations,
                             uint16_t width, uint16_t height);
-        [[nodiscard]] bool hasData() const override;
 
-        [[nodiscard]] static RFFDynamicMapBinary read(const std::filesystem::path &path);
+        [[nodiscard]] static RFFDynamicMapBinary read(std::ifstream &in);
 
         [[nodiscard]] static RFFDynamicMapBinary readByID(const std::filesystem::path &dir, uint32_t id);
 
-        void exportAsKeyframe(const std::filesystem::path &dir) const override;
+        void exportAsKeyframe(const std::filesystem::path &dir) const;
 
-        void exportFile(const std::filesystem::path &path) const override;
+        void write(std::ofstream &out) const;
     };
 
 }
