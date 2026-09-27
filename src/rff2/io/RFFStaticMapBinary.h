@@ -9,10 +9,9 @@
 #include "opencv2/core/mat.hpp"
 
 namespace merutilm::rff2 {
-    class RFFStaticMapBinary final : public RFFBinary {
+    struct RFFStaticMapBinary final : public RFFBinary {
         uint32_t width;
         uint32_t height;
-    public:
 
         static const RFFStaticMapBinary DEFAULT;
 
@@ -25,10 +24,6 @@ namespace merutilm::rff2 {
         [[nodiscard]] static cv::Mat loadImageByID(const std::filesystem::path &dir, uint32_t id);
 
         [[nodiscard]] static RFFStaticMapBinary readByID(const std::filesystem::path &dir, uint32_t id);
-
-        [[nodiscard]] uint32_t getWidth() const;
-
-        [[nodiscard]] uint32_t getHeight() const;
 
         void exportAsKeyframe(const std::filesystem::path &dir) const override;
 

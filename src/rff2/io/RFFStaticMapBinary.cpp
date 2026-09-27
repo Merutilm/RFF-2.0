@@ -68,19 +68,12 @@ namespace merutilm::rff2 {
         if (std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc); out.is_open()) {
             IOUtilities::encodeAndWrite(out, VERSION);
             IOUtilities::encodeAndWrite(out, logZoom);
-            IOUtilities::encodeAndWrite(out, getWidth());
-            IOUtilities::encodeAndWrite(out, getHeight());
+            IOUtilities::encodeAndWrite(out, width);
+            IOUtilities::encodeAndWrite(out, height);
             out.close();
         } else {
             vkh::logger::log("ERROR : Cannot save file");
         }
-    }
-
-    uint32_t RFFStaticMapBinary::getWidth() const {
-        return width;
-    }
-    uint32_t RFFStaticMapBinary::getHeight() const {
-        return height;
     }
 
 

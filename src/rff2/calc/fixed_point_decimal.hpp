@@ -178,7 +178,7 @@ namespace merutilm::rff2 {
         if (&other == this)
             return *this;
 
-        if (this->alloc < std::abs(other.size)) {
+        if (this->alloc < other.alloc) {
             delete[] data;
             data = new mp_limb_t[other.alloc];
         }
@@ -716,8 +716,9 @@ namespace merutilm::rff2 {
             if (shift_small <= 12) {
                 mantissa_bit = *dst0 >> shift_small & MANTISSA_MASK;
             } else {
-                const auto dst1 = dst0 + 1;
-                mantissa_bit = (*dst1 << (64 - shift_small) | *dst0 >> shift_small) & MANTISSA_MASK;
+                assert(limbs_cnt > limb_skip + 1);
+                const auto dst1 = *(dst0 + 1);
+                mantissa_bit = (dst1 << (64 - shift_small) | *dst0 >> shift_small) & MANTISSA_MASK;
             }
         }
         f_exp2 = exp2div64 * 64 + shift + 52;

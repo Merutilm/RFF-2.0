@@ -105,7 +105,7 @@ namespace merutilm::rff2 {
                             // incomplete frame
                             app.getRequests().requestRecompute();
                         }
-                        thread.waitUntil([&app, &state] {
+                        thread.waitUntil([&app] {
                             const ComputeState cs = app.getRequests().recomputeRequestedState;
 
                             return cs == ComputeState::IDLE || cs == ComputeState::CANCELLED ||

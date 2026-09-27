@@ -134,16 +134,16 @@ namespace merutilm::rff2::rff_math {
 
 
     template<Number Num>
-    int32_t log10Approx(const Num v) {
+    int64_t log10Approx(const Num v) {
         if constexpr (is_prim<Num>) {
             const auto bits = std::bit_cast<uint64_t>(static_cast<double>(v));
-            const auto rawExp = static_cast<int32_t>((bits >> 52u) & 0x07ffu);
-            return static_cast<int32_t>(static_cast<double>(rawExp - 1023) / std::numbers::ln10 * std::numbers::ln2);
+            const auto rawExp = static_cast<int64_t>((bits >> 52u) & 0x07ffu);
+            return static_cast<int64_t>(static_cast<double>(rawExp - 1023) / std::numbers::ln10 * std::numbers::ln2);
         } else {
             static_assert(is_exponent<Num>);
             const auto bits = std::bit_cast<uint64_t>(static_cast<double>(v.mantissa));
-            const auto rawExp = static_cast<int32_t>((bits >> 52u) & 0x07ffu);
-            return static_cast<int32_t>(static_cast<double>(rawExp - 1023 + v.exp2) / std::numbers::ln10 * std::numbers::ln2);
+            const auto rawExp = static_cast<int64_t>((bits >> 52u) & 0x07ffu);
+            return static_cast<int64_t>(static_cast<double>(rawExp - 1023 + v.exp2) / std::numbers::ln10 * std::numbers::ln2);
         }
     }
 

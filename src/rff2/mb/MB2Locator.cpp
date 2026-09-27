@@ -53,7 +53,7 @@ namespace merutilm::rff2 {
         fixed_point_complex bn(0, 0, exp10);
         fixed_point_complex c = currentCenter.create_variant(exp10);
 
-        int32_t currentExp10 = exp10;
+        int64_t currentExp10 = exp10;
         int64_t prevExp2div64 = 0;
 
         // An, Bn generation
@@ -315,7 +315,7 @@ namespace merutilm::rff2 {
 
         do {
 
-            const int32_t dcCurrExp10 = dcd.is_zero() ? aimExp10 : rff_math::log10Approx(dcd);
+            const int64_t dcCurrExp10 = dcd.is_zero() ? aimExp10 : rff_math::log10Approx(dcd);
             if (!checkAndUpdateHistory(exp10History, dcCurrExp10, locSettings.burst)) {
                 return std::nullopt;
             }

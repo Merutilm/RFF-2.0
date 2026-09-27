@@ -19,8 +19,8 @@ namespace merutilm::rff2 {
 
     void VideoWindow::createVideo(RFF2 &app, const std::filesystem::path &open,
                                   const std::filesystem::path &save, const Settings &settingsClone) {
-        int imgWidth = 0;
-        int imgHeight = 0;
+        uint32_t imgWidth = 0;
+        uint32_t imgHeight = 0;
 
         const bool isWindow = app.rootWindowContext->getWindow()->getWindow();
 
@@ -43,8 +43,8 @@ namespace merutilm::rff2 {
                 return;
             }
 
-            imgWidth = static_cast<int>(targetMap.getWidth());
-            imgHeight = static_cast<int>(targetMap.getHeight());
+            imgWidth = targetMap.width;
+            imgHeight = targetMap.height;
         } else {
             const RFFDynamicMapBinary targetMap = RFFDynamicMapBinary::readByID(open, 1);
             if (!targetMap.hasData()) {
@@ -57,10 +57,10 @@ namespace merutilm::rff2 {
         }
 
 
-        const auto cw = static_cast<uint32_t>(std::min(imgWidth, 1280));
+        const auto cw = static_cast<uint32_t>(std::min(imgWidth, 1280u));
         const auto ch = cw * imgHeight / imgWidth;
         auto window = VideoWindow(app, static_cast<int>(cw), static_cast<int>(ch));
-        window.initScene(VkExtent2D{static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight)}, settingsClone);
+        window.initScene(VkExtent2D{imgWidth, imgHeight}, settingsClone);
         auto &manager = *window.scene;
         GLFWwindow *handle = manager.getWindowContext().getWindow()->getWindow();
 
@@ -71,7 +71,7 @@ namespace merutilm::rff2 {
 
         cv::VideoWriter writer;
         writer.open(save.string(), cv::CAP_FFMPEG, cv::VideoWriter::fourcc('a', 'v', 'c', '1'), fps,
-                    cv::Size(imgWidth, imgHeight));
+                    cv::Size(static_cast<int>(imgWidth), static_cast<int>(imgHeight)));
 
         if (!writer.isOpened()) {
             vkh::logger::log_err("Cannot open file!!");
@@ -100,8 +100,8 @@ namespace merutilm::rff2 {
         RFFDynamicMapBinary normalDynamic = RFFDynamicMapBinary::DEFAULT;
         RFFStaticMapBinary zoomedStatic = RFFStaticMapBinary::DEFAULT;
         RFFStaticMapBinary normalStatic = RFFStaticMapBinary::DEFAULT;
-        cv::Mat zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
-        cv::Mat normalStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
+        cv::Mat zoomedStaticImage = cv::Mat::zeros(static_cast<int>(imgHeight), static_cast<int>(imgWidth), CV_16UC4);
+        cv::Mat normalStaticImage = cv::Mat::zeros(static_cast<int>(imgHeight), static_cast<int>(imgWidth), CV_16UC4);
 
         manager.setStatic(isStatic);
 
@@ -117,7 +117,7 @@ namespace merutilm::rff2 {
                     if (isStatic) {
                         zoomedStatic = RFFStaticMapBinary::DEFAULT;
                         normalStatic = RFFStaticMapBinary::readByID(open, 1);
-                        zoomedStaticImage = cv::Mat::zeros(imgHeight, imgWidth, CV_16UC4);
+                        zoomedStaticImage = cv::Mat::zeros(static_cast<int>(imgHeight), static_cast<int>(imgWidth), CV_16UC4);
                         normalStaticImage = RFFStaticMapBinary::loadImageByID(open, 1);
                     } else {
                         zoomedDynamic = RFFDynamicMapBinary::DEFAULT;
@@ -163,7 +163,7 @@ namespace merutilm::rff2 {
             manager.setTime(currentSec);
             manager.renderOnce();
             VideoBufferCache buffer = manager.createImage();
-            writer << generateFrame(buffer, imgWidth, showText);
+            writer << generateFrame(buffer, static_cast<int>(imgWidth), showText);
 
             const double progressRatio =
                     (static_cast<double>(maxNumber) - currentFrame) / (static_cast<double>(maxNumber) + overZoom);
