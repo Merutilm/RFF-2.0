@@ -6,6 +6,5 @@
 namespace merutilm::rff2 {
     struct ExpLocatorSettings {
         bool burst;
-        bool crvp;
     };
 }

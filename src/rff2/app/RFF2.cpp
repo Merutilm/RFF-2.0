@@ -209,7 +209,7 @@ namespace merutilm::rff2 {
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
                 .explore = {.autoMoveCursorToCenter = false,
-                            .locator = {.burst = false, .crvp = false}}};
+                            .locator = {.burst = false}}};
 #else
         return Settings{
                 .fractal =
@@ -250,7 +250,7 @@ namespace merutilm::rff2 {
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
                 .explore = {.autoMoveCursorToCenter = false,
-                            .locator = {.burst = false, .crvp = false}}};
+                            .locator = {.burst = false}}};
 #endif
     }
 

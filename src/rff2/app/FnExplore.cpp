@@ -124,9 +124,6 @@ namespace merutilm::rff2 {
             ImGui::Checkbox("Burst-locate", &settings.explore.locator.burst);
             Utilities::imguiHelpMarker("It significantly increases locate speed at the expense of stability.");
 
-            ImGui::Checkbox("CRVP", &settings.explore.locator.crvp);
-            Utilities::imguiHelpMarker("It significantly increases locate speed using more memory space.");
-
             if (ImGui::Button("Locate Minibrot", ImVec2(-FLT_MIN, 0))) {
 
                 app.getState().cancel();

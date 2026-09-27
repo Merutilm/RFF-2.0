@@ -6,22 +6,7 @@
 #include <gmp.h>
 
 #include "exponent.hpp"
-
 namespace merutilm::rff2 {
-
-    // CAUTION : hacking internal mpz
-    constexpr static int &fpd_mpz_size(const mpz_ptr mpz) { return mpz[0]._mp_size; }
-
-    constexpr static int fpd_mpz_size(const mpz_srcptr mpz) { return mpz[0]._mp_size; }
-
-    constexpr static int &fpd_mpz_alloc(const mpz_ptr mpz) { return mpz[0]._mp_alloc; }
-
-    constexpr static int fpd_mpz_alloc(const mpz_srcptr mpz) { return mpz[0]._mp_alloc; }
-
-    constexpr static mp_limb_t *fpd_mpz_raw(const mpz_ptr mpz) { return mpz[0]._mp_d; }
-
-    constexpr static const mp_limb_t *fpd_mpz_raw(const mpz_srcptr mpz) { return mpz[0]._mp_d; }
-
 
     /**
      * fast fixed point arbitrary-precision decimal.
@@ -29,7 +14,7 @@ namespace merutilm::rff2 {
      * the size of mp_limb must be 8. other case is undefined.
      *
      * The precision of the integer part is guaranteed up to 2^64 - 1 only at initialization.
-     * Behavior for larger integer parts is undefined. For the sake of fast computation,
+     * Behavior for larger integer is undefined (precision loss). For the sake of fast computation,
      * many implementations assume that a decimal part is always exist.
      * Therefore, <code>exp10</code> must be <code>negative</code>. However, when these objects are used in calculations
      * with one another, the precision of the integer part is guaranteed.
@@ -64,7 +49,8 @@ namespace merutilm::rff2 {
         fixed_point_decimal(fixed_point_decimal &&) noexcept;
 
         fixed_point_decimal &operator=(fixed_point_decimal &&) noexcept;
-        bool try_realloc_inc(uint64_t new_limbs_alloc);
+
+        bool try_realloc_inc(uint64_t new_limbs_alloc, bool preserveValue = true);
 
         template<typename F>
             requires std::is_invocable_r_v<int, F, mpf_t, int>
@@ -83,7 +69,8 @@ namespace merutilm::rff2 {
 
         static void sub(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
 
-        static void zero(fixed_point_decimal &v);
+        void zero();
+        void one();
 
         /**
          * Fast-square.
@@ -121,7 +108,7 @@ namespace merutilm::rff2 {
 
         static void hlv(fixed_point_decimal &result, const fixed_point_decimal &v);
 
-        static void neg(fixed_point_decimal &v);
+        void neg();
 
         void set_exp10(int64_t exp10, bool preserveValue = true);
         void set_exp2div64(int64_t new_exp2div64, bool preserveValue);
@@ -181,9 +168,9 @@ namespace merutilm::rff2 {
         if (this->alloc < other.alloc) {
             delete[] data;
             data = new mp_limb_t[other.alloc];
+            alloc = other.alloc;
         }
         size = other.size;
-        alloc = other.alloc;
         exp2div64 = other.exp2div64;
         memcpy(data, other.data, std::abs(other.size) * sizeof(mp_limb_t));
         return *this;
@@ -207,12 +194,12 @@ namespace merutilm::rff2 {
     }
 
 
-    inline bool fixed_point_decimal::try_realloc_inc(const uint64_t new_limbs_alloc) {
+    inline bool fixed_point_decimal::try_realloc_inc(const uint64_t new_limbs_alloc, const bool preserveValue) {
         if (alloc >= new_limbs_alloc)
             return false;
         const auto temp = new mp_limb_t[new_limbs_alloc];
         alloc = new_limbs_alloc;
-        memcpy(temp, data, std::abs(size) * sizeof(mp_limb_t));
+        if (preserveValue) memcpy(temp, data, std::abs(size) * sizeof(mp_limb_t));
         delete[] data;
         data = temp;
         return true;
@@ -323,7 +310,7 @@ namespace merutilm::rff2 {
 
         if (lhs.size == 0) {
             if (&result != &rhs) {
-                result.try_realloc_inc(rhs_size);
+                result.try_realloc_inc(rhs_size, true);
                 memcpy(result.data, rhs.data, rhs_size * sizeof(mp_limb_t));
                 result.size = rhs.size;
             }
@@ -440,9 +427,16 @@ namespace merutilm::rff2 {
         }
     }
 
-    inline void fixed_point_decimal::zero(fixed_point_decimal &v) {
-        v.data[0] = 0;
-        v.size = 0;
+    inline void fixed_point_decimal::zero() {
+        size = 0;
+    }
+
+    inline void fixed_point_decimal::one() {
+        const int64_t min_size = -exp2div64+1;
+        try_realloc_inc(min_size);
+        size = min_size;
+        data[min_size - 1] = 1;
+        mpn_zero(data, min_size - 1);
     }
 
     inline void fixed_point_decimal::sqr(fixed_point_decimal &result, const fixed_point_decimal &v) {
@@ -453,7 +447,7 @@ namespace merutilm::rff2 {
         int64_t result_size = size * 2;
 
         if (size == 0 || result_size + result.exp2div64 <= 0) {
-            zero(result);
+            result.zero();
             return;
         }
 
@@ -507,7 +501,7 @@ namespace merutilm::rff2 {
             std::swap(lhs_size, rhs_size);
         }
         if (rhs_size == 0 || result_size + result.exp2div64 <= 0) {
-            zero(result);
+            result.zero();
             return;
         }
 
@@ -533,7 +527,10 @@ namespace merutilm::rff2 {
         const int64_t lhs_size = std::abs(result.size);
         const int64_t rhs_size = std::abs(rhs.size);
 
-        assert(lhs_size >= rhs_size);
+        if (lhs_size < rhs_size) {
+            result.size = 0;
+            return;
+        }
 
         result.try_realloc_inc(lhs_size * 2 + 1);
         mpn_tdiv_qr(result.data + lhs_size, result.data + lhs_size * 2 - rhs_size + 1, 0, result.data, lhs_size, rhs.data, rhs_size);
@@ -607,7 +604,7 @@ namespace merutilm::rff2 {
             result.size = result.size < 0 ? result.size + 1 : result.size - 1;
     }
 
-    inline void fixed_point_decimal::neg(fixed_point_decimal &v) { v.size = -v.size; }
+    inline void fixed_point_decimal::neg() { size = -size; }
 
     inline void fixed_point_decimal::set_exp10(const int64_t exp10, const bool preserveValue) {
         const int64_t new_exp2div64 = exp10_to_exp2div64(exp10);
@@ -621,9 +618,13 @@ namespace merutilm::rff2 {
             } else if (exp2div64 > new_exp2div64) {
                 limbs_lshift(*this, *this, exp2div64 - new_exp2div64);
             }
+        }else {
+            size = 0;
         }
         exp2div64 = new_exp2div64;
     }
+
+
 
 
     inline fixed_point_decimal::operator float() const { return static_cast<float>(operator double()); }

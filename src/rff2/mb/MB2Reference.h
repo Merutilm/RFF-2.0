@@ -53,23 +53,27 @@ namespace merutilm::rff2 {
         static void syncReference(fixed_point_complex const &z, uint64_t intervalCounter, uint32_t refSyncInterval,
                                   uint8_t refSyncRadiusPower, Num refSyncRadius2, complex<Num> &z0, complex<Num> &c0);
 
-        static void updatePrecision(int32_t exp10, const fixed_point_complex &cOrig, fixed_point_complex &c,
-                                    fixed_point_complex &z, const complex<Num> &fzgAn, int32_t &prevExp2div64);
+        static void updatePrecision(int32_t exp10, const fixed_point_complex &cOrig, fixed_point_complex &z,
+                                    fixed_point_complex &c, std::array<fixed_point_decimal, 6> &temps,
+                                    const complex<Num> &fzgAn, int32_t &prevExp2div64);
 
-        static bool tryUpdateFxgABn(dex dcMax, complex<Num> &fzgAn, complex<Num> &fzgAnPartition, complex<Num> &fpgBn, complex<Num> &z0, uint64_t period, Num &radius2);
+        static bool tryUpdateFxgABn(dex dcMax, complex<Num> &fzgAn, complex<Num> &fzgAnPartition, complex<Num> &fpgBn,
+                                    complex<Num> &z0, uint64_t period, Num &radius2);
 
 
         static void placeCheckpoint(std::vector<ReferenceCheckpoint> &checkpoints, fixed_point_complex &z,
-                                               complex<Num> &fzgAnPartition, uint64_t period);
+                                    complex<Num> &fzgAnPartition, uint64_t period);
 
         static void processOrbitPoint(std::vector<complex<Num>> &ref, const complex<Num> &z0, uint64_t &reuseIndex,
-                                 std::vector<ArrayCompressionTool> &tools, uint64_t &compressed,
-                                 uint32_t compressCriteria, double compressionThreshold, uint64_t period);
+                                      std::vector<ArrayCompressionTool> &tools, uint64_t &compressed,
+                                      uint32_t compressCriteria, double compressionThreshold, uint64_t period);
 
-        static void tryAppendPeriodCandidate(std::vector<uint64_t> &periodArray, Num &minZRadius, uint64_t period, Num radius2);
+        static void tryAppendPeriodCandidate(std::vector<uint64_t> &periodArray, Num &minZRadius, uint64_t period,
+                                             Num radius2);
 
         template<FnListeners::FnRefCalc FnRefCalc>
         static void applyFormula(fixed_point_complex &z, const fixed_point_complex &c, FnRefCalc &&fnRefCalc,
+                                 std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> &temps,
                                  op_thread_pool *sqrTp, uint64_t invoker);
 
         template<FnListeners::FnRefCalc FnRefCalc>
@@ -107,20 +111,26 @@ namespace merutilm::rff2 {
 
 
     template<Number Num>
-    void MB2Reference<Num>::updatePrecision(const int32_t exp10, const fixed_point_complex &cOrig, fixed_point_complex &c,
-                                            fixed_point_complex &z, const complex<Num> &fzgAn, int32_t &prevExp2div64) {
+    void MB2Reference<Num>::updatePrecision(const int32_t exp10, const fixed_point_complex &cOrig,
+                                            fixed_point_complex &z, fixed_point_complex &c, std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> &temps, const complex<Num> &fzgAn,
+                                            int32_t &prevExp2div64) {
         const int32_t currentExp10 = std::min(-1, exp10 + static_cast<int>(rff_math::log10Approx(fzgAn.norm_approx())));
         const int32_t exp2div64 = fixed_point_decimal::exp10_to_exp2div64(currentExp10);
         if (prevExp2div64 != exp2div64) {
             z.set_exp10(currentExp10);
             c = cOrig;
             c.set_exp10(currentExp10);
+            for (auto &temp : temps) {
+                temp.set_exp10(currentExp10);
+            }
             prevExp2div64 = exp2div64;
         }
     }
 
     template<Number Num>
-    bool MB2Reference<Num>::tryUpdateFxgABn(const dex dcMax, complex<Num> &fzgAn, complex<Num> &fzgAnPartition, complex<Num> &fpgBn, complex<Num> &z0, const uint64_t period, Num &radius2) {
+    bool MB2Reference<Num>::tryUpdateFxgABn(const dex dcMax, complex<Num> &fzgAn, complex<Num> &fzgAnPartition,
+                                            complex<Num> &fpgBn, complex<Num> &z0, const uint64_t period,
+                                            Num &radius2) {
         radius2 = z0.norm_sqr();
         Num fpgLimit = radius2 / Num(dcMax);
         complex<Num> fpgBnTemp = fpgBn * z0 * Num(2) + Num(1);
@@ -138,18 +148,17 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    void MB2Reference<Num>::placeCheckpoint(std::vector<ReferenceCheckpoint> &checkpoints,
-                                                       fixed_point_complex &z, complex<Num> &fzgAnPartition,
-                                                       const uint64_t period) {
+    void MB2Reference<Num>::placeCheckpoint(std::vector<ReferenceCheckpoint> &checkpoints, fixed_point_complex &z,
+                                            complex<Num> &fzgAnPartition, const uint64_t period) {
         checkpoints.emplace_back(z, period, static_cast<complex<dex>>(fzgAnPartition));
         fzgAnPartition = complex<Num>::ONE;
     }
 
     template<Number Num>
-    void MB2Reference<Num>::processOrbitPoint(std::vector<complex<Num>> &ref, const complex<Num> &z0, uint64_t &reuseIndex,
-                                         std::vector<ArrayCompressionTool> &tools, uint64_t &compressed,
-                                         const uint32_t compressCriteria, const double compressionThreshold,
-                                         const uint64_t period) {
+    void MB2Reference<Num>::processOrbitPoint(std::vector<complex<Num>> &ref, const complex<Num> &z0,
+                                              uint64_t &reuseIndex, std::vector<ArrayCompressionTool> &tools,
+                                              uint64_t &compressed, const uint32_t compressCriteria,
+                                              const double compressionThreshold, const uint64_t period) {
         if (compressCriteria > 0 && period >= 1) {
             const uint64_t refIndex = ArrayCompressor::compress(tools, reuseIndex + 1);
             const bool sr = rff_math::is_zero(z0.re) && rff_math::is_zero(ref[refIndex].re);
@@ -177,15 +186,15 @@ namespace merutilm::rff2 {
             const uint64_t index = period - compressed + 1;
             if (index == ref.size()) {
                 ref.push_back(z0);
-            }else {
+            } else {
                 ref[index] = z0;
             }
         }
     }
 
     template<Number Num>
-    void MB2Reference<Num>::tryAppendPeriodCandidate(std::vector<uint64_t> &periodArray, Num &minZRadius, const uint64_t period,
-                                                  Num radius2) {
+    void MB2Reference<Num>::tryAppendPeriodCandidate(std::vector<uint64_t> &periodArray, Num &minZRadius,
+                                                     const uint64_t period, Num radius2) {
         if (period > 0 && minZRadius > radius2) {
             minZRadius = radius2;
             periodArray.push_back(period);
@@ -194,10 +203,11 @@ namespace merutilm::rff2 {
     template<Number Num>
     template<FnListeners::FnRefCalc FnRefCalc>
     void MB2Reference<Num>::applyFormula(fixed_point_complex &z, const fixed_point_complex &c, FnRefCalc &&fnRefCalc,
+                                         std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> &temps,
                                          op_thread_pool *sqrTp, const uint64_t invoker) {
         fnRefCalc(invoker);
 
-        fixed_point_complex::sqr(z, z, sqrTp);
+        fixed_point_complex::sqr(z, z, temps, sqrTp);
         fixed_point_complex::add(z, z, c);
     }
 
@@ -224,6 +234,12 @@ namespace merutilm::rff2 {
 
 
         auto z = fixed_point_complex(0.0, 0.0, exp10);
+        z.try_realloc_inc(-z.real.exp2div64 * 2 + 2);
+        std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> temps{};
+        for (auto &temp : temps) {
+            temp.set_exp10(exp10);
+        }
+
         auto bailoutSqr = Num(generalSettings.bailout * generalSettings.bailout);
 
         op_thread_pool parallelReferenceThreadPoolForRef{};
@@ -259,7 +275,9 @@ namespace merutilm::rff2 {
         auto fn = std::forward<FnRefCalc>(fnRefCalc);
         Num radius2;
 
-        for (period = 0; tryUpdateFxgABn(dcMax, fzgAn, fzgAnPartition, fpgBn, z0, period, radius2) && z0.norm_sqr() < bailoutSqr; ++period) {
+        for (period = 0;
+             tryUpdateFxgABn(dcMax, fzgAn, fzgAnPartition, fpgBn, z0, period, radius2) && z0.norm_sqr() < bailoutSqr;
+             ++period) {
             if (period % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return CreationResult::TERMINATED;
             }
@@ -269,11 +287,10 @@ namespace merutilm::rff2 {
             if (period % Constants::Fractal::PARTITION_SIZE == 0)
                 placeCheckpoint(checkpoints, z, fzgAnPartition, period);
 
-            updatePrecision(exp10, cOrig, c, z, fzgAn, prevExp2div64);
-            applyFormula(z, c, fn, sqrTp, period);
+            updatePrecision(exp10, cOrig, z, c, temps, fzgAn, prevExp2div64);
+            applyFormula(z, c, fn, temps, sqrTp, period);
             syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, z0, c0);
             processOrbitPoint(ref, z0, reuseIndex, tools, compressed, compressCriteria, compressionThreshold, period);
-
         }
 
         periodArray.push_back(period);

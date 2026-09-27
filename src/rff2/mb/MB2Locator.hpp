@@ -21,6 +21,13 @@ namespace merutilm::rff2 {
         complex<dex> fzgAn;
     };
 
+    struct ThreadTempCache {
+        fixed_point_complex z;
+        fixed_point_complex zExpected;
+        fixed_point_complex c;
+        std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> temps;
+    };
+
     enum class PartitionStatus : uint8_t { SUCCESS, INTERRUPTED, ERROR_BURST_Z_ESCAPED };
 
     class MB2Locator {
@@ -33,10 +40,11 @@ namespace merutilm::rff2 {
         const double refLogZoom;
         const dex refDcMax;
         const complex<dex> refFpgBn;
-        fixed_point_complex currentCenter;
+        fixed_point_complex prevCenter;
+        fixed_point_complex currCenter;
         fixed_point_complex temp;
-        std::vector<fixed_point_complex> knownOrbit;
         std::vector<ReferenceCheckpoint> checkpoints;
+        std::vector<ThreadTempCache> threadTempCaches;
         std::vector<BlockResult> blockResults;
         std::vector<complex<dex>> approxAmplitudes;
         std::vector<PartitionStatus> status;
@@ -52,12 +60,13 @@ namespace merutilm::rff2 {
     private:
 
         static void calcCenterOffset(fixed_point_complex &result, const fixed_point_complex &z,
-                                     const fixed_point_complex &bn);
+                                     const fixed_point_complex &bn, std::array<fixed_point_decimal, 6> &temps);
 
-        PartitionStatus processPartition(uint32_t partitionIndex, int64_t dcCurrExp10, int64_t aimExp10);
+        PartitionStatus processPartition(uint32_t partitionIndex, int64_t dcCurrExp10, int64_t aimExp10,
+                                         ThreadTempCache &cache);
 
         PartitionStatus processPartitions(int64_t dcCurrExp10, int64_t aimExp10, std::mutex &partitionPickerMutex,
-                                          uint32_t &processedPartition);
+                                          uint32_t &processedPartition, ThreadTempCache &cache);
 
         void translateCenter(fixed_point_complex &dc, const fixed_point_complex &t, const fixed_point_complex &u);
 
@@ -65,11 +74,13 @@ namespace merutilm::rff2 {
                                const std::vector<fixed_point_complex> &ut);
 
         void calculateAmplitudes(complex<dex> &fzgAn, complex<dex> &fpgBn, std::vector<fixed_point_complex> &tt,
-                                 std::vector<fixed_point_complex> &ut) const;
+                                 std::vector<fixed_point_complex> &ut);
 
         static int64_t getCutDigitCount(const complex<dex> &an);
 
         void prepareApproxAmplitudes();
+        void reserveExp10(fixed_point_complex &dc, std::vector<fixed_point_complex> &tt,
+                          std::vector<fixed_point_complex> &ut, int64_t aimExp10);
 
         void setExp10(fixed_point_complex &dc, std::vector<fixed_point_complex> &tt,
                       std::vector<fixed_point_complex> &ut, int64_t exp10);
