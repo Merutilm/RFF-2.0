@@ -114,11 +114,10 @@ namespace merutilm::rff2 {
             // it is threaded, do not notify
         }
     }
-    std::unique_ptr<MB2RenderDataBase> RFF2::createAppropriateRenderData(const bool computeShader,
-                                                                         const double logZoomTest, const double startTime,
-                                                                         const FractalSettings &frt, const dex dcMax,
-                                                                         const int64_t exp10,
-                                                                         const uint64_t refInitialCapacity) {
+    std::unique_ptr<MB2RenderDataBase>
+    RFF2::createAppropriateRenderData(const bool computeShader, const double logZoomTest, const double startTime,
+                                      const FractalSettings &frt, const dex dcMax, const int64_t exp10,
+                                      const uint64_t refInitialCapacity) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
                 return std::make_unique<FexMB2RenderData>(engine->getCore(), state, frt, computeShader,
@@ -174,6 +173,7 @@ namespace merutilm::rff2 {
     Settings RFF2::genDefaultSettings() {
 #ifndef NDEBUG
         return Settings{
+                .file = {.autoSaveBackup = true},
                 .fractal =
                         FractalSettings{.general = {.bailout = 2.00001f, .logZoom = 2, .threads = 15},
                                         .reference =
@@ -184,6 +184,8 @@ namespace merutilm::rff2 {
                                                         .sync = ClcSyncPresets::Fast().genRefSync(),
                                                         .compression = ClcCompressPresets::None().genRefComp(),
                                                         .reuse = false,
+                                                        .useFixedPrecision = false,
+                                                        .fixedPrecisionNeg = 1,
                                                 },
                                         .sa = {.use = false,
                                                .appliedTermsCount = 8,
@@ -209,10 +211,10 @@ namespace merutilm::rff2 {
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
-                .explore = {.autoMoveCursorToCenter = false,
-                            .locator = {.burst = false}}};
+                .explore = {.autoMoveCursorToCenter = false, .locator = {.burst = false}}};
 #else
         return Settings{
+                .file = {.autoSaveBackup = true},
                 .fractal =
                         FractalSettings{.general = {.bailout = 2.00001f,
                                                     .logZoom = 2,
@@ -225,6 +227,8 @@ namespace merutilm::rff2 {
                                                         .sync = ClcSyncPresets::Fast().genRefSync(),
                                                         .compression = ClcCompressPresets::None().genRefComp(),
                                                         .reuse = false,
+                                                        .useFixedPrecision = false,
+                                                        .fixedPrecisionNeg = 1,
                                                 },
                                         .sa = {.use = false,
                                                .appliedTermsCount = 8,
@@ -245,13 +249,17 @@ namespace merutilm::rff2 {
                            .color = ShdColorPresets::Disabled().genColor(),
                            .fog = ShdFogPresets::Disabled().genFog(),
                            .bloom = ShdBloomPresets::Disabled().genBloom(),
-                           .noiseReduction = {true, 2, 0.1f},
-                           .fractal3D = {false, 85, 0, 1, 0, 10.f}},
+                           .noiseReduction = {.use = true, .similarCountThreshold = 2, .differenceThreshold = 0.1f},
+                           .fractal3D = {.use = false,
+                                         .altitude = 85,
+                                         .rotation = 0,
+                                         .distance = 1,
+                                         .baseIteration = 0,
+                                         .depthDivisor = 10.f}},
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
-                .explore = {.autoMoveCursorToCenter = false,
-                            .locator = {.burst = false}}};
+                .explore = {.autoMoveCursorToCenter = false, .locator = {.burst = false}}};
 #endif
     }
 
@@ -336,7 +344,7 @@ namespace merutilm::rff2 {
                     if (mb == GLFW_MOUSE_BUTTON_LEFT) {
                         const float m = settings.render.display.clarityMultiplier;
                         const double logZoom = settings.fractal.general.logZoom;
-                        const int64_t exp10 = Perturbator::logZoomToExp10(logZoom);
+                        const int64_t exp10 = Perturbator::getExp10(settings.fractal.reference, logZoom);
 
                         fixed_point_complex &center = settings.fractal.reference.center;
                         center.set_exp10(exp10);
@@ -361,7 +369,7 @@ namespace merutilm::rff2 {
     }
 
 
-    void RFF2::zoom(const int16_t px, const int16_t py, const float logIncrement) {
+    void RFF2::zoom(const int16_t px, const int16_t py, const double logIncrement) {
 
         settings.fractal.general.logZoom = std::max(Constants::Fractal::ZOOM_MIN, settings.fractal.general.logZoom);
         const int16_t mix = px;
@@ -374,10 +382,10 @@ namespace merutilm::rff2 {
                 offsetConversion(settings.fractal.general.logZoom, settings.render.display.clarityMultiplier, mix, miy);
         double &logZoom = settings.fractal.general.logZoom;
         fixed_point_complex &center = settings.fractal.reference.center;
-        const int64_t exp10 = Perturbator::logZoomToExp10(logZoom);
+        const int64_t exp10 = Perturbator::getExp10(settings.fractal.reference, logZoom);
         center.set_exp10(exp10);
 
-        const float mz = pow(10.0f, -logIncrement);
+        const double mz = pow(10.0, -logIncrement);
         logZoom += logIncrement;
         const fixed_point_complex add(re * dex(1 - mz), im * dex(1 - mz), exp10);
         fixed_point_complex::add(center, center, add);
@@ -571,6 +579,7 @@ namespace merutilm::rff2 {
                 FnFile::loadShader(*this);
                 FnFile::loadMap(*this);
                 FnFile::loadLocation(*this);
+                FnFile::autoSaveBackup(*this);
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Fractal")) {
@@ -722,7 +731,7 @@ namespace merutilm::rff2 {
         renderer->updateStagingBuffer = true;
     }
 
-    std::filesystem::path RFF2::getBackupPath(const char * ext) {
+    std::filesystem::path RFF2::getBackupPath(const char *ext) {
         return vkh::ExecutableUtils::getExecutableDirectory() /
                std::format("{}.{}", Constants::File::BACKUP_FILE_NAME, ext);
     }
@@ -739,7 +748,8 @@ namespace merutilm::rff2 {
         const auto frt = settings.fractal; // clone the settings
         const auto &center = frt.reference.center;
         RFFBinary::exportFile(RFFLocationBinary(frt.general.logZoom, center.real.to_string(), center.imag.to_string(),
-                  frt.perturb.maxIteration), path);
+                                                frt.perturb.maxIteration),
+                              path);
     }
 
 
@@ -759,7 +769,7 @@ namespace merutilm::rff2 {
         const auto locationBinary = RFFBinary::importFile<RFFLocationBinary>(path);
 
         settings.fractal.reference.center = fixed_point_complex(locationBinary.real, locationBinary.imag,
-                                                                Perturbator::logZoomToExp10(locationBinary.logZoom));
+                                                                Perturbator::getExp10(settings.fractal.reference, locationBinary.logZoom));
         settings.fractal.general.logZoom = locationBinary.logZoom;
         settings.fractal.perturb.maxIteration = locationBinary.maxIteration;
         requests.requestRecompute();
@@ -785,9 +795,10 @@ namespace merutilm::rff2 {
 
             loadLocation(path);
 
-            //also load shaders
+            // also load shaders
             path = getBackupPath(Constants::File::EXT_SHADER);
-            if (std::filesystem::exists(path)) loadShader(path);
+            if (std::filesystem::exists(path))
+                loadShader(path);
         }
     }
 
@@ -843,7 +854,8 @@ namespace merutilm::rff2 {
 
         renderer->descriptorStorage->iteration->setMaxIteration(static_cast<double>(s.fractal.perturb.maxIteration));
 
-        saveBackup();
+        if (settings.file.autoSaveBackup)
+            saveBackup();
     }
 
     void RFF2::matchSettingsBeforeCreatingRenderData(Settings &s) {
@@ -882,7 +894,7 @@ namespace merutilm::rff2 {
             return false;
 
 
-        const int64_t exp10 = Perturbator::logZoomToExp10(logZoom);
+        const int64_t exp10 = Perturbator::getExp10(settings.fractal.reference, logZoom);
         if (frt.reference.reuse) {
             if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
                 vkh::logger::log_err("Do not reuse Reference during reference calculation!!!");

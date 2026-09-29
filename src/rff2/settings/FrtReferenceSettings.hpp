@@ -14,5 +14,7 @@ namespace merutilm::rff2 {
         FrtReferenceSyncSettings sync{};
         FrtReferenceCompSettings compression{};
         bool reuse{};
+        bool useFixedPrecision{};
+        int64_t fixedPrecisionNeg{};
     };
 }

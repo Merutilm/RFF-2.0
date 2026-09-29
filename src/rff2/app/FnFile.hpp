@@ -14,5 +14,6 @@ namespace merutilm::rff2 {
         static void loadShader(RFF2 &app);
         static void loadMap(RFF2 &app);
         static void loadLocation(RFF2 &app);
+        static void autoSaveBackup(RFF2 &app);
     };
 }

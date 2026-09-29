@@ -84,10 +84,9 @@ namespace merutilm::rff2 {
         [[nodiscard]] uint16_t getIterationBufferWidth() const;
         [[nodiscard]] uint16_t getIterationBufferHeight() const;
 
-
         void addListeners() override;
 
-        void zoom(int16_t px, int16_t py, float logIncrement);
+        void zoom(int16_t px, int16_t py, double logIncrement);
 
         void applyDefaultSettings();
 

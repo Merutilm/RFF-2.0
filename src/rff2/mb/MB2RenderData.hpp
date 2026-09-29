@@ -31,10 +31,6 @@ namespace merutilm::rff2 {
         virtual void translate(double logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
                                const fixed_point_complex &newCenter,
                                FnListeners::FnSeriesApproxW &&fnSeriesApprox) = 0;
-
-        static int logZoomToExp10(const double logZoom) {
-            return -static_cast<int>(logZoom) - Constants::Fractal::EXP10_ADDITION;
-        }
     };
 
     template<Number Num>
@@ -186,7 +182,7 @@ namespace merutilm::rff2 {
             // try to use incomplete reference
             vkh::logger::log_err("Please do not try to use incomplete Reference.");
         } else {
-            const int64_t exp10 = logZoomToExp10(logZoom);
+            const int64_t exp10 = Perturbator::getExp10(reference->refSettings, logZoom);
             fixed_point_complex center = newCenter.create_variant(exp10);
             const fixed_point_complex refCenter = reference->center.create_variant(exp10);
             fixed_point_complex::sub(center, center, refCenter);

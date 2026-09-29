@@ -85,7 +85,7 @@ namespace merutilm::rff2 {
                 locationChanged = false;
             }
             if (ImGui::Button("Apply Location Changes", ImVec2(-FLT_MIN, 0))) {
-                const int64_t exp10 = Perturbator::logZoomToExp10(logZoom);
+                const int64_t exp10 = Perturbator::getExp10(frt.reference, logZoom);
                 if (locationChanged) {
                     frt.reference.center = fixed_point_complex(real, imag, exp10);
                     frt.general.logZoom = logZoom;
@@ -95,6 +95,9 @@ namespace merutilm::rff2 {
             }
             ImGui::Checkbox("Reuse Reference", &frt.reference.reuse);
             Utilities::imguiHelpMarker("Sets the reuse reference method.");
+
+            ImGui::Checkbox("Use Fixed Precision", &frt.reference.useFixedPrecision);
+            if (frt.reference.useFixedPrecision) ImGui::InputScalar("Fixed Precision", ImGuiDataType_S64, &frt.reference.fixedPrecisionNeg);
 
             ImGui::InputScalar("Reference Compression Criteria", ImGuiDataType_U32,
                                &frt.reference.compression.compressCriteria);

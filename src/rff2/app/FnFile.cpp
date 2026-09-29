@@ -84,4 +84,8 @@ namespace merutilm::rff2 {
             app.loadLocation(*path);
         }
     }
+    void FnFile::autoSaveBackup(RFF2 &app) {
+        ImGui::Checkbox("Auto Save Backup", &app.getSettings().file.autoSaveBackup);
+        Utilities::imguiHelpMarker("Automatically saves the backup for each calculation");
+    }
 } // namespace merutilm::rff2

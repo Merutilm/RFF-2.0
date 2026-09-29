@@ -17,6 +17,19 @@
 
 namespace merutilm::rff2 {
 
+
+    enum class SpecialCenterType {
+        NONE,
+        /**
+         * -2 + 0i
+         */
+        M2,
+        /**
+         * 0 +- 1i
+         */
+        PM1I
+    };
+
     struct MB2ReferenceBase {
 
         const FrtGeneralSettings generalSettings;
@@ -51,7 +64,7 @@ namespace merutilm::rff2 {
         using MB2ReferenceBase::MB2ReferenceBase;
 
         static void syncReference(fixed_point_complex const &z, uint64_t intervalCounter, uint32_t refSyncInterval,
-                                  uint8_t refSyncRadiusPower, Num refSyncRadius2, complex<Num> &z0, complex<Num> &c0);
+                                  uint8_t refSyncRadiusPower, Num refSyncRadius2, complex<Num> &z0, const complex<Num> &c0);
 
         static void updatePrecision(int32_t exp10, const fixed_point_complex &cOrig, fixed_point_complex &z,
                                     fixed_point_complex &c, std::array<fixed_point_decimal, 6> &temps,
@@ -70,12 +83,16 @@ namespace merutilm::rff2 {
 
         static void tryAppendPeriodCandidate(std::vector<uint64_t> &periodArray, Num &minZRadius, uint64_t period,
                                              Num radius2);
+        [[nodiscard]] static SpecialCenterType resolveSpecialCenterType(const fixed_point_complex &c);
 
-        template<FnListeners::FnRefCalc FnRefCalc>
-        static void applyFormula(fixed_point_complex &z, const fixed_point_complex &c, FnRefCalc &&fnRefCalc,
+        static void applyFormula(fixed_point_complex &z, const fixed_point_complex &c,
                                  std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> &temps,
-                                 op_thread_pool *sqrTp, uint64_t invoker);
+                                 op_thread_pool *sqrTp);
 
+        static void stepOnceOptimal(int32_t exp10, const fixed_point_complex &cOrig, fixed_point_complex &c,
+                                            fixed_point_complex &z, op_thread_pool *sqrTp, const complex<Num> &fzgAn, complex<Num> &z0, const complex<Num> &c0,
+                                            uint32_t refSyncInterval, uint8_t refSyncRadiusPower, Num refSyncRadius2,
+                                            uint64_t p, int32_t &prevExp2div64, SpecialCenterType specialCenterType);
         template<FnListeners::FnRefCalc FnRefCalc>
         static CreationResult
         generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
@@ -92,7 +109,7 @@ namespace merutilm::rff2 {
     template<Number Num>
     void MB2Reference<Num>::syncReference(const fixed_point_complex &z, const uint64_t intervalCounter,
                                           const uint32_t refSyncInterval, const uint8_t refSyncRadiusPower,
-                                          const Num refSyncRadius2, complex<Num> &z0, complex<Num> &c0) {
+                                          const Num refSyncRadius2, complex<Num> &z0, const complex<Num> &c0) {
 
         if (refSyncRadiusPower == 0 || refSyncInterval == 1) {
             z0 = static_cast<complex<Num>>(z);
@@ -112,15 +129,16 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     void MB2Reference<Num>::updatePrecision(const int32_t exp10, const fixed_point_complex &cOrig,
-                                            fixed_point_complex &z, fixed_point_complex &c, std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> &temps, const complex<Num> &fzgAn,
-                                            int32_t &prevExp2div64) {
+                                            fixed_point_complex &z, fixed_point_complex &c,
+                                            std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> &temps,
+                                            const complex<Num> &fzgAn, int32_t &prevExp2div64) {
         const int32_t currentExp10 = std::min(-1, exp10 + static_cast<int>(rff_math::log10Approx(fzgAn.norm_approx())));
         const int32_t exp2div64 = fixed_point_decimal::exp10_to_exp2div64(currentExp10);
         if (prevExp2div64 != exp2div64) {
             z.set_exp10(currentExp10);
             c = cOrig;
             c.set_exp10(currentExp10);
-            for (auto &temp : temps) {
+            for (auto &temp: temps) {
                 temp.set_exp10(currentExp10);
             }
             prevExp2div64 = exp2div64;
@@ -201,16 +219,82 @@ namespace merutilm::rff2 {
         }
     }
     template<Number Num>
-    template<FnListeners::FnRefCalc FnRefCalc>
-    void MB2Reference<Num>::applyFormula(fixed_point_complex &z, const fixed_point_complex &c, FnRefCalc &&fnRefCalc,
+    SpecialCenterType MB2Reference<Num>::resolveSpecialCenterType(const fixed_point_complex &c) {
+        if (c.imag.size == 0 && c.real.compare(-2) == 0) {
+            return SpecialCenterType::M2;
+        }
+
+        if (c.real.size == 0 && c.imag.compare_abs(1) == 0) {
+            return SpecialCenterType::PM1I;
+        }
+        return SpecialCenterType::NONE;
+    }
+    template<Number Num>
+    void MB2Reference<Num>::applyFormula(fixed_point_complex &z, const fixed_point_complex &c,
                                          std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> &temps,
-                                         op_thread_pool *sqrTp, const uint64_t invoker) {
-        fnRefCalc(invoker);
+                                         op_thread_pool *sqrTp) {
 
         fixed_point_complex::sqr(z, z, temps, sqrTp);
         fixed_point_complex::add(z, z, c);
     }
 
+
+    template<Number Num>
+    void MB2Reference<Num>::stepOnceOptimal(const int32_t exp10, const fixed_point_complex &cOrig, fixed_point_complex &c,
+                                            fixed_point_complex &z, op_thread_pool *sqrTp, const complex<Num> &fzgAn, complex<Num> &z0, const complex<Num> &c0,
+                                            const uint32_t refSyncInterval, const uint8_t refSyncRadiusPower, Num refSyncRadius2,
+                                            uint64_t p, int32_t &prevExp2div64,
+                                            const SpecialCenterType specialCenterType) {
+
+        bool shouldApplyZForCheckpoint = p % Constants::Fractal::PARTITION_SIZE == Constants::Fractal::PARTITION_SIZE - 1;
+        switch (specialCenterType) {
+            using enum SpecialCenterType;
+            case NONE:
+                //single-threaded for this method
+                static std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> temps{};
+                updatePrecision(exp10, cOrig, z, c, temps, fzgAn, prevExp2div64);
+                applyFormula(z, c, temps, sqrTp);
+                syncReference(z, p, refSyncInterval, refSyncRadiusPower, refSyncRadius2, z0, c0);
+                break;
+            case M2: {
+
+
+                z.set_exp10(-1);
+                if (p == 0) {
+                    if (shouldApplyZForCheckpoint) z.real.set(2, true);
+                    z0 = complex<Num>(Num(-2), Num(0));
+                } else if (p == 1) {
+                    if (shouldApplyZForCheckpoint) z.real.neg();
+                    z0 = complex<Num>(Num(2), Num(0));
+                }
+                break;
+            }
+            case PM1I: {
+                z.set_exp10(-1);
+                int32_t sgn = c.imag.sgn();
+                if (p == 0) {
+                    if (shouldApplyZForCheckpoint) {
+                        z.real.set(0, true);
+                        z.imag.set(sgn, true);
+                    }
+                    z0 = complex<Num>(Num(0), Num(sgn));
+                } else if (p & 1u) {
+                    if (shouldApplyZForCheckpoint) {
+                        z.real. set(-1, false);
+                        z.imag.set(sgn, false);
+                    }
+                    z0 = complex<Num>(Num(-1), Num(sgn));
+                } else {
+                    if (shouldApplyZForCheckpoint) {
+                        z.real.set(0, false);
+                        z.imag.set(-sgn, false);
+                    }
+                    z0 = complex<Num>(Num(0), Num(-sgn));
+                }
+                break;
+            }
+        }
+    }
     template<Number Num>
     template<FnListeners::FnRefCalc FnRefCalc>
     Reference::CreationResult
@@ -235,10 +319,6 @@ namespace merutilm::rff2 {
 
         auto z = fixed_point_complex(0.0, 0.0, exp10);
         z.try_realloc_inc(-z.real.exp2div64 * 2 + 2);
-        std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> temps{};
-        for (auto &temp : temps) {
-            temp.set_exp10(exp10);
-        }
 
         auto bailoutSqr = Num(generalSettings.bailout * generalSettings.bailout);
 
@@ -273,7 +353,9 @@ namespace merutilm::rff2 {
         int32_t prevExp2div64 = 0;
 
         auto fn = std::forward<FnRefCalc>(fnRefCalc);
+        const SpecialCenterType specialCenterType = resolveSpecialCenterType(c);
         Num radius2;
+
 
         for (period = 0;
              tryUpdateFxgABn(dcMax, fzgAn, fzgAnPartition, fpgBn, z0, period, radius2) && z0.norm_sqr() < bailoutSqr;
@@ -287,9 +369,9 @@ namespace merutilm::rff2 {
             if (period % Constants::Fractal::PARTITION_SIZE == 0)
                 placeCheckpoint(checkpoints, z, fzgAnPartition, period);
 
-            updatePrecision(exp10, cOrig, z, c, temps, fzgAn, prevExp2div64);
-            applyFormula(z, c, fn, temps, sqrTp, period);
-            syncReference(z, period, refSyncInterval, refSyncRadiusPower, refSyncRadius2, z0, c0);
+            fn(period);
+            stepOnceOptimal(exp10, cOrig, c, z, sqrTp, fzgAn, z0, c0, refSyncInterval, refSyncRadiusPower,
+                                refSyncRadius2, period, prevExp2div64, specialCenterType);
             processOrbitPoint(ref, z0, reuseIndex, tools, compressed, compressCriteria, compressionThreshold, period);
         }
 

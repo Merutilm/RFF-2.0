@@ -8,18 +8,18 @@
 
 namespace merutilm::rff2 {
 
-    MB2Locator::MB2Locator(const ParallelRenderState &state, const MB2RenderDataBase &data, const ExpLocatorSettings &locSettings,
-                           FnListeners::FnLocatingMB2W &&fnLocatingMB2W) :
-        state(state), locSettings(locSettings), threads(data.fractalSettings.general.threads),
-        refLogZoom(data.fractalSettings.general.logZoom), refDcMax(data.getPerturbator()->dcMax),
-        refFpgBn(data.getReference()->fpgBn), currCenter(data.fractalSettings.reference.center),
+    MB2Locator::MB2Locator(const ParallelRenderState &state, const MB2RenderDataBase &data,
+                           const ExpLocatorSettings &locSettings, FnListeners::FnLocatingMB2W &&fnLocatingMB2W) :
+        state(state), reference(*data.getReference()), locSettings(locSettings), threads(data.fractalSettings.general.threads),
+        currCenter(data.fractalSettings.reference.center),
         checkpoints(data.getReference()->checkpoints), fnLocatingMB2W(std::move(fnLocatingMB2W)) {}
 
     fixed_point_complex MB2Locator::calcCenterOffset(const MB2ReferenceBase &reference) {
 
 
         const int64_t exp10 = Perturbator::logZoomToExp10(reference.logZoom);
-        std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> temps = fixed_point_complex::create_temps(exp10);
+        std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> temps =
+                fixed_point_complex::create_temps(exp10);
         fixed_point_complex off(0.0, 0.0, exp10);
         calcCenterOffset(off, reference.checkpoints.back().z.create_variant(exp10),
                          fixed_point_complex(reference.fpgBn, exp10), temps);
@@ -27,7 +27,8 @@ namespace merutilm::rff2 {
     }
 
     void MB2Locator::calcCenterOffset(fixed_point_complex &result, const fixed_point_complex &z,
-                                      const fixed_point_complex &bn, std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> &temps) {
+                                      const fixed_point_complex &bn,
+                                      std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> &temps) {
         fixed_point_complex::div(result, z, bn, temps);
         result.neg();
     }
@@ -50,7 +51,7 @@ namespace merutilm::rff2 {
         // magic number 3 and 64 is experimental, appropriate value is unknown.
         // magic number 4 in latter is double-step behind newton precision.
         const int64_t exp10 = locSettings.burst ? std::max(srcExp10 - exp10Decrement * 3 + cutDigitCount - 64, aimExp10)
-                                    : std::max(srcExp10 - exp10Decrement * 4, aimExp10);
+                                                : std::max(srcExp10 - exp10Decrement * 4, aimExp10);
 
         int64_t currentExp10 = exp10;
         cache.z = currentCheckpoint.z;
@@ -61,7 +62,7 @@ namespace merutilm::rff2 {
         fixed_point_complex &c = cache.c;
         z.set_exp10(currentExp10);
         c.set_exp10(currentExp10);
-        for (auto &t : cache.temps) {
+        for (auto &t: cache.temps) {
             t.set_exp10(currentExp10);
         }
 
@@ -89,9 +90,8 @@ namespace merutilm::rff2 {
             fixed_point_complex::dbl(bn, bn);
             bn.add_one();
 
-                fixed_point_complex::sqr(z, z, cache.temps);
-                fixed_point_complex::add(z, z, c);
-
+            fixed_point_complex::sqr(z, z, cache.temps);
+            fixed_point_complex::add(z, z, c);
 
 
             // the code below is currently not working for specific location, i dont know why
@@ -109,8 +109,8 @@ namespace merutilm::rff2 {
                     z.set_exp10(currentExp10);
                     c = currCenter;
                     c.set_exp10(currentExp10);
-                    for (auto &t : cache.temps) {
-                        t.set_exp10(currentExp10);
+                    for (auto &t: cache.temps) {
+                        t.set_exp10(currentExp10, false);
                     }
                     an.set_exp10(currentExp10);
                     bn.set_exp10(currentExp10);
@@ -129,7 +129,8 @@ namespace merutilm::rff2 {
     }
 
     PartitionStatus MB2Locator::processPartitions(const int64_t dcCurrExp10, const int64_t aimExp10,
-                                                  std::mutex &partitionPickerMutex, uint32_t &processedPartition, ThreadTempCache &cache) {
+                                                  std::mutex &partitionPickerMutex, uint32_t &processedPartition,
+                                                  ThreadTempCache &cache) {
         while (true) {
             uint32_t partitionIndex = 0;
             {
@@ -156,7 +157,6 @@ namespace merutilm::rff2 {
         fixed_point_complex::add(temp, t, checkpoints.back().z);
         calcCenterOffset(dc, temp, u, threadTempCaches[0].temps);
         fixed_point_complex::add(currCenter, currCenter, dc);
-
     }
 
     void MB2Locator::rebaseCheckpoints(const fixed_point_complex &dc, const std::vector<fixed_point_complex> &tt,
@@ -201,14 +201,17 @@ namespace merutilm::rff2 {
     }
 
     void MB2Locator::reserveExp10(fixed_point_complex &dc, std::vector<fixed_point_complex> &tt,
-                              std::vector<fixed_point_complex> &ut, const int64_t aimExp10) {
+                                  std::vector<fixed_point_complex> &ut, const int64_t aimExp10) {
 
         // partition size 512
         // maximum value 2^512
         // 2^512 => (2^6)^x => 64^x
         // can be squared. multiplying 2
-        const uint64_t alloc = -fixed_point_decimal::exp10_to_exp2div64(aimExp10 - Constants::Fractal::EXP10_ADDITION) * 2 + 1;
-        const uint64_t abnAlloc = -fixed_point_decimal::exp10_to_exp2div64(aimExp10 - Constants::Fractal::EXP10_ADDITION) * 2 + Constants::Fractal::PARTITION_SIZE / 3 + 1;
+        const uint64_t alloc =
+                -fixed_point_decimal::exp10_to_exp2div64(aimExp10 - Constants::Fractal::EXP10_ADDITION) * 2 + 1;
+        const uint64_t abnAlloc =
+                -fixed_point_decimal::exp10_to_exp2div64(aimExp10 - Constants::Fractal::EXP10_ADDITION) * 2 +
+                Constants::Fractal::PARTITION_SIZE / 3 + 1;
 
         currCenter.try_realloc_inc(alloc);
         dc.try_realloc_inc(alloc);
@@ -227,7 +230,7 @@ namespace merutilm::rff2 {
             threadTempCache.z.try_realloc_inc(alloc);
             threadTempCache.zExpected.try_realloc_inc(alloc);
             threadTempCache.c.try_realloc_inc(alloc);
-            for (auto &t : threadTempCache.temps) {
+            for (auto &t: threadTempCache.temps) {
                 t.try_realloc_inc(abnAlloc);
             }
         }
@@ -258,7 +261,7 @@ namespace merutilm::rff2 {
             threadTempCache.z.set_exp10(exp10);
             threadTempCache.zExpected.set_exp10(exp10);
             threadTempCache.c.set_exp10(exp10);
-            for (auto &t : threadTempCache.temps) {
+            for (auto &t: threadTempCache.temps) {
                 t.set_exp10(exp10);
             }
         }
@@ -269,8 +272,8 @@ namespace merutilm::rff2 {
         }
     }
 
-    bool MB2Locator::checkAndUpdateHistory(std::array<int64_t, EXP10_HISTORY_LENGTH> &exp10History, const int64_t dcCurrExp10,
-                                           const bool burst) {
+    bool MB2Locator::checkAndUpdateHistory(std::array<int64_t, EXP10_HISTORY_LENGTH> &exp10History,
+                                           const int64_t dcCurrExp10, const bool burst) {
         for (uint32_t i = 1; i < static_cast<uint32_t>(exp10History.size()); ++i) {
             exp10History[i - 1] = exp10History[i];
         }
@@ -302,7 +305,8 @@ namespace merutilm::rff2 {
         for (uint32_t i = 0; i < threadPool.size(); ++i) {
             threadPool[i] = std::make_unique<std::jthread>(
                     [this, dcCurrExp10, aimExp10, &partitionPickerMutex, &processedPartition, i] {
-                        status[i] = processPartitions(dcCurrExp10, aimExp10, partitionPickerMutex, processedPartition, threadTempCaches[i]);
+                        status[i] = processPartitions(dcCurrExp10, aimExp10, partitionPickerMutex, processedPartition,
+                                                      threadTempCaches[i]);
                     });
         }
 
@@ -326,16 +330,14 @@ namespace merutilm::rff2 {
             return true;
         }
 
-        return std::ranges::any_of(status, [](const PartitionStatus &s) {
-            return s != PartitionStatus::SUCCESS;
-        });
+        return std::ranges::any_of(status, [](const PartitionStatus &s) { return s != PartitionStatus::SUCCESS; });
     }
 
     std::optional<MB2LocateResult> MB2Locator::locate() {
 
-        const int64_t refExp10 = Perturbator::logZoomToExp10(refLogZoom);
-        double aimLogZoom = refLogZoom * 2;
-        int64_t aimExp10 = Perturbator::logZoomToExp10(aimLogZoom + MB2_LOG_ZOOM_OFFSET);
+        const int64_t refExp10 = Perturbator::logZoomToExp10(reference.logZoom);
+        double aimLogZoom = reference.logZoom * 2;
+        int64_t aimExp10 = refExp10 * 2;
 
         // copy checkpoints
         blockResults.resize(checkpoints.size() - 1, BlockResult{
@@ -359,15 +361,15 @@ namespace merutilm::rff2 {
 
         currCenter.set_exp10(refExp10);
         temp.set_exp10(refExp10);
-        for (auto &t : threadTempCaches[0].temps) {
+        for (auto &t: threadTempCaches[0].temps) {
             t.set_exp10(refExp10);
         }
 
 
         fixed_point_complex dc(0.0, 0.0, refExp10);
 
-        calcCenterOffset(dc, checkpoints.back().z.create_variant(refExp10), fixed_point_complex(refFpgBn, refExp10),
-                         threadTempCaches[0].temps);
+        calcCenterOffset(dc, checkpoints.back().z.create_variant(refExp10),
+                         fixed_point_complex(reference.fpgBn, refExp10), threadTempCaches[0].temps);
         fixed_point_complex::add(currCenter, currCenter, dc);
 
         dex dcd = static_cast<complex<dex>>(dc).norm_approx();
@@ -375,7 +377,7 @@ namespace merutilm::rff2 {
 
         std::array<int64_t, EXP10_HISTORY_LENGTH> exp10History{};
 
-        if (refDcMax < dcd) {
+        if (reference.dcMax < dcd) {
             vkh::logger::log_err("Center could not be found");
             return std::nullopt;
         }

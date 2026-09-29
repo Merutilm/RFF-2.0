@@ -35,11 +35,9 @@ namespace merutilm::rff2 {
         static constexpr uint32_t EXP10_HISTORY_LENGTH = 10;
 
         const ParallelRenderState &state;
+        const MB2ReferenceBase &reference;
         const ExpLocatorSettings locSettings;
         const uint32_t threads;
-        const double refLogZoom;
-        const dex refDcMax;
-        const complex<dex> refFpgBn;
         fixed_point_complex prevCenter;
         fixed_point_complex currCenter;
         fixed_point_complex temp;
