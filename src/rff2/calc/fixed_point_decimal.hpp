@@ -57,6 +57,7 @@ namespace merutilm::rff2 {
         void init_data(int64_t exp10, F &&setter_exp2_getter);
 
         static int64_t exp10_to_exp2div64(int64_t exp10);
+        void add_n(int64_t value);
 
         /**
          * Adds 1 to current instance.
@@ -71,9 +72,9 @@ namespace merutilm::rff2 {
 
         void zero();
         void one();
-        int32_t sgn() const;
-        int32_t compare_abs(uint64_t value) const;
-        int32_t compare(int64_t value) const;
+        [[nodiscard]] int32_t sgn() const;
+        [[nodiscard]] int32_t compare_abs(uint64_t value) const;
+        [[nodiscard]] int32_t compare(int64_t value) const;
         void set(int64_t value, bool make_decimal_zero);
 
         /**
@@ -248,6 +249,39 @@ namespace merutilm::rff2 {
         auto exp2div64 = static_cast<int>(static_cast<double>(exp10) / log10_2);
         exp2div64 = (exp2div64 - 63) / 64;
         return exp2div64;
+    }
+
+    inline void fixed_point_decimal::add_n(const int64_t value) {
+        if (value == 0) {
+            return;
+        }
+
+        assert(value != INT64_MIN);
+
+        const int64_t dec_limbs = -exp2div64;
+        const bool neg = size < 0;
+        const bool same_sign = (size < 0) == (value < 0);
+        const int64_t limbs_cnt = std::abs(size);
+        const int64_t required_minimum = std::max(dec_limbs + 1, limbs_cnt + 1);
+        try_realloc_inc(required_minimum);
+        if (same_sign) {
+            mpn_zero(data + limbs_cnt, required_minimum - limbs_cnt);
+            const mp_limb_t carry =
+                    mpn_add_1(data + dec_limbs, data + dec_limbs, required_minimum - dec_limbs, std::abs(value));
+            assert(carry == 0);
+            size = required_minimum - (data[required_minimum - 1] == 0);
+            size = neg ? -size : size;
+        } else {
+            mpn_zero(data + limbs_cnt, required_minimum - limbs_cnt);
+            const mp_limb_t borrow = mpn_sub_1(data + dec_limbs, data + dec_limbs, required_minimum - dec_limbs, std::abs(value));
+            if (borrow == 1) { // integer limb count = 1 or 0.
+                mpn_neg(data, data, required_minimum); // invert decimal part
+            }
+
+            size = (size > 0 ? 1 : -1) * (borrow == 0 ? 1 : -1) * required_minimum;
+
+            normalize_size(size);
+        }
     }
 
 
@@ -737,9 +771,9 @@ namespace merutilm::rff2 {
     inline std::string fixed_point_decimal::to_string() const {
         mpf_t f;
         mpz_t z;
-        mpf_init2(f, -exp2div64 * 64);
-        mpz_init(z);
         const int64_t limbs_cnt = std::abs(size);
+        mpf_init2(f, limbs_cnt * 64);
+        mpz_init(z);
         mp_limb_t *limbs = mpz_limbs_write(z, limbs_cnt);
         memcpy(limbs, data, limbs_cnt * sizeof(mp_limb_t));
         mpz_limbs_finish(z, limbs_cnt);

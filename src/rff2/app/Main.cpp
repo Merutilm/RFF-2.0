@@ -29,9 +29,20 @@ static void testCode() {
     using namespace merutilm::rff2;
     using namespace merutilm::vkh;
 
-    // fixed_point_complex an("-0.96128094211304257740641040047580610611", "19.98729773974653315809303398027879313756", -37);
-    // fixed_point_complex z("-1.70281464353043399390656742366030661032", "0.00074505245294930107889245247940180791", -37);
-    // fixed_point_complex::mul(an, an, z);
+    fixed_point_decimal a("-0.96128094211304257740641040047580610611", -37);
+    a.add_n(24);
+    std::cout << a.to_string() << std::endl;
+    a.add_n(9223372036854775807);
+    std::cout << a.to_string() << std::endl;
+    a.add_n(9223372036854775807);
+    std::cout << a.to_string() << std::endl;
+    a.add_n(-9223372036854775807);
+    std::cout << a.to_string() << std::endl;
+    a.add_n(-9223372036854775807);
+    std::cout << a.to_string() << std::endl;
+    a.add_n(-9223372036854775807);
+    std::cout << a.to_string() << std::endl;
+
 }
 #endif
 

@@ -50,7 +50,7 @@ namespace merutilm::rff2 {
         const MB2RenderDataBase *renderData = app.getCurrentRenderData();
         auto &frt = app.getSettings().fractal;
         if (renderData && renderData->getPerturbator() && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
-            const int64_t exp10 = Perturbator::getExp10(frt.reference, renderData->getReference()->logZoom);
+            const int64_t exp10 = Perturbator::getExp10WithSettings(frt.reference, renderData->getReference()->logZoom);
             const fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
             fixed_point_complex center = frt.reference.center.create_variant(exp10);
             fixed_point_complex::add(center, center, off);
@@ -105,7 +105,7 @@ namespace merutilm::rff2 {
                 frt.reference.center = result->center;
                 frt.general.logZoom = result->logZoom;
                 const dex dcMax = app.getDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
-                const int64_t refExp10 = Perturbator::getExp10(frt.reference, frt.general.logZoom);
+                const int64_t refExp10 = Perturbator::getExp10WithSettings(frt.reference, frt.general.logZoom);
                 data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
                                                        startTime, frt, dcMax, refExp10, data->getReference()->length());
 

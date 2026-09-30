@@ -182,7 +182,7 @@ namespace merutilm::rff2 {
             // try to use incomplete reference
             vkh::logger::log_err("Please do not try to use incomplete Reference.");
         } else {
-            const int64_t exp10 = Perturbator::getExp10(reference->refSettings, logZoom);
+            const int64_t exp10 = Perturbator::getExp10WithSettings(reference->refSettings, logZoom);
             fixed_point_complex center = newCenter.create_variant(exp10);
             const fixed_point_complex refCenter = reference->center.create_variant(exp10);
             fixed_point_complex::sub(center, center, refCenter);

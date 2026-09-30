@@ -11,7 +11,7 @@ namespace merutilm::rff2 {
         virtual ~Perturbator() = default;
 
 
-        static int64_t getExp10(const FrtReferenceSettings &refSettings, const double logZoom) {
+        static int64_t getExp10WithSettings(const FrtReferenceSettings &refSettings, const double logZoom) {
             return refSettings.useFixedPrecision ? -refSettings.fixedPrecisionNeg : logZoomToExp10(logZoom);
         }
 

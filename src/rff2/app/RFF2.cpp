@@ -344,7 +344,7 @@ namespace merutilm::rff2 {
                     if (mb == GLFW_MOUSE_BUTTON_LEFT) {
                         const float m = settings.render.display.clarityMultiplier;
                         const double logZoom = settings.fractal.general.logZoom;
-                        const int64_t exp10 = Perturbator::getExp10(settings.fractal.reference, logZoom);
+                        const int64_t exp10 = Perturbator::getExp10WithSettings(settings.fractal.reference, logZoom);
 
                         fixed_point_complex &center = settings.fractal.reference.center;
                         center.set_exp10(exp10);
@@ -382,7 +382,7 @@ namespace merutilm::rff2 {
                 offsetConversion(settings.fractal.general.logZoom, settings.render.display.clarityMultiplier, mix, miy);
         double &logZoom = settings.fractal.general.logZoom;
         fixed_point_complex &center = settings.fractal.reference.center;
-        const int64_t exp10 = Perturbator::getExp10(settings.fractal.reference, logZoom);
+        const int64_t exp10 = Perturbator::getExp10WithSettings(settings.fractal.reference, logZoom);
         center.set_exp10(exp10);
 
         const double mz = pow(10.0, -logIncrement);
@@ -769,7 +769,7 @@ namespace merutilm::rff2 {
         const auto locationBinary = RFFBinary::importFile<RFFLocationBinary>(path);
 
         settings.fractal.reference.center = fixed_point_complex(locationBinary.real, locationBinary.imag,
-                                                                Perturbator::getExp10(settings.fractal.reference, locationBinary.logZoom));
+                                                                Perturbator::getExp10WithSettings(settings.fractal.reference, locationBinary.logZoom));
         settings.fractal.general.logZoom = locationBinary.logZoom;
         settings.fractal.perturb.maxIteration = locationBinary.maxIteration;
         requests.requestRecompute();
@@ -894,7 +894,7 @@ namespace merutilm::rff2 {
             return false;
 
 
-        const int64_t exp10 = Perturbator::getExp10(settings.fractal.reference, logZoom);
+        const int64_t exp10 = Perturbator::getExp10WithSettings(settings.fractal.reference, logZoom);
         if (frt.reference.reuse) {
             if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
                 vkh::logger::log_err("Do not reuse Reference during reference calculation!!!");
