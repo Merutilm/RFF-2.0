@@ -35,8 +35,8 @@ layout (set = 0, binding = 1) buffer Iteration2MapZoomedSSBO {
 
 
 layout (set = 1, binding = 0) uniform VideoUBO {
-    float default_zoom_increment;
-    float current_frame;
+    double default_zoom_increment;
+    double current_frame;
 } video_settings;
 
 layout (set = 4, binding = 0, rgba8) writeonly uniform image2D merged_image_output;
@@ -73,9 +73,9 @@ void main() {
 
     vec2 center = vec2(iteration_info_settings.extent) / 2.0;
     vec2 coord = vec2(gl_GlobalInvocationID.xy) - center;
-    float r = int(max(0, video_settings.current_frame)) - video_settings.current_frame;
+    float r = int(max(0, video_settings.current_frame)) - float(video_settings.current_frame);
 
-    float nsr = pow(video_settings.default_zoom_increment, r + 1);// exp = 0 ~ 1
+    float nsr = pow(float(video_settings.default_zoom_increment), r + 1);// exp = 0 ~ 1
 
     vec2 ntx = coord / nsr + center;
 
@@ -92,7 +92,7 @@ void main() {
     vec3 nc = nc1 - (nc1 - nc0) * nrt.y;
 
 
-    float zsr = pow(video_settings.default_zoom_increment, r); // exp = -1 ~ 0
+    float zsr = pow(float(video_settings.default_zoom_increment), r); // exp = -1 ~ 0
     vec2 ztx = coord / zsr + center;
 
 
