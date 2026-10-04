@@ -339,6 +339,7 @@ namespace merutilm::rff2 {
                     const auto dyr = static_cast<float>(dy) / static_cast<float>(getIterationBufferHeight());
                     const auto dz = pow(10.0f, -zoomAnimationInfo.targetLogZoomOffsetAim);
 
+                    updateFractalFrame = false;
                     zoomAnimationInfo.aimChanged = true;
                     zoomAnimationInfo.targetMouseDragOffset += glm::vec2{dxr * dz, dyr * dz};
 
@@ -353,9 +354,13 @@ namespace merutilm::rff2 {
                                                       dex(static_cast<double>(dy) / m) / getDivisor(logZoom), exp10);
                         fixed_point_complex::add(center, center, add);
 
-                        requests.requestRecompute();
                     }
                 });
+        eventSystem.mouseDrag.onMouseDragEnd.add([this](const int mb, const int, const int) {
+            if (mb == GLFW_MOUSE_BUTTON_LEFT) {
+                requests.requestRecompute();
+            }
+        });
         eventSystem.mouseWheel.onMouseScroll.add([this](const int value) {
             settings.fractal.general.logZoom = std::max(Constants::Fractal::ZOOM_MIN, settings.fractal.general.logZoom);
             double mdx;
@@ -395,7 +400,10 @@ namespace merutilm::rff2 {
         zoomAnimationInfo.stop();
         zoomAnimationInfo.targetLogZoomOffsetAim += logIncrement;
         zoomAnimationInfo.targetMouseZoomOffsetAim += glm::vec2{mxr * dz * (mz - 1), myr * dz * (1 - mz)};
-        requests.requestRecompute();
+        if (updateFractalFrame) {
+            updateFractalFrame = false;
+            requests.requestRecompute();
+        }
     }
 
 
@@ -455,7 +463,7 @@ namespace merutilm::rff2 {
         const double dt = t - time;
         time = t;
 
-        if (canShowPreview && !zoomAnimationInfo.aimChanged) {
+        if (updateFractalFrame && !zoomAnimationInfo.aimChanged) {
             renderer->updateStagingBuffer |= renderer->visibleIterationBufferContext->fill();
             renderer->descriptorStorage->iteration->applyMaxIteration();
             zoomAnimationInfo.reset();
@@ -871,7 +879,7 @@ namespace merutilm::rff2 {
 
     bool RFF2::prepareRenderData(const double startTime, const Settings &s) {
 
-        canShowPreview = false;
+        updateFractalFrame = false;
 
         if (state.interruptRequested())
             return false;
@@ -989,7 +997,7 @@ namespace merutilm::rff2 {
         });
 
 
-        canShowPreview = true;
+        updateFractalFrame = true;
         previewer.dispatch();
 
         statusThread.request_stop();

@@ -32,7 +32,7 @@ namespace merutilm::rff2 {
         RFF2Renderer *renderer = nullptr;
 
 
-        std::atomic<bool> canShowPreview = false;
+        std::atomic<bool> updateFractalFrame = false;
 
         std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
         std::unique_ptr<MB2RenderDataBase> renderData = nullptr;
@@ -362,7 +362,7 @@ namespace merutilm::rff2 {
             glitches = std::ranges::count_if(stagingData, [](const uint32_t data) { return data != 1; });
 
             renderer->visibleIterationBufferContext->markUpdate();
-            canShowPreview = true;
+            updateFractalFrame = true;
         } // batching and checking scope
     }
 
