@@ -11,7 +11,7 @@ namespace merutilm::rff2::ShdSlopePresets {
     }
 
     ShdSlopeSettings Disabled::genSlope() const {
-        return ShdSlopeSettings{0, 0, 1.0f, 60, 135};
+        return ShdSlopeSettings{0, 0, 1.0f, 30, 135};
     }
 
     std::string NoReflection::getName() const {
@@ -19,7 +19,7 @@ namespace merutilm::rff2::ShdSlopePresets {
     }
 
     ShdSlopeSettings NoReflection::genSlope() const {
-        return ShdSlopeSettings{300, 0, 1.0f, 60, 135};
+        return ShdSlopeSettings{300, 0, 1.0f, 0, 135};
     }
 
     std::string Reflective::getName() const {
@@ -27,7 +27,7 @@ namespace merutilm::rff2::ShdSlopePresets {
     }
 
     ShdSlopeSettings Reflective::genSlope() const {
-        return ShdSlopeSettings{300, 0.5f, 1.0f, 60, 135};
+        return ShdSlopeSettings{300, 0.5f, 1.0f, 0, 135};
     }
 
 
@@ -36,7 +36,7 @@ namespace merutilm::rff2::ShdSlopePresets {
     }
 
     ShdSlopeSettings Translucent::genSlope() const {
-        return ShdSlopeSettings{300, 0, 0.5f, 60, 135};
+        return ShdSlopeSettings{300, 0, 0.5f, 0, 135};
     }
 
     std::string Reversed::getName() const {
@@ -44,7 +44,7 @@ namespace merutilm::rff2::ShdSlopePresets {
     }
 
     ShdSlopeSettings Reversed::genSlope() const {
-        return ShdSlopeSettings{-300, 0, 0.5f, 60, 135};
+        return ShdSlopeSettings{-300, 0, 0.5f, 0, 135};
     }
 
     std::string Micro::getName() const {
@@ -52,7 +52,7 @@ namespace merutilm::rff2::ShdSlopePresets {
     }
 
     ShdSlopeSettings Micro::genSlope() const {
-        return ShdSlopeSettings{3, 0, 0.5f, 60, 135};
+        return ShdSlopeSettings{3, 0, 0.5f, 0, 135};
     }
 
     std::string Nano::getName() const {
@@ -60,6 +60,6 @@ namespace merutilm::rff2::ShdSlopePresets {
     }
 
     ShdSlopeSettings Nano::genSlope() const {
-        return ShdSlopeSettings{0.003f, 0, 0.5f, 60, 135};
+        return ShdSlopeSettings{0.003f, 0, 0.5f, 0, 135};
     }
 }
