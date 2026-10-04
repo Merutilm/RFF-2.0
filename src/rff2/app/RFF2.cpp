@@ -340,8 +340,7 @@ namespace merutilm::rff2 {
                     const auto dz = pow(10.0f, -zoomAnimationInfo.targetLogZoomOffsetAim);
 
                     updateFractalFrame = false;
-                    zoomAnimationInfo.aimChanged = true;
-                    zoomAnimationInfo.targetMouseDragOffset += glm::vec2{dxr * dz, dyr * dz};
+                    zoomAnimationInfo.startDrag(glm::vec2{dxr * dz, dyr * dz});
 
                     if (mb == GLFW_MOUSE_BUTTON_LEFT) {
                         const float m = settings.render.display.clarityMultiplier;
@@ -358,6 +357,8 @@ namespace merutilm::rff2 {
                 });
         eventSystem.mouseDrag.onMouseDragEnd.add([this](const int mb, const int, const int) {
             if (mb == GLFW_MOUSE_BUTTON_LEFT) {
+                updateFractalFrame = false;
+                zoomAnimationInfo.endDrag();
                 requests.requestRecompute();
             }
         });
@@ -396,14 +397,8 @@ namespace merutilm::rff2 {
         const fixed_point_complex add(re * dex(1 - mz), im * dex(1 - mz), exp10);
         fixed_point_complex::add(center, center, add);
 
-        zoomAnimationInfo.aimChanged = true;
-        zoomAnimationInfo.stop();
-        zoomAnimationInfo.targetLogZoomOffsetAim += logIncrement;
-        zoomAnimationInfo.targetMouseZoomOffsetAim += glm::vec2{mxr * dz * (mz - 1), myr * dz * (1 - mz)};
-        if (updateFractalFrame) {
-            updateFractalFrame = false;
-            requests.requestRecompute();
-        }
+        zoomAnimationInfo.changeZoomAim(logIncrement, glm::vec2{mxr * dz * (mz - 1), myr * dz * (1 - mz)});
+        requests.requestRecompute();
     }
 
 
@@ -463,7 +458,7 @@ namespace merutilm::rff2 {
         const double dt = t - time;
         time = t;
 
-        if (updateFractalFrame && !zoomAnimationInfo.aimChanged) {
+        if (updateFractalFrame && !zoomAnimationInfo.animationReserved && !zoomAnimationInfo.dragging) {
             renderer->updateStagingBuffer |= renderer->visibleIterationBufferContext->fill();
             renderer->descriptorStorage->iteration->applyMaxIteration();
             zoomAnimationInfo.reset();

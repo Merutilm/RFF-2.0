@@ -7,6 +7,8 @@
 namespace merutilm::rff2 {
     struct ZoomAnimationInfo {
 
+        //Do not modify the fields from outside.
+
         bool animating = false;
         static constexpr float DURATION = 0.2f;
 
@@ -15,7 +17,8 @@ namespace merutilm::rff2 {
         glm::vec2 targetMouseZoomOffset = glm::vec2(0.0f, 0.0f);
         glm::vec2 targetMouseZoomOffsetAim = glm::vec2(0.0f, 0.0f);
 
-        bool aimChanged = false;
+        bool dragging = false;
+        bool animationReserved = false;
         double targetLogZoomOffsetStart = 0.0f;
         double targetLogZoomOffset = 0.0f;
         double targetLogZoomOffsetAim = 0.0f;
@@ -23,7 +26,7 @@ namespace merutilm::rff2 {
 
 
         void reset() {
-            aimChanged = false;
+            animationReserved = false;
             animating = false;
             timeAccumulator = 0;
             targetLogZoomOffset = 0;
@@ -33,6 +36,22 @@ namespace merutilm::rff2 {
             targetMouseDragOffset = {};
         }
 
+        void startDrag(const glm::vec2 mouseDragDelta) {
+            dragging = true;
+            targetMouseDragOffset += mouseDragDelta;
+        }
+
+
+        void endDrag() {
+            dragging = false;
+        }
+
+        void changeZoomAim(const double logZoomIncrement, const glm::vec2 mouseZoomDelta) {
+            stop();
+            animationReserved = true;
+            targetLogZoomOffsetAim += logZoomIncrement;
+            targetMouseZoomOffsetAim += mouseZoomDelta;
+        }
 
         void stop() {
             animating = false;
@@ -50,7 +69,7 @@ namespace merutilm::rff2 {
 
             if (timeAccumulator >= DURATION) {
                 timeAccumulator = DURATION;
-                aimChanged = false;
+                animationReserved = false;
                 animating = false;
             }
             const double t = timeAccumulator / DURATION;
