@@ -29,32 +29,15 @@ static void testCode() {
     using namespace merutilm::rff2;
     using namespace merutilm::vkh;
 
-    // fixed_point_decimal a("-0.96128094211304257740641040047580610611", -37);
-    // a.add_n(24);
-    // std::cout << a.to_string() << std::endl;
-    // a.add_n(9223372036854775807);
-    // std::cout << a.to_string() << std::endl;
-    // a.add_n(9223372036854775807);
-    // std::cout << a.to_string() << std::endl;
-    // a.add_n(-9223372036854775807);
-    // std::cout << a.to_string() << std::endl;
-    // a.add_n(-9223372036854775807);
-    // std::cout << a.to_string() << std::endl;
-    // a.add_n(-9223372036854775807);
-    // std::cout << a.to_string() << std::endl;
-    //
-    // mpz_t i;
-    // mpz_init(i);
-    // mpz_fac_ui(i, 200000);
-    // char *str;
-    // gmp_asprintf(&str, "%Zd", i);
-    // std::string result(str);
-    // // gmp_asprinf uses malloc(), Do not remove this
-    // std::cout << result << std::endl;
-    // free(str);
-    // mpz_clear(i);
-
-
+    // fixed_point_decimal z("-4", -37);
+    // z.try_realloc_inc(123, true);
+    // std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> temps;
+    // z.one();
+    // std::cout << z << std::endl;
+    // z.set_exp2div64(-4, true);
+    // std::cout << z << std::endl;
+    // z.set_exp2div64(-4, true);
+    // std::cout << z << std::endl;
 }
 #endif
 

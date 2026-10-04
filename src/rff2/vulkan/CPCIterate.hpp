@@ -63,12 +63,12 @@ namespace merutilm::rff2 {
         vkh::PipelineSpecialization createSpecializationInfo() override;
         void clearMeta(vkh::CommandPool &commandPool) const;
 
-        void setMeta(const FractalSettings &frt, const RenderSettings &render,
-                     const std::vector<complex<Num>> &reference, complex<Num> offset, uint64_t maxIteration,
-                     const CachedPodVector<PA<Num>> &mpTableData, const CachedPodVector<MPAIndexMapper> &mapperData,
-                     vkh::CommandPool &commandPool) const;
-
         void resizeWriteBuffer(uint32_t width, uint32_t height) const;
+
+        void setMeta(const FractalSettings &frt, const RenderSettings &render,
+                     const std::vector<complex<Num>> &reference, uint64_t longestPeriod, complex<Num> offset, uint64_t maxIteration,
+                     const CachedPodVector &mpTableData, const CachedPodVector &mapperData,
+                     vkh::CommandPool &commandPool) const;
 
         void clearWriteBuffer(vkh::CommandPool &commandPool) const;
 
@@ -121,9 +121,9 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     void CPCIterate<Num>::setMeta(const FractalSettings &frt, const RenderSettings &render,
-                                  const std::vector<complex<Num>> &reference, const complex<Num> offset,
-                                  const uint64_t maxIteration, const CachedPodVector<PA<Num>> &mpTableData,
-                                  const CachedPodVector<MPAIndexMapper> &mapperData,
+                                  const std::vector<complex<Num>> &reference, const uint64_t longestPeriod, const complex<Num> offset,
+                                  const uint64_t maxIteration, const CachedPodVector &mpTableData,
+                                  const CachedPodVector &mapperData,
                                   vkh::CommandPool &commandPool) const {
 
         using namespace SharedDescriptorTemplate;
@@ -137,15 +137,15 @@ namespace merutilm::rff2 {
         auto &rmTableUBOHost = rmTableUBO.getHostObject();
 
         rmSSBOHost.template set<uint64_t>(TARGET_RM_MAX_ITERATION, maxIteration);
-        rmSSBOHost.template set<uint64_t>(TARGET_RM_MAX_REF_ITERATION, reference.size() - 1);
+        rmSSBOHost.template set<uint64_t>(TARGET_RM_MAX_REF_ITERATION, longestPeriod);
         rmSSBOHost.template set<float>(TARGET_RM_LOG_ZOOM, frt.general.logZoom);
         rmSSBOHost.template set<float>(TARGET_RM_BAILOUT, frt.general.bailout);
         rmSSBOHost.template set<float>(TARGET_RM_CLARITY_MULTIPLIER, render.display.clarityMultiplier);
         rmSSBOHost.template set<uint32_t>(TARGET_RM_DECIMALIZE_ITERATION_METHOD,
                                           static_cast<uint32_t>(frt.perturb.decimalizeIterationMethod));
         rmSSBOHost.template set<complex<Num>>(TARGET_RM_OFFSET, static_cast<complex<Num>>(offset));
-        rmSSBOHost.template resizeArray<complex<Num>>(TARGET_RM_ORBIT, reference.size());
-        rmSSBOHost.template set<complex<Num>>(TARGET_RM_ORBIT, reference);
+        rmSSBOHost.template resizeArray<complex<Num>>(TARGET_RM_ORBIT, longestPeriod + 1);
+        rmSSBOHost.template set<complex<Num>>(TARGET_RM_ORBIT, reference.data());
         rmTableUBOHost.template set<uint32_t>(TARGET_RM_TABLE_SELECTION_METHOD,
                                               static_cast<uint32_t>(frt.mpa.selectionMethod));
 

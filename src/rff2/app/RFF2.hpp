@@ -36,7 +36,7 @@ namespace merutilm::rff2 {
 
         std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
         std::unique_ptr<MB2RenderDataBase> renderData = nullptr;
-        std::unique_ptr<ApproxTableCacheBase> approxTableCache = nullptr;
+        std::unique_ptr<ApproxTableCache> approxTableCache = nullptr;
         std::unique_ptr<CursorManager> cursorManager = nullptr;
         std::unique_ptr<ComputeShaderRenderManager> computeShaderManager = nullptr;
 
@@ -156,7 +156,7 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] std::unique_ptr<MB2RenderDataBase> &getCurrentRenderDataOwnRef() { return renderData; }
 
-        [[nodiscard]] std::unique_ptr<ApproxTableCacheBase> *getApproxTableCache() { return &approxTableCache; }
+        [[nodiscard]] ApproxTableCache &getApproxTableCache() const { return *approxTableCache; }
 
         [[nodiscard]] UpdateRequests &getRequests() { return requests; }
 
@@ -235,18 +235,14 @@ namespace merutilm::rff2 {
 
         vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
 
-        const auto cache = dynamic_cast<ApproxTableCache<Num> *>(approxTableCache.get());
-        if (!cache)
-            throw vkh::exception_invalid_state("cache is null");
-
-        const auto &tableData = cache->mpaTable;
-        const auto &mapperData = cache->flattenIndexMapper;
+        const auto &tableData = approxTableCache->mpaTable;
+        const auto &mapperData = approxTableCache->flattenIndexMapper;
 
         other->clearMeta(commandPool);
         target->setMPAIgnore(s.render.computeShader.completelyIgnoreMpa);
         target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
         target->clearWriteBuffer(commandPool);
-        target->setMeta(s.fractal, s.render, dynamic_cast<MB2Reference<Num> *>(renderData->getReference())->refOrbit,
+        target->setMeta(s.fractal, s.render, dynamic_cast<MB2Reference<Num> *>(renderData->getReference())->refOrbit, renderData->getReference()->longestPeriod(),
                         static_cast<complex<Num>>(renderData->getPerturbator()->off), s.fractal.perturb.maxIteration,
                         tableData, mapperData, commandPool);
 

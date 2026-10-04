@@ -11,30 +11,19 @@
 
 namespace merutilm::rff2 {
 
-    struct ApproxTableCacheBase {
-
-        virtual ~ApproxTableCacheBase() = default;
-        virtual void resize(size_t tableLen, size_t mapperLen, bool makeGpuReadable) = 0;
-
-        virtual size_t getTableSizeUsed() = 0;
-        virtual size_t getMapperSizeUsed() = 0;
-    };
-
-
-    template<Number Num>
-    struct ApproxTableCache : ApproxTableCacheBase {
+    struct ApproxTableCache {
 
 
         /**
          * flatten index table
          */
-        CachedPodVector<PA<Num>> mpaTable;
+        CachedPodVector mpaTable;
 
         /**
          * for uncompressed table : iteration to flatten index
          * for compressed table : pulled compressed index to flatten index
          */
-        CachedPodVector<MPAIndexMapper> flattenIndexMapper;
+        CachedPodVector flattenIndexMapper;
 
         explicit ApproxTableCache(vkh::Core &core) : mpaTable(core), flattenIndexMapper(core) {
 
@@ -45,17 +34,10 @@ namespace merutilm::rff2 {
         ApproxTableCache(ApproxTableCache &&) = delete;
         ApproxTableCache &operator=(ApproxTableCache &&) = delete;
 
-        size_t getTableSizeUsed() override {
-            return mpaTable.sizeUsed;
-        }
-
-        size_t getMapperSizeUsed() override {
-            return flattenIndexMapper.sizeUsed;
-        }
-
-        void resize(const size_t tableLen, const size_t mapperLen, const bool makeGpuReadable) override {
-            mpaTable.resizeWithWarning(tableLen, makeGpuReadable);
-            flattenIndexMapper.resizeWithWarning(mapperLen, makeGpuReadable);
+        template<typename PA> requires std::is_trivially_copyable_v<PA>
+        void resize(const size_t tableLen, const size_t mapperLen, const bool makeGpuReadable) {
+            mpaTable.resizeWithWarning<PA>(tableLen, makeGpuReadable);
+            flattenIndexMapper.resizeWithWarning<MPAIndexMapper>(mapperLen, makeGpuReadable);
         }
     };
 } // namespace merutilm::rff2

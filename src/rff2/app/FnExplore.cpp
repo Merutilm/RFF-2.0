@@ -128,8 +128,7 @@ namespace merutilm::rff2 {
 
                 app.getState().cancel();
                 const MB2RenderDataBase *data = app.getCurrentRenderData();
-                std::unique_ptr<ApproxTableCacheBase> *cache = app.getApproxTableCache();
-                if (!data || !cache) {
+                if (!data) {
                     throw vkh::exception_invalid_state("Perturbator cannot be null");
                 }
 

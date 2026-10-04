@@ -70,7 +70,7 @@ namespace merutilm::rff2 {
                                     fixed_point_complex &c, std::array<fixed_point_decimal, 6> &temps,
                                     const complex<Num> &fzgAn, int32_t &prevExp2div64);
 
-        static bool tryUpdateFxgABn(dex dcMax, complex<Num> &fzgAn, complex<Num> &fzgAnPartition, complex<Num> &fpgBn,
+        static bool tryUpdateAnBn(dex dcMax, complex<Num> &fzgAn, complex<Num> &fzgAnPartition, complex<Num> &fpgBn,
                                     complex<Num> &z0, uint64_t period, Num &radius2);
 
 
@@ -139,14 +139,14 @@ namespace merutilm::rff2 {
             c = cOrig;
             c.set_exp10(currentExp10);
             for (auto &temp: temps) {
-                temp.set_exp10(currentExp10);
+                temp.set_exp10(currentExp10, false);
             }
             prevExp2div64 = exp2div64;
         }
     }
 
     template<Number Num>
-    bool MB2Reference<Num>::tryUpdateFxgABn(const dex dcMax, complex<Num> &fzgAn, complex<Num> &fzgAnPartition,
+    bool MB2Reference<Num>::tryUpdateAnBn(const dex dcMax, complex<Num> &fzgAn, complex<Num> &fzgAnPartition,
                                             complex<Num> &fpgBn, complex<Num> &z0, const uint64_t period,
                                             Num &radius2) {
         radius2 = z0.norm_sqr();
@@ -246,7 +246,7 @@ namespace merutilm::rff2 {
                                             uint64_t p, int32_t &prevExp2div64,
                                             const SpecialCenterType specialCenterType) {
 
-        bool shouldApplyZForCheckpoint = p % Constants::Fractal::PARTITION_SIZE == Constants::Fractal::PARTITION_SIZE - 1;
+        const bool shouldApplyZForCheckpoint = p % Constants::Fractal::PARTITION_SIZE == Constants::Fractal::PARTITION_SIZE - 1;
         switch (specialCenterType) {
             using enum SpecialCenterType;
             case NONE:
@@ -358,7 +358,7 @@ namespace merutilm::rff2 {
 
 
         for (period = 0;
-             tryUpdateFxgABn(dcMax, fzgAn, fzgAnPartition, fpgBn, z0, period, radius2) && z0.norm_sqr() < bailoutSqr;
+             tryUpdateAnBn(dcMax, fzgAn, fzgAnPartition, fpgBn, z0, period, radius2) && z0.norm_sqr() < bailoutSqr;
              ++period) {
             if (period % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return CreationResult::TERMINATED;

@@ -84,6 +84,8 @@ target_compile_options(RFF PRIVATE
         $<$<CONFIG:Debug>:-O0>
         #Release options
         $<$<CONFIG:Release>:-O3 -ffast-math -fno-associative-math -funroll-loops -march=native -mllvm -inline-threshold=4000>
+        #RelWithDebInfo options
+        $<$<CONFIG:RelWithDebInfo>:-O3 -ffast-math -fno-associative-math -fno-omit-frame-pointer -funroll-loops -march=native>
 )
 
 add_subdirectory(src/vulkan_helper)

@@ -56,6 +56,7 @@ namespace merutilm::rff2 {
     void RFF2::initialize() {
         cursorManager = std::make_unique<CursorManager>(rootWindowContext->getWindow()->getWindow());
         computeShaderManager = std::make_unique<ComputeShaderRenderManager>(*rootWindowContext);
+        approxTableCache = std::make_unique<ApproxTableCache>(engine->getCore());
         NFD::Init();
         initImGui();
     }
@@ -120,25 +121,25 @@ namespace merutilm::rff2 {
                                       const uint64_t refInitialCapacity) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
-                return std::make_unique<FexMB2RenderData>(engine->getCore(), state, frt, computeShader,
-                                                          approxTableCache, dcMax, exp10, refInitialCapacity,
+                return std::make_unique<FexMB2RenderData>(state, frt, computeShader,
+                                                          *approxTableCache, dcMax, exp10, refInitialCapacity,
                                                           getFnRefCalc(startTime), getFnSeriesApprox(startTime),
                                                           getFnCreatingTable(startTime));
             } else {
-                return std::make_unique<FloatMB2RenderData>(engine->getCore(), state, frt, computeShader,
-                                                            approxTableCache, dcMax, exp10, refInitialCapacity,
+                return std::make_unique<FloatMB2RenderData>(state, frt, computeShader,
+                                                            *approxTableCache, dcMax, exp10, refInitialCapacity,
                                                             getFnRefCalc(startTime), getFnSeriesApprox(startTime),
                                                             getFnCreatingTable(startTime));
             }
         } else {
             if (logZoomTest > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
-                return std::make_unique<DexMB2RenderData>(engine->getCore(), state, frt, computeShader,
-                                                          approxTableCache, dcMax, exp10, refInitialCapacity,
+                return std::make_unique<DexMB2RenderData>(state, frt, computeShader,
+                                                          *approxTableCache, dcMax, exp10, refInitialCapacity,
                                                           getFnRefCalc(startTime), getFnSeriesApprox(startTime),
                                                           getFnCreatingTable(startTime));
             } else {
-                return std::make_unique<DoubleMB2RenderData>(engine->getCore(), state, frt, computeShader,
-                                                             approxTableCache, dcMax, exp10, refInitialCapacity,
+                return std::make_unique<DoubleMB2RenderData>(state, frt, computeShader,
+                                                             *approxTableCache, dcMax, exp10, refInitialCapacity,
                                                              getFnRefCalc(startTime), getFnSeriesApprox(startTime),
                                                              getFnCreatingTable(startTime));
             }
@@ -925,7 +926,7 @@ namespace merutilm::rff2 {
             return false;
 
         size_t refLength = reference->length();
-        size_t mpaLen = approxTableCache ? approxTableCache->getTableSizeUsed() : 0;
+        size_t mpaLen = approxTableCache ? approxTableCache->mpaTable.sizeUsed : 0;
 
         setStatusMessage(Constants::Status::PERIOD_STATUS,
                          std::format("Period : {:L} ({:L}, {:L})", reference->longestPeriod(), refLength, mpaLen));

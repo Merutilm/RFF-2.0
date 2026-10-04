@@ -16,12 +16,12 @@ namespace merutilm::rff2 {
         ParallelRenderState &state;
         FractalSettings fractalSettings;
         bool computeShaderUsed;
-        std::unique_ptr<ApproxTableCacheBase> *cache;
+        ApproxTableCache &cache;
         Reference::CreationResult lastCreationResult = Reference::CreationResult::UNDEFINED;
 
         explicit MB2RenderDataBase(ParallelRenderState &state, FractalSettings frt, bool computeShaderUsed,
-                                   std::unique_ptr<ApproxTableCacheBase> &cache) :
-            state(state), fractalSettings(std::move(frt)), computeShaderUsed(computeShaderUsed), cache(&cache) {}
+                                   ApproxTableCache &cache) :
+            state(state), fractalSettings(std::move(frt)), computeShaderUsed(computeShaderUsed), cache(cache) {}
 
         virtual ~MB2RenderDataBase() = default;
 
@@ -44,8 +44,8 @@ namespace merutilm::rff2 {
 
         template<FnListeners::FnRefCalc FnRefCalc, FnListeners::FnSeriesApprox FnSeriesApprox,
                  FnListeners::FnCreatingTable FnCreatingTable>
-        explicit MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt,
-                               bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache, dex dcMax, int64_t exp10, uint64_t refInitialCapacity,
+        explicit MB2RenderData(ParallelRenderState &state, const FractalSettings &frt,
+                               bool computeShaderUsed, ApproxTableCache &cache, dex dcMax, int64_t exp10, uint64_t refInitialCapacity,
                                FnRefCalc &&fnRefCalc, FnSeriesApprox &&fnSeriesApprox,
                                FnCreatingTable &&fnCreatingTable);
 
@@ -68,8 +68,8 @@ namespace merutilm::rff2 {
     template<Number Num>
     template<FnListeners::FnRefCalc FnRefCalc, FnListeners::FnSeriesApprox FnSeriesApprox,
              FnListeners::FnCreatingTable FnCreatingTable>
-    MB2RenderData<Num>::MB2RenderData(vkh::Core &core, ParallelRenderState &state, const FractalSettings &frt,
-                                      const bool computeShaderUsed, std::unique_ptr<ApproxTableCacheBase> &cache,
+    MB2RenderData<Num>::MB2RenderData(ParallelRenderState &state, const FractalSettings &frt,
+                                      const bool computeShaderUsed, ApproxTableCache &cache,
                                       const dex dcMax, const int64_t exp10, const uint64_t refInitialCapacity,
                                       FnRefCalc &&fnRefCalc, FnSeriesApprox &&fnSeriesApprox,
                                       FnCreatingTable &&fnCreatingTable) :
@@ -88,9 +88,6 @@ namespace merutilm::rff2 {
 
         seriesApproxData = std::make_unique<SeriesApproximationData>();
         generateSeriesApproxTerms(dcMax, std::forward<FnSeriesApprox>(fnSeriesApprox));
-
-        if (!dynamic_cast<ApproxTableCache<Num> *>(cache.get()))
-            cache = std::make_unique<ApproxTableCache<Num>>(core);
 
 
         table = std::make_unique<MPATable<Num>>(state, *reference, cache, fractalSettings.general, fractalSettings.mpa,

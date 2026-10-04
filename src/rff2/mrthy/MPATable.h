@@ -29,7 +29,7 @@ namespace merutilm::rff2 {
 
         static constexpr int PERTURBATION_REQ = 2;
         // table caches
-        ApproxTableCache<Num> *tableCache = nullptr;
+        ApproxTableCache &tableCache;
 
 
         const FrtGeneralSettings generalSettings;
@@ -45,14 +45,13 @@ namespace merutilm::rff2 {
 
         template<FnListeners::FnCreatingTable FnCreatingTable>
         explicit MPATable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
-                          std::unique_ptr<ApproxTableCacheBase> &tableCache, const FrtGeneralSettings &generalSettings,
+                          ApproxTableCache &tableCache, const FrtGeneralSettings &generalSettings,
                           const FrtMPASettings &mpaSettings, bool computeShaderUsed, Num dcMax,
                           FnCreatingTable &&fnCreatingTable);
 
 
     private:
-        [[nodiscard]] bool tryInit(const MB2Reference<Num> &reference,
-                                   std::unique_ptr<ApproxTableCacheBase> &tableCache);
+        [[nodiscard]] bool tryInit(const MB2Reference<Num> &reference);
 
         [[nodiscard]] std::vector<ArrayCompressionTool>
         generatePulledMPACompressor(const std::vector<ArrayCompressionTool> &referenceCompressor) const;
@@ -147,12 +146,12 @@ namespace merutilm::rff2 {
     template<Number Num>
     template<FnListeners::FnCreatingTable FnCreatingTable>
     MPATable<Num>::MPATable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
-                            std::unique_ptr<ApproxTableCacheBase> &tableCache,
+                            ApproxTableCache &tableCache,
                             const FrtGeneralSettings &generalSettings, const FrtMPASettings &mpaSettings,
-                            const bool computeShaderUsed, Num dcMax, FnCreatingTable &&fnCreatingTable) :
+                            const bool computeShaderUsed, Num dcMax, FnCreatingTable &&fnCreatingTable) : tableCache(tableCache),
         generalSettings(generalSettings), mpaSettings(mpaSettings), computeShaderUsed(computeShaderUsed) {
 
-        if (tryInit(reference, tableCache)) {
+        if (tryInit(reference)) {
             generateTable(state, reference, dcMax, fnCreatingTable);
         }
     }
@@ -160,7 +159,7 @@ namespace merutilm::rff2 {
 
     //[re] init mpa periods and compressors
     template<Number Num>
-    bool MPATable<Num>::tryInit(const MB2Reference<Num> &reference, std::unique_ptr<ApproxTableCacheBase> &tableCache) {
+    bool MPATable<Num>::tryInit(const MB2Reference<Num> &reference) {
         const auto &referencePeriod = reference.period;
         const uint64_t longestPeriod = reference.longestPeriod();
 
@@ -170,7 +169,6 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        this->tableCache = static_cast<ApproxTableCache<Num> *>(tableCache.get());
         this->mpaPeriod = MPAPeriod::generate(referencePeriod, mpaSettings);
         this->pulledMPACompressor = mpaSettings.useCompress ? generatePulledMPACompressor(reference.compressor)
                                                             : std::vector<ArrayCompressionTool>();
@@ -253,7 +251,7 @@ namespace merutilm::rff2 {
             mapperLen = longestPeriod + 1;
         }
 
-        tableCache->resize(tableLen, mapperLen, computeShaderUsed);
+        tableCache.resize<PA<Num>>(tableLen, mapperLen, computeShaderUsed);
     }
 
     template<Number Num>
@@ -355,7 +353,7 @@ namespace merutilm::rff2 {
                     (*isPartial)[level] = false;
                 } else {
                     const MPAIndexMapper flattenIndexMapper =
-                            tableCache->flattenIndexMapper.raw[currentPA[level].start];
+                            tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[currentPA[level].start];
 #ifndef NDEBUG
                     if (level >= flattenIndexMapper.generatedLevels) {
                         throw std::invalid_argument("invalid level provided");
@@ -420,8 +418,8 @@ namespace merutilm::rff2 {
     std::span<PA<Num>> MPATable<Num>::getMPAFromMapper(const MPAIndexMapper flattenIndexMapper) {
         const size_t levels = mpaPeriod->tablePeriods.size();
         size_t size = flattenIndexMapper.generatedLevels;
-        debugCheckMPAFromMapper(tableCache->mpaTable.sizeUsed, flattenIndexMapper.mapped, levels, size);
-        PA<Num> *start = tableCache->mpaTable.raw + flattenIndexMapper.mapped;
+        debugCheckMPAFromMapper(tableCache.mpaTable.sizeUsed, flattenIndexMapper.mapped, levels, size);
+        PA<Num> *start = tableCache.mpaTable.interpret<PA<Num>>() + flattenIndexMapper.mapped;
         return std::span<PA<Num>>(start, size);
     }
 
@@ -430,8 +428,8 @@ namespace merutilm::rff2 {
 
         const size_t levels = mpaPeriod->tablePeriods.size();
         size_t size = flattenIndexMapper.generatedLevels;
-        debugCheckMPAFromMapper(tableCache->mpaTable.sizeUsed, flattenIndexMapper.mapped, levels, size);
-        PA<Num> *start = tableCache->mpaTable.raw + flattenIndexMapper.mapped;
+        debugCheckMPAFromMapper(tableCache.mpaTable.sizeUsed, flattenIndexMapper.mapped, levels, size);
+        PA<Num> *start = tableCache.mpaTable.interpret<PA<Num>>() + flattenIndexMapper.mapped;
         return std::span<const PA<Num>>(start, size);
     }
 
@@ -527,13 +525,13 @@ namespace merutilm::rff2 {
 
 
         if (levels > 0) {
-            debugCheckMPAFromMapper(tableCache->mpaTable.sizeUsed, flattenTableIndex, tablePeriod.size(), levels);
-            assert(tableCache->flattenIndexMapper.sizeUsed > iteration);
-            tableCache->flattenIndexMapper.raw[iteration] = {flattenTableIndex, levels};
+            debugCheckMPAFromMapper(tableCache.mpaTable.sizeUsed, flattenTableIndex, tablePeriod.size(), levels);
+            assert(tableCache.flattenIndexMapper.sizeUsed > iteration);
+            tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[iteration] = {flattenTableIndex, levels};
             flattenTableIndex += levels;
         } else {
-            assert(tableCache->flattenIndexMapper.sizeUsed > iteration);
-            tableCache->flattenIndexMapper.raw[iteration] = {UINT64_MAX, 0};
+            assert(tableCache.flattenIndexMapper.sizeUsed > iteration);
+            tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[iteration] = {UINT64_MAX, 0};
         }
         currentPA[0].step();
         ++currentPASkips[0];
@@ -557,8 +555,8 @@ namespace merutilm::rff2 {
         if (levels > 0) {
 
             uint64_t compIndex = ArrayCompressor::compress(pulledMPACompressor, pulledTableIndex);
-            assert(tableCache->flattenIndexMapper.sizeUsed > compIndex);
-            tableCache->flattenIndexMapper.raw[compIndex] = {flattenTableIndex, levels};
+            assert(tableCache.flattenIndexMapper.sizeUsed > compIndex);
+            tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[compIndex] = {flattenTableIndex, levels};
 
             jumped = tryJumpTableGeneration(itCount, itCountLim, currentPA, generationAvailable, pulledTableIndex,
                                             flattenTableIndex, iteration);
@@ -753,11 +751,11 @@ namespace merutilm::rff2 {
                         const uint64_t flattenIndex =
                                 MPAIndexMapperUtils::iterationToFlattenTableIndex(*mpaPeriod, preservingPA->start) + i;
 #ifndef NDEBUG
-                        if (flattenIndex == UINT64_MAX || tableCache->mpaTable.raw[flattenIndex].skip != 0)
+                        if (flattenIndex == UINT64_MAX || tableCache.mpaTable.interpret<PA<Num>>()[flattenIndex].skip != 0)
                             throw vkh::exception_invalid_state("already assigned or flatten index cannot be found");
 #endif
                         preservingPA.reset();
-                        tableCache->mpaTable.raw[flattenIndex] = pa;
+                        tableCache.mpaTable.interpret<PA<Num>>()[flattenIndex] = pa;
                     }
                 }
             }
@@ -894,12 +892,12 @@ namespace merutilm::rff2 {
 #ifndef NDEBUG
     template<Number Num>
     void MPATable<Num>::checkZero(const ParallelRenderState &state) {
-        for (size_t i = 0; i < tableCache->mpaTable.sizeUsed; ++i) {
-            auto &pa = tableCache->mpaTable.raw[i];
+        for (size_t i = 0; i < tableCache.mpaTable.sizeUsed; ++i) {
+            auto &pa = tableCache.mpaTable.interpret<PA<Num>>()[i];
             if (state.interruptRequested())
                 return;
             if (pa.skip == 0) {
-                throw vkh::exception_invalid_state("zero skips detected at index " + std::to_string(i));
+                throw vkh::exception_invalid_state(std::format("zero skips detected at index {}", std::to_string(i)));
             }
         }
     }
@@ -914,7 +912,7 @@ namespace merutilm::rff2 {
         }
 
         const uint64_t comp = ArrayCompressor::compress(pulledMPACompressor, pulled);
-        return MPAIndexMapper{tableCache->flattenIndexMapper.raw[comp].mapped, levels};
+        return MPAIndexMapper{.mapped = tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[comp].mapped, .generatedLevels = levels};
     }
 
     template<Number Num>
@@ -922,9 +920,14 @@ namespace merutilm::rff2 {
         if (mpaSettings.useCompress) {
             return getCompFlattenIndexMapper(iteration);
         }
-        return tableCache->flattenIndexMapper.raw[iteration];
+        return tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[iteration];
     }
 
+
+    template<Number Num>
+    size_t MPATable<Num>::getLength() const {
+        return tableCache.mpaTable.sizeUsed;
+    }
 
     template<Number Num>
     const PA<Num> *MPATable<Num>::lookup(const uint64_t refIteration, const complex<Num> dz) const {
@@ -940,7 +943,7 @@ namespace merutilm::rff2 {
         }
 
 
-        debugCheckMPAFromMapper(tableCache->mpaTable.sizeUsed, mapper.mapped, mpaPeriod->tablePeriods.size(),
+        debugCheckMPAFromMapper(tableCache.mpaTable.sizeUsed, mapper.mapped, mpaPeriod->tablePeriods.size(),
                                 mapper.generatedLevels);
 
         const auto table = getMPAFromMapper(mapper);
@@ -983,8 +986,4 @@ namespace merutilm::rff2 {
         }
     }
 
-    template<Number Num>
-    size_t MPATable<Num>::getLength() const {
-        return tableCache ? tableCache->mpaTable.sizeUsed : 0;
-    }
 } // namespace merutilm::rff2

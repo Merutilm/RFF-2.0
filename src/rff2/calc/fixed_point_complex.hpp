@@ -30,7 +30,9 @@ namespace merutilm::rff2 {
         fixed_point_decimal real;
         fixed_point_decimal imag;
 
-        fixed_point_complex() : fixed_point_complex(0.0, 0.0, -1) {}
+        fixed_point_complex() : fixed_point_complex(-1) {}
+
+        explicit fixed_point_complex(const int64_t exp10) : fixed_point_complex(0.0, 0.0, exp10) {}
 
         explicit fixed_point_complex(const std::string &re_str, const std::string &im_str, int64_t exp10);
 
@@ -142,6 +144,10 @@ namespace merutilm::rff2 {
         [[nodiscard]] bool is_zero() const;
 
         [[nodiscard]] std::string to_string() const;
+
+        friend std::ostream &operator<<(std::ostream &out, const fixed_point_complex &obj) {
+            return out << obj.to_string();
+        }
 
         [[nodiscard]] static std::array<fixed_point_decimal, TEMPS_COUNT> create_temps(int64_t exp10);
     };
