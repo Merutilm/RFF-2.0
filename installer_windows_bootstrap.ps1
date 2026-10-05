@@ -87,7 +87,7 @@ Write-Step "Check Version"
 
 function Get-RemoteHeadSha($url)
 {
-    $line = (git ls-remote $url HEAD) | Select-Object -First 1
+    $line = (& $msys2Bash -lc "git ls-remote '$url' HEAD") | Select-Object -First 1
     if (-not $line)
     {
         throw "Failed to load remote sha: $url"
