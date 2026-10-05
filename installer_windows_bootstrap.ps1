@@ -57,18 +57,21 @@ $packages = @(
     "mingw-w64-clang-x86_64-ninja",
     "mingw-w64-clang-x86_64-gmp",
     "mingw-w64-clang-x86_64-vulkan",
+    "mingw-w64-clang-x86_64-vulkan-headers",
     "mingw-w64-clang-x86_64-glm",
-    "mingw-w64-clang-x86_64-glfw",
-    "mingw-w64-clang-x86_64-opencv"
+    "mingw-w64-clang-x86_64-glfw"
 ) -join " "
 
-& $msys2Bash -lc "pacman -S --noconfirm --needed $packages"
-& $msys2Bash -lc "git clone --branch 4.11.0 --depth 1 https://github.com/opencv/opencv.git &&
-cd opencv &&
-mkdir build &&
-cd build &&
-cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/clang64 && cmake --build . -j && cmake --install ."
+$clang64Bin = Join-Path $msys2Root "clang64\bin"
+$usrBin = Join-Path $msys2Root "usr\bin"
+$env:PATH = "$clang64Bin;$usrBin;$env:PATH"
+$env:MSYS2_ROOT = "$msys2Root"
 
+& $msys2Bash -lc "pacman -S --noconfirm --needed $packages"
+if (-not (Test-Path (Join-Path $msys2Root "clang64\include\opencv4"))) {
+    & $msys2Bash -lc 'git clone --branch 4.11.0 --depth 1 https://github.com/opencv/opencv.git'
+    & $msys2Bash -lc 'cd opencv && mkdir -p build && /clang64/bin/cmake.exe -G Ninja . -B build -DCMAKE_MAKE_PROGRAM=/clang64/bin/ninja.exe -DCMAKE_CXX_COMPILER=/clang64/bin/clang++.exe -DCMAKE_C_COMPILER=/clang64/bin/clang.exe  -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/clang64 && /clang64/bin/cmake.exe --build build -j && /clang64/bin/cmake.exe --install build'
+}
 
 
 # ---------------------------------------------------------------------------
@@ -76,10 +79,25 @@ cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/clang64 && 
 # ---------------------------------------------------------------------------
 Write-Step "set PATH"
 
-$clang64Bin = Join-Path $msys2Root "clang64\bin"
-$usrBin = Join-Path $msys2Root "usr\bin"
-$env:PATH = "$clang64Bin;$usrBin;$env:PATH"
-$env:MSYS2_ROOT = "$msys2Root"
+$machinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+
+
+
+$pathsToAdd = @(
+    $clang64Bin
+    $usrBin
+)
+
+
+
+foreach ($path in $pathsToAdd) {
+    if (($machinePath -split ';') -notcontains $path) {
+        $machinePath = "$path;$machinePath"
+    }
+}
+
+[Environment]::SetEnvironmentVariable("Path", $machinePath, "Machine")
+[Environment]::SetEnvironmentVariable("MSYS2_ROOT", $msys2Root, "Machine")
 
 # ---------------------------------------------------------------------------
 # 3-1. Check Version
