@@ -92,6 +92,8 @@ void reflection_refraction_coord(vec3 normal, ivec2 iter_coord, out ivec2 reflec
     float distortion = surface_settings.distortion_strength;
     reflection_coord = iter_coord + ivec2(reflection_offset * distortion);
     refraction_coord = iter_coord + ivec2(refraction_offset * distortion);
+    reflection_coord = clamp(reflection_coord, ivec2(0), ivec2(iteration_info_settings.extent) - ivec2(1));
+    refraction_coord = clamp(refraction_coord, ivec2(0), ivec2(iteration_info_settings.extent) - ivec2(1));
 }
 
 
