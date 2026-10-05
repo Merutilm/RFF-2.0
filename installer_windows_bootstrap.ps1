@@ -79,6 +79,7 @@ Write-Step "set PATH"
 $clang64Bin = Join-Path $msys2Root "clang64\bin"
 $usrBin = Join-Path $msys2Root "usr\bin"
 $env:PATH = "$clang64Bin;$usrBin;$env:PATH"
+$env:MSYS2_ROOT = "$msys2Root"
 
 # ---------------------------------------------------------------------------
 # 3-1. Check Version
