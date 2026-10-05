@@ -108,11 +108,11 @@ if (WIN32)
             # GMP Linker
             ${CLANG64_LIBS}/libgmp.a
             # OpenCV Linkers
-            ${CLANG64_LIBS}/libopencv_core.dll.a
-            ${CLANG64_LIBS}/libopencv_imgcodecs.dll.a
-            ${CLANG64_LIBS}/libopencv_imgproc.dll.a
-            ${CLANG64_LIBS}/libopencv_videoio.dll.a
-            ${CLANG64_LIBS}/libopencv_highgui.dll.a
+            ${CLANG64_LIBS}/libopencv_core4110.dll.a
+            ${CLANG64_LIBS}/libopencv_imgcodecs4110.dll.a
+            ${CLANG64_LIBS}/libopencv_imgproc4110.dll.a
+            ${CLANG64_LIBS}/libopencv_videoio4110.dll.a
+            ${CLANG64_LIBS}/libopencv_highgui4110.dll.a
     )
 
 
