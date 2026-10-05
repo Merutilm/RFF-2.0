@@ -8,8 +8,8 @@
 #include "../preset/shader/color/ShdColorPresets.hpp"
 #include "../preset/shader/fog/ShdFogPresets.hpp"
 #include "../preset/shader/palette/ShdPalettePresets.hpp"
-#include "../preset/shader/slope/ShdSlopePresets.hpp"
 #include "../preset/shader/stripe/ShdStripePresets.hpp"
+#include "../preset/shader/surface/ShdSurfacePresets.hpp"
 #include "vulkan_helper/base/vkh.hpp"
 
 namespace merutilm::rff2 {
@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
     const RFFShaderBinary RFFShaderBinary::DEFAULT =
             RFFShaderBinary{ShaderSettings{.palette = ShdPalettePresets::Classic1().genPalette(),
                                            .stripe = ShdStripePresets::Disabled().genStripe(),
-                                           .slope = ShdSlopePresets::Disabled().genSlope(),
+                                           .surface = ShdSurfacePresets::Disabled().genSurface(),
                                            .color = ShdColorPresets::Disabled().genColor(),
                                            .fog = ShdFogPresets::Disabled().genFog(),
                                            .bloom = ShdBloomPresets::Disabled().genBloom(),
@@ -57,12 +57,32 @@ namespace merutilm::rff2 {
         IOUtilities::readAndDecode(in, &stripe.animationSpeed);
         IOUtilities::readAndDecode(in, &stripe.iterationColoring);
 
-        auto &slope = shaderSettings.slope;
-        IOUtilities::readAndDecode(in, &slope.depth);
-        IOUtilities::readAndDecode(in, &slope.reflectionRatio);
-        IOUtilities::readAndDecode(in, &slope.opacity);
-        IOUtilities::readAndDecode(in, &slope.zenith);
-        IOUtilities::readAndDecode(in, &slope.azimuth);
+        auto &surface = shaderSettings.surface;
+        IOUtilities::readAndDecode(in, &surface.depth);
+        IOUtilities::readAndDecode(in, &surface.shadowBrightness);
+        IOUtilities::readAndDecode(in, &surface.shadowOpacity);
+        IOUtilities::readAndDecode(in, &surface.lightZenith);
+        IOUtilities::readAndDecode(in, &surface.lightAzimuth);
+        if (version <= 1) {
+            surface.lightSharpness = 64;
+            surface.lightStrength = 0;
+            surface.distortionStrength = 0.1f;
+            surface.reflectionRatio = 0.04f;
+            surface.refractionRatio = 1.5f;
+            surface.waveFrequency = 1;
+            surface.waveSpeed = 1;
+            surface.waveStrength = 0;
+        }else {
+            IOUtilities::readAndDecode(in, &surface.lightSharpness);
+            IOUtilities::readAndDecode(in, &surface.lightStrength);
+            IOUtilities::readAndDecode(in, &surface.distortionStrength);
+            IOUtilities::readAndDecode(in, &surface.reflectionRatio);
+            IOUtilities::readAndDecode(in, &surface.refractionRatio);
+            IOUtilities::readAndDecode(in, &surface.waveFrequency);
+            IOUtilities::readAndDecode(in, &surface.waveSpeed);
+            IOUtilities::readAndDecode(in, &surface.waveStrength);
+
+        }
 
         auto &color = shaderSettings.color;
         IOUtilities::readAndDecode(in, &color.gamma);
@@ -97,7 +117,6 @@ namespace merutilm::rff2 {
 
 
         return RFFShaderBinary(std::move(shaderSettings));
-
     }
 
     void RFFShaderBinary::write(std::ofstream &out) const {
@@ -120,12 +139,21 @@ namespace merutilm::rff2 {
         IOUtilities::encodeAndWrite(out, stripe.animationSpeed);
         IOUtilities::encodeAndWrite(out, stripe.iterationColoring);
 
-        const auto &slope = shaderSettings.slope;
-        IOUtilities::encodeAndWrite(out, slope.depth);
-        IOUtilities::encodeAndWrite(out, slope.reflectionRatio);
-        IOUtilities::encodeAndWrite(out, slope.opacity);
-        IOUtilities::encodeAndWrite(out, slope.zenith);
-        IOUtilities::encodeAndWrite(out, slope.azimuth);
+        const auto &surface = shaderSettings.surface;
+        IOUtilities::encodeAndWrite(out, surface.depth);
+        IOUtilities::encodeAndWrite(out, surface.shadowBrightness);
+        IOUtilities::encodeAndWrite(out, surface.shadowOpacity);
+        IOUtilities::encodeAndWrite(out, surface.lightZenith);
+        IOUtilities::encodeAndWrite(out, surface.lightAzimuth);
+        IOUtilities::encodeAndWrite(out, surface.lightSharpness);
+        IOUtilities::encodeAndWrite(out, surface.lightStrength);
+        IOUtilities::encodeAndWrite(out, surface.distortionStrength);
+        IOUtilities::encodeAndWrite(out, surface.reflectionRatio);
+        IOUtilities::encodeAndWrite(out, surface.refractionRatio);
+        IOUtilities::encodeAndWrite(out, surface.waveFrequency);
+        IOUtilities::encodeAndWrite(out, surface.waveSpeed);
+        IOUtilities::encodeAndWrite(out, surface.waveStrength);
+
 
         const auto &color = shaderSettings.color;
         IOUtilities::encodeAndWrite(out, color.gamma);

@@ -20,8 +20,6 @@ namespace merutilm::rff2 {
         static constexpr uint32_t BINDING_OUTPUT_MERGED_IMAGE = 0;
         static constexpr uint32_t SET_OUTPUT_ITERATION = 5;
         static constexpr uint32_t SET_STRIPE = 6;
-        static constexpr uint32_t SET_SLOPE = 7;
-        static constexpr uint32_t SET_COLOR = 8;
 
         explicit CPCCombine2Map(vkh::Engine &engine, vkh::WindowContext &wc)
             : ComputePipelineConfigurator(engine, wc, "vk_combine_2map.comp") {

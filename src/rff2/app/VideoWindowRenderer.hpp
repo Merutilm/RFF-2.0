@@ -8,6 +8,7 @@
 #include "../vulkan/CPCBoxBlur.hpp"
 #include "../vulkan/CPCCombine2Map.hpp"
 #include "../vulkan/CPCImageRGBA2BGR.hpp"
+#include "../vulkan/RenderGraph2.hpp"
 #include "../vulkan/RenderGraph3.hpp"
 #include "../vulkan/RenderGraph4.hpp"
 #include "../vulkan/RenderGraphDownsampleForBlur.hpp"
@@ -24,12 +25,14 @@ namespace merutilm::rff2 {
         const Settings &settings;
         vkh::RenderContext *rcStatic2 = nullptr;
         vkh::RenderContext *rcDownsample = nullptr;
+        vkh::RenderContext *rc2 = nullptr;
         vkh::RenderContext *rc3 = nullptr;
         vkh::RenderContext *rc4 = nullptr;
         vkh::RenderContext *rcPresent = nullptr;
 
         RenderGraphStatic2Image *rgStatic2 = nullptr;
         RenderGraphDownsampleForBlur *rgDownsample = nullptr;
+        RenderGraph2 *rg2 = nullptr;
         RenderGraph3 *rg3 = nullptr;
         RenderGraph4 *rg4 = nullptr;
         RenderGraphPresent *rgPresent = nullptr;
@@ -84,6 +87,8 @@ namespace merutilm::rff2 {
                     &rgDownsample, configurators, engine, wc,
                     [this] { return RendererUtils::getBlurredImageExtent(videoExtent, 1); },
                     swapchainImageContextGetter);
+            rc2 = vkh::RenderContextUtils::attachRenderContext<RenderGraph2>(
+                    &rg2, configurators, engine, wc, [this] { return videoExtent; }, swapchainImageContextGetter);
             rc3 = vkh::RenderContextUtils::attachRenderContext<RenderGraph3>(
                     &rg3, configurators, engine, wc, [this] { return videoExtent; }, swapchainImageContextGetter);
             rc4 = vkh::RenderContextUtils::attachRenderContext<RenderGraph4>(
@@ -97,7 +102,7 @@ namespace merutilm::rff2 {
 
         void beforeCmdRender() override {
             descriptorStorage->time->setTimeManually(currentSec, frameIndex);
-            descriptorStorage->slope->set(settings.shader.slope, 1, frameIndex);
+            descriptorStorage->surface->set(settings.shader.surface, 1, frameIndex);
             descriptorStorage->video->setCurrentFrame(currentFrame, frameIndex);
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, settings.shader.fog.radius,
                                         frameIndex);
@@ -128,13 +133,42 @@ namespace merutilm::rff2 {
                 computeCombine2Map->cmdRender(cbh, frameIndex, {});
 
                 // [IN] EXTERNAL
+                // [OUT] SSBO (Iteration Buffer)
                 // [OUT] PRIMARY
 
 
+                const auto &outputBuffer =
+                        computeCombine2Map->getDescriptor(CPCCombine2Map::SET_OUTPUT_ITERATION)
+                                .get<vkh::ShaderStorage>(
+                                        0, SharedDescriptorTemplate::DescIteration::BINDING_SSBO_ITERATION_MATRIX)
+                                .getBufferContext();
+
+                vkh::BarrierUtils::cmdBufferMemoryBarrier(cbh, VK_ACCESS_SHADER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
+                                                          outputBuffer.buffer, 0, outputBuffer.bufferSize,
+                                                          VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
                 vkh::BarrierUtils::cmdImageMemoryBarrier(
                         cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY), VK_ACCESS_SHADER_WRITE_BIT,
                         VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 0,
                         1, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+                // [BARRIER] SSBO (Result Iteration Buffer)
+                // [BARRIER] PRIMARY (Result Image)
+
+                vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc2, frameIndex);
+
+                // [IN] SSBO (Iteration Buffer)
+                // [IN] SECONDARY
+                // [SUBPASS OUT] PRIMARY (stripe)
+                // [SUBPASS IN] PRIMARY
+                // [SUBPASS OUT] SECONDARY (slope)
+                // [SUBPASS IN] SECONDARY
+                // [OUT] PRIMARY (color)
+
+                vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                        cbh, mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
+                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
                 // [BARRIER] PRIMARY
 
                 rgDownsample->descIndexer = RenderGraphDownsampleForBlur::DescIndexer::FOG;

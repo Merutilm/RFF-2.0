@@ -406,8 +406,8 @@ namespace merutilm::rff2 {
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::StripePreset, P>) {
                 settings.shader.stripe = preset.genStripe();
             }
-            if constexpr (std::is_base_of_v<Presets::ShaderPresets::SlopePreset, P>) {
-                settings.shader.slope = preset.genSlope();
+            if constexpr (std::is_base_of_v<Presets::ShaderPresets::SurfacePreset, P>) {
+                settings.shader.surface = preset.genSurface();
             }
             if constexpr (std::is_base_of_v<Presets::ShaderPresets::ColorPreset, P>) {
                 settings.shader.color = preset.genColor();

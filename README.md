@@ -5,12 +5,12 @@
 
 **RFF** is an abbreviation for <u>**Ridiculously Fast Fractal**</u>.
 
-- As the name suggests, This program is designed to operate as quickly as possible rather than operating stably.
+- As the name suggests, This program is prioritized the speed over stability or accuracy.
 
 ## Overview
 ### Important : This program is **NOT COMPATIBLE** with **RFF(Java)** file extensions!
 
-- A program that achieves extremely fast `Power-2 MB2 set`.
+- A program that achieves extremely fast `Power-2 MB set`.
 
 - The application is built with the `Vulkan`.
 
@@ -21,15 +21,12 @@ This value is unmodifiable.
 It is derived from `BLA` but completely replaces traditional `BLA`, achieving speedups of more than 2 times. \
 To put it simply, it skips to the `Periodic point` directly.
 
-
 - You can specify a compressor to render even extremely long period using less memory. \
 Of course, the approximation table can also be compressed using this algorithm, and jumps a <u>**HUGE**</u> process! \
 Therefore, If you are trying to render long periods (over `10,000,000` or so), You should compress the references. \
 This will be <u>**SIGNIFICANTLY**</u> faster because it <u>**SUPERJUMPS**</u> process of table creation. 
 
-
 - If it is still slow, Try using a Compute Shader! it is extremely powerful for Spiral patterns like `Seahorse Valley`, `Elephant Valley`.
-
 
 - Save amazing images using shaders!
 
@@ -191,6 +188,12 @@ the extension of `info` file is `.rfsm`.
 
 - Find the nearest Minibrot with `Locate Minibrot` in `Explore` menu.
 - More features will be added soon.
+
+## Uses of AI
+- The installer and some shaders have been rewritten based on `AI-generated code`. 
+This accounts for approximately `0.5%` of the total source code.
+
+- The new algorithm: `STMS` for `Locate Minibrot` was developed by `GPT-6 Astra`. 
 
 ## Known Issues & Problems
 - The program was compiled with -ffast-math, so sometimes results incorrect image at some location.

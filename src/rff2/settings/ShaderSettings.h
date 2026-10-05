@@ -5,15 +5,15 @@
 #include "ShdFractal3DSettings.hpp"
 #include "ShdNoiseReduction.hpp"
 #include "ShdPaletteSettings.h"
-#include "ShdSlopeSettings.h"
 #include "ShdStripeSettings.h"
+#include "ShdSurfaceSettings.h"
 
 
 namespace merutilm::rff2 {
     struct ShaderSettings {
         ShdPaletteSettings palette;
         ShdStripeSettings stripe;
-        ShdSlopeSettings slope;
+        ShdSurfaceSettings surface;
         ShdColorSettings color;
         ShdFogSettings fog;
         ShdBloomSettings bloom;

@@ -57,7 +57,7 @@ namespace merutilm::rff2 {
 
         auto &iterOut = getDescriptor(SET_OUTPUT_ITERATION);
         auto &iterOutSSBO = iterOut.get<vkh::ShaderStorage>(0, DescIteration::BINDING_SSBO_ITERATION_MATRIX);
-        iterOutSSBO.getHostObject().resizeAndClear<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, 1);
+        iterOutSSBO.getHostObject().resizeAndClear<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, width * height);
         iterOutSSBO.reloadBuffer();
         iterOutSSBO.localize(wc.getCommandPool());
 
@@ -102,7 +102,5 @@ namespace merutilm::rff2 {
         appendUniqueDescriptor(SET_OUTPUT_IMAGE, descriptors, std::move(outputManager));
         appendDescriptor<DescIteration>(SET_OUTPUT_ITERATION, descriptors);
         appendDescriptor<DescStripe>(SET_STRIPE, descriptors);
-        appendDescriptor<DescSlope>(SET_SLOPE, descriptors);
-        appendDescriptor<DescColor>(SET_COLOR, descriptors);
     }
 } // namespace merutilm::rff2

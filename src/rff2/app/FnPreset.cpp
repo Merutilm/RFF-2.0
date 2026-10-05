@@ -14,8 +14,8 @@
 #include "../preset/shader/color/ShdColorPresets.hpp"
 #include "../preset/shader/fog/ShdFogPresets.hpp"
 #include "../preset/shader/palette/ShdPalettePresets.hpp"
-#include "../preset/shader/slope/ShdSlopePresets.hpp"
 #include "../preset/shader/stripe/ShdStripePresets.hpp"
+#include "../preset/shader/surface/ShdSurfacePresets.hpp"
 
 namespace merutilm::rff2 {
 
@@ -107,14 +107,14 @@ namespace merutilm::rff2 {
                 addPresetExecutor(app, ShdStripePresets::SmoothTranslucent());
                 ImGui::TreePop();
             }
-            if (ImGui::TreeNode("Slope")) {
-                addPresetExecutor(app, ShdSlopePresets::Disabled());
-                addPresetExecutor(app, ShdSlopePresets::NoReflection());
-                addPresetExecutor(app, ShdSlopePresets::Reflective());
-                addPresetExecutor(app, ShdSlopePresets::Translucent());
-                addPresetExecutor(app, ShdSlopePresets::Reversed());
-                addPresetExecutor(app, ShdSlopePresets::Micro());
-                addPresetExecutor(app, ShdSlopePresets::Nano());
+            if (ImGui::TreeNode("Surface")) {
+                addPresetExecutor(app, ShdSurfacePresets::Disabled());
+                addPresetExecutor(app, ShdSurfacePresets::HighContrast());
+                addPresetExecutor(app, ShdSurfacePresets::Reflective());
+                addPresetExecutor(app, ShdSurfacePresets::Translucent());
+                addPresetExecutor(app, ShdSurfacePresets::Reversed());
+                addPresetExecutor(app, ShdSurfacePresets::Micro());
+                addPresetExecutor(app, ShdSurfacePresets::Nano());
                 ImGui::TreePop();
             }
             if (ImGui::TreeNode("Color")) {

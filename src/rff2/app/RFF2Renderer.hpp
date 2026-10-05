@@ -132,7 +132,7 @@ namespace merutilm::rff2 {
             const float mul = std::pow(10.0f, -zoomAnimationInfo.targetLogZoomOffset);
 
             descriptorStorage->time->setToCurrentTime(frameIndex);
-            descriptorStorage->slope->set(settings.shader.slope, mul, frameIndex);
+            descriptorStorage->surface->set(settings.shader.surface, mul, frameIndex);
 
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
                                         std::min(1.0f, settings.shader.fog.radius * mul), frameIndex);

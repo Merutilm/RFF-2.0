@@ -24,7 +24,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<SharedDescriptorManager::DescManagerIteration> iteration;
         std::unique_ptr<SharedDescriptorManager::DescManagerPalette> palette;
         std::unique_ptr<SharedDescriptorManager::DescManagerStripe> stripe;
-        std::unique_ptr<SharedDescriptorManager::DescManagerSlope> slope;
+        std::unique_ptr<SharedDescriptorManager::DescManagerFractalSurface> surface;
         std::unique_ptr<SharedDescriptorManager::DescManagerColor> color;
         std::unique_ptr<SharedDescriptorManager::DescManagerFog> fog;
         std::unique_ptr<SharedDescriptorManager::DescManagerBloom> bloom;
@@ -60,7 +60,7 @@ namespace merutilm::rff2 {
             iteration = pickAndQueue<DescIteration, DescManagerIteration>(queue);
             palette = pickAndQueue<DescPalette, DescManagerPalette>(queue);
             stripe = pickAndQueue<DescStripe, DescManagerStripe>(queue);
-            slope = pickAndQueue<DescSlope, DescManagerSlope>(queue);
+            surface = pickAndQueue<DescFractalSurface, DescManagerFractalSurface>(queue);
             color = pickAndQueue<DescColor, DescManagerColor>(queue);
             fog = pickAndQueue<DescFog, DescManagerFog>(queue);
             bloom = pickAndQueue<DescBloom, DescManagerBloom>(queue);

@@ -217,7 +217,7 @@ namespace merutilm::rff2 {
         appendDescriptor<DescCamera3D>(SET_CAMERA, descriptors);
         appendDescriptor<DescFractal3D>(SET_FRACTAL3D, descriptors);
         appendDescriptor<DescStripe>(SET_STRIPE, descriptors);
-        appendDescriptor<DescSlope>(SET_SLOPE, descriptors);
+        appendDescriptor<DescFractalSurface>(SET_FRACTAL_SURFACE, descriptors);
     }
 
     void GPC3DFractal::configureVertexBuffer(vkh::HostDataObjectManager &som) {

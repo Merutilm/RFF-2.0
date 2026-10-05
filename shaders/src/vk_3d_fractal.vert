@@ -5,13 +5,13 @@
 #define DESC_ITERATION 0
 #define DESC_PALETTE 1
 #define DESC_TIME 2
-#define DESC_SLOPE 6
+#define DESC_FRACTAL_SURFACE 6
 
 // include descriptors
 #include <desc_iteration.glsl>
 #include <desc_palette.glsl>
 #include <desc_time.glsl>
-#include <desc_slope.glsl>
+#include <desc_fractal_surface.glsl>
 
 // include utilities
 #include <utils_iteration.glsl>
@@ -76,7 +76,7 @@ void main() {
 
     gl_Position = camera_settings.proj * camera_settings.view * camera_settings.model * world_position;
 
-    float depth = -slope_settings.depth;
+    float depth = -surface_settings.depth;
     double left = ld + 2 * l + lu;
     double right = rd + 2 * r + ru;
     double top = lu + 2 * u + ru;

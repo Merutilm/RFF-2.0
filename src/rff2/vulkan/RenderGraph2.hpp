@@ -3,22 +3,19 @@
 //
 
 #pragma once
+#include "../util/RendererUtils.hpp"
 #include "GPCColor.hpp"
 #include "GPCFractalSurface.hpp"
-#include "GPCIterationPalette.hpp"
-#include "GPCStripe.hpp"
 #include "SharedImageContextIndices.hpp"
 #include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
-    class RenderGraph0 final : public vkh::RenderPassGraphGenerator {
+    class RenderGraph2 final : public vkh::RenderPassGraphGenerator {
 
         vkh::RenderPassAttachment *resultAttachment = nullptr;
         vkh::RenderPassAttachment *tempAttachment = nullptr;
 
     public:
-        GPCIterationPalette *iterationPalette = nullptr;
-        GPCStripe *stripe = nullptr;
         GPCFractalSurface *fractalSurface = nullptr;
         GPCColor *color = nullptr;
 
@@ -62,21 +59,8 @@ namespace merutilm::rff2 {
 
         void configurePipelines() override {
 
-
-            vkh::GraphicsPipelineNode *paletteNode = registerPipeline<GPCIterationPalette>(
-                    &iterationPalette, {},
-                    {tempAttachment, RendererUtils::COLOR_REF_INFO, RendererUtils::SAMPLER_READ_DEPENDENCY,
-                     RendererUtils::INPUT_REF_INFO},
-                    RendererUtils::DEFAULT_DESC_PICKER);
-
-            vkh::GraphicsPipelineNode *stripeNode =
-                    registerPipeline<GPCStripe>(&stripe, {paletteNode},
-                                                {.targetAttachment = resultAttachment, .srcReferenceInfo = RendererUtils::COLOR_REF_INFO,
-                                                 .dependency = RendererUtils::SAMPLER_READ_DEPENDENCY, .dstReferenceInfo = RendererUtils::INPUT_REF_INFO},
-                                                RendererUtils::DEFAULT_DESC_PICKER);
-
             vkh::GraphicsPipelineNode *surfaceNode =
-                    registerPipeline<GPCFractalSurface>(&fractalSurface, {stripeNode},
+                    registerPipeline<GPCFractalSurface>(&fractalSurface, {},
                                                {.targetAttachment = tempAttachment, .srcReferenceInfo = RendererUtils::COLOR_REF_INFO,
                                                 .dependency = RendererUtils::INPUT_READ_DEPENDENCY, .dstReferenceInfo = RendererUtils::INPUT_REF_INFO},
                                                RendererUtils::DEFAULT_DESC_PICKER);

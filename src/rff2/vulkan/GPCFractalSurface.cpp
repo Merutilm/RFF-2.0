@@ -2,24 +2,24 @@
 // Created by Merutilm on 2025-08-15.
 //
 
-#include "GPCSlope.hpp"
+#include "GPCFractalSurface.hpp"
 
 #include "SharedImageContextIndices.hpp"
 #include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
 
 namespace merutilm::rff2 {
-    void GPCSlope::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+    void GPCFractalSurface::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
 
         //no operation
     }
 
 
-    void GPCSlope::pipelineInitialized() {
-
+    void GPCFractalSurface::pipelineInitialized() {
+        //noop
     }
 
-    void GPCSlope::renderContextRefreshed() {
+    void GPCFractalSurface::renderContextRefreshed() {
         auto &sic = wc.getSharedImageContext();
         auto &inputDesc = getDescriptor(SET_PREV_RESULT);
         const auto &input = sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY);
@@ -32,11 +32,11 @@ namespace merutilm::rff2 {
 
     }
 
-    void GPCSlope::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
+    void GPCFractalSurface::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
         //noop
     }
 
-    void GPCSlope::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
+    void GPCFractalSurface::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
         using namespace SharedDescriptorTemplate;
         auto descManager = vkh::DescriptorManager();
         vkh::Sampler &sampler = pickFromGlobalRepository<vkh::GlobalSamplerRepo, vkh::Sampler &>(
@@ -58,12 +58,13 @@ namespace merutilm::rff2 {
                 .minLod = 0,
                 .maxLod = 0,
                 .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK,
-                .unnormalizedCoordinates = VK_TRUE
+                .unnormalizedCoordinates = VK_FALSE
             });
         descManager.appendCombinedImgSampler(BINDING_PREV_RESULT_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, std::make_unique<vkh::CombinedImageSampler>(wc.core, sampler, true));
 
         appendUniqueDescriptor(SET_PREV_RESULT, descriptors, std::move(descManager));
         appendDescriptor<DescIteration>(SET_ITERATION, descriptors);
-        appendDescriptor<DescSlope>(SET_SLOPE, descriptors);
+        appendDescriptor<DescFractalSurface>(SET_SURFACE, descriptors);
+        appendDescriptor<DescTime>(SET_TIME, descriptors);
     }
 }

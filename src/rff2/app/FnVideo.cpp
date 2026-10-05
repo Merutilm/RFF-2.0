@@ -9,8 +9,8 @@
 #include "../io/RFFStaticMapBinary.hpp"
 #include "../preset/shader/bloom/ShdBloomPresets.hpp"
 #include "../preset/shader/fog/ShdFogPresets.hpp"
-#include "../preset/shader/slope/ShdSlopePresets.hpp"
 #include "../preset/shader/stripe/ShdStripePresets.hpp"
+#include "../preset/shader/surface/ShdSurfacePresets.hpp"
 #include "../util/Utilities.h"
 #include "IOUtilities.h"
 #include "VideoWindow.hpp"
@@ -89,7 +89,7 @@ namespace merutilm::rff2 {
 
                     if (videoSettings.data.isStatic) {
                         settings.shader.stripe = ShdStripePresets::Disabled().genStripe();
-                        settings.shader.slope = ShdSlopePresets::Disabled().genSlope();
+                        settings.shader.surface = ShdSurfacePresets::Disabled().genSurface();
                         settings.shader.fog = ShdFogPresets::Disabled().genFog();
                         settings.shader.bloom = ShdBloomPresets::Disabled().genBloom();
                         app.getRequests().requestShader();

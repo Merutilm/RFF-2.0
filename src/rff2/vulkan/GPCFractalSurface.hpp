@@ -3,19 +3,20 @@
 //
 
 #pragma once
-#include "../settings/ShdSlopeSettings.h"
+#include "../settings/ShdSurfaceSettings.h"
 #include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
-    struct GPCSlope final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
+    struct GPCFractalSurface final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {
         static constexpr uint32_t SET_PREV_RESULT = 0;
         static constexpr uint32_t BINDING_PREV_RESULT_SAMPLER = 0;
 
         static constexpr uint32_t SET_ITERATION = 1;
-        static constexpr uint32_t SET_SLOPE = 2;
+        static constexpr uint32_t SET_SURFACE = 2;
+        static constexpr uint32_t SET_TIME = 3;
 
-        explicit GPCSlope(vkh::Engine &engine, vkh::WindowContext &wc) :
-            GeneralPostProcessGraphicsPipelineConfigurator(engine, wc, "vk_slope.frag") {}
+        explicit GPCFractalSurface(vkh::Engine &engine, vkh::WindowContext &wc) :
+            GeneralPostProcessGraphicsPipelineConfigurator(engine, wc, "vk_fractal_surface.frag") {}
 
         void updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) override;
 

@@ -6,15 +6,15 @@
 #include <array>
 #include <string>
 #include "../settings/FrtMPASettings.h"
-#include "../settings/FrtReferenceSyncSettings.hpp"
 #include "../settings/FrtReferenceCompSettings.h"
+#include "../settings/FrtReferenceSyncSettings.hpp"
 #include "../settings/RenderSettings.h"
 #include "../settings/ShdBloomSettings.h"
 #include "../settings/ShdColorSettings.h"
 #include "../settings/ShdFogSettings.h"
 #include "../settings/ShdPaletteSettings.h"
-#include "../settings/ShdSlopeSettings.h"
 #include "../settings/ShdStripeSettings.h"
+#include "../settings/ShdSurfaceSettings.h"
 
 
 namespace merutilm::rff2 {
@@ -91,10 +91,10 @@ namespace merutilm::rff2 {
                 virtual ShdStripeSettings genStripe() const = 0;
             };
 
-            struct SlopePreset : public ShaderPreset {
-                ~SlopePreset() override = default;
+            struct SurfacePreset : public ShaderPreset {
+                ~SurfacePreset() override = default;
 
-                virtual ShdSlopeSettings genSlope() const = 0;
+                virtual ShdSurfaceSettings genSurface() const = 0;
             };
 
             struct ColorPreset : public ShaderPreset {

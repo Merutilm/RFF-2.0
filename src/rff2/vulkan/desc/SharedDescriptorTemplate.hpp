@@ -157,30 +157,46 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         }
     };
 
-    struct DescSlope final : public vkh::DescriptorTemplate {
+    struct DescFractalSurface final : public vkh::DescriptorTemplate {
         static constexpr uint32_t ID = 5;
         static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
-        static constexpr uint32_t BINDING_UBO_SLOPE = 0;
+        static constexpr uint32_t BINDING_UBO_SURFACE = 0;
 
-        static constexpr uint32_t TARGET_SLOPE_DEPTH = 0;
-        static constexpr uint32_t TARGET_SLOPE_REFLECTION_RATIO = 1;
-        static constexpr uint32_t TARGET_SLOPE_OPACITY = 2;
-        static constexpr uint32_t TARGET_SLOPE_ZENITH = 3;
-        static constexpr uint32_t TARGET_SLOPE_AZIMUTH = 4;
+        static constexpr uint32_t TARGET_SURFACE_DEPTH = 0;
+        static constexpr uint32_t TARGET_SURFACE_SHADOW_BRIGHTNESS = 1;
+        static constexpr uint32_t TARGET_SURFACE_SHADOW_OPACITY = 2;
+        static constexpr uint32_t TARGET_SURFACE_LIGHT_ZENITH = 3;
+        static constexpr uint32_t TARGET_SURFACE_LIGHT_AZIMUTH = 4;
+        static constexpr uint32_t TARGET_SURFACE_LIGHT_SHARPNESS = 5;
+        static constexpr uint32_t TARGET_SURFACE_LIGHT_STRENGTH = 6;
+        static constexpr uint32_t TARGET_SURFACE_DISTORTION_STRENGTH = 7;
+        static constexpr uint32_t TARGET_SURFACE_REFLECTION_RATIO = 8;
+        static constexpr uint32_t TARGET_SURFACE_REFRACTION_RATIO = 9;
+        static constexpr uint32_t TARGET_SURFACE_WAVE_FREQUENCY = 10;
+        static constexpr uint32_t TARGET_SURFACE_WAVE_SPEED = 11;
+        static constexpr uint32_t TARGET_SURFACE_WAVE_STRENGTH = 12;
 
 
         void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
-            bufferManager.reserve<float>(TARGET_SLOPE_DEPTH);
-            bufferManager.reserve<float>(TARGET_SLOPE_REFLECTION_RATIO);
-            bufferManager.reserve<float>(TARGET_SLOPE_OPACITY);
-            bufferManager.reserve<float>(TARGET_SLOPE_ZENITH);
-            bufferManager.reserve<float>(TARGET_SLOPE_AZIMUTH);
+            bufferManager.reserve<float>(TARGET_SURFACE_DEPTH);
+            bufferManager.reserve<float>(TARGET_SURFACE_SHADOW_BRIGHTNESS);
+            bufferManager.reserve<float>(TARGET_SURFACE_SHADOW_OPACITY);
+            bufferManager.reserve<float>(TARGET_SURFACE_LIGHT_ZENITH);
+            bufferManager.reserve<float>(TARGET_SURFACE_LIGHT_AZIMUTH);
+            bufferManager.reserve<float>(TARGET_SURFACE_LIGHT_SHARPNESS);
+            bufferManager.reserve<float>(TARGET_SURFACE_LIGHT_STRENGTH);
+            bufferManager.reserve<float>(TARGET_SURFACE_DISTORTION_STRENGTH);
+            bufferManager.reserve<float>(TARGET_SURFACE_REFLECTION_RATIO);
+            bufferManager.reserve<float>(TARGET_SURFACE_REFRACTION_RATIO);
+            bufferManager.reserve<float>(TARGET_SURFACE_WAVE_FREQUENCY);
+            bufferManager.reserve<float>(TARGET_SURFACE_WAVE_SPEED);
+            bufferManager.reserve<float>(TARGET_SURFACE_WAVE_STRENGTH);
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager),
                                                       vkh::BufferLocalization::BIDIRECTIONAL, true);
             auto descManager = vkh::DescriptorManager();
-            descManager.appendUBO(BINDING_UBO_SLOPE, STAGE, std::move(ubo));
+            descManager.appendUBO(BINDING_UBO_SURFACE, STAGE, std::move(ubo));
             managers.emplace_back(std::move(descManager));
         }
     };

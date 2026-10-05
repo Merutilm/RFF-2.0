@@ -31,7 +31,7 @@ add_executable(
         src/rff2/preset/shader/palette/ShdPalettePresets.cpp
         src/rff2/preset/shader/fog/ShdFogPresets.cpp
         src/rff2/preset/shader/color/ShdColorPresets.cpp
-        src/rff2/preset/shader/slope/ShdSlopePresets.cpp
+        src/rff2/preset/shader/surface/ShdSurfacePresets.cpp
         src/rff2/preset/shader/stripe/ShdStripePresets.cpp
         src/rff2/preset/shader/bloom/ShdBloomPresets.cpp
         src/rff2/preset/resolution/ResolutionPresets.cpp
@@ -49,7 +49,7 @@ add_executable(
         src/rff2/vulkan/GPCIterationPalette.cpp
         src/rff2/app/RFF2.cpp
         src/rff2/vulkan/GPCStripe.cpp
-        src/rff2/vulkan/GPCSlope.cpp
+        src/rff2/vulkan/GPCFractalSurface.cpp
         src/rff2/vulkan/GPCColor.cpp
         src/rff2/vulkan/GPCFog.cpp
         src/rff2/vulkan/GPCDownsampleForBlur.cpp

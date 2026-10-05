@@ -5,12 +5,12 @@
 #define DESC_ITERATION 0
 #define DESC_TIME 2
 #define DESC_STRIPE 5
-#define DESC_SLOPE 6
+#define DESC_FRACTAL_SURFACE 6
 
 // include descriptors
 #include <desc_iteration.glsl>
 #include <desc_stripe.glsl>
-#include <desc_slope.glsl>
+#include <desc_fractal_surface.glsl>
 
 // include utilities
 #include <utils_iteration.glsl>
@@ -26,13 +26,13 @@ layout (location = 0) out vec4 color;
 
 void main() {
 
-    float azimuth_rad = radians(slope_settings.azimuth);
-    float zenith_rad = radians(slope_settings.zenith);
+    float azimuth_rad = radians(surface_settings.light_azimuth);
+    float zenith_rad = radians(surface_settings.light_zenith);
     vec3 light_direction = vec3(cos(azimuth_rad) * cos(zenith_rad), sin(azimuth_rad) * cos(zenith_rad), cos(zenith_rad));
     vec3 n = normalize(fragNormal);
     vec3 l = normalize(light_direction);
-    float diffuse = max(dot(n, l), slope_settings.reflection_ratio);
-    float opacity = slope_settings.opacity;
+    float diffuse = max(dot(n, l), surface_settings.shadow_brightness);
+    float opacity = surface_settings.shadow_opacity;
 
     double iteration = double(fragIterationHi) + double(fragIterationLo);
 

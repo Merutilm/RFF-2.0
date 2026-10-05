@@ -157,19 +157,27 @@ namespace merutilm::rff2::SharedDescriptorManager {
             stripeUBO.update();
         }
     };
-    struct DescManagerSlope : vkh::DescriptorTemplateManager {
+    struct DescManagerFractalSurface : vkh::DescriptorTemplateManager {
         using DescriptorTemplateManager::DescriptorTemplateManager;
 
-        void set(const ShdSlopeSettings &slope, const float depthMultiplier, const uint32_t frameIndex) const {
+        void set(const ShdSurfaceSettings &surface, const float depthMultiplier, const uint32_t frameIndex) const {
             using namespace SharedDescriptorTemplate;
-            auto &slopeUBO = desc.get<vkh::Uniform>(0, DescSlope::BINDING_UBO_SLOPE);
-            auto &slopeUBOHost = slopeUBO.getHostObject();
-            slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_DEPTH, slope.depth * depthMultiplier);
-            slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_REFLECTION_RATIO, slope.reflectionRatio);
-            slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_OPACITY, slope.opacity);
-            slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_ZENITH, slope.zenith);
-            slopeUBOHost.set<float>(DescSlope::TARGET_SLOPE_AZIMUTH, slope.azimuth);
-            slopeUBO.updateMF(frameIndex);
+            auto &surfaceUBO = desc.get<vkh::Uniform>(0, DescFractalSurface::BINDING_UBO_SURFACE);
+            auto &surfaceUBOHost = surfaceUBO.getHostObject();
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_DEPTH, surface.depth * depthMultiplier);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_SHADOW_BRIGHTNESS, surface.shadowBrightness);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_SHADOW_OPACITY, surface.shadowOpacity);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_LIGHT_ZENITH, surface.lightZenith);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_LIGHT_AZIMUTH, surface.lightAzimuth);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_LIGHT_SHARPNESS, surface.lightSharpness);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_LIGHT_STRENGTH, surface.lightStrength);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_DISTORTION_STRENGTH, surface.distortionStrength);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_REFLECTION_RATIO, surface.reflectionRatio);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_REFRACTION_RATIO, surface.refractionRatio);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_WAVE_FREQUENCY, surface.waveFrequency);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_WAVE_SPEED, surface.waveSpeed);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_WAVE_STRENGTH, surface.waveStrength);
+            surfaceUBO.updateMF(frameIndex);
         }
     };
     struct DescManagerColor : vkh::DescriptorTemplateManager {

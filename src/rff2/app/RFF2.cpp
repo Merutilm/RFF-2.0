@@ -19,8 +19,8 @@
 #include "../preset/shader/color/ShdColorPresets.hpp"
 #include "../preset/shader/fog/ShdFogPresets.hpp"
 #include "../preset/shader/palette/ShdPalettePresets.hpp"
-#include "../preset/shader/slope/ShdSlopePresets.hpp"
 #include "../preset/shader/stripe/ShdStripePresets.hpp"
+#include "../preset/shader/surface/ShdSurfacePresets.hpp"
 #include "../util/Utilities.h"
 #include "../vulkan/GPCDownsampleForBlur.hpp"
 #include "../vulkan/SharedImageContextIndices.hpp"
@@ -203,7 +203,7 @@ namespace merutilm::rff2 {
                            .computeShader = RndComputePresets::General().genComputeShader()},
                 .shader = {.palette = ShdPalettePresets::Classic1().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
-                           .slope = ShdSlopePresets::Disabled().genSlope(),
+                           .surface = ShdSurfacePresets::Disabled().genSurface(),
                            .color = ShdColorPresets::Disabled().genColor(),
                            .fog = ShdFogPresets::Disabled().genFog(),
                            .bloom = ShdBloomPresets::Disabled().genBloom(),
@@ -246,7 +246,7 @@ namespace merutilm::rff2 {
                            .computeShader = RndComputePresets::None().genComputeShader()},
                 .shader = {.palette = ShdPalettePresets::Classic1().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
-                           .slope = ShdSlopePresets::Disabled().genSlope(),
+                           .surface = ShdSurfacePresets::Disabled().genSurface(),
                            .color = ShdColorPresets::Disabled().genColor(),
                            .fog = ShdFogPresets::Disabled().genFog(),
                            .bloom = ShdBloomPresets::Disabled().genBloom(),
@@ -612,7 +612,7 @@ namespace merutilm::rff2 {
             if (ImGui::BeginTabItem("Shader")) {
                 FnShader::palette(*this);
                 FnShader::stripe(*this);
-                FnShader::slope(*this);
+                FnShader::surface(*this);
                 FnShader::color(*this);
                 FnShader::fog(*this);
                 FnShader::bloom(*this);

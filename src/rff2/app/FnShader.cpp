@@ -210,7 +210,7 @@ namespace merutilm::rff2 {
         }
     }
     void FnShader::stripe(RFF2 &app) {
-        
+
         if (ImGui::TreeNode("Stripe")) {
             auto &[stripeType, firstInterval, secondInterval, opacity, offset, animationSpeed, iterationColoring] =
                     app.getSettings().shader.stripe;
@@ -264,10 +264,11 @@ namespace merutilm::rff2 {
             ImGui::TreePop();
         }
     }
-    void FnShader::slope(RFF2 &app) {
+    void FnShader::surface(RFF2 &app) {
 
-        if (ImGui::TreeNode("Slope")) {
-            auto &[depth, reflectionRatio, opacity, zenith, azimuth] = app.getSettings().shader.slope;
+        if (ImGui::TreeNode("Surface")) {
+            auto &[depth, shadowBrightness, shadowOpacity, lightZenith, lightAzimuth, lightSharpness, lightStrength,
+                   distortionStrength, reflectionRatio, refractionRatio, waveFrequency, waveSpeed, waveStrength] = app.getSettings().shader.surface;
 
 
             if (ImGui::DragFloat("Depth", &depth, Constants::UI::DRAG_SPEED_SLOPE, Constants::UI::MIN_DRAG_SLOPE,
@@ -275,28 +276,50 @@ namespace merutilm::rff2 {
                                  ImGuiSliderFlags_Logarithmic)) {
                 app.getRequests().requestShader();
             }
-            Utilities::imguiHelpMarker("Sets the depth of slope.");
 
+            if (ImGui::SliderFloat("Shadow Brightness", &shadowBrightness, 0, 1)) {
+                app.getRequests().requestShader();
+            }
+            if (ImGui::SliderFloat("Shadow Opacity", &shadowOpacity, 0, 1)) {
+                app.getRequests().requestShader();
+            }
+            ImGui::Separator();
+
+            if (ImGui::SliderFloat("Light Zenith", &lightZenith, 0, 360)) {
+                app.getRequests().requestShader();
+            }
+            if (ImGui::SliderFloat("Light Azimuth", &lightAzimuth, 0, 360)) {
+                app.getRequests().requestShader();
+            }
+            if (ImGui::SliderFloat("Light Sharpness", &lightSharpness, 1, 256)) {
+                app.getRequests().requestShader();
+            }
+            if (ImGui::SliderFloat("Light Strength", &lightStrength, 0, 2)) {
+                app.getRequests().requestShader();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::SliderFloat("Distortion Strength", &distortionStrength, 0, 1)) {
+                app.getRequests().requestShader();
+            }
             if (ImGui::SliderFloat("Reflection Ratio", &reflectionRatio, 0, 1)) {
                 app.getRequests().requestShader();
             }
-            Utilities::imguiHelpMarker("Sets the reflection ratio of the slope. same as minimum brightness.");
-
-            if (ImGui::SliderFloat("Opacity", &opacity, 0, 1)) {
+            if (ImGui::SliderFloat("Refraction Ratio", &refractionRatio, 1, 3)) {
                 app.getRequests().requestShader();
             }
-            Utilities::imguiHelpMarker("Sets the opacity of the slope.");
+            ImGui::Separator();
 
-            if (ImGui::SliderFloat("Zenith", &zenith, 0, 360)) {
+            if (ImGui::SliderFloat("Wave Frequency", &waveFrequency, 0.1f, 2)) {
                 app.getRequests().requestShader();
             }
-            Utilities::imguiHelpMarker("Sets the zenith of the slope. 0 ~ 360 value is required.");
-
-            if (ImGui::SliderFloat("Azimuth", &azimuth, 0, 360)) {
+            if (ImGui::SliderFloat("Wave Speed", &waveSpeed, 0, 4)) {
                 app.getRequests().requestShader();
             }
-            Utilities::imguiHelpMarker("Sets the azimuth of the slope. 0 ~ 360 value is required.");
-
+            if (ImGui::SliderFloat("Wave Strength", &waveStrength, 0, 4)) {
+                app.getRequests().requestShader();
+            }
             ImGui::TreePop();
         }
     }
@@ -337,7 +360,7 @@ namespace merutilm::rff2 {
         if (ImGui::TreeNode("Fog")) {
             auto &[radius, opacity] = app.getSettings().shader.fog;
 
-            if (ImGui::SliderFloat("Radius", &radius, 0, 1)){
+            if (ImGui::SliderFloat("Radius", &radius, 0, 1)) {
                 radius = std::clamp(radius, 0.0f, 1.0f);
                 app.getRequests().requestShader();
             }
@@ -378,7 +401,7 @@ namespace merutilm::rff2 {
         }
     }
     void FnShader::noiseReduction(RFF2 &app) {
-        
+
         if (ImGui::TreeNode("Noise Reduction")) {
             auto &[use, similarCountThreshold, differenceThreshold] = app.getSettings().shader.noiseReduction;
 

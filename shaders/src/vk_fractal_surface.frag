@@ -3,15 +3,16 @@
 
 // define descriptors
 #define DESC_ITERATION 1
-#define DESC_SLOPE 2
-
+#define DESC_FRACTAL_SURFACE 2
+#define DESC_TIME 3
 // include descriptors
 #include <desc_iteration.glsl>
-#include <desc_slope.glsl>
+#include <desc_fractal_surface.glsl>
+#include <desc_time.glsl>
 
 // include utilities
 #include <utils_iteration.glsl>
-#include <utils_slope.glsl>
+#include <utils_fractal_surface.glsl>
 
 layout (set = 0, binding = 0) uniform sampler2D canvas;
 
@@ -21,11 +22,9 @@ layout (location = 1) in vec2 fragTexcoord;
 
 layout (location = 0) out vec4 color;
 
+
 void main() {
 
     ivec2 iter_coord = ivec2(gl_FragCoord.xy);
-    float shade = slope_get_shade(iter_coord);
-
-
-    color = vec4(texelFetch(canvas, ivec2(iter_coord), 0).rgb * shade, 1);
+    color = vec4(surface_get_shade(canvas, iter_coord), 1);
 }

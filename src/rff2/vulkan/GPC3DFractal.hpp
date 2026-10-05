@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
         static constexpr uint32_t SET_CAMERA = 3;
         static constexpr uint32_t SET_FRACTAL3D = 4;
         static constexpr uint32_t SET_STRIPE = 5;
-        static constexpr uint32_t SET_SLOPE = 6;
+        static constexpr uint32_t SET_FRACTAL_SURFACE = 6;
 
         static constexpr uint32_t TARGET_VBO = 0;
         static constexpr uint32_t TARGET_IBO = 0;
