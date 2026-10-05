@@ -30,10 +30,19 @@ Write-Step "MSYS2 Installation"
 $msys2Root = "C:\msys64"
 $msys2Bash = Join-Path $msys2Root "usr\bin\bash.exe"
 
+$git = "C:\Program Files\Git\cmd"
+if (-not (Test-Path $git))
+{
+    winget install --id Git.Git -e
+    $env:PATH = "$git;$env:PATH"
+}
+git --version
+
 if (-not (Test-Path $msys2Bash))
 {
     winget install -e --id MSYS2.MSYS2 --accept-package-agreements --accept-source-agreements
 }
+
 
 if (-not (Test-Path $msys2Bash))
 {
