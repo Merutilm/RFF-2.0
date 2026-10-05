@@ -28,7 +28,7 @@ if (-not (Get-Command winget -ErrorAction SilentlyContinue))
 Write-Step "MSYS2 Installation"
 
 $msys2Root = "C:\msys64"
-$msys2Bash = Join-Path $msys2Root "clang64.exe"
+$msys2Bash = Join-Path $msys2Root "usr\bin\bash.exe"
 
 if (-not (Test-Path $msys2Bash))
 {
