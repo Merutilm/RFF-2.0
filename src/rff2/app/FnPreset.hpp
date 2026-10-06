@@ -9,15 +9,31 @@ namespace merutilm::rff2 {
     
     class RFF2;
     struct FnPreset {
+
+        constexpr static uint32_t COLS = 2;
         
         static void calculation(RFF2& app);
         static void render(RFF2& app);
         static void resolution(RFF2& app);
         static void shader(RFF2& app);
+
+        static void nextPresetExecutor(const char *txt) {
+            endPresetExecutor();
+            beginPresetExecutor(txt);
+        }
+
+        static void beginPresetExecutor(const char *txt) {
+            ImGui::SeparatorText(txt);
+            ImGui::BeginTable(txt, COLS);
+        }
+        static void endPresetExecutor() {
+            ImGui::EndTable();
+        }
         
         template<typename P> requires std::is_base_of_v<Preset, P>
-        static void addPresetExecutor(RFF2&app, P preset) {
-            const std::string name = preset.getName();
+        static void addPresetExecutor(RFF2 &app, P preset) {
+            const std::string name = preset.getName() + "##" + typeid(P).name();
+            ImGui::TableNextColumn();
             if (ImGui::Button(name.data(), ImVec2(-FLT_MIN, 0))) {
                 app.applyPreset(preset);
             }
