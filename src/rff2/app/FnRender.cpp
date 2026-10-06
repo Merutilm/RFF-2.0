@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
         static std::array resolutionTemp{width, height};
         static float clarityMultiplierTemp = clarityMultiplier;
         static bool valueChanged = false;
-        ImGui::SeparatorText("Resolution Properties");
+        Utilities::imguiBeginSettings("Resolution Properties");
 
         if (ImGui::InputScalarN("Window size", ImGuiDataType_U32, resolutionTemp.data(), 2)) {
             resolutionTemp[0] = std::max(resolutionTemp[0], Constants::Render::MIN_WINDOW_WIDTH);
@@ -56,11 +56,12 @@ namespace merutilm::rff2 {
             valueChanged = false;
         } else if (!valueChanged)
             ImGui::EndDisabled();
+        Utilities::imguiEndSettings();
     }
 
     void FnRender::setRenderProperties(RFF2 &app) {
 
-        ImGui::SeparatorText("Set Render Properties");
+        Utilities::imguiBeginSettings("Set Render Properties");
         float &fps = app.getSettings().render.display.fps;
 
         constexpr uint32_t minThread = 1;
@@ -83,6 +84,7 @@ namespace merutilm::rff2 {
             // noop
         }
         Utilities::imguiHelpMarker("Sets the number of threads while rendering an image.");
+        Utilities::imguiEndSettings();
     }
 
     void FnRender::setComputeShader(RFF2 &app) {
@@ -90,7 +92,7 @@ namespace merutilm::rff2 {
         if (!app.engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceFeatures().shaderInt64)
             return;
 
-        ImGui::SeparatorText("Compute Shader");
+        Utilities::imguiBeginSettings("Compute Shader");
 
         auto &[use, preferredBatchDuration, allowedGlitchPixelCount, completelyIgnoreMpa, automaticAcceptMpaBatches,
                interpolateIsolated] = app.getSettings().render.computeShader;
@@ -133,6 +135,7 @@ namespace merutilm::rff2 {
 
             ImGui::Checkbox("Interpolate Isolated Pixel", &interpolateIsolated);
         }
+        Utilities::imguiEndSettings();
     }
 
 

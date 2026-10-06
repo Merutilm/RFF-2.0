@@ -12,7 +12,7 @@ namespace merutilm::rff2 {
 
     void FnShader::palette(RFF2 &app) {
 
-        ImGui::SeparatorText("Palette");
+        Utilities::imguiBeginSettings("Palette");
 
         auto &[colors, iterationColoring, singleIterationColoring, iterationInterval, offsetRatio, animationSpeed] =
                 app.getSettings().shader.palette;
@@ -25,8 +25,7 @@ namespace merutilm::rff2 {
         }
         Utilities::imguiHelpMarker("Required iterations for the palette to cycle once");
 
-        ImGui::Indent();
-        ImGui::SeparatorText("Colors");
+        Utilities::imguiBeginSettings("Colors");
         static int selected = -1;
         static int selectRequest = -1;
         static int page = 0;
@@ -136,7 +135,8 @@ namespace merutilm::rff2 {
             glm::vec4 &col = colors[i];
 
             std::array colRaw = {col.r, col.g, col.b};
-            if (ImGui::ColorEdit3("##color", colRaw.data(), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
+            if (ImGui::ColorEdit3("##color", colRaw.data(),
+                                  ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
 
                 col = {colRaw[0], colRaw[1], colRaw[2], 1};
                 app.getRequests().requestShader();
@@ -164,7 +164,7 @@ namespace merutilm::rff2 {
             ImGui::PopID();
         }
         ImGui::EndChild();
-        ImGui::Unindent();
+        Utilities::imguiEndSettings();
 
         if (ImGui::Button("Load KFR Palette", ImVec2(-FLT_MIN, 0))) {
             const auto loaded = KFRColorLoader::loadPaletteSettings();
@@ -184,7 +184,7 @@ namespace merutilm::rff2 {
         Utilities::imguiHelpMarker("Start offset ratio of cycling palette.");
 
 
-        if (ImGui::DragFloat("Animation Speed##43125", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
+        if (ImGui::DragFloat("Animation Speed", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
                              Constants::UI::UNLIMITED_MIN_DRAG_ANIM, Constants::UI::UNLIMITED_MAX_DRAG,
                              Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
             app.getRequests().requestShader();
@@ -192,17 +192,18 @@ namespace merutilm::rff2 {
         Utilities::imguiHelpMarker("Color Animation Speed, The colors' offset(iterations) per second.");
 
 
-        if (Utilities::imguiDropdown("Iteration Coloring##2623", &iterationColoring)) {
+        if (Utilities::imguiDropdown("Iteration Coloring", &iterationColoring)) {
             app.getRequests().requestShader();
         }
 
         if (Utilities::imguiDropdown("Single Iteration Coloring", &singleIterationColoring)) {
             app.getRequests().requestShader();
         }
+        Utilities::imguiEndSettings();
     }
     void FnShader::stripe(RFF2 &app) {
 
-        ImGui::SeparatorText("Stripe");
+        Utilities::imguiBeginSettings("Stripe");
         auto &[stripeType, firstInterval, secondInterval, opacity, offset, animationSpeed, iterationColoring] =
                 app.getSettings().shader.stripe;
 
@@ -241,19 +242,20 @@ namespace merutilm::rff2 {
         }
         Utilities::imguiHelpMarker("Start offset iteration of stripes.");
 
-        if (ImGui::DragFloat("Animation Speed##90582", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
+        if (ImGui::DragFloat("Animation Speed", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
                              Constants::UI::UNLIMITED_MIN_DRAG_ANIM, Constants::UI::UNLIMITED_MAX_DRAG,
                              Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
             app.getRequests().requestShader();
         }
         Utilities::imguiHelpMarker("Sets the stripe animation speed.");
-        if (Utilities::imguiDropdown("Iteration Coloring##4214", &iterationColoring)) {
+        if (Utilities::imguiDropdown("Iteration Coloring", &iterationColoring)) {
             app.getRequests().requestShader();
         }
+        Utilities::imguiEndSettings();
     }
     void FnShader::surface(RFF2 &app) {
 
-        ImGui::SeparatorText("Surface");
+        Utilities::imguiBeginSettings("Surface");
         auto &[depth, shadowBrightness, shadowOpacity, lightZenith, lightAzimuth, lightSharpness, lightStrength,
                distortionStrength, reflectionRatio, refractionRatio, waveFrequency, waveOffset, waveSpeed,
                waveStrength] = app.getSettings().shader.surface;
@@ -312,10 +314,11 @@ namespace merutilm::rff2 {
         if (ImGui::SliderFloat("Wave Strength", &waveStrength, 0, 4)) {
             app.getRequests().requestShader();
         }
+        Utilities::imguiEndSettings();
     }
     void FnShader::color(RFF2 &app) {
 
-        ImGui::SeparatorText("Color");
+        Utilities::imguiBeginSettings("Color");
         auto &[gamma, exposure, hue, saturation, brightness, contrast] = app.getSettings().shader.color;
 
         if (ImGui::SliderFloat("Gamma", &gamma, 0.5f, 1.5f)) {
@@ -342,13 +345,14 @@ namespace merutilm::rff2 {
             app.getRequests().requestShader();
         }
         Utilities::imguiHelpMarker("Sets the contrast.");
+        Utilities::imguiEndSettings();
     }
     void FnShader::fog(RFF2 &app) {
 
-        ImGui::SeparatorText("Fog");
+        Utilities::imguiBeginSettings("Fog");
         auto &[radius, opacity] = app.getSettings().shader.fog;
 
-        if (ImGui::SliderFloat("Radius##3768", &radius, 0, 1)) {
+        if (ImGui::SliderFloat("Radius", &radius, 0, 1)) {
             radius = std::clamp(radius, 0.0f, 1.0f);
             app.getRequests().requestShader();
         }
@@ -357,11 +361,12 @@ namespace merutilm::rff2 {
             app.getRequests().requestShader();
         }
         Utilities::imguiHelpMarker("Sets the opacity of the fog.");
+        Utilities::imguiEndSettings();
     }
 
     void FnShader::bloom(RFF2 &app) {
 
-        ImGui::SeparatorText("Bloom");
+        Utilities::imguiBeginSettings("Bloom");
         auto &[threshold, radius, softness, intensity] = app.getSettings().shader.bloom;
 
         if (ImGui::SliderFloat("Threshold", &threshold, 0, 1)) {
@@ -369,7 +374,7 @@ namespace merutilm::rff2 {
             app.getRequests().requestShader();
         }
         Utilities::imguiHelpMarker("Sets the threshold of the bloom.");
-        if (ImGui::SliderFloat("Radius##3762", &radius, 0, 1)) {
+        if (ImGui::SliderFloat("Radius", &radius, 0, 1)) {
             radius = std::clamp(radius, 0.0f, 1.0f);
             app.getRequests().requestShader();
         }
@@ -382,10 +387,11 @@ namespace merutilm::rff2 {
             app.getRequests().requestShader();
         }
         Utilities::imguiHelpMarker("Sets the intensity of the bloom.");
+        Utilities::imguiEndSettings();
     }
     void FnShader::noiseReduction(RFF2 &app) {
 
-        ImGui::SeparatorText("Noise Reduction");
+        Utilities::imguiBeginSettings("Noise Reduction");
         auto &[use, similarCountThreshold, differenceThreshold] = app.getSettings().shader.noiseReduction;
 
         if (ImGui::Checkbox("Use", &use)) {
@@ -401,11 +407,12 @@ namespace merutilm::rff2 {
         if (ImGui::SliderFloat("Difference Threshold", &differenceThreshold, 0, 1)) {
             app.getRequests().requestShader();
         }
+        Utilities::imguiEndSettings();
     }
 
     void FnShader::fractal3D(RFF2 &app) {
 
-        ImGui::SeparatorText("3D  (Wow epic)");
+        Utilities::imguiBeginSettings("3D  (Wow epic)");
         auto &[use, altitude, rotation, distance, baseIteration, divisor] = app.getSettings().shader.fractal3D;
 
         ImGui::Checkbox("Use", &use);
@@ -436,6 +443,7 @@ namespace merutilm::rff2 {
             divisor = std::max(divisor, FLT_MIN);
             app.getRequests().requestShader();
         }
+        Utilities::imguiEndSettings();
     }
 
 

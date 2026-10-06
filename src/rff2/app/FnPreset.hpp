@@ -23,16 +23,17 @@ namespace merutilm::rff2 {
         }
 
         static void beginPresetExecutor(const char *txt) {
-            ImGui::SeparatorText(txt);
+            Utilities::imguiBeginSettings(txt);
             ImGui::BeginTable(txt, COLS);
         }
         static void endPresetExecutor() {
             ImGui::EndTable();
+            Utilities::imguiEndSettings();
         }
         
         template<typename P> requires std::is_base_of_v<Preset, P>
         static void addPresetExecutor(RFF2 &app, P preset) {
-            const std::string name = preset.getName() + "##" + typeid(P).name();
+            const std::string name = preset.getName();
             ImGui::TableNextColumn();
             if (ImGui::Button(name.data(), ImVec2(-FLT_MIN, 0))) {
                 app.applyPreset(preset);

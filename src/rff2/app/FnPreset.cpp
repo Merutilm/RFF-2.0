@@ -21,8 +21,7 @@ namespace merutilm::rff2 {
 
 
     void FnPreset::calculation(RFF2 &app) {
-        ImGui::SeparatorText("Calculation");
-        ImGui::Indent();
+        Utilities::imguiBeginSettings("Calculation");
         beginPresetExecutor("Approximation");
         addPresetExecutor(app, ClcApproxPresets::UltraFast());
         addPresetExecutor(app, ClcApproxPresets::Fast());
@@ -45,11 +44,10 @@ namespace merutilm::rff2 {
         addPresetExecutor(app, ClcSyncPresets::Best());
         endPresetExecutor();
 
-        ImGui::Unindent();
+        Utilities::imguiEndSettings();
     }
     void FnPreset::render(RFF2 &app) {
-        ImGui::SeparatorText("Render");
-        ImGui::Indent();
+        Utilities::imguiBeginSettings("Render");
         beginPresetExecutor("Display");
         addPresetExecutor(app, RndDisplayPresets::Potato());
         addPresetExecutor(app, RndDisplayPresets::Low());
@@ -65,22 +63,19 @@ namespace merutilm::rff2 {
         addPresetExecutor(app, RndComputePresets::DeepZoomSpirals());
         endPresetExecutor();
 
-        ImGui::Unindent();
+        Utilities::imguiEndSettings();
     }
     void FnPreset::resolution(RFF2 &app) {
         beginPresetExecutor("Resolution");
-        ImGui::Indent();
         addPresetExecutor(app, ResolutionPresets::L1());
         addPresetExecutor(app, ResolutionPresets::L2());
         addPresetExecutor(app, ResolutionPresets::L3());
         addPresetExecutor(app, ResolutionPresets::L4());
         addPresetExecutor(app, ResolutionPresets::L5());
         endPresetExecutor();
-        ImGui::Unindent();
     }
     void FnPreset::shader(RFF2 &app) {
-        ImGui::SeparatorText("Shader");
-        ImGui::Indent();
+        Utilities::imguiBeginSettings("Shader");
         beginPresetExecutor("Palette");
         addPresetExecutor(app, ShdPalettePresets::Classic1());
         addPresetExecutor(app, ShdPalettePresets::Classic2());
@@ -130,6 +125,6 @@ namespace merutilm::rff2 {
         addPresetExecutor(app, ShdBloomPresets::Normal());
         addPresetExecutor(app, ShdBloomPresets::Strong());
         endPresetExecutor();
-        ImGui::Unindent();
+        Utilities::imguiEndSettings();
     }
 } // namespace merutilm::rff2

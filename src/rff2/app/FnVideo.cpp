@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
 
     void FnVideo::dataSettings(RFF2 &app) {
 
-        ImGui::SeparatorText("Data Settings");
+        Utilities::imguiBeginSettings("Data Settings");
         auto &[defaultZoomIncrement, isStatic] = app.getSettings().video.data;
 
         if (ImGui::InputDouble("Default Zoom Increment", &defaultZoomIncrement)) {
@@ -32,10 +32,11 @@ namespace merutilm::rff2 {
         ImGui::Checkbox("Static data", &isStatic);
         Utilities::imguiHelpMarker("Generates using .png image instead of data file. all shaders will be disabled "
                                    "when trying to generate video data.");
+        Utilities::imguiEndSettings();
     }
     void FnVideo::animationSettings(RFF2 &app) {
 
-        ImGui::SeparatorText("Animation Settings");
+        Utilities::imguiBeginSettings("Animation Settings");
         auto &[overZoom, showText, mps] = app.getSettings().video.animation;
         ImGui::InputFloat("Over Zoom", &overZoom);
         Utilities::imguiHelpMarker("Zoom the final video data.");
@@ -45,15 +46,17 @@ namespace merutilm::rff2 {
 
         ImGui::InputFloat("Zoom Speed", &mps);
         Utilities::imguiHelpMarker("Sets the zoom speed, Number of Map(.rfm) data used per second in video");
+        Utilities::imguiEndSettings();
     }
     void FnVideo::exportSettings(RFF2 &app) {
 
-        ImGui::SeparatorText("Export Settings");
+        Utilities::imguiBeginSettings("Export Settings");
         auto &[fps, bitrate] = app.getSettings().video.exportation;
         ImGui::InputFloat("FPS", &fps);
         Utilities::imguiHelpMarker("Set the fps of the video to export.");
         ImGui::InputScalar("Bitrate", ImGuiDataType_U16, &bitrate);
         Utilities::imguiHelpMarker("Sets the bitrate of the video to export.");
+        Utilities::imguiEndSettings();
     }
     void FnVideo::generateVidKeyframes(RFF2 &app) {
         if (!app.getKeyframeProgressInfo().keyframeGenerating) {

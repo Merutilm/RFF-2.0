@@ -31,7 +31,7 @@ namespace merutilm::rff2 {
         static double logZoomCache = logZoom;
         static bool locationChanged = false;
 
-        ImGui::SeparatorText("Reference");
+        Utilities::imguiBeginSettings("Reference");
 
         ImGui::InputText("Real", &realCache);
         if (ImGui::IsItemDeactivatedAfterEdit()) {
@@ -143,10 +143,11 @@ namespace merutilm::rff2 {
         ImGui::Checkbox("Parallel reference calculation", &frt.reference.useParallelRefCalculation);
         Utilities::imguiHelpMarker("Sets whether or not the reference calculation should be parallel.\n"
                                    "It is effective for deep-zoom.");
+        Utilities::imguiEndSettings();
     }
     void FnFractal::iterations(RFF2 &app) {
 
-        ImGui::SeparatorText("Iterations");
+        Utilities::imguiBeginSettings("Iterations");
 
         auto &calc = app.getSettings().fractal;
         ImGui::InputScalar("Max Iteration", ImGuiDataType_U64, &calc.perturb.maxIteration);
@@ -170,10 +171,11 @@ namespace merutilm::rff2 {
 
         Utilities::imguiDropdown("Decimalize Iteration", &calc.perturb.decimalizeIterationMethod);
         Utilities::imguiHelpMarker("Sets the decimalization method of iterations.");
+        Utilities::imguiEndSettings();
     }
     void FnFractal::sa(RFF2 &app) {
 
-        ImGui::SeparatorText("Series Approximation");
+        Utilities::imguiBeginSettings("Series Approximation");
 
         auto &[use, appliedTermsCount, validatedTermsCount, epsilonPower] = app.getSettings().fractal.sa;
         ImGui::Checkbox("Use", &use);
@@ -194,7 +196,7 @@ namespace merutilm::rff2 {
         Utilities::imguiHelpMarker(
                 "Set the number of terms for the escape condition when generating the series approximation.");
 
-        ImGui::InputFloat("Precision Level##3125", &epsilonPower);
+        ImGui::InputFloat("Precision Level", &epsilonPower);
         Utilities::imguiHelpMarker("Useful for glitch reduction. if this value is small,\n"
                                    "The fractal will be rendered glitch-less but slow,\n"
                                    "and is large, It will be fast, but maybe shown visible glitches.");
@@ -202,10 +204,11 @@ namespace merutilm::rff2 {
 
         if (!use)
             ImGui::EndDisabled();
+        Utilities::imguiEndSettings();
     }
     void FnFractal::mpa(RFF2 &app) {
 
-        ImGui::SeparatorText("MP-Approximation");
+        Utilities::imguiBeginSettings("MP-Approximation");
         auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod, useCompress,
                useParallelization] = app.getSettings().fractal.mpa;
 
@@ -223,7 +226,7 @@ namespace merutilm::rff2 {
                 "them,\n"
                 "So the multiplier between the two periods may in the worst case be the square of this.");
 
-        if (ImGui::InputFloat("Precision Level##75249", &epsilonPower)) {
+        if (ImGui::InputFloat("Precision Level", &epsilonPower)) {
             epsilonPower = std::clamp(epsilonPower, -15.f, -1.f);
         }
         Utilities::imguiHelpMarker(
@@ -244,6 +247,7 @@ namespace merutilm::rff2 {
 
         ImGui::Checkbox("Parallelize during generation", &useParallelization);
         Utilities::imguiHelpMarker("Use parallelization during generation if possible.");
+        Utilities::imguiEndSettings();
     }
 
     void FnFractal::automaticIterations(RFF2 &app) {

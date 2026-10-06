@@ -99,6 +99,21 @@ namespace merutilm::rff2::Utilities {
         return result;
     }
 
+    static void imguiBeginSettings(const char* txt) {
+        ImGui::SeparatorText(txt);
+        ImGui::Indent();
+        ImGui::PushID(txt);
+    }
+    static void imguiEndSettings() {
+        ImGui::PopID();
+        ImGui::Unindent();
+    }
+
+    static void imguiNextSettings(const char* txt) {
+        imguiEndSettings();
+        imguiBeginSettings(txt);
+    }
+
     static void imguiHelpMarker(const char *desc) {
         ImGui::SameLine();
         ImGui::TextDisabled("(?)");
