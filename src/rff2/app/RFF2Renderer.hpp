@@ -129,7 +129,7 @@ namespace merutilm::rff2 {
 
         void beforeCmdRender() override {
             RendererImGui::beforeCmdRender();
-            const float mul = std::pow(10.0f, -zoomAnimationInfo.targetLogZoomOffset);
+            const auto mul = static_cast<float>(std::pow(10.0, -zoomAnimationInfo.targetLogZoomOffset));
 
             descriptorStorage->time->setToCurrentTime(frameIndex);
             descriptorStorage->surface->set(settings.shader.surface, mul, frameIndex);
