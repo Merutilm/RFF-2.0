@@ -824,6 +824,8 @@ namespace merutilm::rff2 {
                 }
             } catch (allocation_cancelled &) {
                 vkh::logger::log("Memory allocation cancelled by user");
+            } catch (allocation_failed &) {
+                vkh::logger::log("Memory allocation failed");
             }
 
             afterComputeFinally(success);
