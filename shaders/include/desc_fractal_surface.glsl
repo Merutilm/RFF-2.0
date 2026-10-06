@@ -13,6 +13,7 @@ layout (set = DESC_FRACTAL_SURFACE, binding = 0) uniform FractalSurfaceUBO {
     float reflection_ratio;
     float refraction_ratio;
     float wave_frequency;
+    vec2 wave_offset;
     float wave_speed;
     float wave_strength;
 } surface_settings;

@@ -268,7 +268,7 @@ namespace merutilm::rff2 {
 
         if (ImGui::TreeNode("Surface")) {
             auto &[depth, shadowBrightness, shadowOpacity, lightZenith, lightAzimuth, lightSharpness, lightStrength,
-                   distortionStrength, reflectionRatio, refractionRatio, waveFrequency, waveSpeed, waveStrength] = app.getSettings().shader.surface;
+                   distortionStrength, reflectionRatio, refractionRatio, waveFrequency, waveOffset, waveSpeed, waveStrength] = app.getSettings().shader.surface;
 
 
             if (ImGui::DragFloat("Depth", &depth, Constants::UI::DRAG_SPEED_SLOPE, Constants::UI::MIN_DRAG_SLOPE,
@@ -312,6 +312,11 @@ namespace merutilm::rff2 {
             ImGui::Separator();
 
             if (ImGui::SliderFloat("Wave Frequency", &waveFrequency, 0.1f, 2)) {
+                app.getRequests().requestShader();
+            }
+            std::array wo = {waveOffset.x, waveOffset.y};
+            if (ImGui::SliderFloat2("Wave Offset", wo.data(), 0, 1)) {
+                waveOffset = {wo[0], wo[1]};
                 app.getRequests().requestShader();
             }
             if (ImGui::SliderFloat("Wave Speed", &waveSpeed, 0, 4)) {

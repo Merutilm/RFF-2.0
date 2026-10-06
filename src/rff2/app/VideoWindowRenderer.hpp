@@ -102,7 +102,7 @@ namespace merutilm::rff2 {
 
         void beforeCmdRender() override {
             descriptorStorage->time->setTimeManually(currentSec, frameIndex);
-            descriptorStorage->surface->set(settings.shader.surface, 1, frameIndex);
+            descriptorStorage->surface->set(settings.shader.surface, 1, {}, frameIndex);
             descriptorStorage->video->setCurrentFrame(currentFrame, frameIndex);
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG, settings.shader.fog.radius,
                                         frameIndex);

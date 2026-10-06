@@ -174,8 +174,9 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_SURFACE_REFLECTION_RATIO = 8;
         static constexpr uint32_t TARGET_SURFACE_REFRACTION_RATIO = 9;
         static constexpr uint32_t TARGET_SURFACE_WAVE_FREQUENCY = 10;
-        static constexpr uint32_t TARGET_SURFACE_WAVE_SPEED = 11;
-        static constexpr uint32_t TARGET_SURFACE_WAVE_STRENGTH = 12;
+        static constexpr uint32_t TARGET_SURFACE_WAVE_OFFSET = 11;
+        static constexpr uint32_t TARGET_SURFACE_WAVE_SPEED = 12;
+        static constexpr uint32_t TARGET_SURFACE_WAVE_STRENGTH = 13;
 
 
         void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
@@ -191,6 +192,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<float>(TARGET_SURFACE_REFLECTION_RATIO);
             bufferManager.reserve<float>(TARGET_SURFACE_REFRACTION_RATIO);
             bufferManager.reserve<float>(TARGET_SURFACE_WAVE_FREQUENCY);
+            bufferManager.reserve<glm::vec2>(TARGET_SURFACE_WAVE_OFFSET, 8);
             bufferManager.reserve<float>(TARGET_SURFACE_WAVE_SPEED);
             bufferManager.reserve<float>(TARGET_SURFACE_WAVE_STRENGTH);
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager),

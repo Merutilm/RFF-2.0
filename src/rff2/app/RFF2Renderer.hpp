@@ -129,15 +129,16 @@ namespace merutilm::rff2 {
 
         void beforeCmdRender() override {
             RendererImGui::beforeCmdRender();
-            const auto mul = static_cast<float>(std::pow(10.0, -zoomAnimationInfo.targetLogZoomOffset));
+            const auto mouseAdditionalZoom = static_cast<float>(std::pow(10.0, -zoomAnimationInfo.targetLogZoomOffset));
+            const auto mouseOffset = (zoomAnimationInfo.targetMouseZoomOffset - glm::vec2{0.5, 0.5}) + zoomAnimationInfo.targetMouseDragOffset;
 
             descriptorStorage->time->setToCurrentTime(frameIndex);
-            descriptorStorage->surface->set(settings.shader.surface, mul, frameIndex);
+            descriptorStorage->surface->set(settings.shader.surface, mouseAdditionalZoom, mouseOffset, frameIndex);
 
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_FOG,
-                                        std::min(1.0f, settings.shader.fog.radius * mul), frameIndex);
+                                        std::min(1.0f, settings.shader.fog.radius * mouseAdditionalZoom), frameIndex);
             computeBoxBlur->setBlurInfo(CPCBoxBlur::DESC_INDEX_BLUR_TARGET_BLOOM,
-                                        std::min(1.0f, settings.shader.bloom.radius * mul), frameIndex);
+                                        std::min(1.0f, settings.shader.bloom.radius * mouseAdditionalZoom), frameIndex);
         }
 
 

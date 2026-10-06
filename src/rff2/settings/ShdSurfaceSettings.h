@@ -1,5 +1,5 @@
 #pragma once
-
+#include <glm/glm.hpp>
 namespace merutilm::rff2 {
     struct ShdSurfaceSettings {
         float depth;
@@ -16,6 +16,7 @@ namespace merutilm::rff2 {
         float refractionRatio;
 
         float waveFrequency;
+        glm::vec2 waveOffset;
         float waveSpeed;
         float waveStrength;
     };

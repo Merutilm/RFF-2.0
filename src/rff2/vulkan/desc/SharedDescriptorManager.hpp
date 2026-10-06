@@ -160,21 +160,22 @@ namespace merutilm::rff2::SharedDescriptorManager {
     struct DescManagerFractalSurface : vkh::DescriptorTemplateManager {
         using DescriptorTemplateManager::DescriptorTemplateManager;
 
-        void set(const ShdSurfaceSettings &surface, const float dcMultiplier, const uint32_t frameIndex) const {
+        void set(const ShdSurfaceSettings &surface, const float mouseAdditionalZoom, const glm::vec2 mouseZoomOffset, const uint32_t frameIndex) const {
             using namespace SharedDescriptorTemplate;
             auto &surfaceUBO = desc.get<vkh::Uniform>(0, DescFractalSurface::BINDING_UBO_SURFACE);
             auto &surfaceUBOHost = surfaceUBO.getHostObject();
-            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_DEPTH, surface.depth * dcMultiplier);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_DEPTH, surface.depth * mouseAdditionalZoom);
             surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_SHADOW_BRIGHTNESS, surface.shadowBrightness);
             surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_SHADOW_OPACITY, surface.shadowOpacity);
             surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_LIGHT_ZENITH, surface.lightZenith);
             surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_LIGHT_AZIMUTH, surface.lightAzimuth);
             surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_LIGHT_SHARPNESS, surface.lightSharpness);
             surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_LIGHT_STRENGTH, surface.lightStrength);
-            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_DISTORTION_STRENGTH, surface.distortionStrength * dcMultiplier);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_DISTORTION_STRENGTH, surface.distortionStrength * mouseAdditionalZoom);
             surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_REFLECTION_RATIO, surface.reflectionRatio);
             surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_REFRACTION_RATIO, surface.refractionRatio);
-            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_WAVE_FREQUENCY, surface.waveFrequency);
+            surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_WAVE_FREQUENCY, surface.waveFrequency / mouseAdditionalZoom);
+            surfaceUBOHost.set<glm::vec2>(DescFractalSurface::TARGET_SURFACE_WAVE_OFFSET, surface.waveOffset * mouseAdditionalZoom + mouseZoomOffset);
             surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_WAVE_SPEED, surface.waveSpeed);
             surfaceUBOHost.set<float>(DescFractalSurface::TARGET_SURFACE_WAVE_STRENGTH, surface.waveStrength);
             surfaceUBO.updateMF(frameIndex);

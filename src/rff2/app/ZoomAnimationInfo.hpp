@@ -46,11 +46,11 @@ namespace merutilm::rff2 {
             dragging = false;
         }
 
-        void changeZoomAim(const double logZoomIncrement, const glm::vec2 mouseZoomDelta) {
+        void changeZoomAim(const double logZoomIncrement, const glm::vec2 mouseZoomWheelOffsetDelta) {
             stop();
             animationReserved = true;
             targetLogZoomOffsetAim += logZoomIncrement;
-            targetMouseZoomOffsetAim += mouseZoomDelta;
+            targetMouseZoomOffsetAim += mouseZoomWheelOffsetDelta;
         }
 
         void stop() {
@@ -59,6 +59,7 @@ namespace merutilm::rff2 {
         }
 
         void update(const double dt) {
+            if (!animationReserved) return;
             if (!animating) {
                 animating = true;
                 targetLogZoomOffsetStart = targetLogZoomOffset;

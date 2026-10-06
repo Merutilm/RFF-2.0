@@ -23,7 +23,7 @@ vec3 get_normal(
     float dzDx = float((rd + 2.0 * r + ru) - (ld + 2.0 * l + lu)) * multiplier;
     float dzDy = float((lu + 2.0 * u + ru) - (ld + 2.0 * d + rd)) * multiplier;
 
-    vec2 uv = vec2(iter_coord) / vec2(iteration_info_settings.extent);
+    vec2 uv = vec2(iter_coord) / vec2(iteration_info_settings.extent) + surface_settings.wave_offset;
     float t = float(time_settings.time);
     float wave_frequency = surface_settings.wave_frequency;
     float wave_speed = surface_settings.wave_speed;

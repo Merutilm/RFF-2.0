@@ -79,6 +79,11 @@ namespace merutilm::rff2 {
             IOUtilities::readAndDecode(in, &surface.reflectionRatio);
             IOUtilities::readAndDecode(in, &surface.refractionRatio);
             IOUtilities::readAndDecode(in, &surface.waveFrequency);
+            if (version <= 2) {
+                surface.waveOffset = {};
+            }else {
+                IOUtilities::readAndDecode(in, &surface.waveOffset);
+            }
             IOUtilities::readAndDecode(in, &surface.waveSpeed);
             IOUtilities::readAndDecode(in, &surface.waveStrength);
 
@@ -151,6 +156,7 @@ namespace merutilm::rff2 {
         IOUtilities::encodeAndWrite(out, surface.reflectionRatio);
         IOUtilities::encodeAndWrite(out, surface.refractionRatio);
         IOUtilities::encodeAndWrite(out, surface.waveFrequency);
+        IOUtilities::encodeAndWrite(out, surface.waveOffset);
         IOUtilities::encodeAndWrite(out, surface.waveSpeed);
         IOUtilities::encodeAndWrite(out, surface.waveStrength);
 
