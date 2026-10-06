@@ -11,6 +11,6 @@ namespace merutilm::rff2 {
         static void animationSettings(RFF2 &app);
         static void exportSettings(RFF2 &app);
         static void generateVidKeyframes(RFF2 &app);
-        static void exportZoomVideo(RFF2 &app);
+        static void exportZoomingVideo(RFF2 &app);
     };
 }

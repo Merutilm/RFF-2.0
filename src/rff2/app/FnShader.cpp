@@ -184,7 +184,7 @@ namespace merutilm::rff2 {
         Utilities::imguiHelpMarker("Start offset ratio of cycling palette.");
 
 
-        if (ImGui::DragFloat("Animation Speed", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
+        if (ImGui::DragFloat("Animation Speed##43125", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
                              Constants::UI::UNLIMITED_MIN_DRAG_ANIM, Constants::UI::UNLIMITED_MAX_DRAG,
                              Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
             app.getRequests().requestShader();
@@ -192,7 +192,7 @@ namespace merutilm::rff2 {
         Utilities::imguiHelpMarker("Color Animation Speed, The colors' offset(iterations) per second.");
 
 
-        if (Utilities::imguiDropdown("Iteration Coloring", &iterationColoring)) {
+        if (Utilities::imguiDropdown("Iteration Coloring##2623", &iterationColoring)) {
             app.getRequests().requestShader();
         }
 
@@ -241,13 +241,13 @@ namespace merutilm::rff2 {
         }
         Utilities::imguiHelpMarker("Start offset iteration of stripes.");
 
-        if (ImGui::DragFloat("Animation Speed", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
+        if (ImGui::DragFloat("Animation Speed##90582", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
                              Constants::UI::UNLIMITED_MIN_DRAG_ANIM, Constants::UI::UNLIMITED_MAX_DRAG,
                              Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
             app.getRequests().requestShader();
         }
         Utilities::imguiHelpMarker("Sets the stripe animation speed.");
-        if (Utilities::imguiDropdown("Iteration Coloring", &iterationColoring)) {
+        if (Utilities::imguiDropdown("Iteration Coloring##4214", &iterationColoring)) {
             app.getRequests().requestShader();
         }
     }
@@ -348,7 +348,7 @@ namespace merutilm::rff2 {
         ImGui::SeparatorText("Fog");
         auto &[radius, opacity] = app.getSettings().shader.fog;
 
-        if (ImGui::SliderFloat("Radius", &radius, 0, 1)) {
+        if (ImGui::SliderFloat("Radius##3768", &radius, 0, 1)) {
             radius = std::clamp(radius, 0.0f, 1.0f);
             app.getRequests().requestShader();
         }
@@ -369,7 +369,7 @@ namespace merutilm::rff2 {
             app.getRequests().requestShader();
         }
         Utilities::imguiHelpMarker("Sets the threshold of the bloom.");
-        if (ImGui::SliderFloat("Radius", &radius, 0, 1)) {
+        if (ImGui::SliderFloat("Radius##3762", &radius, 0, 1)) {
             radius = std::clamp(radius, 0.0f, 1.0f);
             app.getRequests().requestShader();
         }

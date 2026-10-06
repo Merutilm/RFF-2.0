@@ -19,49 +19,41 @@
 namespace merutilm::rff2 {
 
     void FnVideo::dataSettings(RFF2 &app) {
-        
-        if (ImGui::TreeNode("Data Settings")) {
-            auto &[defaultZoomIncrement, isStatic] = app.getSettings().video.data;
 
-            if (ImGui::InputDouble("Default Zoom Increment", &defaultZoomIncrement)) {
-                defaultZoomIncrement = std::clamp(defaultZoomIncrement, 1.25, 8.0);
-            }
+        ImGui::SeparatorText("Data Settings");
+        auto &[defaultZoomIncrement, isStatic] = app.getSettings().video.data;
 
-            Utilities::imguiHelpMarker("Set the log-Zoom interval between two adjacent video keyframes.");
-
-            ImGui::Checkbox("Static data", &isStatic);
-            Utilities::imguiHelpMarker("Generates using .png image instead of data file. all shaders will be disabled "
-                                       "when trying to generate video data.");
-            ImGui::TreePop();
+        if (ImGui::InputDouble("Default Zoom Increment", &defaultZoomIncrement)) {
+            defaultZoomIncrement = std::clamp(defaultZoomIncrement, 1.25, 8.0);
         }
+
+        Utilities::imguiHelpMarker("Set the log-Zoom interval between two adjacent video keyframes.");
+
+        ImGui::Checkbox("Static data", &isStatic);
+        Utilities::imguiHelpMarker("Generates using .png image instead of data file. all shaders will be disabled "
+                                   "when trying to generate video data.");
     }
     void FnVideo::animationSettings(RFF2 &app) {
-        
-        if (ImGui::TreeNode("Animation Settings")) {
-            auto &[overZoom, showText, mps] = app.getSettings().video.animation;
-            ImGui::InputFloat("Over Zoom", &overZoom);
-            Utilities::imguiHelpMarker("Zoom the final video data.");
 
-            ImGui::Checkbox("Show Text", &showText);
-            Utilities::imguiHelpMarker("Show the text on video.");
+        ImGui::SeparatorText("Animation Settings");
+        auto &[overZoom, showText, mps] = app.getSettings().video.animation;
+        ImGui::InputFloat("Over Zoom", &overZoom);
+        Utilities::imguiHelpMarker("Zoom the final video data.");
 
-            ImGui::InputFloat("Zoom Speed", &mps);
-            Utilities::imguiHelpMarker("Sets the zoom speed, Number of Map(.rfm) data used per second in video");
+        ImGui::Checkbox("Show Text", &showText);
+        Utilities::imguiHelpMarker("Show the text on video.");
 
-            ImGui::TreePop();
-        }
+        ImGui::InputFloat("Zoom Speed", &mps);
+        Utilities::imguiHelpMarker("Sets the zoom speed, Number of Map(.rfm) data used per second in video");
     }
     void FnVideo::exportSettings(RFF2 &app) {
 
-        if (ImGui::TreeNode("Export Settings")) {
-            auto &[fps, bitrate] = app.getSettings().video.exportation;
-            ImGui::InputFloat("FPS", &fps);
-            Utilities::imguiHelpMarker("Set the fps of the video to export.");
-            ImGui::InputScalar("Bitrate", ImGuiDataType_U16, &bitrate);
-            Utilities::imguiHelpMarker("Sets the bitrate of the video to export.");
-
-            ImGui::TreePop();
-        }
+        ImGui::SeparatorText("Export Settings");
+        auto &[fps, bitrate] = app.getSettings().video.exportation;
+        ImGui::InputFloat("FPS", &fps);
+        Utilities::imguiHelpMarker("Set the fps of the video to export.");
+        ImGui::InputScalar("Bitrate", ImGuiDataType_U16, &bitrate);
+        Utilities::imguiHelpMarker("Sets the bitrate of the video to export.");
     }
     void FnVideo::generateVidKeyframes(RFF2 &app) {
         if (!app.getKeyframeProgressInfo().keyframeGenerating) {
@@ -139,9 +131,10 @@ namespace merutilm::rff2 {
 
                         auto &center = settings.fractal.reference.center;
 
-                        RFFBinary::exportFile(RFFLocationBinary(settings.fractal.general.logZoom, center.real.to_string(),
-                                          center.imag.to_string(), settings.fractal.perturb.maxIteration), IOUtilities::generateFilename(dir, Constants::File::EXT_LOCATION, nullptr)
-                                                    .string());
+                        RFFBinary::exportFile(
+                                RFFLocationBinary(settings.fractal.general.logZoom, center.real.to_string(),
+                                                  center.imag.to_string(), settings.fractal.perturb.maxIteration),
+                                IOUtilities::generateFilename(dir, Constants::File::EXT_LOCATION, nullptr).string());
                         logZoom -= increment;
                         nextFrame = true;
                     }
@@ -159,7 +152,7 @@ namespace merutilm::rff2 {
             }
         }
     }
-    void FnVideo::exportZoomVideo(RFF2 &app) {
+    void FnVideo::exportZoomingVideo(RFF2 &app) {
         if (ImGui::Button("Export Zooming Video", ImVec2(-FLT_MIN, 0))) {
             auto openPtr = IOUtilities::ioDirectoryDialog();
 

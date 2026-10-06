@@ -194,7 +194,7 @@ namespace merutilm::rff2 {
         Utilities::imguiHelpMarker(
                 "Set the number of terms for the escape condition when generating the series approximation.");
 
-        ImGui::InputFloat("Precision Level", &epsilonPower);
+        ImGui::InputFloat("Precision Level##3125", &epsilonPower);
         Utilities::imguiHelpMarker("Useful for glitch reduction. if this value is small,\n"
                                    "The fractal will be rendered glitch-less but slow,\n"
                                    "and is large, It will be fast, but maybe shown visible glitches.");
@@ -223,7 +223,7 @@ namespace merutilm::rff2 {
                 "them,\n"
                 "So the multiplier between the two periods may in the worst case be the square of this.");
 
-        if (ImGui::InputFloat("Precision Level", &epsilonPower)) {
+        if (ImGui::InputFloat("Precision Level##75249", &epsilonPower)) {
             epsilonPower = std::clamp(epsilonPower, -15.f, -1.f);
         }
         Utilities::imguiHelpMarker(

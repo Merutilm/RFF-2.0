@@ -625,7 +625,7 @@ namespace merutilm::rff2 {
                 FnVideo::animationSettings(*this);
                 FnVideo::exportSettings(*this);
                 FnVideo::generateVidKeyframes(*this);
-                FnVideo::exportZoomVideo(*this);
+                FnVideo::exportZoomingVideo(*this);
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Explore")) {
