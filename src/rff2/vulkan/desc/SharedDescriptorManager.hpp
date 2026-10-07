@@ -236,7 +236,7 @@ namespace merutilm::rff2::SharedDescriptorManager {
     struct DescManagerNoiseReduction : vkh::DescriptorTemplateManager {
         using DescriptorTemplateManager::DescriptorTemplateManager;
 
-        void set(const ShdNoiseReduction &noiseReduction) const {
+        void set(const ShdNoiseReductionSettings &noiseReduction) const {
             using namespace SharedDescriptorTemplate;
             auto &noiseUBO = desc.get<vkh::Uniform>(0, DescNoiseReduction::BINDING_UBO_NOISE_REDUCTION);
             auto &interUBOHost = noiseUBO.getHostObject();

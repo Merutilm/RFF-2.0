@@ -6,7 +6,7 @@
 #include <cstdint>
 namespace merutilm::rff2 {
 
-    struct ShdNoiseReduction {
+    struct ShdNoiseReductionSettings {
         bool use;
         uint32_t similarCountThreshold;
         float differenceThreshold;

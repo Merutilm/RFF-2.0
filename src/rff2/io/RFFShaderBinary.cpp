@@ -36,10 +36,24 @@ namespace merutilm::rff2 {
         assert(version > 0);
 
         ShaderSettings shaderSettings;
-        auto &palette = shaderSettings.palette;
+
+        readPaletteSettings(in, shaderSettings.palette);
+        readStripeSettings(in, shaderSettings.stripe);
+        readSurfaceSettings(in, shaderSettings.surface, version);
+        readColorSettings(in, shaderSettings.color);
+        readFogSettings(in, shaderSettings.fog);
+        readBloomSettings(in, shaderSettings.bloom);
+        readNoiseReductionSettings(in, shaderSettings.noiseReduction);
+        readFractal3DSettings(in, shaderSettings.fractal3D);
+
+        return RFFShaderBinary(std::move(shaderSettings));
+    }
+
+    void RFFShaderBinary::readPaletteSettings(std::ifstream &in, ShdPaletteSettings &palette) {
 
         uint64_t len;
         IOUtilities::readAndDecode(in, &len);
+
         palette.colors.resize(len);
         IOUtilities::readAndDecode(in, &palette.colors);
         IOUtilities::readAndDecode(in, &palette.iterationColoring);
@@ -47,8 +61,10 @@ namespace merutilm::rff2 {
         IOUtilities::readAndDecode(in, &palette.iterationInterval);
         IOUtilities::readAndDecode(in, &palette.offsetRatio);
         IOUtilities::readAndDecode(in, &palette.animationSpeed);
+    }
 
-        auto &stripe = shaderSettings.stripe;
+    void RFFShaderBinary::readStripeSettings(std::ifstream &in, ShdStripeSettings &stripe) {
+
         IOUtilities::readAndDecode(in, &stripe.stripeType);
         IOUtilities::readAndDecode(in, &stripe.firstInterval);
         IOUtilities::readAndDecode(in, &stripe.secondInterval);
@@ -56,13 +72,16 @@ namespace merutilm::rff2 {
         IOUtilities::readAndDecode(in, &stripe.offset);
         IOUtilities::readAndDecode(in, &stripe.animationSpeed);
         IOUtilities::readAndDecode(in, &stripe.iterationColoring);
+    }
 
-        auto &surface = shaderSettings.surface;
+    void RFFShaderBinary::readSurfaceSettings(std::ifstream &in, ShdSurfaceSettings &surface, uint32_t version) {
+
         IOUtilities::readAndDecode(in, &surface.depth);
         IOUtilities::readAndDecode(in, &surface.shadowBrightness);
         IOUtilities::readAndDecode(in, &surface.shadowOpacity);
         IOUtilities::readAndDecode(in, &surface.lightZenith);
         IOUtilities::readAndDecode(in, &surface.lightAzimuth);
+
         if (version <= 1) {
             surface.lightSharpness = 64;
             surface.lightStrength = 0;
@@ -92,41 +111,51 @@ namespace merutilm::rff2 {
             IOUtilities::readAndDecode(in, &surface.waveSpeed);
             IOUtilities::readAndDecode(in, &surface.waveStrength);
         }
+    }
 
-        auto &color = shaderSettings.color;
+    void RFFShaderBinary::readColorSettings(std::ifstream &in, ShdColorSettings &color) {
+
         IOUtilities::readAndDecode(in, &color.gamma);
         IOUtilities::readAndDecode(in, &color.exposure);
         IOUtilities::readAndDecode(in, &color.hue);
         IOUtilities::readAndDecode(in, &color.saturation);
         IOUtilities::readAndDecode(in, &color.brightness);
         IOUtilities::readAndDecode(in, &color.contrast);
+    }
 
-        auto &fog = shaderSettings.fog;
+    void RFFShaderBinary::readFogSettings(std::ifstream &in, ShdFogSettings &fog) {
+
         IOUtilities::readAndDecode(in, &fog.radius);
         IOUtilities::readAndDecode(in, &fog.opacity);
+    }
 
-        auto &bloom = shaderSettings.bloom;
+    void RFFShaderBinary::readBloomSettings(std::ifstream &in, ShdBloomSettings &bloom) {
+
         IOUtilities::readAndDecode(in, &bloom.threshold);
         IOUtilities::readAndDecode(in, &bloom.radius);
         IOUtilities::readAndDecode(in, &bloom.softness);
         IOUtilities::readAndDecode(in, &bloom.intensity);
+    }
 
-        auto &noiseReduction = shaderSettings.noiseReduction;
+    void RFFShaderBinary::readNoiseReductionSettings(std::ifstream &in,
+
+                                                     ShdNoiseReductionSettings &noiseReduction) {
+
         IOUtilities::readAndDecode(in, &noiseReduction.use);
         IOUtilities::readAndDecode(in, &noiseReduction.similarCountThreshold);
         IOUtilities::readAndDecode(in, &noiseReduction.differenceThreshold);
+    }
 
-        auto &fractal3d = shaderSettings.fractal3D;
+    void RFFShaderBinary::readFractal3DSettings(std::ifstream &in, ShdFractal3DSettings &fractal3d) {
+
         IOUtilities::readAndDecode(in, &fractal3d.use);
         IOUtilities::readAndDecode(in, &fractal3d.altitude);
         IOUtilities::readAndDecode(in, &fractal3d.rotation);
         IOUtilities::readAndDecode(in, &fractal3d.distance);
         IOUtilities::readAndDecode(in, &fractal3d.baseIteration);
         IOUtilities::readAndDecode(in, &fractal3d.depthDivisor);
-
-
-        return RFFShaderBinary(std::move(shaderSettings));
     }
+
 
     void RFFShaderBinary::write(std::ofstream &out) const {
 
