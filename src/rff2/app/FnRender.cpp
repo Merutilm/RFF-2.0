@@ -4,6 +4,7 @@
 
 #include "FnRender.hpp"
 
+#include "../util/ImGuiUtils.hpp"
 #include "../util/Utilities.h"
 #include "RFF2.hpp"
 #include "imgui.h"
@@ -17,7 +18,7 @@ namespace merutilm::rff2 {
         static std::array resolutionTemp{width, height};
         static float clarityMultiplierTemp = clarityMultiplier;
         static bool valueChanged = false;
-        Utilities::imguiBeginSettings("Resolution Properties");
+        ImGuiUtils::BeginSettings("Resolution Properties");
 
         if (ImGui::InputScalarN("Window size", ImGuiDataType_U32, resolutionTemp.data(), 2)) {
             resolutionTemp[0] = std::max(resolutionTemp[0], Constants::Render::MIN_WINDOW_WIDTH);
@@ -56,12 +57,12 @@ namespace merutilm::rff2 {
             valueChanged = false;
         } else if (!valueChanged)
             ImGui::EndDisabled();
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
 
     void FnRender::setRenderProperties(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Set Render Properties");
+        ImGuiUtils::BeginSettings("Set Render Properties");
         float &fps = app.getSettings().render.display.fps;
 
         constexpr uint32_t minThread = 1;
@@ -72,9 +73,9 @@ namespace merutilm::rff2 {
             fps = std::clamp(fps, Constants::Render::MIN_FPS, Constants::Render::MAX_FPS);
             app.getWindowContext().getWindow()->initializerSettings.framerate = fps;
         }
-        Utilities::imguiHelpMarker("Sets the Framerate.");
+        ImGuiUtils::HelpMarker("Sets the Framerate.");
 
-        if (Utilities::imguiDropdown("Pixel Render Priority", &app.getSettings().render.display.pixelRenderPriority)) {
+        if (ImGuiUtils::Dropdown("Pixel Render Priority", &app.getSettings().render.display.pixelRenderPriority)) {
             // noop
         }
 
@@ -83,8 +84,8 @@ namespace merutilm::rff2 {
                                 &maxThreads)) {
             // noop
         }
-        Utilities::imguiHelpMarker("Sets the number of threads while rendering an image.");
-        Utilities::imguiEndSettings();
+        ImGuiUtils::HelpMarker("Sets the number of threads while rendering an image.");
+        ImGuiUtils::EndSettings();
     }
 
     void FnRender::setComputeShader(RFF2 &app) {
@@ -92,7 +93,7 @@ namespace merutilm::rff2 {
         if (!app.engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceFeatures().shaderInt64)
             return;
 
-        Utilities::imguiBeginSettings("Compute Shader");
+        ImGuiUtils::BeginSettings("Compute Shader");
 
         auto &[use, preferredBatchDuration, allowedGlitchPixelCount, completelyIgnoreMpa, automaticAcceptMpaBatches,
                interpolateIsolated] = app.getSettings().render.computeShader;
@@ -101,7 +102,7 @@ namespace merutilm::rff2 {
             if (ImGui::Checkbox("Use", &use)) {
                 // noop
             }
-            Utilities::imguiHelpMarker("Use Compute shader instead of multithreading. "
+            ImGuiUtils::HelpMarker("Use Compute shader instead of multithreading. "
                                        "it is only available for single-precision values down to 1e-35, "
                                        "uncompressed MP table and uncompressed reference.");
 
@@ -109,24 +110,24 @@ namespace merutilm::rff2 {
             if (ImGui::InputFloat("Preferred Batch Duration", &preferredBatchDuration)) {
                 preferredBatchDuration = std::clamp(preferredBatchDuration, 0.01f, 10.f);
             }
-            Utilities::imguiHelpMarker("Sets the preferred batch duration of compute shader. "
+            ImGuiUtils::HelpMarker("Sets the preferred batch duration of compute shader. "
                                        "The batch size starts at 128 and is doubled when the dispatch time is "
                                        "shorter than this duration.");
 
             if (ImGui::InputScalar("Allowed Glitch Pixel Count", ImGuiDataType_U32, &allowedGlitchPixelCount)) {
                 allowedGlitchPixelCount = std::max(allowedGlitchPixelCount, 0u);
             }
-            Utilities::imguiHelpMarker("If a few pixels are abnormally iterated, skip those pixels.");
+            ImGuiUtils::HelpMarker("If a few pixels are abnormally iterated, skip those pixels.");
 
             ImGui::Checkbox("Completely Ignore MP-Approx", &completelyIgnoreMpa);
-            Utilities::imguiHelpMarker(
+            ImGuiUtils::HelpMarker(
                     "Ignores MPA. finding appropriate pa from mp-table on gpu-level is so expensive.");
 
             if (completelyIgnoreMpa) {
                 ImGui::BeginDisabled();
             }
             ImGui::InputScalar("Automatic Accept Batches", ImGuiDataType_U32, &automaticAcceptMpaBatches);
-            Utilities::imguiHelpMarker("MP-Approximation is automatically used for the first few batches. After "
+            ImGuiUtils::HelpMarker("MP-Approximation is automatically used for the first few batches. After "
                                        "that, it is no longer used. set 0 to fully use.");
 
             if (completelyIgnoreMpa) {
@@ -135,7 +136,7 @@ namespace merutilm::rff2 {
 
             ImGui::Checkbox("Interpolate Isolated Pixel", &interpolateIsolated);
         }
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
 
 

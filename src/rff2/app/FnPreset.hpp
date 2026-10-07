@@ -5,6 +5,7 @@
 #pragma once
 #include "RFF2.hpp"
 #include "imgui.h"
+#include "../util/ImGuiUtils.hpp"
 namespace merutilm::rff2 {
     
     class RFF2;
@@ -23,12 +24,12 @@ namespace merutilm::rff2 {
         }
 
         static void beginPresetExecutor(const char *txt) {
-            Utilities::imguiBeginSettings(txt);
+            ImGuiUtils::BeginSettings(txt);
             ImGui::BeginTable(txt, COLS);
         }
         static void endPresetExecutor() {
             ImGui::EndTable();
-            Utilities::imguiEndSettings();
+            ImGuiUtils::EndSettings();
         }
         
         template<typename P> requires std::is_base_of_v<Preset, P>

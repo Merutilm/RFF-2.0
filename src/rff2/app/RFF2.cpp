@@ -176,7 +176,7 @@ namespace merutilm::rff2 {
         return Settings{
                 .file = {.autoSaveBackup = true},
                 .fractal =
-                        FractalSettings{.general = {.bailout = 2.00001f, .logZoom = 2, .threads = 15},
+                        FractalSettings{.general = {.bailout = 4.f, .logZoom = 2, .threads = 15},
                                         .reference =
                                                 {
                                                         .center = fixed_point_complex("-0.85", "0",
@@ -217,7 +217,7 @@ namespace merutilm::rff2 {
         return Settings{
                 .file = {.autoSaveBackup = true},
                 .fractal =
-                        FractalSettings{.general = {.bailout = 2.00001f,
+                        FractalSettings{.general = {.bailout = 4.f,
                                                     .logZoom = 2,
                                                     .threads = std::thread::hardware_concurrency() - 1},
                                         .reference =

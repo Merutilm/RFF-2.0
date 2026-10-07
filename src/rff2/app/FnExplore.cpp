@@ -8,6 +8,7 @@
 
 #include <cassert>
 #include "../util/Utilities.h"
+#include "../util/ImGuiUtils.hpp"
 
 #include "../mb/MB2Locator.hpp"
 
@@ -122,7 +123,7 @@ namespace merutilm::rff2 {
             ImGui::Separator();
 
             ImGui::Checkbox("Burst-locate", &settings.explore.locator.burst);
-            Utilities::imguiHelpMarker("It significantly increases locate speed at the expense of stability.");
+            ImGuiUtils::HelpMarker("It significantly increases locate speed at the expense of stability.");
 
             if (ImGui::Button("Locate Minibrot", ImVec2(-FLT_MIN, 0))) {
 

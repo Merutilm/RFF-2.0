@@ -5,6 +5,7 @@
 #pragma once
 #include <cmath>
 #include <numbers>
+#include <cstdint>
 
 namespace merutilm::rff2 {
     enum class FrtDecimalizeIterationMethod : uint32_t{

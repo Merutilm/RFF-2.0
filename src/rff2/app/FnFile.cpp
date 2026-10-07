@@ -4,6 +4,7 @@
 
 #include "FnFile.hpp"
 
+#include "../util/ImGuiUtils.hpp"
 #include "../app/RFF2.hpp"
 #include "../constants/Constants.hpp"
 #include "IOUtilities.h"
@@ -86,6 +87,6 @@ namespace merutilm::rff2 {
     }
     void FnFile::autoSaveBackup(RFF2 &app) {
         ImGui::Checkbox("Auto Save Backup", &app.getSettings().file.autoSaveBackup);
-        Utilities::imguiHelpMarker("Automatically saves the backup for each calculation");
+        ImGuiUtils::HelpMarker("Automatically saves the backup for each calculation");
     }
 } // namespace merutilm::rff2

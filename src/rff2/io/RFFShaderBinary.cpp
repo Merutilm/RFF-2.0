@@ -66,27 +66,31 @@ namespace merutilm::rff2 {
         if (version <= 1) {
             surface.lightSharpness = 64;
             surface.lightStrength = 0;
-            surface.distortionStrength = 0.1f;
+            surface.distortionStrength = 0;
             surface.reflectionRatio = 0.04f;
             surface.refractionRatio = 1.5f;
             surface.waveFrequency = 1;
-            surface.waveSpeed = 1;
-            surface.waveStrength = 0;
-        }else {
+        } else {
             IOUtilities::readAndDecode(in, &surface.lightSharpness);
             IOUtilities::readAndDecode(in, &surface.lightStrength);
             IOUtilities::readAndDecode(in, &surface.distortionStrength);
             IOUtilities::readAndDecode(in, &surface.reflectionRatio);
             IOUtilities::readAndDecode(in, &surface.refractionRatio);
             IOUtilities::readAndDecode(in, &surface.waveFrequency);
-            if (version <= 2) {
-                surface.waveOffset = {};
-            }else {
-                IOUtilities::readAndDecode(in, &surface.waveOffset);
-            }
+        }
+
+        if (version <= 2) {
+            surface.waveOffset = {};
+        } else {
+            IOUtilities::readAndDecode(in, &surface.waveOffset);
+        }
+
+        if (version <= 1) {
+            surface.waveSpeed = 1;
+            surface.waveStrength = 0;
+        } else {
             IOUtilities::readAndDecode(in, &surface.waveSpeed);
             IOUtilities::readAndDecode(in, &surface.waveStrength);
-
         }
 
         auto &color = shaderSettings.color;

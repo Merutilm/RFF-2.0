@@ -14,49 +14,50 @@
 #include "../util/Utilities.h"
 #include "IOUtilities.h"
 #include "VideoWindow.hpp"
+#include "../util/ImGuiUtils.hpp"
 
 
 namespace merutilm::rff2 {
 
     void FnVideo::dataSettings(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Data Settings");
+        ImGuiUtils::BeginSettings("Data Settings");
         auto &[defaultZoomIncrement, isStatic] = app.getSettings().video.data;
 
         if (ImGui::InputDouble("Default Zoom Increment", &defaultZoomIncrement)) {
             defaultZoomIncrement = std::clamp(defaultZoomIncrement, 1.25, 8.0);
         }
 
-        Utilities::imguiHelpMarker("Set the log-Zoom interval between two adjacent video keyframes.");
+        ImGuiUtils::HelpMarker("Set the log-Zoom interval between two adjacent video keyframes.");
 
         ImGui::Checkbox("Static data", &isStatic);
-        Utilities::imguiHelpMarker("Generates using .png image instead of data file. all shaders will be disabled "
+        ImGuiUtils::HelpMarker("Generates using .png image instead of data file. all shaders will be disabled "
                                    "when trying to generate video data.");
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
     void FnVideo::animationSettings(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Animation Settings");
+        ImGuiUtils::BeginSettings("Animation Settings");
         auto &[overZoom, showText, mps] = app.getSettings().video.animation;
         ImGui::InputFloat("Over Zoom", &overZoom);
-        Utilities::imguiHelpMarker("Zoom the final video data.");
+        ImGuiUtils::HelpMarker("Zoom the final video data.");
 
         ImGui::Checkbox("Show Text", &showText);
-        Utilities::imguiHelpMarker("Show the text on video.");
+        ImGuiUtils::HelpMarker("Show the text on video.");
 
         ImGui::InputFloat("Zoom Speed", &mps);
-        Utilities::imguiHelpMarker("Sets the zoom speed, Number of Map(.rfm) data used per second in video");
-        Utilities::imguiEndSettings();
+        ImGuiUtils::HelpMarker("Sets the zoom speed, Number of Map(.rfm) data used per second in video");
+        ImGuiUtils::EndSettings();
     }
     void FnVideo::exportSettings(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Export Settings");
+        ImGuiUtils::BeginSettings("Export Settings");
         auto &[fps, bitrate] = app.getSettings().video.exportation;
         ImGui::InputFloat("FPS", &fps);
-        Utilities::imguiHelpMarker("Set the fps of the video to export.");
+        ImGuiUtils::HelpMarker("Set the fps of the video to export.");
         ImGui::InputScalar("Bitrate", ImGuiDataType_U16, &bitrate);
-        Utilities::imguiHelpMarker("Sets the bitrate of the video to export.");
-        Utilities::imguiEndSettings();
+        ImGuiUtils::HelpMarker("Sets the bitrate of the video to export.");
+        ImGuiUtils::EndSettings();
     }
     void FnVideo::generateVidKeyframes(RFF2 &app) {
         if (!app.getKeyframeProgressInfo().keyframeGenerating) {

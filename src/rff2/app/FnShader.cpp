@@ -5,6 +5,7 @@
 #include "FnShader.hpp"
 #include "../util/Utilities.h"
 #include "imgui.h"
+#include "../util/ImGuiUtils.hpp"
 
 #include "../io/KFRColorLoader.hpp"
 
@@ -12,7 +13,7 @@ namespace merutilm::rff2 {
 
     void FnShader::palette(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Palette");
+        ImGuiUtils::BeginSettings("Palette");
 
         auto &[colors, iterationColoring, singleIterationColoring, iterationInterval, offsetRatio, animationSpeed] =
                 app.getSettings().shader.palette;
@@ -23,9 +24,9 @@ namespace merutilm::rff2 {
             iterationInterval = std::max(iterationInterval, FLT_MIN);
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Required iterations for the palette to cycle once");
+        ImGuiUtils::HelpMarker("Required iterations for the palette to cycle once");
 
-        Utilities::imguiBeginSettings("Colors");
+        ImGuiUtils::BeginSettings("Colors");
         static int selected = -1;
         static int selectRequest = -1;
         static int page = 0;
@@ -164,7 +165,7 @@ namespace merutilm::rff2 {
             ImGui::PopID();
         }
         ImGui::EndChild();
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
 
         if (ImGui::Button("Load KFR Palette", ImVec2(-FLT_MIN, 0))) {
             const auto loaded = KFRColorLoader::loadPaletteSettings();
@@ -181,7 +182,7 @@ namespace merutilm::rff2 {
             offsetRatio = std::clamp(offsetRatio, 0.0f, 1.0f);
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Start offset ratio of cycling palette.");
+        ImGuiUtils::HelpMarker("Start offset ratio of cycling palette.");
 
 
         if (ImGui::DragFloat("Animation Speed", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
@@ -189,25 +190,25 @@ namespace merutilm::rff2 {
                              Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Color Animation Speed, The colors' offset(iterations) per second.");
+        ImGuiUtils::HelpMarker("Color Animation Speed, The colors' offset(iterations) per second.");
 
 
-        if (Utilities::imguiDropdown("Iteration Coloring", &iterationColoring)) {
+        if (ImGuiUtils::Dropdown("Iteration Coloring", &iterationColoring)) {
             app.getRequests().requestShader();
         }
 
-        if (Utilities::imguiDropdown("Single Iteration Coloring", &singleIterationColoring)) {
+        if (ImGuiUtils::Dropdown("Single Iteration Coloring", &singleIterationColoring)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
     void FnShader::stripe(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Stripe");
+        ImGuiUtils::BeginSettings("Stripe");
         auto &[stripeType, firstInterval, secondInterval, opacity, offset, animationSpeed, iterationColoring] =
                 app.getSettings().shader.stripe;
 
-        if (Utilities::imguiDropdown("Stripe Type", &stripeType)) {
+        if (ImGuiUtils::Dropdown("Stripe Type", &stripeType)) {
             app.getRequests().requestShader();
         }
 
@@ -217,7 +218,7 @@ namespace merutilm::rff2 {
             firstInterval = std::max(firstInterval, FLT_MIN);
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the first Stripe Interval");
+        ImGuiUtils::HelpMarker("Sets the first Stripe Interval");
 
 
         if (ImGui::DragFloat("Interval 2", &secondInterval, Constants::UI::UNLIMITED_DRAG_SPEED,
@@ -226,13 +227,13 @@ namespace merutilm::rff2 {
             secondInterval = std::max(secondInterval, FLT_MIN);
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the second Stripe Interval");
+        ImGuiUtils::HelpMarker("Sets the second Stripe Interval");
 
 
         if (ImGui::SliderFloat("Opacity", &opacity, 0.0f, 1.0f)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the opacity of stripes.");
+        ImGuiUtils::HelpMarker("Sets the opacity of stripes.");
 
 
         if (ImGui::DragFloat("Offset", &offset, Constants::UI::UNLIMITED_DRAG_SPEED,
@@ -240,22 +241,22 @@ namespace merutilm::rff2 {
                              Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Start offset iteration of stripes.");
+        ImGuiUtils::HelpMarker("Start offset iteration of stripes.");
 
         if (ImGui::DragFloat("Animation Speed", &animationSpeed, Constants::UI::UNLIMITED_DRAG_SPEED,
                              Constants::UI::UNLIMITED_MIN_DRAG_ANIM, Constants::UI::UNLIMITED_MAX_DRAG,
                              Constants::UI::UNLIMITED_FMT_DRAG, ImGuiSliderFlags_Logarithmic)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the stripe animation speed.");
-        if (Utilities::imguiDropdown("Iteration Coloring", &iterationColoring)) {
+        ImGuiUtils::HelpMarker("Sets the stripe animation speed.");
+        if (ImGuiUtils::Dropdown("Iteration Coloring", &iterationColoring)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
     void FnShader::surface(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Surface");
+        ImGuiUtils::BeginSettings("Surface");
         auto &[depth, shadowBrightness, shadowOpacity, lightZenith, lightAzimuth, lightSharpness, lightStrength,
                distortionStrength, reflectionRatio, refractionRatio, waveFrequency, waveOffset, waveSpeed,
                waveStrength] = app.getSettings().shader.surface;
@@ -314,84 +315,84 @@ namespace merutilm::rff2 {
         if (ImGui::SliderFloat("Wave Strength", &waveStrength, 0, 4)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
     void FnShader::color(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Color");
+        ImGuiUtils::BeginSettings("Color");
         auto &[gamma, exposure, hue, saturation, brightness, contrast] = app.getSettings().shader.color;
 
         if (ImGui::SliderFloat("Gamma", &gamma, 0.5f, 1.5f)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the gamma.");
+        ImGuiUtils::HelpMarker("Sets the gamma.");
         if (ImGui::SliderFloat("Exposure", &exposure, -1, 1)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the exposure.");
+        ImGuiUtils::HelpMarker("Sets the exposure.");
         if (ImGui::SliderFloat("Hue", &hue, 0, 1)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the hue.");
+        ImGuiUtils::HelpMarker("Sets the hue.");
         if (ImGui::SliderFloat("Saturation", &saturation, -1, 1)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the saturation.");
+        ImGuiUtils::HelpMarker("Sets the saturation.");
         if (ImGui::SliderFloat("Brightness", &brightness, -1, 1)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the brightness.");
+        ImGuiUtils::HelpMarker("Sets the brightness.");
         if (ImGui::SliderFloat("Contrast", &contrast, -1, 1)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the contrast.");
-        Utilities::imguiEndSettings();
+        ImGuiUtils::HelpMarker("Sets the contrast.");
+        ImGuiUtils::EndSettings();
     }
     void FnShader::fog(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Fog");
+        ImGuiUtils::BeginSettings("Fog");
         auto &[radius, opacity] = app.getSettings().shader.fog;
 
         if (ImGui::SliderFloat("Radius", &radius, 0, 1)) {
             radius = std::clamp(radius, 0.0f, 1.0f);
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the radius of the fog.");
+        ImGuiUtils::HelpMarker("Sets the radius of the fog.");
         if (ImGui::SliderFloat("Opacity", &opacity, 0, 1)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the opacity of the fog.");
-        Utilities::imguiEndSettings();
+        ImGuiUtils::HelpMarker("Sets the opacity of the fog.");
+        ImGuiUtils::EndSettings();
     }
 
     void FnShader::bloom(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Bloom");
+        ImGuiUtils::BeginSettings("Bloom");
         auto &[threshold, radius, softness, intensity] = app.getSettings().shader.bloom;
 
         if (ImGui::SliderFloat("Threshold", &threshold, 0, 1)) {
             threshold = std::clamp(threshold, 0.0f, 1.0f);
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the threshold of the bloom.");
+        ImGuiUtils::HelpMarker("Sets the threshold of the bloom.");
         if (ImGui::SliderFloat("Radius", &radius, 0, 1)) {
             radius = std::clamp(radius, 0.0f, 1.0f);
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the radius of the bloom.");
+        ImGuiUtils::HelpMarker("Sets the radius of the bloom.");
         if (ImGui::SliderFloat("Softness", &softness, 0, 1)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the softness of the bloom.");
+        ImGuiUtils::HelpMarker("Sets the softness of the bloom.");
         if (ImGui::SliderFloat("Intensity", &intensity, 0, 1)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiHelpMarker("Sets the intensity of the bloom.");
-        Utilities::imguiEndSettings();
+        ImGuiUtils::HelpMarker("Sets the intensity of the bloom.");
+        ImGuiUtils::EndSettings();
     }
     void FnShader::noiseReduction(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Noise Reduction");
+        ImGuiUtils::BeginSettings("Noise Reduction");
         auto &[use, similarCountThreshold, differenceThreshold] = app.getSettings().shader.noiseReduction;
 
         if (ImGui::Checkbox("Use", &use)) {
@@ -407,12 +408,12 @@ namespace merutilm::rff2 {
         if (ImGui::SliderFloat("Difference Threshold", &differenceThreshold, 0, 1)) {
             app.getRequests().requestShader();
         }
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
 
     void FnShader::fractal3D(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("3D  (Wow epic)");
+        ImGuiUtils::BeginSettings("3D  (Wow epic)");
         auto &[use, altitude, rotation, distance, baseIteration, divisor] = app.getSettings().shader.fractal3D;
 
         ImGui::Checkbox("Use", &use);
@@ -443,7 +444,7 @@ namespace merutilm::rff2 {
             divisor = std::max(divisor, FLT_MIN);
             app.getRequests().requestShader();
         }
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
 
 

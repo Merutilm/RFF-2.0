@@ -4,6 +4,7 @@
 
 #include "FnPreset.hpp"
 
+#include "../util/ImGuiUtils.hpp"
 #include "../preset/calc/approx/ClcApproxPresets.hpp"
 #include "../preset/calc/compress/ClcCompressPresets.hpp"
 #include "../preset/calc/sync/ClcSyncPresets.hpp"
@@ -21,7 +22,7 @@ namespace merutilm::rff2 {
 
 
     void FnPreset::calculation(RFF2 &app) {
-        Utilities::imguiBeginSettings("Calculation");
+        ImGuiUtils::BeginSettings("Calculation");
         beginPresetExecutor("Approximation");
         addPresetExecutor(app, ClcApproxPresets::UltraFast());
         addPresetExecutor(app, ClcApproxPresets::Fast());
@@ -44,10 +45,10 @@ namespace merutilm::rff2 {
         addPresetExecutor(app, ClcSyncPresets::Best());
         endPresetExecutor();
 
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
     void FnPreset::render(RFF2 &app) {
-        Utilities::imguiBeginSettings("Render");
+        ImGuiUtils::BeginSettings("Render");
         beginPresetExecutor("Display");
         addPresetExecutor(app, RndDisplayPresets::Potato());
         addPresetExecutor(app, RndDisplayPresets::Low());
@@ -63,7 +64,7 @@ namespace merutilm::rff2 {
         addPresetExecutor(app, RndComputePresets::DeepZoomSpirals());
         endPresetExecutor();
 
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
     void FnPreset::resolution(RFF2 &app) {
         beginPresetExecutor("Resolution");
@@ -75,7 +76,7 @@ namespace merutilm::rff2 {
         endPresetExecutor();
     }
     void FnPreset::shader(RFF2 &app) {
-        Utilities::imguiBeginSettings("Shader");
+        ImGuiUtils::BeginSettings("Shader");
         beginPresetExecutor("Palette");
         addPresetExecutor(app, ShdPalettePresets::Classic1());
         addPresetExecutor(app, ShdPalettePresets::Classic2());
@@ -125,6 +126,6 @@ namespace merutilm::rff2 {
         addPresetExecutor(app, ShdBloomPresets::Normal());
         addPresetExecutor(app, ShdBloomPresets::Strong());
         endPresetExecutor();
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
 } // namespace merutilm::rff2

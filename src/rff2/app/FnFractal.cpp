@@ -4,6 +4,7 @@
 
 #include "FnFractal.hpp"
 
+#include "../util/ImGuiUtils.hpp"
 #include "../mb/Perturbator.h"
 #include "../util/Utilities.h"
 #include "RFF2.hpp"
@@ -31,7 +32,7 @@ namespace merutilm::rff2 {
         static double logZoomCache = logZoom;
         static bool locationChanged = false;
 
-        Utilities::imguiBeginSettings("Reference");
+        ImGuiUtils::BeginSettings("Reference");
 
         ImGui::InputText("Real", &realCache);
         if (ImGui::IsItemDeactivatedAfterEdit()) {
@@ -49,7 +50,7 @@ namespace merutilm::rff2 {
                 realCache = real;
             }
         }
-        Utilities::imguiHelpMarker("Sets the real part of center.");
+        ImGuiUtils::HelpMarker("Sets the real part of center.");
 
         ImGui::InputText("Imag", &imagCache);
         if (ImGui::IsItemDeactivatedAfterEdit()) {
@@ -66,14 +67,14 @@ namespace merutilm::rff2 {
                 imagCache = imag;
             }
         }
-        Utilities::imguiHelpMarker("Sets the imaginary part of center.");
+        ImGuiUtils::HelpMarker("Sets the imaginary part of center.");
 
 
         if (ImGui::InputDouble("Log Zoom", &logZoomCache)) {
             logZoom = std::max(logZoomCache, Constants::Fractal::ZOOM_MIN);
             locationChanged = true;
         }
-        Utilities::imguiHelpMarker("Sets the log scale of zoom.");
+        ImGuiUtils::HelpMarker("Sets the log scale of zoom.");
 
         if (ImGui::Button("Load Current Location", ImVec2(-FLT_MIN, 0))) {
             real = frt.reference.center.real.to_string();
@@ -94,7 +95,7 @@ namespace merutilm::rff2 {
             }
         }
         ImGui::Checkbox("Reuse Reference", &frt.reference.reuse);
-        Utilities::imguiHelpMarker("Sets the reuse reference method.");
+        ImGuiUtils::HelpMarker("Sets the reuse reference method.");
 
         ImGui::Checkbox("Use Fixed Precision", &frt.reference.useFixedPrecision);
         if (frt.reference.useFixedPrecision)
@@ -102,7 +103,7 @@ namespace merutilm::rff2 {
 
         ImGui::InputScalar("Reference Compression Criteria", ImGuiDataType_U32,
                            &frt.reference.compression.compressCriteria);
-        Utilities::imguiHelpMarker(
+        ImGuiUtils::HelpMarker(
                 "When compressing references, sets the minimum amount of references to compress at one time.\n"
                 "Reference compression slows down the calculation but frees up memory space.\n"
                 "set 0 to disable.");
@@ -110,7 +111,7 @@ namespace merutilm::rff2 {
 
         ImGui::InputScalar("Reference Compression Threshold", ImGuiDataType_U8,
                            &frt.reference.compression.compressionThresholdPower);
-        Utilities::imguiHelpMarker(
+        ImGuiUtils::HelpMarker(
                 "When compressing references, sets the negative exponents of ten of minimum error to be "
                 "considered "
                 "equal.\n"
@@ -122,7 +123,7 @@ namespace merutilm::rff2 {
             frt.reference.sync.referenceSynchronizationInterval =
                     std::max(frt.reference.sync.referenceSynchronizationInterval, 1u);
         }
-        Utilities::imguiHelpMarker(
+        ImGuiUtils::HelpMarker(
                 "Sets the synchronization interval between the reference array\n"
                 "and arbitrary-precision operation when calculating references. When the value is small,\n"
                 "it guarantees high quality but is slow because the synchronization happens every iterations.\n"
@@ -131,7 +132,7 @@ namespace merutilm::rff2 {
 
         ImGui::InputScalar("Reference Synchronization Radius", ImGuiDataType_U8,
                            &frt.reference.sync.referenceSynchronizationRadiusPower);
-        Utilities::imguiHelpMarker(
+        ImGuiUtils::HelpMarker(
                 "If only the Reference Synchronization Interval is set,\n"
                 "when the periodic point is reached and it is not a multiple of its value,\n"
                 "the calculation will be resulted so weird due to significant mismatch with\n"
@@ -141,41 +142,41 @@ namespace merutilm::rff2 {
                 "set 0 to fully sync.");
 
         ImGui::Checkbox("Parallel reference calculation", &frt.reference.useParallelRefCalculation);
-        Utilities::imguiHelpMarker("Sets whether or not the reference calculation should be parallel.\n"
+        ImGuiUtils::HelpMarker("Sets whether or not the reference calculation should be parallel.\n"
                                    "It is effective for deep-zoom.");
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
     void FnFractal::iterations(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Iterations");
+        ImGuiUtils::BeginSettings("Iterations");
 
         auto &calc = app.getSettings().fractal;
         ImGui::InputScalar("Max Iteration", ImGuiDataType_U64, &calc.perturb.maxIteration);
-        Utilities::imguiHelpMarker("Set maximum iteration. It is disabled when Auto iteration is enabled.");
+        ImGuiUtils::HelpMarker("Set maximum iteration. It is disabled when Auto iteration is enabled.");
 
 
         ImGui::InputScalar("Auto Iteration Multiplier", ImGuiDataType_U16, &calc.perturb.autoIterationMultiplier);
-        Utilities::imguiHelpMarker("Set auto iteration multiplier. It is disabled when Auto iteration is disabled.");
+        ImGuiUtils::HelpMarker("Set auto iteration multiplier. It is disabled when Auto iteration is disabled.");
 
         if (ImGui::InputFloat("Set Bailout", &calc.general.bailout)) {
-            calc.general.bailout = std::clamp(calc.general.bailout, 2.f, 32767.f);
+            calc.general.bailout = std::clamp(calc.general.bailout, 2.001f, 32767.f);
         }
-        Utilities::imguiHelpMarker("Sets The Bailout radius");
+        ImGuiUtils::HelpMarker("Sets The Bailout radius");
 
 
         ImGui::InputScalar("Interior Detection Threshold", ImGuiDataType_U8, &calc.perturb.interiorDetectRadiusPower);
-        Utilities::imguiHelpMarker("Set the interior detection threshold. It calculates the distance between the "
+        ImGuiUtils::HelpMarker("Set the interior detection threshold. It calculates the distance between the "
                                    "previous and current z at the periodic point.\n"
                                    "if the distance is smaller than \"10^-value\", this pixel is set to interior and "
                                    "all subsequent iterations are skipped. Set 0 to disable it.");
 
-        Utilities::imguiDropdown("Decimalize Iteration", &calc.perturb.decimalizeIterationMethod);
-        Utilities::imguiHelpMarker("Sets the decimalization method of iterations.");
-        Utilities::imguiEndSettings();
+        ImGuiUtils::Dropdown("Decimalize Iteration", &calc.perturb.decimalizeIterationMethod);
+        ImGuiUtils::HelpMarker("Sets the decimalization method of iterations.");
+        ImGuiUtils::EndSettings();
     }
     void FnFractal::sa(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("Series Approximation");
+        ImGuiUtils::BeginSettings("Series Approximation");
 
         auto &[use, appliedTermsCount, validatedTermsCount, epsilonPower] = app.getSettings().fractal.sa;
         ImGui::Checkbox("Use", &use);
@@ -186,41 +187,41 @@ namespace merutilm::rff2 {
         if (ImGui::InputScalar("Applied Terms", ImGuiDataType_U16, &appliedTermsCount)) {
             appliedTermsCount = std::clamp(appliedTermsCount, static_cast<uint16_t>(1), static_cast<uint16_t>(1024));
         }
-        Utilities::imguiHelpMarker("Set the number of terms to approximate the orbit in the first iteration.");
+        ImGuiUtils::HelpMarker("Set the number of terms to approximate the orbit in the first iteration.");
 
 
         if (ImGui::InputScalar("Validated Terms Count", ImGuiDataType_U16, &validatedTermsCount)) {
             validatedTermsCount =
                     std::clamp(validatedTermsCount, static_cast<uint16_t>(1), static_cast<uint16_t>(1024));
         }
-        Utilities::imguiHelpMarker(
+        ImGuiUtils::HelpMarker(
                 "Set the number of terms for the escape condition when generating the series approximation.");
 
         ImGui::InputFloat("Precision Level", &epsilonPower);
-        Utilities::imguiHelpMarker("Useful for glitch reduction. if this value is small,\n"
+        ImGuiUtils::HelpMarker("Useful for glitch reduction. if this value is small,\n"
                                    "The fractal will be rendered glitch-less but slow,\n"
                                    "and is large, It will be fast, but maybe shown visible glitches.");
 
 
         if (!use)
             ImGui::EndDisabled();
-        Utilities::imguiEndSettings();
+        ImGuiUtils::EndSettings();
     }
     void FnFractal::mpa(RFF2 &app) {
 
-        Utilities::imguiBeginSettings("MP-Approximation");
+        ImGuiUtils::BeginSettings("MP-Approximation");
         auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod, useCompress,
                useParallelization] = app.getSettings().fractal.mpa;
 
         if (ImGui::InputScalar("Min Skip Reference", ImGuiDataType_U16, &minSkipReference)) {
             minSkipReference = std::max(minSkipReference, static_cast<uint16_t>(4));
         }
-        Utilities::imguiHelpMarker("Set minimum skipping reference iteration when creating a table.");
+        ImGuiUtils::HelpMarker("Set minimum skipping reference iteration when creating a table.");
 
         if (ImGui::InputScalar("Max Multiplier Between Level", ImGuiDataType_U8, &maxMultiplierBetweenLevel)) {
             maxMultiplierBetweenLevel = std::max(maxMultiplierBetweenLevel, static_cast<uint8_t>(2));
         }
-        Utilities::imguiHelpMarker(
+        ImGuiUtils::HelpMarker(
                 "Set maximum multiplier between adjacent skipping levels.\n"
                 "This means the maximum multiplier of two adjacent periods for the new period that inserts between "
                 "them,\n"
@@ -229,25 +230,25 @@ namespace merutilm::rff2 {
         if (ImGui::InputFloat("Precision Level", &epsilonPower)) {
             epsilonPower = std::clamp(epsilonPower, -15.f, -1.f);
         }
-        Utilities::imguiHelpMarker(
+        ImGuiUtils::HelpMarker(
                 "Set the precision level based on powers of ten (epsilon).\n"
                 "Useful for glitch reduction. you can set this value -15 to -1. if this value is small (-15),\n"
                 "The fractal will be rendered glitch-less but slow,\n"
                 "and is large (-1), It will be fast, but maybe shown visible glitches.");
 
-        Utilities::imguiDropdown("Selection Method", &mpaSelectionMethod);
-        Utilities::imguiHelpMarker("Set the selection method of MPA. The first target PA is always the front element.");
+        ImGuiUtils::Dropdown("Selection Method", &mpaSelectionMethod);
+        ImGuiUtils::HelpMarker("Set the selection method of MPA. The first target PA is always the front element.");
 
         ImGui::Checkbox("Compress", &useCompress);
-        Utilities::imguiHelpMarker("Use compression and acceleration if possible.\n "
+        ImGuiUtils::HelpMarker("Use compression and acceleration if possible.\n "
                                    "If it is checked, slowing down for table creation, It uses compression and "
                                    "acceleration when possible.\n"
                                    "Depending on the reference orbit, memory usage may the same or decrease compared "
                                    "to when it is not checked.\n");
 
         ImGui::Checkbox("Parallelize during generation", &useParallelization);
-        Utilities::imguiHelpMarker("Use parallelization during generation if possible.");
-        Utilities::imguiEndSettings();
+        ImGuiUtils::HelpMarker("Use parallelization during generation if possible.");
+        ImGuiUtils::EndSettings();
     }
 
     void FnFractal::automaticIterations(RFF2 &app) {
