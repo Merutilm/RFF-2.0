@@ -53,7 +53,7 @@ namespace merutilm::vkh {
         std::vector<VkPhysicalDevice> physicalDevices(physicalDeviceCount);
         vkEnumeratePhysicalDevices(instance.getInstanceHandle(), &physicalDeviceCount, physicalDevices.data());
         for (const auto pd: physicalDevices) {
-            if (PhysicalDeviceUtils::isDeviceSuitable(pd, surface)) {
+            if (PhysicalDeviceUtils::isDeviceSuitable(pd, instance.getApplicationCreateInfo().deviceExtensions, surface)) {
                 physicalDevice = pd;
                 vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
                 vkGetPhysicalDeviceMemoryProperties(physicalDevice, &physicalDeviceMemoryProperties);

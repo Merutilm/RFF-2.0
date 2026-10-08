@@ -3,7 +3,7 @@
 //
 
 #pragma once
-
+#include <cstdint>
 namespace merutilm::rff2 {
     struct VidExportSettings {
         float fps;

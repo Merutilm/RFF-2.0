@@ -7,9 +7,11 @@
 #include <vulkan_helper/base/exception.hpp>
 #include <vulkan_helper/util/Debugger.hpp>
 
+#include "vulkan_helper/core/ApplicationCreateInfo.hpp"
+
 namespace merutilm::vkh {
 
-    Instance::Instance(std::vector<const char *> &&additionalExtensions) : additionalExtensions(std::move(additionalExtensions)) {
+    Instance::Instance(const ApplicationCreateInfo &info) : engineCreateInfo(std::move(info)) {
         Instance::init();
     }
 
@@ -32,7 +34,7 @@ namespace merutilm::vkh {
             .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
             .pEngineName = "1.0.0",
             .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-            .apiVersion = VK_API_VERSION_1_0,
+            .apiVersion = engineCreateInfo.version,
         };
 
 
@@ -40,6 +42,7 @@ namespace merutilm::vkh {
 
         uint32_t count;
         const char** extension = glfwGetRequiredInstanceExtensions(&count);
+        extensions.reserve(count);
         for (uint32_t i = 0; i < count; ++i) {
             extensions.push_back(extension[i]);
         }
@@ -48,7 +51,7 @@ namespace merutilm::vkh {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
 
-        extensions.insert(extensions.end(), additionalExtensions.begin(), additionalExtensions.end());
+        extensions.insert(extensions.end(), engineCreateInfo.instanceExtensions.begin(), engineCreateInfo.instanceExtensions.end());
 
 
         VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo = Debugger::populateDebugMessengerCreateInfo();

@@ -9,7 +9,7 @@ cd "$path" || exit
 printf "\033[36m=================== Package Installation ===================\033[0m\n"
 
 sudo apt update
-sudo apt install -y clang clang-tools build-essential make cmake libopencv-dev libvulkan-dev libglm-dev ninja-build libgtk-3-dev git wget xz-utils libglfw3-dev
+sudo apt install -y clang clang-tools build-essential make cmake libopencv-dev libvulkan-dev libglm-dev ninja-build libgtk-3-dev git wget xz-utils libglfw3-dev ffmpeg
 
 if find /usr/lib /usr/local/lib /usr/lib/x86_64-linux-gnu -name "libgmp.a" 2>/dev/null | grep -q .; then
     printf "\033[33mGMP already installed. Skipping GMP build\033[0m\n"

@@ -10,7 +10,7 @@
 
 
 namespace merutilm::vkh {
-    Engine::Engine() {
+    Engine::Engine(const ApplicationCreateInfo &info) : core(info) {
         Engine::init();
     }
 
@@ -22,7 +22,7 @@ namespace merutilm::vkh {
         return windowContexts.size() > windowAttachmentIndex && windowContexts[windowAttachmentIndex] != nullptr;
     }
 
-    WindowContext & Engine::attachWindowContext(WindowInitializerSettings &&wic, uint32_t windowAttachmentIndexExpected) {
+    WindowContext & Engine::attachWindowContext(WindowInitializerSettings wic, uint32_t windowAttachmentIndexExpected) {
 
         if (windowAttachmentIndexExpected >= windowContexts.size()) {
             windowContexts.resize(windowAttachmentIndexExpected + 1);

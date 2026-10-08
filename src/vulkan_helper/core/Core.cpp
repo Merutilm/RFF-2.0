@@ -6,7 +6,7 @@
 
 namespace merutilm::vkh {
 
-    Core::Core() : physicalDevice(instance), logicalDevice(instance, physicalDevice) {
+    Core::Core(const ApplicationCreateInfo &info) : instance(info), physicalDevice(instance), logicalDevice(instance, physicalDevice) {
         Core::init();
     }
 
@@ -15,9 +15,11 @@ namespace merutilm::vkh {
     }
 
     void Core::init() {
+        //noop
     }
 
 
     void Core::cleanup() {
+        //noop
     }
 }

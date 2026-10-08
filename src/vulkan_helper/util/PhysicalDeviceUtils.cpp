@@ -5,7 +5,7 @@
 #include <vulkan_helper/util/PhysicalDeviceUtils.hpp>
 
 namespace merutilm::vkh {
-    bool PhysicalDeviceUtils::isDeviceSuitable(const VkPhysicalDevice physicalDevice, const VkSurfaceKHR surface) {
+    bool PhysicalDeviceUtils::isDeviceSuitable(const VkPhysicalDevice physicalDevice, const std::vector<const char *> &extensions, const VkSurfaceKHR surface) {
         VkPhysicalDeviceProperties properties;
         vkGetPhysicalDeviceProperties(physicalDevice, &properties);
 
@@ -16,7 +16,7 @@ namespace merutilm::vkh {
         return properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
                features.geometryShader && features.shaderFloat64 &&
                indices.isComplete() &&
-               checkDeviceExtensionSupport(physicalDevice);
+               checkDeviceExtensionSupport(physicalDevice, extensions);
     }
 
     QueueFamilyIndices PhysicalDeviceUtils::findQueueFamilies(const VkPhysicalDevice physicalDevice,
@@ -44,13 +44,13 @@ namespace merutilm::vkh {
         return indices;
     }
 
-    bool PhysicalDeviceUtils::checkDeviceExtensionSupport(const VkPhysicalDevice physicalDevice) {
+    bool PhysicalDeviceUtils::checkDeviceExtensionSupport(const VkPhysicalDevice physicalDevice, const std::vector<const char *> &extensions) {
         uint32_t extensionCount;
         vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
         std::vector<VkExtensionProperties> availableExtensions(extensionCount);
         vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, availableExtensions.data());
         auto required = std::unordered_set<std::string, StringHasher, std::equal_to<>>(
-                PHYSICAL_DEVICE_EXTENSIONS.begin(), PHYSICAL_DEVICE_EXTENSIONS.end());
+                extensions.begin(), extensions.end());
         for (const auto &[extensionName, specVersion]: availableExtensions) {
             required.erase(extensionName);
         }

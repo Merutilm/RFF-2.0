@@ -19,8 +19,8 @@ namespace merutilm::vkh {
         VkPhysicalDeviceFeatures physicalDeviceFeatures = {};
         QueueFamilyIndices queueFamilyIndices;
         std::vector<VkSurfaceFormatKHR> surfaceFormats;
-        VkFormat primarySurfaceFormat;
-        uint32_t maxFramesInFlight;
+        VkFormat primarySurfaceFormat = VK_FORMAT_UNDEFINED;
+        uint32_t maxFramesInFlight = 2;
 
     public:
 

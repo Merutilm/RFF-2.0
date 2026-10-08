@@ -67,16 +67,9 @@ add_executable(
         src/rff2/vulkan/GPC3DFractal.cpp
         src/rff2/vulkan/GPCSmoothZoom.cpp
         src/rff2/vulkan/CPCInterpolateIsolated.cpp
-        src/rff2/vulkan/CPCInterpolateIsolated.hpp
-        include/vulkan_helper/engine/wrapped/DescriptorTemplateManager.hpp
-        src/rff2/mb/ReferenceCheckpoint.hpp
-        src/rff2/app/FnListeners.hpp
-        src/rff2/calc/rff_random.hpp
         src/rff2/mb/MB2Locator.cpp
-        src/rff2/settings/ExpLocatorSettings.hpp
         src/rff2/io/RFFShaderBinary.cpp
-        src/rff2/io/RFFShaderBinary.hpp
-        src/rff2/io/RFFMapBinary.hpp
+        src/rff2/vulkan/video/H264VideoEncoder.cpp
 )
 
 target_compile_options(RFF PRIVATE
@@ -113,6 +106,10 @@ if (WIN32)
             ${CLANG64_LIBS}/libopencv_imgproc4110.dll.a
             ${CLANG64_LIBS}/libopencv_videoio4110.dll.a
             ${CLANG64_LIBS}/libopencv_highgui4110.dll.a
+            # FFmpeg Linkers
+            ${CLANG64_LIBS}/libavcodec.dll.a
+            ${CLANG64_LIBS}/libavformat.dll.a
+            ${CLANG64_LIBS}/libavutil.dll.a
     )
 
 
@@ -140,8 +137,13 @@ elseif (UNIX)
 
     find_package(OpenCV REQUIRED)
     find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 
+    pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+    pkg_check_modules(FFMPEG REQUIRED
+            libavcodec
+            libavformat
+            libavutil
+    )
 
     find_static_library(GMP_STATIC gmp)
 
@@ -155,12 +157,21 @@ elseif (UNIX)
             ${GTK3_LIBRARIES}
             # OpenCV Linkers
             ${OpenCV_LIBS}
+            # FFmpeg Linkers
+            ${FFMPEG_LIBRARIES}
     )
     target_include_directories(RFF PRIVATE
             # opencv4 include dirs
             ${OpenCV_INCLUDE_DIRS}
             # gtk
             ${GTK3_INCLUDE_DIRS}
+            # ffmpeg
+            ${FFMPEG_INCLUDE_DIRS}
+    )
+
+    target_link_directories(RFF PRIVATE
+            # ffmpeg
+            ${FFMPEG_LIBRARY_DIRS}
     )
 
 endif ()

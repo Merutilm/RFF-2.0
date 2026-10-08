@@ -14,13 +14,15 @@ namespace merutilm::vkh {
 
         std::optional<Engine> engine = std::nullopt;
         WindowContext *rootWindowContext = nullptr;
-        WindowInitializerSettings rootWindowInitializerSettings;
         std::vector<std::unique_ptr<Renderer>> renderers;
+
+        ApplicationCreateInfo applicationCreateInfo;
+        WindowInitializerSettings rootWindowInitializerSettings;
 
 
         static constexpr int WC_ROOT = 0;
 
-        explicit Application(WindowInitializerSettings rootWindowInitializerSettings);
+        explicit Application(ApplicationCreateInfo applicationCreateInfo, WindowInitializerSettings rootWindowInitializerSettings);
 
         ~Application() override;
 
@@ -34,9 +36,9 @@ namespace merutilm::vkh {
 
 
         template<typename App> requires std::is_base_of_v<Application, App>
-        static void start(const WindowInitializerSettings &wic) {
-            VkExtent2D extent = {static_cast<uint32_t>(wic.widthInfo.first), static_cast<uint32_t>(wic.heightInfo.first)};
-            App app(wic);
+        static void start(ApplicationCreateInfo info, WindowInitializerSettings wic) {
+            VkExtent2D extent = {.width = static_cast<uint32_t>(wic.widthInfo.first), .height = static_cast<uint32_t>(wic.heightInfo.first)};
+            App app(std::move(info), std::move(wic));
             app.refreshSharedImgContexts(extent);
             app.registerRenderers();
             app.callRenderContextRefreshed();

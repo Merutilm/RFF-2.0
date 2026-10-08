@@ -46,7 +46,7 @@ namespace merutilm::rff2 {
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
     public:
-        explicit RFF2(const vkh::WindowInitializerSettings &wic) : Application(wic), settings(genDefaultSettings()) {}
+        explicit RFF2(vkh::ApplicationCreateInfo info, vkh::WindowInitializerSettings wic) : Application(std::move(info), std::move(wic)), settings(genDefaultSettings()) {}
 
         ~RFF2() override = default;
 

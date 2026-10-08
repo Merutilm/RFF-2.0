@@ -18,7 +18,7 @@ namespace merutilm::vkh {
     void WindowContext::init() {
 
         surface.emplace(core.getInstance(), window.get());
-        if (!PhysicalDeviceUtils::isDeviceSuitable(core.getPhysicalDeviceLoader().getPhysicalDeviceHandle(),
+        if (!PhysicalDeviceUtils::isDeviceSuitable(core.getPhysicalDeviceLoader().getPhysicalDeviceHandle(), core.getInstance().getApplicationCreateInfo().deviceExtensions,
                                                    surface->getSurfaceHandle())) {
             throw exception_invalid_args("Invalid window provided");
         }

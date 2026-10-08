@@ -16,7 +16,9 @@
 
 namespace merutilm::vkh {
 
-    Application::Application(WindowInitializerSettings rootWindowInitializerSettings) :
+    Application::Application(ApplicationCreateInfo applicationCreateInfo,
+                             WindowInitializerSettings rootWindowInitializerSettings) :
+        applicationCreateInfo(std::move(applicationCreateInfo)),
         rootWindowInitializerSettings(std::move(rootWindowInitializerSettings)) {
         Application::init();
     }
@@ -30,12 +32,12 @@ namespace merutilm::vkh {
         if (!glfwVulkanSupported()) {
             throw exception_init("Vulkan is not supported!");
         }
-        engine.emplace();
+        engine.emplace(applicationCreateInfo);
         configureRootWindowContext();
     }
 
     void Application::configureRootWindowContext() {
-        rootWindowContext = &engine->attachWindowContext(std::move(rootWindowInitializerSettings), 0);
+        rootWindowContext = &engine->attachWindowContext(rootWindowInitializerSettings, 0);
     }
 
 
@@ -52,7 +54,7 @@ namespace merutilm::vkh {
         ImGui::StyleColorsDark();
         ImGui_ImplGlfw_InitForVulkan(rootWindowContext->getWindow()->getWindow(), true);
         ImGui_ImplVulkan_InitInfo init_info = {
-                .ApiVersion = VK_API_VERSION_1_0,
+                .ApiVersion = engine->getCore().getInstance().getApplicationCreateInfo().version,
                 .Instance = engine->getCore().getInstance().getInstanceHandle(),
                 .PhysicalDevice = engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceHandle(),
                 .Device = engine->getCore().getLogicalDevice().getLogicalDeviceHandle(),

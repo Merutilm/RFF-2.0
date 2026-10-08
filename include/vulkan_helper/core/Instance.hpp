@@ -4,17 +4,19 @@
 
 #pragma once
 
-#include "ValidationLayer.hpp"
 #include <vulkan_helper/handle/Handler.hpp>
+
+#include "ApplicationCreateInfo.hpp"
+#include "ValidationLayer.hpp"
 
 namespace merutilm::vkh {
     class Instance final : public Handler {
         VkInstance instance = nullptr;
+        const ApplicationCreateInfo &engineCreateInfo;
         std::unique_ptr<ValidationLayer> validationLayer;
-        std::vector<const char *> additionalExtensions;
 
     public:
-        explicit Instance(std::vector<const char *> &&additionalExtensions = {});
+        explicit Instance(const ApplicationCreateInfo &info);
 
         ~Instance() override;
 
@@ -28,6 +30,8 @@ namespace merutilm::vkh {
 
         [[nodiscard]] VkInstance getInstanceHandle() const { return instance; }
 
+        [[nodiscard]] const ApplicationCreateInfo &getApplicationCreateInfo() const { return engineCreateInfo; }
+
     protected:
         void init() override;
 
@@ -38,4 +42,4 @@ namespace merutilm::vkh {
     };
 
 
-}
+} // namespace merutilm::vkh

@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "ApplicationCreateInfo.hpp"
 #include "Instance.hpp"
 #include "LogicalDevice.hpp"
 #include "PhysicalDeviceLoader.hpp"
@@ -14,7 +15,7 @@ namespace merutilm::vkh {
         LogicalDevice logicalDevice;
 
     public:
-        explicit Core();
+        explicit Core(const ApplicationCreateInfo &info);
 
         ~Core() override;
 

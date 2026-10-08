@@ -58,8 +58,8 @@ namespace merutilm::vkh {
                 .pQueueCreateInfos = &queueCreateInfo,
                 .enabledLayerCount = config::ENABLE_VALIDATION ? 1 : 0,
                 .ppEnabledLayerNames = config::ENABLE_VALIDATION ? &Debugger::VALIDATION_LAYER : nullptr,
-                .enabledExtensionCount = static_cast<uint32_t>(PhysicalDeviceUtils::PHYSICAL_DEVICE_EXTENSIONS.size()),
-                .ppEnabledExtensionNames = PhysicalDeviceUtils::PHYSICAL_DEVICE_EXTENSIONS.data(),
+                .enabledExtensionCount = static_cast<uint32_t>(instance.getApplicationCreateInfo().deviceExtensions.size()),
+                .ppEnabledExtensionNames = instance.getApplicationCreateInfo().deviceExtensions.data(),
                 .pEnabledFeatures = &physicalDevice.getPhysicalDeviceFeatures()};
 
         if (vkCreateDevice(physicalDevice.getPhysicalDeviceHandle(), &createInfo, nullptr, &logicalDevice) !=

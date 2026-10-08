@@ -17,7 +17,7 @@ namespace merutilm::vkh {
         std::vector<std::unique_ptr<WindowContext>> windowContexts = {};
 
     public:
-        explicit Engine();
+        explicit Engine(const ApplicationCreateInfo &info);
 
         ~Engine() override;
 
@@ -31,7 +31,7 @@ namespace merutilm::vkh {
 
         [[nodiscard]] bool isValidWindowContext(uint32_t windowAttachmentIndex) const;
 
-        [[nodiscard]] WindowContext & attachWindowContext(WindowInitializerSettings &&wic, uint32_t windowAttachmentIndexExpected);
+        [[nodiscard]] WindowContext & attachWindowContext(WindowInitializerSettings wic, uint32_t windowAttachmentIndexExpected);
 
         std::unique_ptr<WindowContext> detachWindowContext(uint32_t windowAttachmentIndex);
 

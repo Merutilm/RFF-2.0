@@ -49,7 +49,18 @@ int main() {
     testCode();
     count();
 #endif
-    Application::start<RFF2>({.framerate = Constants::Render::INIT_FPS,
+    Application::start<RFF2>({.version = VK_API_VERSION_1_3,
+                              .instanceExtensions = {},
+                              .deviceExtensions =
+                                      {
+                                              VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                                              // VK_KHR_VIDEO_QUEUE_EXTENSION_NAME,
+                                              // VK_KHR_VIDEO_ENCODE_QUEUE_EXTENSION_NAME,
+                                              // VK_KHR_VIDEO_ENCODE_H264_EXTENSION_NAME,
+                                              // VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
+                                              // VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
+                                      }},
+                             {.framerate = Constants::Render::INIT_FPS,
                               .name = "RFF 2.0",
                               .icon = "../res/icon.png",
                               .widthInfo = {.min = Constants::Render::MIN_WINDOW_WIDTH,
