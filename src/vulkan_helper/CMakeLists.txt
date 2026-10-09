@@ -11,7 +11,7 @@ add_subdirectory(core)
 add_subdirectory(engine)
 add_subdirectory(util)
 
-add_library(vulkan_helper SHARED
+add_library(vulkan_helper STATIC
         Application.cpp
         $<TARGET_OBJECTS:core>
         $<TARGET_OBJECTS:util>
