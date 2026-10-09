@@ -960,10 +960,10 @@ namespace merutilm::rff2 {
 
         auto rendered = std::vector<uint8_t>(len);
 
-        auto func = [&s, this, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y, const uint16_t xRes,
+        auto func = [&s, this, len, &renderPixelsCount, &rendered](const uint16_t x, const uint16_t y, const uint16_t xRes,
                                                               const uint16_t yRes, float, float, const uint32_t i,
                                                               double) {
-            assert(i < rendered.size());
+            RFF_ASSUME(i < len);
             rendered[i] = true;
             const auto dc = offsetConversion(s.fractal.general.logZoom, s.render.display.clarityMultiplier, x, y);
             const double iteration = renderData->getPerturbator()->iterate(dc);

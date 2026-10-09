@@ -243,7 +243,7 @@ namespace merutilm::rff2 {
 
             for (const auto &compressor: pulledMPACompressor) {
                 const uint64_t i = binarySearch(mpaPeriod->skippableIterationCounts, compressor.range() + 1);
-                assert(i != UINT64_MAX);
+                RFF_ASSUME(i != UINT64_MAX);
                 tableLen -= mpaPeriod->tableElementCounts[i] - (i + 1);
             }
 
@@ -526,11 +526,11 @@ namespace merutilm::rff2 {
 
         if (levels > 0) {
             debugCheckMPAFromMapper(tableCache.mpaTable.sizeUsed, flattenTableIndex, tablePeriod.size(), levels);
-            assert(tableCache.flattenIndexMapper.sizeUsed > iteration);
+            RFF_ASSUME(tableCache.flattenIndexMapper.sizeUsed > iteration);
             tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[iteration] = {flattenTableIndex, levels};
             flattenTableIndex += levels;
         } else {
-            assert(tableCache.flattenIndexMapper.sizeUsed > iteration);
+            RFF_ASSUME(tableCache.flattenIndexMapper.sizeUsed > iteration);
             tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[iteration] = {UINT64_MAX, 0};
         }
         currentPA[0].step();
@@ -555,7 +555,7 @@ namespace merutilm::rff2 {
         if (levels > 0) {
 
             uint64_t compIndex = ArrayCompressor::compress(pulledMPACompressor, pulledTableIndex);
-            assert(tableCache.flattenIndexMapper.sizeUsed > compIndex);
+            RFF_ASSUME(tableCache.flattenIndexMapper.sizeUsed > compIndex);
             tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[compIndex] = {flattenTableIndex, levels};
 
             jumped = tryJumpTableGeneration(itCount, itCountLim, currentPA, generationAvailable, pulledTableIndex,

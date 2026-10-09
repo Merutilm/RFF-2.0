@@ -6,6 +6,7 @@
 #include <gmp.h>
 
 #include "exponent.hpp"
+#include "rff_constraints.hpp"
 namespace merutilm::rff2 {
 
     /**
@@ -184,7 +185,7 @@ namespace merutilm::rff2 {
 
 
     inline fixed_point_decimal &fixed_point_decimal::operator=(const fixed_point_decimal &other) {
-        assert(raw != nullptr);
+        RFF_ASSUME(raw != nullptr);
         if (&other == this)
             return *this;
 
@@ -211,7 +212,7 @@ namespace merutilm::rff2 {
 
 
     inline fixed_point_decimal &fixed_point_decimal::operator=(fixed_point_decimal &&other) noexcept {
-        assert(raw != nullptr);
+        RFF_ASSUME(raw != nullptr);
         if (&other == this)
             return *this;
 
@@ -286,7 +287,7 @@ namespace merutilm::rff2 {
             return;
         }
 
-        assert(value != INT64_MIN);
+        RFF_ASSUME(value != INT64_MIN);
 
         const int64_t dec_limbs = -exp2div64;
         const bool neg = size < 0;
@@ -298,7 +299,7 @@ namespace merutilm::rff2 {
             mpn_zero(data + limbs_cnt, required_minimum - limbs_cnt);
             const mp_limb_t carry =
                     mpn_add_1(data + dec_limbs, data + dec_limbs, required_minimum - dec_limbs, std::abs(value));
-            assert(carry == 0);
+            RFF_ASSUME(carry == 0);
             size = required_minimum - (data[required_minimum - 1] == 0);
             size = neg ? -size : size;
         } else {
@@ -370,8 +371,8 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::add(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {
-        assert(result.exp2div64 == lhs.exp2div64);
-        assert(result.exp2div64 == rhs.exp2div64);
+        RFF_ASSUME(result.exp2div64 == lhs.exp2div64);
+        RFF_ASSUME(result.exp2div64 == rhs.exp2div64);
 
         int64_t lhs_size = std::abs(lhs.size);
         int64_t rhs_size = std::abs(rhs.size);
@@ -437,8 +438,8 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::sub(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {
-        assert(result.exp2div64 == lhs.exp2div64);
-        assert(result.exp2div64 == rhs.exp2div64);
+        RFF_ASSUME(result.exp2div64 == lhs.exp2div64);
+        RFF_ASSUME(result.exp2div64 == rhs.exp2div64);
 
         int64_t lhs_size = std::abs(lhs.size);
         int64_t rhs_size = std::abs(rhs.size);
@@ -536,7 +537,7 @@ namespace merutilm::rff2 {
     inline int32_t fixed_point_decimal::compare(const int64_t value) const {
         if (value == 0)
             return sgn();
-        assert(value != INT64_MIN);
+        RFF_ASSUME(value != INT64_MIN);
         const int64_t min_size = -exp2div64 + 1;
         const int64_t limbs_cnt = std::abs(size);
         const uint64_t value_scale = std::abs(value);
@@ -566,7 +567,7 @@ namespace merutilm::rff2 {
             zero();
             return;
         }
-        assert(value != INT64_MIN);
+        RFF_ASSUME(value != INT64_MIN);
         const int64_t min_size = -exp2div64 + 1;
         try_realloc_inc(min_size);
         size = value < 0 ? -min_size : min_size;
@@ -576,8 +577,8 @@ namespace merutilm::rff2 {
     }
 
     inline void fixed_point_decimal::sqr(fixed_point_decimal &result, const fixed_point_decimal &v) {
-        assert(result.exp2div64 == v.exp2div64);
-        assert(&result != &v);
+        RFF_ASSUME(result.exp2div64 == v.exp2div64);
+        RFF_ASSUME(&result != &v);
 
         const int64_t size = std::abs(v.size);
         int64_t result_size = size * 2;
@@ -592,7 +593,7 @@ namespace merutilm::rff2 {
         result.try_realloc_inc(result_size);
         mp_limb_t *result_ptr = result.data;
 
-        assert(result.off + result.exp2div64 >= 0);
+        RFF_ASSUME(result.off + result.exp2div64 >= 0);
         mpn_sqr(result_ptr + result.exp2div64, ptr, size);
         const mp_limb_t top = result_ptr[result_size + result.exp2div64 - 1];
         // mpn_copyi(result_ptr, result_ptr - result.exp2div64, result_size + result.exp2div64);
@@ -602,7 +603,7 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::mul(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const uint64_t rhs) {
-        assert(result.exp2div64 == lhs.exp2div64);
+        RFF_ASSUME(result.exp2div64 == lhs.exp2div64);
         const int64_t lhs_size = std::abs(lhs.size);
 
         if (rhs == 0 || lhs_size == 0) {
@@ -618,9 +619,9 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::mul(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {
-        assert(result.exp2div64 == lhs.exp2div64);
-        assert(result.exp2div64 == rhs.exp2div64);
-        assert(&result != &lhs && &result != &rhs);
+        RFF_ASSUME(result.exp2div64 == lhs.exp2div64);
+        RFF_ASSUME(result.exp2div64 == rhs.exp2div64);
+        RFF_ASSUME(&result != &lhs && &result != &rhs);
 
         mp_limb_t *l = lhs.data;
         mp_limb_t *r = rhs.data;
@@ -643,7 +644,7 @@ namespace merutilm::rff2 {
 
         result.try_realloc_inc(result_size);
         mp_limb_t *result_ptr = result.data;
-        assert(result.off + result.exp2div64 >= 0);
+        RFF_ASSUME(result.off + result.exp2div64 >= 0);
         const mp_limb_t top = mpn_mul(result_ptr + result.exp2div64, l, lhs_size, r, rhs_size);
         result_size += result.exp2div64 - (top == 0);
         result_size = sgn < 0 ? -result_size : result_size;
@@ -653,8 +654,8 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::div(fixed_point_decimal &result, const fixed_point_decimal &lhs,
                                          const fixed_point_decimal &rhs) {
-        assert(result.exp2div64 == lhs.exp2div64);
-        assert(result.exp2div64 == rhs.exp2div64);
+        RFF_ASSUME(result.exp2div64 == lhs.exp2div64);
+        RFF_ASSUME(result.exp2div64 == rhs.exp2div64);
 
         limbs_lshift_copy(result, lhs, -lhs.exp2div64);
         const int64_t lhs_size = std::abs(result.size);
@@ -700,7 +701,7 @@ namespace merutilm::rff2 {
 
     inline void fixed_point_decimal::limbs_lshift_copy(fixed_point_decimal &result, const fixed_point_decimal &v,
                                                        const int64_t limb_shift) {
-        assert(result.exp2div64 == v.exp2div64);
+        RFF_ASSUME(result.exp2div64 == v.exp2div64);
 
         if (v.size == 0) {
             result.size = 0;
@@ -750,7 +751,7 @@ namespace merutilm::rff2 {
 
 
     inline void fixed_point_decimal::dbl(fixed_point_decimal &result, const fixed_point_decimal &v) {
-        assert(result.exp2div64 == v.exp2div64);
+        RFF_ASSUME(result.exp2div64 == v.exp2div64);
         const int64_t limbs_cnt = std::abs(v.size);
         if (limbs_cnt == 0) {
             result.size = 0;
@@ -767,7 +768,7 @@ namespace merutilm::rff2 {
 
 
     inline void fixed_point_decimal::hlv(fixed_point_decimal &result, const fixed_point_decimal &v) {
-        assert(result.exp2div64 == v.exp2div64);
+        RFF_ASSUME(result.exp2div64 == v.exp2div64);
         const int64_t limbs_cnt = std::abs(v.size);
         if (limbs_cnt == 0) {
             result.size = 0;
@@ -788,7 +789,7 @@ namespace merutilm::rff2 {
     }
 
     inline void fixed_point_decimal::set_exp2div64(const int64_t new_exp2div64, const bool preserveValue) {
-        assert(new_exp2div64 < 0);
+        RFF_ASSUME(new_exp2div64 < 0);
         if (preserveValue) {
             if (exp2div64 < new_exp2div64) {
                 const int64_t shift = new_exp2div64 - exp2div64;
@@ -890,11 +891,11 @@ namespace merutilm::rff2 {
         static constexpr auto MANTISSA_MASK = 0x000fffffffffffffULL;
         const int64_t limbs_cnt = std::abs(size);
 
-        assert(limbs_cnt > 0);
+        RFF_ASSUME(limbs_cnt > 0);
 
         const int64_t shift = limbs_cnt * 64 - std::countl_zero(*(src_ptr + limbs_cnt - 1)) - 53;
         if (shift <= 0) {
-            assert(shift > -53);
+            RFF_ASSUME(shift > -53);
             mantissa_bit = *src_ptr << static_cast<uint64_t>(-shift) & MANTISSA_MASK;
         } else {
             const uint64_t limb_skip = static_cast<uint64_t>(shift) >> 6u;
@@ -903,7 +904,7 @@ namespace merutilm::rff2 {
             if (shift_small <= 12) {
                 mantissa_bit = *dst0 >> shift_small & MANTISSA_MASK;
             } else {
-                assert(limbs_cnt > limb_skip + 1);
+                RFF_ASSUME(limbs_cnt > limb_skip + 1);
                 const auto dst1 = *(dst0 + 1);
                 mantissa_bit = (dst1 << (64 - shift_small) | *dst0 >> shift_small) & MANTISSA_MASK;
             }
