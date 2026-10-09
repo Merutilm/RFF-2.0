@@ -12,6 +12,7 @@
 #include "vulkan_helper/util/DescriptorUpdater.hpp"
 
 namespace merutilm::rff2::SharedDescriptorManager {
+#ifdef USE_EXPERIMENTAL_3D
 
     struct DescManagerCamera3D : vkh::DescriptorTemplateManager {
 
@@ -45,7 +46,7 @@ namespace merutilm::rff2::SharedDescriptorManager {
             }
         }
     };
-
+#endif
 
     struct DescManagerTime : vkh::DescriptorTemplateManager {
         using DescriptorTemplateManager::DescriptorTemplateManager;
@@ -270,6 +271,8 @@ namespace merutilm::rff2::SharedDescriptorManager {
             }
         }
     };
+#ifdef USE_EXPERIMENTAL_3D
+
     struct DescManagerFractal3D : vkh::DescriptorTemplateManager {
 
         using DescriptorTemplateManager::DescriptorTemplateManager;
@@ -287,6 +290,7 @@ namespace merutilm::rff2::SharedDescriptorManager {
             f3dUBO.update();
         }
     };
+#endif
 
     struct DescManagerBatchResult : vkh::DescriptorTemplateManager {
         using DescriptorTemplateManager::DescriptorTemplateManager;

@@ -10,6 +10,8 @@
 #include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
+#ifdef USE_EXPERIMENTAL_3D
+
     class RenderGraph1 final : public vkh::RenderPassGraphGenerator {
 
         vkh::RenderPassAttachment *resultAttachment = nullptr;
@@ -89,4 +91,5 @@ namespace merutilm::rff2 {
                                        RendererUtils::DEFAULT_DESC_PICKER);
         }
     };
+#endif
 } // namespace merutilm::rff2

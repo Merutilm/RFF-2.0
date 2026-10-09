@@ -410,8 +410,9 @@ namespace merutilm::rff2 {
         }
         ImGuiUtils::EndSettings();
     }
-
+#ifdef USE_EXPERIMENTAL_3D
     void FnShader::fractal3D(RFF2 &app) {
+
 
         ImGuiUtils::BeginSettings("3D  (Wow epic)");
         auto &[use, altitude, rotation, distance, baseIteration, divisor] = app.getSettings().shader.fractal3D;
@@ -446,6 +447,7 @@ namespace merutilm::rff2 {
         }
         ImGuiUtils::EndSettings();
     }
+#endif
 
 
 } // namespace merutilm::rff2

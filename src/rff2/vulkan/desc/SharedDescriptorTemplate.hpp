@@ -326,6 +326,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             managers.emplace_back(std::move(descManager));
         }
     };
+#ifdef USE_EXPERIMENTAL_3D
 
     struct DescFractal3D final : public vkh::DescriptorTemplate {
         static constexpr uint32_t ID = 11;
@@ -351,7 +352,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         }
     };
 
-
+#endif
     struct DescRenderMetaIterationVariant : public vkh::DescriptorTemplate {
 
         static constexpr uint32_t ID = 13;

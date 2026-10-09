@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#ifdef USE_EXPERIMENTAL_3D
 #include "../settings/ShdFractal3DSettings.hpp"
 #include "vulkan_helper/engine/configurator/GeneralGraphicsPipelineConfigurator.hpp"
 namespace merutilm::rff2 {
@@ -41,3 +42,4 @@ namespace merutilm::rff2 {
         void configureIndexBuffer(vkh::HostDataObjectManager &som) override;
     };
 }
+#endif

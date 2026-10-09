@@ -201,3 +201,4 @@ FetchContent_MakeAvailable(nfd)
 target_link_libraries(RFF PRIVATE nfd)
 
 RFF_DEFINITION(SAFE_EXP_OPERATOR "Better Quality, Slower Speed (Safety checking)" OFF)
+RFF_DEFINITION(USE_EXPERIMENTAL_3D "Use Experimental 3D Fractal Feature" OFF)

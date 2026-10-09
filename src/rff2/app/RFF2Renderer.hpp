@@ -27,15 +27,18 @@ namespace merutilm::rff2 {
         const Settings &settings;
         const ZoomAnimationInfo &zoomAnimationInfo;
 
-        vkh::RenderContext *rc0 = nullptr;
+#ifdef USE_EXPERIMENTAL_3D
         vkh::RenderContext *rc1 = nullptr;
+        RenderGraph1 *rg1 = nullptr;
+#endif
+
+        vkh::RenderContext *rc0 = nullptr;
         vkh::RenderContext *rcDownsample = nullptr;
         vkh::RenderContext *rc3 = nullptr;
         vkh::RenderContext *rc4 = nullptr;
         vkh::RenderContext *rcPresent = nullptr;
 
         RenderGraph0 *rg0 = nullptr;
-        RenderGraph1 *rg1 = nullptr;
         RenderGraphDownsampleForBlur *rccDownsample = nullptr;
         RenderGraph3 *rg3 = nullptr;
         RenderGraph4 *rg4 = nullptr;
@@ -91,6 +94,7 @@ namespace merutilm::rff2 {
                                                                      settings.render.display.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
+#ifdef USE_EXPERIMENTAL_3D
             rc1 = vkh::RenderContextUtils::attachRenderContext<RenderGraph1>(
                     &rg1, configurators, engine, wc,
                     [this] {
@@ -98,6 +102,7 @@ namespace merutilm::rff2 {
                                                                      settings.render.display.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
+#endif
             rcDownsample = vkh::RenderContextUtils::attachRenderContext<RenderGraphDownsampleForBlur>(
                     &rccDownsample, configurators, engine, wc,
                     [this] {
@@ -163,13 +168,15 @@ namespace merutilm::rff2 {
 
             // [BARRIER] Safe-copy iteration buffer
 
-
+#ifdef USE_EXPERIMENTAL_3D
             if (settings.shader.fractal3D.use) {
                 vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc1, frameIndex);
             } else {
                 vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc0, frameIndex);
             }
-
+#else
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc0, frameIndex);
+#endif
 
             // [IN] EXTERNAL
             // [SUBPASS OUT] PRIMARY (color)

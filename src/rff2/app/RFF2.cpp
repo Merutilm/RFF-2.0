@@ -121,27 +121,23 @@ namespace merutilm::rff2 {
                                       const uint64_t refInitialCapacity) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
-                return std::make_unique<FexMB2RenderData>(state, frt, computeShader,
-                                                          *approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                          getFnRefCalc(startTime), getFnSeriesApprox(startTime),
-                                                          getFnCreatingTable(startTime));
+                return std::make_unique<FexMB2RenderData>(state, frt, computeShader, *approxTableCache, dcMax, exp10,
+                                                          refInitialCapacity, getFnRefCalc(startTime),
+                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime));
             } else {
-                return std::make_unique<FloatMB2RenderData>(state, frt, computeShader,
-                                                            *approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                            getFnRefCalc(startTime), getFnSeriesApprox(startTime),
-                                                            getFnCreatingTable(startTime));
+                return std::make_unique<FloatMB2RenderData>(
+                        state, frt, computeShader, *approxTableCache, dcMax, exp10, refInitialCapacity,
+                        getFnRefCalc(startTime), getFnSeriesApprox(startTime), getFnCreatingTable(startTime));
             }
         } else {
             if (logZoomTest > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
-                return std::make_unique<DexMB2RenderData>(state, frt, computeShader,
-                                                          *approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                          getFnRefCalc(startTime), getFnSeriesApprox(startTime),
-                                                          getFnCreatingTable(startTime));
+                return std::make_unique<DexMB2RenderData>(state, frt, computeShader, *approxTableCache, dcMax, exp10,
+                                                          refInitialCapacity, getFnRefCalc(startTime),
+                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime));
             } else {
-                return std::make_unique<DoubleMB2RenderData>(state, frt, computeShader,
-                                                             *approxTableCache, dcMax, exp10, refInitialCapacity,
-                                                             getFnRefCalc(startTime), getFnSeriesApprox(startTime),
-                                                             getFnCreatingTable(startTime));
+                return std::make_unique<DoubleMB2RenderData>(
+                        state, frt, computeShader, *approxTableCache, dcMax, exp10, refInitialCapacity,
+                        getFnRefCalc(startTime), getFnSeriesApprox(startTime), getFnCreatingTable(startTime));
             }
         }
     }
@@ -208,7 +204,8 @@ namespace merutilm::rff2 {
                            .fog = ShdFogPresets::Disabled().genFog(),
                            .bloom = ShdBloomPresets::Disabled().genBloom(),
                            .noiseReduction = {true, 2, 0.1f},
-                           .fractal3D = {false, 85, 0, 1, 0, 10.f}},
+                           .fractal3D = {false, 85, 0, 1, 0, 10.f}
+                },
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
@@ -256,7 +253,9 @@ namespace merutilm::rff2 {
                                          .rotation = 0,
                                          .distance = 1,
                                          .baseIteration = 0,
-                                         .depthDivisor = 10.f}},
+                                         .depthDivisor = 10.f}
+
+                },
                 .video = {.data = {.defaultZoomIncrement = 2, .isStatic = false},
                           .animation = {.overZoom = 2, .showText = true, .mps = 1},
                           .exportation = {.fps = 60, .bitrate = 9000}},
@@ -268,7 +267,7 @@ namespace merutilm::rff2 {
                                         const int py) const {
         const double bufOffX = static_cast<double>(px) - static_cast<double>(getIterationBufferWidth()) / 2.0;
         const double bufOffY = static_cast<double>(py) - static_cast<double>(getIterationBufferHeight()) / 2.0;
-        return complex{dex(bufOffX), dex(bufOffY)} / getDivisor(logZoom) / dex(clarityMultiplier);
+        return complex{.re = dex(bufOffX), .im = dex(bufOffY)} / getDivisor(logZoom) / dex(clarityMultiplier);
     }
 
     std::array<int, 2> RFF2::iterationBufferConversion(const double logZoom, const float clarityMultiplier,
@@ -313,7 +312,7 @@ namespace merutilm::rff2 {
         eventSystem.applicationLifecycle.onUpdate.add([this] { update(); });
 
         eventSystem.resize.onResize.add([this](const int w, const int h) {
-            const auto extent = VkExtent2D{static_cast<uint32_t>(w), static_cast<uint32_t>(h)};
+            const auto extent = VkExtent2D{.width = static_cast<uint32_t>(w), .height = static_cast<uint32_t>(h)};
             requests.requestResize(extent);
         });
 
@@ -352,7 +351,6 @@ namespace merutilm::rff2 {
                         const fixed_point_complex add(dex(static_cast<double>(dx) / m) / getDivisor(logZoom),
                                                       dex(static_cast<double>(dy) / m) / getDivisor(logZoom), exp10);
                         fixed_point_complex::add(center, center, add);
-
                     }
                 });
         eventSystem.mouseDrag.onMouseDragEnd.add([this](const int mb, const int, const int) {
@@ -482,8 +480,10 @@ namespace merutilm::rff2 {
         renderer->descriptorStorage->fog->set(s.shader.fog);
         renderer->descriptorStorage->bloom->set(s.shader.bloom);
         renderer->descriptorStorage->noiseReduction->set(s.shader.noiseReduction);
+#ifdef USE_EXPERIMENTAL_3D
         renderer->descriptorStorage->camera3d->set(s.shader.fractal3D);
         renderer->descriptorStorage->fractal3d->set(s.shader.fractal3D);
+#endif
     }
 
     void RFF2::refreshResizeParams(const VkExtent2D swapchainExtent) const {
@@ -508,10 +508,12 @@ namespace merutilm::rff2 {
         renderer->rccPresentPrepare->smoothZoom->setRescaledResolution({sWidth, sHeight});
 
 
+#ifdef USE_EXPERIMENTAL_3D
         renderer->rg1->fractal3d->resetPiplineVI(iw, ih);
-        renderer->computeIterateFloat->setExtent({iw, ih});
-        renderer->computeIterateFex->setExtent({iw, ih});
-        renderer->computeIgnoreIsolated->setExtent({iw, ih});
+#endif
+        renderer->computeIterateFloat->setExtent({.width = iw, .height = ih});
+        renderer->computeIterateFex->setExtent({.width = iw, .height = ih});
+        renderer->computeIgnoreIsolated->setExtent({.width = iw, .height = ih});
 
         renderer->visibleIterationBufferContext = std::make_unique<GraphicsMatrixBuffer<double>>(
                 rootWindowContext->core, iw, ih, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -617,7 +619,9 @@ namespace merutilm::rff2 {
                 FnShader::fog(*this);
                 FnShader::bloom(*this);
                 FnShader::noiseReduction(*this);
+#ifdef USE_EXPERIMENTAL_3D
                 FnShader::fractal3D(*this);
+#endif
                 ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Video")) {
@@ -679,7 +683,7 @@ namespace merutilm::rff2 {
                     .imageType = VK_IMAGE_TYPE_2D,
                     .imageViewType = VK_IMAGE_VIEW_TYPE_2D,
                     .imageFormat = format,
-                    .extent = {ex.width, ex.height, 1},
+                    .extent = {.width = ex.width, .height = ex.height, .depth = 1},
                     .useMipmap = VK_FALSE,
                     .arrayLayers = 1,
                     .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -772,8 +776,9 @@ namespace merutilm::rff2 {
     void RFF2::loadLocation(const std::filesystem::path &path) {
         const auto locationBinary = RFFBinary::importFile<RFFLocationBinary>(path);
 
-        settings.fractal.reference.center = fixed_point_complex(locationBinary.real, locationBinary.imag,
-                                                                Perturbator::getExp10WithSettings(settings.fractal.reference, locationBinary.logZoom));
+        settings.fractal.reference.center = fixed_point_complex(
+                locationBinary.real, locationBinary.imag,
+                Perturbator::getExp10WithSettings(settings.fractal.reference, locationBinary.logZoom));
         settings.fractal.general.logZoom = locationBinary.logZoom;
         settings.fractal.perturb.maxIteration = locationBinary.maxIteration;
         requests.requestRecompute();

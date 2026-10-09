@@ -138,6 +138,7 @@ namespace merutilm::rff2 {
         void fillIterationComputeShader(double startTime, const Settings &s);
 
         void fillIterationMultithreaded(double startTime, const Settings &s);
+
         bool fillIteration(double startTime, const Settings &s);
 
         void afterComputeFinally(bool success);

@@ -2,14 +2,16 @@
 // Created by Merutilm on 7/27/26.
 //
 
-#include "GPC3DFractal.hpp"
+#ifdef USE_EXPERIMENTAL_3D
 
+#include "GPC3DFractal.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "vulkan_helper/engine/wrapped/Vertex.hpp"
 
 namespace merutilm::rff2 {
+
     void GPC3DFractal::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {}
 
     void GPC3DFractal::cmdRender(const VkCommandBuffer cbh, const uint32_t frameIndex,
@@ -228,3 +230,4 @@ namespace merutilm::rff2 {
         som.reserveArray<uint32_t>(TARGET_IBO, 1);
     }
 } // namespace merutilm::rff2
+#endif

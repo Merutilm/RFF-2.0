@@ -18,8 +18,11 @@ namespace merutilm::rff2 {
         vkh::WindowContext &wc;
         vkh::GlobalDescriptorSetLayoutRepo *layoutRepo;
         vkh::WindowLocalDescriptorRepo *descRepo;
-
+#ifdef USE_EXPERIMENTAL_3D
         std::unique_ptr<SharedDescriptorManager::DescManagerCamera3D> camera3d;
+        std::unique_ptr<SharedDescriptorManager::DescManagerFractal3D> fractal3d;
+#endif
+
         std::unique_ptr<SharedDescriptorManager::DescManagerTime> time;
         std::unique_ptr<SharedDescriptorManager::DescManagerIteration> iteration;
         std::unique_ptr<SharedDescriptorManager::DescManagerPalette> palette;
@@ -30,7 +33,6 @@ namespace merutilm::rff2 {
         std::unique_ptr<SharedDescriptorManager::DescManagerBloom> bloom;
         std::unique_ptr<SharedDescriptorManager::DescManagerNoiseReduction> noiseReduction;
         std::unique_ptr<SharedDescriptorManager::DescManagerVideo> video;
-        std::unique_ptr<SharedDescriptorManager::DescManagerFractal3D> fractal3d;
         std::unique_ptr<SharedDescriptorManager::DescManagerIteration> renderMetaIterationVariant;
         std::unique_ptr<SharedDescriptorManager::DescManagerBatchResult> batchResult;
         std::unique_ptr<SharedDescriptorManager::DescManagerSmoothZoom> smoothZoom;
@@ -55,7 +57,10 @@ namespace merutilm::rff2 {
 
             auto queue = vkh::DescriptorUpdater::createQueue();
 
+#ifdef USE_EXPERIMENTAL_3D
             camera3d = pickAndQueue<DescCamera3D, DescManagerCamera3D>(queue);
+            fractal3d = pickAndQueue<DescFractal3D, DescManagerFractal3D>(queue);
+#endif
             time = pickAndQueue<DescTime, DescManagerTime>(queue);
             iteration = pickAndQueue<DescIteration, DescManagerIteration>(queue);
             palette = pickAndQueue<DescPalette, DescManagerPalette>(queue);
@@ -66,7 +71,6 @@ namespace merutilm::rff2 {
             bloom = pickAndQueue<DescBloom, DescManagerBloom>(queue);
             noiseReduction = pickAndQueue<DescNoiseReduction, DescManagerNoiseReduction>(queue);
             video = pickAndQueue<DescVideo, DescManagerVideo>(queue);
-            fractal3d = pickAndQueue<DescFractal3D, DescManagerFractal3D>(queue);
             renderMetaIterationVariant = pickAndQueue<DescRenderMetaIterationVariant, DescManagerIteration>(queue);
             batchResult = pickAndQueue<DescBatchResult, DescManagerBatchResult>(queue);
             smoothZoom = pickAndQueue<DescSmoothZoom, DescManagerSmoothZoom>(queue);
