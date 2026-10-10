@@ -8,6 +8,7 @@
 namespace merutilm::rff2 {
     struct ShdPaletteSettings {
         std::vector<glm::vec4> colors;
+        glm::vec4 interiorColor;
         ShdIterationColoringMethod iterationColoring;
         ShdPalSingleIterationColoringMethod singleIterationColoring;
         float iterationInterval;

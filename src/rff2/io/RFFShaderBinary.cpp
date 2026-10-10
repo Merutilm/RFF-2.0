@@ -37,7 +37,7 @@ namespace merutilm::rff2 {
 
         ShaderSettings shaderSettings;
 
-        readPaletteSettings(in, shaderSettings.palette);
+        readPaletteSettings(in, shaderSettings.palette, version);
         readStripeSettings(in, shaderSettings.stripe);
         readSurfaceSettings(in, shaderSettings.surface, version);
         readColorSettings(in, shaderSettings.color);
@@ -49,13 +49,18 @@ namespace merutilm::rff2 {
         return RFFShaderBinary(std::move(shaderSettings));
     }
 
-    void RFFShaderBinary::readPaletteSettings(std::ifstream &in, ShdPaletteSettings &palette) {
+    void RFFShaderBinary::readPaletteSettings(std::ifstream &in, ShdPaletteSettings &palette, uint32_t version) {
 
         uint64_t len;
         IOUtilities::readAndDecode(in, &len);
 
         palette.colors.resize(len);
         IOUtilities::readAndDecode(in, &palette.colors);
+        if (version <= 3) {
+            palette.interiorColor = glm::vec4{0, 0, 0, 1};
+        } else {
+            IOUtilities::readAndDecode(in, &palette.interiorColor);
+        }
         IOUtilities::readAndDecode(in, &palette.iterationColoring);
         IOUtilities::readAndDecode(in, &palette.singleIterationColoring);
         IOUtilities::readAndDecode(in, &palette.iterationInterval);
@@ -162,6 +167,7 @@ namespace merutilm::rff2 {
         const auto &palette = shaderSettings.palette;
         IOUtilities::encodeAndWrite(out, palette.colors.size());
         IOUtilities::encodeAndWrite(out, palette.colors);
+        IOUtilities::encodeAndWrite(out, palette.interiorColor);
         IOUtilities::encodeAndWrite(out, palette.iterationColoring);
         IOUtilities::encodeAndWrite(out, palette.singleIterationColoring);
         IOUtilities::encodeAndWrite(out, palette.iterationInterval);

@@ -145,6 +145,7 @@ namespace merutilm::rff2::SharedDescriptorManager {
             paletteSSBOHost.set<uint32_t>(DescPalette::TARGET_PALETTE_SINGLE_SMOOTHING,
                                           static_cast<uint32_t>(palette.singleIterationColoring));
             paletteSSBOHost.set<float>(DescPalette::TARGET_PALETTE_ANIMATION_SPEED, palette.animationSpeed);
+            paletteSSBOHost.set<glm::vec4>(DescPalette::TARGET_PALETTE_INTERIOR, palette.interiorColor);
             paletteSSBOHost.resizeArray<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, paletteLength);
             paletteSSBOHost.set<glm::vec4>(DescPalette::TARGET_PALETTE_COLORS, palette.colors);
             paletteSSBO.reloadBuffer();

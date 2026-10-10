@@ -3,9 +3,9 @@
 //
 
 #include "FnShader.hpp"
+#include "../util/ImGuiUtils.hpp"
 #include "../util/Utilities.h"
 #include "imgui.h"
-#include "../util/ImGuiUtils.hpp"
 
 #include "../io/KFRColorLoader.hpp"
 
@@ -15,8 +15,8 @@ namespace merutilm::rff2 {
 
         ImGuiUtils::BeginSettings("Palette");
 
-        auto &[colors, iterationColoring, singleIterationColoring, iterationInterval, offsetRatio, animationSpeed] =
-                app.getSettings().shader.palette;
+        auto &[colors, interiorColor, iterationColoring, singleIterationColoring, iterationInterval, offsetRatio,
+               animationSpeed] = app.getSettings().shader.palette;
 
         if (ImGui::DragFloat("Iteration Interval", &iterationInterval, Constants::UI::UNLIMITED_DRAG_SPEED,
                              Constants::UI::UNLIMITED_MIN_DRAG_SCALAR, Constants::UI::UNLIMITED_MAX_DRAG,
@@ -166,6 +166,13 @@ namespace merutilm::rff2 {
         }
         ImGui::EndChild();
         ImGuiUtils::EndSettings();
+
+        std::array interiorRaw = {interiorColor.r, interiorColor.g, interiorColor.b};
+        if (ImGui::ColorEdit3("Interior Color", interiorRaw.data(),
+                                ImGuiColorEditFlags_NoInputs)) {
+            interiorColor = {interiorRaw[0], interiorRaw[1], interiorRaw[2], 1};
+            app.getRequests().requestShader();
+        }
 
         if (ImGui::Button("Load KFR Palette", ImVec2(-FLT_MIN, 0))) {
             const auto loaded = KFRColorLoader::loadPaletteSettings();

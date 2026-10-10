@@ -9,7 +9,7 @@
 vec4 palette_get_color(double iteration) {
 
     if (iteration == 0 || iteration >= iteration_info_settings.max_value) {
-        return vec4(0, 0, 0, 1);
+        return palette_settings.interior;
     }
 
     switch (palette_settings.coloring) {

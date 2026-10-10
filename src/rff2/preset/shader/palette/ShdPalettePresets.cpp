@@ -26,6 +26,7 @@ namespace merutilm::rff2::ShdPalettePresets {
         }
         p.iterationInterval = 250;
         p.offsetRatio = 0;
+        p.interiorColor = glm::vec4{0, 0, 0, 1};
         p.iterationColoring = ShdIterationColoringMethod::LINEAR;
         p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
@@ -47,6 +48,7 @@ namespace merutilm::rff2::ShdPalettePresets {
         p.iterationInterval = 250;
         p.offsetRatio = 0;
         p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.interiorColor = glm::vec4{0, 0, 0, 1};
         p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
@@ -67,6 +69,7 @@ namespace merutilm::rff2::ShdPalettePresets {
         p.iterationInterval = 300;
         p.offsetRatio = 0.7f;
         p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.interiorColor = glm::vec4{0, 0, 0, 1};
         p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
@@ -88,6 +91,7 @@ namespace merutilm::rff2::ShdPalettePresets {
         p.iterationInterval = 100;
         p.offsetRatio = 0.7f;
         p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.interiorColor = glm::vec4{0, 0, 0, 1};
         p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
@@ -106,6 +110,7 @@ namespace merutilm::rff2::ShdPalettePresets {
         p.iterationInterval = 250;
         p.offsetRatio = 0.7f;
         p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.interiorColor = glm::vec4{0, 0, 0, 1};
         p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
@@ -126,6 +131,7 @@ namespace merutilm::rff2::ShdPalettePresets {
         p.iterationInterval = 300;
         p.offsetRatio = 0.7f;
         p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.interiorColor = glm::vec4{0, 0, 0, 1};
         p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
@@ -181,6 +187,7 @@ namespace merutilm::rff2::ShdPalettePresets {
         p.iterationInterval = 18000000.0f;
         p.offsetRatio = 0;
         p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.interiorColor = glm::vec4{0, 0, 0, 1};
         p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }
@@ -236,6 +243,7 @@ namespace merutilm::rff2::ShdPalettePresets {
 
 
         p.iterationInterval = 2000000.0f;
+        p.interiorColor = glm::vec4{0, 0, 0, 1};
         p.offsetRatio = 0.55f;
         p.iterationColoring = ShdIterationColoringMethod::LINEAR;
         p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
@@ -260,6 +268,7 @@ namespace merutilm::rff2::ShdPalettePresets {
         p.iterationInterval = 300;
         p.offsetRatio = 0;
         p.iterationColoring = ShdIterationColoringMethod::LINEAR;
+        p.interiorColor = glm::vec4{0, 0, 0, 1};
         p.singleIterationColoring = ShdPalSingleIterationColoringMethod::NORMAL;
         return p;
     }

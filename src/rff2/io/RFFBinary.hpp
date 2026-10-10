@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
 
     struct RFFBinary {
 
-        static constexpr uint32_t VERSION = 3;
+        static constexpr uint32_t VERSION = 4;
 
         static uint32_t readVersion(std::ifstream &in, std::byte *raw = nullptr) {
 

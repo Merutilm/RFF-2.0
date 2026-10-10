@@ -107,7 +107,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_PALETTE_SMOOTHING = 3;
         static constexpr uint32_t TARGET_PALETTE_SINGLE_SMOOTHING = 4;
         static constexpr uint32_t TARGET_PALETTE_ANIMATION_SPEED = 5;
-        static constexpr uint32_t TARGET_PALETTE_COLORS = 6;
+        static constexpr uint32_t TARGET_PALETTE_INTERIOR = 6;
+        static constexpr uint32_t TARGET_PALETTE_COLORS = 7;
 
         void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
                        std::vector<vkh::DescriptorManager> &managers) override {
@@ -118,6 +119,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
             bufferManager.reserve<uint32_t>(TARGET_PALETTE_SMOOTHING);
             bufferManager.reserve<uint32_t>(TARGET_PALETTE_SINGLE_SMOOTHING);
             bufferManager.reserve<float>(TARGET_PALETTE_ANIMATION_SPEED);
+            bufferManager.reserve<glm::vec4>(TARGET_PALETTE_INTERIOR, 16);
             bufferManager.reserveArray<glm::vec4>(TARGET_PALETTE_COLORS, 0, 16);
 
             auto ssbo = std::make_unique<vkh::ShaderStorage>(core, std::move(bufferManager),
