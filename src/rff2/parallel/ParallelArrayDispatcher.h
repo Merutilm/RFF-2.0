@@ -20,17 +20,17 @@ namespace merutilm::rff2 {
         uint32_t threads;
         uint16_t xRes;
         uint16_t yRes;
+        uint32_t blockSize;
         ParallelArrayRenderer<T> func;
 
     public:
         ParallelArrayDispatcher(ParallelRenderState &state, std::vector<T> &arr, uint16_t xRes, uint16_t yRes,
-                                uint32_t threads, ParallelArrayRenderer<T> func);
-
+                                uint32_t threads, uint32_t blockSize, ParallelArrayRenderer<T> func);
 
         void dispatch() const;
 
     private:
-        void process(glm::uvec2 startPoint, uint32_t len) const;
+        void process(glm::uvec2 startPoint) const;
     };
 
     // DEFINITION OF PARALLEL ARRAY DISPATCHER
@@ -40,8 +40,9 @@ namespace merutilm::rff2 {
     ParallelArrayDispatcher<T>::ParallelArrayDispatcher(ParallelRenderState &state, std::vector<T> &arr,
                                                         const uint16_t xRes, const uint16_t yRes,
                                                         const uint32_t threads,
+                                                        const uint32_t blockSize,
                                                         ParallelArrayRenderer<T> func) :
-        state(state), arr(arr), threads(threads), xRes(xRes), yRes(yRes), func(std::move(func)) {}
+        state(state), arr(arr), threads(threads), xRes(xRes), yRes(yRes), blockSize(blockSize), func(std::move(func)) {}
 
     template<typename T>
     void ParallelArrayDispatcher<T>::dispatch() const {
@@ -55,23 +56,21 @@ namespace merutilm::rff2 {
         std::vector<glm::uvec2> chunkStartPoints;
         std::atomic<uint32_t> counter;
 
-        constexpr auto chunkSize = 64;
-
-        for (uint32_t i = 0; i * chunkSize < xRes; ++i) {
-            for (uint32_t j = 0; j * chunkSize < yRes; ++j) {
-                chunkStartPoints.emplace_back(i * chunkSize, j * chunkSize);
+        for (uint32_t i = 0; i * blockSize < xRes; ++i) {
+            for (uint32_t j = 0; j * blockSize < yRes; ++j) {
+                chunkStartPoints.emplace_back(i * blockSize, j * blockSize);
             }
         }
         std::ranges::shuffle(chunkStartPoints, rff_random::gen);
 
 
         for (uint32_t i = 0; i < threads; ++i) {
-            threadPool.emplace_back([this, chunkSize, &counter, &chunkStartPoints] {
+            threadPool.emplace_back([this, &counter, &chunkStartPoints] {
                 uint32_t c = counter++;
                 while (c < chunkStartPoints.size()) {
                     if (state.interruptRequested()) return;
                     const glm::uvec2 startPoint = chunkStartPoints[c];
-                    process(startPoint, chunkSize);
+                    process(startPoint);
                     c = counter++;
                 }
             });
@@ -86,14 +85,14 @@ namespace merutilm::rff2 {
 
 
     template<typename T>
-    void ParallelArrayDispatcher<T>::process(const glm::uvec2 startPoint, const uint32_t len) const {
+    void ParallelArrayDispatcher<T>::process(const glm::uvec2 startPoint) const {
 
-        for (uint32_t i = 0; i < len; ++i) {
+        for (uint32_t i = 0; i < blockSize; ++i) {
 
             auto x = startPoint.x + i;
             if (x >= xRes) break;
 
-            for (uint32_t j = 0; j < len; ++j) {
+            for (uint32_t j = 0; j < blockSize; ++j) {
                 auto y = startPoint.y + j;
                 if (y >= yRes) break;
 

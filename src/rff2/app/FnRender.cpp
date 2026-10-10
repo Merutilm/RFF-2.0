@@ -65,9 +65,10 @@ namespace merutilm::rff2 {
         ImGuiUtils::BeginSettings("Set Render Properties");
         float &fps = app.getSettings().render.display.fps;
 
-        constexpr uint32_t minThread = 1;
-
+        constexpr uint32_t minThreads = 1;
         const uint32_t maxThreads = std::thread::hardware_concurrency();
+        constexpr uint32_t minSize = 4;
+        constexpr uint32_t maxSize = 128;
 
         if (ImGui::SliderFloat("Framerate", &fps, Constants::Render::MIN_FPS, Constants::Render::MAX_FPS)) {
             fps = std::clamp(fps, Constants::Render::MIN_FPS, Constants::Render::MAX_FPS);
@@ -75,7 +76,10 @@ namespace merutilm::rff2 {
         }
         ImGuiUtils::HelpMarker("Sets the Framerate.");
 
-        if (ImGui::SliderScalar("Threads", ImGuiDataType_U32, &app.getSettings().fractal.general.threads, &minThread,
+        ImGui::SliderScalar("Render Block Size",ImGuiDataType_U32,  &app.getSettings().render.display.blockSize, &minSize, &maxSize);
+        ImGuiUtils::HelpMarker("Sets the Block size of the render group");
+
+        if (ImGui::SliderScalar("Threads", ImGuiDataType_U32, &app.getSettings().fractal.general.threads, &minThreads,
                                 &maxThreads)) {
             // noop
         }

@@ -1002,7 +1002,7 @@ namespace merutilm::rff2 {
             return iteration;
         };
         const auto previewer =
-                ParallelArrayDispatcher<double>(state, actualIterationMatrix, w, h, s.fractal.general.threads, std::move(func));
+                ParallelArrayDispatcher<double>(state, actualIterationMatrix, w, h, s.fractal.general.threads, s.render.display.blockSize, std::move(func));
 
 
         auto statusThread = std::jthread([&renderPixelsCount, len, this, startTime](const std::stop_token &stop) {
@@ -1034,7 +1034,7 @@ namespace merutilm::rff2 {
             return;
 
         const auto syncer = ParallelArrayDispatcher<double>(
-                state, actualIterationMatrix, w, h, s.fractal.general.threads,
+                state, actualIterationMatrix, w, h, s.fractal.general.threads, s.render.display.blockSize,
                 [this](const uint16_t x, const uint16_t y, uint16_t, uint16_t, float, float, uint32_t, const double a) {
                     renderer->visibleIterationBufferData->set(x, y, a);
                     return 0;
