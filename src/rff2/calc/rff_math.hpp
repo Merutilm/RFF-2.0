@@ -55,17 +55,17 @@ namespace merutilm::rff2::rff_math {
     Num hypot_approx(Num x, Num y) {
         x = abs(x);
         y = abs(y);
-        const Num min = std::min(x, y);
+        // const Num min = std::min(x, y);
         const Num max = std::max(x, y);
 
-        if (is_zero(min)) {
-            return max;
-        }
-        if (is_zero(max)) {
-            return Num(0);
-        }
+        // if (is_zero(min)) {
+        //     return max;
+        // }
+        // if (is_zero(max)) {
+        //     return Num(0);
+        // }
 
-        return max + Num(0.428) * min / max * min;
+        return max * Num(std::numbers::sqrt2);
     }
 
 
