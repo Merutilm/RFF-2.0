@@ -6,6 +6,8 @@
 #include <vulkan_helper/engine/wrapped/DescriptorTemplateInfo.hpp>
 #include <vulkan_helper/engine/manage/DescriptorManager.hpp>
 
+#include "vulkan_helper/engine/SharedResource.hpp"
+
 namespace merutilm::vkh {
     struct DescriptorTemplate;
 
@@ -21,16 +23,16 @@ namespace merutilm::vkh {
     struct DescriptorTemplate {
         virtual ~DescriptorTemplate() = default;
 
-        virtual void configure(Core & core, std::vector<DescriptorManager> &managers) = 0;
+        virtual void configure(Core &core, SharedResource &sharedResource, std::vector<DescriptorManager> &managers) = 0;
 
         template<DescTemplateHasID D>
         static DescriptorTemplateInfo from() {
             return DescriptorTemplateInfo{
                 .id = D::ID,
-                .descriptorGenerator = [](Core & core) {
+                .descriptorGenerator = [](Core & core, SharedResource &sharedResource) {
                     std::vector<DescriptorManager> managers = {};
                     auto instance = D();
-                    instance.configure(core, managers);
+                    instance.configure(core, sharedResource, managers);
                     return managers;
                 }
             };

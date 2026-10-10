@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "GPCResample.hpp"
 #include "GPCSmoothZoom.hpp"
 #include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
@@ -12,7 +13,7 @@ namespace merutilm::rff2 {
         vkh::RenderPassAttachment *swapchainAttachment = nullptr;
 
     public:
-        GPCSmoothZoom *smoothZoom = nullptr;
+        GPCResample *resample = nullptr;
 
         using RenderPassGraphGenerator::RenderPassGraphGenerator;
 
@@ -36,8 +37,8 @@ namespace merutilm::rff2 {
 
         void configurePipelines() override {
 
-            registerPipeline<GPCSmoothZoom>(
-                    &smoothZoom, {},
+            registerPipeline<GPCResample>(
+                    &resample, {},
                     {swapchainAttachment,
                         RendererUtils::COLOR_REF_INFO,
                      RendererUtils::INPUT_READ_DEPENDENCY,

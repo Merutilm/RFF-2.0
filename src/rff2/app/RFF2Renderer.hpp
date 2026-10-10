@@ -12,6 +12,7 @@
 #include "../vulkan/RenderGraph1.hpp"
 #include "../vulkan/RenderGraph3.hpp"
 #include "../vulkan/RenderGraph4.hpp"
+#include "../vulkan/RenderGraph5.hpp"
 #include "../vulkan/RenderGraphDownsampleForBlur.hpp"
 #include "../vulkan/RenderGraphPresentPrepareImgui.hpp"
 #include "ZoomAnimationInfo.hpp"
@@ -36,12 +37,14 @@ namespace merutilm::rff2 {
         vkh::RenderContext *rcDownsample = nullptr;
         vkh::RenderContext *rc3 = nullptr;
         vkh::RenderContext *rc4 = nullptr;
+        vkh::RenderContext *rc5 = nullptr;
         vkh::RenderContext *rcPresent = nullptr;
 
         RenderGraph0 *rg0 = nullptr;
         RenderGraphDownsampleForBlur *rccDownsample = nullptr;
         RenderGraph3 *rg3 = nullptr;
         RenderGraph4 *rg4 = nullptr;
+        RenderGraph5 *rg5 = nullptr;
         RenderGraphPresentPrepareImgui *rccPresentPrepare = nullptr;
 
         CPCIterate<float> *computeIterateFloat = nullptr;
@@ -51,7 +54,8 @@ namespace merutilm::rff2 {
 
 
         std::unique_ptr<SharedDescriptorStorage> descriptorStorage = nullptr;
-        std::unique_ptr<GraphicsMatrixBuffer<double>> visibleIterationBufferContext = nullptr;
+        std::unique_ptr<GraphicsMatrixBuffer<double>> visibleIterationBufferData = nullptr;
+
         bool updateStagingBuffer;
 
         template<typename F>
@@ -124,6 +128,13 @@ namespace merutilm::rff2 {
                                                                      settings.render.display.clarityMultiplier);
                     },
                     swapchainImageContextGetter);
+            rc5 = vkh::RenderContextUtils::attachRenderContext<RenderGraph5>(
+                    &rg5, configurators, engine, wc,
+                    [this] {
+                        return RendererUtils::getInternalImageExtent(wc.getSwapchain().getSwapchainExtent(),
+                                                                     settings.render.display.clarityMultiplier);
+                    },
+                    swapchainImageContextGetter);
             rcPresent = vkh::RenderContextUtils::attachRenderContext<RenderGraphPresentPrepareImgui>(
                     &rccPresentPrepare, configurators, engine, wc,
                     [this] { return wc.getSwapchain().getSwapchainExtent(); }, swapchainImageContextGetter);
@@ -158,7 +169,7 @@ namespace merutilm::rff2 {
             if (updateStagingBuffer) {
                 updateStagingBuffer = false;
 
-                descriptorStorage->iteration->cmdRefreshIterations(commandBuffer, visibleIterationBufferContext->getContext());
+                descriptorStorage->iteration->cmdRefreshIterations(commandBuffer, visibleIterationBufferData->getContext());
                 auto &ctx = descriptorStorage->iteration->getResultIterationBuffer();
                 vkh::BarrierUtils::cmdBufferMemoryBarrier(commandBuffer.getCommandBufferHandle(), VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
                                                           ctx.buffer, 0, ctx.bufferSize, VK_PIPELINE_STAGE_TRANSFER_BIT,
@@ -275,10 +286,21 @@ namespace merutilm::rff2 {
 
             // [BARRIER] SECONDARY
 
+
+            vkh::RenderPassFullscreenRecorder::cmdFullscreenInternalRenderPass(wc, *rc5, frameIndex);
+            // [IN] SECONDARY
+            // [OUT] PRIMARY
+
+            vkh::BarrierUtils::cmdSynchronizeImageWriteToRead(
+                    commandBuffer.getCommandBufferHandle(), mfg(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY),
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+            // [BARRIER] PRIMARY
+
             vkh::RenderPassFullscreenRecorder::cmdFullscreenForSwapchainRenderPass(wc, *rcPresent, frameIndex,
                                                                                    swapchainImageIndex);
-
-            // [IN] SECONDARY
+            // [IN] PRIMARY
             // [OUT] EXTERNAL
 
             vkh::BarrierUtils::cmdOverlaySwapchain(wc.getCommandBufferGroup().getCommandBuffer(frameIndex).getCommandBufferHandle(),
@@ -287,6 +309,6 @@ namespace merutilm::rff2 {
             RendererImGui::cmdRender(swapchainImageIndex);
         }
 
-        void cleanup() override { visibleIterationBufferContext = nullptr; }
+        void cleanup() override { visibleIterationBufferData = nullptr; }
     };
 } // namespace merutilm::rff2

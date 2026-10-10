@@ -2,7 +2,6 @@
 
 #include "RndComputeShader.hpp"
 #include "RndDisplaySettings.hpp"
-#include "RndPixelRenderPriority.hpp"
 
 namespace merutilm::rff2 {
     struct RenderSettings {

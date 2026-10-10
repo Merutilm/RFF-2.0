@@ -12,8 +12,7 @@ namespace merutilm::rff2::RndDisplayPresets {
 
     RndDisplaySettings Potato::genDisplay() const {
         return RndDisplaySettings{0.125f,
-                              60,
-                              RndPixelRenderPriority::SEQUENTIAL};
+                              60};
     }
 
 
@@ -21,39 +20,34 @@ namespace merutilm::rff2::RndDisplayPresets {
 
     RndDisplaySettings Low::genDisplay() const {
         return RndDisplaySettings{0.25f,
-                              60,
-                              RndPixelRenderPriority::SEQUENTIAL};
+                              60};
     }
 
     std::string Medium::getName() const { return "Medium"; }
 
     RndDisplaySettings Medium::genDisplay() const {
         return RndDisplaySettings{0.5f,
-                              60,
-                              RndPixelRenderPriority::SEQUENTIAL};
+                              60};
     }
 
     std::string High::getName() const { return "High"; }
 
     RndDisplaySettings High::genDisplay() const {
         return RndDisplaySettings{1.0f,
-                              60,
-                              RndPixelRenderPriority::SEQUENTIAL};
+                              60};
     }
 
     std::string Ultra::getName() const { return "Ultra"; }
 
     RndDisplaySettings Ultra::genDisplay() const {
         return RndDisplaySettings{2.0f,
-                              60,
-                              RndPixelRenderPriority::SEQUENTIAL};
+                              60};
     }
 
     std::string Extreme::getName() const { return "Extreme (DANGER)"; }
 
     RndDisplaySettings Extreme::genDisplay() const {
         return RndDisplaySettings{4.0f,
-                              60,
-                              RndPixelRenderPriority::SEQUENTIAL};
+                              60};
     }
 } // namespace merutilm::rff2

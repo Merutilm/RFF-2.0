@@ -3,12 +3,10 @@
 //
 
 #pragma once
-#include "RndPixelRenderPriority.hpp"
 
 namespace merutilm::rff2 {
     struct RndDisplaySettings {
         float clarityMultiplier;
         float fps;
-        RndPixelRenderPriority pixelRenderPriority;
     };
 }

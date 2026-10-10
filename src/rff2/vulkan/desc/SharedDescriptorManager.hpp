@@ -75,7 +75,23 @@ namespace merutilm::rff2::SharedDescriptorManager {
             return iterSSBO.getBufferContext();
         }
 
-        void resetIterationBuffer(const uint32_t width, const uint32_t height) const {
+        void zeroIterationBuffer(vkh::CommandPool &commandPool) const {
+            using namespace SharedDescriptorTemplate;
+            auto &iterSSBO = desc.get<vkh::ShaderStorage>(0, DescIteration::BINDING_SSBO_ITERATION_MATRIX);
+            auto &iterSSBOHost = iterSSBO.getHostObject();
+
+            iterSSBOHost.reset(DescIteration::TARGET_SSBO_ITERATION_BUFFER);
+            iterSSBO.reloadBuffer();
+            iterSSBO.localize(commandPool);
+
+            vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
+            for (uint32_t i = 0; i < wc.core.getPhysicalDeviceLoader().getMaxFramesInFlight(); ++i) {
+                desc.queue(queue, i, {}, {DescIteration::BINDING_SSBO_ITERATION_MATRIX});
+            }
+            vkh::DescriptorUpdater::write(wc.core.getLogicalDevice().getLogicalDeviceHandle(), queue);
+        }
+
+        void resetIterationBuffer(vkh::CommandPool &commandPool, const uint32_t width, const uint32_t height) const {
             using namespace SharedDescriptorTemplate;
             auto &iterUBO = desc.get<vkh::Uniform>(0, DescIteration::BINDING_UBO_ITERATION_INFO);
             auto &iterUBOHost = iterUBO.getHostObject();
@@ -85,9 +101,10 @@ namespace merutilm::rff2::SharedDescriptorManager {
             iterUBOHost.set<glm::uvec2>(DescIteration::TARGET_UBO_ITERATION_EXTENT, {width, height});
             iterUBO.update(DescIteration::TARGET_UBO_ITERATION_EXTENT);
 
+            if (iterSSBOHost.getElementCount(DescIteration::TARGET_SSBO_ITERATION_BUFFER) == width * height) return;
             iterSSBOHost.resizeArray<double>(DescIteration::TARGET_SSBO_ITERATION_BUFFER, width * height);
             iterSSBO.reloadBuffer();
-            iterSSBO.localize(wc.getCommandPool());
+            iterSSBO.localize(commandPool);
 
             vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
             for (uint32_t i = 0; i < wc.core.getPhysicalDeviceLoader().getMaxFramesInFlight(); ++i) {
@@ -296,14 +313,15 @@ namespace merutilm::rff2::SharedDescriptorManager {
         using DescriptorTemplateManager::DescriptorTemplateManager;
 
 
-        void resizeBatchResultBuffer(const uint32_t width, const uint32_t height) const {
+        void resizeBatchResultBuffer(vkh::CommandPool &commandPool, const uint32_t width, const uint32_t height) const {
             using namespace SharedDescriptorTemplate;
             auto &batchResultSSBO = desc.get<vkh::ShaderStorage>(0, DescBatchResult::BINDING_BATCH_RESULT_SSBO);
             auto &batchResultSSBOHost = batchResultSSBO.getHostObject();
+
+            if (batchResultSSBOHost.getElementCount(DescBatchResult::BINDING_BATCH_RESULT_SSBO) == width * height) return;
             batchResultSSBOHost.resizeArray<uint32_t>(DescBatchResult::BINDING_BATCH_RESULT_SSBO, width * height);
             batchResultSSBO.reloadBuffer();
-            batchResultSSBO.update();
-            batchResultSSBO.localize(wc.getCommandPool());
+            batchResultSSBO.localize(commandPool);
 
             vkh::DescriptorUpdateQueue queue = vkh::DescriptorUpdater::createQueue();
             for (uint32_t i = 0; i < wc.core.getPhysicalDeviceLoader().getMaxFramesInFlight(); ++i) {

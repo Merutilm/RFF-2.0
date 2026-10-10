@@ -1,44 +1,53 @@
 //
-// Created by Merutilm on 7/28/26.
+// Created by Merutilm on 10/10/26.
 //
 
-#include "GPCSmoothZoom.hpp"
+#include "GPCResample.hpp"
 
 #include "SharedImageContextIndices.hpp"
 #include "desc/SharedDescriptorTemplate.hpp"
 #include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
-
 namespace merutilm::rff2 {
-
-
-    void GPCSmoothZoom::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
-        // noop
+    void GPCResample::updateQueue(vkh::DescriptorUpdateQueue &queue, uint32_t frameIndex) {
+        //noop
     }
 
-    void GPCSmoothZoom::pipelineInitialized() {
-        // noop
-    }
-
-
-    void GPCSmoothZoom::renderContextRefreshed() {
-        auto &sic = wc.getSharedImageContext();
-        auto &resampleDesc = getDescriptor(SET_SAMPLE);
-        resampleDesc.get<vkh::CombinedImageSampler>(0, BINDING_SAMPLE_SAMPLER)
-                .setImageContextMF(sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_SECONDARY));
-
-
-        writeDescriptorMF([&resampleDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
-            resampleDesc.queue(queue, frameIndex, {}, {BINDING_SAMPLE_SAMPLER});
+    void GPCResample::pipelineInitialized() {
+        using namespace SharedDescriptorTemplate;
+        writeDescriptorMF([this](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            getDescriptor(SET_SAMPLE).queue(queue, frameIndex, {}, {BINDING_SAMPLE_RESOLUTION_UBO});
         });
     }
 
 
-    void GPCSmoothZoom::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
+    void GPCResample::setRescaledResolution(const glm::vec2 &newResolution) const {
+        auto &resDesc = getDescriptor(SET_SAMPLE);
+        auto &resUBO = resDesc.get<vkh::Uniform>(0, BINDING_SAMPLE_RESOLUTION_UBO);
+        auto &resUBOHost = resUBO.getHostObject();
+        resUBOHost.set<glm::uvec2>(TARGET_SAMPLE_EXTENT, newResolution);
+        resUBO.update();
+    }
+
+    void GPCResample::renderContextRefreshed() {auto &sic = wc.getSharedImageContext();
+        auto &resampleDesc = getDescriptor(SET_SAMPLE);
+        resampleDesc.get<vkh::CombinedImageSampler>(0, BINDING_SAMPLE_SAMPLER)
+                .setImageContextMF(
+                        sic.getImageContextMF(SharedImageContextIndices::MF_MAIN_RENDER_IMAGE_PRIMARY));
+
+
+        writeDescriptorMF([&resampleDesc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
+            resampleDesc.queue(queue, frameIndex, {}, {BINDING_SAMPLE_SAMPLER});
+        });}
+
+
+
+    void GPCResample::configurePushConstant(vkh::PipelineLayoutManager &pipelineLayoutManager) {
         // noop
     }
 
 
-    void GPCSmoothZoom::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
+
+    void GPCResample::configureDescriptors(std::vector<vkh::Descriptor *> &descriptors) {
         using namespace SharedDescriptorTemplate;
         vkh::Sampler &sampler = pickFromGlobalRepository<vkh::GlobalSamplerRepo, vkh::Sampler &>(
                 VkSamplerCreateInfo{.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -62,11 +71,14 @@ namespace merutilm::rff2 {
         auto descManager = vkh::DescriptorManager();
         auto combinedSampler = std::make_unique<vkh::CombinedImageSampler>(wc.core, sampler, true);
         descManager.appendCombinedImgSampler(BINDING_SAMPLE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT,
-                                             std::move(combinedSampler));
+                                              std::move(combinedSampler));
+        auto uboManager = vkh::HostDataObjectManager();
+        uboManager.reserve<glm::uvec2>(TARGET_SAMPLE_EXTENT);
+        descManager.appendUBO(
+                BINDING_SAMPLE_RESOLUTION_UBO, VK_SHADER_STAGE_FRAGMENT_BIT,
+                std::make_unique<vkh::Uniform>(wc.core, std::move(uboManager), vkh::BufferLocalization::BIDIRECTIONAL, false));
 
         appendUniqueDescriptor(SET_SAMPLE, descriptors, std::move(descManager));
-        appendDescriptor<DescSmoothZoom>(SET_SMOOTH_ZOOM, descriptors);
-        appendDescriptor<DescIteration>(SET_ITERATION, descriptors);
-        appendDescriptor<DescIterationSnapshotVariant>(SET_ITERATION_SNAPSHOT, descriptors);
+
     }
-} // namespace merutilm::rff2
+}

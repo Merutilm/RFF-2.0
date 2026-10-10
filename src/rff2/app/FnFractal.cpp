@@ -4,8 +4,8 @@
 
 #include "FnFractal.hpp"
 
-#include "../util/ImGuiUtils.hpp"
 #include "../mb/Perturbator.h"
+#include "../util/ImGuiUtils.hpp"
 #include "../util/Utilities.h"
 #include "RFF2.hpp"
 #include "imgui.h"
@@ -98,9 +98,10 @@ namespace merutilm::rff2 {
         ImGuiUtils::HelpMarker("Sets the reuse reference method.");
 
         ImGui::Checkbox("Use Fixed Precision", &frt.reference.useFixedPrecision);
-        if (frt.reference.useFixedPrecision)
-            ImGui::InputScalar("Fixed Precision", ImGuiDataType_S64, &frt.reference.fixedPrecisionNeg);
-
+        if (frt.reference.useFixedPrecision &&
+            ImGui::InputScalar("Fixed Precision", ImGuiDataType_S64, &frt.reference.fixedPrecisionNeg)) {
+            frt.reference.fixedPrecisionNeg = std::max(static_cast<int64_t>(1), frt.reference.fixedPrecisionNeg);
+        }
         ImGui::InputScalar("Reference Compression Criteria", ImGuiDataType_U32,
                            &frt.reference.compression.compressCriteria);
         ImGuiUtils::HelpMarker(
@@ -111,12 +112,11 @@ namespace merutilm::rff2 {
 
         ImGui::InputScalar("Reference Compression Threshold", ImGuiDataType_U8,
                            &frt.reference.compression.compressionThresholdPower);
-        ImGuiUtils::HelpMarker(
-                "When compressing references, sets the negative exponents of ten of minimum error to be "
-                "considered "
-                "equal.\n"
-                "Reference compression slows down the calculation but frees up memory space.\n"
-                "set 0 to disable.");
+        ImGuiUtils::HelpMarker("When compressing references, sets the negative exponents of ten of minimum error to be "
+                               "considered "
+                               "equal.\n"
+                               "Reference compression slows down the calculation but frees up memory space.\n"
+                               "set 0 to disable.");
 
         if (ImGui::InputScalar("Reference Synchronization Interval", ImGuiDataType_U32,
                                &frt.reference.sync.referenceSynchronizationInterval)) {
@@ -143,7 +143,7 @@ namespace merutilm::rff2 {
 
         ImGui::Checkbox("Parallel reference calculation", &frt.reference.useParallelRefCalculation);
         ImGuiUtils::HelpMarker("Sets whether or not the reference calculation should be parallel.\n"
-                                   "It is effective for deep-zoom.");
+                               "It is effective for deep-zoom.");
         ImGuiUtils::EndSettings();
     }
     void FnFractal::iterations(RFF2 &app) {
@@ -166,9 +166,9 @@ namespace merutilm::rff2 {
 
         ImGui::InputScalar("Interior Detection Threshold", ImGuiDataType_U8, &calc.perturb.interiorDetectRadiusPower);
         ImGuiUtils::HelpMarker("Set the interior detection threshold. It calculates the distance between the "
-                                   "previous and current z at the periodic point.\n"
-                                   "if the distance is smaller than \"10^-value\", this pixel is set to interior and "
-                                   "all subsequent iterations are skipped. Set 0 to disable it.");
+                               "previous and current z at the periodic point.\n"
+                               "if the distance is smaller than \"10^-value\", this pixel is set to interior and "
+                               "all subsequent iterations are skipped. Set 0 to disable it.");
 
         ImGuiUtils::Dropdown("Decimalize Iteration", &calc.perturb.decimalizeIterationMethod);
         ImGuiUtils::HelpMarker("Sets the decimalization method of iterations.");
@@ -199,8 +199,8 @@ namespace merutilm::rff2 {
 
         ImGui::InputFloat("Precision Level", &epsilonPower);
         ImGuiUtils::HelpMarker("Useful for glitch reduction. if this value is small,\n"
-                                   "The fractal will be rendered glitch-less but slow,\n"
-                                   "and is large, It will be fast, but maybe shown visible glitches.");
+                               "The fractal will be rendered glitch-less but slow,\n"
+                               "and is large, It will be fast, but maybe shown visible glitches.");
 
 
         if (!use)
@@ -241,10 +241,10 @@ namespace merutilm::rff2 {
 
         ImGui::Checkbox("Compress", &useCompress);
         ImGuiUtils::HelpMarker("Use compression and acceleration if possible.\n "
-                                   "If it is checked, slowing down for table creation, It uses compression and "
-                                   "acceleration when possible.\n"
-                                   "Depending on the reference orbit, memory usage may the same or decrease compared "
-                                   "to when it is not checked.\n");
+                               "If it is checked, slowing down for table creation, It uses compression and "
+                               "acceleration when possible.\n"
+                               "Depending on the reference orbit, memory usage may the same or decrease compared "
+                               "to when it is not checked.\n");
 
         ImGui::Checkbox("Parallelize during generation", &useParallelization);
         ImGuiUtils::HelpMarker("Use parallelization during generation if possible.");

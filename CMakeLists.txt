@@ -66,6 +66,7 @@ add_executable(
         src/rff2/app/FnPreset.cpp
         src/rff2/vulkan/GPC3DFractal.cpp
         src/rff2/vulkan/GPCSmoothZoom.cpp
+        src/rff2/vulkan/GPCResample.cpp
         src/rff2/vulkan/CPCInterpolateIsolated.cpp
         src/rff2/mb/MB2Locator.cpp
         src/rff2/io/RFFShaderBinary.cpp
@@ -202,3 +203,4 @@ target_link_libraries(RFF PRIVATE nfd)
 
 RFF_DEFINITION(SAFE_EXP_OPERATOR "Better Quality, Slower Speed (Safety checking)" OFF)
 RFF_DEFINITION(USE_EXPERIMENTAL_3D "Use Experimental 3D Fractal Feature" OFF)
+RFF_DEFINITION(RFF_NO_ASSUME "Disable compiler assume hints" OFF)

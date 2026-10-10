@@ -14,6 +14,7 @@
 #include "../vulkan/desc/SharedDescriptorStorage.hpp"
 #include "ComputeShaderRenderManager.hpp"
 #include "CursorManager.hpp"
+#include "MultithreadedRenderManager.hpp"
 #include "RFF2Renderer.hpp"
 #include "UpdateRequests.hpp"
 #include "VideoKeyframeProgressInfo.hpp"
@@ -27,17 +28,19 @@ namespace merutilm::rff2 {
 
         ParallelRenderState state = {};
 
-        Settings settings;
+        Settings settings = genDefaultSettings();
         UpdateRequests requests = {};
         RFF2Renderer *renderer = nullptr;
 
 
+        std::atomic<bool> recomputeFirstRefresh = false;
         std::atomic<bool> updateFractalFrame = false;
 
         std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
         std::unique_ptr<MB2RenderDataBase> renderData = nullptr;
         std::unique_ptr<ApproxTableCache> approxTableCache = nullptr;
         std::unique_ptr<CursorManager> cursorManager = nullptr;
+        std::unique_ptr<MultithreadedRenderManager> multithreadedManager = nullptr;
         std::unique_ptr<ComputeShaderRenderManager> computeShaderManager = nullptr;
 
         ZoomAnimationInfo zoomAnimationInfo;
@@ -46,7 +49,8 @@ namespace merutilm::rff2 {
         BackgroundThreads backgroundThreads = BackgroundThreads();
 
     public:
-        explicit RFF2(vkh::ApplicationCreateInfo info, vkh::WindowInitializerSettings wic) : Application(std::move(info), std::move(wic)), settings(genDefaultSettings()) {}
+        explicit RFF2(vkh::ApplicationCreateInfo info, vkh::WindowInitializerSettings wic) :
+            Application(std::move(info), std::move(wic)) {}
 
         ~RFF2() override = default;
 
@@ -132,6 +136,7 @@ namespace merutilm::rff2 {
         void matchSettingsAfterCreatingRenderData(Settings &s) const;
 
         bool prepareRenderData(double startTime, const Settings &s);
+        void loadSnapshot() const;
 
 
         template<Number Num, Number Other>
@@ -170,9 +175,9 @@ namespace merutilm::rff2 {
             return {renderData->fractalSettings.general.logZoom,
                     renderData->getReference()->longestPeriod(),
                     renderData->fractalSettings.perturb.maxIteration,
-                    renderer->visibleIterationBufferContext->getData(),
-                    renderer->visibleIterationBufferContext->getWidth(),
-                    renderer->visibleIterationBufferContext->getHeight()};
+                    renderer->visibleIterationBufferData->getData(),
+                    renderer->visibleIterationBufferData->getWidth(),
+                    renderer->visibleIterationBufferData->getHeight()};
         }
 
 
@@ -192,10 +197,9 @@ namespace merutilm::rff2 {
         void onQuit();
         void resolveRequests();
 
-        [[nodiscard]] std::unique_ptr<MB2RenderDataBase> createAppropriateRenderData(bool computeShader, double logZoomTest,
-                                                                       double startTime, const FractalSettings &frt,
-                                                                       dex dcMax, int64_t exp10,
-                                                                       uint64_t refInitialCapacity);
+        [[nodiscard]] std::unique_ptr<MB2RenderDataBase>
+        createAppropriateRenderData(bool computeShader, double logZoomTest, double startTime,
+                                    const FractalSettings &frt, dex dcMax, int64_t exp10, uint64_t refInitialCapacity);
 
 
         [[nodiscard]] VideoKeyframeProgressInfo &getKeyframeProgressInfo() { return videoKeyframeProgressInfo; }
@@ -225,7 +229,7 @@ namespace merutilm::rff2 {
 
         const uint32_t width = getIterationBufferWidth();
         const uint32_t height = getIterationBufferHeight();
-        const VkExtent2D extent{width, height};
+        const VkExtent2D extent{.width = width, .height = height};
 
         CPCIterate<Num> *target = std::is_same_v<Num, float>
                                           ? dynamic_cast<CPCIterate<Num> *>(renderer->computeIterateFloat)
@@ -236,6 +240,9 @@ namespace merutilm::rff2 {
 
         vkh::CommandPool &commandPool = *computeShaderManager->commandPool;
 
+        renderer->descriptorStorage->renderMetaIteration->resetIterationBuffer(commandPool, width, height);
+        renderer->computeIterateFloat->resizeWriteBuffer(commandPool, width, height);
+        renderer->computeIterateFex->resizeWriteBuffer(commandPool, width, height);
         const auto &tableData = approxTableCache->mpaTable;
         const auto &mapperData = approxTableCache->flattenIndexMapper;
 
@@ -255,7 +262,7 @@ namespace merutilm::rff2 {
         }
 
         const vkh::BufferContext &iterResultCtx =
-                renderer->descriptorStorage->renderMetaIterationVariant->getResultIterationBuffer();
+                renderer->descriptorStorage->renderMetaIteration->getResultIterationBuffer();
         const vkh::BufferContext &batchResultCtx = renderer->descriptorStorage->batchResult->getBatchResultBuffer();
         computeShaderManager->tryCreateOrResizeTransferDstBuffer(batchResultCtx, iterResultCtx, extent);
 
@@ -357,12 +364,12 @@ namespace merutilm::rff2 {
 
 
             memcpy(stagingData.data(), dstBatchBuffer.mappedMemory, dstBatchBuffer.bufferSize);
-            memcpy(renderer->visibleIterationBufferContext->getData().data(), dstIterBuffer.mappedMemory,
+            memcpy(renderer->visibleIterationBufferData->getData().data(), dstIterBuffer.mappedMemory,
                    dstIterBuffer.bufferSize);
 
             glitches = std::ranges::count_if(stagingData, [](const uint32_t data) { return data != 1; });
 
-            renderer->visibleIterationBufferContext->markUpdate();
+            renderer->visibleIterationBufferData->markUpdate();
             updateFractalFrame = true;
         } // batching and checking scope
     }

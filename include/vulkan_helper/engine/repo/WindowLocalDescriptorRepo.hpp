@@ -10,10 +10,10 @@
 
 namespace merutilm::vkh {
     struct WindowLocalDescriptorRepo final : Repository<uint32_t, const DescriptorTemplateInfo &, std::unique_ptr<Descriptor>, Descriptor &,
-                std::hash<uint32_t>, std::equal_to<>, GlobalDescriptorSetLayoutRepo &> {
+                std::hash<uint32_t>, std::equal_to<>, SharedResource &, GlobalDescriptorSetLayoutRepo &> {
         using Repository::Repository;
 
-        Descriptor & pick(const DescriptorTemplateInfo &descTemplateInfo,
+        Descriptor & pick(const DescriptorTemplateInfo &descTemplateInfo, SharedResource &sharedResource,
                            GlobalDescriptorSetLayoutRepo &layoutRepo) override;
     };
 }

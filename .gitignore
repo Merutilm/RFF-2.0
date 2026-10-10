@@ -11,6 +11,7 @@
 /cmake-build-debug
 /cmake-build-release
 /cmake-build-relwithdebinfo
+/build
 
 /extern/imgui
 /bin

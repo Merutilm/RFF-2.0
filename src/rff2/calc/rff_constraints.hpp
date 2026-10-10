@@ -4,9 +4,15 @@
 
 #pragma once
 #include <cassert>
-#define RFF_ASSUME(condition) \
+#ifdef RFF_NO_ASSUME
+#define RFF_ASSERT(condition) assert(condition)
+#else
+#define RFF_ASSERT(condition) \
         do {                     \
             assert(condition);   \
             __builtin_assume(condition); \
         } while (false)
+#endif
+
+
 

@@ -19,6 +19,9 @@
 #include <utils_iteration.glsl>
 #include <utils_palette.glsl>
 
+layout (set = 5, binding = 1) writeonly buffer SnapshotSSBO {
+    double iterations[];
+} snapshot_settings;
 
 layout (location = 0) in vec3 fragColor;
 layout (location = 1) in vec2 fragTexcoord;
@@ -31,7 +34,7 @@ void main() {
     ivec2 iter_coord = ivec2(gl_FragCoord.xy);
     double iteration = get_iteration(iter_coord);
 
-    if (iteration == 0) {
+    if (iteration == 0) {;
         color = vec4(0, 0, 0, 1);
         return;
     }

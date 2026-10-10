@@ -75,11 +75,6 @@ namespace merutilm::rff2 {
         }
         ImGuiUtils::HelpMarker("Sets the Framerate.");
 
-        if (ImGuiUtils::Dropdown("Pixel Render Priority", &app.getSettings().render.display.pixelRenderPriority)) {
-            // noop
-        }
-
-
         if (ImGui::SliderScalar("Threads", ImGuiDataType_U32, &app.getSettings().fractal.general.threads, &minThread,
                                 &maxThreads)) {
             // noop

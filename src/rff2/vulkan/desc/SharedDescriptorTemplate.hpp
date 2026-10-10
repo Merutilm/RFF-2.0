@@ -21,7 +21,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_CAMERA_VIEW = 1;
         static constexpr uint32_t TARGET_CAMERA_PROJ = 2;
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
 
             bufferManager.reserve<glm::mat4>(TARGET_CAMERA_MODEL);
@@ -45,7 +46,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
         static constexpr uint32_t TARGET_TIME_CURRENT = 0;
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<double>(TARGET_TIME_CURRENT);
             auto ubo = std::make_unique<vkh::Uniform>(core, std::move(bufferManager),
@@ -69,7 +71,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
         static constexpr uint32_t TARGET_SSBO_ITERATION_BUFFER = 0;
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto descManager = vkh::DescriptorManager();
 
             auto infoManager = vkh::HostDataObjectManager();
@@ -106,7 +109,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_PALETTE_ANIMATION_SPEED = 5;
         static constexpr uint32_t TARGET_PALETTE_COLORS = 6;
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<uint32_t>(TARGET_PALETTE_SIZE);
             bufferManager.reserve<float>(TARGET_PALETTE_INTERVAL);
@@ -140,7 +144,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_STRIPE_ITERATION_COLORING = 6;
 
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<uint32_t>(TARGET_STRIPE_TYPE);
             bufferManager.reserve<float>(TARGET_STRIPE_FIRST_INTERVAL);
@@ -159,7 +164,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
     struct DescFractalSurface final : public vkh::DescriptorTemplate {
         static constexpr uint32_t ID = 5;
-        static constexpr VkShaderStageFlags STAGE = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
+        static constexpr VkShaderStageFlags STAGE =
+                VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_COMPUTE_BIT;
 
         static constexpr uint32_t BINDING_UBO_SURFACE = 0;
 
@@ -179,7 +185,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_SURFACE_WAVE_STRENGTH = 13;
 
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<float>(TARGET_SURFACE_DEPTH);
             bufferManager.reserve<float>(TARGET_SURFACE_SHADOW_BRIGHTNESS);
@@ -217,7 +224,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_COLOR_CONTRAST = 5;
 
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<float>(TARGET_COLOR_GAMMA);
             bufferManager.reserve<float>(TARGET_COLOR_EXPOSURE);
@@ -242,7 +250,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_FOG_RADIUS = 0;
         static constexpr uint32_t TARGET_FOG_OPACITY = 1;
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto descManager = vkh::DescriptorManager();
 
             auto bufferManager = vkh::HostDataObjectManager();
@@ -267,7 +276,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_BLOOM_INTENSITY = 3;
 
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<float>(TARGET_BLOOM_THRESHOLD);
             bufferManager.reserve<float>(TARGET_BLOOM_RADIUS);
@@ -292,7 +302,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_NOISE_REDUCTION_DIFFERENCE_THRESHOLD = 2;
 
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<bool>(TARGET_NOISE_REDUCTION_USE);
             bufferManager.reserve<uint32_t>(TARGET_NOISE_REDUCTION_SIMILAR_COUNT_THRESHOLD);
@@ -315,7 +326,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_VIDEO_CURRENT_FRAME = 1;
 
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<double>(TARGET_VIDEO_DEFAULT_ZOOM_INCREMENT);
             bufferManager.reserve<double>(TARGET_VIDEO_CURRENT_FRAME);
@@ -339,7 +351,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_F3D_ROTATION = 2;
 
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             auto bufferManager = vkh::HostDataObjectManager();
             bufferManager.reserve<float>(TARGET_F3D_BASE_ITERATION);
             bufferManager.reserve<float>(TARGET_F3D_DEPTH_DIVISOR);
@@ -353,12 +366,23 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
     };
 
 #endif
+    struct DescIterationSnapshotVariant : public vkh::DescriptorTemplate {
+
+        static constexpr uint32_t ID = 12;
+
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
+            DescIteration().configure(core, sharedResource, managers);
+        };
+    };
+
     struct DescRenderMetaIterationVariant : public vkh::DescriptorTemplate {
 
         static constexpr uint32_t ID = 13;
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
-            DescIteration().configure(core, managers);
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
+            DescIteration().configure(core, sharedResource, managers);
         };
     };
 
@@ -369,7 +393,7 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
 
         static constexpr uint32_t BINDING_BATCH_RESULT_SSBO = 0;
         static constexpr uint32_t TARGET_BATCH_RESULT_COMPLETED = 0;
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource, std::vector<vkh::DescriptorManager> &managers) override {
 
             vkh::HostDataObjectManager homRmBatchResult;
             homRmBatchResult.reserveArray<uint32_t>(TARGET_BATCH_RESULT_COMPLETED, 1);
@@ -391,7 +415,8 @@ namespace merutilm::rff2::SharedDescriptorTemplate {
         static constexpr uint32_t TARGET_SMOOTH_ZOOM_POSITION_DELTA = 0;
         static constexpr uint32_t TARGET_SMOOTH_ZOOM_LOG_ZOOM_DELTA = 1;
 
-        void configure(vkh::Core &core, std::vector<vkh::DescriptorManager> &managers) override {
+        void configure(vkh::Core &core, vkh::SharedResource &sharedResource,
+                       std::vector<vkh::DescriptorManager> &managers) override {
             vkh::DescriptorManager descManager;
             vkh::HostDataObjectManager hdm;
             hdm.reserve<glm::vec2>(TARGET_SMOOTH_ZOOM_POSITION_DELTA);

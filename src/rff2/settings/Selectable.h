@@ -9,7 +9,6 @@
 #include "FrtDecimalizeIterationMethod.h"
 #include "FrtMPASelectionMethod.h"
 #include "PerturbationMainIterator.hpp"
-#include "RndPixelRenderPriority.hpp"
 #include "ShdIterationColoringMethod.hpp"
 #include "ShdPalSingleIterationColoringMethod.h"
 #include "ShdStripeType.h"
@@ -69,13 +68,6 @@ namespace merutilm::rff2 {
                     GPU
                 };
             }
-            if constexpr (std::is_same_v<E, RndPixelRenderPriority>) {
-                using enum RndPixelRenderPriority;
-                return {
-                    SEQUENTIAL,
-                    SWIZZLE,
-                };
-            }
             return {};
         }
 
@@ -133,14 +125,6 @@ namespace merutilm::rff2 {
                     using enum PerturbationMainIterator;
                     case CPU: return "CPU";
                     case GPU: return "GPU";
-                    default: break;
-                }
-            }
-            if constexpr (std::is_same_v<E, RndPixelRenderPriority>) {
-                switch (value) {
-                    using enum RndPixelRenderPriority;
-                    case SEQUENTIAL: return "Sequential";
-                    case SWIZZLE: return "Swizzle";
                     default: break;
                 }
             }

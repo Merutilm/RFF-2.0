@@ -86,7 +86,7 @@ namespace merutilm::vkh {
                     *wc.getWindowLocalRepositories().getRepository<WindowLocalDescriptorRepo>();
 
             safe_array::check_index_equal(setExpected, static_cast<uint32_t>(descriptors.size()), "Descriptor Add");
-            descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), layoutRepo));
+            descriptors.push_back(&repo.pick(DescriptorTemplate::from<D>(), engine.getSharedResource(), layoutRepo));
         }
 
         void appendUniqueDescriptor(const uint32_t setExpected, std::vector<Descriptor *> &descriptors,

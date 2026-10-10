@@ -73,8 +73,17 @@ namespace merutilm::rff2 {
             memcpy(this->data.data(), data.data(), data.size() * sizeof(T));
             vkh::BufferContext::fill(context, data);
         }
+        void fillZero() {
+            updated = true;
+            std::fill_n(data.data(), data.size(), T(0));
+        }
 
-        void fillZero() const { vkh::BufferContext::fillZero(context); }
+        void loadIfZero() {
+            updated = true;
+            for (uint64_t i = 0; i < data.size(); ++i) {
+                if (data[i] == 0) data[i] = *reinterpret_cast<T*>(&context.mappedMemory[i * sizeof(T)]);
+            }
+        }
 
         [[nodiscard]] uint32_t getIndex(uint16_t x, uint16_t y) const {
             x = std::clamp(x, static_cast<uint16_t>(0), static_cast<uint16_t>(width - 1));

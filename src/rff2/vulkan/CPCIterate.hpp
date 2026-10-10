@@ -63,11 +63,11 @@ namespace merutilm::rff2 {
         vkh::PipelineSpecialization createSpecializationInfo() override;
         void clearMeta(vkh::CommandPool &commandPool) const;
 
-        void resizeWriteBuffer(uint32_t width, uint32_t height) const;
+        void resizeWriteBuffer(vkh::CommandPool &commandPool, uint32_t width, uint32_t height) const;
 
         void setMeta(const FractalSettings &frt, const RenderSettings &render,
-                     const std::vector<complex<Num>> &reference, uint64_t longestPeriod, complex<Num> offset, uint64_t maxIteration,
-                     const CachedPodVector &mpTableData, const CachedPodVector &mapperData,
+                     const std::vector<complex<Num>> &reference, uint64_t longestPeriod, complex<Num> offset,
+                     uint64_t maxIteration, const CachedPodVector &mpTableData, const CachedPodVector &mapperData,
                      vkh::CommandPool &commandPool) const;
 
         void clearWriteBuffer(vkh::CommandPool &commandPool) const;
@@ -165,19 +165,20 @@ namespace merutilm::rff2 {
         });
     }
     template<Number Num>
-    void CPCIterate<Num>::resizeWriteBuffer(const uint32_t width, const uint32_t height) const {
+    void CPCIterate<Num>::resizeWriteBuffer(vkh::CommandPool &commandPool, const uint32_t width, const uint32_t height) const {
         using namespace SharedDescriptorTemplate;
 
         auto &desc = getDescriptor(SET_RENDER_META);
         auto &rmBatchSSBO = desc.template get<vkh::ShaderStorage>(0, BINDING_RM_BATCH_SSBO);
         auto &rmBatchSSBOHost = rmBatchSSBO.getHostObject();
 
+        if (rmBatchSSBOHost.getElementCount(TARGET_RM_BATCH_STAGING_DATA) == width * height) return;
         rmBatchSSBOHost.template resizeAndClear<ComputeShaderBatchStagingData<Num>>(TARGET_RM_BATCH_STAGING_DATA,
                                                                                     width * height);
 
         rmBatchSSBO.reloadBuffer();
         rmBatchSSBO.update();
-        rmBatchSSBO.localize(wc.getCommandPool());
+        rmBatchSSBO.localize(commandPool);
 
         writeDescriptorMF([&desc](vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {
             desc.queue(queue, frameIndex, {}, {BINDING_RM_BATCH_SSBO});

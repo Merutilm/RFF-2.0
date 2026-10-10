@@ -10,6 +10,7 @@
 #include <ostream>
 
 #include "../constants/Constants.hpp"
+#include "rff_constraints.hpp"
 #include "templates.hpp"
 
 namespace merutilm::rff2 {
@@ -72,6 +73,7 @@ namespace merutilm::rff2 {
 
 
         static Mantissa ldexp_neg(const Mantissa mantissa, const Exp exp2) {
+            RFF_ASSERT(exp2 <= 0);
             const auto mts_bits = std::bit_cast<Bit>(mantissa);
             const auto mts_ubits = mts_bits & exp_traits<Mantissa>::EXP_MANTISSA_MASK;
             const auto f_shift = static_cast<int>(mts_ubits >> exp_traits<Mantissa>::MANTISSA_BIT_COUNT) + exp2;
@@ -89,6 +91,7 @@ namespace merutilm::rff2 {
 
         static exponent nth_root(const exponent v, const int d) {
             // valid when d < 32, v.mantissa > 0
+            RFF_ASSERT(d < 32 && v.mantissa > 0);
             const int64_t k = (v.exp2 % d + d) % d;
             const int64_t exp2 = v.exp2 - k;
             Mantissa mantissa = std::pow(v.mantissa * (1u << k), 1.0 / d);

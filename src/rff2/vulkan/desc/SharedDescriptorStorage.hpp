@@ -25,6 +25,8 @@ namespace merutilm::rff2 {
 
         std::unique_ptr<SharedDescriptorManager::DescManagerTime> time;
         std::unique_ptr<SharedDescriptorManager::DescManagerIteration> iteration;
+        std::unique_ptr<SharedDescriptorManager::DescManagerIteration> iterationSnapshot;
+        std::unique_ptr<SharedDescriptorManager::DescManagerIteration> renderMetaIteration;
         std::unique_ptr<SharedDescriptorManager::DescManagerPalette> palette;
         std::unique_ptr<SharedDescriptorManager::DescManagerStripe> stripe;
         std::unique_ptr<SharedDescriptorManager::DescManagerFractalSurface> surface;
@@ -33,7 +35,6 @@ namespace merutilm::rff2 {
         std::unique_ptr<SharedDescriptorManager::DescManagerBloom> bloom;
         std::unique_ptr<SharedDescriptorManager::DescManagerNoiseReduction> noiseReduction;
         std::unique_ptr<SharedDescriptorManager::DescManagerVideo> video;
-        std::unique_ptr<SharedDescriptorManager::DescManagerIteration> renderMetaIterationVariant;
         std::unique_ptr<SharedDescriptorManager::DescManagerBatchResult> batchResult;
         std::unique_ptr<SharedDescriptorManager::DescManagerSmoothZoom> smoothZoom;
 
@@ -63,6 +64,8 @@ namespace merutilm::rff2 {
 #endif
             time = pickAndQueue<DescTime, DescManagerTime>(queue);
             iteration = pickAndQueue<DescIteration, DescManagerIteration>(queue);
+            iterationSnapshot = pickAndQueue<DescIterationSnapshotVariant, DescManagerIteration>(queue);
+            renderMetaIteration = pickAndQueue<DescRenderMetaIterationVariant, DescManagerIteration>(queue);
             palette = pickAndQueue<DescPalette, DescManagerPalette>(queue);
             stripe = pickAndQueue<DescStripe, DescManagerStripe>(queue);
             surface = pickAndQueue<DescFractalSurface, DescManagerFractalSurface>(queue);
@@ -71,7 +74,6 @@ namespace merutilm::rff2 {
             bloom = pickAndQueue<DescBloom, DescManagerBloom>(queue);
             noiseReduction = pickAndQueue<DescNoiseReduction, DescManagerNoiseReduction>(queue);
             video = pickAndQueue<DescVideo, DescManagerVideo>(queue);
-            renderMetaIterationVariant = pickAndQueue<DescRenderMetaIterationVariant, DescManagerIteration>(queue);
             batchResult = pickAndQueue<DescBatchResult, DescManagerBatchResult>(queue);
             smoothZoom = pickAndQueue<DescSmoothZoom, DescManagerSmoothZoom>(queue);
 
@@ -80,7 +82,7 @@ namespace merutilm::rff2 {
 
         template<vkh::DescTemplateHasID D, typename Ret> requires std::is_constructible_v<Ret, vkh::WindowContext&, vkh::Descriptor &>
         std::unique_ptr<Ret> pickAndQueue(vkh::DescriptorUpdateQueue& queue) const {
-            auto desc = &descRepo->pick(vkh::DescriptorTemplate::from<D>(), *layoutRepo);
+            auto desc = &descRepo->pick(vkh::DescriptorTemplate::from<D>(), engine.getSharedResource(), *layoutRepo);
             for (uint32_t i = 0; i < engine.getCore().getPhysicalDeviceLoader().getMaxFramesInFlight(); i++) {
                 desc->queue(queue, i, {}, {});
             }
