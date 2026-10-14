@@ -20,7 +20,7 @@ namespace merutilm::rff2 {
         }
 
         friend complex operator*(const complex a, const complex b) {
-            return complex{a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re};
+            return complex{.re = a.re * b.re - a.im * b.im, .im = a.re * b.im + a.im * b.re};
         }
 
 
@@ -40,25 +40,25 @@ namespace merutilm::rff2 {
         friend complex &operator+=(complex &a, const complex b) { return a = a + b; }
 
         template<Number N2>
-        friend complex operator+(const N2 a, const complex b) { return complex{a + b.re, b.im}; }
+        friend complex operator+(const N2 a, const complex b) { return complex{.re = a + b.re, .im = b.im}; }
 
         template<Number N2>
-        friend complex operator+(const complex a, const N2 b) { return complex{a.re + b, a.im}; }
+        friend complex operator+(const complex a, const N2 b) { return complex{.re = a.re + b, .im = a.im}; }
 
-        friend complex operator-(const complex a, const complex b) { return complex{a.re - b.re, a.im - b.im}; }
+        friend complex operator-(const complex a, const complex b) { return complex{.re = a.re - b.re, .im = a.im - b.im}; }
 
         friend complex &operator-=(complex &a, const complex b) { return a = a - b; }
 
         template<Number N2>
-        friend complex operator-(const complex a, const N2 b) { return complex{a.re - b, a.im}; }
+        friend complex operator-(const complex a, const N2 b) { return complex{.re = a.re - b, .im = a.im}; }
 
         template<Number N2>
-        friend complex operator-(const N2 a, const complex b) { return complex{a - b.re, -b.im}; }
+        friend complex operator-(const N2 a, const complex b) { return complex{.re = a - b.re, .im = -b.im}; }
 
         template<Number N2>
-        friend complex operator/(const complex a, const N2 b) { return complex{a.re / b, a.im / b}; }
+        friend complex operator/(const complex a, const N2 b) { return complex{.re = a.re / b, .im = a.im / b}; }
 
-        friend bool operator==(const complex &a, const complex &b) { return a.re == b.re && a.im == b.im; }
+        friend bool operator==(const complex &a, const complex &b) = default;
 
         [[nodiscard]] Num norm_sqr() const { return re * re + im * im; }
 

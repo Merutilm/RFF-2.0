@@ -5,6 +5,7 @@
 #pragma once
 #include <vector>
 
+#include "../constants/Constants.hpp"
 #include "../app/FnListeners.hpp"
 #include "../calc/fixed_point_complex.hpp"
 #include "../mrthy/ArrayCompressionTool.h"

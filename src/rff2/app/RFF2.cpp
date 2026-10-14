@@ -605,6 +605,7 @@ namespace merutilm::rff2 {
             if (ImGui::BeginTabItem("Render")) {
                 FnRender::setResolutionProperties(*this);
                 FnRender::setRenderProperties(*this);
+                FnRender::setSIMD(*this);
                 FnRender::setComputeShader(*this);
                 ImGui::EndTabItem();
             }
@@ -990,16 +991,25 @@ namespace merutilm::rff2 {
 
         uint32_t len = static_cast<uint32_t>(w) * h;
 
-        auto func = [&s, this, len, &renderPixelsCount](const uint16_t x, const uint16_t y, const uint16_t,
-                                                        const uint16_t, float, float, const uint32_t i, double) {
-            RFF_ASSERT(i < len);
-            const auto dc = offsetConversion(s.fractal.general.logZoom, s.render.display.clarityMultiplier, x, y);
-            const double iteration = renderData->getPerturbator()->iterate(dc);
+        auto func = [&s, this, len, &renderPixelsCount](SIMDChunk<double> chunk) { //moved value from source, do not use reference
+            std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> dcs;
+            for (uint32_t i = 0; i < chunk.validLen; ++i) {
+                const uint32_t x = chunk.data[i].x;
+                const uint32_t y = chunk.data[i].y;
+                dcs[i] = offsetConversion(s.fractal.general.logZoom, s.render.display.clarityMultiplier, x, y);
+                RFF_ASSERT(i < len);
+            }
+            if (settings.render.simd) {
+                renderData->getPerturbator()->iterateBatch(chunk, dcs);
+            } else {
+                for (uint32_t i = 0; i < chunk.validLen; ++i) {
+                    *chunk.data[i].value = renderData->getPerturbator()->iterate(dcs[i]);
+                }
+            }
 
-            renderer->visibleIterationBufferData->set(x, y, iteration);
+            renderer->visibleIterationBufferData->setBatch(chunk);
 
-            ++renderPixelsCount;
-            return iteration;
+            renderPixelsCount += chunk.validLen;
         };
         const auto previewer =
                 ParallelArrayDispatcher<double>(state, actualIterationMatrix, w, h, s.fractal.general.threads, s.render.display.blockSize, std::move(func));
@@ -1035,9 +1045,10 @@ namespace merutilm::rff2 {
 
         const auto syncer = ParallelArrayDispatcher<double>(
                 state, actualIterationMatrix, w, h, s.fractal.general.threads, s.render.display.blockSize,
-                [this](const uint16_t x, const uint16_t y, uint16_t, uint16_t, float, float, uint32_t, const double a) {
-                    renderer->visibleIterationBufferData->set(x, y, a);
-                    return 0;
+                [this](const SIMDChunk<double> &chunk) {
+                    for (uint32_t i = 0; i < chunk.validLen; ++i) {
+                        renderer->visibleIterationBufferData->setBatch(chunk);
+                    }
                 });
 
         syncer.dispatch();

@@ -7,9 +7,7 @@
 #include <format>
 #include <numbers>
 #include <string>
-#include <ostream>
 
-#include "../constants/Constants.hpp"
 #include "rff_constraints.hpp"
 #include "templates.hpp"
 
@@ -73,11 +71,12 @@ namespace merutilm::rff2 {
 
 
         static Mantissa ldexp_neg(const Mantissa mantissa, const Exp exp2) {
-            RFF_ASSERT(exp2 <= 0);
+            RFF_ASSERT(exp2 < 0);
+
             const auto mts_bits = std::bit_cast<Bit>(mantissa);
             const auto mts_ubits = mts_bits & exp_traits<Mantissa>::EXP_MANTISSA_MASK;
-            const auto f_shift = static_cast<int>(mts_ubits >> exp_traits<Mantissa>::MANTISSA_BIT_COUNT) + exp2;
-            // do not consider < smallest normalized value
+            const auto f_shift = static_cast<int32_t>(mts_ubits >> exp_traits<Mantissa>::MANTISSA_BIT_COUNT) + exp2;
+            // do not consider < smallest normalized value (e-38 and e-308)
             return f_shift < 0 ? 0
                                : std::bit_cast<Mantissa>(mts_bits - (static_cast<Bit>(-exp2)
                                                                      << exp_traits<Mantissa>::MANTISSA_BIT_COUNT));
@@ -145,9 +144,9 @@ namespace merutilm::rff2 {
             }
 #endif
             const Exp d_exp2 = a.exp2 - b.exp2;
-            return exponent{std::max(a.exp2, b.exp2),
-                            ldexp_neg(a.mantissa, std::min(static_cast<Exp>(0), d_exp2)) +
-                                    ldexp_neg(b.mantissa, std::min(static_cast<Exp>(0), -d_exp2))};
+            return exponent(std::max(a.exp2, b.exp2),
+                            (d_exp2 >= 0 ? a.mantissa : ldexp_neg(a.mantissa, d_exp2)) +
+                                    (d_exp2 <= 0 ? b.mantissa : ldexp_neg(b.mantissa, -d_exp2)));
         }
         friend exponent operator+(const exponent a, const Mantissa b) { return a + exponent(b); }
 
@@ -180,9 +179,9 @@ namespace merutilm::rff2 {
             }
 #endif
             const Exp d_exp2 = a.exp2 - b.exp2;
-            return exponent{std::max(a.exp2, b.exp2),
-                            ldexp_neg(a.mantissa, std::min(static_cast<Exp>(0), d_exp2)) -
-                                    ldexp_neg(b.mantissa, std::min(static_cast<Exp>(0), -d_exp2))};
+            return exponent(std::max(a.exp2, b.exp2),
+                            (d_exp2 >= 0 ? a.mantissa : ldexp_neg(a.mantissa, d_exp2)) -
+                                    (d_exp2 <= 0 ? b.mantissa : ldexp_neg(b.mantissa, -d_exp2)));
         }
 
 
@@ -365,9 +364,7 @@ namespace merutilm::rff2 {
             }
         }
 
-        friend std::ostream &operator<<(std::ostream &out, const exponent &obj) {
-            return out << obj.to_string();
-        }
+        friend std::ostream &operator<<(std::ostream &out, const exponent &obj) { return out << obj.to_string(); }
     };
 
     template<Number Exp, Number Mantissa, Number Bit>

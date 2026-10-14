@@ -7,10 +7,10 @@
 #include "../calc/rff_random.hpp"
 #include "../constants/FractalConstants.hpp"
 #include "ParallelRenderState.h"
+#include "SIMDChunk.hpp"
 namespace merutilm::rff2 {
     template<typename T>
-    using ParallelArrayRenderer = std::function<T(uint16_t x, uint16_t y, uint16_t xRes, uint16_t yRes, float xRat,
-                                                  float yRat, uint32_t index, T value)>;
+    using ParallelArrayRenderer = std::function<void(SIMDChunk<T>)>;
 
 
     template<typename T>
@@ -87,6 +87,13 @@ namespace merutilm::rff2 {
     template<typename T>
     void ParallelArrayDispatcher<T>::process(const glm::uvec2 startPoint) const {
 
+        SIMDChunk<T> chunk = {
+            .validLen = 0,
+            .xRes = xRes,
+            .yRes = yRes,
+        };
+        uint32_t filled = 0;
+
         for (uint32_t i = 0; i < blockSize; ++i) {
 
             auto x = startPoint.x + i;
@@ -97,8 +104,19 @@ namespace merutilm::rff2 {
                 if (y >= yRes) break;
 
                 uint32_t index = y * xRes + x;
-                arr[index] = func(x, y, xRes, yRes, static_cast<float>(x) / xRes, static_cast<float>(y) / yRes, index,
-                                  arr[index]);
+                SIMDChunkData<T> chunkData{
+                    .x = x,
+                    .y = y,
+                    .value = &arr[index]
+                };
+
+                chunk.data[filled] = std::move(chunkData);
+                chunk.validLen = ++filled;
+                filled %= RFF_SIMD_CHUNK_SIZE;
+                if (filled == 0) {
+                    func(std::move(chunk));
+                }
+
             }
         }
     }

@@ -10,6 +10,7 @@ namespace merutilm::rff2 {
     struct FnRender {
         static void setResolutionProperties(RFF2 &app);
         static void setRenderProperties(RFF2 &app);
+        static void setSIMD(RFF2 &app);
         static void setComputeShader(RFF2 &app);
     };
 }

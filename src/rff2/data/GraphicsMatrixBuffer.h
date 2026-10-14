@@ -7,13 +7,14 @@
 #include <array>
 #include <vector>
 
+#include "../parallel/SIMDChunk.hpp"
 #include "vulkan_helper/engine/context/BufferContext.hpp"
 #include "vulkan_helper/handle/CoreHandler.hpp"
 
 
 namespace merutilm::rff2 {
     template<typename T>
-    class GraphicsMatrixBuffer final : vkh::CoreHandler {
+    class GraphicsMatrixBuffer final : public vkh::CoreHandler {
         bool updated = false;
         uint16_t width;
         uint16_t height;
@@ -48,6 +49,17 @@ namespace merutilm::rff2 {
         void set(const uint32_t i, const T &value) {
             updated = true;
             data[i] = value;
+        }
+
+        void setBatch(const SIMDChunk<T>& chunk) {
+            if (chunk.validLen == 0) {
+                return;
+            }
+            updated = true;
+            for (uint32_t i = 0; i < chunk.validLen; ++i) {
+                const auto& item = chunk.data[i];
+                data[getIndex(item.x, item.y)] = *item.value;
+            }
         }
 
         void set(const uint32_t x, const uint32_t y, const T &value) {
@@ -85,9 +97,9 @@ namespace merutilm::rff2 {
             }
         }
 
-        [[nodiscard]] uint32_t getIndex(uint16_t x, uint16_t y) const {
-            x = std::clamp(x, static_cast<uint16_t>(0), static_cast<uint16_t>(width - 1));
-            y = std::clamp(y, static_cast<uint16_t>(0), static_cast<uint16_t>(height - 1));
+        [[nodiscard]] uint32_t getIndex(uint32_t x, uint32_t y) const {
+            x = std::clamp<uint32_t>(x, 0, width - 1);
+            y = std::clamp<uint32_t>(y, 0, height - 1);
             return static_cast<uint32_t>(width) * y + x;
         }
 

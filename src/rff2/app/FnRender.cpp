@@ -79,11 +79,15 @@ namespace merutilm::rff2 {
         ImGui::SliderScalar("Render Block Size",ImGuiDataType_U32,  &app.getSettings().render.display.blockSize, &minSize, &maxSize);
         ImGuiUtils::HelpMarker("Sets the Block size of the render group");
 
-        if (ImGui::SliderScalar("Threads", ImGuiDataType_U32, &app.getSettings().fractal.general.threads, &minThreads,
-                                &maxThreads)) {
-            // noop
-        }
+        ImGui::SliderScalar("Threads", ImGuiDataType_U32, &app.getSettings().fractal.general.threads, &minThreads,
+                                &maxThreads);
         ImGuiUtils::HelpMarker("Sets the number of threads while rendering an image.");
+        ImGuiUtils::EndSettings();
+    }
+
+    void FnRender::setSIMD(RFF2 &app) {
+        ImGuiUtils::BeginSettings("SIMD");
+        ImGui::Checkbox("Use", &app.getSettings().render.simd);
         ImGuiUtils::EndSettings();
     }
 
@@ -98,9 +102,7 @@ namespace merutilm::rff2 {
                interpolateIsolated] = app.getSettings().render.computeShader;
 
         if (app.engine->getCore().getPhysicalDeviceLoader().getPhysicalDeviceFeatures().shaderInt64) {
-            if (ImGui::Checkbox("Use", &use)) {
-                // noop
-            }
+            ImGui::Checkbox("Use", &use);
             ImGuiUtils::HelpMarker("Use Compute shader instead of multithreading. "
                                        "it is only available for single-precision values down to 1e-35, "
                                        "uncompressed MP table and uncompressed reference.");

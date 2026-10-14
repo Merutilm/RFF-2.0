@@ -6,7 +6,7 @@ if (WIN32)
     if (DEFINED ENV{MSYS2_ROOT})
         set(CLANG64_DIRS "$ENV{MSYS2_ROOT}/clang64")
         set(CLANG64_LIBS "${CLANG64_DIRS}/lib")
-    else()
+    else ()
         message(FATAL_ERROR "Environment Variable of MSYS2 is not set")
     endif ()
 endif ()
@@ -77,9 +77,17 @@ target_compile_options(RFF PRIVATE
         #Debug options
         $<$<CONFIG:Debug>:-O0>
         #Release options
-        $<$<CONFIG:Release>:-O3 -ffast-math -funroll-loops -march=native -mllvm -inline-threshold=4000>
+        $<$<CONFIG:Release>:-O3 -ffast-math -funroll-loops -flto -march=native -mllvm -inline-threshold=4000>
         #RelWithDebInfo options
-        $<$<CONFIG:RelWithDebInfo>:-O3 -ffast-math -fno-omit-frame-pointer -funroll-loops -march=native>
+        $<$<CONFIG:RelWithDebInfo>:-O3 -ffast-math -fno-omit-frame-pointer -funroll-loops -flto -march=native -mllvm -inline-threshold=4000>
+)
+
+target_link_options(RFF PRIVATE
+        #Release options
+        $<$<CONFIG:Release>:-flto>
+        #RelWithDebInfo options
+        $<$<CONFIG:RelWithDebInfo>:-flto>
+
 )
 
 
@@ -178,7 +186,15 @@ elseif (UNIX)
 
 endif ()
 
-macro(RFF_DEFINITION def str flag)
+macro(RFF_DEFINITION def str value)
+    set(${def} ${value} CACHE STRING ${str})
+    message(STATUS "${def} is set to ${${def}}")
+    target_compile_definitions(RFF PUBLIC ${def}=${${def}})
+
+endmacro()
+
+
+macro(RFF_DEFINITION_FLAG def str flag)
     option(${def} ${str} ${flag})
     if (${def})
         message(STATUS "${def} is Enabled. ${str}")
@@ -187,7 +203,6 @@ macro(RFF_DEFINITION def str flag)
         message(STATUS "${def} is Disabled. Skipping")
     endif ()
 endmacro()
-
 
 
 include(FetchContent)
@@ -202,6 +217,7 @@ FetchContent_MakeAvailable(nfd)
 
 target_link_libraries(RFF PRIVATE nfd)
 
-RFF_DEFINITION(SAFE_EXP_OPERATOR "Better Quality, Slower Speed (Safety checking)" OFF)
-RFF_DEFINITION(USE_EXPERIMENTAL_3D "Use Experimental 3D Fractal Feature" OFF)
-RFF_DEFINITION(RFF_NO_ASSUME "Disable compiler assume hints" OFF)
+RFF_DEFINITION_FLAG(SAFE_EXP_OPERATOR "Better Quality, Slower Speed (Safety checking)" OFF)
+RFF_DEFINITION_FLAG(USE_EXPERIMENTAL_3D "Use Experimental 3D Fractal Feature" OFF)
+RFF_DEFINITION_FLAG(RFF_NO_ASSUME "Disable compiler assume hints" OFF)
+RFF_DEFINITION(RFF_SIMD_CHUNK_SIZE "SIMD Chunk Size" 16)

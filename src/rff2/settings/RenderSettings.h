@@ -7,6 +7,7 @@ namespace merutilm::rff2 {
     struct RenderSettings {
         RndDisplaySettings display;
         RndComputeShader computeShader;
+        bool simd;
     };
 }
 
