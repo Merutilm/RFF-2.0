@@ -39,10 +39,10 @@ namespace merutilm::rff2 {
 
         virtual ~MB2PerturbatorBase() = default;
 
-        [[nodiscard]] virtual double iterate(const complex<dex> &dc) const = 0;
+        [[nodiscard]] virtual double iterate(const complex<dex> &dc) const noexcept = 0;
 
         virtual void iterateBatch(SIMDChunk<double> &chunk,
-                                  std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> &dcs) const = 0;
+                                  std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> &dcs) const noexcept = 0;
     };
 
     template<Number Num>
@@ -80,7 +80,7 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        double iterate(const complex<dex> &dc) const override {
+        double iterate(const complex<dex> &dc) const noexcept override {
             if (state.interruptRequested())
                 return 0.0;
 
@@ -217,15 +217,14 @@ namespace merutilm::rff2 {
                                    std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finished, const Num &dcMax0,
                                    const std::array<int, RFF_SIMD_CHUNK_SIZE> &absIteration,
                                    std::array<std::array<complex<Num>, 8>, RFF_SIMD_CHUNK_SIZE> &pdz,
-                                   std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &pdzIndex, uint32_t i) const {
+                                   std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &pdzIndex, uint32_t i) const noexcept {
             if (finished[i])
                 return;
 
             if (interiorDetectRadius != 0) {
                 for (const complex<Num> &pdz0: pdz[i]) {
                     if ((pdz0 - dz[i]).norm_sqr() < dcMax0 * interiorDetectRadius) {
-                        if (chunk.data[i].value)
-                            *chunk.data[i].value = isAbs ? absIteration[i] : static_cast<double>(maxIteration);
+                        *chunk.data[i].value = isAbs ? absIteration[i] : static_cast<double>(maxIteration);
                         finished[i] = true;
                     }
                 }
@@ -236,7 +235,7 @@ namespace merutilm::rff2 {
             }
         }
 
-        void iterateBatch(SIMDChunk<double> &chunk, std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> &dcs) const override {
+        void iterateBatch(SIMDChunk<double> &chunk, std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> &dcs) const noexcept override {
             if (state.interruptRequested())
                 return;
 
@@ -297,9 +296,10 @@ namespace merutilm::rff2 {
             std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> oldZ2;
             std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> oldPtbZ;
             std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> z;
+            std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> c;
 
-            std::array<float, RFF_SIMD_CHUNK_SIZE> resultCurrDistance2; // initialization doesn't need
-            std::array<float, RFF_SIMD_CHUNK_SIZE> resultPrevDistance2; // initialization doesn't need
+            std::array<float, RFF_SIMD_CHUNK_SIZE> resultCurrDistance2;
+            std::array<float, RFF_SIMD_CHUNK_SIZE> resultPrevDistance2;
 
             for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
                 finished[i] = 0;
@@ -312,14 +312,9 @@ namespace merutilm::rff2 {
                 oldZ2[i] = complex<Num>::ZERO;
                 oldPtbZ[i] = complex<Num>::ZERO;
                 z[i] = complex<Num>::ZERO;
-            }
-
-            std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> c;
-            for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-                absIteration[i] = 0;
-                currDistance2[i] = 0;
-                prevDistance2[i] = currDistance2[i];
                 c[i] = reference.orbit(1) + dcs0[i];
+                resultCurrDistance2[i] = 0;
+                resultPrevDistance2[i] = 0;
             }
 
             for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
@@ -359,10 +354,12 @@ namespace merutilm::rff2 {
                         assert(refIteration[i] != maxRefIteration);
                         oldZ2[i] = reference.refOrbit[refIteration[i]] * 2;
                         oldPtbZ[i] = oldZ2[i] + dz[i];
-                        dz[i] = oldPtbZ[i] * dz[i] + dcs0[i];
-                        refIteration[i] += !finished[i];
-                        iteration[i] += !finished[i];
-                        absIteration[i] += !finished[i];
+                        dz[i] = (oldPtbZ[i] * dz[i] + dcs0[i]) * (1 - finished[i]);
+
+                        ++refIteration[i];
+                        ++iteration[i];
+                        ++absIteration[i];
+
                         z[i] = reference.refOrbit[refIteration[i]] + dz[i];
                         prevDistance2[i] = currDistance2[i];
                         currDistance2[i] = static_cast<complex<float>>(z[i]).norm_sqr();
@@ -373,10 +370,12 @@ namespace merutilm::rff2 {
                         assert(refIteration[i] != maxRefIteration);
                         oldZ2[i] = reference.orbit(refIteration[i]) * 2;
                         oldPtbZ[i] = oldZ2[i] + dz[i];
-                        dz[i] = oldPtbZ[i] * dz[i] + dcs0[i];
-                        refIteration[i] += !finished[i];
-                        iteration[i] += !finished[i];
-                        absIteration[i] += !finished[i];
+                        dz[i] = (oldPtbZ[i] * dz[i] + dcs0[i]) * (1 - finished[i]);
+
+                        ++refIteration[i];
+                        ++iteration[i];
+                        ++absIteration[i];
+
                         z[i] = reference.orbit(refIteration[i]) + dz[i];
                         prevDistance2[i] = currDistance2[i];
                         currDistance2[i] = static_cast<complex<float>>(z[i]).norm_sqr();
@@ -402,9 +401,9 @@ namespace merutilm::rff2 {
                         finished[i] = true;
                     } else if (currDistance2[i] > bailout2) {
                         *chunk.data[i].value = isAbs ? absIteration[i] : static_cast<double>(iteration[i]);
-                        finished[i] = true;
                         resultCurrDistance2[i] = currDistance2[i];
                         resultPrevDistance2[i] = prevDistance2[i];
+                        finished[i] = true;
                     }
                 }
 

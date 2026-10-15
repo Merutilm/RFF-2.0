@@ -135,12 +135,12 @@ namespace merutilm::rff2 {
 
 
     public:
-        [[nodiscard]] const PA<Num> *lookup(uint64_t refIteration, complex<Num> dz) const;
+        [[nodiscard]] const PA<Num> *lookup(uint64_t refIteration, complex<Num> dz) const noexcept;
 
         void lookupBatch(std::array<PA<Num>, RFF_SIMD_CHUNK_SIZE> &results,
                          const std::array<uint64_t, RFF_SIMD_CHUNK_SIZE> &refIterations,
                          const std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> &dzs,
-                         const std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finishes) const;
+                         const std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finishes) const noexcept;
     };
 
     // DEFINITION OF MPA TABLE
@@ -596,9 +596,9 @@ namespace merutilm::rff2 {
         tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[0] = {};
 
         if (mpaSettings.useCompress) {
-            generateCompressedTable(state, reference, dcMax, fnCreatingTable);
+            generateCompressedTable(state, reference, dcMax, std::forward<FnCreatingTable>(fnCreatingTable));
         } else {
-            generateUncompressedTable(state, reference, dcMax, fnCreatingTable);
+            generateUncompressedTable(state, reference, dcMax, std::forward<FnCreatingTable>(fnCreatingTable));
         }
     }
 
@@ -934,7 +934,7 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    const PA<Num> *MPATable<Num>::lookup(const uint64_t refIteration, const complex<Num> dz) const {
+    const PA<Num> *MPATable<Num>::lookup(const uint64_t refIteration, const complex<Num> dz) const noexcept {
 
         if (refIteration == 0 || mpaPeriod == nullptr) {
             return nullptr;
@@ -995,7 +995,7 @@ namespace merutilm::rff2 {
     void MPATable<Num>::lookupBatch(std::array<PA<Num>, RFF_SIMD_CHUNK_SIZE> &results,
                                     const std::array<uint64_t, RFF_SIMD_CHUNK_SIZE> &refIterations,
                                     const std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> &dzs,
-                                    const std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finishes) const {
+                                    const std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finishes) const noexcept {
 
         if (mpaPeriod == nullptr) {
             std::ranges::fill(results, PA<Num>::IDENTITY);
