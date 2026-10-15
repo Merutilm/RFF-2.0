@@ -10,7 +10,7 @@
 #include "SIMDChunk.hpp"
 namespace merutilm::rff2 {
     template<typename T>
-    using ParallelArrayRenderer = std::function<void(SIMDChunk<T>)>;
+    using ParallelArrayRenderer = std::function<void(SIMDChunk<T> &)>;
 
 
     template<typename T>
@@ -92,6 +92,10 @@ namespace merutilm::rff2 {
             .xRes = xRes,
             .yRes = yRes,
         };
+
+        T tmp = T(); //null pointer protection
+
+
         uint32_t filled = 0;
 
         for (uint32_t i = 0; i < blockSize; ++i) {
@@ -114,11 +118,16 @@ namespace merutilm::rff2 {
                 chunk.validLen = ++filled;
                 filled %= RFF_SIMD_CHUNK_SIZE;
                 if (filled == 0) {
-                    func(std::move(chunk));
+                    func(chunk);
+                    chunk.validLen = 0;
+                    for (auto &ptr : chunk.data) {
+                        ptr.value = &tmp;
+                    }
                 }
-
             }
         }
+
+        if (chunk.validLen != 0) func(chunk);
     }
 
 

@@ -368,23 +368,23 @@ namespace merutilm::rff2 {
     };
 
     template<Number Exp, Number Mantissa, Number Bit>
-    inline const exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::ZERO = exponent{0, 0};
+    constexpr exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::ZERO = exponent{0, 0};
 
     template<Number Exp, Number Mantissa, Number Bit>
-    inline const exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::ONE = exponent{0, 1};
+    constexpr exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::ONE = exponent{0, 1};
 
 #ifdef SAFE_EXP_OPERATOR
 
     template<Number Exp, Number Mantissa, Number Bit>
-    inline const exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::NN =
+    constexpr exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::NN =
             exponent{0, static_cast<Mantissa>(NAN)};
 
     template<Number Exp, Number Mantissa, Number Bit>
-    inline const exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::PINF =
+    constexpr exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::PINF =
             exponent{0, static_cast<Mantissa>(INFINITY)};
 
     template<Number Exp, Number Mantissa, Number Bit>
-    inline const exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::NINF =
+    constexpr exponent<Exp, Mantissa, Bit> exponent<Exp, Mantissa, Bit>::NINF =
             exponent{0, -static_cast<Mantissa>(INFINITY)};
 #endif
 

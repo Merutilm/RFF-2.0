@@ -95,7 +95,7 @@ namespace merutilm::rff2 {
                                                 std::forward<FnCreatingTable>(fnCreatingTable));
         perturbator = std::make_unique<MB2Perturbator<Num>>(state, dcMax, fractalSettings.general, fractalSettings.sa,
                                                             fractalSettings.perturb, *seriesApproxData, *reference,
-                                                            dynamic_cast<MPATable<Num> *>(table.get()));
+                                                            dynamic_cast<MPATable<Num> &>(*table));
     }
 
 

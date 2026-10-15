@@ -991,7 +991,7 @@ namespace merutilm::rff2 {
 
         uint32_t len = static_cast<uint32_t>(w) * h;
 
-        auto func = [&s, this, len, &renderPixelsCount](SIMDChunk<double> chunk) { //moved value from source, do not use reference
+        auto func = [&s, this, len, &renderPixelsCount](SIMDChunk<double> &chunk) {
             std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> dcs;
             for (uint32_t i = 0; i < chunk.validLen; ++i) {
                 const uint32_t x = chunk.data[i].x;

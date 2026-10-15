@@ -137,7 +137,10 @@ namespace merutilm::rff2 {
     public:
         [[nodiscard]] const PA<Num> *lookup(uint64_t refIteration, complex<Num> dz) const;
 
-        [[nodiscard]] size_t getLength() const;
+        void lookupBatch(std::array<PA<Num>, RFF_SIMD_CHUNK_SIZE> &results,
+                         const std::array<uint64_t, RFF_SIMD_CHUNK_SIZE> &refIterations,
+                         const std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> &dzs,
+                         const std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finishes) const;
     };
 
     // DEFINITION OF MPA TABLE
@@ -146,10 +149,11 @@ namespace merutilm::rff2 {
     template<Number Num>
     template<FnListeners::FnCreatingTable FnCreatingTable>
     MPATable<Num>::MPATable(const ParallelRenderState &state, const MB2Reference<Num> &reference,
-                            ApproxTableCache &tableCache,
-                            const FrtGeneralSettings &generalSettings, const FrtMPASettings &mpaSettings,
-                            const bool computeShaderUsed, Num dcMax, FnCreatingTable &&fnCreatingTable) : tableCache(tableCache),
-        generalSettings(generalSettings), mpaSettings(mpaSettings), computeShaderUsed(computeShaderUsed) {
+                            ApproxTableCache &tableCache, const FrtGeneralSettings &generalSettings,
+                            const FrtMPASettings &mpaSettings, const bool computeShaderUsed, Num dcMax,
+                            FnCreatingTable &&fnCreatingTable) :
+        tableCache(tableCache), generalSettings(generalSettings), mpaSettings(mpaSettings),
+        computeShaderUsed(computeShaderUsed) {
 
         if (tryInit(reference)) {
             generateTable(state, reference, dcMax, fnCreatingTable);
@@ -657,8 +661,7 @@ namespace merutilm::rff2 {
         uint64_t flattenTableIndex = 0;
 
         while (iteration <= longestPeriod) {
-            if (iteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
-                state.interruptRequested()) {
+            if (iteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
                 return;
             }
 
@@ -751,7 +754,8 @@ namespace merutilm::rff2 {
                         const uint64_t flattenIndex =
                                 MPAIndexMapperUtils::iterationToFlattenTableIndex(*mpaPeriod, preservingPA->start) + i;
 #ifndef NDEBUG
-                        if (flattenIndex == UINT64_MAX || tableCache.mpaTable.interpret<PA<Num>>()[flattenIndex].skip != 0)
+                        if (flattenIndex == UINT64_MAX ||
+                            tableCache.mpaTable.interpret<PA<Num>>()[flattenIndex].skip != 0)
                             throw vkh::exception_invalid_state("already assigned or flatten index cannot be found");
 #endif
                         preservingPA.reset();
@@ -814,17 +818,18 @@ namespace merutilm::rff2 {
                             if (state.interruptRequested())
                                 return;
 
-// #ifndef NDEBUG
-//                             fnCreatingTable(
-//                                     std::min(longestPeriod, iteration),
-//                                     std::min(1.0, static_cast<double>(iteration) / static_cast<double>(longestPeriod)));
-// #else
+                            // #ifndef NDEBUG
+                            //                             fnCreatingTable(
+                            //                                     std::min(longestPeriod, iteration),
+                            //                                     std::min(1.0, static_cast<double>(iteration) /
+                            //                                     static_cast<double>(longestPeriod)));
+                            // #else
                             if (i == 0) {
                                 fnCreatingTable(std::min(longestPeriod, iteration * threadCount),
                                                 std::min(1.0, static_cast<double>(iteration) * threadCount /
                                                                       static_cast<double>(longestPeriod)));
                             }
-// #endif
+                            // #endif
                         }
 
                         uncompressedStepOnce(itCount, itCountLim, tablePeriod, currentPA, currentPASkips,
@@ -837,10 +842,10 @@ namespace merutilm::rff2 {
 
                     configurePartialPA(tablePeriod, itCountLim, currentPA, isPartial, partialPAs[i]);
                 });
-// #ifndef NDEBUG
-//                 if (threads[i]->joinable())
-//                     threads[i]->join();
-// #endif
+                // #ifndef NDEBUG
+                //                 if (threads[i]->joinable())
+                //                     threads[i]->join();
+                // #endif
             }
 
             for (const auto &thread: threads) {
@@ -908,11 +913,12 @@ namespace merutilm::rff2 {
     MPAIndexMapper MPATable<Num>::getCompFlattenIndexMapper(const uint64_t iteration) const {
         const auto [pulled, levels] = MPAIndexMapperUtils::iterationToPulledTableIndexMapper(*mpaPeriod, iteration);
         if (pulled == UINT64_MAX) {
-            return MPAIndexMapper{UINT64_MAX, 0};
+            return MPAIndexMapper{.mapped = UINT64_MAX, .generatedLevels = 0};
         }
 
         const uint64_t comp = ArrayCompressor::compress(pulledMPACompressor, pulled);
-        return MPAIndexMapper{.mapped = tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[comp].mapped, .generatedLevels = levels};
+        return MPAIndexMapper{.mapped = tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[comp].mapped,
+                              .generatedLevels = levels};
     }
 
     template<Number Num>
@@ -921,12 +927,6 @@ namespace merutilm::rff2 {
             return getCompFlattenIndexMapper(iteration);
         }
         return tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[iteration];
-    }
-
-
-    template<Number Num>
-    size_t MPATable<Num>::getLength() const {
-        return tableCache.mpaTable.sizeUsed;
     }
 
     template<Number Num>
@@ -983,6 +983,71 @@ namespace merutilm::rff2 {
             }
             default:
                 return nullptr;
+        }
+    }
+
+
+    template<Number Num>
+    void MPATable<Num>::lookupBatch(std::array<PA<Num>, RFF_SIMD_CHUNK_SIZE> &results,
+                                    const std::array<uint64_t, RFF_SIMD_CHUNK_SIZE> &refIterations,
+                                    const std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> &dzs,
+                                    const std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finishes) const {
+
+        if (mpaPeriod == nullptr) {
+            std::ranges::fill(results, PA<Num>::IDENTITY);
+            return;
+        }
+
+        std::array<MPAIndexMapper, RFF_SIMD_CHUNK_SIZE> mapperTemp;
+        std::array<Num, RFF_SIMD_CHUNK_SIZE> radiusTemp;
+        std::array<std::span<const PA<Num>>, RFF_SIMD_CHUNK_SIZE> tableTemp;
+        
+        for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
+            mapperTemp[i] = getFlattenIndexMapper(refIterations[i]);
+            if (mapperTemp[i].mapped == UINT64_MAX) {
+                mapperTemp[i].mapped = 0;
+            } else
+                debugCheckMPAFromMapper(tableCache.mpaTable.sizeUsed, mapperTemp[i].mapped,
+                                        mpaPeriod->tablePeriods.size(), mapperTemp[i].generatedLevels);
+            tableTemp[i] = getMPAFromMapper(mapperTemp[i]);
+            radiusTemp[i] = dzs[i].norm_approx();
+        }
+
+        switch (mpaSettings.selectionMethod) {
+            using enum FrtMPASelectionMethod;
+            case LOWEST: {
+                for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
+                    const PA<Num> *pa = &PA<Num>::IDENTITY;
+                    if (!finishes[i]) {
+                        for (const PA<Num> &test: tableTemp[i]) {
+                            if (test.isValid(radiusTemp[i]))
+                                pa = &test;
+                            else
+                                break;
+                        }
+                    }
+                    results[i] = *pa;
+                }
+                break;
+            }
+            case HIGHEST: {
+                for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
+                    const PA<Num> *pa = &PA<Num>::IDENTITY;
+                    if (!finishes[i] && !tableTemp[i].empty() && tableTemp[i].front().isValid(radiusTemp[i])) {
+                        for (uint64_t j = tableTemp[i].size(); j > 0; --j) {
+                            const PA<Num> &test = tableTemp[i][j - 1];
+                            if (test.isValid(radiusTemp[i])) {
+                                pa = &test;
+                                break;
+                            }
+                        }
+                    }
+                    results[i] = *pa;
+                }
+                break;
+            }
+            default:
+                break;
         }
     }
 

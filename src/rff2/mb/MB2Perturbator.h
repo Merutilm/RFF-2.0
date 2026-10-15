@@ -49,12 +49,12 @@ namespace merutilm::rff2 {
     struct MB2Perturbator final : public Perturbator, public MB2PerturbatorBase {
 
         const MB2Reference<Num> &reference;
-        const MPATable<Num> *table;
+        const MPATable<Num> &table;
 
         explicit MB2Perturbator(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
                                 const FrtSASettings &saSettings, const FrtPerturbSettings &ptbSettings,
                                 const SeriesApproximationData &seriesApproximationData,
-                                const MB2Reference<Num> &reference, const MPATable<Num> *table) :
+                                const MB2Reference<Num> &reference, const MPATable<Num> &table) :
             MB2PerturbatorBase(state, dcMax, generalSettings, saSettings, ptbSettings, seriesApproximationData),
             reference(reference), table(table) {}
 
@@ -136,18 +136,16 @@ namespace merutilm::rff2 {
             int pdzIndex = 0;
 
             while (iteration < maxIteration) {
-                if (table != nullptr) {
-                    if (const PA<Num> *paPtr = table->lookup(refIteration, dz); paPtr != nullptr) {
-                        const PA<Num> &pa = *paPtr;
+                if (const PA<Num> *paPtr = table.lookup(refIteration, dz); paPtr != nullptr) {
+                    const PA<Num> &pa = *paPtr;
 
-                        dz = pa.apply(dz, dc0);
-                        iteration += pa.skip;
-                        refIteration += pa.skip;
-                        ++absIteration;
+                    dz = pa.apply(dz, dc0);
+                    iteration += pa.skip;
+                    refIteration += pa.skip;
+                    ++absIteration;
 
-                        if (iteration >= maxIteration) {
-                            break;
-                        }
+                    if (iteration >= maxIteration) {
+                        break;
                     }
                 }
 
@@ -226,7 +224,8 @@ namespace merutilm::rff2 {
             if (interiorDetectRadius != 0) {
                 for (const complex<Num> &pdz0: pdz[i]) {
                     if ((pdz0 - dz[i]).norm_sqr() < dcMax0 * interiorDetectRadius) {
-                        if (chunk.data[i].value) *chunk.data[i].value = isAbs ? absIteration[i] : static_cast<double>(maxIteration);
+                        if (chunk.data[i].value)
+                            *chunk.data[i].value = isAbs ? absIteration[i] : static_cast<double>(maxIteration);
                         finished[i] = true;
                     }
                 }
@@ -288,12 +287,33 @@ namespace merutilm::rff2 {
             const float bailout2 = generalSettings.bailout * generalSettings.bailout;
 
             auto dcMax0 = Num(dcMax);
-            std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> finished{0};
-            std::array<int, RFF_SIMD_CHUNK_SIZE> absIteration{0};
-            std::array<float, RFF_SIMD_CHUNK_SIZE> currDistance2{0};
-            std::array<float, RFF_SIMD_CHUNK_SIZE> prevDistance2{0};
-            std::array<float, RFF_SIMD_CHUNK_SIZE> resultCurrDistance2{0};
-            std::array<float, RFF_SIMD_CHUNK_SIZE> resultPrevDistance2{0};
+            std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> finished;
+            std::array<int, RFF_SIMD_CHUNK_SIZE> absIteration;
+            std::array<float, RFF_SIMD_CHUNK_SIZE> currDistance2;
+            std::array<float, RFF_SIMD_CHUNK_SIZE> prevDistance2;
+            std::array<std::array<complex<Num>, 8>, RFF_SIMD_CHUNK_SIZE> pdz;
+            std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> pdzIndex;
+            std::array<PA<Num>, RFF_SIMD_CHUNK_SIZE> pas;
+            std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> oldZ2;
+            std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> oldPtbZ;
+            std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> z;
+
+            std::array<float, RFF_SIMD_CHUNK_SIZE> resultCurrDistance2; // initialization doesn't need
+            std::array<float, RFF_SIMD_CHUNK_SIZE> resultPrevDistance2; // initialization doesn't need
+
+            for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
+                finished[i] = 0;
+                absIteration[i] = 0;
+                currDistance2[i] = 0;
+                prevDistance2[i] = 0;
+                pdz[i] = {};
+                pdzIndex[i] = 0;
+                pas[i] = PA<Num>::IDENTITY;
+                oldZ2[i] = complex<Num>::ZERO;
+                oldPtbZ[i] = complex<Num>::ZERO;
+                z[i] = complex<Num>::ZERO;
+            }
+
             std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> c;
             for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
                 absIteration[i] = 0;
@@ -304,39 +324,31 @@ namespace merutilm::rff2 {
 
             for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
                 if (checkInteriorBasic(c[i])) {
-                    if (chunk.data[i].value) *chunk.data[i].value = isAbs ? 1 : static_cast<double>(maxIteration);
+                    *chunk.data[i].value = isAbs ? 1 : static_cast<double>(maxIteration);
                     finished[i] = true;
                 }
             }
 
 
-            std::array<std::array<complex<Num>, 8>, RFF_SIMD_CHUNK_SIZE> pdz = {};
-            std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> pdzIndex = {0};
-            std::array<const PA<Num> *, RFF_SIMD_CHUNK_SIZE> paPtrs;
-            std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> oldZ2;
-            std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> oldPtbZ;
-            std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> z;
-
             const bool noComp = reference.compressor.size() == 0;
+
 
             while (std::ranges::any_of(finished, [](const uint8_t a) { return !a; })) {
 
-                for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-                    paPtrs[i] = table && !finished[i] ? table->lookup(refIteration[i], dz[i]) : nullptr;
-                }
+                table.lookupBatch(pas, refIteration, dz, finished);
 
 
                 for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-                    if (!paPtrs[i])
-                        continue;
-                    const PA<Num> &pa = *paPtrs[i];
+                    const PA<Num> &pa = pas[i];
                     dz[i] = pa.apply(dz[i], dcs0[i]);
                     iteration[i] += pa.skip;
                     refIteration[i] += pa.skip;
                     ++absIteration[i];
+                }
 
+                for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
                     if (iteration[i] >= maxIteration) {
-                        if (chunk.data[i].value) *chunk.data[i].value = isAbs ? absIteration[i] : maxIteration;
+                        *chunk.data[i].value = isAbs ? absIteration[i] : maxIteration;
                         finished[i] = true;
                     }
                 }
@@ -352,6 +364,8 @@ namespace merutilm::rff2 {
                         iteration[i] += !finished[i];
                         absIteration[i] += !finished[i];
                         z[i] = reference.refOrbit[refIteration[i]] + dz[i];
+                        prevDistance2[i] = currDistance2[i];
+                        currDistance2[i] = static_cast<complex<float>>(z[i]).norm_sqr();
                     }
                 } else {
 
@@ -364,37 +378,30 @@ namespace merutilm::rff2 {
                         iteration[i] += !finished[i];
                         absIteration[i] += !finished[i];
                         z[i] = reference.orbit(refIteration[i]) + dz[i];
+                        prevDistance2[i] = currDistance2[i];
+                        currDistance2[i] = static_cast<complex<float>>(z[i]).norm_sqr();
                     }
                 }
 
                 for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-                    prevDistance2[i] = currDistance2[i];
-                    currDistance2[i] = static_cast<complex<float>>(z[i]).norm_sqr();
-                }
-
-                for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-                    if (finished[i])
-                        continue;
-
                     if (refIteration[i] == maxRefIteration || z[i].norm_approx() < dz[i].norm_approx()) {
                         refIteration[i] = 0;
                         dz[i] = z[i];
                         checkInteriorAndApply(chunk, dz, interiorDetectRadius, isAbs, maxIteration, finished, dcMax0,
                                               absIteration, pdz, pdzIndex, i);
                     }
-                }
-
-
-                for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
                     dz[i] = dz[i].try_normalized_value();
                 }
 
+
                 for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-                    if (!finished[i] && iteration[i] >= maxIteration) {
-                        if (chunk.data[i].value) *chunk.data[i].value = isAbs ? absIteration[i] : static_cast<double>(maxIteration);
+                    if (finished[i])
+                        continue;
+                    if (iteration[i] >= maxIteration) {
+                        *chunk.data[i].value = isAbs ? absIteration[i] : static_cast<double>(maxIteration);
                         finished[i] = true;
-                    } else if (!finished[i] && currDistance2[i] > bailout2) {
-                        if (chunk.data[i].value) *chunk.data[i].value = isAbs ? absIteration[i] : static_cast<double>(iteration[i]);
+                    } else if (currDistance2[i] > bailout2) {
+                        *chunk.data[i].value = isAbs ? absIteration[i] : static_cast<double>(iteration[i]);
                         finished[i] = true;
                         resultCurrDistance2[i] = currDistance2[i];
                         resultPrevDistance2[i] = prevDistance2[i];
@@ -415,7 +422,8 @@ namespace merutilm::rff2 {
                 prevDistance[i] = std::sqrt(resultPrevDistance2[i]);
                 currDistance[i] = std::sqrt(resultCurrDistance2[i]);
 
-                if (chunk.data[i].value) *chunk.data[i].value += FrtDecimalizeIterationMethodUtil::getExteriorDoubleValueIterationRatio(
+
+                *chunk.data[i].value += FrtDecimalizeIterationMethodUtil::getExteriorDoubleValueIterationRatio(
                         prevDistance[i], currDistance[i], ptbSettings.decimalizeIterationMethod,
                         generalSettings.bailout);
 

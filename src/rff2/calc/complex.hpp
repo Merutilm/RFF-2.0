@@ -11,8 +11,8 @@ namespace merutilm::rff2 {
         Num re;
         Num im;
 
-        inline static const complex ZERO = {Num(0), Num(0)};
-        inline static const complex ONE = {Num(1), Num(0)};
+        static const complex ZERO;
+        static const complex ONE;
 
         template<Number NCast>
         explicit operator complex<NCast>() const {
@@ -83,4 +83,9 @@ namespace merutilm::rff2 {
             return out << obj.to_string();
         }
     };
+    template<Number Num>
+    constexpr complex<Num> complex<Num>::ZERO = {.re = Num(0), .im = Num(0)};
+    template<Number Num>
+    constexpr complex<Num> complex<Num>::ONE = {.re = Num(1), .im = Num(0)};
+
 } // namespace merutilm::rff2
