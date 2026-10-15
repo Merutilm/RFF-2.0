@@ -591,6 +591,10 @@ namespace merutilm::rff2 {
             return;
 
         fitBufferSize();
+
+        //iteration starts from 1, the first value is garbage
+        tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[0] = {};
+
         if (mpaSettings.useCompress) {
             generateCompressedTable(state, reference, dcMax, fnCreatingTable);
         } else {
@@ -1001,7 +1005,7 @@ namespace merutilm::rff2 {
         std::array<MPAIndexMapper, RFF_SIMD_CHUNK_SIZE> mapperTemp;
         std::array<Num, RFF_SIMD_CHUNK_SIZE> radiusTemp;
         std::array<std::span<const PA<Num>>, RFF_SIMD_CHUNK_SIZE> tableTemp;
-        
+
         for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
             mapperTemp[i] = getFlattenIndexMapper(refIterations[i]);
             if (mapperTemp[i].mapped == UINT64_MAX) {

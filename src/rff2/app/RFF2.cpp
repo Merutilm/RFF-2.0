@@ -197,7 +197,7 @@ namespace merutilm::rff2 {
                                                     .autoIterationMultiplier = 100,
                                                     .absoluteIterationMode = false}},
                 .render = {.display = RndDisplayPresets::Low().genDisplay(),
-                           .computeShader = RndComputePresets::General().genComputeShader()},
+                           .computeShader = RndComputePresets::None().genComputeShader()},
                 .shader = {.palette = ShdPalettePresets::Classic1().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .surface = ShdSurfacePresets::Disabled().genSurface(),
