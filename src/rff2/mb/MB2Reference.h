@@ -343,7 +343,7 @@ namespace merutilm::rff2 {
         auto [compressCriteria, compressionThresholdPower] = refSettings.compression;
 
         const double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
-        Num refSyncRadius2 = Num(pow(10, -refSyncRadiusPower * 2));
+        Num refSyncRadius2 = Num(pow(10.0, -refSyncRadiusPower * 2));
 
         // ReSharper disable once CppTooWideScope
         uint64_t reuseIndex = 0;
@@ -388,7 +388,7 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     complex<Num> MB2Reference<Num>::orbit(const uint64_t refIteration) const {
-        return refOrbit[ArrayCompressor::compress(compressor, refIteration)];
+        return compressor.empty() ? refOrbit[refIteration] : refOrbit[ArrayCompressor::compress(compressor, refIteration)];
     }
 
     template<Number Num>

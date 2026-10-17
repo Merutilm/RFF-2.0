@@ -6,6 +6,7 @@
 *.lo
 *.o
 *.obj
+RULES.md
 
 /.idea
 /cmake-build-debug

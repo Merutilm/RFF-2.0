@@ -62,9 +62,9 @@ namespace merutilm::rff2 {
             return ratio;
         }
 
-        inline double getExteriorDoubleValueIterationRatio(const float prevIterDistance, const float currIterDistance,
+        inline double getExteriorDoubleValueIterationRatio(const double prevIterDistance, const double currIterDistance,
                                                            const FrtDecimalizeIterationMethod decimalizeIterationMethod,
-                                                           const float bailout) {
+                                                           const double bailout) {
             // prevIterDistance = p
             // currIterDistance = c
             // bailout = b
