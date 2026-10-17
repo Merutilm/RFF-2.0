@@ -67,7 +67,7 @@ namespace merutilm::rff2 {
 
         static void debugCheckMPAFromMapper(size_t totalSize, size_t mapped, size_t levels, size_t generatedLevels);
 
-        void fitBufferSize();
+        void fitBufferSize() const;
 
 
         bool tryJumpTableGeneration(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
@@ -135,7 +135,7 @@ namespace merutilm::rff2 {
 
 
     public:
-        [[nodiscard]] const PA<Num> *lookup(uint64_t refIteration, complex<Num> dz) const noexcept;
+        [[nodiscard]] const PA<Num> *lookup(uint64_t refIteration, const complex<Num> &dz) const noexcept;
 
         void lookupBatch(std::array<PA<Num>, RFF_SIMD_CHUNK_SIZE> &results,
                          const std::array<uint64_t, RFF_SIMD_CHUNK_SIZE> &refIterations,
@@ -231,7 +231,7 @@ namespace merutilm::rff2 {
 
 
     template<Number Num>
-    void MPATable<Num>::fitBufferSize() {
+    void MPATable<Num>::fitBufferSize() const {
 
 
         const uint64_t longestPeriod = mpaPeriod->tablePeriods.back();
@@ -934,7 +934,7 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    const PA<Num> *MPATable<Num>::lookup(const uint64_t refIteration, const complex<Num> dz) const noexcept {
+    const PA<Num> *MPATable<Num>::lookup(const uint64_t refIteration, const complex<Num> &dz) const noexcept {
 
         if (refIteration == 0 || mpaPeriod == nullptr) {
             return nullptr;

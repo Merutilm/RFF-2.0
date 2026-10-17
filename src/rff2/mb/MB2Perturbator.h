@@ -18,7 +18,7 @@
 namespace merutilm::rff2 {
 
 
-    struct MB2PerturbatorBase {
+    struct MB2PerturbatorBase : Perturbator{
 
         ParallelRenderState &state;
         dex dcMax;
@@ -37,7 +37,7 @@ namespace merutilm::rff2 {
             state(state), dcMax(dcMax), generalSettings(generalSettings), saSettings(saSettings),
             ptbSettings(ptbSettings), seriesApproximationData(seriesApproximationData) {}
 
-        virtual ~MB2PerturbatorBase() = default;
+        virtual ~MB2PerturbatorBase() override = default;
 
         [[nodiscard]] virtual double iterate(const complex<dex> &dc) const noexcept = 0;
 
@@ -46,7 +46,7 @@ namespace merutilm::rff2 {
     };
 
     template<Number Num>
-    struct MB2Perturbator final : public Perturbator, public MB2PerturbatorBase {
+    struct MB2Perturbator final : MB2PerturbatorBase {
 
         static constexpr uint32_t PERIODIC_POINT_HISTORY_LENGTH = 8;
         const MB2Reference<Num> &reference;
@@ -62,7 +62,7 @@ namespace merutilm::rff2 {
         ~MB2Perturbator() override = default;
 
 
-        [[nodiscard]] bool checkInteriorBasic(const complex<Num> c) const {
+        [[nodiscard]] bool checkInteriorBasic(const complex<Num> &c) const {
             if (rff_math::is_zero(c.im) && c.re < Num(0.25) && c.re >= Num(-2))
                 return true;
 
@@ -81,14 +81,14 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        bool checkInteriorAndApply(const complex<Num> &dz, const Num dcMax0, const float interiorDetectRadius,
+        bool checkInteriorAndApply(const complex<Num> &dz, const Num dcMax, const float interiorDetectRadius,
                            std::array<complex<Num>, PERIODIC_POINT_HISTORY_LENGTH> &pdz,
                            int &pdzIndex) const {
             if (interiorDetectRadius == 0) return false;
 
             for (const complex<Num> &pdz0: pdz) {
                 Num rad = (pdz0 - dz).norm_approx();
-                if (rad * rad < dcMax0 * interiorDetectRadius) {
+                if (rad * rad < dcMax * interiorDetectRadius) {
                     return true;
                 }
             }
@@ -99,18 +99,18 @@ namespace merutilm::rff2 {
 
             return false;
         }
-        void applyMPApproximation(complex<Num> &dz, const complex<Num> &dc0, uint64_t &iteration, uint64_t &refIteration) const {
+        void applyMPApproximation(complex<Num> &dz, const complex<Num> &dc, uint64_t &iteration, uint64_t &refIteration) const {
             if (const PA<Num> *paPtr = table.lookup(refIteration, dz); paPtr != nullptr) {
                 const PA<Num> &pa = *paPtr;
 
-                dz = pa.apply(dz, dc0);
+                dz = pa.apply(dz, dc);
                 iteration += pa.skip;
                 refIteration += pa.skip;
             }
         }
 
-        void applySeriesApproximation(complex<Num> &dz, const complex<Num> &dc0, uint64_t &iteration, uint64_t &refIteration) const {
-            const complex dcSa = {dex{dc0.re}, dex{dc0.im}};
+        void applySeriesApproximation(complex<Num> &dz, const complex<Num> &dc, uint64_t &iteration, uint64_t &refIteration) const {
+            const complex dcSa = {dex{dc.re}, dex{dc.im}};
             complex dcSaM = dcSa;
             complex dzSa = complex<dex>::ZERO;
 
@@ -138,8 +138,8 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        complex<Num> perturbationStep(complex<Num> &dz, const complex<Num> &dc0, uint64_t &iteration, uint64_t &refIteration) const {
-            dz = (reference.orbit(refIteration) * 2 + dz) * dz + dc0;
+        complex<Num> perturbationStep(complex<Num> &dz, const complex<Num> &dc, uint64_t &iteration, uint64_t &refIteration) const {
+            dz = (reference.orbit(refIteration) * 2 + dz) * dz + dc;
             const complex<Num> z = reference.orbit(refIteration + 1) + dz;
 
             ++iteration;
@@ -147,16 +147,16 @@ namespace merutilm::rff2 {
             return z;
         }
 
-        void calcInitialIteration(complex<Num> &dz, const complex<Num> &dc0, uint64_t &iteration, uint64_t &refIteration) const {
+        void calcInitialIteration(complex<Num> &dz, const complex<Num> &dc, uint64_t &iteration, uint64_t &refIteration) const {
             if (saSettings.use) {
-                applySeriesApproximation(dz, dc0, iteration, refIteration);
+                applySeriesApproximation(dz, dc, iteration, refIteration);
             } else {
                 dz = complex<Num>::ZERO;
                 iteration = 0;
                 refIteration = 0;
             }
         }
-        double iterate(const complex<dex> &dc) const noexcept override {
+        [[nodiscard]] double iterate(const complex<dex> &dc) const noexcept override {
             if (state.interruptRequested())
                 return 0.0;
 
