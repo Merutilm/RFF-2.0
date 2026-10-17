@@ -61,17 +61,15 @@ namespace merutilm::rff2 {
                 chunkStartPoints.emplace_back(i * blockSize, j * blockSize);
             }
         }
-        std::ranges::shuffle(chunkStartPoints, rff_random::gen);
+        // std::ranges::shuffle(chunkStartPoints, rff_random::gen);
 
 
         for (uint32_t i = 0; i < threads; ++i) {
             threadPool.emplace_back([this, &counter, &chunkStartPoints] {
-                uint32_t c = counter++;
-                while (c < chunkStartPoints.size()) {
+                for (uint32_t c = counter++; c < chunkStartPoints.size(); c = counter++) {
                     if (state.interruptRequested()) return;
                     const glm::uvec2 startPoint = chunkStartPoints[c];
                     process(startPoint);
-                    c = counter++;
                 }
             });
         }

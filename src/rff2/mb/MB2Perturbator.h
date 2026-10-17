@@ -108,6 +108,7 @@ namespace merutilm::rff2 {
                 refIteration += pa.skip;
             }
         }
+
         void applySeriesApproximation(complex<Num> &dz, const complex<Num> &dc0, uint64_t &iteration, uint64_t &refIteration) const {
             const complex dcSa = {dex{dc0.re}, dex{dc0.im}};
             complex dcSaM = dcSa;
@@ -159,7 +160,7 @@ namespace merutilm::rff2 {
             if (state.interruptRequested())
                 return 0.0;
 
-            // get field reference
+            // field reference
             const auto dc0 = static_cast<complex<Num>>(dc + off);
             const Num dcMax0 = Num(dcMax);
             const bool isAbs = ptbSettings.absoluteIterationMode;
@@ -189,6 +190,7 @@ namespace merutilm::rff2 {
             // predefined variables (uninitialized)
             uint64_t absIteration;
 
+            // start!!
             for (absIteration = 0; currDistance2 <= bailout2 && iteration < maxIteration; ++absIteration) {
 
                 assert(refIteration < maxRefIteration);
@@ -210,6 +212,7 @@ namespace merutilm::rff2 {
                     return 0.0;
             }
 
+            // refine the result
             if (isAbs)
                 return static_cast<double>(absIteration);
 

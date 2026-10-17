@@ -116,7 +116,7 @@ namespace merutilm::rff2 {
         uint64_t skip = 0;
 
 
-        for (skip = 0; skip < reference->longestPeriod(); ++skip) {
+        for (skip = 0; skip < reference->longestPeriod() - 1; ++skip) {
             if (state.interruptRequested())
                 return;
 

@@ -1030,7 +1030,6 @@ namespace merutilm::rff2 {
         });
 
 
-        // loadSnapshot();
         renderer->visibleIterationBufferData->fillZero();
         recomputeFirstRefresh = true;
         updateFractalFrame = true;

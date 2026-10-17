@@ -76,7 +76,7 @@ namespace merutilm::rff2 {
         }
         ImGuiUtils::HelpMarker("Sets the Framerate.");
 
-        ImGui::SliderScalar("Render Block Size",ImGuiDataType_U32,  &app.getSettings().render.display.blockSize, &minSize, &maxSize);
+        ImGui::SliderScalar("Render Block Size", ImGuiDataType_U32, &app.getSettings().render.display.blockSize, &minSize, &maxSize);
         ImGuiUtils::HelpMarker("Sets the Block size of the render group");
 
         ImGui::SliderScalar("Threads", ImGuiDataType_U32, &app.getSettings().fractal.general.threads, &minThreads,
