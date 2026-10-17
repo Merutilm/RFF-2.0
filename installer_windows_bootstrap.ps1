@@ -79,11 +79,35 @@ $env:MSYS2_ROOT = "$msys2Root"
 
 & $msys2Bash -lc "pacman -S --noconfirm --needed $packages"
 if (-not (Test-Path (Join-Path $msys2Root "clang64\include\opencv4"))) {
-    & $msys2Bash -lc 'git clone --branch 4.11.0 --depth 1 https://github.com/opencv/opencv.git'
-    & $msys2Bash -lc 'cd opencv && mkdir -p build && /clang64/bin/cmake.exe -G Ninja . -B build -DCMAKE_MAKE_PROGRAM=/clang64/bin/ninja.exe -DCMAKE_CXX_COMPILER=/clang64/bin/clang++.exe -DCMAKE_C_COMPILER=/clang64/bin/clang.exe  -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/clang64 -DOPENCV_BIN_INSTALL_PATH=/clang64/bin -DBUILD_LIST=core,imgproc,imgcodecs,videoio,highgui -DBUILD_opencv_gapi=OFF -DOPENCV_LIB_INSTALL_PATH=/clang64/lib &&  /clang64/bin/cmake.exe --build build -j && /clang64/bin/cmake.exe --install build'
+
+    # prevent clone duplicates
+    if (-not (Test-Path (Join-Path $workDir "opencv"))) {
+        & $msys2Bash -lc "cd '$($workDir -replace '\\','/')' && git clone --branch 4.11.0 --depth 1 https://github.com/opencv/opencv.git"
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "OpenCV clone failed: exit code $LASTEXITCODE"
+        }
+    }
+
+    # configure OpenCV
+    & $msys2Bash -lc "cd '$($workDir -replace '\\','/')/opencv' && mkdir -p build && /clang64/bin/cmake.exe -G Ninja . -B build -DCMAKE_MAKE_PROGRAM=/clang64/bin/ninja.exe -DCMAKE_CXX_COMPILER=/clang64/bin/clang++.exe -DCMAKE_C_COMPILER=/clang64/bin/clang.exe -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/clang64 -DOPENCV_BIN_INSTALL_PATH=/clang64/bin -DBUILD_LIST=core,imgproc,imgcodecs,videoio,highgui -DBUILD_opencv_gapi=OFF -DOPENCV_LIB_INSTALL_PATH=/clang64/lib"
 
     if ($LASTEXITCODE -ne 0) {
-        throw "OpenCV build failed with exit code $LASTEXITCODE"
+        throw "OpenCV CMake configuration failed: exit code $LASTEXITCODE"
+    }
+
+    # build opencv
+    & $msys2Bash -lc "cd '$($workDir -replace '\\','/')/opencv' && /clang64/bin/cmake.exe --build build -j"
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "OpenCV build failed: exit code $LASTEXITCODE"
+    }
+
+    # install opencv
+    & $msys2Bash -lc "cd '$($workDir -replace '\\','/')/opencv' && /clang64/bin/cmake.exe --install build"
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "OpenCV install failed: exit code $LASTEXITCODE"
     }
 }
 
