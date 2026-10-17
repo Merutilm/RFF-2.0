@@ -80,9 +80,12 @@ $env:MSYS2_ROOT = "$msys2Root"
 & $msys2Bash -lc "pacman -S --noconfirm --needed $packages"
 if (-not (Test-Path (Join-Path $msys2Root "clang64\include\opencv4"))) {
     & $msys2Bash -lc 'git clone --branch 4.11.0 --depth 1 https://github.com/opencv/opencv.git'
-    & $msys2Bash -lc 'cd opencv && mkdir -p build && /clang64/bin/cmake.exe -G Ninja . -B build -DCMAKE_MAKE_PROGRAM=/clang64/bin/ninja.exe -DCMAKE_CXX_COMPILER=/clang64/bin/clang++.exe -DCMAKE_C_COMPILER=/clang64/bin/clang.exe  -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/clang64 -DOPENCV_BIN_INSTALL_PATH=/clang64/bin -DOPENCV_LIB_INSTALL_PATH=/clang64/lib &&  /clang64/bin/cmake.exe --build build -j && /clang64/bin/cmake.exe --install build'
-}
+    & $msys2Bash -lc 'cd opencv && mkdir -p build && /clang64/bin/cmake.exe -G Ninja . -B build -DCMAKE_MAKE_PROGRAM=/clang64/bin/ninja.exe -DCMAKE_CXX_COMPILER=/clang64/bin/clang++.exe -DCMAKE_C_COMPILER=/clang64/bin/clang.exe  -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/clang64 -DOPENCV_BIN_INSTALL_PATH=/clang64/bin -DBUILD_LIST=core,imgproc,imgcodecs,videoio,highgui -DBUILD_opencv_gapi=OFF -DOPENCV_LIB_INSTALL_PATH=/clang64/lib &&  /clang64/bin/cmake.exe --build build -j && /clang64/bin/cmake.exe --install build'
 
+    if ($LASTEXITCODE -ne 0) {
+        throw "OpenCV build failed with exit code $LASTEXITCODE"
+    }
+}
 
 # ---------------------------------------------------------------------------
 # 3. clang64 toolchain to PATH
@@ -141,10 +144,16 @@ if (Test-Path $VersionFile)
 
 if ($upToDate)
 {
-    Read-Host "Already up to date. Press any key to exit..."
-    Exit
-}
+    $answer = Read-Host "Already up to date. Reinstall? [Y/N]"
 
+    if ($answer -notmatch '^(Y|y)$')
+    {
+        Write-Host "Installation cancelled."
+        Exit
+    }
+
+    Write-Host "Reinstalling..."
+}
 
 
 # ---------------------------------------------------------------------------
