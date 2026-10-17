@@ -122,7 +122,7 @@ namespace merutilm::rff2 {
 
         ImGui::Separator();
 
-        ImGui::BeginChild("##ColorList", ImVec2(-FLT_MIN, Constants::UI::PALETTE_LIST_HEIGHT), true);
+        ImGuiUtils::BeginSmoothScrollableChild("##ColorList", ImVec2(-FLT_MIN, Constants::UI::PALETTE_LIST_HEIGHT));
 
         const int begin = page * Constants::UI::PALETTE_COLORS_PER_PAGE;
         const int end = std::min(begin + Constants::UI::PALETTE_COLORS_PER_PAGE, static_cast<int>(colors.size()));
@@ -130,40 +130,45 @@ namespace merutilm::rff2 {
         if (selectRequest >= 0) {
             selected = -1;
         }
-        for (int i = begin; i < end; ++i) {
-            ImGui::PushID(i);
+        if (ImGui::BeginTable("##ColorTable", 4)) {
+            for (int i = begin; i < end; ++i) {
+                ImGui::TableNextColumn();
+                ImGui::PushID(i);
 
-            glm::vec4 &col = colors[i];
+                glm::vec4 &col = colors[i];
 
-            std::array colRaw = {col.r, col.g, col.b};
-            if (ImGui::ColorEdit3("##color", colRaw.data(),
-                                  ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
+                std::array colRaw = {col.r, col.g, col.b};
+                if (ImGui::ColorEdit3("##color", colRaw.data(),
+                                      ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
 
-                col = {colRaw[0], colRaw[1], colRaw[2], 1};
-                app.getRequests().requestShader();
+                    col = {colRaw[0], colRaw[1], colRaw[2], 1};
+                    app.getRequests().requestShader();
+                                      }
+
+                if (ImGui::IsItemClicked())
+                    selected = i;
+
+                if (selectRequest == i) {
+                    selected = selectRequest;
+                    selectRequest = -1;
+                    ImGui::SetScrollHereY(0.5f);
+                }
+
+                if (selected == i) {
+
+                    ImDrawList *draw = ImGui::GetWindowDrawList();
+                    draw->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), Constants::UI::SELECTED_COLOR_HIGHLIGHT,
+                                  0.0f, 0, Constants::UI::SELECTED_COLOR_THICKNESS);
+                }
+
+                ImGui::SameLine();
+                ImGui::Text("%d", i + 1);
+
+                ImGui::PopID();
             }
-
-            if (ImGui::IsItemClicked())
-                selected = i;
-
-            if (selectRequest == i) {
-                selected = selectRequest;
-                selectRequest = -1;
-                ImGui::SetScrollHereY(0.5f);
-            }
-
-            if (selected == i) {
-
-                ImDrawList *draw = ImGui::GetWindowDrawList();
-                draw->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), Constants::UI::SELECTED_COLOR_HIGHLIGHT,
-                              0.0f, 0, Constants::UI::SELECTED_COLOR_THICKNESS);
-            }
-
-            ImGui::SameLine();
-            ImGui::Text("%d", i + 1);
-
-            ImGui::PopID();
+            ImGui::EndTable();
         }
+
         ImGui::EndChild();
         ImGuiUtils::EndSettings();
 

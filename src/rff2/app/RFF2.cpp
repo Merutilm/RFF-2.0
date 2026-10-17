@@ -579,10 +579,11 @@ namespace merutilm::rff2 {
         renderStatusImGui();
     }
 
+
     void RFF2::renderControlImGui() {
-        ImGui::Begin("Control");
+        ImGui::Begin("Control", nullptr);
         if (ImGui::BeginTabBar("Control")) {
-            if (ImGui::BeginTabItem("File")) {
+            if (ImGuiUtils::BeginTabItem("File")) {
                 FnFile::saveShader(*this);
                 FnFile::saveMap(*this);
                 FnFile::saveImage(*this);
@@ -591,33 +592,33 @@ namespace merutilm::rff2 {
                 FnFile::loadMap(*this);
                 FnFile::loadLocation(*this);
                 FnFile::autoSaveBackup(*this);
-                ImGui::EndTabItem();
+                ImGuiUtils::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Fractal")) {
+            if (ImGuiUtils::BeginTabItem("Fractal")) {
                 FnFractal::reference(*this);
                 FnFractal::iterations(*this);
                 FnFractal::sa(*this);
                 FnFractal::mpa(*this);
                 FnFractal::automaticIterations(*this);
                 FnFractal::absoluteIterationMode(*this);
-                ImGui::EndTabItem();
+                ImGuiUtils::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Render")) {
+            if (ImGuiUtils::BeginTabItem("Render")) {
                 FnRender::setResolutionProperties(*this);
                 FnRender::setRenderProperties(*this);
                 FnRender::setSIMD(*this);
                 FnRender::setComputeShader(*this);
-                ImGui::EndTabItem();
+                ImGuiUtils::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Presets")) {
+            if (ImGuiUtils::BeginTabItem("Presets")) {
                 FnPreset::calculation(*this);
                 FnPreset::render(*this);
                 FnPreset::resolution(*this);
                 FnPreset::shader(*this);
 
-                ImGui::EndTabItem();
+                ImGuiUtils::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Shader")) {
+            if (ImGuiUtils::BeginTabItem("Shader")) {
                 FnShader::palette(*this);
                 FnShader::stripe(*this);
                 FnShader::surface(*this);
@@ -628,17 +629,17 @@ namespace merutilm::rff2 {
 #ifdef USE_EXPERIMENTAL_3D
                 FnShader::fractal3D(*this);
 #endif
-                ImGui::EndTabItem();
+                ImGuiUtils::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Video")) {
+            if (ImGuiUtils::BeginTabItem("Video")) {
                 FnVideo::dataSettings(*this);
                 FnVideo::animationSettings(*this);
                 FnVideo::exportSettings(*this);
                 FnVideo::generateVidKeyframes(*this);
                 FnVideo::exportZoomingVideo(*this);
-                ImGui::EndTabItem();
+                ImGuiUtils::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Explore")) {
+            if (ImGuiUtils::BeginTabItem("Explore")) {
                 FnExplore::recompute(*this);
                 FnExplore::reset(*this);
                 FnExplore::cancelRender(*this);
@@ -648,7 +649,7 @@ namespace merutilm::rff2 {
                 FnExplore::goToOriginalReference(*this);
                 FnExplore::locateCenteredReference(*this);
                 FnExplore::locateMinibrot(*this);
-                ImGui::EndTabItem();
+                ImGuiUtils::EndTabItem();
             }
             ImGui::EndTabBar();
         }

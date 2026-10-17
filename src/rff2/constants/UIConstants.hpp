@@ -13,7 +13,11 @@ namespace merutilm::rff2::Constants::UI {
     constexpr float UNLIMITED_MIN_DRAG_SCALAR = 0.001f;
     constexpr auto UNLIMITED_FMT_DRAG = "%.3g";
 
-    constexpr int PALETTE_LIST_HEIGHT = 150;
+
+    constexpr float SMOOTH_SCROLL_SENSITIVITY = 150;
+    constexpr float SMOOTH_SCROLL_SPEED = 30;
+
+    constexpr int PALETTE_LIST_HEIGHT = 300;
     constexpr auto SELECTED_COLOR_HIGHLIGHT = IM_COL32(255, 255, 0, 255);
     constexpr float SELECTED_COLOR_THICKNESS = 2.0f;
 
