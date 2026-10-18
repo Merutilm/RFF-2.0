@@ -951,7 +951,7 @@ namespace merutilm::rff2 {
                                 mapper.generatedLevels);
 
         const auto table = getMPAFromMapper(mapper);
-        const Num r = dz.norm_approx();
+        const Num r = dz.max();
 
         switch (mpaSettings.selectionMethod) {
             using enum FrtMPASelectionMethod;
@@ -1014,7 +1014,7 @@ namespace merutilm::rff2 {
                 debugCheckMPAFromMapper(tableCache.mpaTable.sizeUsed, mapperTemp[i].mapped,
                                         mpaPeriod->tablePeriods.size(), mapperTemp[i].generatedLevels);
             tableTemp[i] = getMPAFromMapper(mapperTemp[i]);
-            radiusTemp[i] = dzs[i].norm_approx();
+            radiusTemp[i] = dzs[i].max();
         }
 
         switch (mpaSettings.selectionMethod) {

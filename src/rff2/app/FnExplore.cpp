@@ -105,7 +105,7 @@ namespace merutilm::rff2 {
                 FractalSettings frt = settings.fractal;
                 frt.reference.center = result->center;
                 frt.general.logZoom = result->logZoom;
-                const dex dcMax = app.getDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
+                const dex dcMax = app.calcDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
                 const int64_t refExp10 = Perturbator::getExp10WithSettings(frt.reference, frt.general.logZoom);
                 data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
                                                        startTime, frt, dcMax, refExp10, data->getReference()->length());

@@ -97,7 +97,7 @@ namespace merutilm::rff2 {
             // the code below is currently not working for specific location, i dont know why
             if (locSettings.burst) {
 
-                if (static_cast<complex<dex>>(z).norm_approx() > dex(1e8)) {
+                if (static_cast<complex<dex>>(z).max() > dex(1e8)) {
                     return PartitionStatus::ERROR_BURST_Z_ESCAPED;
                 }
 
@@ -190,7 +190,7 @@ namespace merutilm::rff2 {
         fpgBn = static_cast<complex<dex>>(ut.back());
     }
 
-    int64_t MB2Locator::getCutDigitCount(const complex<dex> &an) { return rff_math::log10Approx(an.norm_approx()); }
+    int64_t MB2Locator::getCutDigitCount(const complex<dex> &an) { return rff_math::log10Approx(an.max()); }
     void MB2Locator::prepareApproxAmplitudes() {
         complex<dex> an = complex<dex>::ONE;
         for (uint32_t i = 0; i < static_cast<uint32_t>(blockResults.size()); ++i) {
@@ -320,9 +320,9 @@ namespace merutilm::rff2 {
     void MB2Locator::refreshInfos(const complex<dex> &fzgAn, const complex<dex> &fpgBn, const fixed_point_complex &dc,
                                   complex<dex> &mbScale, double &aimLogZoom, int64_t &aimExp10, dex &dcd) {
         mbScale = fzgAn * fpgBn;
-        aimLogZoom = rff_math::log10(mbScale.norm_approx());
+        aimLogZoom = rff_math::log10(mbScale.max());
         aimExp10 = Perturbator::logZoomToExp10(aimLogZoom + MB2_LOG_ZOOM_OFFSET);
-        dcd = static_cast<complex<dex>>(dc).norm_approx();
+        dcd = static_cast<complex<dex>>(dc).max();
     }
 
     bool MB2Locator::shouldAbort(const ParallelRenderState &state, const std::vector<PartitionStatus> &status) {
@@ -372,7 +372,7 @@ namespace merutilm::rff2 {
                          fixed_point_complex(reference.fpgBn, refExp10), threadTempCaches[0].temps);
         fixed_point_complex::add(currCenter, currCenter, dc);
 
-        dex dcd = static_cast<complex<dex>>(dc).norm_approx();
+        dex dcd = static_cast<complex<dex>>(dc).max();
         complex<dex> mbScale = complex<dex>::ONE;
 
         std::array<int64_t, EXP10_HISTORY_LENGTH> exp10History{};

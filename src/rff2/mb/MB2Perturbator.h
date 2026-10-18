@@ -87,7 +87,7 @@ namespace merutilm::rff2 {
             if (interiorDetectRadius == 0) return false;
 
             for (const complex<Num> &pdz0: pdz) {
-                Num rad = (pdz0 - dz).norm_approx();
+                Num rad = (pdz0 - dz).max();
                 if (rad * rad < dcMax * interiorDetectRadius) {
                     return true;
                 }
@@ -130,7 +130,7 @@ namespace merutilm::rff2 {
         }
 
         static bool tryRebase(const complex<Num> &z, complex<Num> &dz, uint64_t &refIteration, const uint64_t maxRefIteration) {
-            if (refIteration == maxRefIteration || z.norm_approx() < dz.norm_approx()) {
+            if (refIteration == maxRefIteration || z.max() < dz.max()) {
                 refIteration = 0;
                 dz = z;
                 return true;
@@ -398,7 +398,7 @@ namespace merutilm::rff2 {
                 }
 
                 for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-                    if (refIteration[i] == maxRefIteration || z[i].norm_approx() < dz[i].norm_approx()) {
+                    if (refIteration[i] == maxRefIteration || z[i].max() < dz[i].max()) {
                         refIteration[i] = 0;
                         dz[i] = z[i];
                         checkInteriorAndApplyBatch(chunk, dz, interiorDetectRadius, isAbs, maxIteration, finished, dcMax0,

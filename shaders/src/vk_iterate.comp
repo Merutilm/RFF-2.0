@@ -41,7 +41,7 @@ PA lookup(uint64_t ref_iteration, vec2 dz) {
         return invalid_sentinel();
     }
 
-    float r = norm_approx(dz);
+    float r = max(dz);
 
     switch (mp_table_info.selection_method) {
         case MSM_LOWEST:
@@ -142,7 +142,7 @@ void main() {
         prev_distance2 = curr_distance2;
         curr_distance2 = norm2(z);
 
-        if (ref_iteration == render_meta.max_ref_iteration || norm_approx(z) < norm_approx(dz)) {
+        if (ref_iteration == render_meta.max_ref_iteration || max(z) < max(dz)) {
             ref_iteration = 0;
             dz = z;
         }

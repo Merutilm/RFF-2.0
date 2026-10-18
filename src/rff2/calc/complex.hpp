@@ -62,7 +62,9 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] Num norm_sqr() const { return re * re + im * im; }
 
-        [[nodiscard]] Num norm_approx() const { return rff_math::hypot_approx(re, im); }
+        [[nodiscard]] Num norm() const { return rff_math::sqrt(norm_sqr()); }
+
+        [[nodiscard]] Num max() const { return std::max(rff_math::abs(re), rff_math::abs(im)); }
 
         [[nodiscard]] bool is_zero() const { return rff_math::is_zero(re) && rff_math::is_zero(im); }
 

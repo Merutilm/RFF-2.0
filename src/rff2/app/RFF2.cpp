@@ -899,8 +899,7 @@ namespace merutilm::rff2 {
         setStatusMessage(Constants::Status::ZOOM_STATUS,
                          std::format("Zoom : {:.06f}E{:d}", pow(10, fmod(logZoom, 1)), static_cast<int>(logZoom)));
 
-        const complex<dex> offset = offsetConversion(logZoom, settings.render.display.clarityMultiplier, 0, 0);
-        const dex dcMax = offset.norm_approx();
+        const dex dcMax = calcDcMax(logZoom, settings.render.display.clarityMultiplier);
 
         static uint64_t capacity = 0;
         if (renderData && renderData->getReference()) {
@@ -924,7 +923,7 @@ namespace merutilm::rff2 {
             fixed_point_complex center = frt.reference.center.create_variant(exp10);
             const fixed_point_complex referenceCenter = renderData->getReference()->center.create_variant(exp10);
             fixed_point_complex::sub(center, center, referenceCenter);
-            const dex distance = static_cast<complex<dex>>(center).norm_approx();
+            const dex distance = static_cast<complex<dex>>(center).norm();
 
 
             renderData->translate(frt.general.logZoom, dcMax + distance, frt.perturb, frt.reference.center,

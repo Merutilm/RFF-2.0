@@ -10,7 +10,7 @@ namespace merutilm::rff2 {
 
 
     FrtMPASettings ClcApproxPresets::UltraFast::genMPA() const {
-        return FrtMPASettings{4, 2, -3, FrtMPASelectionMethod::HIGHEST, false, true};
+        return FrtMPASettings{4, 2, -3.15f, FrtMPASelectionMethod::HIGHEST, false, true};
     }
 
     std::string ClcApproxPresets::Fast::getName() const { return "Fast"; }

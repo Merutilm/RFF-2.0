@@ -133,7 +133,7 @@ namespace merutilm::rff2 {
                                             fixed_point_complex &z, fixed_point_complex &c,
                                             std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> &temps,
                                             const complex<Num> &fzgAn, int32_t &prevExp2div64) {
-        const int32_t currentExp10 = std::min(-1, exp10 + static_cast<int>(rff_math::log10Approx(fzgAn.norm_approx())));
+        const int32_t currentExp10 = std::min(-1, exp10 + static_cast<int>(rff_math::log10Approx(fzgAn.max())));
         const int32_t exp2div64 = fixed_point_decimal::exp10_to_exp2div64(currentExp10);
         if (prevExp2div64 != exp2div64) {
             z.set_exp10(currentExp10);
@@ -153,7 +153,7 @@ namespace merutilm::rff2 {
         radius2 = z0.norm_sqr();
         Num fpgLimit = radius2 / Num(dcMax);
         complex<Num> fpgBnTemp = fpgBn * z0 * Num(2) + Num(1);
-        Num fpgRadius = fpgBnTemp.norm_approx();
+        Num fpgRadius = fpgBnTemp.max();
 
         if (period > 0 && fpgRadius > fpgLimit) {
             return false;

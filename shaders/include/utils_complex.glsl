@@ -69,31 +69,13 @@ Fex norm2(FexComplex a)
     return fex_add(fex_sqr(a.re), fex_sqr(a.im));
 }
 
-float norm_approx(vec2 v) {
-    v.x = abs(v.x);
-    v.y = abs(v.y);
-    float min = min(v.x, v.y);
-    float max = max(v.x, v.y);
-
-    if (max == 0) {
-        return 0;
-    }
-
-    return max + 0.428f * min / max * min;
+float max(vec2 v) {
+    return max(abs(v.x), abs(v.y));
 }
 
 
-Fex norm_approx(FexComplex v) {
-    v.re = fex_abs(v.re);
-    v.im = fex_abs(v.im);
-    Fex min = fex_min(v.re, v.im);
-    Fex max = fex_max(v.re, v.im);
-
-    if (max.mantissa == 0) {
-        return fex(0);
-    }
-
-    return fex_add(max, fex_mul(fex_div(fex_mul(fex(0.428f), min), max), min));
+Fex max(FexComplex v) {
+    return fex_max(fex_abs(v.re), fex_abs(v.im));
 }
 
 

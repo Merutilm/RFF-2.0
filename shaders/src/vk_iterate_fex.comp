@@ -43,7 +43,7 @@ FexPA lookup(uint64_t ref_iteration, FexComplex dz) {
         return invalid_sentinel();
     }
 
-    Fex r = norm_approx(dz);
+    Fex r = max(dz);
 
     switch (mp_table_info.selection_method) {
         case MSM_LOWEST:
@@ -144,7 +144,7 @@ void main() {
         prev_distance2 = curr_distance2;
         curr_distance2 = norm2(fex_complex_cast(z));
 
-        if (ref_iteration == render_meta.max_ref_iteration || fex_lt(norm_approx(z), norm_approx(dz))) {
+        if (ref_iteration == render_meta.max_ref_iteration || fex_lt(max(z), max(dz))) {
             ref_iteration = 0;
             dz = z;
         }

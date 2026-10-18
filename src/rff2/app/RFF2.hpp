@@ -74,8 +74,8 @@ namespace merutilm::rff2 {
         [[nodiscard]] std::array<int, 2> iterationBufferConversion(double logZoom, float clarityMultiplier,
                                                                    const complex<dex> &offset) const;
 
-        [[nodiscard]] dex getDcMax(const double logZoom, const float clarityMultiplier) const {
-            return offsetConversion(logZoom, clarityMultiplier, 0, 0).norm_approx();
+        [[nodiscard]] dex calcDcMax(const double logZoom, const float clarityMultiplier) const {
+            return offsetConversion(logZoom, clarityMultiplier, 0, 0).norm();
         }
 
         void moveCursor(int px, int py) const;

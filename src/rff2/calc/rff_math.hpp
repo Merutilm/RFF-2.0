@@ -6,6 +6,7 @@
 #include <cmath>
 
 #include <numbers>
+
 #include "exponent.hpp"
 #include "templates.hpp"
 
@@ -51,11 +52,6 @@ namespace merutilm::rff2::rff_math {
     }
 
 
-    template<Number Num>
-    Num hypot_approx(Num x, Num y) {
-        return std::max(abs(x), abs(y)) * Num(std::numbers::sqrt2);
-    }
-
 
     inline dex exp(const double v) {
 
@@ -78,6 +74,15 @@ namespace merutilm::rff2::rff_math {
     }
 
 
+    template<Number Num>
+    Num sqrt(const Num v) {
+        if constexpr (is_prim<Num>) {
+            return std::log(v);
+        } else {
+            static_assert(is_exponent<Num>);
+            return Num::sqrt(v);
+        }
+    }
 
 
     template<Number Num>

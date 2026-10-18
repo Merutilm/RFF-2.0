@@ -149,9 +149,9 @@ namespace merutilm::rff2 {
             for (uint32_t currExp = 0; currExp < terms.size(); ++currExp) {
                 if (currExp < fractalSettings.sa.appliedTermsCount) {
                     lSum += termsTemp[currExp] * dcMaxNs;
-                    lSumMag += termsTemp[currExp].norm_approx() * dcMaxNs;
+                    lSumMag += termsTemp[currExp].max() * dcMaxNs;
                 } else {
-                    rSumMag += termsTemp[currExp].norm_approx() * dcMaxNs;
+                    rSumMag += termsTemp[currExp].max() * dcMaxNs;
                 }
 
                 dcMaxNs *= dcMax;

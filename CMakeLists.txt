@@ -79,7 +79,7 @@ target_compile_options(RFF PRIVATE
         #Release options
         $<$<CONFIG:Release>:-O3 -ffast-math -funroll-loops -march=native -mllvm -inline-threshold=4000>
         #RelWithDebInfo options
-        $<$<CONFIG:RelWithDebInfo>:-O3 -ffast-math -fno-omit-frame-pointer -funroll-loops -march=native>
+        $<$<CONFIG:RelWithDebInfo>:-O3 -ffast-math -fno-omit-frame-pointer -funroll-loops -march=native  -mllvm -inline-threshold=4000>
 )
 
 

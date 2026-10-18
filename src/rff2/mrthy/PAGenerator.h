@@ -87,7 +87,7 @@ namespace merutilm::rff2 {
             return; //skip useless operation
         }
 #endif
-        this->radius = rff_math::try_normalized_value(std::clamp((target.radius - bn.norm_approx() * this->dcMax) / an.norm_approx(), Num(0), this->radius));
+        this->radius = rff_math::try_normalized_value(std::clamp((target.radius - bn.max() * this->dcMax) / an.max(), Num(0), this->radius));
 
 
         const complex<Num> anMerge = target.an * an;
@@ -107,7 +107,7 @@ namespace merutilm::rff2 {
         const complex<Num> z2 = 2.0f * this->orbit[index];
 
         this->radius = rff_math::try_normalized_value(
-                std::clamp((this->epsilon * z2.norm_approx() - bn.norm_approx() * this->dcMax) / an.norm_approx(), Num(0), this->radius));
+                std::clamp((this->epsilon * z2.max() - bn.max() * this->dcMax) / an.max(), Num(0), this->radius));
 
         an = (an * z2).try_normalized_value();
         bn = (bn * z2 + Num(1)).try_normalized_value();

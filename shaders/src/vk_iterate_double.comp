@@ -44,7 +44,7 @@ DoublePA lookup(uint64_t ref_iteration, dvec2 dz) {
         return invalid_sentinel();
     }
 
-    float r = norm_approx(vec2(dz));
+    float r = max(vec2(dz));
 
     switch (mp_table_info.selection_method) {
         case MSM_LOWEST:
@@ -146,8 +146,8 @@ void main() {
         prev_distance2 = curr_distance2;
         curr_distance2 = norm2(vec2(z));
 
-        float norm_z = norm_approx(vec2(z));
-        float norm_dz = norm_approx(vec2(dz));
+        float norm_z = max(vec2(z));
+        float norm_dz = max(vec2(dz));
 
         if (ref_iteration == render_meta.max_ref_iteration || norm_z < norm_dz) {
             ref_iteration = 0;
