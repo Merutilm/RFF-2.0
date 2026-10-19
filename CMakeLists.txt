@@ -70,7 +70,7 @@ add_executable(
         src/rff2/vulkan/CPCInterpolateIsolated.cpp
         src/rff2/mb/MB2Locator.cpp
         src/rff2/io/RFFShaderBinary.cpp
-        src/rff2/vulkan/video/H264VideoEncoder.cpp
+#        src/rff2/vulkan/video/H264VideoEncoder.cpp
 )
 
 target_compile_options(RFF PRIVATE

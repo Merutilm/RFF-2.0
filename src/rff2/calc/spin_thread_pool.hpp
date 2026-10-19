@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <vector>
 #include "spin_thread.hpp"
 
 namespace merutilm::rff2 {
