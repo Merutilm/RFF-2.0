@@ -8,7 +8,7 @@
 #include "vulkan_helper/base/exception.hpp"
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #elif __linux__
 #include <limits.h>
 #include <unistd.h>

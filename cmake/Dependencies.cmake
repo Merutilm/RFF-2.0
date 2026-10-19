@@ -1,10 +1,10 @@
 
 if (WIN32)
     if ("${MSYS2_CLANG}" STREQUAL "")
+        message(FATAL_ERROR ${RFF_HELP_MSYS2})
+    else ()
         set(CLANG64_DIRS "${MSYS2_CLANG}")
         set(CLANG64_LIBS "${MSYS2_CLANG}/lib")
-    else ()
-        message(FATAL_ERROR ${RFF_HELP_MSYS2})
     endif ()
 endif ()
 
@@ -34,9 +34,9 @@ if (WIN32)
             ${CLANG64_LIBS}/libopencv_videoio4110.dll.a
             ${CLANG64_LIBS}/libopencv_highgui4110.dll.a
             # FFmpeg Linkers
-            ${CLANG64_LIBS}/libavcodec.dll.a
-            ${CLANG64_LIBS}/libavformat.dll.a
-            ${CLANG64_LIBS}/libavutil.dll.a
+#            ${CLANG64_LIBS}/libavcodec.dll.a
+#            ${CLANG64_LIBS}/libavformat.dll.a
+#            ${CLANG64_LIBS}/libavutil.dll.a
     )
 
 
@@ -66,11 +66,11 @@ elseif (UNIX)
     find_package(PkgConfig REQUIRED)
 
     pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
-    pkg_check_modules(FFMPEG REQUIRED
-            libavcodec
-            libavformat
-            libavutil
-    )
+#    pkg_check_modules(FFMPEG REQUIRED
+#            libavcodec
+#            libavformat
+#            libavutil
+#    )
 
     find_static_library(GMP_STATIC gmp)
 

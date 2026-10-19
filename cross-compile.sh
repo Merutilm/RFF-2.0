@@ -21,7 +21,11 @@ cmake --build "$EXPORT_DIR/build-linux"
 cmake -S "$ROOT_DIR" \
       -B "$EXPORT_DIR/build-windows" -G Ninja \
       -DCMAKE_TOOLCHAIN_FILE="$ROOT_DIR/cmake/windows-x86_64.cmake" \
+      -DMSYS2_CLANG="/opt/mingw" \
       -DRFF_RELEASE=ON \
+      -DVulkan_INCLUDE_DIR=/opt/mingw/include \
+      -Dglfw3_DIR=/opt/mingw/lib/cmake/glfw3 \
+      -DVulkan_LIBRARY=/opt/mingw/lib/libvulkan-1.dll.a \
       -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$ROOT_DIR/bin"
 
 cmake --build "$EXPORT_DIR/build-windows"
