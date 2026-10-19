@@ -13,7 +13,8 @@ cmake -S "$ROOT_DIR" \
         -B "$EXPORT_DIR/build-linux" -G Ninja \
         -DCMAKE_TOOLCHAIN_FILE="$ROOT_DIR/cmake/linux-x86_64.cmake" \
         -DRFF_RELEASE=ON \
-        -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$ROOT_DIR/bin"
+        -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$ROOT_DIR/bin" \
+        -DGMP_STATIC="/usr/local/lib/gmp-general/libgmp.a"
 cmake --build "$EXPORT_DIR/build-linux"
 
 

@@ -119,6 +119,7 @@ sudo ldconfig
 
 ### Build
 The dependency [libgmp](https://gmplib.org/download/snapshot) must be built separately.
+Static library is required.
 
 ```bash
 
