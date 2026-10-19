@@ -99,7 +99,7 @@ Path : %MSYS2_ROOT%\clang64\bin
 
 
 ```bash
-sudo apt update
+sudo apt publish.sh
 sudo apt install -y clang clang-tools build-essential make cmake libopencv-dev libvulkan-dev libglm-dev ninja-build libgtk-3-dev git wget xz-utils libglfw3-dev
 
 wget https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz

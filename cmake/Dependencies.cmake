@@ -1,4 +1,16 @@
+
+if (WIN32)
+    if ("${MSYS2_CLANG}" STREQUAL "")
+        set(CLANG64_DIRS "${MSYS2_CLANG}")
+        set(CLANG64_LIBS "${MSYS2_CLANG}/lib")
+    else ()
+        message(FATAL_ERROR ${RFF_HELP_MSYS2})
+    endif ()
+endif ()
+
+
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/vulkan_helper)
+
 target_link_libraries(RFF PRIVATE
         # Vulkan Helper
         vulkan_helper

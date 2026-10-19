@@ -1,4 +1,4 @@
-set(RFF_BUILD_HELP
+set(RFF_HELP_BUILD
         "
 Compiler flag is not set.
 (Hint: You can set the compiler flag)
@@ -16,5 +16,13 @@ Compiler flag is not set.
 usage: cmake -G <...> -B <...> -DCMAKE_TOOLCHAIN_FILE=<...> -D<...>=ON
 
 example: cmake -G Ninja -B build -DCMAKE_TOOLCHAIN_FILE=windows-x86_64.cmake -DRFF_NATIVE=ON
+"
+)
+
+set(RFF_HELP_MSYS2
+        "option MSYS2_CLANG is not set. you must provide the root of clang64 path.
+usage: cmake -G <...> -B <...> -DMSYS2_CLANG=<...>
+
+example: cmake -G Ninja -B build -DMSYS2_CLANG=\"C:/msys64/clang64\"
 "
 )

@@ -15,7 +15,8 @@ RULES.md
 /cmake/_deps
 /cmake/src
 
-update
+export
+publish.sh
 
 /extern/imgui
 /bin
@@ -46,8 +47,6 @@ update
 *.app
 
 # Others
-/apply_vkh.ps1
 /apply_vkh.sh
-/update.ps1
 /update.sh
 *.zip
