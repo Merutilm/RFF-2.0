@@ -32,7 +32,15 @@ cmake --build "$EXPORT_DIR/build-windows"
 
 # ZIP packages
 
-zip -r -FS RFF-windows.zip bin/RFF.exe res shaders/out
+sudo cp /opt/mingw/bin/libopencv_core4110.dll bin
+sudo cp /opt/mingw/bin/libopencv_highgui4110.dll bin
+sudo cp /opt/mingw/bin/libopencv_imgcodecs4110.dll bin
+sudo cp /opt/mingw/bin/libopencv_imgproc4110.dll bin
+sudo cp /opt/mingw/bin/libopencv_videoio4110.dll bin
+
+zip -r -FS RFF-windows.zip bin/RFF.exe bin/*.dll res shaders/out
 zip -r -FS RFF-linux.zip bin/RFF res shaders/out
+
+sudo rm bin/*.dll
 
 echo "Build and packaging completed."

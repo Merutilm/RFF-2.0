@@ -51,18 +51,15 @@ In this case, use version `2.0.12.1`. Supported OS of this version is only Windo
 
 ### Launch Application
 #### installation
-Run the installer in the extracted `RFF.zip`.
+Go release, Install the .zip file that is compatible with your operating system.
+Unzip and run it.
 
-The installer script handles the entire process: 
-- installing build tools
-- build
-- creating the executable  
+The application requires `opencv(4.11.0)` and `vulkan`.
 
-Therefore, you should run the installer as Administrator.
-If you are unsure exactly what is being executed, the following tasks run automatically.
+**It is configured to run on all 64-bit CPUs. If you want faster performance, build it yourself.**
+
 
 #### for Windows
-If it does not run immediately after zip extraction, try the following steps.
 
 1. Install [MSYS2](https://www.msys2.org/)
 2. Launch `clang64.exe`
@@ -80,7 +77,7 @@ pacman -S mingw-w64-clang-x86_64-make
 pacman -S mingw-w64-clang-x86_64-cmake
 pacman -S mingw-w64-clang-x86_64-ninja
 pacman -S mingw-w64-clang-x86_64-clang
-pacman -S mingw-w64-clang-x86_64-opencv
+pacman -S mingw-w64-clang-x86_64-ffmpeg
 pacman -S mingw-w64-clang-x86_64-vulkan
 pacman -S mingw-w64-clang-x86_64-glm
 pacman -S mingw-w64-clang-x86_64-glfw
@@ -99,7 +96,7 @@ Path : %MSYS2_ROOT%\clang64\bin
 
 
 ```bash
-sudo apt publish.sh
+sudo apt update
 sudo apt install -y clang clang-tools build-essential make cmake libopencv-dev libvulkan-dev libglm-dev ninja-build libgtk-3-dev git wget xz-utils libglfw3-dev
 
 wget https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz
