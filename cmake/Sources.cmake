@@ -1,0 +1,57 @@
+
+add_executable(
+        RFF
+        ${CMAKE_SOURCE_DIR}/extern/imgui/misc/cpp/imgui_stdlib.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/Main.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/io/RFFDynamicMapBinary.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/parallel/ParallelRenderState.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/mrthy/MPAPeriod.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/FnFile.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/FnFractal.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/FnRender.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/FnShader.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/FnExplore.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/shader/palette/ShdPalettePresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/shader/fog/ShdFogPresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/shader/color/ShdColorPresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/shader/surface/ShdSurfacePresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/shader/stripe/ShdStripePresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/shader/bloom/ShdBloomPresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/resolution/ResolutionPresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/render/compute/RndComputePresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/render/display/RndDisplayPresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/calc/sync/ClcSyncPresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/calc/compress/ClcCompressPresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/preset/calc/approx/ClcApproxPresets.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/FnVideo.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/IOUtilities.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/io/RFFStaticMapBinary.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/io/RFFLocationBinary.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/io/KFRColorLoader.cpp
+        ${CMAKE_SOURCE_DIR}/extern/stb_image.c
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCIterationPalette.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/RFF2.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCStripe.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCFractalSurface.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCColor.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCFog.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCDownsampleForBlur.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCBloomThreshold.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/CPCBoxBlur.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCBloom.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCNoiseReduction.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCPresent.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/VideoWindow.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/VideoWindowRenderManager.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/CPCCombine2Map.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCStaticImage2Map.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/CPCImageRGBA2BGR.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/app/FnPreset.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPC3DFractal.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCSmoothZoom.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCResample.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/CPCInterpolateIsolated.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/mb/MB2Locator.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/io/RFFShaderBinary.cpp
+        #        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/video/H264VideoEncoder.cpp
+)

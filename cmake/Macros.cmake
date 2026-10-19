@@ -1,0 +1,16 @@
+
+macro(RFF_DEFINITION def str value)
+    set(${def} ${value} CACHE STRING ${str})
+    message(STATUS "${def} is set to ${${def}}")
+    target_compile_definitions(RFF PUBLIC ${def}=${${def}})
+endmacro()
+
+macro(RFF_DEFINITION_FLAG def str flag)
+    option(${def} ${str} ${flag})
+    if (${def})
+        message(STATUS "${def} is Enabled. ${str}")
+        target_compile_definitions(RFF PUBLIC ${def})
+    else ()
+        message(STATUS "${def} is Disabled. Skipping")
+    endif ()
+endmacro()
