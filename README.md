@@ -54,7 +54,7 @@ In this case, use version `2.0.12.1`. Supported OS of this version is only Windo
 Go release, Install the .zip file that is compatible with your operating system.
 Unzip and run it.
 
-The application requires `opencv(4.11.0)` and `vulkan`.
+The application requires `opencv 4.11.0` and `vulkan`.
 
 **It is configured to run on all 64-bit CPUs. If you want faster performance, build it yourself.**
 
