@@ -34,7 +34,7 @@ cmake --build "$EXPORT_DIR/build-windows"
 # ZIP packages
 
 
-cp bin/put_all_dll_to_bin/* bin
+cp windows_dependency/* bin
 zip -r -FS RFF-windows.zip bin/RFF.exe bin/*.dll res shaders/out
 zip -r -FS RFF-linux.zip bin/RFF res shaders/out
 rm bin/*.dll
