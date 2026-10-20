@@ -50,7 +50,7 @@ if(${RFF_BUILD_PROFILE} STREQUAL "Native")
     set(RFF_CPU_TARGET ${CMAKE_MATCH_1})
     file(REMOVE ${CLANG_PROBE})
 else()
-    set(RFF_CPU_TARGET "x86_64-general")
+    set(RFF_CPU_TARGET "x86_64-generic")
 endif()
 
 # output dir
