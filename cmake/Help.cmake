@@ -26,31 +26,37 @@ set(RFF_HELP_BUILD
 
 ┌─ USAGE ───────────────────────────────────────────────────────────────────┐
 │                                                                           │
-│  cmake -G <generator> -B <build-dir> \\                                   │
-│        -DCMAKE_TOOLCHAIN_FILE=<toolchain> \\                              │
-│        -D<RFF_PROFILE>=ON                                                 │
+│   cmake -G <generator> -B <build-dir> \                                   │
+│         -DCMAKE_TOOLCHAIN_FILE=<toolchain> \                              │
+│         -D<RFF_PROFILE>=ON                                                │
 │                                                                           │
 └───────────────────────────────────────────────────────────────────────────┘
 
-  Example · Windows / Ninja / Native Performance
+    Example · Windows / Ninja / Native Performance
 
-    cmake -G Ninja -B build \\
-          -DCMAKE_TOOLCHAIN_FILE=windows-x86_64.cmake \\
-          -DRFF_NATIVE=ON
+        cmake -G Ninja -B build \
+            -DCMAKE_TOOLCHAIN_FILE=windows-x86_64.cmake \
+            -DRFF_NATIVE=ON
 
 ─────────────────────────────────────────────────────────────────────────────
-  RFF Build System
-  Choose a toolchain and build profile to get started.
+    RFF Build System
+    Choose a toolchain and build profile to get started.
 ─────────────────────────────────────────────────────────────────────────────
 "
 )
 
 
-set(RFF_HELP_MSYS2
-        "option MSYS2_CLANG is not set. you must provide the root of clang64 path.
-usage: cmake -G <...> -B <...> -DMSYS2_CLANG=<...>
+set(RFF_HELP_MSYS2 "
 
-example: cmake -G Ninja -B build -DMSYS2_CLANG=\"C:/msys64/clang64\"
+option MSYS2_CLANG is not set. you must provide the root of clang64 path
+if you are using Windows environment.
+
+┌─ USAGE ───────────────────────────────────────────────────────────────────┐
+│   cmake -G <...> -B <...> -DMSYS2_CLANG=<...>                             │
+└───────────────────────────────────────────────────────────────────────────┘
+
+    Example ·
+        cmake -G Ninja -B build -DMSYS2_CLANG=\"C:/msys64/clang64\"
 "
 )
 
