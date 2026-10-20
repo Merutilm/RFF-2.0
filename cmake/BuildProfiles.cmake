@@ -17,7 +17,7 @@ elseif (RFF_BUILD_PROFILE STREQUAL "Native")
 elseif (RFF_BUILD_PROFILE STREQUAL "RelWithDebInfo")
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
     target_compile_options(RFF PRIVATE
-            -O3 -ffast-math -fno-omit-frame-pointer -funroll-loops -march=native -mtune=native -mllvm -inline-threshold=${RFF_INLINE_THRESHOLD}
+            -O3 -ffast-math -fno-omit-frame-pointer -funroll-loops -march=x86-64 -mtune=generic -mllvm -inline-threshold=${RFF_INLINE_THRESHOLD}
     )
 else ()
     message("${RFF_HELP_BUILD}")
