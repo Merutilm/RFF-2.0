@@ -2,6 +2,7 @@
 if (WIN32)
     if ("${MSYS2_CLANG}" STREQUAL "")
         message(${RFF_HELP_MSYS2})
+        message(FATAL_ERROR "Configuration aborted.")
     else ()
         set(CLANG64_DIRS "${MSYS2_CLANG}")
         set(CLANG64_LIBS "${MSYS2_CLANG}/lib")
@@ -75,12 +76,11 @@ elseif (UNIX)
     target_link_directories(RFF PRIVATE ${GTK3_LIBRARY_DIRS})
     target_compile_options(RFF PRIVATE ${GTK3_CFLAGS_OTHER})
 
-    if(DEFINED GMP_STATIC)
-        message("GMP_STATIC path is set to ${GMP_STATIC}")
-    elseif()
+    if(NOT DEFINED GMP_STATIC)
         message("GMP_STATIC is not set. finding gmp...")
         find_static_library(GMP_STATIC gmp)
     endif()
+    message("GMP_STATIC path is ${GMP_STATIC}")
 
     target_link_libraries(RFF PRIVATE
             # GMP Linker

@@ -26,8 +26,8 @@ set(RFF_HELP_BUILD
 
 ┌─ USAGE ───────────────────────────────────────────────────────────────────┐
 │                                                                           │
-│   cmake -G <generator> -B <build-dir> \\                                  │
-│         -DCMAKE_TOOLCHAIN_FILE=<toolchain> \\                             │
+│   cmake -G <generator> -B <build-dir> \\                                   │
+│         -DCMAKE_TOOLCHAIN_FILE=<toolchain> \\                              │
 │         -D<RFF_PROFILE>=ON                                                │
 │                                                                           │
 └───────────────────────────────────────────────────────────────────────────┘
