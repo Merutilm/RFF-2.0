@@ -1,7 +1,7 @@
 
 if (WIN32)
     if ("${MSYS2_CLANG}" STREQUAL "")
-        message(FATAL_ERROR ${RFF_HELP_MSYS2})
+        message(${RFF_HELP_MSYS2})
     else ()
         set(CLANG64_DIRS "${MSYS2_CLANG}")
         set(CLANG64_LIBS "${MSYS2_CLANG}/lib")

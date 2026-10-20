@@ -12,4 +12,4 @@ include(cmake/Help.cmake)
 include(cmake/CompileOptions.cmake)
 include(cmake/Dependencies.cmake)
 
-message(STATUS ${RFF_HELP_BUILD_RESULT})
+message(${RFF_HELP_BUILD_RESULT})

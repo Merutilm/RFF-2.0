@@ -20,5 +20,5 @@ elseif (RFF_RELWITHDEBINFO)
             -O3 -ffast-math -fno-omit-frame-pointer -funroll-loops -march=native -mtune=native -mllvm -inline-threshold=${RFF_INLINE_THRESHOLD}
     )
 else ()
-    message(FATAL_ERROR "${RFF_HELP_BUILD}")
+    message("${RFF_HELP_BUILD}")
 endif ()

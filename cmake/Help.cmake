@@ -26,16 +26,16 @@ set(RFF_HELP_BUILD
 
 ┌─ USAGE ───────────────────────────────────────────────────────────────────┐
 │                                                                           │
-│   cmake -G <generator> -B <build-dir> \                                   │
-│         -DCMAKE_TOOLCHAIN_FILE=<toolchain> \                              │
+│   cmake -G <generator> -B <build-dir> \\                                  │
+│         -DCMAKE_TOOLCHAIN_FILE=<toolchain> \\                             │
 │         -D<RFF_PROFILE>=ON                                                │
 │                                                                           │
 └───────────────────────────────────────────────────────────────────────────┘
 
     Example · Windows / Ninja / Native Performance
 
-        cmake -G Ninja -B build \
-            -DCMAKE_TOOLCHAIN_FILE=windows-x86_64.cmake \
+        cmake -G Ninja -B build \\
+            -DCMAKE_TOOLCHAIN_FILE=windows-x86_64.cmake \\
             -DRFF_NATIVE=ON
 
 ─────────────────────────────────────────────────────────────────────────────
