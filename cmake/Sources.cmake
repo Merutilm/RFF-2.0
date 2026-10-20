@@ -1,4 +1,11 @@
 
+
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/extern/imgui/imgui.h)
+    message("${RFF_HELP_SUBMODULE_IMGUI}")
+    message(FATAL_ERROR "Generation Aborted.")
+endif()
+
+
 add_executable(
         RFF
         ${CMAKE_SOURCE_DIR}/extern/imgui/misc/cpp/imgui_stdlib.cpp

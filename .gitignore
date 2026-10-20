@@ -18,7 +18,6 @@ RULES.md
 export
 publish.sh
 
-/extern/imgui
 /bin
 /out
 

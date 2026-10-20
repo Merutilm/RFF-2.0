@@ -82,3 +82,15 @@ set(RFF_HELP_BUILD_RESULT
 
 "
 )
+
+set(RFF_HELP_SUBMODULE_IMGUI "
+┌───────────────────────────────────────────────────────────────────────────┐
+│                                                                           │
+│   The ImGui submodule has not been initialized.                           │
+│   Please run the following command in the project root:                   │
+│                                                                           │
+│       git submodule update --init --recursive                             │
+│                                                                           │
+└───────────────────────────────────────────────────────────────────────────┘
+"
+)
