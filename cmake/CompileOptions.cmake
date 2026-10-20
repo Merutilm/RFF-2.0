@@ -28,3 +28,8 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     message("${RFF_HELP_BUILD}")
     message(FATAL_ERROR "Configuration aborted.")
 endif()
+
+if(NOT EXISTS "${CMAKE_TOOLCHAIN_FILE}")
+    message("${RFF_HELP_BUILD}")
+    message(FATAL_ERROR "CMAKE_TOOLCHAIN_FILE not found!")
+endif()
