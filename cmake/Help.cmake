@@ -17,10 +17,10 @@ set(RFF_HELP_BUILD
 ┌─ BUILD PROFILES ──────────────────────────────────────────────────────────┐
 │  Profile             Performance  Description                             │
 │                                                                           │
-│  RFF_DEBUG           ██░░░░░░░░   Debug-friendly, optimized for debugging │
-│  RFF_RELEASE         ████████░░   Balanced performance and stability      │
-│  RFF_NATIVE          ██████████   Maximum performance for the host CPU    │
-│  RFF_RELWITHDEBINFO  ███████░░░   Optimized build with debug symbols      │
+│  Debug               ██░░░░░░░░   Debug-friendly, optimized for debugging │
+│  Release             ████████░░   Balanced performance and stability      │
+│  Native              ██████████   Maximum performance for the host CPU    │
+│  RelWithDebInfo      ███████░░░   Optimized build with debug symbols      │
 │                                                                           │
 └───────────────────────────────────────────────────────────────────────────┘
 
@@ -28,7 +28,7 @@ set(RFF_HELP_BUILD
 │                                                                           │
 │   cmake -G <generator> -B <build-dir> \\                                   │
 │         -DCMAKE_TOOLCHAIN_FILE=<toolchain> \\                              │
-│         -D<RFF_PROFILE>=ON                                                │
+│         -DRFF_BUILD_PROFILE=<RFF_PROFILE>                                 │
 │                                                                           │
 └───────────────────────────────────────────────────────────────────────────┘
 
@@ -36,7 +36,7 @@ set(RFF_HELP_BUILD
 
         cmake -G Ninja -B build \\
             -DCMAKE_TOOLCHAIN_FILE=windows-x86_64.cmake \\
-            -DRFF_NATIVE=ON
+            -DRFF_BUILD_PROFILE=Native
 
 ─────────────────────────────────────────────────────────────────────────────
     RFF Build System

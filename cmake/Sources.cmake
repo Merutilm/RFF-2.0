@@ -2,7 +2,7 @@
 
 if(NOT EXISTS ${CMAKE_SOURCE_DIR}/extern/imgui/imgui.h)
     message("${RFF_HELP_SUBMODULE_IMGUI}")
-    RFF_CONFIGURATION_FAILED("Generation Aborted.")
+    message(FATAL_ERROR "Generation Aborted.")
 endif()
 
 
