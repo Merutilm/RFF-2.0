@@ -4,20 +4,20 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_RPATH "$ORIGIN")
 
 message("
-═══════════════════════════════ TOOLCHAIN ═══════════════════════════════
+═════════════════════════════════ TOOLCHAIN ═════════════════════════════════
 ")
 
+include(cmake/Constants.cmake)
+include(cmake/Help.cmake)
+include(cmake/Macros.cmake)
 include(cmake/Toolchain.cmake)
 
 message("
-══════════════════════════ CONFIGURATION START ══════════════════════════
+════════════════════════════ CONFIGURATION START ════════════════════════════
 ")
 
 project(RFF)
 
-include(cmake/Constants.cmake)
-include(cmake/Macros.cmake)
-include(cmake/Help.cmake)
 include(cmake/Sources.cmake)
 include(cmake/Definition.cmake)
 include(cmake/BuildProfiles.cmake)
@@ -27,7 +27,7 @@ include(cmake/Dependencies.cmake)
 message(
         "
 
-════════════════════════════ BUILD PROFILE ══════════════════════════════
+══════════════════════════════ BUILD PROFILE ════════════════════════════════
 
     TARGET
     Operating System  : ${CMAKE_SYSTEM_NAME}
@@ -41,7 +41,7 @@ message(
     OUTPUT
     Runtime Directory : ${RFF_OUTPUT_DIR}
 
-═════════════════════════════════════════════════════════════════════════
+═════════════════════════════════════════════════════════════════════════════
 
 "
 )

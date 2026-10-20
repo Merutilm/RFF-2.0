@@ -5,6 +5,7 @@ set(VALID_PROFILES Debug Release Native RelWithDebInfo)
 list(FIND VALID_PROFILES "${RFF_BUILD_PROFILE}" PROFILE_INDEX)
 
 if(PROFILE_INDEX EQUAL -1)
+    message("${RFF_HELP_BUILD}")
     message(FATAL_ERROR "Invalid build profile: ${RFF_BUILD_PROFILE}")
 endif()
 
