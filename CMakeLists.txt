@@ -55,8 +55,7 @@ endif()
 
 # output dir
 get_filename_component(RFF_OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" ABSOLUTE)
-message(
-        "
+message("
 ══════════════════════════════ BUILD PROFILE ════════════════════════════════
 
     TARGET

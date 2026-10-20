@@ -32,6 +32,7 @@ namespace merutilm::rff2 {
         UpdateRequests requests = {};
         RFF2Renderer *renderer = nullptr;
 
+        bool showControl = true;
 
         std::atomic<bool> recomputeFirstRefresh = false;
         std::atomic<bool> updateFractalFrame = false;
@@ -219,7 +220,7 @@ namespace merutilm::rff2 {
     private:
         static void initImGui();
         void renderControlImGui();
-        void renderStatusImGui() const;
+        void renderStatusImGui();
     };
 
 

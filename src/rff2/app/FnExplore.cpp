@@ -50,7 +50,10 @@ namespace merutilm::rff2 {
     void FnExplore::moveToCenter(RFF2 &app) {
         const MB2RenderDataBase *renderData = app.getCurrentRenderData();
         auto &frt = app.getSettings().fractal;
-        if (renderData && renderData->getPerturbator() && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
+        const bool disable = !renderData || !renderData->getReference();
+        if (disable) ImGui::BeginDisabled();
+        if (!frt.reference.reuse && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
+            assert(renderData->getReference());
             const int64_t exp10 = Perturbator::getExp10WithSettings(frt.reference, renderData->getReference()->logZoom);
             const fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
             fixed_point_complex center = frt.reference.center.create_variant(exp10);
@@ -58,6 +61,7 @@ namespace merutilm::rff2 {
             frt.reference.center = std::move(center);
             app.getRequests().requestRecompute();
         }
+        if (disable) ImGui::EndDisabled();
     }
 
 
@@ -66,8 +70,12 @@ namespace merutilm::rff2 {
         MB2RenderDataBase *renderData = app.getCurrentRenderData();
 
         auto &frt = app.getSettings().fractal;
-        if (frt.reference.reuse && renderData && renderData->getReference() &&
+
+        const bool disable = !renderData || !renderData->getReference();
+        if (disable) ImGui::BeginDisabled();
+        if (frt.reference.reuse &&
             ImGui::Button("Go to Original Reference", ImVec2(-FLT_MIN, 0))) {
+            assert(renderData->getReference());
             const double startTime = app.rootWindowContext->getWindow()->getTime();
             frt.reference.center = renderData->getReference()->center;
             frt.general.logZoom = renderData->getReference()->logZoom;
@@ -76,25 +84,23 @@ namespace merutilm::rff2 {
                                   app.getFnSeriesApprox(startTime));
             app.getRequests().requestRecompute();
         }
+        if (disable) ImGui::EndDisabled();
     }
 
     void FnExplore::locateCenteredReference(RFF2 &app) {
 
         std::unique_ptr<MB2RenderDataBase> &data = app.getCurrentRenderDataOwnRef();
         Settings &settings = app.getSettings();
-        if (data && data->getReference() && data->getPerturbator() && !settings.fractal.reference.reuse &&
+
+        const bool disable = !data || !data->getReference();
+        if (disable) ImGui::BeginDisabled();
+
+        if (!settings.fractal.reference.reuse &&
             ImGui::Button("Locate Centered Reference", ImVec2(-FLT_MIN, 0))) {
             ParallelRenderState &state = app.getState();
 
             state.createThread([&app, &data, &settings] {
                 const double startTime = app.rootWindowContext->getWindow()->getTime();
-
-                const auto ref = data->getReference();
-
-                if (ref == nullptr) {
-                    vkh::logger::log_err("Please wait until the calculation is complete.");
-                    return;
-                }
 
                 MB2Locator locator(app.getState(), *data, settings.explore.locator,
                                    app.getFnFindingMBCenter(startTime));
@@ -114,11 +120,17 @@ namespace merutilm::rff2 {
                 app.getRequests().requestRecompute();
             });
         }
+        if (disable) ImGui::EndDisabled();
+
     }
 
     void FnExplore::locateMinibrot(RFF2 &app) {
 
         Settings &settings = app.getSettings();
+        const MB2RenderDataBase *data = app.getCurrentRenderData();
+        const bool disabled = !data || !data->getReference();
+        if (disabled) ImGui::BeginDisabled();
+
         if (!settings.fractal.reference.reuse) {
             ImGui::Separator();
 
@@ -128,11 +140,6 @@ namespace merutilm::rff2 {
             if (ImGui::Button("Locate Minibrot", ImVec2(-FLT_MIN, 0))) {
 
                 app.getState().cancel();
-                const MB2RenderDataBase *data = app.getCurrentRenderData();
-                if (!data) {
-                    throw vkh::exception_invalid_state("Perturbator cannot be null");
-                }
-
                 app.getState().createThread([&app, data, &settings] {
                     const auto ref = data->getReference();
 
@@ -158,6 +165,7 @@ namespace merutilm::rff2 {
                 });
             }
         }
+        if (disabled) ImGui::EndDisabled();
     }
 
 } // namespace merutilm::rff2

@@ -33,7 +33,9 @@ void main() {
     ivec2 curr_iter_coord = ivec2(gl_FragCoord.xy);
     vec2 coord = gl_FragCoord.xy / iteration_info_settings.extent;
 
-    coord = (coord - 0.5f) / pow(10, float(smooth_zoom_settings.log_zoom_delta)) - smooth_zoom_settings.pos_delta + 0.5f;
+    float zoom_delta = pow(10, float(smooth_zoom_settings.log_zoom_delta));
+
+    coord = (coord - 0.5f) / zoom_delta - smooth_zoom_settings.pos_delta + 0.5f;
     color = texture(canvas, coord);
 
     ivec2 iter_coord = ivec2(coord * iteration_info_settings.extent);

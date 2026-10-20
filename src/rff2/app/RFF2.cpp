@@ -542,20 +542,24 @@ namespace merutilm::rff2 {
 
         ImGuiStyle &style = ImGui::GetStyle();
 
-        style.Colors[ImGuiCol_WindowBg] = ImVec4(0.08f, 0.09f, 0.11f, .8f);
-        style.Colors[ImGuiCol_TitleBg] = ImVec4(0.06f, 0.07f, 0.08f, .8f);
-        style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.12f, 0.14f, 0.18f, .9f);
-        style.Colors[ImGuiCol_Border] = ImVec4(0.25f, 0.25f, 0.28f, .8f);
-        style.Colors[ImGuiCol_Button] = ImVec4(0.24f, 0.24f, 0.24f, .9f);
-        style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.34f, 0.34f, 0.34f, 1.0f);
-        style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.18f, 0.32f, 0.56f, 1.0f);
+        style.Colors[ImGuiCol_FrameBg] = ImVec4(0.13f, 0.14f, 0.16f, 1.0f);
+        style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.21f, 0.23f, 0.26f, 1.0f);
+        style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.28f, 0.30f, 0.33f, 1.0f);
+
+        style.Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.07f, 0.09f, 1.0f);
+        style.Colors[ImGuiCol_TitleBg] = ImVec4(0.06f, 0.07f, 0.08f, 1.0f);
+        style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.12f, 0.14f, 0.18f, 1.0f);
+        style.Colors[ImGuiCol_Border] = ImVec4(0.21f, 0.23f, 0.26f, 1.0f);
+        style.Colors[ImGuiCol_Button] = ImVec4(0.21f, 0.23f, 0.26f, 1.0f);
+        style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.25f, 0.27f, 0.3f, 1.0f);
+        style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.16f, 0.17f, 0.19f, 1.0f);
         style.Colors[ImGuiCol_SliderGrab] = ImVec4(0.24f, 0.50f, 0.95f, 1.0f);
         style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.34f, 0.60f, 1.00f, 1.0f);
         style.Colors[ImGuiCol_CheckMark] = ImVec4(0.24f, 0.50f, 0.95f, 1.0f);
 
         style.Colors[ImGuiCol_Tab] = ImVec4(0.18f, 0.18f, 0.20f, 1.0f);
         style.Colors[ImGuiCol_TabHovered] = ImVec4(0.24f, 0.50f, 0.95f, 1.0f);
-        style.Colors[ImGuiCol_TabSelected] = ImVec4(0.24f, 0.50f, 0.95f, 0.85f);
+        style.Colors[ImGuiCol_TabSelected] = ImVec4(0.24f, 0.50f, 0.95f, 1.0f);
         style.Colors[ImGuiCol_TabDimmed] = ImVec4(0.16f, 0.16f, 0.17f, 1.0f);
         style.Colors[ImGuiCol_TabDimmedSelected] = ImVec4(0.20f, 0.20f, 0.22f, 1.0f);
 
@@ -581,6 +585,9 @@ namespace merutilm::rff2 {
 
 
     void RFF2::renderControlImGui() {
+        if (!showControl)
+            return;
+        ImGui::SetNextWindowSizeConstraints(ImVec2(300, 200), ImVec2(1920, 1080));
         ImGui::Begin("Control", nullptr);
         if (ImGui::BeginTabBar("Control")) {
             if (ImGuiUtils::BeginTabItem("File")) {
@@ -657,16 +664,21 @@ namespace merutilm::rff2 {
         ImGui::End();
     }
 
-    void RFF2::renderStatusImGui() const {
+    void RFF2::renderStatusImGui() {
 
         const float height = ImGui::GetTextLineHeight() + ImGui::GetStyle().WindowPadding.y * 2;
-        ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetIO().DisplaySize.y - height));
 
+        ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetIO().DisplaySize.y - height));
         ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, height));
 
-        ImGui::Begin("StatusBar", nullptr,
+        ImGui::Begin("##StatusBar", nullptr,
                      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                              ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+        if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            showControl = !showControl;
+        }
+
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0));
         if (ImGui::BeginTable("StatusBarTable", static_cast<int>(statusMessages.size()),
                               ImGuiTableFlags_BordersInner)) {
@@ -958,21 +970,22 @@ namespace merutilm::rff2 {
         const auto &dstCtx = renderer->visibleIterationBufferData->getContext();
         multithreadedManager->fence->waitAndReset();
         {
-            const auto executor = vkh::ScopedCommandBufferExecutor(
-                   *rootWindowContext, *multithreadedManager->commandBuffer, *multithreadedManager->fence, nullptr, nullptr);
+            const auto executor =
+                    vkh::ScopedCommandBufferExecutor(*rootWindowContext, *multithreadedManager->commandBuffer,
+                                                     *multithreadedManager->fence, nullptr, nullptr);
             vkh::BarrierUtils::cmdBufferMemoryBarrier(
                     multithreadedManager->commandBuffer->getCommandBufferHandle(), VK_ACCESS_SHADER_WRITE_BIT,
-                    VK_ACCESS_TRANSFER_READ_BIT, srcCtx.buffer, 0, srcCtx.bufferSize, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                    VK_PIPELINE_STAGE_TRANSFER_BIT);
+                    VK_ACCESS_TRANSFER_READ_BIT, srcCtx.buffer, 0, srcCtx.bufferSize,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
             vkh::BarrierUtils::cmdBufferMemoryBarrier(
                     multithreadedManager->commandBuffer->getCommandBufferHandle(),
-                    VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, dstCtx.buffer, 0,
-                    dstCtx.bufferSize, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
+                    VK_ACCESS_SHADER_WRITE_BIT | VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, dstCtx.buffer,
+                    0, dstCtx.bufferSize, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
             vkh::BufferImageContextUtils::cmdCopyBuffer(*multithreadedManager->commandBuffer, srcCtx, dstCtx);
-            vkh::BarrierUtils::cmdBufferMemoryBarrier(multithreadedManager->commandBuffer->getCommandBufferHandle(),
-                                                      VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT,
-                                                      dstCtx.buffer, 0, dstCtx.bufferSize, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                                      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            vkh::BarrierUtils::cmdBufferMemoryBarrier(
+                    multithreadedManager->commandBuffer->getCommandBufferHandle(), VK_ACCESS_TRANSFER_WRITE_BIT,
+                    VK_ACCESS_SHADER_READ_BIT, dstCtx.buffer, 0, dstCtx.bufferSize, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
         }
 
         multithreadedManager->fence->wait();
@@ -1012,7 +1025,8 @@ namespace merutilm::rff2 {
             renderPixelsCount += chunk.validLen;
         };
         const auto previewer =
-                ParallelArrayDispatcher<double>(state, actualIterationMatrix, w, h, s.fractal.general.threads, s.render.display.blockSize, std::move(func));
+                ParallelArrayDispatcher<double>(state, actualIterationMatrix, w, h, s.fractal.general.threads,
+                                                s.render.display.blockSize, std::move(func));
 
 
         auto statusThread = std::jthread([&renderPixelsCount, len, this, startTime](const std::stop_token &stop) {
@@ -1042,13 +1056,13 @@ namespace merutilm::rff2 {
         if (state.interruptRequested())
             return;
 
-        const auto syncer = ParallelArrayDispatcher<double>(
-                state, actualIterationMatrix, w, h, s.fractal.general.threads, s.render.display.blockSize,
-                [this](const SIMDChunk<double> &chunk) {
-                    for (uint32_t i = 0; i < chunk.validLen; ++i) {
-                        renderer->visibleIterationBufferData->setBatch(chunk);
-                    }
-                });
+        const auto syncer =
+                ParallelArrayDispatcher<double>(state, actualIterationMatrix, w, h, s.fractal.general.threads,
+                                                s.render.display.blockSize, [this](const SIMDChunk<double> &chunk) {
+                                                    for (uint32_t i = 0; i < chunk.validLen; ++i) {
+                                                        renderer->visibleIterationBufferData->setBatch(chunk);
+                                                    }
+                                                });
 
         syncer.dispatch();
     }
