@@ -118,28 +118,25 @@ sudo ldconfig
 
 
 ### Build
-The dependency [libgmp](https://gmplib.org/download/snapshot) must be built separately.
-Static library is required.
+The dependency [libgmp](https://gmplib.org/download/snapshot) must be built separately.  
+**Static library** is required.
+
+The dependency [opencv](https://github.com/opencv/opencv/tree/4.11.0) must be built separately.  
+**Dynamic library** is required.
+
+The dependency [vulkan-headers](https://github.com/KhronosGroup/Vulkan-Headers) must be built separately.  
+The dependency [vulkan-loader](https://github.com/KhronosGroup/Vulkan-Loader) must be built separately.  
+**Dynamic library** is required.
+
 
 ```bash
 
 git clone https://github.com/Merutilm/RFF-2.0
 cd RFF-2.0
-mkdir extern
-cd extern
-git clone https://github.com/ocornut/imgui
-cd ..
-mkdir build
-
-cmake -B build -G "Ninja" -S . \
--DCMAKE_C_COMPILER=clang \
--DCMAKE_CXX_COMPILER=clang++ \
--DCMAKE_BUILD_TYPE=Release
-
-cmake --build build -j$(nproc)
-
-./build/bin/RFF
+cmake -G "Ninja" -B build 
 ```
+Then follow the instructions displayed in the shell.
+
 
 
 
@@ -156,10 +153,9 @@ If the built application does not launch:
 mkdir build
 
 cmake -B build -G "Ninja" -S . \
--DCMAKE_C_COMPILER=clang \
--DCMAKE_CXX_COMPILER=clang++ \
--DCMAKE_BUILD_TYPE=Release \
--DSAFE_EXP_OPERATOR=ON
+-DCMAKE_TOOLCHAIN_FILE=cmake/windows-x86_64.cmake
+-DRFF_BUILD_PROFILE=Native
+-DMSYS2_CLANG="C:/msys64/clang64"
 
 cmake --build build
 ```

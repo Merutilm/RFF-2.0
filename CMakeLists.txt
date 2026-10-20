@@ -24,6 +24,36 @@ include(cmake/BuildProfiles.cmake)
 include(cmake/Dependencies.cmake)
 
 
+
+# detect system processor
+
+if(${RFF_BUILD_PROFILE} STREQUAL "Native")
+    set(CLANG_PROBE "${CMAKE_CURRENT_BINARY_DIR}/cpu_probe.cpp")
+    file(WRITE "${CLANG_PROBE}" "int main() { return 0; }\n")
+
+    execute_process(
+            COMMAND
+            ${CMAKE_CXX_COMPILER} -march=native -\#\#\# -c -x c++ ${CLANG_PROBE}
+            OUTPUT_VARIABLE CLANG_STDOUT
+            ERROR_VARIABLE CLANG_STDERR
+            RESULT_VARIABLE CLANG_RESULT
+    )
+
+    set(CLANG_OUTPUT "${CLANG_STDOUT}\n${CLANG_STDERR}")
+
+    string(REGEX MATCH
+            "\"-target-cpu\" \"([^\"]+)\""
+            CLANG_CPU_MATCH
+            "${CLANG_OUTPUT}"
+    )
+
+    set(RFF_CPU_TARGET ${CMAKE_MATCH_1})
+    file(REMOVE ${CLANG_PROBE})
+else()
+    set(RFF_CPU_TARGET "x86_64-general")
+endif()
+
+# output dir
 get_filename_component(RFF_OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" ABSOLUTE)
 message(
         "
@@ -31,7 +61,7 @@ message(
 
     TARGET
     Operating System  : ${CMAKE_SYSTEM_NAME}
-    Processor         : ${CMAKE_SYSTEM_PROCESSOR}
+    Target Processor  : ${RFF_CPU_TARGET}
     Build Type        : ${CMAKE_BUILD_TYPE}
 
     COMPILERS
