@@ -4,6 +4,7 @@ project(RFF)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_RPATH "$ORIGIN")
 
+include(cmake/Parameters.cmake)
 include(cmake/Constants.cmake)
 include(cmake/Macros.cmake)
 include(cmake/Help.cmake)
