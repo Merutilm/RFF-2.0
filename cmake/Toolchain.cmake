@@ -1,7 +1,11 @@
 
 
-set(VALID_PROFILES Debug Release Native RelWithDebInfo)
+if (NOT DEFINED RFF_BUILD_PROFILE)
+    message("${RFF_HELP_BUILD}")
+    message(FATAL_ERROR "Toolchain file not specified!")
+endif ()
 
+set(VALID_PROFILES Debug Release Native RelWithDebInfo)
 list(FIND VALID_PROFILES "${RFF_BUILD_PROFILE}" PROFILE_INDEX)
 
 if(PROFILE_INDEX EQUAL -1)
@@ -11,7 +15,7 @@ endif()
 
 if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     message("${RFF_HELP_BUILD}")
-    message(FATAL_ERROR "Configuration aborted.")
+    message(FATAL_ERROR "Toolchain file not specified!")
 endif ()
 
 if (NOT EXISTS "${CMAKE_SOURCE_DIR}/${CMAKE_TOOLCHAIN_FILE}")
