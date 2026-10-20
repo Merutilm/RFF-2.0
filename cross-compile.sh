@@ -11,8 +11,8 @@ mkdir -p "$EXPORT_DIR"
 # Linux x86-64
 cmake -S "$ROOT_DIR" \
         -B "$EXPORT_DIR/build-linux" -G Ninja \
-        -DCMAKE_TOOLCHAIN_FILE="$ROOT_DIR/cmake/linux-x86_64.cmake" \
-        -DRFF_RELEASE=ON \
+        -DCMAKE_TOOLCHAIN_FILE="cmake/linux-x86_64.cmake" \
+        -DRFF_BUILD_PROFILE=Release \
         -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="$ROOT_DIR/bin" \
         -DGMP_STATIC="/usr/local/lib/gmp-general/libgmp.a"
 cmake --build "$EXPORT_DIR/build-linux"
@@ -21,9 +21,9 @@ cmake --build "$EXPORT_DIR/build-linux"
 ## Windows x86-64
 cmake -S "$ROOT_DIR" \
       -B "$EXPORT_DIR/build-windows" -G Ninja \
-      -DCMAKE_TOOLCHAIN_FILE="$ROOT_DIR/cmake/windows-x86_64.cmake" \
+      -DCMAKE_TOOLCHAIN_FILE="cmake/windows-x86_64-cross.cmake" \
       -DMSYS2_CLANG="/opt/mingw" \
-      -DRFF_RELEASE=ON \
+      -DRFF_BUILD_PROFILE=Release \
       -DVulkan_INCLUDE_DIR=/opt/mingw/include \
       -Dglfw3_DIR=/opt/mingw/lib/cmake/glfw3 \
       -DVulkan_LIBRARY=/opt/mingw/lib/libvulkan-1.dll.a \
