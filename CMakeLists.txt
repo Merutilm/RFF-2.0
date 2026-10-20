@@ -24,9 +24,9 @@ include(cmake/BuildProfiles.cmake)
 include(cmake/Dependencies.cmake)
 
 
+get_filename_component(RFF_OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" ABSOLUTE)
 message(
         "
-
 ══════════════════════════════ BUILD PROFILE ════════════════════════════════
 
     TARGET

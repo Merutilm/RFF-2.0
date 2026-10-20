@@ -31,10 +31,7 @@ if(TOOLCHAIN_INDEX EQUAL -1)
     message(FATAL_ERROR "Invalid toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
 endif()
 
-get_filename_component(RFF_OUTPUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}" ABSOLUTE)
-
 message("
     The toolchain file is ${CMAKE_TOOLCHAIN_FILE}
     The build profile is ${RFF_BUILD_PROFILE}
-    The build output is ${RFF_OUTPUT_DIR}
 ")
