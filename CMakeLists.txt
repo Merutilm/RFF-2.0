@@ -12,19 +12,4 @@ include(cmake/Help.cmake)
 include(cmake/CompileOptions.cmake)
 include(cmake/Dependencies.cmake)
 
-message(STATUS "
-
-========== Build Environment ==========
-
-Target OS: ${CMAKE_SYSTEM_NAME}
-Target Processor: ${CMAKE_SYSTEM_PROCESSOR}
-Build Type: ${CMAKE_BUILD_TYPE}
-
-C Compiler: ${CMAKE_C_COMPILER}
-C++ Compiler: ${CMAKE_CXX_COMPILER}
-
-Output Directory: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-
-=======================================
-
-")
+message(STATUS ${RFF_HELP_BUILD_RESULT})

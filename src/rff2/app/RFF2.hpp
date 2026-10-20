@@ -474,7 +474,7 @@ namespace merutilm::rff2 {
             const double elapsed = rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format(std::locale(), "Period : {:L}", p));
+                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Period : {:L}", p));
                 setStatusMessage(Constants::Status::TIME_STATUS,
                                  std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }

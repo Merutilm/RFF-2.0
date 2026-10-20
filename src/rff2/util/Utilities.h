@@ -10,13 +10,16 @@
 
 #include <format>
 #include <sstream>
+#include <stack>
+#include <iomanip>
+
 #include "../settings/Selectable.h"
 #include "imgui.h"
 #include "vulkan_helper/util/ExecutableUtils.hpp"
 
 namespace merutilm::rff2::Utilities {
 
-    static std::string formatTime(const double seconds) {
+    inline std::string formatTime(const double seconds) {
         const auto secondsI = static_cast<uint64_t>(seconds);
         const auto millis = static_cast<uint64_t>(std::fmod(seconds, 1) * 1000);
         const auto sec = secondsI % 60;
@@ -30,7 +33,7 @@ namespace merutilm::rff2::Utilities {
         }
     }
 
-    static std::string formatTime(const uint64_t seconds) {
+    inline std::string formatTime(const uint64_t seconds) {
         const auto sec = seconds % 60;
         const auto min = seconds / 60 % 60;
         const auto hour = seconds / 3600 % 24;
@@ -43,15 +46,15 @@ namespace merutilm::rff2::Utilities {
     }
 
 
-    static std::filesystem::path getDefaultPath() {
+    inline std::filesystem::path getDefaultPath() {
         return std::filesystem::path(vkh::ExecutableUtils::getExecutablePath()).parent_path().parent_path();
     }
 
-    static bool endsWith(const std::string_view str, const std::string_view suffix) {
+    inline bool endsWith(const std::string_view str, const std::string_view suffix) {
         return str.size() >= suffix.size() && std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
     }
 
-    static std::string joinString(const std::string &delimiter, const std::vector<std::string> &arr) {
+    inline std::string joinString(const std::string &delimiter, const std::vector<std::string> &arr) {
         std::ostringstream v;
         for (int i = 0; i < arr.size(); ++i) {
             if (i > 0) {
@@ -62,7 +65,7 @@ namespace merutilm::rff2::Utilities {
         return v.str();
     }
 
-    static std::vector<std::string> split(const std::string &input, const char delimiter) {
+    inline std::vector<std::string> split(const std::string &input, const char delimiter) {
         std::vector<std::string> split;
         std::stringstream ss(input);
         std::string val;
@@ -75,7 +78,7 @@ namespace merutilm::rff2::Utilities {
     }
 
 
-    static std::string formatByte(const size_t size) {
+    inline std::string formatByte(const size_t size) {
         const uint64_t k = 1024;
         const uint64_t m = k * 1024;
         const uint64_t g = m * 1024;
@@ -90,5 +93,24 @@ namespace merutilm::rff2::Utilities {
             return std::format("{:.2F} KiB", static_cast<double>(size) / k);
         }
         return std::format("{:d} B", size);
+    }
+    inline std::string formatThousands(uint64_t value) {
+        if (value == 0) return "0";
+
+        std::array<char, 27> buffer{}; //27 = max string length of uint64_t + comma
+        constexpr uint64_t len = buffer.size();
+        char* p = buffer.data() + len - 1;
+        *p = '\0';
+
+        do {
+            *--p = static_cast<char>('0' + static_cast<char>(value % 10));
+            value /= 10;
+
+            if (value != 0 && (buffer.data() + len - p) % 4 == 0) {
+                *--p = ',';
+            }
+        } while (value != 0);
+        assert(p >= buffer.data());
+        return std::string(p);
     }
 } // namespace merutilm::rff2::Utilities

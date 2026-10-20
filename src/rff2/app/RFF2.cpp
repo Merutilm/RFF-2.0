@@ -157,7 +157,7 @@ namespace merutilm::rff2 {
         }
         auto it = static_cast<uint64_t>((*renderer->visibleIterationBufferData)(x, y));
         setStatusMessage(Constants::Status::ITERATION_STATUS,
-                         std::format(std::locale("en_US.UTF-8"), "Iterations : {:L}", it));
+                         std::format("Iterations : {}", Utilities::formatThousands(it)));
     }
 
     void RFF2::update() {
