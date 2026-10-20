@@ -23,3 +23,8 @@ else ()
     message("${RFF_HELP_BUILD}")
     message(FATAL_ERROR "Configuration aborted.")
 endif ()
+
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    message("${RFF_HELP_BUILD}")
+    message(FATAL_ERROR "Configuration aborted.")
+endif()
