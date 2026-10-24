@@ -4,7 +4,6 @@
 
 #pragma once
 #include <cstdint>
-
 #include "../calc/complex.hpp"
 namespace merutilm::rff2 {
 

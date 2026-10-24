@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "ArrayCompressionTool.h"
+#include "ReferenceCompressUnit.hpp"
 
 
 namespace merutilm::rff2 {
@@ -20,8 +20,8 @@ namespace merutilm::rff2 {
      *
      * <b>NOTE : It was get 10% ~ 20% performance improvement by moving all the methods to the header file.</b>
      */
-    struct ArrayCompressor {
-        ArrayCompressor() = delete;
+    struct ReferenceCompressor {
+        ReferenceCompressor() = delete;
 
         /**
          * Checks whether the given index is independent. <br/>
@@ -31,7 +31,7 @@ namespace merutilm::rff2 {
          * @param index To checking index
          * @return @code true@endcode when given index is independent.
          */
-        static bool isIndependent(const std::vector<ArrayCompressionTool> &tools, uint64_t index);
+        static bool isIndependent(const std::vector<ReferenceCompressUnit> &tools, itt::ref index);
 
         /**
          * Rebases the given index. <br/>
@@ -42,7 +42,7 @@ namespace merutilm::rff2 {
          * @param index To rebasing index
          * @return The rebased index.
          */
-        static uint64_t rebase(const std::vector<ArrayCompressionTool> &tools, uint64_t index);
+        static itt::ref rebase(const std::vector<ReferenceCompressUnit> &tools, itt::ref index);
 
         /**
          * Completes the compressed array by pulling subsequent elements into the void in the array made by the rebasing process. <br/>
@@ -50,10 +50,10 @@ namespace merutilm::rff2 {
          * <b>This method assumes that the given index has been completed the rebase process and the given list is the same as the list used in the rebasing process.</b>
          *
          * @param tools The Compression tools
-         * @param index To pulling rebased index
+         * @param rebased To pulling rebased index
          * @return The finally compressed index.
          */
-        static uint64_t pull(const std::vector<ArrayCompressionTool> &tools, uint64_t index);
+        static size_t pull(const std::vector<ReferenceCompressUnit> &tools, itt::ref rebased);
 
         /**
          * Gets the contained index of the given list. <br/>
@@ -64,7 +64,7 @@ namespace merutilm::rff2 {
          * @return The index of the given list. returns @code UINT64_MAX()@endcode if the given index is un-rebase-able.
          * @see ArrayCompressor#binarySearch(long, int, int, int) binarySearch
          */
-        static const ArrayCompressionTool * find(const std::vector<ArrayCompressionTool> &tools, uint64_t index);
+        static const ReferenceCompressUnit * find(const std::vector<ReferenceCompressUnit> &tools, itt::ref index);
 
         /**
          * Gets the compressed index of compressed array.
@@ -73,7 +73,7 @@ namespace merutilm::rff2 {
          * @param index the index you want
          * @return Finally compressed index
          */
-        static uint64_t compress(const std::vector<ArrayCompressionTool> &tools, uint64_t index);
+        static size_t compress(const std::vector<ReferenceCompressUnit> &tools, itt::ref index);
 
     private:
         /**
@@ -83,7 +83,7 @@ namespace merutilm::rff2 {
         * @param index        To checking index
         * @return The index of the given list. returns @code UINT64_MAX@endcode if the given index is un-rebase-able.
         */
-        static const ArrayCompressionTool * binarySearch(const std::vector<ArrayCompressionTool> &tools, uint64_t index);
+        static const ReferenceCompressUnit * binarySearch(const std::vector<ReferenceCompressUnit> &tools, itt::ref index);
     };
 
     // DEFINITION OF ARRAY_COMPRESSOR  DEFINITION OF ARRAY_COMPRESSOR  DEFINITION OF ARRAY_COMPRESSOR  DEFINITION OF ARRAY_COMPRESSOR  DEFINITION OF ARRAY_COMPRESSOR  DEFINITION OF ARRAY_COMPRESSOR
@@ -93,11 +93,11 @@ namespace merutilm::rff2 {
     // DEFINITION OF ARRAY_COMPRESSOR  DEFINITION OF ARRAY_COMPRESSOR  DEFINITION OF ARRAY_COMPRESSOR  DEFINITION OF ARRAY_COMPRESSOR  DEFINITION OF ARRAY_COMPRESSOR  DEFINITION OF ARRAY_COMPRESSOR
 
 
-    inline bool ArrayCompressor::isIndependent(const std::vector<ArrayCompressionTool> &tools, const uint64_t index) {
+    inline bool ReferenceCompressor::isIndependent(const std::vector<ReferenceCompressUnit> &tools, const itt::ref index) {
         return find(tools, index) == nullptr;
     }
 
-    inline uint64_t ArrayCompressor::rebase(const std::vector<ArrayCompressionTool> &tools, const uint64_t index) {
+    inline itt::ref ReferenceCompressor::rebase(const std::vector<ReferenceCompressUnit> &tools, const itt::ref index) {
         if (tools.empty() || index < tools.front().start || index > tools.back().end) {
             return index;
         }
@@ -118,9 +118,9 @@ namespace merutilm::rff2 {
         // 1400 -> 1400 - 1000 + 1 = 401
 
         // Use the REVERSED FOR statement because it must be used recursively.
-        uint64_t rebased = index;
+        itt::ref rebased = index;
 
-        for (uint64_t i = tools.size(); i > 0; --i) {
+        for (size_t i = tools.size(); i > 0; --i) {
             if (auto &tool = tools[i - 1];
                 tool.start <= rebased && rebased <= tool.end) {
                 rebased -= tool.start - tool.rebase;
@@ -131,7 +131,7 @@ namespace merutilm::rff2 {
         return rebased;
     }
 
-    inline uint64_t ArrayCompressor::pull(const std::vector<ArrayCompressionTool> &tools, const uint64_t index) {
+    inline size_t ReferenceCompressor::pull(const std::vector<ReferenceCompressUnit> &tools, const itt::ref rebased) {
         // "Rebased" iteration is not a target of compressions.
         // The space created by compression is filled by pushing indices to front. This is the definition of this method.
         // CAUTION : given index must be not rebase-able.
@@ -148,42 +148,42 @@ namespace merutilm::rff2 {
         // Approach : Subtract the length of tools. It is already compressed iteration, DO NOT consider that includes tools' iteration
         //
 
-        uint64_t compressed = index;
+        itt::ref compressed = rebased;
 
         for (auto &tool: tools) {
             // Since it already processed the cases within the range : startIteration < compressedIteration < endIteration,
             // there is no reason to consider that condition.
 
-            if (index > tool.end) {
+            if (rebased > tool.end) {
                 compressed -= tool.range();
             } else {
                 break;
             }
         }
 
-        return compressed;
+        return static_cast<size_t>(compressed);
     }
 
-    inline const ArrayCompressionTool * ArrayCompressor::find(const std::vector<ArrayCompressionTool> &tools, const uint64_t index) {
+    inline const ReferenceCompressUnit * ReferenceCompressor::find(const std::vector<ReferenceCompressUnit> &tools, const itt::ref index) {
         return binarySearch(tools, index);
     }
 
-    inline uint64_t ArrayCompressor::compress(const std::vector<ArrayCompressionTool> &tools, const uint64_t index) {
-        const uint64_t rebased = rebase(tools, index);
+    inline size_t ReferenceCompressor::compress(const std::vector<ReferenceCompressUnit> &tools, const itt::ref index) {
+        const itt::ref rebased = rebase(tools, index);
         return pull(tools, rebased);
     }
 
-    inline const ArrayCompressionTool * ArrayCompressor::binarySearch(const std::vector<ArrayCompressionTool> &tools, const uint64_t index) {
+    inline const ReferenceCompressUnit * ReferenceCompressor::binarySearch(const std::vector<ReferenceCompressUnit> &tools, const itt::ref index) {
         if (tools.empty() || tools.front().start > index || tools.back().end < index) {
             return nullptr;
         }
 
-        uint64_t min = 0;
-        uint64_t max = tools.size() - 1;
-        const ArrayCompressionTool *result = nullptr;
+        size_t min = 0;
+        size_t max = tools.size() - 1;
+        const ReferenceCompressUnit *result = nullptr;
 
         while (min <= max) {
-            const uint64_t mid = (min + max) / 2;
+            const size_t mid = (min + max) / 2;
             const auto &current = tools[mid];
 
             if (current.start > index) {

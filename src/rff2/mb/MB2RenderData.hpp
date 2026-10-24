@@ -113,14 +113,14 @@ namespace merutilm::rff2 {
         const dex epsilon{pow(10, fractalSettings.sa.epsilonPower)};
         std::ranges::fill(terms, complex<dex>::ZERO);
         constexpr dex two{2};
-        uint64_t skip = 0;
+        itt::ref skip = 0;
 
 
         for (skip = 0; skip < reference->longestPeriod() - 1; ++skip) {
             if (state.interruptRequested())
                 return;
 
-            fnSeriesApprox(skip, static_cast<double>(skip) / reference->longestPeriod());
+            fnSeriesApprox(static_cast<double>(skip) / reference->longestPeriod());
 
             const complex<Num> zn = reference->orbit(skip);
             const complex z2 = {dex(zn.re) * two, dex(zn.im) * two};
@@ -200,7 +200,7 @@ namespace merutilm::rff2 {
         auto &ptbSettings = fractalSettings.perturb;
         if (ptbSettings.autoMaxIteration) {
             ptbSettings.maxIteration = std::max(ptbSettings.maxIteration,
-                                                reference->longestPeriod() * ptbSettings.autoIterationMultiplier);
+                                                static_cast<itt::ptb>(reference->longestPeriod()) * ptbSettings.autoIterationMultiplier);
         }
     }
 

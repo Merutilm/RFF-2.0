@@ -6,7 +6,7 @@
 #include <cstdint>
 namespace merutilm::rff2 {
     struct MPAIndexMapper {
-        uint64_t mapped;
-        uint64_t generatedLevels;
+        size_t mapped;
+        size_t generatedLevels;
     };
 }

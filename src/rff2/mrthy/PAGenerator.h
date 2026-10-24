@@ -6,8 +6,8 @@
 
 #include "../calc/complex.hpp"
 #include "../mb/MB2Reference.h"
-#include "ArrayCompressionTool.h"
 #include "PA.h"
+#include "ReferenceCompressUnit.hpp"
 
 namespace merutilm::rff2 {
 
@@ -15,9 +15,9 @@ namespace merutilm::rff2 {
     template<Number Num>
     struct PAGenerator {
 
-        uint64_t start;
-        uint64_t skip = 0;
-        const std::vector<ArrayCompressionTool> &compressors;
+        itt::ref start;
+        itt::ref skip = 0;
+        const std::vector<ReferenceCompressUnit> &compressors;
         const float epsilon;
 
         const std::vector<complex<Num>> &orbit;
@@ -26,9 +26,9 @@ namespace merutilm::rff2 {
         complex<Num> bn = complex<Num>::ZERO;
         Num radius = rff_math::try_normalized_value(Num(DBL_MAX));
 
-        explicit PAGenerator(const MB2Reference<Num> &reference, float epsilon, Num dcMax, uint64_t start);
+        explicit PAGenerator(const MB2Reference<Num> &reference, float epsilon, Num dcMax, itt::ref start);
 
-        void reuse(uint64_t start);
+        void reuse(itt::ref start);
 
         void merge(const PAGenerator &target);
 
@@ -46,7 +46,7 @@ namespace merutilm::rff2 {
 
 
     template<Number Num>
-    void PAGenerator<Num>::reuse(uint64_t start) {
+    void PAGenerator<Num>::reuse(itt::ref start) {
         this->start = start;
         this->skip = 0;
         an = complex<Num>::ONE;
@@ -56,7 +56,7 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     PAGenerator<Num>::PAGenerator(const MB2Reference<Num> &reference, const float epsilon, Num dcMax,
-                                  const uint64_t start) :
+                                  const itt::ref start) :
         start(start), compressors(reference.compressor), epsilon(epsilon), orbit(reference.refOrbit), dcMax(dcMax) {}
 
     template<Number Num>
@@ -98,12 +98,12 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     void PAGenerator<Num>::step() {
-        const uint64_t iter = this->start + this->skip++; // k+n
+        const itt::ref iter = this->start + this->skip++; // k+n
 
 #ifdef NDEBUG
         if (rff_math::is_zero(this->radius)) return; //skip useless operation
 #endif
-        const uint64_t index = ArrayCompressor::compress(this->compressors, iter);
+        const size_t index = ReferenceCompressor::compress(this->compressors, iter);
         const complex<Num> z2 = 2.0f * this->orbit[index];
 
         this->radius = rff_math::try_normalized_value(

@@ -8,7 +8,7 @@
 namespace merutilm::rff2 {
     struct ReferenceCheckpoint {
         fixed_point_complex z;
-        uint64_t refIteration = 0;
+        itt::ref refIteration = 0;
         complex<dex> fzgAn;
     };
 }

@@ -2,21 +2,22 @@
 // Created by Merutilm on 2025-05-11.
 //
 
-#include "MPAPeriod.h"
+#include "MPAPeriod.hpp"
 
 #include <algorithm>
 #include <memory>
 
 
+
 namespace merutilm::rff2 {
-    MPAPeriod::MPAPeriod(std::vector<uint64_t> &&tablePeriod, std::vector<bool> &&isArtificial,
-                         std::vector<uint64_t> &&skippableIterationCounts, std::vector<uint64_t> &&tableElementCounts) :
+    MPAPeriod::MPAPeriod(std::vector<itt::ref> &&tablePeriod, std::vector<bool> &&isArtificial,
+                         std::vector<itt::ref> &&skippableIterationCounts, std::vector<itt::ref> &&tableElementCounts) :
         tablePeriods(std::move(tablePeriod)), isArtificial(std::move(isArtificial)),
         skippableIterationCounts(std::move(skippableIterationCounts)),
         tableElementCounts(std::move(tableElementCounts)) {}
 
 
-    void MPAPeriod::generateCountInfos(const std::vector<uint64_t> &tablePeriod, std::vector<uint64_t> &skippableIterationCounts, std::vector<uint64_t> &tableElementCounts) {
+    void MPAPeriod::generateCountInfos(const std::vector<itt::ref> &tablePeriod, std::vector<itt::ref> &skippableIterationCounts, std::vector<itt::ref> &tableElementCounts) {
         // index compression : [3, 11, 26, 77] // index compression : [3, 11, 26, 77]
         // startIteration : 1  4  7 12 15 18 23 27
         // index :          0  1  2  3  4  5  6  7
@@ -43,17 +44,17 @@ namespace merutilm::rff2 {
         // Stored elements to memory
 
         const size_t size = tablePeriod.size();
-        tableElementCounts = std::vector<uint64_t>(size, 0);
-        skippableIterationCounts = std::vector<uint64_t>(size, 0);
+        tableElementCounts = std::vector<itt::ref>(size, 0);
+        skippableIterationCounts = std::vector<itt::ref>(size, 0);
         tableElementCounts[0] = 1;
         skippableIterationCounts[0] = 1;
 
         for (int i = 1; i < size; ++i) {
-            uint64_t tableElement = 0;
-            uint64_t skippableIterationCount = 0;
-            uint64_t remainder = tablePeriod[i];
+            itt::ref tableElement = 0;
+            itt::ref skippableIterationCount = 0;
+            itt::ref remainder = tablePeriod[i];
             for (int j = i - 1; j >= 0; --j) {
-                const uint64_t groupAmount = remainder / tablePeriod[j];
+                const itt::ref groupAmount = remainder / tablePeriod[j];
                 remainder %= tablePeriod[j];
                 tableElement += groupAmount * tableElementCounts[j]; // lower level pa
                 skippableIterationCount += groupAmount * skippableIterationCounts[j];
@@ -63,8 +64,8 @@ namespace merutilm::rff2 {
         }
     }
 
-    void MPAPeriod::generateTablePeriod(const std::vector<uint64_t> &referencePeriod, const FrtMPASettings &mpaSettings,
-                                        std::vector<uint64_t> &tablePeriods, std::vector<bool> &isArtificial) {
+    void MPAPeriod::generateTablePeriod(const std::vector<itt::ref> &referencePeriod, const FrtMPASettings &mpaSettings,
+                                        std::vector<itt::ref> &tablePeriods, std::vector<bool> &isArtificial) {
         // example
         // period : [3, 11, 26]
         //
@@ -90,9 +91,9 @@ namespace merutilm::rff2 {
 
         const int maxMultiplier = mpaSettings.maxMultiplierBetweenLevel;
         const int minSkip = mpaSettings.minSkipReference;
-        const uint64_t longestPeriod = referencePeriod[referencePeriod.size() - 1];
+        const itt::ref longestPeriod = referencePeriod[referencePeriod.size() - 1];
 
-        uint64_t currentRefPeriod = minSkip;
+        itt::ref currentRefPeriod = minSkip;
 
         tablePeriods = {};
         isArtificial = {};
@@ -102,7 +103,7 @@ namespace merutilm::rff2 {
         // first period is always minimum skip iteration when the longest period is larger than this,
         // and it is artificially-created period if generated period is not an element of generated period.
 
-        for (uint64_t p: referencePeriod) {
+        for (itt::ref p: referencePeriod) {
             // Generate Period Array
 
             if (p >= minSkip &&
@@ -129,12 +130,12 @@ namespace merutilm::rff2 {
         }
     }
 
-    std::unique_ptr<MPAPeriod> MPAPeriod::generate(const std::vector<uint64_t> &referencePeriod,
+    std::unique_ptr<MPAPeriod> MPAPeriod::generate(const std::vector<itt::ref> &referencePeriod,
                                                    const FrtMPASettings &mpaSettings) {
-        std::vector<uint64_t> tablePeriods;
+        std::vector<itt::ref> tablePeriods;
         std::vector<bool> isArtificial;
-        std::vector<uint64_t> skippableIterationCounts;
-        std::vector<uint64_t> tableElementCounts;
+        std::vector<itt::ref> skippableIterationCounts;
+        std::vector<itt::ref> tableElementCounts;
 
         generateTablePeriod(referencePeriod, mpaSettings, tablePeriods, isArtificial);
         generateCountInfos(tablePeriods, skippableIterationCounts, tableElementCounts);

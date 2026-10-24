@@ -10,6 +10,6 @@ namespace merutilm::rff2 {
     struct SeriesApproximationData {
 
         std::vector<complex<dex>> terms;
-        uint64_t skippedIterations;
+        itt::ref skippedIterations;
     };
 }

@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "MPAPeriod.h"
+#include "MPAPeriod.hpp"
 namespace merutilm::rff2 {
     struct MPAIndexMapperUtils {
 
@@ -14,19 +14,19 @@ namespace merutilm::rff2 {
             if constexpr (MODE == IndexMappingMode::LEVELS) {
                 return 0;
             } else if constexpr (MODE == IndexMappingMode::PULLED_LEVELS || MODE == IndexMappingMode::FLATTEN_LEVELS) {
-                return MPAIndexMapper{UINT64_MAX, 0};
+                return MPAIndexMapper{.mapped = UINT64_MAX, .generatedLevels = 0};
             } else if constexpr (MODE == IndexMappingMode::FLATTEN || MODE == IndexMappingMode::PULLED) {
-                return UINT64_MAX;
+                return ~Ret(0); //max value
             }
             throw vkh::exception_invalid_state("invalid mapping mode");
         }
 
         template<IndexMappingMode MODE, typename Ret>
-        static Ret identityValueSentinel(const uint64_t levels) {
+        static Ret identityValueSentinel(const size_t levels) {
             if constexpr (MODE == IndexMappingMode::LEVELS) {
                 return levels;
             } else if constexpr (MODE == IndexMappingMode::PULLED_LEVELS || MODE == IndexMappingMode::FLATTEN_LEVELS) {
-                return MPAIndexMapper{0, levels};
+                return MPAIndexMapper{.mapped = 0, .generatedLevels = levels};
             } else if constexpr (MODE == IndexMappingMode::FLATTEN || MODE == IndexMappingMode::PULLED) {
                 return 0;
             }
@@ -34,7 +34,7 @@ namespace merutilm::rff2 {
         }
 
         template<IndexMappingMode MODE, typename Ret>
-        static Ret iterationToTableIndexMapper(const MPAPeriod &mpaPeriod, const uint64_t iteration) {
+        static Ret iterationToTableIndexMapper(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
             //
             // get index <=> Inverse calculation of index compression
             // First approach : check the remainder == 1
@@ -53,28 +53,27 @@ namespace merutilm::rff2 {
                 return identityValueSentinel<MODE, Ret>(tablePeriod.size());
             }
 
-            uint64_t index = 0;
-            uint64_t levels = 0;
-            uint64_t remainder = iteration;
-            uint64_t maxSkip = UINT64_MAX;
-            for (uint64_t i = tablePeriod.size(); i > 0; --i) {
-                const uint64_t period = tablePeriod[i - 1];
-
-
-                const uint64_t quotient = remainder / period;
+            itt::ref index = 0;
+            size_t levels = 0;
+            itt::ref remainder = iteration;
+            itt::ref maxSkip = ~static_cast<itt::ref>(0); //max value
+            for (size_t i = tablePeriod.size(); i > 0; --i) {
+                const itt::ref period = tablePeriod[i - 1];
+                const itt::ref quotient = remainder / period;  //max quotient is 65535, but upcasted for trailing operation
 
                 remainder -= quotient * period;
                 maxSkip = std::min(period, maxSkip - quotient * period);
+
                 if (remainder == 0 || maxSkip < tablePeriod[0])
                     return invalidValueSentinel<MODE, Ret>();
 
                 levels += maxSkip == period && remainder == 1;
 
                 if constexpr (MODE == IndexMappingMode::PULLED || MODE == IndexMappingMode::PULLED_LEVELS) {
-                    const uint64_t count = mpaPeriod.skippableIterationCounts[i - 1];
+                    const itt::ref count = mpaPeriod.skippableIterationCounts[i - 1];
                     index += quotient * count;
                 } else if constexpr (MODE == IndexMappingMode::FLATTEN || MODE == IndexMappingMode::FLATTEN_LEVELS) {
-                    const uint64_t count = mpaPeriod.tableElementCounts[i - 1];
+                    const itt::ref count = mpaPeriod.tableElementCounts[i - 1];
                     index += quotient * count + (maxSkip == period);
                 }
             }
@@ -86,20 +85,25 @@ namespace merutilm::rff2 {
             if (remainder != 1 || maxSkip < tablePeriod[0])
                 return invalidValueSentinel<MODE, Ret>();
 
-            if constexpr (MODE == IndexMappingMode::PULLED || MODE == IndexMappingMode::FLATTEN)
-                return index;
-            else if constexpr (MODE == IndexMappingMode::PULLED_LEVELS || MODE == IndexMappingMode::FLATTEN_LEVELS)
-                return MPAIndexMapper{index, levels};
+            if constexpr (MODE == IndexMappingMode::PULLED || MODE == IndexMappingMode::FLATTEN) {
+                // pulled permits 64-bit overflow (returns itt::ref), but flatten is not permitted because the flatten index
+                // directly used for array indexer (returns size_t)
+                return static_cast<Ret>(index);
+            }
+            else if constexpr (MODE == IndexMappingMode::PULLED_LEVELS || MODE == IndexMappingMode::FLATTEN_LEVELS) {
+                //overflowing value is undefined
+                return MPAIndexMapper{.mapped = static_cast<size_t>(index), .generatedLevels = levels};
+            }
             else if constexpr (MODE == IndexMappingMode::LEVELS)
                 return levels;
             else
                 throw vkh::exception_invalid_state("invalid mapping mode");
         }
 
-        static uint64_t iterationToNearestFlattenTableIndex(const MPAPeriod &mpaPeriod, uint64_t iteration) {
+        static size_t iterationToNearestFlattenTableIndex(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
 
             MPAIndexMapper mapper = invalidValueSentinel<IndexMappingMode::FLATTEN_LEVELS, MPAIndexMapper>();
-            uint64_t iterationDecrement = 0;
+            itt::ref iterationDecrement = 0;
             for (; mapper.mapped == UINT64_MAX; ++iterationDecrement) {
                 mapper = iterationToFlattenTableIndexMapper(mpaPeriod, iteration - iterationDecrement);
                 // TODO can this be optimized?
@@ -109,24 +113,24 @@ namespace merutilm::rff2 {
             return iterationDecrement > 1 ? mapper.mapped + mapper.generatedLevels : mapper.mapped;
         }
 
-        static MPAIndexMapper iterationToFlattenTableIndexMapper(const MPAPeriod &mpaPeriod, const uint64_t iteration) {
+        static MPAIndexMapper iterationToFlattenTableIndexMapper(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
             return iterationToTableIndexMapper<IndexMappingMode::FLATTEN_LEVELS, MPAIndexMapper>(mpaPeriod, iteration);
         }
 
-        static MPAIndexMapper iterationToPulledTableIndexMapper(const MPAPeriod &mpaPeriod, const uint64_t iteration) {
+        static MPAIndexMapper iterationToPulledTableIndexMapper(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
             return iterationToTableIndexMapper<IndexMappingMode::PULLED_LEVELS, MPAIndexMapper>(mpaPeriod, iteration);
         }
 
-        static uint64_t iterationToFlattenTableIndex(const MPAPeriod &mpaPeriod, const uint64_t iteration) {
-            return iterationToTableIndexMapper<IndexMappingMode::FLATTEN, uint64_t>(mpaPeriod, iteration);
+        static size_t iterationToFlattenTableIndex(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
+            return iterationToTableIndexMapper<IndexMappingMode::FLATTEN, size_t>(mpaPeriod, iteration);
         }
 
-        static uint64_t iterationToPulledTableIndex(const MPAPeriod &mpaPeriod, const uint64_t iteration) {
-            return iterationToTableIndexMapper<IndexMappingMode::PULLED, uint64_t>(mpaPeriod, iteration);
+        static itt::ref iterationToPulledTableIndex(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
+            return iterationToTableIndexMapper<IndexMappingMode::PULLED, itt::ref>(mpaPeriod, iteration);
         }
 
-        static uint64_t iterationToGeneratedLevels(const MPAPeriod &mpaPeriod, const uint64_t iteration) {
-            return iterationToTableIndexMapper<IndexMappingMode::LEVELS, uint64_t>(mpaPeriod, iteration);
+        static size_t iterationToGeneratedLevels(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
+            return iterationToTableIndexMapper<IndexMappingMode::LEVELS, size_t>(mpaPeriod, iteration);
         }
     };
 } // namespace merutilm::rff2

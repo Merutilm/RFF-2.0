@@ -94,11 +94,13 @@ namespace merutilm::rff2::Utilities {
         }
         return std::format("{:d} B", size);
     }
-    inline std::string formatThousands(uint64_t value) {
+
+    template<typename T>
+    std::string formatThousands(T value) {
         if (value == 0) return "0";
 
-        std::array<char, 27> buffer{}; //27 = max string length of uint64_t + comma
-        constexpr uint64_t len = buffer.size();
+        std::array<char, 28 * sizeof(T) / 8> buffer{}; //28 = max string length of uint64_t + comma
+        constexpr size_t len = buffer.size();
         char* p = buffer.data() + len - 1;
         *p = '\0';
 

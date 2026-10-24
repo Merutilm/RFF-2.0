@@ -119,7 +119,7 @@ namespace merutilm::rff2 {
     std::unique_ptr<MB2RenderDataBase>
     RFF2::createAppropriateRenderData(const bool computeShader, const double logZoomTest, const double startTime,
                                       const FractalSettings &frt, const dex dcMax, const int64_t exp10,
-                                      const uint64_t refInitialCapacity) {
+                                      const size_t refInitialCapacity) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
                 return std::make_unique<FexMB2RenderData>(state, frt, computeShader, *approxTableCache, dcMax, exp10,
@@ -155,7 +155,7 @@ namespace merutilm::rff2 {
             y >= getIterationBufferHeight()) {
             return;
         }
-        auto it = static_cast<uint64_t>((*renderer->visibleIterationBufferData)(x, y));
+        auto it = static_cast<itt::ptb>((*renderer->visibleIterationBufferData)(x, y));
         setStatusMessage(Constants::Status::ITERATION_STATUS,
                          std::format("Iterations : {}", Utilities::formatThousands(it)));
     }
@@ -913,7 +913,7 @@ namespace merutilm::rff2 {
 
         const dex dcMax = calcDcMax(logZoom, settings.render.display.clarityMultiplier);
 
-        static uint64_t capacity = 0;
+        static size_t capacity = 0;
         if (renderData && renderData->getReference()) {
             capacity = renderData->getReference()->length();
         }

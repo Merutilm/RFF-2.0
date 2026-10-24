@@ -14,14 +14,14 @@ namespace merutilm::rff2 {
     inline const RFFLocationBinary RFFLocationBinary::DEFAULT = RFFLocationBinary(0, "", "", 0);
 
     RFFLocationBinary::RFFLocationBinary(const double logZoom, std::string real, std::string imag,
-                                         const uint64_t maxIteration) :
+                                         const itt::ptb maxIteration) :
         logZoom(logZoom), real(std::move(real)), imag(std::move(imag)), maxIteration(maxIteration) {
         static_assert(RFFBinaryRequirements<RFFLocationBinary>);
     }
 
 
     RFFLocationBinary RFFLocationBinary::read(std::ifstream &in) {
-        float v;
+        float v = 0;
         const uint32_t version = readVersion(in, reinterpret_cast<std::byte *>(&v));
 
         double lz;
@@ -31,8 +31,18 @@ namespace merutilm::rff2 {
             IOUtilities::readAndDecode(in, &lz);
         }
 
-        uint64_t max;
-        IOUtilities::readAndDecode(in, &max);
+        itt::ptb max = 0;
+        if (version <= 4) {
+            uint64_t max64;
+            IOUtilities::readAndDecode(in, &max64);
+            max = static_cast<itt::ptb>(max64);
+        }else {
+            uint64_t mSize = 0;
+            IOUtilities::readAndDecode(in, &mSize);
+            std::vector<std::byte> mRaw(mSize);
+            IOUtilities::readAndDecode(in, &mRaw);
+            memcpy(&max, mRaw.data(), std::min(sizeof(itt::ptb), mSize));
+        }
         uint64_t len;
         IOUtilities::readAndDecode(in, &len);
         std::vector<char> re(len + 1);
@@ -59,6 +69,7 @@ namespace merutilm::rff2 {
     void RFFLocationBinary::write(std::ofstream &out) const {
         uint64_t len = 0;
         IOUtilities::encodeAndWrite(out, logZoom);
+        IOUtilities::encodeAndWrite(out, sizeof(maxIteration));
         IOUtilities::encodeAndWrite(out, maxIteration);
         len = real.length();
         IOUtilities::encodeAndWrite(out, len);

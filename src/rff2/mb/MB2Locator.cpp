@@ -6,6 +6,8 @@
 
 #include "MB2Locator.hpp"
 
+#include "../calc/iteration_types.hpp"
+
 namespace merutilm::rff2 {
 
     MB2Locator::MB2Locator(const ParallelRenderState &state, const MB2RenderDataBase &data,
@@ -40,8 +42,8 @@ namespace merutilm::rff2 {
         const ReferenceCheckpoint &nextCheckpoint = checkpoints[partitionIndex + 1];
         auto &blockResult = blockResults[partitionIndex];
 
-        const uint64_t startIteration = currentCheckpoint.refIteration;
-        const uint64_t endIteration = nextCheckpoint.refIteration;
+        const itt::ref startIteration = currentCheckpoint.refIteration;
+        const itt::ref endIteration = nextCheckpoint.refIteration;
 
 
         const int64_t cutDigitCount = getCutDigitCount(approxAmplitudes[partitionIndex]);
@@ -76,7 +78,7 @@ namespace merutilm::rff2 {
         int64_t prevExp2div64 = 0;
 
         // An, Bn generation
-        for (uint64_t iteration = startIteration; iteration < endIteration; ++iteration) {
+        for (itt::ref iteration = startIteration; iteration < endIteration; ++iteration) {
 
             if (state.interruptRequested() && iteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL)
                 return PartitionStatus::INTERRUPTED;

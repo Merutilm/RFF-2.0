@@ -151,7 +151,13 @@ namespace merutilm::rff2 {
         ImGuiUtils::BeginSettings("Iterations");
 
         auto &calc = app.getSettings().fractal;
-        ImGui::InputScalar("Max Iteration", ImGuiDataType_U64, &calc.perturb.maxIteration);
+        static std::string maxIterStr;
+        maxIterStr = itt::u128tostr(calc.perturb.maxIteration);
+        if (ImGui::InputText("Max Iteration", &maxIterStr)) {
+            calc.perturb.maxIteration = itt::strtou128(maxIterStr);
+        }
+
+
         ImGuiUtils::HelpMarker("Set maximum iteration. It is disabled when Auto iteration is enabled.");
 
 

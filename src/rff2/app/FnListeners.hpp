@@ -3,21 +3,21 @@
 //
 
 #pragma once
-#include <cstdint>
+#include "../calc/iteration_types.hpp"
 #include <type_traits>
 
 namespace merutilm::rff2::FnListeners {
 
 
-    using FnRefCalcW = std::function<void(uint64_t)>;
+    using FnRefCalcW = std::function<void(itt::ref)>;
     template<typename F>
     concept FnRefCalc = std::is_convertible_v<F, FnRefCalcW>;
 
-    using FnSeriesApproxW = std::function<void(uint64_t, float)>;
+    using FnSeriesApproxW = std::function<void(float)>;
     template<typename F>
     concept FnSeriesApprox = std::is_convertible_v<F, FnSeriesApproxW>;
 
-    using FnCreatingTableW = std::function<void(uint64_t, float)>;
+    using FnCreatingTableW = std::function<void(float)>;
     template<typename F>
     concept FnCreatingTable = std::is_convertible_v<F, FnCreatingTableW>;
 

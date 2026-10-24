@@ -9,15 +9,13 @@
 
 #include "../app/IOUtilities.h"
 #include "../constants/Constants.hpp"
-#include "vulkan_helper/base/logger.hpp"
-#include "vulkan_helper/util/BufferImageUtils.hpp"
 
 namespace merutilm::rff2 {
 
     inline const RFFDynamicMapBinary RFFDynamicMapBinary::DEFAULT =
             RFFDynamicMapBinary(0, 0, 0, std::vector<double>(), 0, 0);
 
-    RFFDynamicMapBinary::RFFDynamicMapBinary(const double logZoom, const uint64_t period, const uint64_t maxIteration,
+    RFFDynamicMapBinary::RFFDynamicMapBinary(const double logZoom, const itt::ptb period, const itt::ptb maxIteration,
                                              std::vector<double> iterations, const uint16_t width,
                                              const uint16_t height) :
         RFFMapBinary(logZoom), period(period), maxIteration(maxIteration), iterations(std::move(iterations)),
@@ -45,10 +43,28 @@ namespace merutilm::rff2 {
             IOUtilities::readAndDecode(in, &lz);
         }
 
-        uint64_t p;
-        IOUtilities::readAndDecode(in, &p);
-        uint64_t m;
-        IOUtilities::readAndDecode(in, &m);
+        itt::ptb p = 0;
+        itt::ptb m = 0;
+
+        if (version <= 4) {
+            uint64_t p64;
+            uint64_t m64;
+            IOUtilities::readAndDecode(in, &p64);
+            IOUtilities::readAndDecode(in, &m64);
+            p = static_cast<itt::ptb>(p64);
+            m = static_cast<itt::ptb>(m64);
+        }else {
+            uint64_t pSize = 0;
+            uint64_t mSize = 0;
+            IOUtilities::readAndDecode(in, &pSize);
+            std::vector<std::byte> pRaw(pSize);
+            IOUtilities::readAndDecode(in, &pRaw);
+            IOUtilities::readAndDecode(in, &mSize);
+            std::vector<std::byte> mRaw(mSize);
+            IOUtilities::readAndDecode(in, &mRaw);
+            memcpy(&p, pRaw.data(), std::min(sizeof(itt::ptb), pSize));
+            memcpy(&m, mRaw.data(), std::min(sizeof(itt::ptb), mSize));
+        }
         auto i = std::vector<double>(w * h);
         IOUtilities::readAndDecode(in, &i);
         return RFFDynamicMapBinary{lz, p, m, i, w, h};
@@ -67,7 +83,9 @@ namespace merutilm::rff2 {
         IOUtilities::encodeAndWrite(out, width);
         IOUtilities::encodeAndWrite(out, height);
         IOUtilities::encodeAndWrite(out, logZoom);
+        IOUtilities::encodeAndWrite(out, sizeof(period));
         IOUtilities::encodeAndWrite(out, period);
+        IOUtilities::encodeAndWrite(out, sizeof(maxIteration));
         IOUtilities::encodeAndWrite(out, maxIteration);
         IOUtilities::encodeAndWrite(out, iterations);
     }

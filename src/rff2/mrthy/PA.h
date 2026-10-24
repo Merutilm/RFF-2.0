@@ -4,14 +4,12 @@
 
 #pragma once
 #include "../calc/complex.hpp"
-#include "../calc/exponent.hpp"
+#include "../calc/iteration_types.hpp"
 namespace merutilm::rff2 {
 
     template<Number Num>
     struct PA {
-
-
-        uint64_t skip;
+        itt::ref skip;
         complex<Num> an;
         complex<Num> bn;
         Num radius;
@@ -25,7 +23,7 @@ namespace merutilm::rff2 {
 
         explicit constexpr PA() : PA(0, complex<Num>::ONE, complex<Num>::ZERO, Num(0)) {};
 
-        explicit constexpr PA(const uint64_t skip, const complex<Num> an, const complex<Num> bn, const Num radius) :
+        explicit constexpr PA(const itt::ref skip, const complex<Num> an, const complex<Num> bn, const Num radius) :
             skip(skip), an(an), bn(bn), radius(radius) {}
 
         [[nodiscard]] constexpr complex<Num> apply(const complex<Num> dz, const complex<Num> dc) const {

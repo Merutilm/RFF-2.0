@@ -252,7 +252,7 @@ namespace merutilm::rff2 {
         target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
         target->clearWriteBuffer(commandPool);
         target->setMeta(s.fractal, s.render, dynamic_cast<MB2Reference<Num> *>(renderData->getReference())->refOrbit, renderData->getReference()->longestPeriod(),
-                        static_cast<complex<Num>>(renderData->getPerturbator()->off), s.fractal.perturb.maxIteration,
+                        static_cast<complex<Num>>(renderData->getPerturbator()->off), static_cast<uint64_t>(s.fractal.perturb.maxIteration),
                         tableData, mapperData, commandPool);
 
         // preparing render meta scope
@@ -272,8 +272,8 @@ namespace merutilm::rff2 {
 
 
         std::vector<uint32_t> stagingData(width * height);
-        uint64_t glitches = width * height;
-        uint64_t currentBatchIteration = 0;
+        uint32_t glitches = width * height;
+        itt::ptb currentBatchIteration = 0;
         uint32_t batchSizeMultiplier = 1;
         bool prevIgnoreMpa = s.render.computeShader.completelyIgnoreMpa;
 
@@ -444,20 +444,20 @@ namespace merutilm::rff2 {
         };
     }
     inline auto RFF2::getFnSeriesApprox(double startTime) {
-        return [this, startTime](const uint64_t it, const float i) {
+        return [this, startTime](const float i) {
             static double time = rootWindowContext->getWindow()->getTime();
             const double elapsed = rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = rootWindowContext->getWindow()->getTime();
                 setStatusMessage(Constants::Status::RENDER_STATUS,
-                                 std::format("Series-Approximation : {:.3f}%", i * 100, it));
+                                 std::format("Series-Approximation : {:.3f}%", i * 100));
                 setStatusMessage(Constants::Status::TIME_STATUS,
                                  std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }
         };
     }
     inline auto RFF2::getFnCreatingTable(double startTime) {
-        return [this, startTime](const uint64_t, const float i) {
+        return [this, startTime](const float i) {
             static double time = rootWindowContext->getWindow()->getTime();
             const double elapsed = rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
@@ -470,12 +470,12 @@ namespace merutilm::rff2 {
         };
     }
     inline auto RFF2::getFnRefCalc(double startTime) {
-        return [this, startTime](const uint64_t p) {
+        return [this, startTime](const itt::ref p) {
             static double time = rootWindowContext->getWindow()->getTime();
             const double elapsed = rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Period : {:L}", p));
+                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Period : {}", Utilities::formatThousands(p)));
                 setStatusMessage(Constants::Status::TIME_STATUS,
                                  std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }

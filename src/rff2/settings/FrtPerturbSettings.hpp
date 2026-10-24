@@ -4,12 +4,12 @@
 
 #pragma once
 #include <cstdint>
-
+#include "../calc/iteration_types.hpp"
 #include "FrtDecimalizeIterationMethod.h"
 
 namespace merutilm::rff2 {
     struct FrtPerturbSettings {
-        uint64_t maxIteration;
+        itt::ptb maxIteration;
         FrtDecimalizeIterationMethod decimalizeIterationMethod;
         bool autoMaxIteration;
         uint8_t interiorDetectRadiusPower;

@@ -6,6 +6,7 @@
 
 #include <string>
 
+#include "../calc/iteration_types.hpp"
 #include "RFFBinary.hpp"
 
 namespace merutilm::rff2 {
@@ -14,11 +15,11 @@ namespace merutilm::rff2 {
         double logZoom;
         std::string real;
         std::string imag;
-        uint64_t maxIteration;
+        itt::ptb maxIteration;
 
         static const RFFLocationBinary DEFAULT;
 
-        explicit RFFLocationBinary(double logZoom, std::string real, std::string imag, uint64_t maxIteration);
+        explicit RFFLocationBinary(double logZoom, std::string real, std::string imag, itt::ptb maxIteration);
 
         [[nodiscard]] static RFFLocationBinary read(std::ifstream &in);
 

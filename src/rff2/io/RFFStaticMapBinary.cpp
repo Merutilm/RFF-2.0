@@ -8,7 +8,6 @@
 #include "../constants/FileConstants.hpp"
 #include "opencv2/core/mat.hpp"
 #include "opencv2/imgcodecs.hpp"
-#include "vulkan_helper/base/logger.hpp"
 
 namespace merutilm::rff2 {
 
@@ -22,7 +21,7 @@ namespace merutilm::rff2 {
 
 
     RFFStaticMapBinary RFFStaticMapBinary::read(std::ifstream &in) {
-        float v;
+        float v = 0;
         const uint32_t version = readVersion(in, reinterpret_cast<std::byte *>(&v));
 
         double lz;

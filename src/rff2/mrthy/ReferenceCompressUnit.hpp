@@ -21,26 +21,26 @@ namespace merutilm::rff2 {
      * @param start the start index of uncompressed array
      * @param end the end index of uncompressed array
      */
-    struct ArrayCompressionTool {
-        const uint64_t rebase;
-        const uint64_t start;
-        const uint64_t end;
+    struct ReferenceCompressUnit {
+        const itt::ref rebase;
+        const itt::ref start;
+        const itt::ref end;
 
-        explicit ArrayCompressionTool(uint64_t rebase, uint64_t start, uint64_t end);
+        explicit ReferenceCompressUnit(itt::ref rebase, itt::ref start, itt::ref end);
 
         /**
         * Gets the range of current tool : @code end - start + 1@endcode
         * @return The range of current tool.
         */
-        [[nodiscard]] uint64_t range() const;
+        [[nodiscard]] itt::ref range() const;
     };
 
 
-    inline ArrayCompressionTool::ArrayCompressionTool(const uint64_t rebase, const uint64_t start,
-                                                      const uint64_t end) : rebase(rebase), start(start), end(end) {
+    inline ReferenceCompressUnit::ReferenceCompressUnit(const itt::ref rebase, const itt::ref start,
+                                                      const itt::ref end) : rebase(rebase), start(start), end(end) {
     }
 
-    inline uint64_t ArrayCompressionTool::range() const {
+    inline itt::ref ReferenceCompressUnit::range() const {
         return end - start + 1;
     }
 }

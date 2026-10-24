@@ -6,20 +6,21 @@
 #include <filesystem>
 #include <vector>
 
+#include "../calc/iteration_types.hpp"
 #include "RFFBinary.hpp"
 #include "RFFMapBinary.hpp"
 
 namespace merutilm::rff2 {
     struct RFFDynamicMapBinary final : RFFMapBinary{
 
-        uint64_t period;
-        uint64_t maxIteration;
+        itt::ptb period;
+        itt::ptb maxIteration;
         std::vector<double> iterations;
         uint16_t width;
         uint16_t height;
         static const RFFDynamicMapBinary DEFAULT;
 
-        RFFDynamicMapBinary(double logZoom, uint64_t period, uint64_t maxIteration, std::vector<double> iterations,
+        RFFDynamicMapBinary(double logZoom, itt::ptb period, itt::ptb maxIteration, std::vector<double> iterations,
                             uint16_t width, uint16_t height);
 
         [[nodiscard]] static RFFDynamicMapBinary read(std::ifstream &in);
