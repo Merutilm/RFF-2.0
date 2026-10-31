@@ -680,11 +680,17 @@ namespace merutilm::rff2 {
         }
 
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0));
-        if (ImGui::BeginTable("StatusBarTable", static_cast<int>(statusMessages.size()),
+        if (ImGui::BeginTable("StatusBarTable", static_cast<int>(statusInfos.size()),
                               ImGuiTableFlags_BordersInner)) {
-            for (const auto &statusMessage: statusMessages) {
+            for (auto &statusInfo : statusInfos) {
                 ImGui::TableNextColumn();
-                ImGui::TextUnformatted(statusMessage.c_str());
+                ImGui::TextUnformatted(statusInfo.status.c_str());
+
+                if (ImGui::IsItemHovered() && !statusInfo.tooltip.empty()) {
+                    ImGui::BeginTooltip();
+                    ImGui::TextUnformatted(statusInfo.tooltip.c_str());
+                    ImGui::EndTooltip();
+                }
             }
             ImGui::EndTable();
         }
@@ -952,12 +958,11 @@ namespace merutilm::rff2 {
         const MB2ReferenceBase *reference = renderData->getReference();
         if (!reference || state.interruptRequested())
             return false;
-
-        size_t refLength = reference->length();
-        size_t mpaLen = approxTableCache ? approxTableCache->mpaTable.sizeUsed : 0;
-
+        const size_t refLength = renderData->getReference() ? renderData->getReference()->length() : 0;
+        const size_t mpaLen = approxTableCache ? approxTableCache->mpaTable.sizeUsed : 0;
         setStatusMessage(Constants::Status::PERIOD_STATUS,
-                         std::format("Period : {:L} ({:L}, {:L})", reference->longestPeriod(), refLength, mpaLen));
+                         std::format("Period : {}", Utilities::formatThousands(reference->longestPeriod())),
+                         std::format("Reference Size : {}\nMP-Approx Size : {}", Utilities::formatThousands(refLength), Utilities::formatThousands(mpaLen)));
         if (state.interruptRequested())
             return false;
 

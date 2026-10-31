@@ -38,11 +38,11 @@ void main() {
     coord = (coord - 0.5f) / zoom_delta - smooth_zoom_settings.pos_delta + 0.5f;
     color = texture(canvas, coord);
 
-    ivec2 iter_coord = ivec2(coord * iteration_info_settings.extent);
+    vec2 iter_coord = vec2(coord * iteration_info_settings.extent);
 
     if(iter_coord.x < 0 || iter_coord.y < 0 || iter_coord.x >= iteration_info_settings.extent.x || iter_coord.y >= iteration_info_settings.extent.y) {
         snapshot_settings.iterations[get_iteration_index(curr_iter_coord)] = 0;
         return;
     }
-    snapshot_settings.iterations[get_iteration_index(curr_iter_coord)] = get_iteration(iter_coord);
+    snapshot_settings.iterations[get_iteration_index(curr_iter_coord)] = get_iteration_interpolated(iter_coord);
 }

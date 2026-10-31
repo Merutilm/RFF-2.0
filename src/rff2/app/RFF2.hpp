@@ -16,6 +16,7 @@
 #include "CursorManager.hpp"
 #include "MultithreadedRenderManager.hpp"
 #include "RFF2Renderer.hpp"
+#include "StatusBarInfo.hpp"
 #include "UpdateRequests.hpp"
 #include "VideoKeyframeProgressInfo.hpp"
 #include "VideoProgressInfo.hpp"
@@ -37,7 +38,7 @@ namespace merutilm::rff2 {
         std::atomic<bool> recomputeFirstRefresh = false;
         std::atomic<bool> updateFractalFrame = false;
 
-        std::array<std::string, Constants::Status::LENGTH> statusMessages = {};
+        std::array<StatusBarInfo, Constants::Status::LENGTH> statusInfos = {};
         std::unique_ptr<MB2RenderDataBase> renderData = nullptr;
         std::unique_ptr<ApproxTableCache> approxTableCache = nullptr;
         std::unique_ptr<CursorManager> cursorManager = nullptr;
@@ -150,8 +151,11 @@ namespace merutilm::rff2 {
         void afterComputeFinally(bool success);
 
 
-        void setStatusMessage(const int index, const std::string_view &message) {
-            statusMessages[index] = std::string("  ").append(message);
+        void setStatusMessage(const int index, std::string &&message, const std::string &&tooltip = "") {
+            statusInfos[index] = {
+                .status = std::string("  ").append(std::move(message)),
+                .tooltip = std::move(tooltip)
+            };
         }
 
 

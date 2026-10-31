@@ -20,6 +20,25 @@ double get_iteration(ivec2 iter_coord, ivec2 offset){
     return iteration_settings.iterations[get_iteration_index(iter_coord, offset)];
 }
 
+double get_iteration_interpolated(vec2 iter_coord) {
+    ivec2 it = ivec2(iter_coord);
+    vec2 itd = fract(iter_coord);
+    double it_max = iteration_info_settings.max_value;
+    double it00 = get_iteration(it, ivec2(0, 0));
+    double it01 = get_iteration(it, ivec2(0, 1));
+    double it10 = get_iteration(it, ivec2(1, 0));
+    double it11 = get_iteration(it, ivec2(1, 1));
+
+    it00 = it_max <= it00 ? it_max * 2 : it00;
+    it01 = it_max <= it01 ? it_max * 2 : it01;
+    it10 = it_max <= it10 ? it_max * 2 : it10;
+    it11 = it_max <= it11 ? it_max * 2 : it11;
+
+    double it0 = it00 * (1 - itd.x) + it10 * itd.x;
+    double it1 = it01 * (1 - itd.x) + it11 * itd.x;
+    return min(it_max, it0 * itd.y + it1 * (1 - itd.y));
+}
+
 double get_iteration(ivec2 iter_coord) {
     return iteration_settings.iterations[get_iteration_index(iter_coord, ivec2(0))];
 }
