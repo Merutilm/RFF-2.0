@@ -151,11 +151,12 @@ namespace merutilm::rff2 {
         void afterComputeFinally(bool success);
 
 
-        void setStatusMessage(const int index, std::string &&message, const std::string &&tooltip = "") {
-            statusInfos[index] = {
-                .status = std::string("  ").append(std::move(message)),
-                .tooltip = std::move(tooltip)
-            };
+        void setStatusMessage(const int index, std::string &&message) {
+            statusInfos[index].status = std::string("  ").append(std::move(message));
+        }
+
+        void setTooltipMessage(const int index, const std::string &&tooltip) {
+            statusInfos[index].tooltip = std::move(tooltip);
         }
 
 
@@ -255,9 +256,10 @@ namespace merutilm::rff2 {
         target->setMPAIgnore(s.render.computeShader.completelyIgnoreMpa);
         target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
         target->clearWriteBuffer(commandPool);
-        target->setMeta(s.fractal, s.render, dynamic_cast<MB2Reference<Num> *>(renderData->getReference())->refOrbit, renderData->getReference()->longestPeriod(),
-                        static_cast<complex<Num>>(renderData->getPerturbator()->off), static_cast<uint64_t>(s.fractal.perturb.maxIteration),
-                        tableData, mapperData, commandPool);
+        target->setMeta(s.fractal, s.render, dynamic_cast<MB2Reference<Num> *>(renderData->getReference())->refOrbit,
+                        renderData->getReference()->longestPeriod(),
+                        static_cast<complex<Num>>(renderData->getPerturbator()->off),
+                        static_cast<uint64_t>(s.fractal.perturb.maxIteration), tableData, mapperData, commandPool);
 
         // preparing render meta scope
 
@@ -479,7 +481,8 @@ namespace merutilm::rff2 {
             const double elapsed = rootWindowContext->getWindow()->getTime() - time;
             if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
                 time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS, std::format("Period : {}", Utilities::formatThousands(p)));
+                setStatusMessage(Constants::Status::RENDER_STATUS,
+                                 std::format("Period : {}", Utilities::formatThousands(p)));
                 setStatusMessage(Constants::Status::TIME_STATUS,
                                  std::format("Time : {}", Utilities::formatTime(time - startTime)));
             }

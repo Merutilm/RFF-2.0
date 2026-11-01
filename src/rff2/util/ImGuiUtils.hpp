@@ -15,6 +15,7 @@
 // Use PascalCase for method name in accordance with the ImGui naming convention
 namespace merutilm::rff2::ImGuiUtils {
 
+    constexpr static size_t COLS = 2;
     template<typename Enum>
         requires std::is_enum_v<Enum>
     static bool Dropdown(const char *label, Enum *currentValue) {
@@ -105,5 +106,25 @@ namespace merutilm::rff2::ImGuiUtils {
     static void EndTabItem() {
         ImGui::EndChild();
         ImGui::EndTabItem();
+    }
+
+
+    static bool BeginPresetExecutor(const char *txt) {
+        BeginSettings(txt);
+        return ImGui::BeginTable(txt, COLS);
+    }
+    static void EndPresetExecutor() {
+        ImGui::EndTable();
+        EndSettings();
+    }
+
+
+    template<typename App, typename Preset>
+    static void AddPresetExecutor(App &app, Preset preset) {
+        const std::string name = preset.getName();
+        ImGui::TableNextColumn();
+        if (ImGui::Button(name.data(), ImVec2(-FLT_MIN, 0))) {
+            app.applyPreset(preset);
+        }
     }
 } // namespace merutilm::rff2::ImGuiUtils

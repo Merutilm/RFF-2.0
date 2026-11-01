@@ -23,109 +23,124 @@ namespace merutilm::rff2 {
 
     void FnPreset::calculation(RFF2 &app) {
         ImGuiUtils::BeginSettings("Calculation");
-        beginPresetExecutor("Approximation");
-        addPresetExecutor(app, ClcApproxPresets::UltraFast());
-        addPresetExecutor(app, ClcApproxPresets::Fast());
-        addPresetExecutor(app, ClcApproxPresets::Normal());
-        addPresetExecutor(app, ClcApproxPresets::Best());
-        addPresetExecutor(app, ClcApproxPresets::UltraBest());
-        addPresetExecutor(app, ClcApproxPresets::LightSpirals());
-        addPresetExecutor(app, ClcApproxPresets::DenseSpirals());
-        addPresetExecutor(app, ClcApproxPresets::ExtremelyDenseSpirals());
+        if (ImGuiUtils::BeginPresetExecutor("Approximation")) {
+            ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::UltraFast());
+            ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::Fast());
+            ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::Normal());
+            ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::Best());
+            ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::UltraBest());
+            ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::LightSpirals());
+            ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::DenseSpirals());
+            ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::ExtremelyDenseSpirals());
+            ImGuiUtils::EndPresetExecutor();
+        }
 
-        nextPresetExecutor("Compression");
-        addPresetExecutor(app, ClcCompressPresets::None());
-        addPresetExecutor(app, ClcCompressPresets::Stable());
-        addPresetExecutor(app, ClcCompressPresets::MoreStable());
-        addPresetExecutor(app, ClcCompressPresets::UltraStable());
 
-        nextPresetExecutor("Synchronization");
-        addPresetExecutor(app, ClcSyncPresets::Fast());
-        addPresetExecutor(app, ClcSyncPresets::Normal());
-        addPresetExecutor(app, ClcSyncPresets::Best());
-        endPresetExecutor();
+        if(ImGuiUtils::BeginPresetExecutor("Compression")) {
+            ImGuiUtils::AddPresetExecutor(app, ClcCompressPresets::None());
+            ImGuiUtils::AddPresetExecutor(app, ClcCompressPresets::Stable());
+            ImGuiUtils::AddPresetExecutor(app, ClcCompressPresets::MoreStable());
+            ImGuiUtils::AddPresetExecutor(app, ClcCompressPresets::UltraStable());
+            ImGuiUtils::EndPresetExecutor();
+        }
+        
 
+        if (ImGuiUtils::BeginPresetExecutor("Synchronization")) {
+            ImGuiUtils::AddPresetExecutor(app, ClcSyncPresets::Fast());
+            ImGuiUtils::AddPresetExecutor(app, ClcSyncPresets::Normal());
+            ImGuiUtils::AddPresetExecutor(app, ClcSyncPresets::Best());
+            ImGuiUtils::EndPresetExecutor();
+        }
         ImGuiUtils::EndSettings();
     }
     void FnPreset::render(RFF2 &app) {
         ImGuiUtils::BeginSettings("Render");
-        beginPresetExecutor("Display");
-        addPresetExecutor(app, RndDisplayPresets::Potato());
-        addPresetExecutor(app, RndDisplayPresets::Low());
-        addPresetExecutor(app, RndDisplayPresets::Medium());
-        addPresetExecutor(app, RndDisplayPresets::High());
-        addPresetExecutor(app, RndDisplayPresets::Ultra());
-        addPresetExecutor(app, RndDisplayPresets::Extreme());
-
-        nextPresetExecutor("Compute Shader");
-        addPresetExecutor(app, RndComputePresets::None());
-        addPresetExecutor(app, RndComputePresets::General());
-        addPresetExecutor(app, RndComputePresets::LightZoomSpirals());
-        addPresetExecutor(app, RndComputePresets::DeepZoomSpirals());
-        endPresetExecutor();
-
+        if (ImGuiUtils::BeginPresetExecutor("Display")) {
+            ImGuiUtils::AddPresetExecutor(app, RndDisplayPresets::Potato());
+            ImGuiUtils::AddPresetExecutor(app, RndDisplayPresets::Low());
+            ImGuiUtils::AddPresetExecutor(app, RndDisplayPresets::Medium());
+            ImGuiUtils::AddPresetExecutor(app, RndDisplayPresets::High());
+            ImGuiUtils::AddPresetExecutor(app, RndDisplayPresets::Ultra());
+            ImGuiUtils::AddPresetExecutor(app, RndDisplayPresets::Extreme());
+            ImGuiUtils::EndPresetExecutor();
+        }
+        
+        if (ImGuiUtils::BeginPresetExecutor("Compute Shader")) {
+            ImGuiUtils::AddPresetExecutor(app, RndComputePresets::None());
+            ImGuiUtils::AddPresetExecutor(app, RndComputePresets::General());
+            ImGuiUtils::AddPresetExecutor(app, RndComputePresets::LightZoomSpirals());
+            ImGuiUtils::AddPresetExecutor(app, RndComputePresets::DeepZoomSpirals());
+            ImGuiUtils::EndPresetExecutor();
+        }
         ImGuiUtils::EndSettings();
     }
     void FnPreset::resolution(RFF2 &app) {
-        beginPresetExecutor("Resolution");
-        addPresetExecutor(app, ResolutionPresets::L1());
-        addPresetExecutor(app, ResolutionPresets::L2());
-        addPresetExecutor(app, ResolutionPresets::L3());
-        addPresetExecutor(app, ResolutionPresets::L4());
-        addPresetExecutor(app, ResolutionPresets::L5());
-        endPresetExecutor();
+        if (ImGuiUtils::BeginPresetExecutor("Resolution")) {
+            ImGuiUtils::AddPresetExecutor(app, ResolutionPresets::L1());
+            ImGuiUtils::AddPresetExecutor(app, ResolutionPresets::L2());
+            ImGuiUtils::AddPresetExecutor(app, ResolutionPresets::L3());
+            ImGuiUtils::AddPresetExecutor(app, ResolutionPresets::L4());
+            ImGuiUtils::AddPresetExecutor(app, ResolutionPresets::L5());
+            ImGuiUtils::EndPresetExecutor();
+        }
     }
     void FnPreset::shader(RFF2 &app) {
         ImGuiUtils::BeginSettings("Shader");
-        beginPresetExecutor("Palette");
-        addPresetExecutor(app, ShdPalettePresets::Classic1());
-        addPresetExecutor(app, ShdPalettePresets::Classic2());
-        addPresetExecutor(app, ShdPalettePresets::Azure());
-        addPresetExecutor(app, ShdPalettePresets::Cinematic());
-        addPresetExecutor(app, ShdPalettePresets::Desert());
-        addPresetExecutor(app, ShdPalettePresets::Flame());
-        addPresetExecutor(app, ShdPalettePresets::LongRandom64());
-        addPresetExecutor(app, ShdPalettePresets::LongRainbow7());
-        addPresetExecutor(app, ShdPalettePresets::Rainbow());
-
-        nextPresetExecutor("Stripe");
-        addPresetExecutor(app, ShdStripePresets::Disabled());
-        addPresetExecutor(app, ShdStripePresets::SlowAnimated());
-        addPresetExecutor(app, ShdStripePresets::FastAnimated());
-        addPresetExecutor(app, ShdStripePresets::Smooth());
-        addPresetExecutor(app, ShdStripePresets::SmoothTranslucent());
-
-        nextPresetExecutor("Surface");
-        addPresetExecutor(app, ShdSurfacePresets::Disabled());
-        addPresetExecutor(app, ShdSurfacePresets::HighContrast());
-        addPresetExecutor(app, ShdSurfacePresets::Reflective());
-        addPresetExecutor(app, ShdSurfacePresets::Translucent());
-        addPresetExecutor(app, ShdSurfacePresets::Reversed());
-        addPresetExecutor(app, ShdSurfacePresets::Micro());
-        addPresetExecutor(app, ShdSurfacePresets::Nano());
-
-        nextPresetExecutor("Color");
-        addPresetExecutor(app, ShdColorPresets::Disabled());
-        addPresetExecutor(app, ShdColorPresets::WeakContrast());
-        addPresetExecutor(app, ShdColorPresets::HighContrast());
-        addPresetExecutor(app, ShdColorPresets::Dull());
-        addPresetExecutor(app, ShdColorPresets::Vivid());
-
-        nextPresetExecutor("Fog");
-        addPresetExecutor(app, ShdFogPresets::Disabled());
-        addPresetExecutor(app, ShdFogPresets::Low());
-        addPresetExecutor(app, ShdFogPresets::Medium());
-        addPresetExecutor(app, ShdFogPresets::High());
-        addPresetExecutor(app, ShdFogPresets::Ultra());
-
-        nextPresetExecutor("Bloom");
-        addPresetExecutor(app, ShdBloomPresets::Disabled());
-        addPresetExecutor(app, ShdBloomPresets::Highlighted());
-        addPresetExecutor(app, ShdBloomPresets::HighlightedStrong());
-        addPresetExecutor(app, ShdBloomPresets::Weak());
-        addPresetExecutor(app, ShdBloomPresets::Normal());
-        addPresetExecutor(app, ShdBloomPresets::Strong());
-        endPresetExecutor();
+        if (ImGuiUtils::BeginPresetExecutor("Palette")) {
+            ImGuiUtils::AddPresetExecutor(app, ShdPalettePresets::Classic1());
+            ImGuiUtils::AddPresetExecutor(app, ShdPalettePresets::Classic2());
+            ImGuiUtils::AddPresetExecutor(app, ShdPalettePresets::Azure());
+            ImGuiUtils::AddPresetExecutor(app, ShdPalettePresets::Cinematic());
+            ImGuiUtils::AddPresetExecutor(app, ShdPalettePresets::Desert());
+            ImGuiUtils::AddPresetExecutor(app, ShdPalettePresets::Flame());
+            ImGuiUtils::AddPresetExecutor(app, ShdPalettePresets::LongRandom64());
+            ImGuiUtils::AddPresetExecutor(app, ShdPalettePresets::LongRainbow7());
+            ImGuiUtils::AddPresetExecutor(app, ShdPalettePresets::Rainbow());
+            ImGuiUtils::EndPresetExecutor();
+        }
+        if(ImGuiUtils::BeginPresetExecutor("Stripe")) {
+            ImGuiUtils::AddPresetExecutor(app, ShdStripePresets::Disabled());
+            ImGuiUtils::AddPresetExecutor(app, ShdStripePresets::SlowAnimated());
+            ImGuiUtils::AddPresetExecutor(app, ShdStripePresets::FastAnimated());
+            ImGuiUtils::AddPresetExecutor(app, ShdStripePresets::Smooth());
+            ImGuiUtils::AddPresetExecutor(app, ShdStripePresets::SmoothTranslucent());
+            ImGuiUtils::EndPresetExecutor();
+        }
+        if(ImGuiUtils::BeginPresetExecutor("Surface")) {
+            ImGuiUtils::AddPresetExecutor(app, ShdSurfacePresets::Disabled());
+            ImGuiUtils::AddPresetExecutor(app, ShdSurfacePresets::HighContrast());
+            ImGuiUtils::AddPresetExecutor(app, ShdSurfacePresets::Reflective());
+            ImGuiUtils::AddPresetExecutor(app, ShdSurfacePresets::Translucent());
+            ImGuiUtils::AddPresetExecutor(app, ShdSurfacePresets::Reversed());
+            ImGuiUtils::AddPresetExecutor(app, ShdSurfacePresets::Micro());
+            ImGuiUtils::AddPresetExecutor(app, ShdSurfacePresets::Nano());
+            ImGuiUtils::EndPresetExecutor();
+        }
+        if(ImGuiUtils::BeginPresetExecutor("Color")) {
+            ImGuiUtils::AddPresetExecutor(app, ShdColorPresets::Disabled());
+            ImGuiUtils::AddPresetExecutor(app, ShdColorPresets::WeakContrast());
+            ImGuiUtils::AddPresetExecutor(app, ShdColorPresets::HighContrast());
+            ImGuiUtils::AddPresetExecutor(app, ShdColorPresets::Dull());
+            ImGuiUtils::AddPresetExecutor(app, ShdColorPresets::Vivid());
+            ImGuiUtils::EndPresetExecutor();
+        }
+        if(ImGuiUtils::BeginPresetExecutor("Fog")) {
+            ImGuiUtils::AddPresetExecutor(app, ShdFogPresets::Disabled());
+            ImGuiUtils::AddPresetExecutor(app, ShdFogPresets::Low());
+            ImGuiUtils::AddPresetExecutor(app, ShdFogPresets::Medium());
+            ImGuiUtils::AddPresetExecutor(app, ShdFogPresets::High());
+            ImGuiUtils::AddPresetExecutor(app, ShdFogPresets::Ultra());
+            ImGuiUtils::EndPresetExecutor();
+        }
+        if(ImGuiUtils::BeginPresetExecutor("Bloom")) {
+            ImGuiUtils::AddPresetExecutor(app, ShdBloomPresets::Disabled());
+            ImGuiUtils::AddPresetExecutor(app, ShdBloomPresets::Highlighted());
+            ImGuiUtils::AddPresetExecutor(app, ShdBloomPresets::HighlightedStrong());
+            ImGuiUtils::AddPresetExecutor(app, ShdBloomPresets::Weak());
+            ImGuiUtils::AddPresetExecutor(app, ShdBloomPresets::Normal());
+            ImGuiUtils::AddPresetExecutor(app, ShdBloomPresets::Strong());
+            ImGuiUtils::EndPresetExecutor();
+        }
         ImGuiUtils::EndSettings();
     }
 } // namespace merutilm::rff2

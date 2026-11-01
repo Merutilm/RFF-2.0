@@ -38,56 +38,56 @@ namespace merutilm::rff2 {
         const bool removeCheck = selected != -1 && colors.size() > 1;
         const bool clearCheck = colors.size() > 1;
 
-        ImGui::BeginTable("##table", 3);
-        ImGui::TableNextColumn();
-        if (!addCheck) {
-            ImGui::BeginDisabled();
-        }
+        if (ImGui::BeginTable("##table", 3)) {
+            ImGui::TableNextColumn();
+            if (!addCheck) {
+                ImGui::BeginDisabled();
+            }
 
-        if (ImGui::Button("Add", ImVec2(-FLT_MIN, 0))) {
-            colors.emplace_back(1, 1, 1, 1);
-            page = (static_cast<int>(colors.size()) - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE;
-            selectRequest = static_cast<int>(colors.size()) - 1;
-            app.getRequests().requestShader();
-        }
-        if (!addCheck) {
-            ImGui::EndDisabled();
-        }
-        ImGui::TableNextColumn();
-        if (!removeCheck) {
-            ImGui::BeginDisabled();
-        }
-
-
-        if (ImGui::Button("Remove", ImVec2(-FLT_MIN, 0))) {
-            colors.erase(colors.begin() + selected);
-            app.getRequests().requestShader();
-
-            if (selected >= colors.size())
+            if (ImGui::Button("Add", ImVec2(-FLT_MIN, 0))) {
+                colors.emplace_back(1, 1, 1, 1);
+                page = (static_cast<int>(colors.size()) - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE;
                 selectRequest = static_cast<int>(colors.size()) - 1;
-        }
+                app.getRequests().requestShader();
+            }
+            if (!addCheck) {
+                ImGui::EndDisabled();
+            }
+            ImGui::TableNextColumn();
+            if (!removeCheck) {
+                ImGui::BeginDisabled();
+            }
 
-        if (!removeCheck) {
-            ImGui::EndDisabled();
-        }
-        ImGui::TableNextColumn();
-        if (!clearCheck) {
-            ImGui::BeginDisabled();
-        }
+
+            if (ImGui::Button("Remove", ImVec2(-FLT_MIN, 0))) {
+                colors.erase(colors.begin() + selected);
+                app.getRequests().requestShader();
+
+                if (selected >= colors.size())
+                    selectRequest = static_cast<int>(colors.size()) - 1;
+            }
+
+            if (!removeCheck) {
+                ImGui::EndDisabled();
+            }
+            ImGui::TableNextColumn();
+            if (!clearCheck) {
+                ImGui::BeginDisabled();
+            }
 
 
-        if (ImGui::Button("Clear", ImVec2(-FLT_MIN, 0))) {
-            colors.clear();
-            colors.emplace_back(1, 1, 1, 1);
-            selectRequest = 0;
-            app.getRequests().requestShader();
-        }
-        if (!clearCheck) {
-            ImGui::EndDisabled();
-        }
+            if (ImGui::Button("Clear", ImVec2(-FLT_MIN, 0))) {
+                colors.clear();
+                colors.emplace_back(1, 1, 1, 1);
+                selectRequest = 0;
+                app.getRequests().requestShader();
+            }
+            if (!clearCheck) {
+                ImGui::EndDisabled();
+            }
 
-        ImGui::EndTable();
-
+            ImGui::EndTable();
+        }
 
         const int pageCount = (static_cast<int>(colors.size()) - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE + 1;
 

@@ -21,6 +21,7 @@
 #include "../preset/shader/palette/ShdPalettePresets.hpp"
 #include "../preset/shader/stripe/ShdStripePresets.hpp"
 #include "../preset/shader/surface/ShdSurfacePresets.hpp"
+#include "../util/ImGuiUtils.hpp"
 #include "../util/Utilities.h"
 #include "../vulkan/GPCDownsampleForBlur.hpp"
 #include "../vulkan/SharedImageContextIndices.hpp"
@@ -680,9 +681,8 @@ namespace merutilm::rff2 {
         }
 
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0, 0));
-        if (ImGui::BeginTable("StatusBarTable", static_cast<int>(statusInfos.size()),
-                              ImGuiTableFlags_BordersInner)) {
-            for (auto &statusInfo : statusInfos) {
+        if (ImGui::BeginTable("StatusBarTable", static_cast<int>(statusInfos.size()), ImGuiTableFlags_BordersInner)) {
+            for (auto &statusInfo: statusInfos) {
                 ImGui::TableNextColumn();
                 ImGui::TextUnformatted(statusInfo.status.c_str());
 
@@ -961,8 +961,10 @@ namespace merutilm::rff2 {
         const size_t refLength = renderData->getReference() ? renderData->getReference()->length() : 0;
         const size_t mpaLen = approxTableCache ? approxTableCache->mpaTable.sizeUsed : 0;
         setStatusMessage(Constants::Status::PERIOD_STATUS,
-                         std::format("Period : {}", Utilities::formatThousands(reference->longestPeriod())),
-                         std::format("Reference Size : {}\nMP-Approx Size : {}", Utilities::formatThousands(refLength), Utilities::formatThousands(mpaLen)));
+                         std::format("Period : {}", Utilities::formatThousands(reference->longestPeriod())));
+        setTooltipMessage(Constants::Status::PERIOD_STATUS,
+                          std::format("Reference Size : {}\nMP-Approx Size : {}", Utilities::formatThousands(refLength),
+                                      Utilities::formatThousands(mpaLen)));
         if (state.interruptRequested())
             return false;
 
@@ -1097,6 +1099,9 @@ namespace merutilm::rff2 {
         if (state.interruptRequested()) {
             return false;
         }
+
+        const auto [min, max] = std::ranges::minmax(renderer->visibleIterationBufferData->getData());
+        setTooltipMessage(Constants::Status::ITERATION_STATUS, std::format("Min : {}\nMax : {}", Utilities::formatThousands(static_cast<itt::ptb>(min)), Utilities::formatThousands(static_cast<itt::ptb>(max))));
 
         setStatusMessage(Constants::Status::RENDER_STATUS, "Done");
         return true;
