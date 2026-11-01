@@ -9,10 +9,10 @@
 #include "../calc/fixed_point_complex.hpp"
 #include "../constants/Constants.hpp"
 #include "../mrthy/ReferenceCompressUnit.hpp"
-#include "../mrthy/ReferenceCompressor.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtReferenceSettings.hpp"
+#include "../util/ReferenceCompressorUtils.hpp"
 #include "Reference.hpp"
 #include "ReferenceCheckpoint.hpp"
 
@@ -179,7 +179,7 @@ namespace merutilm::rff2 {
                                               size_t &compressed, const uint32_t compressCriteria,
                                               const double compressionThreshold, const itt::ref refIteration) {
         if (compressCriteria > 0 && refIteration >= 1) {
-            const size_t refIndex = ReferenceCompressor::compress(tools, reuseIndex + 1);
+            const size_t refIndex = ReferenceCompressorUtils::compress(tools, reuseIndex + 1);
             const bool sr = rff_math::is_zero(z0.re) && rff_math::is_zero(ref[refIndex].re);
             const bool si = rff_math::is_zero(z0.im) && rff_math::is_zero(ref[refIndex].im);
 
@@ -388,7 +388,7 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     complex<Num> MB2Reference<Num>::orbit(const itt::ref refIteration) const {
-        return compressor.empty() ? refOrbit[refIteration] : refOrbit[ReferenceCompressor::compress(compressor, refIteration)];
+        return compressor.empty() ? refOrbit[refIteration] : refOrbit[ReferenceCompressorUtils::compress(compressor, refIteration)];
     }
 
     template<Number Num>

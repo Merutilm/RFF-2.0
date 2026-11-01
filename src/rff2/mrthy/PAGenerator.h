@@ -103,7 +103,7 @@ namespace merutilm::rff2 {
 #ifdef NDEBUG
         if (rff_math::is_zero(this->radius)) return; //skip useless operation
 #endif
-        const size_t index = ReferenceCompressor::compress(this->compressors, iter);
+        const size_t index = ReferenceCompressorUtils::compress(this->compressors, iter);
         const complex<Num> z2 = 2.0f * this->orbit[index];
 
         this->radius = rff_math::try_normalized_value(

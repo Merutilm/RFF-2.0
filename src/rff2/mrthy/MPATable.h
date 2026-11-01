@@ -10,12 +10,12 @@
 #include "../data/ApproxTableCache.h"
 #include "../mb/MB2Reference.h"
 #include "../parallel/ParallelRenderState.h"
+#include "../util/ReferenceCompressorUtils.hpp"
 #include "MPAIndexMapper.hpp"
 #include "MPAIndexMapperUtils.hpp"
 #include "MPAPeriod.hpp"
 #include "PAGenerator.h"
 #include "ReferenceCompressUnit.hpp"
-#include "ReferenceCompressor.hpp"
 
 #include "vulkan_helper/base/logger.hpp"
 
@@ -247,7 +247,7 @@ namespace merutilm::rff2 {
         if (mpaSettings.useCompress) {
             const auto pulledTableIndex =
                     MPAIndexMapperUtils::iterationToPulledTableIndex(*mpaPeriod, longestPeriod + 1);
-            const auto compressedIndex = ReferenceCompressor::compress(pulledMPACompressor, pulledTableIndex);
+            const auto compressedIndex = ReferenceCompressorUtils::compress(pulledMPACompressor, pulledTableIndex);
             mapperLen = compressedIndex;
 
             for (const auto &compressor: pulledMPACompressor) {
@@ -281,7 +281,7 @@ namespace merutilm::rff2 {
             return false;
 
         const ReferenceCompressUnit *containedTool =
-                ReferenceCompressor::find(pulledMPACompressor, pulledTableIndex + 1);
+                ReferenceCompressorUtils::find(pulledMPACompressor, pulledTableIndex + 1);
         if (containedTool == nullptr || containedTool->start != pulledTableIndex + 1) {
             return false;
         }
@@ -572,7 +572,7 @@ namespace merutilm::rff2 {
         bool jumped = false;
         if (levels > 0) {
 
-            const size_t compIndex = ReferenceCompressor::compress(pulledMPACompressor, pulledTableIndex);
+            const size_t compIndex = ReferenceCompressorUtils::compress(pulledMPACompressor, pulledTableIndex);
             RFF_ASSERT(tableCache.flattenIndexMapper.sizeUsed > compIndex);
             tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[compIndex] = {.mapped = flattenTableIndex, .generatedLevels = levels};
 
@@ -942,7 +942,7 @@ namespace merutilm::rff2 {
             return MPAIndexMapper{.mapped = UINT64_MAX, .generatedLevels = 0};
         }
 
-        const size_t comp = ReferenceCompressor::compress(pulledMPACompressor, pulled);
+        const size_t comp = ReferenceCompressorUtils::compress(pulledMPACompressor, pulled);
         return MPAIndexMapper{.mapped = tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[comp].mapped,
                               .generatedLevels = levels};
     }
