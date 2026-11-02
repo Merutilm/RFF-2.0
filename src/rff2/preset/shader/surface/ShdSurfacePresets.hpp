@@ -9,43 +9,43 @@
 
 namespace merutilm::rff2::ShdSurfacePresets {
 
-    struct Disabled final : public Presets::ShaderPresets::SurfacePreset {
+    struct Disabled final : Presets::ShaderPresets::SurfacePreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdSurfaceSettings genSurface() const override;
     };
 
-    struct HighContrast final : public Presets::ShaderPresets::SurfacePreset {
+    struct HighContrast final : Presets::ShaderPresets::SurfacePreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdSurfaceSettings genSurface() const override;
     };
 
-    struct Reflective final : public Presets::ShaderPresets::SurfacePreset {
+    struct Reflective final : Presets::ShaderPresets::SurfacePreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdSurfaceSettings genSurface() const override;
     };
 
 
-    struct Translucent final : public Presets::ShaderPresets::SurfacePreset {
+    struct Translucent final : Presets::ShaderPresets::SurfacePreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdSurfaceSettings genSurface() const override;
     };
-    struct Reversed final : public Presets::ShaderPresets::SurfacePreset {
-        [[nodiscard]] std::string getName() const override;
-
-        [[nodiscard]] ShdSurfaceSettings genSurface() const override;
-    };
-
-    struct Micro final : public Presets::ShaderPresets::SurfacePreset {
+    struct Reversed final : Presets::ShaderPresets::SurfacePreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdSurfaceSettings genSurface() const override;
     };
 
-    struct Nano final : public Presets::ShaderPresets::SurfacePreset {
+    struct Micro final : Presets::ShaderPresets::SurfacePreset {
+        [[nodiscard]] std::string getName() const override;
+
+        [[nodiscard]] ShdSurfaceSettings genSurface() const override;
+    };
+
+    struct Nano final : Presets::ShaderPresets::SurfacePreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdSurfaceSettings genSurface() const override;

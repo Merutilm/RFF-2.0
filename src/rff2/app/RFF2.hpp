@@ -391,7 +391,6 @@ namespace merutilm::rff2 {
                 requests.requestRecompute();
             }
             if constexpr (std::is_base_of_v<Presets::CalculationPresets::CompressPreset, P>) {
-                settings.fractal.mpa = preset.genMPA();
                 settings.fractal.reference.compression = preset.genRefComp();
                 requests.requestRecompute();
             }

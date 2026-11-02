@@ -7,27 +7,27 @@
 #include "../../Presets.hpp"
 
 namespace merutilm::rff2::ShdColorPresets {
-    struct Disabled final : public Presets::ShaderPresets::ColorPreset {
+    struct Disabled final : Presets::ShaderPresets::ColorPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdColorSettings genColor() const override;
     };
-    struct WeakContrast final : public Presets::ShaderPresets::ColorPreset {
+    struct WeakContrast final : Presets::ShaderPresets::ColorPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdColorSettings genColor() const override;
     };
-    struct HighContrast final : public Presets::ShaderPresets::ColorPreset {
+    struct HighContrast final : Presets::ShaderPresets::ColorPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdColorSettings genColor() const override;
     };
-    struct Dull final : public Presets::ShaderPresets::ColorPreset {
+    struct Dull final : Presets::ShaderPresets::ColorPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdColorSettings genColor() const override;
     };
-    struct Vivid final : public Presets::ShaderPresets::ColorPreset {
+    struct Vivid final : Presets::ShaderPresets::ColorPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdColorSettings genColor() const override;

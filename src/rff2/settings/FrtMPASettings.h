@@ -13,7 +13,5 @@ namespace merutilm::rff2 {
         uint8_t maxMultiplierBetweenLevel;
         float epsilonPower;
         FrtMPASelectionMethod selectionMethod;
-        bool useCompress;
-        bool useParallelization;
     };
 }

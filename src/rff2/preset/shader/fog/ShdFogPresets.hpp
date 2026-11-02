@@ -9,27 +9,27 @@
 
 namespace merutilm::rff2::ShdFogPresets {
 
-    struct Disabled final : public Presets::ShaderPresets::FogPreset {
+    struct Disabled final : Presets::ShaderPresets::FogPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdFogSettings genFog() const override;
     };
-    struct Low final : public Presets::ShaderPresets::FogPreset {
+    struct Low final : Presets::ShaderPresets::FogPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdFogSettings genFog() const override;
     };
-    struct Medium final : public Presets::ShaderPresets::FogPreset {
+    struct Medium final : Presets::ShaderPresets::FogPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdFogSettings genFog() const override;
     };
-    struct High final : public Presets::ShaderPresets::FogPreset {
+    struct High final : Presets::ShaderPresets::FogPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdFogSettings genFog() const override;
     };
-    struct Ultra final : public Presets::ShaderPresets::FogPreset {
+    struct Ultra final : Presets::ShaderPresets::FogPreset {
         [[nodiscard]] std::string getName() const override;
 
         [[nodiscard]] ShdFogSettings genFog() const override;

@@ -7,7 +7,7 @@
 
 namespace merutilm::rff2 {
     struct FrtReferenceCompSettings final{
-        uint32_t compressCriteria;
+        uint32_t minCompressSize;
         uint8_t compressionThresholdPower;
     };
 }

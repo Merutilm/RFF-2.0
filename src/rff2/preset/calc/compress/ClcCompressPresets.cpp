@@ -8,34 +8,19 @@ namespace merutilm::rff2::ClcCompressPresets {
     std::string None::getName() const {
         return "None";
     }
-    FrtMPASettings None::genMPA() const {
-        return FrtMPASettings{4, 2, -4, FrtMPASelectionMethod::HIGHEST, false, true};
-    }
     FrtReferenceCompSettings None::genRefComp() const {
         return FrtReferenceCompSettings{0, 0};
     }
-    std::string Stable::getName() const { return "Stable"; }
+    std::string SemiCompressed::getName() const { return "Semi Compressed"; }
 
-    FrtMPASettings Stable::genMPA() const {
-        return FrtMPASettings{4, 2, -4, FrtMPASelectionMethod::HIGHEST, true, true};
-    }
+    FrtReferenceCompSettings SemiCompressed::genRefComp() const { return FrtReferenceCompSettings{1000000, 6}; }
 
-    FrtReferenceCompSettings Stable::genRefComp() const { return FrtReferenceCompSettings{1000000, 6}; }
-
-    std::string MoreStable::getName() const { return "More Stable"; }
+    std::string Compressed::getName() const { return "Compressed"; }
 
 
-    FrtMPASettings MoreStable::genMPA() const {
-        return FrtMPASettings{4, 2, -4, FrtMPASelectionMethod::HIGHEST, true, true};
-    }
+    FrtReferenceCompSettings Compressed::genRefComp() const { return FrtReferenceCompSettings{100000, 6}; }
 
-    FrtReferenceCompSettings MoreStable::genRefComp() const { return FrtReferenceCompSettings{100000, 6}; }
+    std::string MoreCompressed::getName() const { return "More Compressed"; }
 
-    std::string UltraStable::getName() const { return "Ultra Stable"; }
-
-    FrtMPASettings UltraStable::genMPA() const {
-        return FrtMPASettings{8, 2, -4, FrtMPASelectionMethod::HIGHEST, true, true};
-    }
-
-    FrtReferenceCompSettings UltraStable::genRefComp() const { return FrtReferenceCompSettings{10000, 6}; }
+    FrtReferenceCompSettings MoreCompressed::genRefComp() const { return FrtReferenceCompSettings{10000, 6}; }
 } // namespace merutilm::rff2::ClcCompressPresets

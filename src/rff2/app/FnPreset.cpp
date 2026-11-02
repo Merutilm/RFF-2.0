@@ -29,18 +29,15 @@ namespace merutilm::rff2 {
             ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::Normal());
             ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::Best());
             ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::UltraBest());
-            ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::LightSpirals());
-            ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::DenseSpirals());
-            ImGuiUtils::AddPresetExecutor(app, ClcApproxPresets::ExtremelyDenseSpirals());
             ImGuiUtils::EndPresetExecutor();
         }
 
 
         if(ImGuiUtils::BeginPresetExecutor("Compression")) {
             ImGuiUtils::AddPresetExecutor(app, ClcCompressPresets::None());
-            ImGuiUtils::AddPresetExecutor(app, ClcCompressPresets::Stable());
-            ImGuiUtils::AddPresetExecutor(app, ClcCompressPresets::MoreStable());
-            ImGuiUtils::AddPresetExecutor(app, ClcCompressPresets::UltraStable());
+            ImGuiUtils::AddPresetExecutor(app, ClcCompressPresets::SemiCompressed());
+            ImGuiUtils::AddPresetExecutor(app, ClcCompressPresets::Compressed());
+            ImGuiUtils::AddPresetExecutor(app, ClcCompressPresets::MoreCompressed());
             ImGuiUtils::EndPresetExecutor();
         }
         

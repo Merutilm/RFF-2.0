@@ -897,8 +897,7 @@ namespace merutilm::rff2 {
     void RFF2::matchSettingsBeforeCreatingRenderData(Settings &s) {
         if (s.render.computeShader.use) {
             s.fractal.reference.sync.referenceSynchronizationInterval = 1;
-            s.fractal.mpa.useCompress = false;
-            s.fractal.reference.compression.compressCriteria = 0;
+            s.fractal.reference.compression.minCompressSize = 0;
         }
     }
 

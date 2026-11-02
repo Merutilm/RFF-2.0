@@ -6,8 +6,8 @@
 
 #include "../calc/complex.hpp"
 #include "../mb/MB2Reference.h"
+#include "ArrayCompressUnit.hpp"
 #include "PA.h"
-#include "ReferenceCompressUnit.hpp"
 
 namespace merutilm::rff2 {
 
@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
 
         itt::ref start;
         itt::ref skip = 0;
-        const std::vector<ReferenceCompressUnit> &compressors;
+        const ReferenceCompressor &referenceCompressor;
         const float epsilon;
 
         const std::vector<complex<Num>> &orbit;
@@ -57,7 +57,7 @@ namespace merutilm::rff2 {
     template<Number Num>
     PAGenerator<Num>::PAGenerator(const MB2Reference<Num> &reference, const float epsilon, Num dcMax,
                                   const itt::ref start) :
-        start(start), compressors(reference.compressor), epsilon(epsilon), orbit(reference.refOrbit), dcMax(dcMax) {}
+        start(start), referenceCompressor(reference.compressor), epsilon(epsilon), orbit(reference.refOrbit), dcMax(dcMax) {}
 
     template<Number Num>
     void PAGenerator<Num>::merge(const PAGenerator &target) {
@@ -103,7 +103,7 @@ namespace merutilm::rff2 {
 #ifdef NDEBUG
         if (rff_math::is_zero(this->radius)) return; //skip useless operation
 #endif
-        const size_t index = ReferenceCompressorUtils::compress(this->compressors, iter);
+        const size_t index = ArrayCompressorUtils::compress(this->referenceCompressor, iter);
         const complex<Num> z2 = 2.0f * this->orbit[index];
 
         this->radius = rff_math::try_normalized_value(

@@ -8,7 +8,7 @@
 
 namespace merutilm::rff2 {
     /**
-     * <b>Array Compression Tool</b>
+     * <b>Array Compress Unit</b>
      * <br/>
      * A class for compressing when detecting duplicated elements in an array. <br/>
      * It can be used if there are duplicate values in the array. <br/>
@@ -21,26 +21,35 @@ namespace merutilm::rff2 {
      * @param start the start index of uncompressed array
      * @param end the end index of uncompressed array
      */
-    struct ReferenceCompressUnit {
-        const itt::ref rebase;
-        const itt::ref start;
-        const itt::ref end;
+    template <typename NumType>
+    struct ArrayCompressUnit {
+        const NumType rebase;
+        const NumType start;
+        const NumType end;
 
-        explicit ReferenceCompressUnit(itt::ref rebase, itt::ref start, itt::ref end);
+        explicit ArrayCompressUnit(NumType rebase, NumType start, NumType end);
 
         /**
         * Gets the range of current tool : @code end - start + 1@endcode
         * @return The range of current tool.
         */
-        [[nodiscard]] itt::ref range() const;
+        [[nodiscard]] NumType range() const;
     };
 
 
-    inline ReferenceCompressUnit::ReferenceCompressUnit(const itt::ref rebase, const itt::ref start,
-                                                      const itt::ref end) : rebase(rebase), start(start), end(end) {
+    template <typename NumType>
+    ArrayCompressUnit<NumType>::ArrayCompressUnit(const NumType rebase, const NumType start,
+                                                      const NumType end) : rebase(rebase), start(start), end(end) {
     }
 
-    inline itt::ref ReferenceCompressUnit::range() const {
+    template <typename NumType>
+    NumType ArrayCompressUnit<NumType>::range() const {
         return end - start + 1;
     }
+
+    using ReferenceCompressUnit = ArrayCompressUnit<itt::ref>;
+    using MPACompressUnit = ArrayCompressUnit<itt::ref>;
+
+    using ReferenceCompressor = std::vector<ReferenceCompressUnit>;
+    using PulledMPACompressor = std::vector<MPACompressUnit>;
 }

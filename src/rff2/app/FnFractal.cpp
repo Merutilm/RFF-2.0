@@ -102,21 +102,27 @@ namespace merutilm::rff2 {
             ImGui::InputScalar("Fixed Precision", ImGuiDataType_S64, &frt.reference.fixedPrecisionNeg)) {
             frt.reference.fixedPrecisionNeg = std::max(static_cast<int64_t>(1), frt.reference.fixedPrecisionNeg);
         }
-        ImGui::InputScalar("Reference Compression Criteria", ImGuiDataType_U32,
-                           &frt.reference.compression.compressCriteria);
+        ImGui::InputScalar("Minimum Reference Compressor Unit's Size", ImGuiDataType_U32,
+                           &frt.reference.compression.minCompressSize);
         ImGuiUtils::HelpMarker(
                 "When compressing references, sets the minimum amount of references to compress at one time.\n"
                 "Reference compression slows down the calculation but frees up memory space.\n"
+                "If enabled, Generating MP-Approximation Table also use compression and acceleration if possible.\n"
+                "Depending on the reference orbit, memory usage may the same or decrease compared to when it is "
+                "unused.\n"
                 "set 0 to disable.");
 
 
         ImGui::InputScalar("Reference Compression Threshold", ImGuiDataType_U8,
                            &frt.reference.compression.compressionThresholdPower);
-        ImGuiUtils::HelpMarker("When compressing references, sets the negative exponents of ten of minimum error to be "
-                               "considered "
-                               "equal.\n"
-                               "Reference compression slows down the calculation but frees up memory space.\n"
-                               "set 0 to disable.");
+        ImGuiUtils::HelpMarker(
+                "When compressing references, sets the negative exponents of ten of minimum error to be considered "
+                "equal.\n"
+                "Reference compression slows down the calculation but frees up memory space.\n"
+                "If enabled, Generating MP-Approximation Table also use compression and acceleration if possible.\n"
+                "Depending on the reference orbit, memory usage may the same or decrease compared to when it is "
+                "unused.\n"
+                "set 0 to disable.");
 
         if (ImGui::InputScalar("Reference Synchronization Interval", ImGuiDataType_U32,
                                &frt.reference.sync.referenceSynchronizationInterval)) {
@@ -216,8 +222,8 @@ namespace merutilm::rff2 {
     void FnFractal::mpa(RFF2 &app) {
 
         ImGuiUtils::BeginSettings("MP-Approximation");
-        auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod, useCompress,
-               useParallelization] = app.getSettings().fractal.mpa;
+        auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod] =
+                app.getSettings().fractal.mpa;
 
         if (ImGui::InputScalar("Min Skip Reference", ImGuiDataType_U16, &minSkipReference)) {
             minSkipReference = std::max(minSkipReference, static_cast<uint16_t>(4));
@@ -244,16 +250,6 @@ namespace merutilm::rff2 {
 
         ImGuiUtils::Dropdown("Selection Method", &mpaSelectionMethod);
         ImGuiUtils::HelpMarker("Set the selection method of MPA. The first target PA is always the front element.");
-
-        ImGui::Checkbox("Compress", &useCompress);
-        ImGuiUtils::HelpMarker("Use compression and acceleration if possible.\n "
-                               "If it is checked, slowing down for table creation, It uses compression and "
-                               "acceleration when possible.\n"
-                               "Depending on the reference orbit, memory usage may the same or decrease compared "
-                               "to when it is not checked.\n");
-
-        ImGui::Checkbox("Parallelize during generation", &useParallelization);
-        ImGuiUtils::HelpMarker("Use parallelization during generation if possible.");
         ImGuiUtils::EndSettings();
     }
 
