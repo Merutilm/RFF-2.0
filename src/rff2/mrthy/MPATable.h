@@ -275,7 +275,7 @@ namespace merutilm::rff2 {
         if (pulledMPACompressor.empty())
             return false;
 
-        const MPACompressUnit *containedTool = ArrayCompressorUtils::find(pulledMPACompressor, pulledTableIndex + 1);
+        const PulledMPACompressUnit *containedTool = ArrayCompressorUtils::find(pulledMPACompressor, pulledTableIndex + 1);
         if (containedTool == nullptr || containedTool->start != pulledTableIndex + 1) {
             return false;
         }

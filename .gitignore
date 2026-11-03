@@ -48,4 +48,5 @@ publish.sh
 # Others
 /apply_vkh.sh
 /update.sh
+/shaders/cache
 *.zip
