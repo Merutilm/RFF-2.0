@@ -6,7 +6,7 @@
 
 #include "../calc/iteration_types.hpp"
 namespace merutilm::rff2 {
-    struct CompressionProcessorSegment {
+    struct SRPCSegment {
         size_t processingCompressionUnitIndex;
         itt::ref remained = 0;
         itt::ref maxCompressionSize = 0;

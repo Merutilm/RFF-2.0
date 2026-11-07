@@ -15,6 +15,7 @@ namespace merutilm::rff2 {
         FrtReferenceCompSettings compression{};
         bool reuse{};
         bool useFixedPrecision{};
+        uint32_t partitionSize;
         int64_t fixedPrecisionNeg{};
     };
 }

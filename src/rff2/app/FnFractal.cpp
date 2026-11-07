@@ -102,6 +102,11 @@ namespace merutilm::rff2 {
             ImGui::InputScalar("Fixed Precision", ImGuiDataType_S64, &frt.reference.fixedPrecisionNeg)) {
             frt.reference.fixedPrecisionNeg = std::max(static_cast<int64_t>(1), frt.reference.fixedPrecisionNeg);
         }
+        if (ImGui::InputScalar("Reference Partition Size", ImGuiDataType_U32,
+                          &frt.reference.partitionSize)) {
+            frt.reference.partitionSize = std::max(frt.reference.partitionSize, static_cast<uint32_t>(128));
+        }
+        ImGuiUtils::HelpMarker("the interval between checkpoints, stored with arbitrary precision, used to find a nucleus that matches the current period.");
         ImGui::InputScalar("Minimum Reference Compressor Unit's Size", ImGuiDataType_U32,
                            &frt.reference.compression.minCompressSize);
         ImGuiUtils::HelpMarker(

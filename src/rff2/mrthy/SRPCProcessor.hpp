@@ -7,17 +7,19 @@
 
 
 #include "../calc/iteration_types.hpp"
-#include "CompressionProcessorSegment.hpp"
-#include "CompressionResult.hpp"
+#include "SRPCResult.hpp"
+#include "SRPCSegment.hpp"
 namespace merutilm::rff2 {
-    template<typename T, typename Approx>
-    class CompressionProcessor {
 
-        CompressionResult<T> result;
+    // Segment-based Recursive Pattern-approximate Compressor (SRPC)
+    template<typename T, typename Approx>
+    class SRPCProcessor {
+
+        SRPCResult<T> result;
         itt::ref refIndex = 1;
         itt::ref originalIndex = 0;
         itt::ref compressStartIndex = 0;
-        std::vector<CompressionProcessorSegment> segmentStack{};
+        std::vector<SRPCSegment> segmentStack{};
 
         std::vector<T> tempBuffer{};
         bool minCompressSizeReached = false;
@@ -25,7 +27,7 @@ namespace merutilm::rff2 {
         Approx approx;
 
     public:
-        explicit CompressionProcessor(const uint32_t minCompressSize, size_t initialResultCapacity, Approx approx) : minCompressSize(minCompressSize), approx(std::move(approx)) {
+        explicit SRPCProcessor(const uint32_t minCompressSize, size_t initialResultCapacity, Approx approx) : minCompressSize(minCompressSize), approx(std::move(approx)) {
             tempBuffer.reserve(minCompressSize);
             result.compressedArray.reserve(initialResultCapacity);
         }
@@ -48,7 +50,7 @@ namespace merutilm::rff2 {
             ++originalIndex;
         }
 
-        CompressionResult<T> finish() {
+        SRPCResult<T> finish() {
             if (!segmentStack.empty()) {
                 refIndex = segmentStack[0].referenceIndexToRecover;
                 segmentStack.clear();
@@ -84,7 +86,7 @@ namespace merutilm::rff2 {
                 refIndex = 1;
             }
 
-            CompressionProcessorSegment *topPtr = &segmentStack.back();
+            SRPCSegment *topPtr = &segmentStack.back();
 
             --topPtr->remained;
             ++refIndex;
@@ -120,7 +122,7 @@ namespace merutilm::rff2 {
             }
             if (topPtr->remained == 0) {
                 // if 'remained' is zero, pop and do recover
-                CompressionProcessorSegment popped = *topPtr;
+                SRPCSegment popped = *topPtr;
                 assert(popped.nextChildSegmentCompressionUnitIndex <= result.compressor.size());
                 while (!segmentStack.empty() && topPtr->remained == 0) {
                     popped = *topPtr;

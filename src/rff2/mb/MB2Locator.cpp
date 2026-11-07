@@ -205,15 +205,15 @@ namespace merutilm::rff2 {
     void MB2Locator::reserveExp10(fixed_point_complex &dc, std::vector<fixed_point_complex> &tt,
                                   std::vector<fixed_point_complex> &ut, const int64_t aimExp10) {
 
-        // partition size 512
-        // maximum value 2^512
-        // 2^512 => (2^6)^x => 64^x
+        // partition size A
+        // maximum value 2^A
+        // 2^A => (2^6)^(A/6) => 64^(A/6)
         // can be squared. multiplying 2
         const uint64_t alloc =
                 -fixed_point_decimal::exp10_to_exp2div64(aimExp10 - Constants::Fractal::EXP10_ADDITION) * 2 + 1;
         const uint64_t abnAlloc =
                 -fixed_point_decimal::exp10_to_exp2div64(aimExp10 - Constants::Fractal::EXP10_ADDITION) * 2 +
-                Constants::Fractal::PARTITION_SIZE / 3 + 1;
+                reference.refSettings.partitionSize / 3 + 1;
 
         currCenter.try_realloc_inc(alloc);
         dc.try_realloc_inc(alloc);

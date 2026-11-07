@@ -8,7 +8,7 @@
 #include "ArrayCompressUnit.hpp"
 namespace merutilm::rff2 {
     template<typename T>
-    struct CompressionResult {
+    struct SRPCResult {
         std::vector<T> compressedArray{};
         ReferenceCompressor compressor{};
     };

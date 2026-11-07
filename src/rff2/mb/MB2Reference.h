@@ -9,8 +9,8 @@
 #include "../calc/fixed_point_complex.hpp"
 #include "../constants/Constants.hpp"
 #include "../mrthy/ArrayCompressUnit.hpp"
-#include "../mrthy/ComplexApproximator.hpp"
-#include "../mrthy/CompressionProcessor.hpp"
+#include "../mrthy/SRPCApproximator.hpp"
+#include "../mrthy/SRPCProcessor.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtReferenceSettings.hpp"
@@ -93,6 +93,7 @@ namespace merutilm::rff2 {
                                     fixed_point_complex &z, op_thread_pool *sqrTp, const complex<Num> &fzgAn,
                                     complex<Num> &z0, const complex<Num> &c0, uint32_t refSyncInterval,
                                     uint8_t refSyncRadiusPower, Num refSyncRadius2, itt::ref p, int32_t &prevExp2div64,
+                                    uint32_t partitionSize,
                                     SpecialCenterType specialCenterType);
         template<FnListeners::FnRefCalc FnRefCalc>
         static CreationResult
@@ -209,10 +210,9 @@ namespace merutilm::rff2 {
                                             const complex<Num> &fzgAn, complex<Num> &z0, const complex<Num> &c0,
                                             const uint32_t refSyncInterval, const uint8_t refSyncRadiusPower,
                                             Num refSyncRadius2, itt::ref p, int32_t &prevExp2div64,
+                                            uint32_t partitionSize,
                                             const SpecialCenterType specialCenterType) {
 
-        const bool shouldApplyZForCheckpoint =
-                p % Constants::Fractal::PARTITION_SIZE == Constants::Fractal::PARTITION_SIZE - 1;
         switch (specialCenterType) {
             using enum SpecialCenterType;
             case NONE:
@@ -224,6 +224,8 @@ namespace merutilm::rff2 {
                 break;
             case M2: {
 
+                const bool shouldApplyZForCheckpoint =
+                        p % partitionSize == partitionSize - 1;
 
                 z.set_exp10(-1);
                 if (p == 0) {
@@ -238,6 +240,9 @@ namespace merutilm::rff2 {
                 break;
             }
             case PM1I: {
+
+                const bool shouldApplyZForCheckpoint =
+                        p % partitionSize == partitionSize - 1;
                 z.set_exp10(-1);
                 int32_t sgn = c.imag.sgn();
                 if (p == 0) {
@@ -300,13 +305,13 @@ namespace merutilm::rff2 {
 
         Num minZRadius = Num(1);
 
-
+        uint32_t partitionSize = refSettings.partitionSize;
         auto [refSyncInterval, refSyncRadiusPower] = refSettings.sync;
         auto [minCompressSize, compressionThresholdPower] = refSettings.compression;
 
         const double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
 
-        CompressionProcessor<complex<Num>, ComplexApproximator<Num>> processor(minCompressSize, refInitialCapacity, ComplexApproximator<Num>(compressionThreshold));
+        SRPCProcessor<complex<Num>, SRPCApproximator<Num>> processor(minCompressSize, refInitialCapacity, SRPCApproximator<Num>(compressionThreshold));
         processor.put(complex<Num>::ZERO);
 
         Num refSyncRadius2 = Num(pow(10.0, -refSyncRadiusPower * 2));
@@ -329,18 +334,18 @@ namespace merutilm::rff2 {
 
             tryAppendPeriodCandidate(periodArray, minZRadius, refIteration, radius2);
 
-            if (refIteration % Constants::Fractal::PARTITION_SIZE == 0)
+            if (refIteration % partitionSize == 0)
                 placeCheckpoint(checkpoints, z, fzgAnPartition, refIteration);
 
             fn(refIteration);
             stepOnceOptimal(exp10, cOrig, c, z, sqrTp, fzgAn, z0, c0, refSyncInterval, refSyncRadiusPower,
-                            refSyncRadius2, refIteration, prevExp2div64, specialCenterType);
+                            refSyncRadius2, refIteration, prevExp2div64, partitionSize, specialCenterType);
             processor.put(z0);
         }
 
         periodArray.push_back(refIteration);
         checkpoints.emplace_back(z, refIteration, static_cast<complex<dex>>(fzgAnPartition));
-        CompressionResult refResult = processor.finish();
+        SRPCResult refResult = processor.finish();
 
         *result = std::make_unique<MB2Reference>(
                 generalSettings, refSettings, std::move(cOrig), std::move(refResult.compressor), std::move(periodArray),
