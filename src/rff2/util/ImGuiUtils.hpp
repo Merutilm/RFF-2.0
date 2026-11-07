@@ -111,7 +111,11 @@ namespace merutilm::rff2::ImGuiUtils {
 
     static bool BeginPresetExecutor(const char *txt) {
         BeginSettings(txt);
-        return ImGui::BeginTable(txt, COLS);
+        if (!ImGui::BeginTable(txt, COLS)) {
+            EndSettings();
+            return false;
+        }
+        return true;
     }
     static void EndPresetExecutor() {
         ImGui::EndTable();
