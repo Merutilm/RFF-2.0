@@ -188,7 +188,7 @@ namespace merutilm::rff2 {
         auto &skippableIterationCounts = mpaPeriod->skippableIterationCounts;
         auto &isArtificial = mpaPeriod->isArtificial;
 
-        for (ReferenceCompressUnit tool: referenceCompressor) {
+        for (ReferenceCompressionUnit tool: referenceCompressor) {
             const itt::ref start = tool.start;
             const itt::ref length = tool.range();
             const size_t index = binarySearch(tablePeriod, length + 1);
@@ -275,7 +275,7 @@ namespace merutilm::rff2 {
         if (pulledMPACompressor.empty())
             return false;
 
-        const PulledMPACompressUnit *containedTool = ArrayCompressorUtils::find(pulledMPACompressor, pulledTableIndex + 1);
+        const PulledMPACompressionUnit *containedTool = ArrayCompressorUtils::find(pulledMPACompressor, pulledTableIndex + 1);
         if (containedTool == nullptr || containedTool->start != pulledTableIndex + 1) {
             return false;
         }

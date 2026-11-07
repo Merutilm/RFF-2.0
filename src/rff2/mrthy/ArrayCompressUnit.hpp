@@ -47,9 +47,9 @@ namespace merutilm::rff2 {
         return end - start + 1;
     }
 
-    using ReferenceCompressUnit = ArrayCompressUnit<itt::ref>;
-    using PulledMPACompressUnit = ArrayCompressUnit<itt::ref>;
+    using ReferenceCompressionUnit = ArrayCompressUnit<itt::ref>;
+    using PulledMPACompressionUnit = ArrayCompressUnit<itt::ref>;
 
-    using ReferenceCompressor = std::vector<ReferenceCompressUnit>;
-    using PulledMPACompressor = std::vector<PulledMPACompressUnit>;
+    using ReferenceCompressor = std::vector<ReferenceCompressionUnit>;
+    using PulledMPACompressor = std::vector<PulledMPACompressionUnit>;
 }
