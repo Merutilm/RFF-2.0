@@ -6,22 +6,21 @@
 #include <vector>
 
 #include <cassert>
-#include "../calc/iteration_types.hpp"
-#include "SRPCResult.hpp"
+#include "SRPCData.hpp"
 #include "SRPCSegment.hpp"
 namespace merutilm::rff2 {
 
     // Segment-based Recursive Pattern-approximate Compressor (SRPC)
-    template<typename T, typename Approx>
+    template<typename Index, typename Data, typename Approx>
     class SRPCProcessor {
 
-        SRPCResult<T> result;
-        itt::ref refIndex = 1;
-        itt::ref originalIndex = 0;
-        itt::ref compressStartIndex = 0;
-        std::vector<SRPCSegment> segmentStack{};
+        SRPCData<Index, Data> result;
+        Index refIndex = 1;
+        Index originalIndex = 0;
+        Index compressStartIndex = 0;
+        std::vector<SRPCSegment<Index>> segmentStack{};
 
-        std::vector<T> tempBuffer{};
+        std::vector<Data> tempBuffer{};
         bool minCompressSizeReached = false;
         uint32_t minCompressSize = 0; //set 0 to disable compression
         Approx approx;
@@ -33,7 +32,7 @@ namespace merutilm::rff2 {
         }
 
 
-        void put(const T &value) {
+        void put(const Data &value) {
             if (minCompressSize > 0 && result.compressedArray.size() > 1 && refIndex < result.compressedArray.size() && approx.approximately(value, result.compressedArray[refIndex])) {
                 processSegment(value);
             } else {
@@ -49,7 +48,7 @@ namespace merutilm::rff2 {
             ++originalIndex;
         }
 
-        SRPCResult<T> finish() {
+        SRPCData<Index, Data> finish() {
             if (!segmentStack.empty()) {
                 refIndex = segmentStack[0].referenceIndexToRecover;
                 segmentStack.clear();
@@ -59,7 +58,7 @@ namespace merutilm::rff2 {
         }
     private:
 
-        void addCompressorIfEnough(itt::ref compressEndIndex) {
+        void addCompressorIfEnough(Index compressEndIndex) {
             if (minCompressSizeReached) {
                 result.compressor.emplace_back(1, compressStartIndex, compressEndIndex);
             } else {
@@ -70,7 +69,7 @@ namespace merutilm::rff2 {
             }
         }
 
-        void processSegment(const T &value) {
+        void processSegment(const Data &value) {
             if (segmentStack.empty()) {
                 const auto maxCompressionSize = originalIndex - 1;
                 // pushing root segment
@@ -85,7 +84,7 @@ namespace merutilm::rff2 {
                 refIndex = 1;
             }
 
-            SRPCSegment *topPtr = &segmentStack.back();
+            SRPCSegment<Index> *topPtr = &segmentStack.back();
             assert(topPtr->remained > 0);
             --topPtr->remained;
             ++refIndex;

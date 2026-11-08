@@ -86,9 +86,9 @@ namespace merutilm::rff2 {
     }
 
     void FnRender::setSIMD(RFF2 &app) {
-        ImGuiUtils::BeginSettings("SIMD");
-        ImGui::Checkbox("Use", &app.getSettings().render.simd);
-        ImGuiUtils::EndSettings();
+        // ImGuiUtils::BeginSettings("SIMD");
+        // ImGui::Checkbox("Use", &app.getSettings().render.simd);
+        // ImGuiUtils::EndSettings();
     }
 
     void FnRender::setComputeShader(RFF2 &app) {

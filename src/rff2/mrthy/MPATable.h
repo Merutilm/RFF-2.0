@@ -177,7 +177,7 @@ namespace merutilm::rff2 {
         }
 
         this->mpaPeriod = MPAPeriod::generate(referencePeriod, mpaSettings);
-        this->pulledMPACompressor = generateMPACompressor(reference.compressor);
+        this->pulledMPACompressor = generateMPACompressor(reference.data.compressor);
         return true;
     }
 
@@ -188,9 +188,9 @@ namespace merutilm::rff2 {
         auto &skippableIterationCounts = mpaPeriod->skippableIterationCounts;
         auto &isArtificial = mpaPeriod->isArtificial;
 
-        for (ReferenceCompressionUnit tool: referenceCompressor) {
-            const itt::ref start = tool.start;
-            const itt::ref length = tool.range();
+        for (const auto &unit: referenceCompressor) {
+            const itt::ref start = unit.start;
+            const itt::ref length = unit.range();
             const size_t index = binarySearch(tablePeriod, length + 1);
 
             // Check if the reference compressor is same as period.

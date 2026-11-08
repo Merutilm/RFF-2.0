@@ -27,8 +27,8 @@ namespace merutilm::rff2::ArrayCompressorUtils {
      * @param index To checking index
      * @return @code true@endcode when given index is independent.
      */
-    template<typename NumType>
-    static bool isIndependent(const std::vector<ArrayCompressUnit<NumType>> &units, NumType index);
+    template<typename Index>
+    static bool isIndependent(const std::vector<ArrayCompressUnit<Index>> &units, Index index);
 
     /**
      * Rebases the given index. <br/>
@@ -39,8 +39,8 @@ namespace merutilm::rff2::ArrayCompressorUtils {
      * @param index To rebasing index
      * @return The rebased index.
      */
-    template<typename NumType>
-    static NumType rebase(const std::vector<ArrayCompressUnit<NumType>> &units, NumType index);
+    template<typename Index>
+    static Index rebase(const std::vector<ArrayCompressUnit<Index>> &units, Index index);
 
     /**
      * Completes the compressed array by pulling subsequent elements into the void in the array made by the rebasing
@@ -52,8 +52,8 @@ namespace merutilm::rff2::ArrayCompressorUtils {
      * @param rebased To pulling rebased index
      * @return The finally compressed index.
      */
-    template<typename NumType>
-    static size_t pull(const std::vector<ArrayCompressUnit<NumType>> &units, NumType rebased);
+    template<typename Index>
+    static size_t pull(const std::vector<ArrayCompressUnit<Index>> &units, Index rebased);
 
     /**
      * Gets the contained index of the given list. <br/>
@@ -63,8 +63,8 @@ namespace merutilm::rff2::ArrayCompressorUtils {
      * @param index To checking index
      * @return The index of the given list. returns @code UINT64_MAX()@endcode if the given index is un-rebase-able.
      */
-    template<typename NumType>
-    static const ArrayCompressUnit<NumType> *find(const std::vector<ArrayCompressUnit<NumType>> &units, NumType index);
+    template<typename Index>
+    static const ArrayCompressUnit<Index> *find(const std::vector<ArrayCompressUnit<Index>> &units, Index index);
 
     /**
      * Gets the compressed index of compressed array.
@@ -73,22 +73,22 @@ namespace merutilm::rff2::ArrayCompressorUtils {
      * @param index the index you want
      * @return Finally compressed index
      */
-    template<typename NumType>
-    static size_t compress(const std::vector<ArrayCompressUnit<NumType>> &units, NumType index);
+    template<typename Index>
+    static size_t compress(const std::vector<ArrayCompressUnit<Index>> &units, Index index);
 
     // DEFINITION OF ArrayCompressorUtils
     // DEFINITION OF ArrayCompressorUtils
     // DEFINITION OF ArrayCompressorUtils
 
-    template<typename NumType>
-    bool isIndependent(const std::vector<ArrayCompressUnit<NumType>> &units,
-                                                        const NumType index) {
+    template<typename Index>
+    bool isIndependent(const std::vector<ArrayCompressUnit<Index>> &units,
+                                                        const Index index) {
         return find(units, index) == nullptr;
     }
 
-    template<typename NumType>
-    NumType rebase(const std::vector<ArrayCompressUnit<NumType>> &units,
-                                                     const NumType index) {
+    template<typename Index>
+    Index rebase(const std::vector<ArrayCompressUnit<Index>> &units,
+                                                     const Index index) {
         if (units.empty() || index < units.front().start || index > units.back().end) {
             return index;
         }
@@ -109,7 +109,7 @@ namespace merutilm::rff2::ArrayCompressorUtils {
         // 1400 -> 1400 - 1000 + 1 = 401
 
         // Use the REVERSED FOR statement because it must be used recursively.
-        NumType rebased = index;
+        Index rebased = index;
 
         for (size_t i = units.size(); i > 0; --i) {
             if (auto &tool = units[i - 1]; tool.start <= rebased && rebased <= tool.end) {
@@ -121,9 +121,9 @@ namespace merutilm::rff2::ArrayCompressorUtils {
         return rebased;
     }
 
-    template<typename NumType>
-    size_t pull(const std::vector<ArrayCompressUnit<NumType>> &units,
-                                                 const NumType rebased) {
+    template<typename Index>
+    size_t pull(const std::vector<ArrayCompressUnit<Index>> &units,
+                                                 const Index rebased) {
         // "Rebased" iteration is not a target of compressions.
         // The space created by compression is filled by pushing indices to front. This is the definition of this
         // method. CAUTION : given index must be not rebase-able.
@@ -141,7 +141,7 @@ namespace merutilm::rff2::ArrayCompressorUtils {
         // units' iteration
         //
 
-        NumType compressed = rebased;
+        Index compressed = rebased;
 
         for (auto &tool: units) {
             // Since it already processed the cases within the range : startIteration < compressedIteration <
@@ -157,16 +157,16 @@ namespace merutilm::rff2::ArrayCompressorUtils {
         return compressed;
     }
 
-    template<typename NumType>
-    const ArrayCompressUnit<NumType> *find(const std::vector<ArrayCompressUnit<NumType>> &units,
-                                                                       const NumType index) {
+    template<typename Index>
+    const ArrayCompressUnit<Index> *find(const std::vector<ArrayCompressUnit<Index>> &units,
+                                                                       const Index index) {
         if (units.empty() || units.front().start > index || units.back().end < index) {
             return nullptr;
         }
 
         size_t min = 0;
         size_t max = units.size() - 1;
-        const ArrayCompressUnit<NumType> *result = nullptr;
+        const ArrayCompressUnit<Index> *result = nullptr;
 
         while (min <= max) {
             const size_t mid = (min + max) / 2;
@@ -187,10 +187,10 @@ namespace merutilm::rff2::ArrayCompressorUtils {
         return result;
     }
 
-    template<typename NumType>
-    size_t compress(const std::vector<ArrayCompressUnit<NumType>> &units,
-                                                     const NumType index) {
-        const NumType rebased = rebase(units, index);
+    template<typename Index>
+    size_t compress(const std::vector<ArrayCompressUnit<Index>> &units,
+                                                     const Index index) {
+        const Index rebased = rebase(units, index);
         return pull(units, rebased);
     }
 } // namespace merutilm::rff2::ArrayCompressorUtils

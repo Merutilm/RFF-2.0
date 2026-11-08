@@ -247,7 +247,7 @@ namespace merutilm::rff2 {
 
         const double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
 
-        SRPCProcessor<complex<Num>, SRPCApproximator<Num>> processor(minCompressSize, refInitialCapacity,
+        SRPCProcessor<itt::ref, complex<Num>, SRPCApproximator<Num>> processor(minCompressSize, refInitialCapacity,
                                                                      SRPCApproximator<Num>(compressionThreshold));
         processor.put(complex<Num>::ZERO);
 
@@ -282,7 +282,7 @@ namespace merutilm::rff2 {
                                                  .generatedPeriods = std::move(periodArray),
                                                  .fpgBn = std::move(fpgBn),
                                                  .checkpoints = std::move(checkpoints),
-                                                 .srpcResult = processor.finish()};
+                                                 .srpcData = processor.finish()};
         return RFFResult::SUCCESS;
     }
 } // namespace merutilm::rff2

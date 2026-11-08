@@ -6,7 +6,6 @@
 
 #include "../calc/complex.hpp"
 #include "../mb/MB2Reference.h"
-#include "ArrayCompressUnit.hpp"
 #include "PA.h"
 
 namespace merutilm::rff2 {
@@ -17,10 +16,9 @@ namespace merutilm::rff2 {
 
         itt::ref start;
         itt::ref skip = 0;
-        const ReferenceCompressor &referenceCompressor;
         const float epsilon;
 
-        const std::vector<complex<Num>> &orbit;
+        const SRPCView<itt::ref, complex<Num>> &orbitView;
         const Num dcMax;
         complex<Num> an = complex<Num>::ONE;
         complex<Num> bn = complex<Num>::ZERO;
@@ -57,7 +55,7 @@ namespace merutilm::rff2 {
     template<Number Num>
     PAGenerator<Num>::PAGenerator(const MB2Reference<Num> &reference, const float epsilon, Num dcMax,
                                   const itt::ref start) :
-        start(start), referenceCompressor(reference.compressor), epsilon(epsilon), orbit(reference.refOrbit), dcMax(dcMax) {}
+        start(start), epsilon(epsilon), orbitView(reference.view), dcMax(dcMax) {}
 
     template<Number Num>
     void PAGenerator<Num>::merge(const PAGenerator &target) {
@@ -103,8 +101,7 @@ namespace merutilm::rff2 {
 #ifdef NDEBUG
         if (rff_math::is_zero(this->radius)) return; //skip useless operation
 #endif
-        const size_t index = ArrayCompressorUtils::compress(this->referenceCompressor, iter);
-        const complex<Num> z2 = 2.0f * this->orbit[index];
+        const complex<Num> z2 = 2.0f * this->orbitView.get(iter);
 
         this->radius = rff_math::try_normalized_value(
                 std::clamp((this->epsilon * z2.max() - bn.max() * this->dcMax) / an.max(), Num(0), this->radius));

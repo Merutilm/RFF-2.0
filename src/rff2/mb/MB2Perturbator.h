@@ -18,7 +18,7 @@
 namespace merutilm::rff2 {
 
 
-    struct MB2PerturbatorBase : Perturbator{
+    struct MB2PerturbatorBase : Perturbator {
 
         ParallelRenderState &state;
         dex dcMax;
@@ -82,9 +82,9 @@ namespace merutilm::rff2 {
         }
 
         bool checkInteriorAndApply(const complex<Num> &dz, const Num dcMax, const float interiorDetectRadius,
-                           std::array<complex<Num>, PERIODIC_POINT_HISTORY_LENGTH> &pdz,
-                           int &pdzIndex) const {
-            if (interiorDetectRadius == 0) return false;
+                                   std::array<complex<Num>, PERIODIC_POINT_HISTORY_LENGTH> &pdz, int &pdzIndex) const {
+            if (interiorDetectRadius == 0)
+                return false;
 
             for (const complex<Num> &pdz0: pdz) {
                 Num rad = (pdz0 - dz).max();
@@ -99,7 +99,8 @@ namespace merutilm::rff2 {
 
             return false;
         }
-        void applyMPApproximation(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration, itt::ref &refIteration) const {
+        void applyMPApproximation(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
+                                  itt::ref &refIteration) const {
             if (const PA<Num> *paPtr = table.lookup(refIteration, dz); paPtr != nullptr) {
                 const PA<Num> &pa = *paPtr;
 
@@ -109,7 +110,8 @@ namespace merutilm::rff2 {
             }
         }
 
-        void applySeriesApproximation(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration, itt::ref &refIteration) const {
+        void applySeriesApproximation(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
+                                      itt::ref &refIteration) const {
             const complex dcSa = {dex{dc.re}, dex{dc.im}};
             complex dcSaM = dcSa;
             complex dzSa = complex<dex>::ZERO;
@@ -129,7 +131,8 @@ namespace merutilm::rff2 {
             currDistance2 = static_cast<complex<double>>(z).norm_sqr();
         }
 
-        static bool tryRebase(const complex<Num> &z, complex<Num> &dz, itt::ref &refIteration, const itt::ref maxRefIteration) {
+        static bool tryRebase(const complex<Num> &z, complex<Num> &dz, itt::ref &refIteration,
+                              const itt::ref maxRefIteration) {
             if (refIteration == maxRefIteration || z.max() < dz.max()) {
                 refIteration = 0;
                 dz = z;
@@ -138,8 +141,9 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        complex<Num> perturbationStep(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration, itt::ref &refIteration) const {
-            //TODO optimize
+        complex<Num> perturbationStep(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
+                                      itt::ref &refIteration) const {
+            // TODO optimize
             dz = (reference.orbit(refIteration) * 2 + dz) * dz + dc;
             const complex<Num> z = reference.orbit(refIteration + 1) + dz;
 
@@ -148,7 +152,8 @@ namespace merutilm::rff2 {
             return z;
         }
 
-        void calcInitialIteration(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration, itt::ref &refIteration) const {
+        void calcInitialIteration(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
+                                  itt::ref &refIteration) const {
             if (saSettings.use) {
                 applySeriesApproximation(dz, dc, iteration, refIteration);
             } else {
@@ -167,7 +172,8 @@ namespace merutilm::rff2 {
             const bool isAbs = ptbSettings.absoluteIterationMode;
             const itt::ptb maxIteration = ptbSettings.maxIteration;
             const itt::ref maxRefIteration = reference.longestPeriod();
-            const float interiorDetectRadius = ptbSettings.interiorDetectRadiusPower == 0 ? 0 : pow(10, -ptbSettings.interiorDetectRadiusPower);
+            const float interiorDetectRadius =
+                    ptbSettings.interiorDetectRadiusPower == 0 ? 0 : pow(10, -ptbSettings.interiorDetectRadiusPower);
             const double bailout2 = generalSettings.bailout * generalSettings.bailout;
 
             // basic interior detection
@@ -228,12 +234,13 @@ namespace merutilm::rff2 {
                            prevDistance, currDistance, ptbSettings.decimalizeIterationMethod, generalSettings.bailout);
         }
 
-        void checkInteriorAndApplyBatch(const SIMDChunk<double> &chunk, std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> &dz,
-                                   const float interiorDetectRadius, const bool isAbs, const itt::ptb maxIteration,
-                                   std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finished, const Num &dcMax0,
-                                   const std::array<itt::ptb, RFF_SIMD_CHUNK_SIZE> &absIteration,
-                                   std::array<std::array<complex<Num>, PERIODIC_POINT_HISTORY_LENGTH>, RFF_SIMD_CHUNK_SIZE> &pdz,
-                                   std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &pdzIndex, uint32_t i) const noexcept {
+        void checkInteriorAndApplyBatch(
+                const SIMDChunk<double> &chunk, std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> &dz,
+                const float interiorDetectRadius, const bool isAbs, const itt::ptb maxIteration,
+                std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finished, const Num &dcMax0,
+                const std::array<itt::ptb, RFF_SIMD_CHUNK_SIZE> &absIteration,
+                std::array<std::array<complex<Num>, PERIODIC_POINT_HISTORY_LENGTH>, RFF_SIMD_CHUNK_SIZE> &pdz,
+                std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &pdzIndex, uint32_t i) const noexcept {
             if (finished[i])
                 return;
 
@@ -251,10 +258,11 @@ namespace merutilm::rff2 {
             }
         }
 
-        void iterateBatch(SIMDChunk<double> &chunk, std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> &dcs) const noexcept override {
+        void iterateBatch(SIMDChunk<double> &chunk,
+                          std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> &dcs) const noexcept override {
             if (state.interruptRequested())
                 return;
-            //TODO Change to AVX512 instructions
+            // TODO Change to AVX512 instructions
             std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> dcs0;
             for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
                 dcs0[i] = static_cast<complex<Num>>(dcs[i] + off);
@@ -341,9 +349,6 @@ namespace merutilm::rff2 {
             }
 
 
-            const bool noComp = reference.compressor.size() == 0;
-
-
             while (std::ranges::any_of(finished, [](const uint8_t a) { return !a; })) {
 
                 table.lookupBatch(pas, refIteration, dz, finished);
@@ -365,45 +370,28 @@ namespace merutilm::rff2 {
                 }
 
 
-                if (noComp) {
-                    for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-                        assert(refIteration[i] != maxRefIteration);
-                        oldZ2[i] = reference.refOrbit[refIteration[i]] * 2;
-                        oldPtbZ[i] = oldZ2[i] + dz[i];
-                        dz[i] = (oldPtbZ[i] * dz[i] + dcs0[i]) * (1 - finished[i]);
+                for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
+                    assert(refIteration[i] != maxRefIteration);
+                    oldZ2[i] = reference.view.get(refIteration[i]) * 2;
+                    oldPtbZ[i] = oldZ2[i] + dz[i];
+                    dz[i] = (oldPtbZ[i] * dz[i] + dcs0[i]) * (1 - finished[i]);
 
-                        ++refIteration[i];
-                        ++iteration[i];
-                        ++absIteration[i];
+                    ++refIteration[i];
+                    ++iteration[i];
+                    ++absIteration[i];
 
-                        z[i] = reference.refOrbit[refIteration[i]] + dz[i];
-                        prevDistance2[i] = currDistance2[i];
-                        currDistance2[i] = static_cast<complex<double>>(z[i]).norm_sqr();
-                    }
-                } else {
-
-                    for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-                        assert(refIteration[i] != maxRefIteration);
-                        oldZ2[i] = reference.orbit(refIteration[i]) * 2;
-                        oldPtbZ[i] = oldZ2[i] + dz[i];
-                        dz[i] = (oldPtbZ[i] * dz[i] + dcs0[i]) * (1 - finished[i]);
-
-                        ++refIteration[i];
-                        ++iteration[i];
-                        ++absIteration[i];
-
-                        z[i] = reference.orbit(refIteration[i]) + dz[i];
-                        prevDistance2[i] = currDistance2[i];
-                        currDistance2[i] = static_cast<complex<double>>(z[i]).norm_sqr();
-                    }
+                    z[i] = reference.view.get(refIteration[i]) + dz[i];
+                    prevDistance2[i] = currDistance2[i];
+                    currDistance2[i] = static_cast<complex<double>>(z[i]).norm_sqr();
                 }
+
 
                 for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
                     if (refIteration[i] == maxRefIteration || z[i].max() < dz[i].max()) {
                         refIteration[i] = 0;
                         dz[i] = z[i];
-                        checkInteriorAndApplyBatch(chunk, dz, interiorDetectRadius, isAbs, maxIteration, finished, dcMax0,
-                                              absIteration, pdz, pdzIndex, i);
+                        checkInteriorAndApplyBatch(chunk, dz, interiorDetectRadius, isAbs, maxIteration, finished,
+                                                   dcMax0, absIteration, pdz, pdzIndex, i);
                     }
                     dz[i] = dz[i].try_normalized_value();
                 }

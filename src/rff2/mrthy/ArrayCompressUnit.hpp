@@ -21,29 +21,29 @@ namespace merutilm::rff2 {
      * @param start the start index of uncompressed array
      * @param end the end index of uncompressed array
      */
-    template <typename NumType>
+    template <typename Index>
     struct ArrayCompressUnit {
-        const NumType rebase;
-        const NumType start;
-        const NumType end;
+        const Index rebase;
+        const Index start;
+        const Index end;
 
-        explicit ArrayCompressUnit(NumType rebase, NumType start, NumType end);
+        explicit ArrayCompressUnit(Index rebase, Index start, Index end);
 
         /**
         * Gets the range of current tool : @code end - start + 1@endcode
         * @return The range of current tool.
         */
-        [[nodiscard]] NumType range() const;
+        [[nodiscard]] Index range() const;
     };
 
 
-    template <typename NumType>
-    ArrayCompressUnit<NumType>::ArrayCompressUnit(const NumType rebase, const NumType start,
-                                                      const NumType end) : rebase(rebase), start(start), end(end) {
+    template <typename Index>
+    ArrayCompressUnit<Index>::ArrayCompressUnit(const Index rebase, const Index start,
+                                                      const Index end) : rebase(rebase), start(start), end(end) {
     }
 
-    template <typename NumType>
-    NumType ArrayCompressUnit<NumType>::range() const {
+    template <typename Index>
+    Index ArrayCompressUnit<Index>::range() const {
         return end - start + 1;
     }
 

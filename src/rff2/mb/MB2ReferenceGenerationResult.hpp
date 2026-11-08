@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../calc/templates.hpp"
-#include "../mrthy/SRPCResult.hpp"
+#include "../mrthy/SRPCData.hpp"
 #include "ReferenceCheckpoint.hpp"
 namespace merutilm::rff2 {
 
@@ -14,7 +14,7 @@ namespace merutilm::rff2 {
         std::vector<itt::ref> generatedPeriods;
         complex<Num> fpgBn;
         std::vector<ReferenceCheckpoint> checkpoints;
-        SRPCResult<complex<Num>> srpcResult;
+        SRPCData<itt::ref, complex<Num>> srpcData;
 
     };
 }
