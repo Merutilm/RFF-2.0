@@ -7,8 +7,8 @@
 #include <format>
 
 #include <cassert>
-#include "../util/Utilities.h"
 #include "../util/ImGuiUtils.hpp"
+#include "../util/Utilities.h"
 
 #include "../mb/MB2Locator.hpp"
 
@@ -55,8 +55,9 @@ namespace merutilm::rff2 {
     void FnExplore::moveToCenter(RFF2 &app) {
         const MB2RenderDataBase *renderData = app.getCurrentRenderData();
         auto &frt = app.getSettings().fractal;
-        const bool disable = !renderData || renderData->lastResult != RFFResult::SUCCESS;
-        if (disable) ImGui::BeginDisabled();
+        const bool disable = !renderData || !renderData->getReference();
+        if (disable)
+            ImGui::BeginDisabled();
         if (!frt.reference.reuse && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
             assert(renderData->getReference());
             const int64_t exp10 = Perturbator::getExp10WithSettings(frt.reference, renderData->getReference()->logZoom);
@@ -66,7 +67,8 @@ namespace merutilm::rff2 {
             frt.reference.center = std::move(center);
             app.getRequests().requestRecompute();
         }
-        if (disable) ImGui::EndDisabled();
+        if (disable)
+            ImGui::EndDisabled();
     }
 
 
@@ -77,9 +79,9 @@ namespace merutilm::rff2 {
         auto &frt = app.getSettings().fractal;
 
         const bool disable = !renderData || !renderData->getReference();
-        if (disable) ImGui::BeginDisabled();
-        if (frt.reference.reuse &&
-            ImGui::Button("Go to Original Reference", ImVec2(-FLT_MIN, 0))) {
+        if (disable)
+            ImGui::BeginDisabled();
+        if (frt.reference.reuse && ImGui::Button("Go to Original Reference", ImVec2(-FLT_MIN, 0))) {
             assert(renderData->getReference());
             const double startTime = app.rootWindowContext->getWindow()->getTime();
             frt.reference.center = renderData->getReference()->center;
@@ -92,21 +94,21 @@ namespace merutilm::rff2 {
             } else {
                 vkh::logger::log_err("Please do not try to use incomplete Reference.");
             }
-
         }
-        if (disable) ImGui::EndDisabled();
+        if (disable)
+            ImGui::EndDisabled();
     }
 
     void FnExplore::locateCenteredReference(RFF2 &app) {
 
-        std::unique_ptr<MB2RenderDataBase> &data = app.getCurrentRenderDataOwnRef();
+        auto data = app.getCurrentRenderData();
         Settings &settings = app.getSettings();
 
         const bool disable = !data || !data->getReference();
-        if (disable) ImGui::BeginDisabled();
+        if (disable)
+            ImGui::BeginDisabled();
 
-        if (!settings.fractal.reference.reuse &&
-            ImGui::Button("Locate Centered Reference", ImVec2(-FLT_MIN, 0))) {
+        if (!settings.fractal.reference.reuse && ImGui::Button("Locate Centered Reference", ImVec2(-FLT_MIN, 0))) {
             ParallelRenderState &state = app.getState();
 
             state.createThread([&app, &data, &settings] {
@@ -123,15 +125,17 @@ namespace merutilm::rff2 {
                 frt.general.logZoom = result->logZoom;
                 const dex dcMax = app.calcDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
                 const int64_t refExp10 = Perturbator::getExp10WithSettings(frt.reference, frt.general.logZoom);
-                data = app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom,
-                                                       startTime, frt, dcMax, refExp10, data->getReference()->length());
+                if (app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom, startTime,
+                                                    frt, dcMax, refExp10,
+                                                    data->getReference()->length()) == RFFResult::SUCCESS) {
 
-                settings.fractal.reference.reuse = true;
-                app.getRequests().requestRecompute();
+                    settings.fractal.reference.reuse = true;
+                    app.getRequests().requestRecompute();
+                }
             });
         }
-        if (disable) ImGui::EndDisabled();
-
+        if (disable)
+            ImGui::EndDisabled();
     }
 
     void FnExplore::locateMinibrot(RFF2 &app) {
@@ -139,7 +143,8 @@ namespace merutilm::rff2 {
         Settings &settings = app.getSettings();
         const MB2RenderDataBase *data = app.getCurrentRenderData();
         const bool disabled = !data || !data->getReference();
-        if (disabled) ImGui::BeginDisabled();
+        if (disabled)
+            ImGui::BeginDisabled();
 
         if (!settings.fractal.reference.reuse) {
             ImGui::Separator();
@@ -175,7 +180,8 @@ namespace merutilm::rff2 {
                 });
             }
         }
-        if (disabled) ImGui::EndDisabled();
+        if (disabled)
+            ImGui::EndDisabled();
     }
 
 } // namespace merutilm::rff2

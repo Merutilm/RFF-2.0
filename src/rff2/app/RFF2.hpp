@@ -166,8 +166,6 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] MB2RenderDataBase *getCurrentRenderData() const { return renderData.get(); }
 
-        [[nodiscard]] std::unique_ptr<MB2RenderDataBase> &getCurrentRenderDataOwnRef() { return renderData; }
-
         [[nodiscard]] ApproxTableCache &getApproxTableCache() const { return *approxTableCache; }
 
         [[nodiscard]] UpdateRequests &getRequests() { return requests; }

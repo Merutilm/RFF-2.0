@@ -56,7 +56,7 @@ namespace merutilm::rff2 {
         static RFFResult
         generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                           const FrtReferenceSettings &refSettings, int32_t exp10, size_t refInitialCapacity, dex dcMax,
-                          FnRefCalc &&fnRefCalc, std::unique_ptr<MB2Reference> *result);
+                          FnRefCalc &&fnRefCalc, std::unique_ptr<MB2Reference> &result);
 
         [[nodiscard]] complex<Num> orbit(itt::ref refIteration) const;
 
@@ -69,19 +69,18 @@ namespace merutilm::rff2 {
     RFFResult MB2Reference<Num>::generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                                          const FrtReferenceSettings &refSettings, int32_t exp10,
                                          size_t refInitialCapacity, dex dcMax, FnRefCalc &&fnRefCalc,
-                                         std::unique_ptr<MB2Reference> *result) {
+                                         std::unique_ptr<MB2Reference> &result) {
         MB2ReferenceGenerator<Num, FnRefCalc> generator(state, generalSettings, refSettings, exp10, refInitialCapacity, dcMax, std::move(fnRefCalc));
         MB2ReferenceGenerationResult<Num> generationResult;
-        RFFResult r;
-        if ((r = generator.generate(generationResult)) != RFFResult::SUCCESS) {
+        if (const RFFResult r = generator.generate(generationResult); r != RFFResult::SUCCESS) {
             return r;
         }
 
-        *result = std::make_unique<MB2Reference>(generalSettings, refSettings, std::move(generationResult.center),
+        result = std::make_unique<MB2Reference>(generalSettings, refSettings, std::move(generationResult.center),
                                                  std::move(generationResult.srpcResult.compressor), std::move(generationResult.generatedPeriods),
                                                  std::move(generationResult.checkpoints), static_cast<complex<dex>>(generationResult.fpgBn),
                                                  generalSettings.logZoom, dcMax);
-        (*result)->refOrbit = std::move(generationResult.srpcResult.compressedArray);
+        result->refOrbit = std::move(generationResult.srpcResult.compressedArray);
 
         return RFFResult::SUCCESS;
     }

@@ -123,29 +123,32 @@ namespace merutilm::rff2 {
             // it is threaded, do not notify
         }
     }
-    RFFResult
-    RFF2::createAppropriateRenderData(const bool computeShader, const double logZoomTest, const double startTime,
-                                      const FractalSettings &frt, const dex dcMax, const int64_t exp10,
-                                      const size_t refInitialCapacity) {
+    RFFResult RFF2::createAppropriateRenderData(const bool computeShader, const double logZoomTest,
+                                                const double startTime, const FractalSettings &frt, const dex dcMax,
+                                                const int64_t exp10, const size_t refInitialCapacity) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
                 return FexMB2RenderData::createRenderData(state, frt, computeShader, *approxTableCache, dcMax, exp10,
                                                           refInitialCapacity, getFnRefCalc(startTime),
-                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime), renderData);
+                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime),
+                                                          renderData);
             } else {
-                return FloatMB2RenderData::createRenderData(
-                        state, frt, computeShader, *approxTableCache, dcMax, exp10, refInitialCapacity,
-                        getFnRefCalc(startTime), getFnSeriesApprox(startTime), getFnCreatingTable(startTime), renderData);
+                return FloatMB2RenderData::createRenderData(state, frt, computeShader, *approxTableCache, dcMax, exp10,
+                                                            refInitialCapacity, getFnRefCalc(startTime),
+                                                            getFnSeriesApprox(startTime), getFnCreatingTable(startTime),
+                                                            renderData);
             }
         } else {
             if (logZoomTest > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
                 return DexMB2RenderData::createRenderData(state, frt, computeShader, *approxTableCache, dcMax, exp10,
                                                           refInitialCapacity, getFnRefCalc(startTime),
-                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime), renderData);
+                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime),
+                                                          renderData);
             } else {
-                return DoubleMB2RenderData::createRenderData(
-                        state, frt, computeShader, *approxTableCache, dcMax, exp10, refInitialCapacity,
-                        getFnRefCalc(startTime), getFnSeriesApprox(startTime), getFnCreatingTable(startTime), renderData);
+                return DoubleMB2RenderData::createRenderData(state, frt, computeShader, *approxTableCache, dcMax, exp10,
+                                                             refInitialCapacity, getFnRefCalc(startTime),
+                                                             getFnSeriesApprox(startTime),
+                                                             getFnCreatingTable(startTime), renderData);
             }
         }
     }
@@ -858,9 +861,9 @@ namespace merutilm::rff2 {
                 matchSettingsBeforeCreatingRenderData(s);
                 switch (recomputeMode) {
                     using enum RecomputeMode;
-                    case ALL:
-                        RFFResult r;
-                        if ((r = prepareRenderData(start, s)) == RFFResult::ERROR_NULL) {
+                    case ALL: {
+                        const RFFResult r = prepareRenderData(start, s);
+                        if (r == RFFResult::ERROR_NULL) {
                             this->settings.fractal.reference.reuse = false;
                             vkh::logger::log_err("Do not reuse Reference during reference calculation!");
                             requests.requestRecompute();
@@ -869,7 +872,8 @@ namespace merutilm::rff2 {
 
                         success = r == RFFResult::SUCCESS;
                         break;
-                    case APPROX:
+                    }
+                    case APPROX: {
                         if (!renderData) {
                             vkh::logger::log_err("Do not request \"recreate Approximation\" for incomplete reference!");
                             break;
@@ -877,15 +881,16 @@ namespace merutilm::rff2 {
 
                         renderData->fractalSettings.sa = s.fractal.sa;
                         renderData->fractalSettings.mpa = s.fractal.mpa;
-                        renderData->fractalSettings.perturb = s.fractal.perturb;
 
-                        if (renderData->regenerateApprox(getFnSeriesApprox(start), getFnCreatingTable(start)) != RFFResult::SUCCESS) {
+                        if (renderData->regenerateApprox(getFnSeriesApprox(start), getFnCreatingTable(start)) !=
+                            RFFResult::SUCCESS) {
                             vkh::logger::log_err("Do not request \"recreate Approximation\" for incomplete reference!");
                             success = false;
-                        }else {
+                        } else {
                             success = true;
                         }
                         break;
+                    }
                     default:
                         throw vkh::exception_invalid_args("Unknown recompute mode");
                 }
@@ -974,15 +979,17 @@ namespace merutilm::rff2 {
             if (!renderData || !renderData->getReference()) {
                 return RFFResult::ERROR_NULL;
             }
-            if (RFFResult r; (r = renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center,
-                                  getFnSeriesApprox(startTime))) != RFFResult::SUCCESS) {
+            if (const RFFResult r = renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center,
+                                                          getFnSeriesApprox(startTime));
+                r != RFFResult::SUCCESS) {
                 return r;
             }
         } else {
             renderData = nullptr;
 
-            if (RFFResult r; (r = createAppropriateRenderData(s.render.computeShader.use, logZoom, startTime, frt, dcMax, exp10,
-                                                     capacity)) != RFFResult::SUCCESS) {
+            if (const RFFResult r = createAppropriateRenderData(s.render.computeShader.use, logZoom, startTime, frt,
+                                                                dcMax, exp10, capacity);
+                r != RFFResult::SUCCESS) {
                 return r;
             }
         }

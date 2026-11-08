@@ -44,10 +44,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<SeriesApproximationData> seriesApproxData;
         std::unique_ptr<MB2Perturbator<Num>> perturbator;
 
-        template<FnListeners::FnRefCalc FnRefCalc>
-        explicit MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, bool computeShaderUsed,
-                               ApproxTableCache &cache, dex dcMax, int64_t exp10, uint64_t refInitialCapacity,
-                               FnRefCalc &&fnRefCalc);
+        using MB2RenderDataBase::MB2RenderDataBase;
 
         template<FnListeners::FnRefCalc FnRefCalc, FnListeners::FnSeriesApprox FnSeriesApprox,
              FnListeners::FnCreatingTable FnCreatingTable>
@@ -74,26 +71,20 @@ namespace merutilm::rff2 {
 
 
     template<Number Num>
-    template<FnListeners::FnRefCalc FnRefCalc>
-    MB2RenderData<Num>::MB2RenderData(ParallelRenderState &state, const FractalSettings &frt,
-                                      const bool computeShaderUsed, ApproxTableCache &cache, const dex dcMax,
-                                      const int64_t exp10, const uint64_t refInitialCapacity, FnRefCalc &&fnRefCalc) :
-        MB2RenderDataBase(state, frt, computeShaderUsed, cache) {
-
-        if (!MB2Reference<Num>::generateReference(state, frt.general, frt.reference, exp10, refInitialCapacity,
-                                                       dcMax, std::move(fnRefCalc), &reference)) return;
-
-        applyAutoMaxIteration();
-    }
-    template<Number Num>
     template<FnListeners::FnRefCalc FnRefCalc, FnListeners::FnSeriesApprox FnSeriesApprox,
              FnListeners::FnCreatingTable FnCreatingTable>
     RFFResult MB2RenderData<Num>::createRenderData(ParallelRenderState &state, const FractalSettings &frt, bool computeShaderUsed,
                                ApproxTableCache &cache, dex dcMax, int64_t exp10, uint64_t refInitialCapacity,
                                FnRefCalc &&fnRefCalc, FnSeriesApprox &&fnSeriesApprox,
                                FnCreatingTable &&fnCreatingTable, std::unique_ptr<MB2RenderDataBase> &result) {
-        result = std::make_unique<MB2RenderData>(state, frt, computeShaderUsed, cache, dcMax, exp10, refInitialCapacity, std::move(fnRefCalc));
-        return regenerateApprox(std::move(fnSeriesApprox), std::move(fnCreatingTable));
+        result = std::make_unique<MB2RenderData>(state, frt, computeShaderUsed, cache);
+        MB2RenderData &instance = dynamic_cast<MB2RenderData &>(*result);
+        const RFFResult r = MB2Reference<Num>::generateReference(state, frt.general, frt.reference, exp10, refInitialCapacity,
+                                                               dcMax, std::move(fnRefCalc), instance.reference);
+        if (r != RFFResult::SUCCESS) return r;
+
+        instance.applyAutoMaxIteration();
+        return instance.regenerateApprox(std::move(fnSeriesApprox), std::move(fnCreatingTable));
     }
 
     template<Number Num>
@@ -102,11 +93,11 @@ namespace merutilm::rff2 {
         if (!reference) return RFFResult::ERROR_NULL;
 
         seriesApproxData = std::make_unique<SeriesApproximationData>();
-
-        RFFResult r;
-        if ((r = generateSeriesApproxTerms(reference->dcMax, std::move(fnSeriesApprox))) != RFFResult::SUCCESS) {
+        if (const RFFResult r = generateSeriesApproxTerms(reference->dcMax, std::move(fnSeriesApprox));
+            r != RFFResult::SUCCESS) {
             return r;
         }
+
 
         table = std::make_unique<MPATable<Num>>(state, *reference, cache, fractalSettings.general, fractalSettings.mpa,
                                                 computeShaderUsed, Num(reference->dcMax), std::move(fnCreatingTable));
@@ -214,8 +205,7 @@ namespace merutilm::rff2 {
         fractalSettings.general.logZoom = logZoom;
 
         applyAutoMaxIteration();
-        generateSeriesApproxTerms(dcMax, std::move(fnSeriesApprox));
-        return RFFResult::SUCCESS;
+        return generateSeriesApproxTerms(dcMax, std::move(fnSeriesApprox));
     }
 
     template<Number Num>
