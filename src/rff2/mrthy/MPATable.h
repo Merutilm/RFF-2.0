@@ -177,7 +177,7 @@ namespace merutilm::rff2 {
         }
 
         this->mpaPeriod = MPAPeriod::generate(referencePeriod, mpaSettings);
-        this->pulledMPACompressor = generateMPACompressor(reference.data.compressor);
+        this->pulledMPACompressor = generateMPACompressor(reference.getCompressor());
         return true;
     }
 
@@ -808,7 +808,7 @@ namespace merutilm::rff2 {
             threads[i] = std::make_unique<std::jthread>([this, &reference, &state, &fnCreatingTable, dcMax, i,
                                                          itInterval, &tablePeriod, longestPeriod, epsilon, levels,
                                                          &partialPAs, threadCount] {
-                const uint64_t startIteration = itInterval * i + 1;
+                const itt::ref startIteration = itInterval * i + 1;
                 if (startIteration > longestPeriod || state.interruptRequested()) {
                     return;
                 }

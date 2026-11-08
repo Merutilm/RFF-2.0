@@ -123,7 +123,7 @@ namespace merutilm::rff2 {
         std::ranges::fill(terms, complex<dex>::ZERO);
         constexpr dex two{2};
         itt::ref skip = 0;
-
+        auto cursor = reference->makeCursor();
 
         for (skip = 0; skip < reference->longestPeriod() - 1; ++skip) {
             if (state.interruptRequested())
@@ -131,7 +131,7 @@ namespace merutilm::rff2 {
 
             fnSeriesApprox(static_cast<double>(skip) / reference->longestPeriod());
 
-            const complex<Num> zn = reference->orbit(skip);
+            const complex<Num> zn = cursor.get(skip);
             const complex z2 = {dex(zn.re) * two, dex(zn.im) * two};
 
             // next term

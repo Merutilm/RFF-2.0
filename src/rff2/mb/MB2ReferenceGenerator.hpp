@@ -282,7 +282,7 @@ namespace merutilm::rff2 {
                                                  .generatedPeriods = std::move(periodArray),
                                                  .fpgBn = std::move(fpgBn),
                                                  .checkpoints = std::move(checkpoints),
-                                                 .srpcData = processor.finish()};
+                                                 .srpcData = std::move(processor).finish()};
         return RFFResult::SUCCESS;
     }
 } // namespace merutilm::rff2

@@ -7,12 +7,10 @@
 
 #include "../app/FnListeners.hpp"
 #include "../calc/fixed_point_complex.hpp"
-#include "../mrthy/ArrayCompressUnit.hpp"
-#include "../mrthy/SRPCView.hpp"
+#include "../mrthy/SRPCCursor.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtReferenceSettings.hpp"
-#include "../util/ArrayCompressorUtils.hpp"
 #include "MB2ReferenceGenerationResult.hpp"
 #include "MB2ReferenceGenerator.hpp"
 #include "RFFResult.hpp"
@@ -45,11 +43,11 @@ namespace merutilm::rff2 {
     };
 
     template<Number Num>
-    struct MB2Reference final : MB2ReferenceBase {
+    class MB2Reference final : public MB2ReferenceBase {
 
         SRPCData<itt::ref, complex<Num>> data;
-        SRPCView<itt::ref, complex<Num>> view;
 
+    public:
         using MB2ReferenceBase::MB2ReferenceBase;
 
 
@@ -59,9 +57,18 @@ namespace merutilm::rff2 {
                                            size_t refInitialCapacity, dex dcMax, FnRefCalc &&fnRefCalc,
                                            std::unique_ptr<MB2Reference> &result);
 
-        [[nodiscard]] complex<Num> orbit(itt::ref refIteration) const;
+        [[nodiscard]] SRPCCursor<itt::ref, complex<Num>> makeCursor() const {
+            return SRPCCursor<itt::ref, complex<Num>>(data);
+        }
 
         [[nodiscard]] size_t length() const override;
+
+        [[nodiscard]] const std::vector<complex<Num>> &getCompressedArray() const {
+            return data.compressedArray;
+        }
+        [[nodiscard]] const ReferenceCompressor &getCompressor() const {
+            return data.compressor;
+        }
     };
 
 
@@ -84,14 +91,8 @@ namespace merutilm::rff2 {
                 std::move(generationResult.generatedPeriods), std::move(generationResult.checkpoints),
                 static_cast<complex<dex>>(generationResult.fpgBn), generalSettings.logZoom, dcMax);
         result->data = std::move(generationResult.srpcData);
-        result->view = SRPCView<itt::ref, complex<Num>>(result->data);
 
         return RFFResult::SUCCESS;
-    }
-
-    template<Number Num>
-    complex<Num> MB2Reference<Num>::orbit(const itt::ref refIteration) const {
-        return view.get(refIteration);
     }
 
     template<Number Num>

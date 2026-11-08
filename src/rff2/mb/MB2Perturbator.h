@@ -141,11 +141,11 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        complex<Num> perturbationStep(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
+        complex<Num> perturbationStep(SRPCCursor<itt::ref, complex<Num>> &cursor, complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
                                       itt::ref &refIteration) const {
             // TODO optimize
-            dz = (reference.orbit(refIteration) * 2 + dz) * dz + dc;
-            const complex<Num> z = reference.orbit(refIteration + 1) + dz;
+            dz = (cursor.get(refIteration) * 2 + dz) * dz + dc;
+            const complex<Num> z = cursor.get(refIteration + 1) + dz;
 
             ++iteration;
             ++refIteration;
@@ -177,7 +177,8 @@ namespace merutilm::rff2 {
             const double bailout2 = generalSettings.bailout * generalSettings.bailout;
 
             // basic interior detection
-            complex<Num> c = reference.orbit(1) + dc0;
+            SRPCCursor cursor = reference.makeCursor();
+            complex<Num> c = cursor.get(1) + dc0;
             if (checkInteriorBasic(c)) {
                 return isAbs ? 1 : static_cast<double>(maxIteration);
             }
@@ -202,7 +203,7 @@ namespace merutilm::rff2 {
 
                 assert(refIteration < maxRefIteration);
 
-                const complex<Num> z = perturbationStep(dz, dc0, iteration, refIteration);
+                const complex<Num> z = perturbationStep(cursor, dz, dc0, iteration, refIteration);
 
                 if (tryRebase(z, dz, refIteration, maxRefIteration) &&
                     checkInteriorAndApply(dz, dcMax0, interiorDetectRadius, pdz, pdzIndex)) {
@@ -271,7 +272,7 @@ namespace merutilm::rff2 {
             std::array<itt::ptb, RFF_SIMD_CHUNK_SIZE> iteration;
             std::array<itt::ref, RFF_SIMD_CHUNK_SIZE> refIteration;
             std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> dz;
-
+            SRPCCursor<itt::ref, complex<Num>> cursor = reference.makeCursor();
 
             if (saSettings.use) {
                 std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> dcSa;
@@ -336,7 +337,7 @@ namespace merutilm::rff2 {
                 oldZ2[i] = complex<Num>::ZERO;
                 oldPtbZ[i] = complex<Num>::ZERO;
                 z[i] = complex<Num>::ZERO;
-                c[i] = reference.orbit(1) + dcs0[i];
+                c[i] = cursor.get(1) + dcs0[i];
                 resultCurrDistance2[i] = 0;
                 resultPrevDistance2[i] = 0;
             }
@@ -372,7 +373,7 @@ namespace merutilm::rff2 {
 
                 for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
                     assert(refIteration[i] != maxRefIteration);
-                    oldZ2[i] = reference.view.get(refIteration[i]) * 2;
+                    oldZ2[i] = cursor.get(refIteration[i]) * 2;
                     oldPtbZ[i] = oldZ2[i] + dz[i];
                     dz[i] = (oldPtbZ[i] * dz[i] + dcs0[i]) * (1 - finished[i]);
 
@@ -380,7 +381,7 @@ namespace merutilm::rff2 {
                     ++iteration[i];
                     ++absIteration[i];
 
-                    z[i] = reference.view.get(refIteration[i]) + dz[i];
+                    z[i] = cursor.get(refIteration[i]) + dz[i];
                     prevDistance2[i] = currDistance2[i];
                     currDistance2[i] = static_cast<complex<double>>(z[i]).norm_sqr();
                 }

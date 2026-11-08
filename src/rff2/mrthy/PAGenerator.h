@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
         itt::ref skip = 0;
         const float epsilon;
 
-        const SRPCView<itt::ref, complex<Num>> &orbitView;
+        SRPCCursor<itt::ref, complex<Num>> cursor;
         const Num dcMax;
         complex<Num> an = complex<Num>::ONE;
         complex<Num> bn = complex<Num>::ZERO;
@@ -49,13 +49,14 @@ namespace merutilm::rff2 {
         this->skip = 0;
         an = complex<Num>::ONE;
         bn = complex<Num>::ZERO;
+        cursor.reset();
         radius = rff_math::try_normalized_value(Num(DBL_MAX));
     }
 
     template<Number Num>
     PAGenerator<Num>::PAGenerator(const MB2Reference<Num> &reference, const float epsilon, Num dcMax,
                                   const itt::ref start) :
-        start(start), epsilon(epsilon), orbitView(reference.view), dcMax(dcMax) {}
+        start(start), epsilon(epsilon), cursor(reference.makeCursor()), dcMax(dcMax) {}
 
     template<Number Num>
     void PAGenerator<Num>::merge(const PAGenerator &target) {
@@ -101,7 +102,7 @@ namespace merutilm::rff2 {
 #ifdef NDEBUG
         if (rff_math::is_zero(this->radius)) return; //skip useless operation
 #endif
-        const complex<Num> z2 = 2.0f * this->orbitView.get(iter);
+        const complex<Num> z2 = 2.0f * cursor.get(iter);
 
         this->radius = rff_math::try_normalized_value(
                 std::clamp((this->epsilon * z2.max() - bn.max() * this->dcMax) / an.max(), Num(0), this->radius));

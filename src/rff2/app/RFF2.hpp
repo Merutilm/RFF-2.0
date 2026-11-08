@@ -253,7 +253,7 @@ namespace merutilm::rff2 {
         target->setMPAIgnore(s.render.computeShader.completelyIgnoreMpa);
         target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
         target->clearWriteBuffer(commandPool);
-        target->setMeta(s.fractal, s.render, dynamic_cast<MB2Reference<Num> *>(renderData->getReference())->data.compressedArray,
+        target->setMeta(s.fractal, s.render, dynamic_cast<MB2Reference<Num> *>(renderData->getReference())->getCompressedArray(),
                         renderData->getReference()->longestPeriod(),
                         static_cast<complex<Num>>(renderData->getPerturbator()->off),
                         static_cast<uint64_t>(s.fractal.perturb.maxIteration), tableData, mapperData, commandPool);
