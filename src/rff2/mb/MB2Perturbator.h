@@ -254,7 +254,7 @@ namespace merutilm::rff2 {
         void iterateBatch(SIMDChunk<double> &chunk, std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> &dcs) const noexcept override {
             if (state.interruptRequested())
                 return;
-
+            //TODO Change to AVX512 instructions
             std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> dcs0;
             for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
                 dcs0[i] = static_cast<complex<Num>>(dcs[i] + off);

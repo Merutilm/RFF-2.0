@@ -5,7 +5,7 @@
 #pragma once
 #include <vector>
 
-
+#include <cassert>
 #include "../calc/iteration_types.hpp"
 #include "SRPCResult.hpp"
 #include "SRPCSegment.hpp"
@@ -34,8 +34,7 @@ namespace merutilm::rff2 {
 
 
         void put(const T &value) {
-            if (minCompressSize > 0 && result.compressedArray.size() > 1 && approx.approximately(value, result.compressedArray[refIndex])) {
-                assert(refIndex < result.compressedArray.size());
+            if (minCompressSize > 0 && result.compressedArray.size() > 1 && refIndex < result.compressedArray.size() && approx.approximately(value, result.compressedArray[refIndex])) {
                 processSegment(value);
             } else {
                 if (!segmentStack.empty()) {
@@ -87,7 +86,7 @@ namespace merutilm::rff2 {
             }
 
             SRPCSegment *topPtr = &segmentStack.back();
-
+            assert(topPtr->remained > 0);
             --topPtr->remained;
             ++refIndex;
 
@@ -128,6 +127,7 @@ namespace merutilm::rff2 {
                     popped = *topPtr;
                     segmentStack.pop_back();
                     if (!segmentStack.empty()) {
+                        assert(segmentStack.back().remained >= popped.maxCompressionSize);
                         segmentStack.back().remained -= popped.maxCompressionSize;
                         topPtr = &segmentStack.back();
                     }
