@@ -8,6 +8,7 @@
 #include "../settings/FractalSettings.h"
 #include "MB2Perturbator.h"
 #include "MB2Reference.h"
+#include "RFFResult.hpp"
 #include "SeriesApproximationData.hpp"
 namespace merutilm::rff2 {
 
@@ -17,7 +18,6 @@ namespace merutilm::rff2 {
         FractalSettings fractalSettings;
         bool computeShaderUsed;
         ApproxTableCache &cache;
-        bool lastSuccess = false;
 
         explicit MB2RenderDataBase(ParallelRenderState &state, FractalSettings frt, bool computeShaderUsed,
                                    ApproxTableCache &cache) :
@@ -28,9 +28,10 @@ namespace merutilm::rff2 {
         [[nodiscard]] virtual MB2ReferenceBase *getReference() const = 0;
         [[nodiscard]] virtual MB2PerturbatorBase *getPerturbator() const = 0;
 
-        virtual bool regenerateTable(FnListeners::FnCreatingTableW &&fnCreatingTable) = 0;
+        virtual RFFResult regenerateApprox(FnListeners::FnSeriesApproxW &&fnSeriesApprox,
+                                           FnListeners::FnCreatingTableW &&fnCreatingTable) = 0;
 
-        virtual void translate(double logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
+        virtual RFFResult translate(double logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
                                const fixed_point_complex &newCenter, FnListeners::FnSeriesApproxW &&fnSeriesApprox) = 0;
     };
 
@@ -43,69 +44,84 @@ namespace merutilm::rff2 {
         std::unique_ptr<SeriesApproximationData> seriesApproxData;
         std::unique_ptr<MB2Perturbator<Num>> perturbator;
 
-        template<FnListeners::FnRefCalc FnRefCalc, FnListeners::FnSeriesApprox FnSeriesApprox,
-                 FnListeners::FnCreatingTable FnCreatingTable>
+        template<FnListeners::FnRefCalc FnRefCalc>
         explicit MB2RenderData(ParallelRenderState &state, const FractalSettings &frt, bool computeShaderUsed,
                                ApproxTableCache &cache, dex dcMax, int64_t exp10, uint64_t refInitialCapacity,
-                               FnRefCalc &&fnRefCalc, FnSeriesApprox &&fnSeriesApprox,
-                               FnCreatingTable &&fnCreatingTable);
+                               FnRefCalc &&fnRefCalc);
 
-        bool regenerateTable(FnListeners::FnCreatingTableW &&fnCreatingTable) override;
+        template<FnListeners::FnRefCalc FnRefCalc, FnListeners::FnSeriesApprox FnSeriesApprox,
+             FnListeners::FnCreatingTable FnCreatingTable>
+        static RFFResult createRenderData(ParallelRenderState &state, const FractalSettings &frt, bool computeShaderUsed,
+                               ApproxTableCache &cache, dex dcMax, int64_t exp10, uint64_t refInitialCapacity,
+                               FnRefCalc &&fnRefCalc, FnSeriesApprox &&fnSeriesApprox,
+                               FnCreatingTable &&fnCreatingTable, std::unique_ptr<MB2RenderDataBase> &result);
+
+        RFFResult regenerateApprox(FnListeners::FnSeriesApproxW &&fnSeriesApprox,
+                                   FnListeners::FnCreatingTableW &&fnCreatingTable) override;
 
         [[nodiscard]] MB2ReferenceBase *getReference() const override { return reference.get(); }
 
         [[nodiscard]] MB2Perturbator<Num> *getPerturbator() const override { return perturbator.get(); }
 
-        void translate(double logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
+        [[nodiscard]] RFFResult translate(double logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
                        const fixed_point_complex &newCenter, FnListeners::FnSeriesApproxW &&fnSeriesApprox) override;
 
         template<FnListeners::FnSeriesApprox FnSeriesApprox>
-        void generateSeriesApproxTerms(dex dcMax, FnSeriesApprox &&fnSeriesApprox);
+        RFFResult generateSeriesApproxTerms(dex dcMax, FnSeriesApprox &&fnSeriesApprox);
 
         void applyAutoMaxIteration();
     };
 
 
     template<Number Num>
-    template<FnListeners::FnRefCalc FnRefCalc, FnListeners::FnSeriesApprox FnSeriesApprox,
-             FnListeners::FnCreatingTable FnCreatingTable>
+    template<FnListeners::FnRefCalc FnRefCalc>
     MB2RenderData<Num>::MB2RenderData(ParallelRenderState &state, const FractalSettings &frt,
                                       const bool computeShaderUsed, ApproxTableCache &cache, const dex dcMax,
-                                      const int64_t exp10, const uint64_t refInitialCapacity, FnRefCalc &&fnRefCalc,
-                                      FnSeriesApprox &&fnSeriesApprox, FnCreatingTable &&fnCreatingTable) :
+                                      const int64_t exp10, const uint64_t refInitialCapacity, FnRefCalc &&fnRefCalc) :
         MB2RenderDataBase(state, frt, computeShaderUsed, cache) {
 
-        this->lastSuccess = MB2Reference<Num>::generateReference(
-                state, frt.general, frt.reference, exp10, refInitialCapacity, dcMax, std::move(fnRefCalc), &reference);
-
-        if (!this->lastSuccess) {
-            table = nullptr;
-            perturbator = nullptr;
-            return;
-        }
+        if (!MB2Reference<Num>::generateReference(state, frt.general, frt.reference, exp10, refInitialCapacity,
+                                                       dcMax, std::move(fnRefCalc), &reference)) return;
 
         applyAutoMaxIteration();
-
-        seriesApproxData = std::make_unique<SeriesApproximationData>();
-        generateSeriesApproxTerms(dcMax, std::forward<FnSeriesApprox>(fnSeriesApprox));
-        regenerateTable(std::move(fnCreatingTable));
     }
     template<Number Num>
-    bool MB2RenderData<Num>::regenerateTable(FnListeners::FnCreatingTableW &&fnCreatingTable) {
+    template<FnListeners::FnRefCalc FnRefCalc, FnListeners::FnSeriesApprox FnSeriesApprox,
+             FnListeners::FnCreatingTable FnCreatingTable>
+    RFFResult MB2RenderData<Num>::createRenderData(ParallelRenderState &state, const FractalSettings &frt, bool computeShaderUsed,
+                               ApproxTableCache &cache, dex dcMax, int64_t exp10, uint64_t refInitialCapacity,
+                               FnRefCalc &&fnRefCalc, FnSeriesApprox &&fnSeriesApprox,
+                               FnCreatingTable &&fnCreatingTable, std::unique_ptr<MB2RenderDataBase> &result) {
+        result = std::make_unique<MB2RenderData>(state, frt, computeShaderUsed, cache, dcMax, exp10, refInitialCapacity, std::move(fnRefCalc));
+        return regenerateApprox(std::move(fnSeriesApprox), std::move(fnCreatingTable));
+    }
+
+    template<Number Num>
+    RFFResult MB2RenderData<Num>::regenerateApprox(FnListeners::FnSeriesApproxW &&fnSeriesApprox,
+                                                   FnListeners::FnCreatingTableW &&fnCreatingTable) {
+        if (!reference) return RFFResult::ERROR_NULL;
+
+        seriesApproxData = std::make_unique<SeriesApproximationData>();
+
+        RFFResult r;
+        if ((r = generateSeriesApproxTerms(reference->dcMax, std::move(fnSeriesApprox))) != RFFResult::SUCCESS) {
+            return r;
+        }
+
         table = std::make_unique<MPATable<Num>>(state, *reference, cache, fractalSettings.general, fractalSettings.mpa,
                                                 computeShaderUsed, Num(reference->dcMax), std::move(fnCreatingTable));
         perturbator = std::make_unique<MB2Perturbator<Num>>(
                 state, reference->dcMax, fractalSettings.general, fractalSettings.sa, fractalSettings.perturb,
                 *seriesApproxData, *reference, dynamic_cast<MPATable<Num> &>(*table));
-        return !state.interruptRequested();
+        return state.interruptRequested() ? RFFResult::TERMINATED : RFFResult::SUCCESS;
     }
 
 
     template<Number Num>
     template<FnListeners::FnSeriesApprox FnSeriesApprox>
-    void MB2RenderData<Num>::generateSeriesApproxTerms(const dex dcMax, FnSeriesApprox &&fnSeriesApprox) {
+    RFFResult MB2RenderData<Num>::generateSeriesApproxTerms(const dex dcMax, FnSeriesApprox &&fnSeriesApprox) {
         if (!fractalSettings.sa.use)
-            return;
+            return RFFResult::SUCCESS;
 
         auto &terms = seriesApproxData->terms;
         terms.clear();
@@ -120,7 +136,7 @@ namespace merutilm::rff2 {
 
         for (skip = 0; skip < reference->longestPeriod() - 1; ++skip) {
             if (state.interruptRequested())
-                return;
+                return RFFResult::TERMINATED;
 
             fnSeriesApprox(static_cast<double>(skip) / reference->longestPeriod());
 
@@ -170,31 +186,36 @@ namespace merutilm::rff2 {
         }
 
         seriesApproxData->skippedIterations = skip;
+        return RFFResult::SUCCESS;
     }
 
 
     template<Number Num>
-    void MB2RenderData<Num>::translate(const double logZoom, const dex dcMax, const FrtPerturbSettings &ptbSettings,
+    RFFResult MB2RenderData<Num>::translate(const double logZoom, const dex dcMax, const FrtPerturbSettings &ptbSettings,
                                        const fixed_point_complex &newCenter,
                                        FnListeners::FnSeriesApproxW &&fnSeriesApprox) {
-        if (!lastSuccess) {
+        if (!reference || !perturbator || !table) {
             // try to use incomplete reference
-            vkh::logger::log_err("Please do not try to use incomplete Reference.");
-        } else {
-            const int64_t exp10 = Perturbator::getExp10WithSettings(reference->refSettings, logZoom);
-            fixed_point_complex center = newCenter.create_variant(exp10);
-            const fixed_point_complex refCenter = reference->center.create_variant(exp10);
-            fixed_point_complex::sub(center, center, refCenter);
-
-            perturbator->off = {static_cast<dex>(center.get_real()), static_cast<dex>(center.get_imag())};
-            perturbator->dcMax = dcMax;
-
-            fractalSettings.perturb = ptbSettings;
-            fractalSettings.general.logZoom = logZoom;
-
-            applyAutoMaxIteration();
-            generateSeriesApproxTerms(dcMax, std::move(fnSeriesApprox));
+            return RFFResult::ERROR_NULL;
         }
+
+
+        const int64_t exp10 = Perturbator::getExp10WithSettings(reference->refSettings, logZoom);
+        fixed_point_complex center = newCenter.create_variant(exp10);
+        const fixed_point_complex refCenter = reference->center.create_variant(exp10);
+        fixed_point_complex::sub(center, center, refCenter);
+
+        const dex distance = static_cast<complex<dex>>(center).norm();
+
+        perturbator->off = {static_cast<dex>(center.get_real()), static_cast<dex>(center.get_imag())};
+        perturbator->dcMax = dcMax + distance;
+
+        fractalSettings.perturb = ptbSettings;
+        fractalSettings.general.logZoom = logZoom;
+
+        applyAutoMaxIteration();
+        generateSeriesApproxTerms(dcMax, std::move(fnSeriesApprox));
+        return RFFResult::SUCCESS;
     }
 
     template<Number Num>

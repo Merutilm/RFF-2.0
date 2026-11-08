@@ -5,6 +5,6 @@
 #pragma once
 namespace merutilm::rff2 {
     enum class RecomputeMode {
-        ALL, MP_APPROX_ONLY
+        ALL, APPROX
     };
 }

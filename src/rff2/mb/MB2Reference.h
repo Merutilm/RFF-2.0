@@ -14,6 +14,7 @@
 #include "../util/ArrayCompressorUtils.hpp"
 #include "MB2ReferenceGenerationResult.hpp"
 #include "MB2ReferenceGenerator.hpp"
+#include "RFFResult.hpp"
 #include "Reference.hpp"
 #include "ReferenceCheckpoint.hpp"
 
@@ -52,7 +53,7 @@ namespace merutilm::rff2 {
 
 
         template<FnListeners::FnRefCalc FnRefCalc>
-        static bool
+        static RFFResult
         generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                           const FrtReferenceSettings &refSettings, int32_t exp10, size_t refInitialCapacity, dex dcMax,
                           FnRefCalc &&fnRefCalc, std::unique_ptr<MB2Reference> *result);
@@ -65,14 +66,15 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     template<FnListeners::FnRefCalc FnRefCalc>
-    bool MB2Reference<Num>::generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
+    RFFResult MB2Reference<Num>::generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                                          const FrtReferenceSettings &refSettings, int32_t exp10,
                                          size_t refInitialCapacity, dex dcMax, FnRefCalc &&fnRefCalc,
                                          std::unique_ptr<MB2Reference> *result) {
         MB2ReferenceGenerator<Num, FnRefCalc> generator(state, generalSettings, refSettings, exp10, refInitialCapacity, dcMax, std::move(fnRefCalc));
         MB2ReferenceGenerationResult<Num> generationResult;
-        if (!generator.generate(generationResult)) {
-            return false;
+        RFFResult r;
+        if ((r = generator.generate(generationResult)) != RFFResult::SUCCESS) {
+            return r;
         }
 
         *result = std::make_unique<MB2Reference>(generalSettings, refSettings, std::move(generationResult.center),
@@ -81,7 +83,7 @@ namespace merutilm::rff2 {
                                                  generalSettings.logZoom, dcMax);
         (*result)->refOrbit = std::move(generationResult.srpcResult.compressedArray);
 
-        return true;
+        return RFFResult::SUCCESS;
     }
 
     template<Number Num>

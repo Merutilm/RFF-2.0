@@ -20,9 +20,9 @@ namespace merutilm::rff2 {
             return app.getRequests().requestRecompute();
         }
     }
-    void FnExplore::recreateMPApprox(RFF2 &app) {
-        if (ImGui::Button("Recreate MP-Approximation", ImVec2(-FLT_MIN, 0))) {
-            return app.getRequests().requestRecompute(RecomputeMode::MP_APPROX_ONLY);
+    void FnExplore::regenerateApprox(RFF2 &app) {
+        if (ImGui::Button("Regenerate Approximation", ImVec2(-FLT_MIN, 0))) {
+            return app.getRequests().requestRecompute(RecomputeMode::APPROX);
         }
     }
     void FnExplore::reset(RFF2 &app) {
@@ -55,7 +55,7 @@ namespace merutilm::rff2 {
     void FnExplore::moveToCenter(RFF2 &app) {
         const MB2RenderDataBase *renderData = app.getCurrentRenderData();
         auto &frt = app.getSettings().fractal;
-        const bool disable = !renderData || !renderData->getReference();
+        const bool disable = !renderData || renderData->lastResult != RFFResult::SUCCESS;
         if (disable) ImGui::BeginDisabled();
         if (!frt.reference.reuse && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
             assert(renderData->getReference());
@@ -84,10 +84,15 @@ namespace merutilm::rff2 {
             const double startTime = app.rootWindowContext->getWindow()->getTime();
             frt.reference.center = renderData->getReference()->center;
             frt.general.logZoom = renderData->getReference()->logZoom;
-            renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
-                                  app.getSettings().fractal.perturb, frt.reference.center,
-                                  app.getFnSeriesApprox(startTime));
-            app.getRequests().requestRecompute();
+
+            if (renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
+                                      app.getSettings().fractal.perturb, frt.reference.center,
+                                      app.getFnSeriesApprox(startTime)) == RFFResult::SUCCESS) {
+                app.getRequests().requestRecompute();
+            } else {
+                vkh::logger::log_err("Please do not try to use incomplete Reference.");
+            }
+
         }
         if (disable) ImGui::EndDisabled();
     }

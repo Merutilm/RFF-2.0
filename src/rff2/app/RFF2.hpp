@@ -137,7 +137,7 @@ namespace merutilm::rff2 {
 
         void loadSettingsFromRenderData(Settings &s) const;
 
-        bool prepareRenderData(double startTime, const Settings &s);
+        RFFResult prepareRenderData(double startTime, const Settings &s);
         void loadSnapshot() const;
 
 
@@ -203,7 +203,7 @@ namespace merutilm::rff2 {
         void onQuit();
         void resolveRequests();
 
-        [[nodiscard]] std::unique_ptr<MB2RenderDataBase>
+        [[nodiscard]] RFFResult
         createAppropriateRenderData(bool computeShader, double logZoomTest, double startTime,
                                     const FractalSettings &frt, dex dcMax, int64_t exp10, uint64_t refInitialCapacity);
 

@@ -220,6 +220,7 @@ namespace merutilm::rff2 {
                                "The fractal will be rendered glitch-less but slow,\n"
                                "and is large, It will be fast, but maybe shown visible glitches.");
 
+        FnExplore::regenerateApprox(app);
 
         if (!use)
             ImGui::EndDisabled();
@@ -256,7 +257,7 @@ namespace merutilm::rff2 {
 
         ImGuiUtils::Dropdown("Selection Method", &mpaSelectionMethod);
         ImGuiUtils::HelpMarker("Set the selection method of MPA. The first target PA is always the front element.");
-        FnExplore::recreateMPApprox(app);
+        FnExplore::regenerateApprox(app);
         ImGuiUtils::EndSettings();
     }
 

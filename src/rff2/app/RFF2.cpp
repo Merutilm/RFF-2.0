@@ -123,29 +123,29 @@ namespace merutilm::rff2 {
             // it is threaded, do not notify
         }
     }
-    std::unique_ptr<MB2RenderDataBase>
+    RFFResult
     RFF2::createAppropriateRenderData(const bool computeShader, const double logZoomTest, const double startTime,
                                       const FractalSettings &frt, const dex dcMax, const int64_t exp10,
                                       const size_t refInitialCapacity) {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
-                return std::make_unique<FexMB2RenderData>(state, frt, computeShader, *approxTableCache, dcMax, exp10,
+                return FexMB2RenderData::createRenderData(state, frt, computeShader, *approxTableCache, dcMax, exp10,
                                                           refInitialCapacity, getFnRefCalc(startTime),
-                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime));
+                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime), renderData);
             } else {
-                return std::make_unique<FloatMB2RenderData>(
+                return FloatMB2RenderData::createRenderData(
                         state, frt, computeShader, *approxTableCache, dcMax, exp10, refInitialCapacity,
-                        getFnRefCalc(startTime), getFnSeriesApprox(startTime), getFnCreatingTable(startTime));
+                        getFnRefCalc(startTime), getFnSeriesApprox(startTime), getFnCreatingTable(startTime), renderData);
             }
         } else {
             if (logZoomTest > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
-                return std::make_unique<DexMB2RenderData>(state, frt, computeShader, *approxTableCache, dcMax, exp10,
+                return DexMB2RenderData::createRenderData(state, frt, computeShader, *approxTableCache, dcMax, exp10,
                                                           refInitialCapacity, getFnRefCalc(startTime),
-                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime));
+                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime), renderData);
             } else {
-                return std::make_unique<DoubleMB2RenderData>(
+                return DoubleMB2RenderData::createRenderData(
                         state, frt, computeShader, *approxTableCache, dcMax, exp10, refInitialCapacity,
-                        getFnRefCalc(startTime), getFnSeriesApprox(startTime), getFnCreatingTable(startTime));
+                        getFnRefCalc(startTime), getFnSeriesApprox(startTime), getFnCreatingTable(startTime), renderData);
             }
         }
     }
@@ -658,7 +658,7 @@ namespace merutilm::rff2 {
             }
             if (ImGuiUtils::BeginTabItem("Explore")) {
                 FnExplore::recompute(*this);
-                FnExplore::recreateMPApprox(*this);
+                FnExplore::regenerateApprox(*this);
                 FnExplore::reset(*this);
                 FnExplore::cancelRender(*this);
                 FnExplore::moveCursorToCenter(*this);
@@ -859,11 +859,32 @@ namespace merutilm::rff2 {
                 switch (recomputeMode) {
                     using enum RecomputeMode;
                     case ALL:
-                        success = prepareRenderData(start, s);
+                        RFFResult r;
+                        if ((r = prepareRenderData(start, s)) == RFFResult::ERROR_NULL) {
+                            this->settings.fractal.reference.reuse = false;
+                            vkh::logger::log_err("Do not reuse Reference during reference calculation!");
+                            requests.requestRecompute();
+                            break;
+                        }
+
+                        success = r == RFFResult::SUCCESS;
                         break;
-                    case MP_APPROX_ONLY:
+                    case APPROX:
+                        if (!renderData) {
+                            vkh::logger::log_err("Do not request \"recreate Approximation\" for incomplete reference!");
+                            break;
+                        }
+
+                        renderData->fractalSettings.sa = s.fractal.sa;
                         renderData->fractalSettings.mpa = s.fractal.mpa;
-                        success = renderData && renderData->regenerateTable(getFnCreatingTable(start));
+                        renderData->fractalSettings.perturb = s.fractal.perturb;
+
+                        if (renderData->regenerateApprox(getFnSeriesApprox(start), getFnCreatingTable(start)) != RFFResult::SUCCESS) {
+                            vkh::logger::log_err("Do not request \"recreate Approximation\" for incomplete reference!");
+                            success = false;
+                        }else {
+                            success = true;
+                        }
                         break;
                     default:
                         throw vkh::exception_invalid_args("Unknown recompute mode");
@@ -925,10 +946,10 @@ namespace merutilm::rff2 {
 
     void RFF2::loadSettingsFromRenderData(Settings &s) const { s.fractal = renderData->fractalSettings; }
 
-    bool RFF2::prepareRenderData(const double startTime, const Settings &s) {
+    RFFResult RFF2::prepareRenderData(const double startTime, const Settings &s) {
 
         if (state.interruptRequested())
-            return false;
+            return RFFResult::TERMINATED;
 
         const auto &frt = s.fractal;
         const double logZoom = frt.general.logZoom;
@@ -945,49 +966,41 @@ namespace merutilm::rff2 {
 
 
         if (state.interruptRequested())
-            return false;
+            return RFFResult::TERMINATED;
 
 
         const int64_t exp10 = Perturbator::getExp10WithSettings(settings.fractal.reference, logZoom);
         if (frt.reference.reuse) {
-            if (!renderData || !renderData->getReference() || !renderData->getPerturbator()) {
-                vkh::logger::log_err("Do not reuse Reference during reference calculation!!!");
-                this->settings.fractal.reference.reuse = false;
-                requests.requestRecompute();
-                return false;
+            if (!renderData || !renderData->getReference()) {
+                return RFFResult::ERROR_NULL;
             }
-
-            fixed_point_complex center = frt.reference.center.create_variant(exp10);
-            const fixed_point_complex referenceCenter = renderData->getReference()->center.create_variant(exp10);
-            fixed_point_complex::sub(center, center, referenceCenter);
-            const dex distance = static_cast<complex<dex>>(center).norm();
-
-
-            renderData->translate(frt.general.logZoom, dcMax + distance, frt.perturb, frt.reference.center,
-                                  getFnSeriesApprox(startTime));
+            if (RFFResult r; (r = renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center,
+                                  getFnSeriesApprox(startTime))) != RFFResult::SUCCESS) {
+                return r;
+            }
         } else {
             renderData = nullptr;
 
-            renderData = createAppropriateRenderData(s.render.computeShader.use, logZoom, startTime, frt, dcMax, exp10,
-                                                     capacity);
+            if (RFFResult r; (r = createAppropriateRenderData(s.render.computeShader.use, logZoom, startTime, frt, dcMax, exp10,
+                                                     capacity)) != RFFResult::SUCCESS) {
+                return r;
+            }
         }
 
         // sync settings
 
-        const MB2ReferenceBase *reference = renderData->getReference();
-        if (!reference || state.interruptRequested())
-            return false;
-        const size_t refLength = renderData->getReference() ? renderData->getReference()->length() : 0;
+        const MB2ReferenceBase &reference = *renderData->getReference();
+        const size_t refLength = reference.length();
         const size_t mpaLen = approxTableCache ? approxTableCache->mpaTable.sizeUsed : 0;
         setStatusMessage(Constants::Status::PERIOD_STATUS,
-                         std::format("Period : {}", Utilities::formatThousands(reference->longestPeriod())));
+                         std::format("Period : {}", Utilities::formatThousands(reference.longestPeriod())));
         setTooltipMessage(Constants::Status::PERIOD_STATUS,
                           std::format("Reference Size : {}\nMP-Approx Size : {}", Utilities::formatThousands(refLength),
                                       Utilities::formatThousands(mpaLen)));
         if (state.interruptRequested())
-            return false;
+            return RFFResult::TERMINATED;
 
-        return true;
+        return RFFResult::SUCCESS;
     }
 
     void RFF2::loadSnapshot() const {

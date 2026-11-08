@@ -12,6 +12,7 @@
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtReferenceSettings.hpp"
 #include "MB2ReferenceGenerationResult.hpp"
+#include "RFFResult.hpp"
 #include "ReferenceCheckpoint.hpp"
 
 namespace merutilm::rff2 {
@@ -65,7 +66,7 @@ namespace merutilm::rff2 {
                                        size_t refInitialCapacity, dex dcMax, FnRefCalc &&fnRefCalc);
 
 
-        bool generate(MB2ReferenceGenerationResult<Num> &result);
+        RFFResult generate(MB2ReferenceGenerationResult<Num> &result);
 
     private:
         void syncReference();
@@ -230,9 +231,9 @@ namespace merutilm::rff2 {
         }
     }
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
-    bool MB2ReferenceGenerator<Num, FnRefCalc>::generate(MB2ReferenceGenerationResult<Num> &result) {
+    RFFResult MB2ReferenceGenerator<Num, FnRefCalc>::generate(MB2ReferenceGenerationResult<Num> &result) {
         if (state.interruptRequested()) {
-            return false;
+            return RFFResult::TERMINATED;
         }
 
         checkpoints.reserve(generalSettings.threads + 1);
@@ -261,7 +262,7 @@ namespace merutilm::rff2 {
         for (refIteration = 0; tryUpdateAnBn(radius2) && z0.norm_sqr() < bailoutSqr; ++refIteration) {
             if (refIteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
                 state.interruptRequested()) {
-                return false;
+                return RFFResult::TERMINATED;
             }
 
             tryAppendPeriodCandidate(minZRadius, radius2);
@@ -282,6 +283,6 @@ namespace merutilm::rff2 {
                                                  .fpgBn = std::move(fpgBn),
                                                  .checkpoints = std::move(checkpoints),
                                                  .srpcResult = processor.finish()};
-        return true;
+        return RFFResult::SUCCESS;
     }
 } // namespace merutilm::rff2
