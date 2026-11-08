@@ -65,7 +65,7 @@ namespace merutilm::rff2 {
                                        size_t refInitialCapacity, dex dcMax, FnRefCalc &&fnRefCalc);
 
 
-        MB2ReferenceGenerationResult<Num> generate();
+        bool generate(MB2ReferenceGenerationResult<Num> &result);
 
     private:
         void syncReference();
@@ -230,9 +230,9 @@ namespace merutilm::rff2 {
         }
     }
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
-    MB2ReferenceGenerationResult<Num> MB2ReferenceGenerator<Num, FnRefCalc>::generate() {
+    bool MB2ReferenceGenerator<Num, FnRefCalc>::generate(MB2ReferenceGenerationResult<Num> &result) {
         if (state.interruptRequested()) {
-            return MB2ReferenceGenerationResult<Num>::invalidValueSentinel(ReferenceCreationStatus::TERMINATED);
+            return false;
         }
 
         checkpoints.reserve(generalSettings.threads + 1);
@@ -261,7 +261,7 @@ namespace merutilm::rff2 {
         for (refIteration = 0; tryUpdateAnBn(radius2) && z0.norm_sqr() < bailoutSqr; ++refIteration) {
             if (refIteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
                 state.interruptRequested()) {
-                return MB2ReferenceGenerationResult<Num>::invalidValueSentinel(ReferenceCreationStatus::TERMINATED);
+                return false;
             }
 
             tryAppendPeriodCandidate(minZRadius, radius2);
@@ -277,11 +277,11 @@ namespace merutilm::rff2 {
         periodArray.push_back(refIteration);
         checkpoints.emplace_back(z, refIteration, static_cast<complex<dex>>(fzgAnPartition));
 
-        return MB2ReferenceGenerationResult<Num>{.center = std::move(cOrig),
+        result = MB2ReferenceGenerationResult<Num>{.center = std::move(cOrig),
                                                  .generatedPeriods = std::move(periodArray),
                                                  .fpgBn = std::move(fpgBn),
                                                  .checkpoints = std::move(checkpoints),
-                                                 .srpcResult = processor.finish(),
-                                                 .creationStatus = ReferenceCreationStatus::SUCCESS};
+                                                 .srpcResult = processor.finish()};
+        return true;
     }
 } // namespace merutilm::rff2

@@ -20,6 +20,11 @@ namespace merutilm::rff2 {
             return app.getRequests().requestRecompute();
         }
     }
+    void FnExplore::recreateMPApprox(RFF2 &app) {
+        if (ImGui::Button("Recreate MP-Approximation", ImVec2(-FLT_MIN, 0))) {
+            return app.getRequests().requestRecompute(RecomputeMode::MP_APPROX_ONLY);
+        }
+    }
     void FnExplore::reset(RFF2 &app) {
 
         if (ImGui::Button("Reset", ImVec2(-FLT_MIN, 0))) {

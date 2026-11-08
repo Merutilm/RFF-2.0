@@ -7,6 +7,7 @@
 #include "../mb/Perturbator.h"
 #include "../util/ImGuiUtils.hpp"
 #include "../util/Utilities.h"
+#include "FnExplore.hpp"
 #include "RFF2.hpp"
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -255,6 +256,7 @@ namespace merutilm::rff2 {
 
         ImGuiUtils::Dropdown("Selection Method", &mpaSelectionMethod);
         ImGuiUtils::HelpMarker("Set the selection method of MPA. The first target PA is always the front element.");
+        FnExplore::recreateMPApprox(app);
         ImGuiUtils::EndSettings();
     }
 

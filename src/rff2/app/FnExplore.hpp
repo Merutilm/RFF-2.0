@@ -10,6 +10,7 @@ namespace merutilm::rff2 {
 
     struct FnExplore {
         static void recompute(RFF2 &app);
+        static void recreateMPApprox(RFF2 &app);
         static void reset(RFF2 &app);
         static void cancelRender(RFF2 &app);
         static void moveCursorToCenter(RFF2 &app);

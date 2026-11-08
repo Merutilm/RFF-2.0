@@ -41,10 +41,6 @@ namespace merutilm::rff2 {
             compressor(std::move(compressor)), period(std::move(period)), checkpoints(std::move(checkpoints)),
             fpgBn(std::move(fpgBn)), logZoom(logZoom), dcMax(dcMax) {}
 
-        virtual ~MB2ReferenceBase() = default;
-
-        [[nodiscard]] virtual size_t length() const = 0;
-
         [[nodiscard]] itt::ref longestPeriod() const { return period.back(); }
     };
 
@@ -56,7 +52,7 @@ namespace merutilm::rff2 {
 
 
         template<FnListeners::FnRefCalc FnRefCalc>
-        static ReferenceCreationStatus
+        static bool
         generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                           const FrtReferenceSettings &refSettings, int32_t exp10, size_t refInitialCapacity, dex dcMax,
                           FnRefCalc &&fnRefCalc, std::unique_ptr<MB2Reference> *result);
@@ -69,15 +65,14 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     template<FnListeners::FnRefCalc FnRefCalc>
-    ReferenceCreationStatus
-    MB2Reference<Num>::generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
+    bool MB2Reference<Num>::generateReference(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                                          const FrtReferenceSettings &refSettings, int32_t exp10,
                                          size_t refInitialCapacity, dex dcMax, FnRefCalc &&fnRefCalc,
                                          std::unique_ptr<MB2Reference> *result) {
         MB2ReferenceGenerator<Num, FnRefCalc> generator(state, generalSettings, refSettings, exp10, refInitialCapacity, dcMax, std::move(fnRefCalc));
-        MB2ReferenceGenerationResult<Num> generationResult = generator.generate();
-        if (generationResult.creationStatus != ReferenceCreationStatus::SUCCESS) {
-            return generationResult.creationStatus;
+        MB2ReferenceGenerationResult<Num> generationResult;
+        if (!generator.generate(generationResult)) {
+            return false;
         }
 
         *result = std::make_unique<MB2Reference>(generalSettings, refSettings, std::move(generationResult.center),
@@ -86,7 +81,7 @@ namespace merutilm::rff2 {
                                                  generalSettings.logZoom, dcMax);
         (*result)->refOrbit = std::move(generationResult.srpcResult.compressedArray);
 
-        return ReferenceCreationStatus::SUCCESS;
+        return true;
     }
 
     template<Number Num>

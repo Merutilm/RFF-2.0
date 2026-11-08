@@ -110,10 +110,16 @@ namespace merutilm::rff2 {
                 backgroundThreads.notifyAll();
             }
         }
-
-        auto expected = ComputeState::REQUESTED;
-        if (requests.recomputeRequestedState.compare_exchange_weak(expected, ComputeState::RUNNING)) {
-            recomputeThreaded();
+        bool doRecompute;
+        RecomputeMode recomputeMode;
+        {
+            std::scoped_lock lock2(requests.recomputeMutex);
+            auto expected = ComputeState::REQUESTED;
+            doRecompute = requests.recomputeRequestedState.compare_exchange_weak(expected, ComputeState::RUNNING);
+            recomputeMode = requests.recomputeMode;
+        }
+        if (doRecompute) {
+            recomputeThreaded(recomputeMode);
             // it is threaded, do not notify
         }
     }
@@ -143,6 +149,7 @@ namespace merutilm::rff2 {
             }
         }
     }
+
 
     void RFF2::updateMouseInteraction() {
         double mdx;
@@ -651,6 +658,7 @@ namespace merutilm::rff2 {
             }
             if (ImGuiUtils::BeginTabItem("Explore")) {
                 FnExplore::recompute(*this);
+                FnExplore::recreateMPApprox(*this);
                 FnExplore::reset(*this);
                 FnExplore::cancelRender(*this);
                 FnExplore::moveCursorToCenter(*this);
@@ -838,17 +846,29 @@ namespace merutilm::rff2 {
         }
     }
 
-    void RFF2::recomputeThreaded() {
+    void RFF2::recomputeThreaded(RecomputeMode recomputeMode) {
 
-        state.createThread([this] {
+        state.createThread([this, recomputeMode] {
             Settings s = this->settings; // clone the settings
             const auto start = rootWindowContext->getWindow()->getTime();
             bool success = false;
 
             try {
+                updateFractalFrame = false;
                 matchSettingsBeforeCreatingRenderData(s);
-                success = prepareRenderData(start, s);
-                matchSettingsAfterCreatingRenderData(s);
+                switch (recomputeMode) {
+                    using enum RecomputeMode;
+                    case ALL:
+                        success = prepareRenderData(start, s);
+                        break;
+                    case MP_APPROX_ONLY:
+                        renderData->fractalSettings.mpa = s.fractal.mpa;
+                        success = renderData && renderData->regenerateTable(getFnCreatingTable(start));
+                        break;
+                    default:
+                        throw vkh::exception_invalid_args("Unknown recompute mode");
+                }
+                loadSettingsFromRenderData(s);
 
                 if (success) {
                     beforeIterationFill(s);
@@ -903,11 +923,9 @@ namespace merutilm::rff2 {
         }
     }
 
-    void RFF2::matchSettingsAfterCreatingRenderData(Settings &s) const { s.fractal = renderData->fractalSettings; }
+    void RFF2::loadSettingsFromRenderData(Settings &s) const { s.fractal = renderData->fractalSettings; }
 
     bool RFF2::prepareRenderData(const double startTime, const Settings &s) {
-
-        updateFractalFrame = false;
 
         if (state.interruptRequested())
             return false;
@@ -1102,7 +1120,9 @@ namespace merutilm::rff2 {
         }
 
         const auto [min, max] = std::ranges::minmax(renderer->visibleIterationBufferData->getData());
-        setTooltipMessage(Constants::Status::ITERATION_STATUS, std::format("Min : {}\nMax : {}", Utilities::formatThousands(static_cast<itt::ptb>(min)), Utilities::formatThousands(static_cast<itt::ptb>(max))));
+        setTooltipMessage(Constants::Status::ITERATION_STATUS,
+                          std::format("Min : {}\nMax : {}", Utilities::formatThousands(static_cast<itt::ptb>(min)),
+                                      Utilities::formatThousands(static_cast<itt::ptb>(max))));
 
         setStatusMessage(Constants::Status::RENDER_STATUS, "Done");
         return true;

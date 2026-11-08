@@ -127,7 +127,7 @@ namespace merutilm::rff2 {
         [[nodiscard]] int16_t getMouseYOnIterationBuffer(int my) const;
         void checkBackupLoad();
 
-        void recomputeThreaded();
+        void recomputeThreaded(RecomputeMode recomputeMode);
 
         void moveCursorToCenter() const;
 
@@ -135,7 +135,7 @@ namespace merutilm::rff2 {
 
         static void matchSettingsBeforeCreatingRenderData(Settings &s);
 
-        void matchSettingsAfterCreatingRenderData(Settings &s) const;
+        void loadSettingsFromRenderData(Settings &s) const;
 
         bool prepareRenderData(double startTime, const Settings &s);
         void loadSnapshot() const;
@@ -206,7 +206,6 @@ namespace merutilm::rff2 {
         [[nodiscard]] std::unique_ptr<MB2RenderDataBase>
         createAppropriateRenderData(bool computeShader, double logZoomTest, double startTime,
                                     const FractalSettings &frt, dex dcMax, int64_t exp10, uint64_t refInitialCapacity);
-
 
         [[nodiscard]] VideoKeyframeProgressInfo &getKeyframeProgressInfo() { return videoKeyframeProgressInfo; }
 
