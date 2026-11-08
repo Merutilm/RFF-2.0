@@ -21,7 +21,7 @@ namespace merutilm::rff2 {
 
 
 
-    struct MB2ReferenceBase {
+    struct MB2ReferenceBase : Reference{
 
         const FrtGeneralSettings generalSettings;
         const FrtReferenceSettings refSettings;
@@ -49,7 +49,7 @@ namespace merutilm::rff2 {
     };
 
     template<Number Num>
-    struct MB2Reference final : Reference, MB2ReferenceBase {
+    struct MB2Reference final : MB2ReferenceBase {
         std::vector<complex<Num>> refOrbit;
 
         using MB2ReferenceBase::MB2ReferenceBase;
