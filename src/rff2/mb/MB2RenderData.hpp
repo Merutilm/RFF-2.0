@@ -17,7 +17,7 @@ namespace merutilm::rff2 {
         FractalSettings fractalSettings;
         bool computeShaderUsed;
         ApproxTableCache &cache;
-        Reference::CreationResult lastCreationResult = Reference::CreationResult::UNDEFINED;
+        ReferenceCreationStatus lastCreationResult = ReferenceCreationStatus::UNDEFINED;
 
         explicit MB2RenderDataBase(ParallelRenderState &state, FractalSettings frt, bool computeShaderUsed,
                                    ApproxTableCache &cache) :
@@ -76,9 +76,9 @@ namespace merutilm::rff2 {
         MB2RenderDataBase(state, frt, computeShaderUsed, cache) {
 
         this->lastCreationResult = MB2Reference<Num>::generateReference(
-                state, frt.general, frt.reference, exp10, refInitialCapacity, dcMax, fnRefCalc, &reference);
+                state, frt.general, frt.reference, exp10, refInitialCapacity, dcMax, std::move(fnRefCalc), &reference);
 
-        if (this->lastCreationResult != Reference::CreationResult::SUCCESS) {
+        if (this->lastCreationResult != ReferenceCreationStatus::SUCCESS) {
             table = nullptr;
             perturbator = nullptr;
             return;
@@ -175,7 +175,7 @@ namespace merutilm::rff2 {
     void MB2RenderData<Num>::translate(const double logZoom, const dex dcMax, const FrtPerturbSettings &ptbSettings,
                                        const fixed_point_complex &newCenter,
                                        FnListeners::FnSeriesApproxW &&fnSeriesApprox) {
-        if (lastCreationResult != Reference::CreationResult::SUCCESS) {
+        if (lastCreationResult != ReferenceCreationStatus::SUCCESS) {
             // try to use incomplete reference
             vkh::logger::log_err("Please do not try to use incomplete Reference.");
         } else {

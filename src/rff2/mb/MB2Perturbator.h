@@ -37,7 +37,7 @@ namespace merutilm::rff2 {
             state(state), dcMax(dcMax), generalSettings(generalSettings), saSettings(saSettings),
             ptbSettings(ptbSettings), seriesApproximationData(seriesApproximationData) {}
 
-        virtual ~MB2PerturbatorBase() override = default;
+        ~MB2PerturbatorBase() override = default;
 
         [[nodiscard]] virtual double iterate(const complex<dex> &dc) const noexcept = 0;
 
@@ -139,6 +139,7 @@ namespace merutilm::rff2 {
         }
 
         complex<Num> perturbationStep(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration, itt::ref &refIteration) const {
+            //TODO optimize
             dz = (reference.orbit(refIteration) * 2 + dz) * dz + dc;
             const complex<Num> z = reference.orbit(refIteration + 1) + dz;
 
