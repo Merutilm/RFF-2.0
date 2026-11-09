@@ -22,12 +22,12 @@ namespace merutilm::rff2 {
      * @param end the end index of uncompressed array
      */
     template <typename Index>
-    struct ArrayCompressUnit {
+    struct ArrayCompressionUnit {
         const Index rebase;
         const Index start;
         const Index end;
 
-        explicit ArrayCompressUnit(Index rebase, Index start, Index end);
+        explicit ArrayCompressionUnit(Index rebase, Index start, Index end);
 
         /**
         * Gets the range of current tool : @code end - start + 1@endcode
@@ -38,17 +38,17 @@ namespace merutilm::rff2 {
 
 
     template <typename Index>
-    ArrayCompressUnit<Index>::ArrayCompressUnit(const Index rebase, const Index start,
+    ArrayCompressionUnit<Index>::ArrayCompressionUnit(const Index rebase, const Index start,
                                                       const Index end) : rebase(rebase), start(start), end(end) {
     }
 
     template <typename Index>
-    Index ArrayCompressUnit<Index>::range() const {
+    Index ArrayCompressionUnit<Index>::range() const {
         return end - start + 1;
     }
 
-    using ReferenceCompressionUnit = ArrayCompressUnit<itt::ref>;
-    using PulledMPACompressionUnit = ArrayCompressUnit<itt::ref>;
+    using ReferenceCompressionUnit = ArrayCompressionUnit<itt::ref>;
+    using PulledMPACompressionUnit = ArrayCompressionUnit<itt::ref>;
 
     using ReferenceCompressor = std::vector<ReferenceCompressionUnit>;
     using PulledMPACompressor = std::vector<PulledMPACompressionUnit>;

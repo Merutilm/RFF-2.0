@@ -5,11 +5,11 @@
 #pragma once
 #include <vector>
 
-#include "ArrayCompressUnit.hpp"
+#include "ArrayCompressionUnit.hpp"
 namespace merutilm::rff2 {
     template<typename Index, typename Data>
     struct SRPCData {
         std::vector<Data> compressedArray{};
-        std::vector<ArrayCompressUnit<Index>> compressor{};
+        std::vector<ArrayCompressionUnit<Index>> compressor{};
     };
 }

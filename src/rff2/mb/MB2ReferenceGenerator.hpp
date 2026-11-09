@@ -129,11 +129,10 @@ namespace merutilm::rff2 {
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
     bool MB2ReferenceGenerator<Num, FnRefCalc>::tryUpdateAnBn(Num &radius2) {
         radius2 = z0.norm_sqr();
-        Num fpgLimit = radius2 / Num(dcMax);
         complex<Num> fpgBnTemp = fpgBn * z0 * Num(2) + Num(1);
-        Num fpgRadius = fpgBnTemp.max();
+        Num fpgRadius = fpgBnTemp.max() * Num(dcMax);
 
-        if (refIteration > 0 && fpgRadius > fpgLimit) {
+        if (refIteration > 0 && fpgRadius > radius2) {
             return false;
         }
         if (refIteration > 0) {

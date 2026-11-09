@@ -11,7 +11,7 @@
 #include "../mb/MB2Reference.h"
 #include "../parallel/ParallelRenderState.h"
 #include "../util/ArrayCompressorUtils.hpp"
-#include "ArrayCompressUnit.hpp"
+#include "ArrayCompressionUnit.hpp"
 #include "MPAIndexMapper.hpp"
 #include "MPAIndexMapperUtils.hpp"
 #include "MPAPeriod.hpp"
