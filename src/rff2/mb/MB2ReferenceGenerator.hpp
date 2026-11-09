@@ -6,7 +6,7 @@
 #include "../app/FnListeners.hpp"
 #include "../calc/templates.hpp"
 #include "../constants/FractalConstants.hpp"
-#include "../mrthy/SRPCApproximator.hpp"
+#include "../mrthy/ComplexApproximator.hpp"
 #include "../mrthy/SRPCProcessor.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FrtGeneralSettings.hpp"
@@ -247,8 +247,8 @@ namespace merutilm::rff2 {
 
         const double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
 
-        SRPCProcessor<itt::ref, complex<Num>, SRPCApproximator<Num>> processor(minCompressSize, refInitialCapacity,
-                                                                     SRPCApproximator<Num>(compressionThreshold));
+        SRPCProcessor<itt::ref, complex<Num>, ComplexApproximator<Num>> processor(minCompressSize, refInitialCapacity,
+                                                                     ComplexApproximator<Num>(compressionThreshold));
         processor.put(complex<Num>::ZERO);
 
 

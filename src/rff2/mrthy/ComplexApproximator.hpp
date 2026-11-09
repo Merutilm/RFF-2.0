@@ -7,10 +7,10 @@
 namespace merutilm::rff2 {
 
     template<Number Num>
-    class SRPCApproximator {
+    class ComplexApproximator {
         double compressionThreshold;
     public:
-        explicit SRPCApproximator(const double compressionThreshold) : compressionThreshold(compressionThreshold) {
+        explicit ComplexApproximator(const double compressionThreshold) : compressionThreshold(compressionThreshold) {
         }
 
         [[nodiscard]] bool approximately(const complex<Num> &a, const complex<Num> &b) {
