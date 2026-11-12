@@ -17,17 +17,15 @@ namespace merutilm::rff2 {
      * (e.g., if the given ranges are @code 11-15@endcode, and the rebase index is @code 1@endcode, the first value in the range, @code 11@endcode, will be rebased to index @code 1@endcode when compressed. <br/>
      * at the same time, the other elements will be also rebased @code 12 → 2@endcode, @code 13 → 3@endcode, @code 14 → 4@endcode, and @code 15 → 5@endcode.)
 
-     * @param rebase the index to rebase
      * @param start the start index of uncompressed array
      * @param end the end index of uncompressed array
      */
     template <typename Index>
     struct ArrayCompressionUnit {
-        const Index rebase;
         const Index start;
         const Index end;
 
-        explicit ArrayCompressionUnit(Index rebase, Index start, Index end);
+        explicit ArrayCompressionUnit(Index start, Index end);
 
         /**
         * Gets the range of current tool : @code end - start + 1@endcode
@@ -38,8 +36,7 @@ namespace merutilm::rff2 {
 
 
     template <typename Index>
-    ArrayCompressionUnit<Index>::ArrayCompressionUnit(const Index rebase, const Index start,
-                                                      const Index end) : rebase(rebase), start(start), end(end) {
+    ArrayCompressionUnit<Index>::ArrayCompressionUnit(const Index start, const Index end) : start(start), end(end) {
     }
 
     template <typename Index>

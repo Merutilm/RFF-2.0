@@ -10,7 +10,7 @@
 #include "SRPCSegment.hpp"
 namespace merutilm::rff2 {
 
-    // Segment-based Recursive Pattern-approximate Compressor (SRPC)
+    // Segment-based Recursive Pattern-approximate Compression (SRPC)
     template<typename Index, typename Data, typename Approx>
     class SRPCProcessor {
 
@@ -62,7 +62,7 @@ namespace merutilm::rff2 {
     private:
         void addCompressorIfEnough(Index compressEndIndex) {
             if (minCompressSizeReached) {
-                result.compressor.emplace_back(1, compressStartIndex, compressEndIndex);
+                result.compressor.emplace_back(compressStartIndex, compressEndIndex);
             } else {
                 for (const auto &v: tempBuffer) {
                     result.compressedArray.push_back(v);
@@ -105,7 +105,7 @@ namespace merutilm::rff2 {
 
             if (topPtr->nextChildSegmentCompressionUnitIndex < result.compressor.size()) {
                 const auto &unit = result.compressor[topPtr->nextChildSegmentCompressionUnitIndex];
-                if (topPtr->remained > 0 && unit.start - unit.rebase == topPtr->maxCompressionSize - topPtr->remained) {
+                if (topPtr->remained > 0 && unit.start - 1 == topPtr->maxCompressionSize - topPtr->remained) {
                     const auto maxCompressionSize = std::min(unit.range(), topPtr->remained);
                     // pushing child segment (referencing area may also be deleted by other compressor unit)
                     segmentStack.push_back(

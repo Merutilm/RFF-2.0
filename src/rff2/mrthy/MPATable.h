@@ -200,7 +200,7 @@ namespace merutilm::rff2 {
             if (const auto [pulledIndex, _] = MPAIndexMapperUtils::iterationToPulledTableIndexMapper(*mpaPeriod, start);
                 index != UINT64_MAX && pulledIndex != UINT64_MAX && !isArtificial[index]) {
                 const itt::ref skippableIterationCount = skippableIterationCounts[index];
-                mpaUnits.emplace_back(1, pulledIndex + 1, pulledIndex + skippableIterationCount - 1);
+                mpaUnits.emplace_back(pulledIndex + 1, pulledIndex + skippableIterationCount - 1);
             }
         }
         return mpaUnits;

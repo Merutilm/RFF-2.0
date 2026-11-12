@@ -117,7 +117,7 @@ namespace merutilm::rff2::ArrayCompressorUtils {
             if (auto &unit = units[i - 1]; unit.start <= rebased && rebased <= unit.end) {
                 if (stackTrace)
                     stackTrace->push_back(&unit);
-                rebased -= unit.start - unit.rebase;
+                rebased -= unit.start - 1;
             } else if (rebased > unit.end) {
                 break;
             }
