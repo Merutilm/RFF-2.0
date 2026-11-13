@@ -66,21 +66,20 @@ namespace merutilm::rff2 {
                     while (!currentIndexSegmentStack.empty() && topPtr->remained == 0) {
                         popped = *topPtr;
                         currentIndexSegmentStack.pop_back();
-                        if (!currentIndexSegmentStack.empty()) {
+                        if (currentIndexSegmentStack.empty()) {
+                            topPtr = nullptr;
+                            ++behindCompressionUnits;
+                        }else {
                             assert(currentIndexSegmentStack.back().remained >= popped.maxCompressionSize);
                             currentIndexSegmentStack.back().remained -= popped.maxCompressionSize;
                             topPtr = &currentIndexSegmentStack.back();
                         }
                     }
 
-                    if (currentIndexSegmentStack.empty()) {
-                        ++behindCompressionUnits;
-                    }
-
                     // recover reference index
                     refIndex = popped.referenceIndexToRecover;
                 }
-                if (topPtr->nextChildSegmentCompressionUnitIndex < behindCompressionUnits) {
+                if (topPtr) {
                     const auto &unit = data.compressor[topPtr->nextChildSegmentCompressionUnitIndex];
                     if (topPtr->remained > 0 && unit.start - 1 == topPtr->maxCompressionSize - topPtr->remained) {
                         const auto maxCompressionSize = std::min(unit.range(), topPtr->remained);

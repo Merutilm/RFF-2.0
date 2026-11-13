@@ -113,33 +113,34 @@ namespace merutilm::rff2 {
                 while (!segmentStack.empty() && topPtr->remained == 0) {
                     popped = *topPtr;
                     segmentStack.pop_back();
-                    if (!segmentStack.empty()) {
+                    if (segmentStack.empty()) {
+                        // if root segment is deleted, add compressor unit
+                        topPtr = nullptr;
+                        addCompressorIfEnough(result.uncompressedSize); // containing current index
+                        minCompressSizeReached = false;
+                    }else {
                         assert(segmentStack.back().remained >= popped.maxCompressionSize);
                         segmentStack.back().remained -= popped.maxCompressionSize;
                         topPtr = &segmentStack.back();
                     }
                 }
 
-                if (segmentStack.empty()) {
-                    // if root segment is deleted, add compressor unit
-                    addCompressorIfEnough(result.uncompressedSize); // containing current index
-                    minCompressSizeReached = false;
-                }
-
                 // recover reference index.
                 refIndex = popped.referenceIndexToRecover;
             }
-            if (topPtr->nextChildSegmentCompressionUnitIndex < result.compressor.size()) {
+            if (topPtr && topPtr->nextChildSegmentCompressionUnitIndex < result.compressor.size()) {
                 const auto &unit = result.compressor[topPtr->nextChildSegmentCompressionUnitIndex];
                 if (topPtr->remained > 0 && unit.start - 1 == topPtr->maxCompressionSize - topPtr->remained) {
                     const auto maxCompressionSize = std::min(unit.range(), topPtr->remained);
                     // pushing child segment (referencing area may also be deleted by other compressor unit)
                     segmentStack.push_back(
-                            {.processingCompressionUnitIndex = topPtr->nextChildSegmentCompressionUnitIndex++,
-                             .remained = maxCompressionSize,
-                             .maxCompressionSize = maxCompressionSize,
-                             .referenceIndexToRecover = refIndex,
-                             .nextChildSegmentCompressionUnitIndex = 0});
+                        {
+                            .processingCompressionUnitIndex = topPtr->nextChildSegmentCompressionUnitIndex++,
+                            .remained = maxCompressionSize,
+                            .maxCompressionSize = maxCompressionSize,
+                            .referenceIndexToRecover = refIndex,
+                            .nextChildSegmentCompressionUnitIndex = 0
+                        });
                     topPtr = &segmentStack[segmentStack.size() - 2];
                     // if vector resizes, top pointer may be a dangling pointer
                     refIndex = 1;
