@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
     class SRPCProcessor {
 
         SRPCData<Index, Data> result;
-        Index refIndex = 1;
+        size_t refIndex = 1;
         Index originalIndex = 0;
         Index compressStartIndex = 0;
         std::vector<SRPCSegment<Index>> segmentStack{};
@@ -76,11 +76,11 @@ namespace merutilm::rff2 {
                 const auto maxCompressionSize = originalIndex - 1;
                 // pushing root segment
                 segmentStack.push_back({
-                        .processingCompressionUnitIndex = result.compressor.size(),
-                        .remained = maxCompressionSize,
-                        .maxCompressionSize = maxCompressionSize,
-                        .referenceIndexToRecover = 1,
-                        .nextChildSegmentCompressionUnitIndex = 0,
+                    .processingCompressionUnitIndex = result.compressor.size(),
+                    .remained = maxCompressionSize,
+                    .maxCompressionSize = maxCompressionSize,
+                    .referenceIndexToRecover = 1,
+                    .nextChildSegmentCompressionUnitIndex = 0,
                 });
                 compressStartIndex = originalIndex;
                 refIndex = 1;
@@ -102,23 +102,6 @@ namespace merutilm::rff2 {
                 }
             }
 
-
-            if (topPtr->nextChildSegmentCompressionUnitIndex < result.compressor.size()) {
-                const auto &unit = result.compressor[topPtr->nextChildSegmentCompressionUnitIndex];
-                if (topPtr->remained > 0 && unit.start - 1 == topPtr->maxCompressionSize - topPtr->remained) {
-                    const auto maxCompressionSize = std::min(unit.range(), topPtr->remained);
-                    // pushing child segment (referencing area may also be deleted by other compressor unit)
-                    segmentStack.push_back(
-                            {.processingCompressionUnitIndex = topPtr->nextChildSegmentCompressionUnitIndex++,
-                             .remained = maxCompressionSize,
-                             .maxCompressionSize = maxCompressionSize,
-                             .referenceIndexToRecover = refIndex,
-                             .nextChildSegmentCompressionUnitIndex = 0});
-                    topPtr = &segmentStack[segmentStack.size() - 2];
-                    // if vector resizes, top pointer may be a dangling pointer
-                    refIndex = 1;
-                }
-            }
             if (topPtr->remained == 0) {
                 // if 'remained' is zero, pop and do recover
                 SRPCSegment popped = *topPtr;
@@ -139,8 +122,26 @@ namespace merutilm::rff2 {
                     minCompressSizeReached = false;
                 }
 
-                // recover reference index
+                // recover reference index.
                 refIndex = popped.referenceIndexToRecover;
+            }
+            if (topPtr->nextChildSegmentCompressionUnitIndex < result.compressor.size()) {
+                const auto &unit = result.compressor[topPtr->nextChildSegmentCompressionUnitIndex];
+                if (topPtr->remained > 0 && unit.start - 1 == topPtr->maxCompressionSize - topPtr->remained) {
+                    const auto maxCompressionSize = std::min(unit.range(), topPtr->remained);
+                    // pushing child segment (referencing area may also be deleted by other compressor unit)
+                    segmentStack.push_back(
+                        {
+                            .processingCompressionUnitIndex = topPtr->nextChildSegmentCompressionUnitIndex++,
+                            .remained = maxCompressionSize,
+                            .maxCompressionSize = maxCompressionSize,
+                            .referenceIndexToRecover = refIndex,
+                            .nextChildSegmentCompressionUnitIndex = 0
+                        });
+                    topPtr = &segmentStack[segmentStack.size() - 2];
+                    // if vector resizes, top pointer may be a dangling pointer
+                    refIndex = 1;
+                }
             }
         }
     };

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../mrthy/ArrayCompressionUnit.hpp"
+#include "../mrthy/SRPCSegment.hpp"
 
 /**
  * <b>Array compressor Utilities</b><br/>
@@ -77,7 +78,8 @@ namespace merutilm::rff2::ArrayCompressorUtils {
      * @return Finally compressed index
      */
     template<typename Index>
-    static size_t compress(const std::vector<ArrayCompressionUnit<Index>> &units, Index index, std::vector<const ArrayCompressionUnit<Index> *> *stackTrace = nullptr);
+    static size_t compress(const std::vector<ArrayCompressionUnit<Index>> &units, Index index,
+                           std::vector<const ArrayCompressionUnit<Index> *> *stackTrace = nullptr);
 
     // DEFINITION OF ArrayCompressorUtils
     // DEFINITION OF ArrayCompressorUtils
@@ -190,7 +192,8 @@ namespace merutilm::rff2::ArrayCompressorUtils {
     }
 
     template<typename Index>
-    size_t compress(const std::vector<ArrayCompressionUnit<Index>> &units, const Index index, std::vector<const ArrayCompressionUnit<Index> *> *stackTrace) {
+    size_t compress(const std::vector<ArrayCompressionUnit<Index>> &units, const Index index,
+                    std::vector<const ArrayCompressionUnit<Index> *> *stackTrace) {
         const Index rebased = rebase(units, index, stackTrace);
         return pull(units, rebased);
     }

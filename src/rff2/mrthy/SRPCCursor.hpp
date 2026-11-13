@@ -13,8 +13,11 @@ namespace merutilm::rff2 {
         const SRPCData<Index, Data> &data;
         std::vector<const ArrayCompressionUnit<Index> *> rawStackTrace;
         std::vector<SRPCSegment<Index>> currentIndexSegmentStack;
+
         Index originalIndex = 0;
         size_t refIndex = 0;
+        size_t behindCompressionUnits = 0;
+
     public:
         explicit SRPCCursor(const SRPCData<Index, Data> &data) : data(data) {}
 
@@ -49,7 +52,67 @@ namespace merutilm::rff2 {
 
         // Time complexity O(1)
         void next() {
-            // TODO
+            ++refIndex;
+            ++originalIndex;
+
+            if (!currentIndexSegmentStack.empty()) {
+                SRPCSegment<Index> *topPtr = &currentIndexSegmentStack.back();
+                assert(topPtr->remained > 0);
+                --topPtr->remained;
+                if (topPtr->remained == 0) {
+                    // if 'remained' is zero, pop and do recover
+                    SRPCSegment popped = *topPtr;
+                    assert(popped.nextChildSegmentCompressionUnitIndex <= data.compressor.size());
+                    while (!currentIndexSegmentStack.empty() && topPtr->remained == 0) {
+                        popped = *topPtr;
+                        currentIndexSegmentStack.pop_back();
+                        if (!currentIndexSegmentStack.empty()) {
+                            assert(currentIndexSegmentStack.back().remained >= popped.maxCompressionSize);
+                            currentIndexSegmentStack.back().remained -= popped.maxCompressionSize;
+                            topPtr = &currentIndexSegmentStack.back();
+                        }
+                    }
+
+                    if (currentIndexSegmentStack.empty()) {
+                        ++behindCompressionUnits;
+                    }
+
+                    // recover reference index
+                    refIndex = popped.referenceIndexToRecover;
+                }
+                if (topPtr->nextChildSegmentCompressionUnitIndex < behindCompressionUnits) {
+                    const auto &unit = data.compressor[topPtr->nextChildSegmentCompressionUnitIndex];
+                    if (topPtr->remained > 0 && unit.start - 1 == topPtr->maxCompressionSize - topPtr->remained) {
+                        const auto maxCompressionSize = std::min(unit.range(), topPtr->remained);
+                        // pushing child segment (referencing area may also be deleted by other compressor unit)
+                        currentIndexSegmentStack.push_back(
+                            {
+                                .processingCompressionUnitIndex = topPtr->nextChildSegmentCompressionUnitIndex++,
+                                .remained = maxCompressionSize,
+                                .maxCompressionSize = maxCompressionSize,
+                                .referenceIndexToRecover = refIndex,
+                                .nextChildSegmentCompressionUnitIndex = 0
+                            });
+                        topPtr = &currentIndexSegmentStack[currentIndexSegmentStack.size() - 2];
+                        // if vector resizes, top pointer may be a dangling pointer
+                        refIndex = 1;
+                    }
+                }
+            }
+            const auto &nextCompressionUnit = data.compressor[behindCompressionUnits];
+            if (nextCompressionUnit.start == originalIndex) {
+                const auto maxCompressionSize = nextCompressionUnit.range();
+                assert(currentIndexSegmentStack.empty());
+                // pushing root segment
+                currentIndexSegmentStack.push_back({
+                    .processingCompressionUnitIndex = behindCompressionUnits,
+                    .remained = maxCompressionSize,
+                    .maxCompressionSize = maxCompressionSize,
+                    .referenceIndexToRecover = refIndex,
+                    .nextChildSegmentCompressionUnitIndex = 0,
+                });
+                refIndex = 1;
+            }
         }
     };
 } // namespace merutilm::rff2
