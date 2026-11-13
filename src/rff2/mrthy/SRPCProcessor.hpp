@@ -33,18 +33,23 @@ namespace merutilm::rff2 {
 
 
         void put(const Data &value) {
-            if (minCompressSize > 0 && result.compressedArray.size() > 1 && refIndex < result.compressedArray.size() &&
+            if (minCompressSize > 0 && refIndex < result.compressedArray.size() &&
                 approx.approximately(value, result.compressedArray[refIndex])) {
                 processSegment(value);
-            } else {
-                if (!segmentStack.empty()) {
-                    // clear and add compressor unit
-                    refIndex = segmentStack[0].referenceIndexToRecover;
-                    segmentStack.clear();
-                    addCompressorIfEnough(result.uncompressedSize - 1); // without current index
-                    minCompressSizeReached = false;
-                }
+            } else if (segmentStack.empty()) {
                 result.compressedArray.push_back(value);
+            } else {
+                // clear and add compressor unit
+                refIndex = segmentStack[0].referenceIndexToRecover; // 1
+                segmentStack.clear();
+                addCompressorIfEnough(result.uncompressedSize - 1); // without current index
+                minCompressSizeReached = false;
+                if (minCompressSize > 0 && refIndex < result.compressedArray.size() &&
+                    approx.approximately(value, result.compressedArray[refIndex])) {
+                    processSegment(value);
+                } else {
+                    result.compressedArray.push_back(value);
+                }
             }
             ++result.uncompressedSize;
         }
@@ -75,11 +80,11 @@ namespace merutilm::rff2 {
                 const auto maxCompressionSize = result.uncompressedSize - 1;
                 // pushing root segment
                 segmentStack.push_back({
-                    .processingCompressionUnitIndex = result.compressor.size(),
-                    .remained = maxCompressionSize,
-                    .maxCompressionSize = maxCompressionSize,
-                    .referenceIndexToRecover = 1,
-                    .nextChildSegmentCompressionUnitIndex = 0,
+                        .processingCompressionUnitIndex = result.compressor.size(),
+                        .remained = maxCompressionSize,
+                        .maxCompressionSize = maxCompressionSize,
+                        .referenceIndexToRecover = 1,
+                        .nextChildSegmentCompressionUnitIndex = 0,
                 });
                 compressStartIndex = result.uncompressedSize;
                 refIndex = 1;
@@ -130,13 +135,11 @@ namespace merutilm::rff2 {
                     const auto maxCompressionSize = std::min(unit.range(), topPtr->remained);
                     // pushing child segment (referencing area may also be deleted by other compressor unit)
                     segmentStack.push_back(
-                        {
-                            .processingCompressionUnitIndex = topPtr->nextChildSegmentCompressionUnitIndex++,
-                            .remained = maxCompressionSize,
-                            .maxCompressionSize = maxCompressionSize,
-                            .referenceIndexToRecover = refIndex,
-                            .nextChildSegmentCompressionUnitIndex = 0
-                        });
+                            {.processingCompressionUnitIndex = topPtr->nextChildSegmentCompressionUnitIndex++,
+                             .remained = maxCompressionSize,
+                             .maxCompressionSize = maxCompressionSize,
+                             .referenceIndexToRecover = refIndex,
+                             .nextChildSegmentCompressionUnitIndex = 0});
                     topPtr = &segmentStack[segmentStack.size() - 2];
                     // if vector resizes, top pointer may be a dangling pointer
                     refIndex = 1;
