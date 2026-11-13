@@ -16,7 +16,6 @@ namespace merutilm::rff2 {
 
         SRPCData<Index, Data> result;
         size_t refIndex = 1;
-        Index originalIndex = 0;
         Index compressStartIndex = 0;
         std::vector<SRPCSegment<Index>> segmentStack{};
 
@@ -42,19 +41,19 @@ namespace merutilm::rff2 {
                     // clear and add compressor unit
                     refIndex = segmentStack[0].referenceIndexToRecover;
                     segmentStack.clear();
-                    addCompressorIfEnough(originalIndex - 1); // without current index
+                    addCompressorIfEnough(result.uncompressedSize - 1); // without current index
                     minCompressSizeReached = false;
                 }
                 result.compressedArray.push_back(value);
             }
-            ++originalIndex;
+            ++result.uncompressedSize;
         }
 
         SRPCData<Index, Data> finish() && {
             if (!segmentStack.empty()) {
                 refIndex = segmentStack[0].referenceIndexToRecover;
                 segmentStack.clear();
-                addCompressorIfEnough(originalIndex - 1);
+                addCompressorIfEnough(result.uncompressedSize - 1);
             }
             return std::move(result);
         }
@@ -73,7 +72,7 @@ namespace merutilm::rff2 {
 
         void processSegment(const Data &value) {
             if (segmentStack.empty()) {
-                const auto maxCompressionSize = originalIndex - 1;
+                const auto maxCompressionSize = result.uncompressedSize - 1;
                 // pushing root segment
                 segmentStack.push_back({
                     .processingCompressionUnitIndex = result.compressor.size(),
@@ -82,7 +81,7 @@ namespace merutilm::rff2 {
                     .referenceIndexToRecover = 1,
                     .nextChildSegmentCompressionUnitIndex = 0,
                 });
-                compressStartIndex = originalIndex;
+                compressStartIndex = result.uncompressedSize;
                 refIndex = 1;
             }
 
@@ -118,7 +117,7 @@ namespace merutilm::rff2 {
 
                 if (segmentStack.empty()) {
                     // if root segment is deleted, add compressor unit
-                    addCompressorIfEnough(originalIndex); // containing current index
+                    addCompressorIfEnough(result.uncompressedSize); // containing current index
                     minCompressSizeReached = false;
                 }
 

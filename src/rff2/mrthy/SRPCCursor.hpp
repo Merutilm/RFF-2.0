@@ -99,19 +99,21 @@ namespace merutilm::rff2 {
                     }
                 }
             }
-            const auto &nextCompressionUnit = data.compressor[behindCompressionUnits];
-            if (nextCompressionUnit.start == originalIndex) {
-                const auto maxCompressionSize = nextCompressionUnit.range();
-                assert(currentIndexSegmentStack.empty());
-                // pushing root segment
-                currentIndexSegmentStack.push_back({
-                    .processingCompressionUnitIndex = behindCompressionUnits,
-                    .remained = maxCompressionSize,
-                    .maxCompressionSize = maxCompressionSize,
-                    .referenceIndexToRecover = refIndex,
-                    .nextChildSegmentCompressionUnitIndex = 0,
-                });
-                refIndex = 1;
+            if (behindCompressionUnits < data.compressor.size()) {
+                const auto &nextCompressionUnit = data.compressor[behindCompressionUnits];
+                if (nextCompressionUnit.start == originalIndex) {
+                    const auto maxCompressionSize = nextCompressionUnit.range();
+                    assert(currentIndexSegmentStack.empty());
+                    // pushing root segment
+                    currentIndexSegmentStack.push_back({
+                        .processingCompressionUnitIndex = behindCompressionUnits,
+                        .remained = maxCompressionSize,
+                        .maxCompressionSize = maxCompressionSize,
+                        .referenceIndexToRecover = refIndex,
+                        .nextChildSegmentCompressionUnitIndex = 0,
+                    });
+                    refIndex = 1;
+                }
             }
         }
     };

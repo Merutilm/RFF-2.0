@@ -9,6 +9,7 @@
 namespace merutilm::rff2 {
     template<typename Index, typename Data>
     struct SRPCData {
+        Index uncompressedSize = 0;
         std::vector<Data> compressedArray{};
         std::vector<ArrayCompressionUnit<Index>> compressor{};
     };
