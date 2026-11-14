@@ -10,12 +10,12 @@
 #include "../data/ApproxTableCache.h"
 #include "../mb/MB2Reference.h"
 #include "../parallel/ParallelRenderState.h"
-#include "../util/ArrayCompressorUtils.hpp"
-#include "ArrayCompressionUnit.hpp"
 #include "MPAIndexMapper.hpp"
 #include "MPAIndexMapperUtils.hpp"
 #include "MPAPeriod.hpp"
 #include "PAGenerator.h"
+#include "SRPCUnit.hpp"
+#include "SRPCUtils.hpp"
 
 #include "vulkan_helper/base/logger.hpp"
 
@@ -138,7 +138,7 @@ namespace merutilm::rff2 {
 
 
     public:
-        [[nodiscard]] const PA<Num> *lookup(itt::ref refIteration, const complex<Num> &dz) const noexcept;
+        [[nodiscard]] const PA<Num> *lookup(SRPCCursor<itt::ref, complex<Num>> &cursor, itt::ref refIteration, const complex<Num> &dz) const noexcept;
 
         void lookupBatch(std::array<PA<Num>, RFF_SIMD_CHUNK_SIZE> &results,
                          const std::array<itt::ref, RFF_SIMD_CHUNK_SIZE> &refIterations,
@@ -245,7 +245,7 @@ namespace merutilm::rff2 {
         } else {
             const auto pulledTableIndex =
                     MPAIndexMapperUtils::iterationToPulledTableIndex(*mpaPeriod, longestPeriod + 1);
-            const auto compressedIndex = ArrayCompressorUtils::compress(pulledMPACompressor, pulledTableIndex);
+            const auto compressedIndex = SRPCUtils::compress(pulledMPACompressor, pulledTableIndex);
             mapperLen = compressedIndex;
 
             for (const auto &compressor: pulledMPACompressor) {
@@ -275,7 +275,7 @@ namespace merutilm::rff2 {
         if (pulledMPACompressor.empty())
             return false;
 
-        const PulledMPACompressionUnit *containedTool = ArrayCompressorUtils::find(pulledMPACompressor, pulledTableIndex + 1);
+        const PulledMPACompressionUnit *containedTool = SRPCUtils::find(pulledMPACompressor, pulledTableIndex + 1);
         if (containedTool == nullptr || containedTool->start != pulledTableIndex + 1) {
             return false;
         }
@@ -560,7 +560,7 @@ namespace merutilm::rff2 {
         bool jumped = false;
         if (levels > 0) {
 
-            const size_t compIndex = ArrayCompressorUtils::compress(pulledMPACompressor, pulledTableIndex);
+            const size_t compIndex = SRPCUtils::compress(pulledMPACompressor, pulledTableIndex);
             RFF_ASSERT(tableCache.flattenIndexMapper.sizeUsed > compIndex);
             tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[compIndex] = {.mapped = flattenTableIndex,
                                                                                     .generatedLevels = levels};
@@ -899,7 +899,7 @@ namespace merutilm::rff2 {
             return MPAIndexMapper{.mapped = UINT64_MAX, .generatedLevels = 0};
         }
 
-        const size_t comp = ArrayCompressorUtils::compress(pulledMPACompressor, pulled);
+        const size_t comp = SRPCUtils::compress(pulledMPACompressor, pulled);
         return MPAIndexMapper{.mapped = tableCache.flattenIndexMapper.interpret<MPAIndexMapper>()[comp].mapped,
                               .generatedLevels = levels};
     }
@@ -913,7 +913,7 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    const PA<Num> *MPATable<Num>::lookup(const itt::ref refIteration, const complex<Num> &dz) const noexcept {
+    const PA<Num> *MPATable<Num>::lookup(SRPCCursor<itt::ref, complex<Num>> &cursor, const itt::ref refIteration, const complex<Num> &dz) const noexcept {
 
         if (refIteration == 0 || mpaPeriod == nullptr) {
             return nullptr;

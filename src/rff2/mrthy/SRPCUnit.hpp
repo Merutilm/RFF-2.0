@@ -8,7 +8,7 @@
 
 namespace merutilm::rff2 {
     /**
-     * <b>Array Compress Unit</b>
+     * <b>SRPC Unit</b>
      * <br/>
      * A class for compressing when detecting duplicated elements in an array. <br/>
      * It can be used if there are duplicate values in the array. <br/>
@@ -19,33 +19,25 @@ namespace merutilm::rff2 {
 
      * @param start the start index of uncompressed array
      * @param end the end index of uncompressed array
+     * @param recoverIndex recover index after end of unit
      */
     template <typename Index>
-    struct ArrayCompressionUnit {
-        const Index start;
-        const Index end;
-
-        explicit ArrayCompressionUnit(Index start, Index end);
+    struct SRPCUnit {
+        Index start;
+        Index end;
+        size_t recoverIndex;
 
         /**
-        * Gets the range of current tool : @code end - start + 1@endcode
-        * @return The range of current tool.
+        * Gets the range of current unit : @code end - start + 1@endcode
+        * @return The range of current unit
         */
-        [[nodiscard]] Index range() const;
+        [[nodiscard]] Index range() const {
+            return end - start + 1;
+        }
     };
 
-
-    template <typename Index>
-    ArrayCompressionUnit<Index>::ArrayCompressionUnit(const Index start, const Index end) : start(start), end(end) {
-    }
-
-    template <typename Index>
-    Index ArrayCompressionUnit<Index>::range() const {
-        return end - start + 1;
-    }
-
-    using ReferenceCompressionUnit = ArrayCompressionUnit<itt::ref>;
-    using PulledMPACompressionUnit = ArrayCompressionUnit<itt::ref>;
+    using ReferenceCompressionUnit = SRPCUnit<itt::ref>;
+    using PulledMPACompressionUnit = SRPCUnit<itt::ref>;
 
     using ReferenceCompressor = std::vector<ReferenceCompressionUnit>;
     using PulledMPACompressor = std::vector<PulledMPACompressionUnit>;

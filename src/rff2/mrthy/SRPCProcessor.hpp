@@ -10,14 +10,13 @@
 #include "SRPCSegment.hpp"
 namespace merutilm::rff2 {
 
-    // Segment-based Recursive Pattern-approximate Compression (SRPC)
+        // Segment-based Recursive Pattern-approximate Compression (SRPC)
     template<typename Index, typename Data, typename Approx>
     class SRPCProcessor {
-
         SRPCData<Index, Data> result;
         size_t refIndex = 1;
-        Index compressStartIndex = 0;
-        std::vector<SRPCSegment<Index>> segmentStack{};
+        SRPCUnit<Index> currentBuildingUnit{};
+        std::vector<SRPCSegment<Index> > segmentStack{};
 
         std::vector<Data> tempBuffer{};
         bool minCompressSizeReached = false;
@@ -25,8 +24,8 @@ namespace merutilm::rff2 {
         Approx approx;
 
     public:
-        explicit SRPCProcessor(const uint32_t minCompressSize, size_t initialResultCapacity, Approx approx) :
-            minCompressSize(minCompressSize), approx(std::move(approx)) {
+        explicit SRPCProcessor(const uint32_t minCompressSize, size_t initialResultCapacity,
+                               Approx approx) : minCompressSize(minCompressSize), approx(std::move(approx)) {
             tempBuffer.reserve(minCompressSize);
             result.compressedArray.reserve(initialResultCapacity);
         }
@@ -40,9 +39,10 @@ namespace merutilm::rff2 {
                 result.compressedArray.push_back(value);
             } else {
                 // clear and add compressor unit
-                refIndex = segmentStack[0].referenceIndexToRecover; // 1
+                refIndex = 1;
                 segmentStack.clear();
-                addCompressorIfEnough(result.uncompressedSize - 1); // without current index
+                currentBuildingUnit.end = result.uncompressedSize - 1; // without current index
+                addCompressorIfEnough();
                 minCompressSizeReached = false;
                 if (minCompressSize > 0 && refIndex < result.compressedArray.size() &&
                     approx.approximately(value, result.compressedArray[refIndex])) {
@@ -51,22 +51,23 @@ namespace merutilm::rff2 {
                     result.compressedArray.push_back(value);
                 }
             }
+
             ++result.uncompressedSize;
         }
 
         SRPCData<Index, Data> finish() && {
             if (!segmentStack.empty()) {
-                refIndex = segmentStack[0].referenceIndexToRecover;
-                segmentStack.clear();
-                addCompressorIfEnough(result.uncompressedSize - 1);
+                currentBuildingUnit.end = result.uncompressedSize - 1;
+                addCompressorIfEnough();
             }
             return std::move(result);
         }
 
     private:
-        void addCompressorIfEnough(Index compressEndIndex) {
+        void addCompressorIfEnough() {
             if (minCompressSizeReached) {
-                result.compressor.emplace_back(compressStartIndex, compressEndIndex);
+                currentBuildingUnit.recoverIndex = result.compressedArray.size();
+                result.compressor.push_back(currentBuildingUnit);
             } else {
                 for (const auto &v: tempBuffer) {
                     result.compressedArray.push_back(v);
@@ -77,17 +78,17 @@ namespace merutilm::rff2 {
 
         void processSegment(const Data &value) {
             if (segmentStack.empty()) {
+                assert(refIndex == 1);
                 const auto maxCompressionSize = result.uncompressedSize - 1;
                 // pushing root segment
                 segmentStack.push_back({
-                        .processingCompressionUnitIndex = result.compressor.size(),
-                        .remained = maxCompressionSize,
-                        .maxCompressionSize = maxCompressionSize,
-                        .referenceIndexToRecover = 1,
-                        .nextChildSegmentCompressionUnitIndex = 0,
+                    .processingCompressionUnitIndex = result.compressor.size(),
+                    .remained = maxCompressionSize,
+                    .maxCompressionSize = maxCompressionSize,
+                    .referenceIndexToRecover = refIndex,
+                    .nextChildSegmentCompressionUnitIndex = 0,
                 });
-                compressStartIndex = result.uncompressedSize;
-                refIndex = 1;
+                currentBuildingUnit.start = result.uncompressedSize;
             }
 
             SRPCSegment<Index> *topPtr = &segmentStack.back();
@@ -116,9 +117,10 @@ namespace merutilm::rff2 {
                     if (segmentStack.empty()) {
                         // if root segment is deleted, add compressor unit
                         topPtr = nullptr;
-                        addCompressorIfEnough(result.uncompressedSize); // containing current index
+                        currentBuildingUnit.end = result.uncompressedSize;
+                        addCompressorIfEnough(); // containing current index
                         minCompressSizeReached = false;
-                    }else {
+                    } else {
                         assert(segmentStack.back().remained >= popped.maxCompressionSize);
                         segmentStack.back().remained -= popped.maxCompressionSize;
                         topPtr = &segmentStack.back();

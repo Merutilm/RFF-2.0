@@ -5,8 +5,8 @@
 #pragma once
 #include <vector>
 
-#include "../mrthy/ArrayCompressionUnit.hpp"
-#include "../mrthy/SRPCSegment.hpp"
+#include "SRPCUnit.hpp"
+#include "SRPCSegment.hpp"
 
 /**
  * <b>Array compressor Utilities</b><br/>
@@ -18,8 +18,7 @@
  *
  * <b>NOTE : It was get 10% ~ 20% performance improvement by moving all the methods to the header file.</b>
  */
-namespace merutilm::rff2::ArrayCompressorUtils {
-
+namespace merutilm::rff2::SRPCUtils {
     /**
      * Checks whether the given index is independent. <br/>
      * The time complexity is @code O(log N)@endcode because it uses binary-search.
@@ -29,7 +28,7 @@ namespace merutilm::rff2::ArrayCompressorUtils {
      * @return @code true@endcode when given index is independent.
      */
     template<typename Index>
-    static bool isIndependent(const std::vector<ArrayCompressionUnit<Index>> &units, Index index);
+    static bool isIndependent(const std::vector<SRPCUnit<Index> > &units, Index index);
 
     /**
      * Rebases the given index. <br/>
@@ -38,12 +37,13 @@ namespace merutilm::rff2::ArrayCompressorUtils {
      *
      * @param units The Compression units
      * @param index To rebasing index
-     * @param stackTrace compressor units' stack trace
+     * @param stackTrace points compressor units' stack trace
+     * @param behindCompressionUnitsTrace points how much compressors behind given index
      * @return The rebased index.
      */
     template<typename Index>
-    static Index rebase(const std::vector<ArrayCompressionUnit<Index>> &units, Index index,
-                        std::vector<const ArrayCompressionUnit<Index> *> *stackTrace = nullptr);
+    static Index rebase(const std::vector<SRPCUnit<Index> > &units, Index index,
+                        std::vector<SRPCSegment<Index> > *stackTrace, size_t *behindCompressionUnitsTrace);
 
     /**
      * Completes the compressed array by pulling subsequent elements into the void in the array made by the rebasing
@@ -56,7 +56,7 @@ namespace merutilm::rff2::ArrayCompressorUtils {
      * @return The finally compressed index.
      */
     template<typename Index>
-    static size_t pull(const std::vector<ArrayCompressionUnit<Index>> &units, Index rebased);
+    static size_t pull(const std::vector<SRPCUnit<Index>> &units, Index rebased);
 
     /**
      * Gets the contained index of the given list. <br/>
@@ -67,7 +67,7 @@ namespace merutilm::rff2::ArrayCompressorUtils {
      * @return The index of the given list. returns @code UINT64_MAX()@endcode if the given index is un-rebase-able.
      */
     template<typename Index>
-    static const ArrayCompressionUnit<Index> *find(const std::vector<ArrayCompressionUnit<Index>> &units, Index index);
+    static const SRPCUnit<Index> *find(const std::vector<SRPCUnit<Index> > &units, Index index);
 
     /**
      * Gets the compressed index of compressed array.
@@ -78,22 +78,24 @@ namespace merutilm::rff2::ArrayCompressorUtils {
      * @return Finally compressed index
      */
     template<typename Index>
-    static size_t compress(const std::vector<ArrayCompressionUnit<Index>> &units, Index index,
-                           std::vector<const ArrayCompressionUnit<Index> *> *stackTrace = nullptr);
+    static size_t compress(const std::vector<SRPCUnit<Index> > &units, Index index,
+                           std::vector<SRPCSegment<Index> > *stackTrace = nullptr,
+                           size_t *behindCompressionUnitsTrace = nullptr);
 
     // DEFINITION OF ArrayCompressorUtils
     // DEFINITION OF ArrayCompressorUtils
     // DEFINITION OF ArrayCompressorUtils
 
     template<typename Index>
-    bool isIndependent(const std::vector<ArrayCompressionUnit<Index>> &units, const Index index) {
+    bool isIndependent(const std::vector<SRPCUnit<Index> > &units, const Index index) {
         return find(units, index) == nullptr;
     }
 
     template<typename Index>
-    Index rebase(const std::vector<ArrayCompressionUnit<Index>> &units, const Index index,
-                 std::vector<const ArrayCompressionUnit<Index> *> *stackTrace) {
+    Index rebase(const std::vector<SRPCUnit<Index> > &units, const Index index,
+                 std::vector<SRPCSegment<Index> > *stackTrace, size_t *behindCompressionUnitsTrace) {
         if (units.empty() || index < units.front().start || index > units.back().end) {
+            if (behindCompressionUnitsTrace) *behindCompressionUnitsTrace = units.empty() || index < units.front().start ? 0 : units.size();
             return index;
         }
 
@@ -114,21 +116,46 @@ namespace merutilm::rff2::ArrayCompressorUtils {
 
         // Use the REVERSED FOR statement because it must be used recursively.
         Index rebased = index;
-
         for (size_t i = units.size(); i > 0; --i) {
-            if (auto &unit = units[i - 1]; unit.start <= rebased && rebased <= unit.end) {
-                if (stackTrace)
-                    stackTrace->push_back(&unit);
+            auto &unit = units[i - 1];
+            if (unit.end < index && behindCompressionUnitsTrace && *behindCompressionUnitsTrace == UINT64_MAX) {
+                *behindCompressionUnitsTrace = i;
+            }
+            if (unit.start <= rebased && rebased <= unit.end) {
+                if (stackTrace) {
+                    Index range = unit.range();
+                    Index processed = rebased - unit.start;
+                    if (!stackTrace->empty()) {
+                        auto &parent = stackTrace->back();
+                        parent.nextChildSegmentCompressionUnitIndex = i;
+                        parent.remained += rebased - unit.start;
+                        range = std::min(range, parent.remained);
+                    }
+                    Index remained = range - processed;
+                    stackTrace->push_back(SRPCSegment<Index>{
+                        .processingCompressionUnitIndex = i - 1,
+                        .remained = remained,
+                        .maxCompressionSize = range,
+                        .referenceIndexToRecover = unit.recoverIndex,
+                        .nextChildSegmentCompressionUnitIndex = 0
+                    });
+                }
                 rebased -= unit.start - 1;
             } else if (rebased > unit.end) {
+                if (stackTrace && !stackTrace->empty())
+                    stackTrace->back().nextChildSegmentCompressionUnitIndex = i;
                 break;
             }
         }
+
+        if (behindCompressionUnitsTrace && *behindCompressionUnitsTrace == UINT64_MAX)
+            *behindCompressionUnitsTrace = 0;
+
         return rebased;
     }
 
     template<typename Index>
-    size_t pull(const std::vector<ArrayCompressionUnit<Index>> &units, const Index rebased) {
+    size_t pull(const std::vector<SRPCUnit<Index>> &units, const Index rebased) {
         // "Rebased" iteration is not a target of compressions.
         // The space created by compression is filled by pushing indices to front. This is the definition of this
         // method. CAUTION : given index must be not rebase-able.
@@ -163,14 +190,14 @@ namespace merutilm::rff2::ArrayCompressorUtils {
     }
 
     template<typename Index>
-    const ArrayCompressionUnit<Index> *find(const std::vector<ArrayCompressionUnit<Index>> &units, const Index index) {
+    const SRPCUnit<Index> *find(const std::vector<SRPCUnit<Index> > &units, const Index index) {
         if (units.empty() || units.front().start > index || units.back().end < index) {
             return nullptr;
         }
 
         size_t min = 0;
         size_t max = units.size() - 1;
-        const ArrayCompressionUnit<Index> *result = nullptr;
+        const SRPCUnit<Index> *result = nullptr;
 
         while (min <= max) {
             const size_t mid = (min + max) / 2;
@@ -192,9 +219,10 @@ namespace merutilm::rff2::ArrayCompressorUtils {
     }
 
     template<typename Index>
-    size_t compress(const std::vector<ArrayCompressionUnit<Index>> &units, const Index index,
-                    std::vector<const ArrayCompressionUnit<Index> *> *stackTrace) {
-        const Index rebased = rebase(units, index, stackTrace);
+    size_t compress(const std::vector<SRPCUnit<Index> > &units, const Index index,
+                    std::vector<SRPCSegment<Index> > *stackTrace, size_t *behindCompressionUnitsTrace) {
+        if (behindCompressionUnitsTrace) *behindCompressionUnitsTrace = UINT64_MAX;
+        const Index rebased = rebase(units, index, stackTrace, behindCompressionUnitsTrace);
         return pull(units, rebased);
     }
 } // namespace merutilm::rff2::ArrayCompressorUtils

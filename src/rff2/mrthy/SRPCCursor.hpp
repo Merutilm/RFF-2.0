@@ -3,52 +3,66 @@
 //
 
 #pragma once
-#include "../util/ArrayCompressorUtils.hpp"
 #include "SRPCData.hpp"
 #include "SRPCSegment.hpp"
+#include "SRPCUtils.hpp"
 namespace merutilm::rff2 {
 
     template<typename Index, typename Data>
     class SRPCCursor {
         const SRPCData<Index, Data> &data;
-        std::vector<const ArrayCompressionUnit<Index> *> rawStackTrace;
-        std::vector<SRPCSegment<Index>> currentIndexSegmentStack;
+        std::vector<SRPCSegment<Index> > currentIndexSegmentStack;
 
         Index originalIndex = 0;
         size_t refIndex = 0;
         size_t behindCompressionUnits = 0;
 
     public:
-        explicit SRPCCursor(const SRPCData<Index, Data> &data) : data(data) {}
+        explicit SRPCCursor(const SRPCData<Index, Data> &data) : data(data) {
+        }
 
         void reset() {
             originalIndex = 0;
             refIndex = 0;
+            behindCompressionUnits = 0;
             currentIndexSegmentStack.clear();
         }
 
+        [[nodiscard]] bool hasNext() {
+            return originalIndex < data.uncompressedSize - 1;
+        }
+
+        [[nodiscard]] Index currentOriginalIndex() const{
+            return originalIndex;
+        }
+
         // Time complexity O(1)
-        const Data &get() const { return data.compressedArray[refIndex]; }
+        [[nodiscard]] const Data &get() const { return data.compressedArray[refIndex]; }
 
-        // Time complexity O(log N loglog N)
-        const Data &get(Index i) {
-            return data.compressedArray[calcRefIndex(i, nullptr)];
+        // Time complexity O(log N)
+        [[nodiscard]] const Data &get(Index i) const {
+            return data.compressedArray[calcRefIndexFast(i)];
         }
 
-        [[nodiscard]] size_t calcRefIndex(Index i, std::vector<const ArrayCompressionUnit<Index> *> *stackTrace) const {
-            return data.compressor.empty() ? i : ArrayCompressorUtils::compress(data.compressor, i, stackTrace);
+        [[nodiscard]] size_t calcRefIndexFast(Index i) const {
+            return data.compressor.empty()
+                       ? i
+                       : SRPCUtils::compress(data.compressor, i);
         }
 
-        // Time complexity O(log N loglog N)
+        [[nodiscard]] size_t calcRefIndex(Index i) {
+            return data.compressor.empty()
+                       ? i
+                       : SRPCUtils::compress(data.compressor, i, &currentIndexSegmentStack, &behindCompressionUnits);
+        }
+
+        // Time complexity O(log N)
         void setIndex(Index newIndex) {
-            rawStackTrace.clear();
+            currentIndexSegmentStack.clear();
             originalIndex = newIndex;
-            refIndex = calcRefIndex(newIndex, &rawStackTrace);
-            for (auto unit : rawStackTrace) {
-                //TODO
-            }
-
+            refIndex = calcRefIndex(newIndex);
         }
+
 
         // Time complexity O(1)
         void next() {
@@ -69,17 +83,16 @@ namespace merutilm::rff2 {
                         if (currentIndexSegmentStack.empty()) {
                             topPtr = nullptr;
                             ++behindCompressionUnits;
-                        }else {
+                        } else {
                             assert(currentIndexSegmentStack.back().remained >= popped.maxCompressionSize);
                             currentIndexSegmentStack.back().remained -= popped.maxCompressionSize;
                             topPtr = &currentIndexSegmentStack.back();
                         }
                     }
-
                     // recover reference index
                     refIndex = popped.referenceIndexToRecover;
                 }
-                if (topPtr) {
+                if (topPtr && topPtr->nextChildSegmentCompressionUnitIndex < data.compressor.size()) {
                     const auto &unit = data.compressor[topPtr->nextChildSegmentCompressionUnitIndex];
                     if (topPtr->remained > 0 && unit.start - 1 == topPtr->maxCompressionSize - topPtr->remained) {
                         const auto maxCompressionSize = std::min(unit.range(), topPtr->remained);
