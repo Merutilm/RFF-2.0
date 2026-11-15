@@ -40,7 +40,7 @@ namespace merutilm::rff2 {
 
         std::array<StatusBarInfo, Constants::Status::LENGTH> statusInfos = {};
         std::unique_ptr<MB2RenderDataBase> renderData = nullptr;
-        std::unique_ptr<ApproxTableCache> approxTableCache = nullptr;
+        std::unique_ptr<ApproxTableBuffer> approxTableCache = nullptr;
         std::unique_ptr<CursorManager> cursorManager = nullptr;
         std::unique_ptr<MultithreadedRenderManager> multithreadedManager = nullptr;
         std::unique_ptr<ComputeShaderRenderManager> computeShaderManager = nullptr;
@@ -166,7 +166,7 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] MB2RenderDataBase *getCurrentRenderData() const { return renderData.get(); }
 
-        [[nodiscard]] ApproxTableCache &getApproxTableCache() const { return *approxTableCache; }
+        [[nodiscard]] ApproxTableBuffer &getApproxTableCache() const { return *approxTableCache; }
 
         [[nodiscard]] UpdateRequests &getRequests() { return requests; }
 

@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "MPAPeriod.hpp"
+#include "MPAInfo.hpp"
 namespace merutilm::rff2 {
     struct MPAIndexMapperUtils {
 
@@ -34,7 +34,7 @@ namespace merutilm::rff2 {
         }
 
         template<IndexMappingMode MODE, typename Ret>
-        static Ret iterationToTableIndexMapper(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
+        static Ret iterationToTableIndexMapper(const MPAInfo &mpaPeriod, const itt::ref iteration) {
             //
             // get index <=> Inverse calculation of index compression
             // First approach : check the remainder == 1
@@ -100,7 +100,7 @@ namespace merutilm::rff2 {
                 throw vkh::exception_invalid_state("invalid mapping mode");
         }
 
-        static size_t iterationToNearestFlattenTableIndex(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
+        static size_t iterationToNearestFlattenTableIndex(const MPAInfo &mpaPeriod, const itt::ref iteration) {
 
             MPAIndexMapper mapper = invalidValueSentinel<IndexMappingMode::FLATTEN_LEVELS, MPAIndexMapper>();
             itt::ref iterationDecrement = 0;
@@ -113,23 +113,23 @@ namespace merutilm::rff2 {
             return iterationDecrement > 1 ? mapper.mapped + mapper.generatedLevels : mapper.mapped;
         }
 
-        static MPAIndexMapper iterationToFlattenTableIndexMapper(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
+        static MPAIndexMapper iterationToFlattenTableIndexMapper(const MPAInfo &mpaPeriod, const itt::ref iteration) {
             return iterationToTableIndexMapper<IndexMappingMode::FLATTEN_LEVELS, MPAIndexMapper>(mpaPeriod, iteration);
         }
 
-        static MPAIndexMapper iterationToPulledTableIndexMapper(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
+        static MPAIndexMapper iterationToPulledTableIndexMapper(const MPAInfo &mpaPeriod, const itt::ref iteration) {
             return iterationToTableIndexMapper<IndexMappingMode::PULLED_LEVELS, MPAIndexMapper>(mpaPeriod, iteration);
         }
 
-        static size_t iterationToFlattenTableIndex(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
+        static size_t iterationToFlattenTableIndex(const MPAInfo &mpaPeriod, const itt::ref iteration) {
             return iterationToTableIndexMapper<IndexMappingMode::FLATTEN, size_t>(mpaPeriod, iteration);
         }
 
-        static itt::ref iterationToPulledTableIndex(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
+        static itt::ref iterationToPulledTableIndex(const MPAInfo &mpaPeriod, const itt::ref iteration) {
             return iterationToTableIndexMapper<IndexMappingMode::PULLED, itt::ref>(mpaPeriod, iteration);
         }
 
-        static size_t iterationToGeneratedLevels(const MPAPeriod &mpaPeriod, const itt::ref iteration) {
+        static size_t iterationToGeneratedLevels(const MPAInfo &mpaPeriod, const itt::ref iteration) {
             return iterationToTableIndexMapper<IndexMappingMode::LEVELS, size_t>(mpaPeriod, iteration);
         }
     };

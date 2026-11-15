@@ -3,14 +3,14 @@
 //
 
 #pragma once
-#include "SRPCData.hpp"
 #include "SRPCSegment.hpp"
 #include "SRPCUtils.hpp"
 namespace merutilm::rff2 {
 
-    template<typename Index, typename Data>
+    template<typename Index>
     class SRPCCursor {
-        const SRPCData<Index, Data> &data;
+    protected:
+        const std::vector<SRPCUnit<Index>> &compressor;
         std::vector<SRPCSegment<Index> > currentIndexSegmentStack;
 
         Index originalIndex = 0;
@@ -18,7 +18,7 @@ namespace merutilm::rff2 {
         size_t behindCompressionUnits = 0;
 
     public:
-        explicit SRPCCursor(const SRPCData<Index, Data> &data) : data(data) {
+        explicit SRPCCursor(const std::vector<SRPCUnit<Index>> &compressor) : compressor(compressor) {
         }
 
         void reset() {
@@ -28,32 +28,25 @@ namespace merutilm::rff2 {
             currentIndexSegmentStack.clear();
         }
 
-        [[nodiscard]] bool hasNext() {
-            return originalIndex < data.uncompressedSize - 1;
-        }
-
         [[nodiscard]] Index currentOriginalIndex() const{
             return originalIndex;
         }
 
-        // Time complexity O(1)
-        [[nodiscard]] const Data &get() const { return data.compressedArray[refIndex]; }
 
-        // Time complexity O(log N)
-        [[nodiscard]] const Data &get(Index i) const {
-            return data.compressedArray[calcRefIndexFast(i)];
+        [[nodiscard]] Index currentRefIndex() const{
+            return refIndex;
         }
 
         [[nodiscard]] size_t calcRefIndexFast(Index i) const {
-            return data.compressor.empty()
+            return compressor.empty()
                        ? i
-                       : SRPCUtils::compress(data.compressor, i);
+                       : SRPCUtils::compress(compressor, i);
         }
 
         [[nodiscard]] size_t calcRefIndex(Index i) {
-            return data.compressor.empty()
+            return compressor.empty()
                        ? i
-                       : SRPCUtils::compress(data.compressor, i, &currentIndexSegmentStack, &behindCompressionUnits);
+                       : SRPCUtils::compress(compressor, i, &currentIndexSegmentStack, &behindCompressionUnits);
         }
 
         // Time complexity O(log N)
@@ -76,7 +69,7 @@ namespace merutilm::rff2 {
                 if (topPtr->remained == 0) {
                     // if 'remained' is zero, pop and do recover
                     SRPCSegment popped = *topPtr;
-                    assert(popped.nextChildSegmentCompressionUnitIndex <= data.compressor.size());
+                    assert(popped.nextChildSegmentCompressionUnitIndex <= compressor.size());
                     while (!currentIndexSegmentStack.empty() && topPtr->remained == 0) {
                         popped = *topPtr;
                         currentIndexSegmentStack.pop_back();
@@ -92,8 +85,8 @@ namespace merutilm::rff2 {
                     // recover reference index
                     refIndex = popped.referenceIndexToRecover;
                 }
-                if (topPtr && topPtr->nextChildSegmentCompressionUnitIndex < data.compressor.size()) {
-                    const auto &unit = data.compressor[topPtr->nextChildSegmentCompressionUnitIndex];
+                if (topPtr && topPtr->nextChildSegmentCompressionUnitIndex < compressor.size()) {
+                    const auto &unit = compressor[topPtr->nextChildSegmentCompressionUnitIndex];
                     if (topPtr->remained > 0 && unit.start - 1 == topPtr->maxCompressionSize - topPtr->remained) {
                         const auto maxCompressionSize = std::min(unit.range(), topPtr->remained);
                         // pushing child segment (referencing area may also be deleted by other compressor unit)
@@ -111,8 +104,8 @@ namespace merutilm::rff2 {
                     }
                 }
             }
-            if (behindCompressionUnits < data.compressor.size()) {
-                const auto &nextCompressionUnit = data.compressor[behindCompressionUnits];
+            if (behindCompressionUnits < compressor.size()) {
+                const auto &nextCompressionUnit = compressor[behindCompressionUnits];
                 if (nextCompressionUnit.start == originalIndex) {
                     const auto maxCompressionSize = nextCompressionUnit.range();
                     assert(currentIndexSegmentStack.empty());

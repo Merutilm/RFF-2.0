@@ -1,0 +1,31 @@
+//
+// Created by Merutilm on 11/9/26.
+//
+
+#pragma once
+#include "SRPCCursor.hpp"
+#include "SRPCData.hpp"
+namespace merutilm::rff2 {
+
+    template<typename Index, typename Data>
+    class SRPCDataView : public SRPCCursor<Index> {
+        const SRPCData<Index, Data> &data;
+
+    public:
+        explicit SRPCDataView(const SRPCData<Index, Data> &data) : SRPCCursor<Index>(data.compressor), data(data) {
+        }
+
+
+        [[nodiscard]] bool hasNext() const {
+            return SRPCCursor<Index>::originalIndex < data.uncompressedSize - 1;
+        }
+
+        // Time complexity O(1)
+        [[nodiscard]] const Data &get() const { return data.compressedArray[SRPCCursor<Index>::refIndex]; }
+
+        // Time complexity O(log N)
+        [[nodiscard]] const Data &get(Index i) const {
+            return data.compressedArray[SRPCCursor<Index>::calcRefIndexFast(i)];
+        }
+    };
+} // namespace merutilm::rff2

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../mrthy/MPATable.h"
+#include "../mrthy/MPATable.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtPerturbSettings.hpp"
@@ -99,9 +99,9 @@ namespace merutilm::rff2 {
 
             return false;
         }
-        void applyMPApproximation(SRPCCursor<itt::ref, complex<Num>> &cursor, complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
+        void applyMPApproximation(ReferenceView<Num> &referenceView, MPAView<Num> &mpaView, complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
                                   itt::ref &refIteration) const {
-            if (const PA<Num> *paPtr = table.lookup(cursor, refIteration, dz); paPtr != nullptr) {
+            if (const PA<Num> *paPtr = mpaView.lookup(referenceView, refIteration, dz); paPtr != nullptr) {
                 const PA<Num> &pa = *paPtr;
 
                 dz = pa.apply(dz, dc);
@@ -141,13 +141,13 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        void perturbationStep(SRPCCursor<itt::ref, complex<Num>> &cursor, complex<Num> &dz, const complex<Num> &dc,
-                              itt::ptb &iteration, itt::ref &refIteration) const {
-            if (cursor.currentOriginalIndex() != refIteration) {
-                cursor.setIndex(refIteration);
+        static void perturbationStep(ReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc,
+                              itt::ptb &iteration, itt::ref &refIteration) {
+            if (view.currentOriginalIndex() != refIteration) {
+                view.setIndex(refIteration);
             }
-            dz = (cursor.get() * 2 + dz) * dz + dc;
-            cursor.next();
+            dz = (view.get() * 2 + dz) * dz + dc;
+            view.next();
 
             ++iteration;
             ++refIteration;
@@ -178,10 +178,10 @@ namespace merutilm::rff2 {
             const double bailout2 = generalSettings.bailout * generalSettings.bailout;
 
             // basic interior detection
-            SRPCCursor cursor = reference.makeCursor();
-            cursor.next();
-            complex<Num> c = cursor.get() + dc0;
-            if (checkInteriorBasic(c)) {
+            ReferenceView<Num> referenceView = reference.makeReferenceView();
+            MPAView<Num> mpaView = table.makeMPAView();
+            referenceView.next();
+            if (checkInteriorBasic(referenceView.get() + dc0)) {
                 return isAbs ? 1 : static_cast<double>(maxIteration);
             }
 
@@ -204,8 +204,8 @@ namespace merutilm::rff2 {
             for (absIteration = 0; currDistance2 <= bailout2 && iteration < maxIteration; ++absIteration) {
 
                 assert(refIteration < maxRefIteration);
-                perturbationStep(cursor, dz, dc0, iteration, refIteration);
-                const complex<Num> z = cursor.get() + dz;
+                perturbationStep(referenceView, dz, dc0, iteration, refIteration);
+                const complex<Num> z = referenceView.get() + dz;
                 if (tryRebase(z, dz, refIteration, maxRefIteration) &&
                     checkInteriorAndApply(dz, dcMax0, interiorDetectRadius, pdz, pdzIndex)) {
                     return static_cast<double>(isAbs ? absIteration : maxIteration);
@@ -214,7 +214,7 @@ namespace merutilm::rff2 {
                 dz = dz.try_normalized_value();
 
                 updateDistance(z, prevDistance2, currDistance2);
-                applyMPApproximation(cursor, dz, dc0, iteration, refIteration);
+                applyMPApproximation(referenceView, mpaView, dz, dc0, iteration, refIteration);
 
                 if ((absIteration - 1) % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
                     state.interruptRequested())
@@ -273,7 +273,7 @@ namespace merutilm::rff2 {
             // std::array<itt::ptb, RFF_SIMD_CHUNK_SIZE> iteration;
             // std::array<itt::ref, RFF_SIMD_CHUNK_SIZE> refIteration;
             // std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> dz;
-            // SRPCCursor<itt::ref, complex<Num>> cursor = reference.makeCursor();
+            // SRPCCursor<itt::ref, complex<Num>> cursor = reference.makeReferenceView();
             //
             // if (saSettings.use) {
             //     std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> dcSa;

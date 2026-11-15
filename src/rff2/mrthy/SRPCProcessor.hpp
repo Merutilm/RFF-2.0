@@ -10,7 +10,7 @@
 #include "SRPCSegment.hpp"
 namespace merutilm::rff2 {
 
-        // Segment-based Recursive Pattern-approximate Compression (SRPC)
+    // Segment-based Recursive Pattern-approximate Compression (SRPC)
     template<typename Index, typename Data, typename Approx>
     class SRPCProcessor {
         SRPCData<Index, Data> result;

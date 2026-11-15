@@ -11,7 +11,7 @@
 
 namespace merutilm::rff2 {
 
-    struct ApproxTableCache {
+    struct ApproxTableBuffer {
 
 
         /**
@@ -25,14 +25,14 @@ namespace merutilm::rff2 {
          */
         CachedPodVector flattenIndexMapper;
 
-        explicit ApproxTableCache(vkh::Core &core) : mpaTable(core), flattenIndexMapper(core) {
+        explicit ApproxTableBuffer(vkh::Core &core) : mpaTable(core), flattenIndexMapper(core) {
 
         }
 
-        ApproxTableCache(const ApproxTableCache &) = delete;
-        ApproxTableCache &operator=(const ApproxTableCache &) = delete;
-        ApproxTableCache(ApproxTableCache &&) = delete;
-        ApproxTableCache &operator=(ApproxTableCache &&) = delete;
+        ApproxTableBuffer(const ApproxTableBuffer &) = delete;
+        ApproxTableBuffer &operator=(const ApproxTableBuffer &) = delete;
+        ApproxTableBuffer(ApproxTableBuffer &&) = delete;
+        ApproxTableBuffer &operator=(ApproxTableBuffer &&) = delete;
 
         template<typename PA> requires std::is_trivially_copyable_v<PA>
         void resize(const size_t tableLen, const size_t mapperLen, const bool makeGpuReadable) {

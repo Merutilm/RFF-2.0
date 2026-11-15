@@ -58,7 +58,7 @@ namespace merutilm::rff2 {
         cursorManager = std::make_unique<CursorManager>(rootWindowContext->getWindow()->getWindow());
         multithreadedManager = std::make_unique<MultithreadedRenderManager>(*rootWindowContext);
         computeShaderManager = std::make_unique<ComputeShaderRenderManager>(*rootWindowContext);
-        approxTableCache = std::make_unique<ApproxTableCache>(engine->getCore());
+        approxTableCache = std::make_unique<ApproxTableBuffer>(engine->getCore());
         NFD::Init();
         initImGui();
     }

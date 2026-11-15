@@ -7,7 +7,8 @@
 
 #include "../app/FnListeners.hpp"
 #include "../calc/fixed_point_complex.hpp"
-#include "../mrthy/SRPCCursor.hpp"
+#include "../mrthy/ReferenceData.hpp"
+#include "../mrthy/ReferenceView.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtReferenceSettings.hpp"
@@ -45,7 +46,7 @@ namespace merutilm::rff2 {
     template<Number Num>
     class MB2Reference final : public MB2ReferenceBase {
 
-        SRPCData<itt::ref, complex<Num>> data;
+        ReferenceData<Num> data;
 
     public:
         using MB2ReferenceBase::MB2ReferenceBase;
@@ -57,8 +58,8 @@ namespace merutilm::rff2 {
                                            size_t refInitialCapacity, dex dcMax, FnRefCalc &&fnRefCalc,
                                            std::unique_ptr<MB2Reference> &result);
 
-        [[nodiscard]] SRPCCursor<itt::ref, complex<Num>> makeCursor() const {
-            return SRPCCursor<itt::ref, complex<Num>>(data);
+        [[nodiscard]] ReferenceView<Num> makeReferenceView() const {
+            return ReferenceView<Num>(data);
         }
 
         [[nodiscard]] size_t length() const override;

@@ -2,7 +2,7 @@
 // Created by Merutilm on 2025-05-11.
 //
 
-#include "MPAPeriod.hpp"
+#include "MPAInfo.hpp"
 
 #include <algorithm>
 #include <memory>
@@ -10,14 +10,15 @@
 
 
 namespace merutilm::rff2 {
-    MPAPeriod::MPAPeriod(std::vector<itt::ref> &&tablePeriod, std::vector<bool> &&isArtificial,
-                         std::vector<itt::ref> &&skippableIterationCounts, std::vector<itt::ref> &&tableElementCounts) :
-        tablePeriods(std::move(tablePeriod)), isArtificial(std::move(isArtificial)),
-        skippableIterationCounts(std::move(skippableIterationCounts)),
-        tableElementCounts(std::move(tableElementCounts)) {}
+    MPAInfo::MPAInfo(const std::vector<itt::ref> &referencePeriod,
+                                                   const FrtMPASettings &mpaSettings) {
+
+        generateTablePeriod(referencePeriod, mpaSettings);
+        generateCountInfos();
+    }
 
 
-    void MPAPeriod::generateCountInfos(const std::vector<itt::ref> &tablePeriod, std::vector<itt::ref> &skippableIterationCounts, std::vector<itt::ref> &tableElementCounts) {
+    void MPAInfo::generateCountInfos() {
         // index compression : [3, 11, 26, 77] // index compression : [3, 11, 26, 77]
         // startIteration : 1  4  7 12 15 18 23 27
         // index :          0  1  2  3  4  5  6  7
@@ -43,7 +44,7 @@ namespace merutilm::rff2 {
         //
         // Stored elements to memory
 
-        const size_t size = tablePeriod.size();
+        const size_t size = tablePeriods.size();
         tableElementCounts = std::vector<itt::ref>(size, 0);
         skippableIterationCounts = std::vector<itt::ref>(size, 0);
         tableElementCounts[0] = 1;
@@ -52,10 +53,10 @@ namespace merutilm::rff2 {
         for (int i = 1; i < size; ++i) {
             itt::ref tableElement = 0;
             itt::ref skippableIterationCount = 0;
-            itt::ref remainder = tablePeriod[i];
+            itt::ref remainder = tablePeriods[i];
             for (int j = i - 1; j >= 0; --j) {
-                const itt::ref groupAmount = remainder / tablePeriod[j];
-                remainder %= tablePeriod[j];
+                const itt::ref groupAmount = remainder / tablePeriods[j];
+                remainder %= tablePeriods[j];
                 tableElement += groupAmount * tableElementCounts[j]; // lower level pa
                 skippableIterationCount += groupAmount * skippableIterationCounts[j];
             }
@@ -64,8 +65,7 @@ namespace merutilm::rff2 {
         }
     }
 
-    void MPAPeriod::generateTablePeriod(const std::vector<itt::ref> &referencePeriod, const FrtMPASettings &mpaSettings,
-                                        std::vector<itt::ref> &tablePeriods, std::vector<bool> &isArtificial) {
+    void MPAInfo::generateTablePeriod(const std::vector<itt::ref> &referencePeriod, const FrtMPASettings &mpaSettings) {
         // example
         // period : [3, 11, 26]
         //
@@ -130,17 +130,4 @@ namespace merutilm::rff2 {
         }
     }
 
-    std::unique_ptr<MPAPeriod> MPAPeriod::generate(const std::vector<itt::ref> &referencePeriod,
-                                                   const FrtMPASettings &mpaSettings) {
-        std::vector<itt::ref> tablePeriods;
-        std::vector<bool> isArtificial;
-        std::vector<itt::ref> skippableIterationCounts;
-        std::vector<itt::ref> tableElementCounts;
-
-        generateTablePeriod(referencePeriod, mpaSettings, tablePeriods, isArtificial);
-        generateCountInfos(tablePeriods, skippableIterationCounts, tableElementCounts);
-
-        return std::make_unique<MPAPeriod>(std::move(tablePeriods), std::move(isArtificial), std::move(skippableIterationCounts),
-                                           std::move(tableElementCounts));
-    }
 } // namespace merutilm::rff2

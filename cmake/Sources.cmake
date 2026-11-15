@@ -12,7 +12,7 @@ add_executable(
         ${CMAKE_SOURCE_DIR}/src/rff2/app/Main.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/io/RFFDynamicMapBinary.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/parallel/ParallelRenderState.cpp
-        ${CMAKE_SOURCE_DIR}/src/rff2/mrthy/MPAPeriod.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/mrthy/MPAInfo.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/app/FnFile.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/app/FnFractal.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/app/FnRender.cpp
