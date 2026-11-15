@@ -4,7 +4,6 @@
 
 #pragma once
 #include <cstdint>
-#include "FrtMPASelectionMethod.h"
 
 
 namespace merutilm::rff2 {
@@ -12,6 +11,5 @@ namespace merutilm::rff2 {
         uint16_t minSkipReference;
         uint8_t maxMultiplierBetweenLevel;
         float epsilonPower;
-        FrtMPASelectionMethod selectionMethod;
     };
 }

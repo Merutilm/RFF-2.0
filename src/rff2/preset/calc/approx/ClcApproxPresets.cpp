@@ -12,8 +12,7 @@ namespace merutilm::rff2 {
     FrtMPASettings ClcApproxPresets::UltraFast::genMPA() const {
         return FrtMPASettings{.minSkipReference = 4,
                               .maxMultiplierBetweenLevel = 2,
-                              .epsilonPower = -3.15f,
-                              .selectionMethod = FrtMPASelectionMethod::HIGHEST};
+                              .epsilonPower = -3.15f};
     }
 
     std::string ClcApproxPresets::Fast::getName() const { return "Fast"; }
@@ -22,8 +21,7 @@ namespace merutilm::rff2 {
     FrtMPASettings ClcApproxPresets::Fast::genMPA() const {
         return FrtMPASettings{.minSkipReference = 4,
                               .maxMultiplierBetweenLevel = 2,
-                              .epsilonPower = -4,
-                              .selectionMethod = FrtMPASelectionMethod::HIGHEST};
+                              .epsilonPower = -4};
     }
 
     std::string ClcApproxPresets::Normal::getName() const { return "Normal"; }
@@ -31,8 +29,7 @@ namespace merutilm::rff2 {
     FrtMPASettings ClcApproxPresets::Normal::genMPA() const {
         return FrtMPASettings{.minSkipReference = 4,
                               .maxMultiplierBetweenLevel = 2,
-                              .epsilonPower = -5,
-                              .selectionMethod = FrtMPASelectionMethod::HIGHEST};
+                              .epsilonPower = -5};
     }
 
     std::string ClcApproxPresets::Best::getName() const { return "Best"; }
@@ -41,8 +38,7 @@ namespace merutilm::rff2 {
     FrtMPASettings ClcApproxPresets::Best::genMPA() const {
         return FrtMPASettings{.minSkipReference = 4,
                               .maxMultiplierBetweenLevel = 2,
-                              .epsilonPower = -6,
-                              .selectionMethod = FrtMPASelectionMethod::HIGHEST};
+                              .epsilonPower = -6};
     }
 
     std::string ClcApproxPresets::UltraBest::getName() const { return "Ultra Best"; }
@@ -51,7 +47,6 @@ namespace merutilm::rff2 {
     FrtMPASettings ClcApproxPresets::UltraBest::genMPA() const {
         return FrtMPASettings{.minSkipReference = 4,
                               .maxMultiplierBetweenLevel = 2,
-                              .epsilonPower = -7,
-                              .selectionMethod = FrtMPASelectionMethod::HIGHEST};
+                              .epsilonPower = -7};
     }
 } // namespace merutilm::rff2

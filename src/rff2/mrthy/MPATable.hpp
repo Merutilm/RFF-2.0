@@ -59,30 +59,30 @@ namespace merutilm::rff2 {
                                      std::vector<PAGenerator<Num>> &currentPA, std::vector<bool> &generationAvailable,
                                      itt::ref &pulledTableIndex, size_t &flattenTableIndex, itt::ref &iteration);
 
-        void uVerifyPA(const std::vector<uint64_t> &itCountLim, const std::vector<uint64_t> &tablePeriod,
+        void uVerifyPA(const std::vector<uint64_t> &itCountLim, const std::vector<uint64_t> &tablePeriods,
                        std::vector<bool> &generationAvailable, std::vector<PAGenerator<Num>> &currentPA,
                        std::vector<uint64_t> &currentPASkips, std::vector<bool> *isPartial, PartialPA *partialPA,
                        uint64_t iteration);
 
-        void cVerifyPA(const std::vector<itt::ref> &itCountLim, const std::vector<itt::ref> &tablePeriod,
+        void cVerifyPA(const std::vector<itt::ref> &itCountLim, const std::vector<itt::ref> &tablePeriods,
                        std::vector<bool> &generationAvailable, std::vector<PAGenerator<Num>> &currentPA,
                        itt::ref iteration);
 
         void cRefreshCounter(std::vector<itt::ref> &itCount, std::vector<itt::ref> &itCountLim,
-                             const std::vector<itt::ref> &tablePeriod, std::vector<bool> &generationAvailable,
+                             const std::vector<itt::ref> &tablePeriods, std::vector<bool> &generationAvailable,
                              std::vector<PAGenerator<Num>> &currentPA, itt::ref iteration);
 
         void uRefreshCounter(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
-                             const std::vector<uint64_t> &tablePeriod, std::vector<bool> &generationAvailable,
+                             const std::vector<uint64_t> &tablePeriods, std::vector<bool> &generationAvailable,
                              std::vector<PAGenerator<Num>> &currentPA, std::vector<uint64_t> &currentPASkips,
                              std::vector<bool> *isPartial, uint64_t iteration);
 
         void uStepOnce(std::vector<uint64_t> &itCount, const std::vector<uint64_t> &itCountLim,
-                       const std::vector<uint64_t> &tablePeriod, std::vector<PAGenerator<Num>> &currentPA,
+                       const std::vector<uint64_t> &tablePeriods, std::vector<PAGenerator<Num>> &currentPA,
                        std::vector<uint64_t> &currentPASkips, uint64_t &flattenTableIndex, uint64_t &iteration);
 
         void cStepOnce(std::vector<itt::ref> &itCount, std::vector<itt::ref> &itCountLim,
-                       const std::vector<itt::ref> &tablePeriod, std::vector<bool> &generationAvailable,
+                       const std::vector<itt::ref> &tablePeriods, std::vector<bool> &generationAvailable,
                        std::vector<PAGenerator<Num>> &currentPA, itt::ref &pulledTableIndex, size_t &flattenTableIndex,
                        itt::ref &iteration);
 
@@ -102,7 +102,7 @@ namespace merutilm::rff2 {
                             FnCreatingTable &&fnCreatingTable);
 
 
-        void uConfigurePartialPA(const std::vector<itt::ref> &tablePeriod, const std::vector<uint64_t> &itCountLim,
+        void uConfigurePartialPA(const std::vector<itt::ref> &tablePeriods, const std::vector<uint64_t> &itCountLim,
                                  std::vector<PAGenerator<Num>> &currentPA, std::vector<bool> &isPartial,
                                  PartialPA &partialPA);
 
@@ -212,8 +212,8 @@ namespace merutilm::rff2 {
         if (containedTool == nullptr || containedTool->start != pulledTableIndex + 1) {
             return false;
         }
-        const auto &tablePeriod = data.info.tablePeriods;
-        const size_t levels = tablePeriod.size();
+        const auto &tablePeriods = data.info.tablePeriods;
+        const size_t levels = tablePeriods.size();
         const auto &skippableIterationsCount = data.info.skippableIterationCounts;
         const size_t level = ArrayUtils::binarySearch(skippableIterationsCount, containedTool->end - containedTool->start + 2);
         // count itself and periodic point, +2
@@ -239,10 +239,10 @@ namespace merutilm::rff2 {
                                  itCount[i]);
                 return false;
             }
-            if (itCount[i] + skip > tablePeriod[i] - MPAUtils::PERTURBATION_REQ) {
+            if (itCount[i] + skip > tablePeriods[i] - MPAUtils::PERTURBATION_REQ) {
                 vkh::logger::log("WARNING : Failed to compress!! \n what : the table period count {} + "
                                  "skip {} exceeds its period {}.",
-                                 itCount[i], skip, tablePeriod[i]);
+                                 itCount[i], skip, tablePeriods[i]);
                 return false;
             }
         }
@@ -267,7 +267,7 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    void MPATable<Num>::uVerifyPA(const std::vector<uint64_t> &itCountLim, const std::vector<uint64_t> &tablePeriod,
+    void MPATable<Num>::uVerifyPA(const std::vector<uint64_t> &itCountLim, const std::vector<uint64_t> &tablePeriods,
                                   std::vector<bool> &generationAvailable, std::vector<PAGenerator<Num>> &currentPA,
                                   std::vector<uint64_t> &currentPASkips, std::vector<bool> *isPartial,
                                   PartialPA *partialPA, uint64_t iteration) {
@@ -277,18 +277,18 @@ namespace merutilm::rff2 {
         // Amortized O(1)
 
         size_t level = 0;
-        const size_t levels = tablePeriod.size();
+        const size_t levels = tablePeriods.size();
 
 #ifndef NDEBUG
-        if (currentPASkips[level] > tablePeriod[level] - MPAUtils::PERTURBATION_REQ) {
+        if (currentPASkips[level] > tablePeriods[level] - MPAUtils::PERTURBATION_REQ) {
             throw vkh::exception_invalid_state("skip count is exceeded");
         }
 #endif
 
-        while (level < levels && (currentPASkips[level] == tablePeriod[level] - MPAUtils::PERTURBATION_REQ ||
-                                  itCountLim[level] != tablePeriod[level] || !generationAvailable[level])) {
+        while (level < levels && (currentPASkips[level] == tablePeriods[level] - MPAUtils::PERTURBATION_REQ ||
+                                  itCountLim[level] != tablePeriods[level] || !generationAvailable[level])) {
 
-            if (itCountLim[level] == tablePeriod[level] && generationAvailable[level]) {
+            if (itCountLim[level] == tablePeriods[level] && generationAvailable[level]) {
 
 
                 if (isPartial && partialPA && (*isPartial)[level]) {
@@ -320,7 +320,7 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    void MPATable<Num>::cVerifyPA(const std::vector<itt::ref> &itCountLim, const std::vector<itt::ref> &tablePeriod,
+    void MPATable<Num>::cVerifyPA(const std::vector<itt::ref> &itCountLim, const std::vector<itt::ref> &tablePeriods,
                                   std::vector<bool> &generationAvailable, std::vector<PAGenerator<Num>> &currentPA,
                                   itt::ref iteration) {
         // reset current and lower level count when it reached limit
@@ -328,13 +328,13 @@ namespace merutilm::rff2 {
         // Amortized O(1)
 
         itt::ref level = 0;
-        const itt::ref levels = tablePeriod.size();
+        const itt::ref levels = tablePeriods.size();
 
-        while (level < levels && (currentPA[level].skip == tablePeriod[level] - MPAUtils::PERTURBATION_REQ ||
-                                  itCountLim[level] != tablePeriod[level] || !generationAvailable[level])) {
+        while (level < levels && (currentPA[level].skip == tablePeriods[level] - MPAUtils::PERTURBATION_REQ ||
+                                  itCountLim[level] != tablePeriods[level] || !generationAvailable[level])) {
 
-            if (itCountLim[level] == tablePeriod[level] && generationAvailable[level]) {
-                const MPAIndexMapper flattenIndexMapper = MPAUtils::getCompFlattenIndexMapper(data, currentPA[level].start);
+            if (itCountLim[level] == tablePeriods[level] && generationAvailable[level]) {
+                const MPAIndexMapper flattenIndexMapper = MPAUtils::cGetFlattenIndexMapper(data, currentPA[level].start);
 
                 auto pa = getMutableMPAFromMapper(flattenIndexMapper);
 #ifndef NDEBUG
@@ -358,7 +358,7 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     void MPATable<Num>::cRefreshCounter(std::vector<itt::ref> &itCount, std::vector<itt::ref> &itCountLim,
-                                        const std::vector<itt::ref> &tablePeriod,
+                                        const std::vector<itt::ref> &tablePeriods,
                                         std::vector<bool> &generationAvailable,
                                         std::vector<PAGenerator<Num>> &currentPA, itt::ref iteration) {
 
@@ -369,7 +369,7 @@ namespace merutilm::rff2 {
 
         size_t level = 0;
 
-        while (level < tablePeriod.size() - 1 && itCount[level] == itCountLim[level]) {
+        while (level < tablePeriods.size() - 1 && itCount[level] == itCountLim[level]) {
             itCount[level + 1] += itCount[level];
             currentPA[level + 1].merge(currentPA[level]);
             currentPA[level].reuse(iteration);
@@ -378,16 +378,16 @@ namespace merutilm::rff2 {
 
         while (level > 0) {
             --level;
-            itCountLim[level] = std::min(tablePeriod[level], itCountLim[level + 1] - itCount[level + 1]);
+            itCountLim[level] = std::min(tablePeriods[level], itCountLim[level + 1] - itCount[level + 1]);
             itCount[level] = 0;
-            generationAvailable[level] = itCountLim[level] == tablePeriod[level];
+            generationAvailable[level] = itCountLim[level] == tablePeriods[level];
         }
     }
 
 
     template<Number Num>
     void MPATable<Num>::uRefreshCounter(std::vector<uint64_t> &itCount, std::vector<uint64_t> &itCountLim,
-                                        const std::vector<uint64_t> &tablePeriod,
+                                        const std::vector<uint64_t> &tablePeriods,
                                         std::vector<bool> &generationAvailable,
                                         std::vector<PAGenerator<Num>> &currentPA, std::vector<uint64_t> &currentPASkips,
                                         std::vector<bool> *isPartial, uint64_t iteration) {
@@ -398,7 +398,7 @@ namespace merutilm::rff2 {
 
         size_t level = 0;
 
-        while (level < tablePeriod.size() - 1 && itCount[level] == itCountLim[level]) {
+        while (level < tablePeriods.size() - 1 && itCount[level] == itCountLim[level]) {
             itCount[level + 1] += itCount[level];
             currentPASkips[level + 1] += currentPASkips[level];
             currentPA[level + 1].merge(currentPA[level]);
@@ -412,25 +412,25 @@ namespace merutilm::rff2 {
 
         while (level > 0) {
             --level;
-            itCountLim[level] = std::min(tablePeriod[level], itCountLim[level + 1] - itCount[level + 1]);
+            itCountLim[level] = std::min(tablePeriods[level], itCountLim[level + 1] - itCount[level + 1]);
             itCount[level] = 0;
-            generationAvailable[level] = itCountLim[level] == tablePeriod[level];
+            generationAvailable[level] = itCountLim[level] == tablePeriods[level];
         }
     }
 
     template<Number Num>
     void MPATable<Num>::uStepOnce(std::vector<uint64_t> &itCount, const std::vector<uint64_t> &itCountLim,
-                                  const std::vector<uint64_t> &tablePeriod, std::vector<PAGenerator<Num>> &currentPA,
+                                  const std::vector<uint64_t> &tablePeriods, std::vector<PAGenerator<Num>> &currentPA,
                                   std::vector<uint64_t> &currentPASkips, uint64_t &flattenTableIndex,
                                   uint64_t &iteration) {
         uint64_t levels = 0;
-        while (levels < tablePeriod.size() && itCount[levels] == 0 && itCountLim[levels] == tablePeriod[levels]) {
+        while (levels < tablePeriods.size() && itCount[levels] == 0 && itCountLim[levels] == tablePeriods[levels]) {
             ++levels;
         }
 
 
         if (levels > 0) {
-            MPAUtils::debugCheckMPAFromMapper(data.buffer->mpaTable.sizeUsed, flattenTableIndex, tablePeriod.size(), levels);
+            MPAUtils::debugCheckMPAFromMapper(data.buffer->mpaTable.sizeUsed, flattenTableIndex, tablePeriods.size(), levels);
             RFF_ASSERT(data.buffer->flattenIndexMapper.sizeUsed > iteration);
             data.buffer->flattenIndexMapper.interpret<MPAIndexMapper>()[iteration] = {flattenTableIndex, levels};
             flattenTableIndex += levels;
@@ -447,11 +447,11 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     void MPATable<Num>::cStepOnce(std::vector<itt::ref> &itCount, std::vector<itt::ref> &itCountLim,
-                                  const std::vector<itt::ref> &tablePeriod, std::vector<bool> &generationAvailable,
+                                  const std::vector<itt::ref> &tablePeriods, std::vector<bool> &generationAvailable,
                                   std::vector<PAGenerator<Num>> &currentPA, itt::ref &pulledTableIndex,
                                   size_t &flattenTableIndex, itt::ref &iteration) {
         size_t levels = 0;
-        while (levels < tablePeriod.size() && itCount[levels] == 0 && itCountLim[levels] == tablePeriod[levels]) {
+        while (levels < tablePeriods.size() && itCount[levels] == 0 && itCountLim[levels] == tablePeriods[levels]) {
             ++levels;
         }
 
@@ -485,8 +485,8 @@ namespace merutilm::rff2 {
                                       FnCreatingTable &&fnCreatingTable) {
 
 
-        const auto &tablePeriod = data.info.tablePeriods;
-        const itt::ref longestPeriod = tablePeriod.back();
+        const auto &tablePeriods = data.info.tablePeriods;
+        const itt::ref longestPeriod = tablePeriods.back();
 
         if (longestPeriod < data.mpaSettings.minSkipReference)
             return;
@@ -507,10 +507,10 @@ namespace merutilm::rff2 {
     void MPATable<Num>::cInitIterationCountVec(std::vector<itt::ref> &itCount, std::vector<itt::ref> &itCountLim,
                                                std::vector<bool> &generationAvailable) const {
         // input vector must be empty.
-        const auto &tablePeriod = data.info.tablePeriods;
-        const size_t levels = tablePeriod.size();
+        const auto &tablePeriods = data.info.tablePeriods;
+        const size_t levels = tablePeriods.size();
         itCount.resize(levels, 0);
-        itCountLim = tablePeriod;
+        itCountLim = tablePeriods;
         generationAvailable.resize(levels, true);
     }
 
@@ -520,8 +520,8 @@ namespace merutilm::rff2 {
                                                    std::vector<bool> &generationAvailable, std::vector<bool> &isPartial,
                                                    const uint64_t iteration) const {
 
-        const auto &tablePeriod = data.info.tablePeriods;
-        const size_t levels = tablePeriod.size();
+        const auto &tablePeriods = data.info.tablePeriods;
+        const size_t levels = tablePeriods.size();
         itCount.resize(levels);
         itCountLim.resize(levels);
         generationAvailable.resize(levels);
@@ -532,10 +532,10 @@ namespace merutilm::rff2 {
 
         for (uint64_t i = levels; i > 0; --i) {
             const uint64_t level = i - 1;
-            const uint64_t p = tablePeriod[level];
+            const uint64_t p = tablePeriods[level];
             const uint64_t quotient = remainder / p;
 
-            lim = std::min(static_cast<uint64_t>(tablePeriod[level]), lim - quotient * p);
+            lim = std::min(static_cast<uint64_t>(tablePeriods[level]), lim - quotient * p);
             remainder -= quotient * p;
 
             itCount[level] = remainder;
@@ -555,9 +555,9 @@ namespace merutilm::rff2 {
                                        FnCreatingTable &&fnCreatingTable) {
 
 
-        const auto &tablePeriod = data.info.tablePeriods;
-        const itt::ref longestPeriod = tablePeriod.back();
-        const size_t levels = tablePeriod.size();
+        const auto &tablePeriods = data.info.tablePeriods;
+        const itt::ref longestPeriod = tablePeriods.back();
+        const size_t levels = tablePeriods.size();
         const auto epsilonPower = data.mpaSettings.epsilonPower;
         const float epsilon = std::pow(10.f, epsilonPower);
         itt::ref iteration = 1;
@@ -580,10 +580,10 @@ namespace merutilm::rff2 {
 
             fnCreatingTable(static_cast<double>(iteration) / static_cast<double>(longestPeriod));
 
-            cStepOnce(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, pulledTableIndex,
+            cStepOnce(itCount, itCountLim, tablePeriods, generationAvailable, currentPA, pulledTableIndex,
                       flattenTableIndex, iteration);
-            cVerifyPA(itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
-            cRefreshCounter(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, iteration);
+            cVerifyPA(itCountLim, tablePeriods, generationAvailable, currentPA, iteration);
+            cRefreshCounter(itCount, itCountLim, tablePeriods, generationAvailable, currentPA, iteration);
         }
 #ifndef NDEBUG
         checkZero(state);
@@ -591,11 +591,11 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    void MPATable<Num>::uConfigurePartialPA(const std::vector<itt::ref> &tablePeriod,
+    void MPATable<Num>::uConfigurePartialPA(const std::vector<itt::ref> &tablePeriods,
                                             const std::vector<uint64_t> &itCountLim,
                                             std::vector<PAGenerator<Num>> &currentPA, std::vector<bool> &isPartial,
                                             PartialPA &partialPA) {
-        const size_t levels = tablePeriod.size();
+        const size_t levels = tablePeriods.size();
 
         for (size_t j = 1; j < levels; ++j) {
             currentPA[j].merge(currentPA[j - 1]);
@@ -608,7 +608,7 @@ namespace merutilm::rff2 {
             if (isPartial[j]) {
                 pp.first.emplace(currentPA[j]);
             }
-            if (tablePeriod[j] == itCountLim[j]) {
+            if (tablePeriods[j] == itCountLim[j]) {
                 pp.second.emplace(currentPA[j]);
             }
         }
@@ -669,15 +669,15 @@ namespace merutilm::rff2 {
     void MPATable<Num>::uGenerateTable(const ParallelRenderState &state, const MB2Reference<Num> &reference, Num dcMax,
                                        FnCreatingTable &&fnCreatingTable) {
 
-        const auto &tablePeriod = data.info.tablePeriods;
-        const uint64_t longestPeriod = static_cast<uint64_t>(tablePeriod.back());
-        const size_t levels = tablePeriod.size();
+        const auto &tablePeriods = data.info.tablePeriods;
+        const uint64_t longestPeriod = static_cast<uint64_t>(tablePeriods.back());
+        const size_t levels = tablePeriods.size();
         const auto epsilonPower = data.mpaSettings.epsilonPower;
         const float epsilon = std::pow(10.f, epsilonPower);
         const uint32_t threadCount = generalSettings.threads;
 
 
-        const size_t itInterval = std::max(static_cast<size_t>(tablePeriod[0]), longestPeriod / threadCount + 1);
+        const size_t itInterval = std::max(static_cast<size_t>(tablePeriods[0]), longestPeriod / threadCount + 1);
         std::vector<PartialPA> partialPAs(threadCount);
         std::vector<std::unique_ptr<std::jthread>> threads(threadCount);
 
@@ -690,7 +690,7 @@ namespace merutilm::rff2 {
 
 
             threads[i] = std::make_unique<std::jthread>([this, &reference, &state, &fnCreatingTable, dcMax, i,
-                                                         itInterval, &tablePeriod, longestPeriod, epsilon, levels,
+                                                         itInterval, &tablePeriods, longestPeriod, epsilon, levels,
                                                          &partialPAs, threadCount] {
                 const itt::ref startIteration = itInterval * i + 1;
                 if (startIteration > longestPeriod || state.interruptRequested()) {
@@ -702,7 +702,7 @@ namespace merutilm::rff2 {
                 std::vector<bool> generationAvailable;
                 std::vector<bool> isPartial;
                 uGenerateIterationCountVec(itCount, itCountLim, generationAvailable, isPartial, startIteration);
-                std::vector<uint64_t> currentPASkips = MPAUtils::uGenerateCurrentPASkips(tablePeriod, itCount);
+                std::vector<uint64_t> currentPASkips = MPAUtils::uGenerateCurrentPASkips(tablePeriods, itCount);
 
                 uint64_t flattenTableIndex =
                         MPAIndexMapperUtils::iterationToNearestFlattenTableIndex(data.info, startIteration);
@@ -730,15 +730,15 @@ namespace merutilm::rff2 {
                         // #endif
                     }
 
-                    uStepOnce(itCount, itCountLim, tablePeriod, currentPA, currentPASkips, flattenTableIndex,
+                    uStepOnce(itCount, itCountLim, tablePeriods, currentPA, currentPASkips, flattenTableIndex,
                               iteration);
-                    uVerifyPA(itCountLim, tablePeriod, generationAvailable, currentPA, currentPASkips, &isPartial,
+                    uVerifyPA(itCountLim, tablePeriods, generationAvailable, currentPA, currentPASkips, &isPartial,
                               &partialPAs[i], iteration);
-                    uRefreshCounter(itCount, itCountLim, tablePeriod, generationAvailable, currentPA, currentPASkips,
+                    uRefreshCounter(itCount, itCountLim, tablePeriods, generationAvailable, currentPA, currentPASkips,
                                     &isPartial, iteration);
                 }
 
-                uConfigurePartialPA(tablePeriod, itCountLim, currentPA, isPartial, partialPAs[i]);
+                uConfigurePartialPA(tablePeriods, itCountLim, currentPA, isPartial, partialPAs[i]);
             });
             // #ifndef NDEBUG
             //                 if (threads[i]->joinable())
@@ -754,7 +754,7 @@ namespace merutilm::rff2 {
         if (state.interruptRequested())
             return;
 
-        uGluePartialPA(tablePeriod, threadCount, partialPAs);
+        uGluePartialPA(tablePeriods, threadCount, partialPAs);
 
 #ifndef NDEBUG
         checkZero(state);

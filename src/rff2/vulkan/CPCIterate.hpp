@@ -30,7 +30,6 @@ namespace merutilm::rff2 {
 
         static constexpr uint32_t BINDING_RM_TABLE_INFO_UBO = 1;
         static constexpr uint32_t TARGET_RM_TABLE_LEN = 0;
-        static constexpr uint32_t TARGET_RM_TABLE_SELECTION_METHOD = 1;
 
         static constexpr uint32_t BINDING_RM_TABLE_DATA_SSBO = 2;
         static constexpr uint32_t TARGET_RM_TABLE_DATA = 0;
@@ -146,8 +145,6 @@ namespace merutilm::rff2 {
         rmSSBOHost.template set<complex<Num>>(TARGET_RM_OFFSET, static_cast<complex<Num>>(offset));
         rmSSBOHost.template resizeArray<complex<Num>>(TARGET_RM_ORBIT, longestPeriod + 1);
         rmSSBOHost.template set<complex<Num>>(TARGET_RM_ORBIT, reference.data());
-        rmTableUBOHost.template set<uint32_t>(TARGET_RM_TABLE_SELECTION_METHOD,
-                                              static_cast<uint32_t>(frt.mpa.selectionMethod));
 
         rmTableUBOHost.template set<uint64_t>(TARGET_RM_TABLE_LEN, mpTableData.sizeUsed);
         rmTableExtSSBO.context = mpTableData.sizeUsed == 0 ? engine.getSharedResource().dummyBuffer : mpTableData.ctx;
@@ -236,7 +233,6 @@ namespace merutilm::rff2 {
 
         vkh::HostDataObjectManager homRmTableInfo;
         homRmTableInfo.template reserve<uint64_t>(TARGET_RM_TABLE_LEN);
-        homRmTableInfo.template reserve<uint32_t>(TARGET_RM_TABLE_SELECTION_METHOD);
 
         vkh::HostDataObjectManager homRmBatchInfo;
         homRmBatchInfo.template reserve<uint32_t>(TARGET_RM_BATCH_SIZE);

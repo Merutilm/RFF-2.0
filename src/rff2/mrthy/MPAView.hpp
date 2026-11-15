@@ -4,6 +4,7 @@
 
 #pragma once
 #include "../calc/iteration_types.hpp"
+#include "MPAUtils.hpp"
 #include "SRPCCursor.hpp"
 namespace merutilm::rff2 {
 
@@ -11,51 +12,65 @@ namespace merutilm::rff2 {
     template<Number Num>
     class MPAView : public SRPCCursor<itt::ref> {
         const MPAData &data;
-        size_t currentLevels = 0;
+        size_t matchingRefIteration = 0;
+        size_t levelCount = 0;
+        size_t pulledTableSize;
+        std::vector<uint64_t> itCount;
+        std::vector<uint64_t> itCountLim;
 
     public:
         explicit MPAView(const MPAData &data);
 
+        void reset() {
+            SRPCCursor::reset();
+            matchingRefIteration = 1;
+            itCount = data.info.tablePeriods;
+            itCountLim = data.info.tablePeriods;
+            std::ranges::fill(itCount, 0);
+            levelCount = data.info.tablePeriods.size();
+        }
 
+        [[nodiscard]] const PA<Num> *uLookup(ReferenceView<Num> &referenceView, itt::ref refIteration,
+                                             const complex<Num> &dz) noexcept;
+        [[nodiscard]] const PA<Num> *cLookup(ReferenceView<Num> &referenceView, itt::ref refIteration,
+                                             const complex<Num> &dz) noexcept;
         [[nodiscard]] const PA<Num> *lookup(ReferenceView<Num> &referenceView, itt::ref refIteration,
-                              const complex<Num> &dz) const noexcept;
+                                            const complex<Num> &dz) noexcept;
 
 
         void lookupBatch(std::array<PA<Num>, RFF_SIMD_CHUNK_SIZE> &results,
                          const std::array<itt::ref, RFF_SIMD_CHUNK_SIZE> &refIterations,
                          const std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> &dzs,
-                         const std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finishes) const noexcept;
+                         const std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finishes) noexcept;
+
+        [[nodiscard]] bool hasNthNext(size_t level) const;
+
     private:
-        void nextPulledTableIndex() {
-            next(); // SRPCCursor::originalIndex is equal to pulledTableIndex
-            //TODO
-        }
+        void nextPulledTableIndex();
 
-        void jumpPulledTableIndex(ReferenceView<Num> &referenceView, size_t level) {
-            // referenceView.manipulateSegment(segment)
-            //TODO
-        }
+        void jumpPulledTableIndex(size_t level);
 
+        void measureLevelCount(size_t startLevel);
     };
 
     template<Number Num>
-    MPAView<Num>::MPAView(const MPAData &data) : SRPCCursor(data.compressor), data(data) {}
+    MPAView<Num>::MPAView(const MPAData &data) : SRPCCursor(data.compressor), data(data) {
+        pulledTableSize =
+                MPAIndexMapperUtils::iterationToPulledTableIndex(data.info, data.info.tablePeriods.back() + 1);
+        reset();
+    }
 
     template<Number Num>
-    const PA<Num> *MPAView<Num>::lookup(ReferenceView<Num> &referenceView, const itt::ref refIteration,
-                                        const complex<Num> &dz) const noexcept {
-
+    const PA<Num> *MPAView<Num>::uLookup(ReferenceView<Num> &referenceView, const itt::ref refIteration,
+                                         const complex<Num> &dz) noexcept {
         if (refIteration == 0 || !data.buffer) {
             return nullptr;
         }
 
-        // TODO optimize
-        const MPAIndexMapper mapper = MPAUtils::getFlattenIndexMapper(data, refIteration);
-
+        const MPAIndexMapper mapper = MPAUtils::uGetFlattenIndexMapper(data, refIteration);
         if (mapper.mapped == UINT64_MAX) {
             return nullptr;
         }
-
 
         MPAUtils::debugCheckMPAFromMapper(data.buffer->mpaTable.sizeUsed, mapper.mapped, data.info.tablePeriods.size(),
                                           mapper.generatedLevels);
@@ -63,46 +78,93 @@ namespace merutilm::rff2 {
         const auto table = MPAUtils::getMPAFromMapper<Num>(data, mapper);
         const Num r = dz.max();
 
-        switch (data.mpaSettings.selectionMethod) {
-            using enum FrtMPASelectionMethod;
-            case LOWEST: {
-                const PA<Num> *pa = nullptr;
+        const PA<Num> *pa = nullptr;
 
-                for (const PA<Num> &test: table) {
+        // This table cannot be empty because the pre-processing is done.
+        pa = &table.front();
 
-                    if (test.isValid(r)) {
-                        pa = &test;
-                    } else
-                        return pa;
+        if (pa->isValid(r)) {
+            for (size_t j = table.size(); j > 1; --j) {
+                if (const PA<Num> *test = &table[j - 1]; test->isValid(r)) {
+                    pa = test;
+                    break;
                 }
-                return pa;
             }
-            case HIGHEST: {
-                const PA<Num> &pa = table.front();
-                // This table cannot be empty because the pre-processing is done.
+            referenceView.setIndex(refIteration + pa->skip); //O(1)
+            return pa;
+        }
+        return nullptr;
+    }
 
-                if (!pa.isValid(r)) {
-                    return nullptr;
-                }
+    template<Number Num>
+    const PA<Num> *MPAView<Num>::cLookup(ReferenceView<Num> &referenceView, const itt::ref refIteration,
+                                         const complex<Num> &dz) noexcept {
+        if (refIteration == 0) {
+            reset();
+            return nullptr;
+        }
+        if (!data.buffer || matchingRefIteration != refIteration) {
+            return nullptr;
+        }
 
-                for (size_t j = table.size(); j > 1; --j) {
-                    const PA<Num> &test = table[j - 1];
 
-                    if (test.isValid(r)) {
-                        return &test;
+        // TODO optimize
+#ifndef NDEBUG
+        auto [mapped, generatedLevels] =
+                MPAIndexMapperUtils::iterationToPulledTableIndexMapper(data.info, refIteration);
+        assert(generatedLevels == levelCount && mapped == originalIndex);
+#endif
+        const MPAIndexMapper mapper = MPAUtils::cGetFlattenIndexMapperFromPulledIndex(data, originalIndex, levelCount);
+
+        if (mapper.mapped == UINT64_MAX) {
+            nextPulledTableIndex();
+            return nullptr;
+        }
+
+        MPAUtils::debugCheckMPAFromMapper(data.buffer->mpaTable.sizeUsed, mapper.mapped, data.info.tablePeriods.size(),
+                                          mapper.generatedLevels);
+
+        const auto table = MPAUtils::getMPAFromMapper<Num>(data, mapper);
+        const Num r = dz.max();
+
+        const PA<Num> *pa = nullptr;
+
+        // This table cannot be empty because the pre-processing is done.
+        pa = &table.front();
+
+        if (pa->isValid(r)) {
+            for (size_t j = table.size(); j > 1; --j) {
+                const PA<Num> *test = &table[j - 1];
+                if (test->isValid(r)) {
+                    pa = test;
+                    size_t level = j - 1;
+                    if (hasNthNext(level)) {
+                        jumpPulledTableIndex(level);
                     }
+                    break;
                 }
-
-                return &pa;
             }
-            default:
-                return nullptr;
+            referenceView.setIndex(refIteration + pa->skip); //TODO optimize
+            return pa;
+        }
+
+        nextPulledTableIndex();
+        return nullptr;
+    }
+
+    template<Number Num>
+    const PA<Num> *MPAView<Num>::lookup(ReferenceView<Num> &referenceView, const itt::ref refIteration,
+                                        const complex<Num> &dz) noexcept {
+        if (data.compressor.empty()) {
+            return uLookup(referenceView, refIteration, dz);
+        } else {
+            return cLookup(referenceView, refIteration, dz);
         }
     }
     template<Number Num>
     void MPAView<Num>::lookupBatch(std::array<PA<Num>, 16> &results, const std::array<itt::ref, 16> &refIterations,
                                    const std::array<complex<Num>, 16> &dzs,
-                                   const std::array<uint8_t, 16> &finishes) const noexcept {
+                                   const std::array<uint8_t, 16> &finishes) noexcept {
         // TODO Change to AVX512 instructions
         // if (mpaPeriod == nullptr) {
         //     std::ranges::fill(results, PA<Num>::IDENTITY);
@@ -160,6 +222,71 @@ namespace merutilm::rff2 {
         //     default:
         //         break;
         // }
+    }
+    template<Number Num>
+    bool MPAView<Num>::hasNthNext(const size_t level) const {
+        return originalIndex + data.info.skippableIterationCounts[level] < pulledTableSize;
+    }
+
+    template<Number Num>
+    void MPAView<Num>::nextPulledTableIndex() {
+#ifndef NDEBUG
+        assert(itCount[0] == 0);
+        assert(itCountLim[0] == data.info.tablePeriods[0]);
+#endif
+
+        matchingRefIteration += data.info.tablePeriods[0];
+        itCount[0] = data.info.tablePeriods[0]; // next pulled mpa sequence
+        measureLevelCount(0);
+
+        // TODO optimize
+        next(); // SRPCCursor::originalIndex is equal to pulledTableIndex
+    }
+
+
+    template<Number Num>
+    void MPAView<Num>::jumpPulledTableIndex(const size_t level) {
+
+#ifndef NDEBUG
+        for (size_t i = 0; i <= level; ++i) {
+            assert(itCount[i] == 0);
+            assert(itCountLim[i] == data.info.tablePeriods[i]);
+        }
+#endif
+        matchingRefIteration += data.info.tablePeriods[level];
+        itCount[level] = data.info.tablePeriods[level]; // sequence jumping
+        measureLevelCount(level);
+
+        // TODO optimize
+        setIndex(originalIndex + data.info.skippableIterationCounts[level]);
+    }
+
+    template<Number Num>
+    void MPAView<Num>::measureLevelCount(size_t startLevel) {
+        levelCount = 0;
+        const auto &tablePeriods = data.info.tablePeriods;
+
+        size_t level = startLevel;
+        while (level < tablePeriods.size() - 1 && itCount[level] == itCountLim[level]) {
+            itCount[level + 1] += itCount[level];
+            ++level;
+        }
+
+        levelCount = 0;
+        while (level > 0) {
+            --level;
+            itCountLim[level] = std::min(tablePeriods[level], itCountLim[level + 1] - itCount[level + 1]);
+            itCount[level] = 0;
+            levelCount += (itCountLim[level] == tablePeriods[level]);
+        }
+
+
+        if (levelCount == 0) {
+            assert(itCountLim[0] > 0);
+            itCount[0] = itCountLim[0];
+            matchingRefIteration += itCountLim[0];
+            measureLevelCount(0);
+        }
     }
 
 } // namespace merutilm::rff2

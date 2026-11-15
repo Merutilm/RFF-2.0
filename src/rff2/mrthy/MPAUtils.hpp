@@ -17,11 +17,12 @@ namespace merutilm::rff2::MPAUtils {
     [[nodiscard]] static PulledMPACompressor
     generatePulledMPACompressor(const MPAInfo &info, const ReferenceCompressor &referenceCompressor);
 
-    [[nodiscard]] static MPAIndexMapper getFlattenIndexMapperFromPulledIndex(const MPAData &data, itt::ref pulled, size_t levels);
+    [[nodiscard]] static MPAIndexMapper cGetFlattenIndexMapperFromPulledIndex(const MPAData &data, itt::ref pulled, size_t levels);
 
-    [[nodiscard]] static MPAIndexMapper getCompFlattenIndexMapper(const MPAData &data, itt::ref iteration);
+    [[nodiscard]] static MPAIndexMapper uGetFlattenIndexMapper(const MPAData &data, itt::ref iteration);
 
-    [[nodiscard]] static MPAIndexMapper getFlattenIndexMapper(const MPAData &data, itt::ref iteration);
+    [[nodiscard]] static MPAIndexMapper cGetFlattenIndexMapper(const MPAData &data, itt::ref iteration);
+
 
     template<Number Num>
     [[nodiscard]] static std::span<const PA<Num>> getMPAFromMapper(const MPAData &data,
@@ -72,26 +73,24 @@ namespace merutilm::rff2::MPAUtils {
         return compressor;
     }
 
-    MPAIndexMapper getCompFlattenIndexMapper(const MPAData &data, const itt::ref iteration) {
-        const auto [pulled, levels] = MPAIndexMapperUtils::iterationToPulledTableIndexMapper(data.info, iteration);
-        if (pulled == UINT64_MAX) {
-            return MPAIndexMapper{.mapped = UINT64_MAX, .generatedLevels = 0};
-        }
-        return getFlattenIndexMapperFromPulledIndex(data, pulled, levels);
-    }
-
-    MPAIndexMapper getFlattenIndexMapperFromPulledIndex(const MPAData &data, const itt::ref pulled, const size_t levels) {
+    MPAIndexMapper cGetFlattenIndexMapperFromPulledIndex(const MPAData &data, const itt::ref pulled, const size_t levels) {
         const size_t comp = SRPCUtils::compress(data.compressor, pulled);
         return MPAIndexMapper{.mapped = data.buffer->flattenIndexMapper.interpret<MPAIndexMapper>()[comp].mapped,
                               .generatedLevels = levels};
     }
 
-    MPAIndexMapper getFlattenIndexMapper(const MPAData &data, const itt::ref iteration) {
-        if (data.compressor.empty())
-            return data.buffer->flattenIndexMapper.interpret<MPAIndexMapper>()[static_cast<size_t>(iteration)];
-
-        return getCompFlattenIndexMapper(data, iteration);
+    MPAIndexMapper uGetFlattenIndexMapper(const MPAData &data, const itt::ref iteration) {
+        return data.buffer->flattenIndexMapper.interpret<MPAIndexMapper>()[static_cast<size_t>(iteration)];
     }
+
+    MPAIndexMapper cGetFlattenIndexMapper(const MPAData &data, const itt::ref iteration) {
+        const auto [pulled, levels] = MPAIndexMapperUtils::iterationToPulledTableIndexMapper(data.info, iteration);
+        if (pulled == UINT64_MAX) {
+            return MPAIndexMapper{.mapped = UINT64_MAX, .generatedLevels = 0};
+        }
+        return cGetFlattenIndexMapperFromPulledIndex(data, pulled, levels);
+    }
+
     template<Number Num>
     std::span<const PA<Num>> getMPAFromMapper(const MPAData &data, const MPAIndexMapper flattenIndexMapper) {
 

@@ -46,42 +46,22 @@ DoublePA lookup(uint64_t ref_iteration, dvec2 dz) {
 
     float r = max(vec2(dz));
 
-    switch (mp_table_info.selection_method) {
-        case MSM_LOWEST:
-            {
-                DoublePA pa = invalid_sentinel();
 
-                for (int i = 0; i < mapper.levels; ++i) {
-                    DoublePA test = mp_table_data.table[int(mapper.mapped) + i];
-                    if (is_valid(test, r)) {
-                        pa = test;
-                    } else
-                    return pa;
-                }
-                return pa;
-                break;
-            }
-        case MSM_HIGHEST:
-            {
-                DoublePA pa = mp_table_data.table[int(mapper.mapped)];
+    DoublePA pa = mp_table_data.table[int(mapper.mapped)];
 
-                if (!is_valid(pa, r)) {
-                    return invalid_sentinel();
-                }
-
-                for (int j = int(mapper.levels); j > 1; --j) {
-                    DoublePA test = mp_table_data.table[int(mapper.mapped) + j - 1];
-
-                    if (is_valid(test, r)) {
-                        return test;
-                    }
-                }
-
-                return pa;
-                break;
-            }
+    if (!is_valid(pa, r)) {
+        return invalid_sentinel();
     }
-    return invalid_sentinel();
+
+    for (int j = int(mapper.levels); j > 1; --j) {
+        DoublePA test = mp_table_data.table[int(mapper.mapped) + j - 1];
+
+        if (is_valid(test, r)) {
+            return test;
+        }
+    }
+
+    return pa;
 }
 
 vec2 apply(DoublePA pa, dvec2 dz, dvec2 dc) {

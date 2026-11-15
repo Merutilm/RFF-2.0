@@ -28,6 +28,7 @@ namespace merutilm::rff2 {
 
         explicit MPAInfo(const std::vector<itt::ref> &referencePeriod, const FrtMPASettings &mpaSettings);
 
+    private:
         void generateCountInfos();
 
         void generateTablePeriod(const std::vector<itt::ref> &referencePeriod, const FrtMPASettings &mpaSettings);

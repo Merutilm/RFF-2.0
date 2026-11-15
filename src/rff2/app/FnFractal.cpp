@@ -229,7 +229,7 @@ namespace merutilm::rff2 {
     void FnFractal::mpa(RFF2 &app) {
 
         ImGuiUtils::BeginSettings("MP-Approximation");
-        auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower, mpaSelectionMethod] =
+        auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower] =
                 app.getSettings().fractal.mpa;
 
         if (ImGui::InputScalar("Min Skip Reference", ImGuiDataType_U16, &minSkipReference)) {
@@ -255,8 +255,6 @@ namespace merutilm::rff2 {
                 "The fractal will be rendered glitch-less but slow,\n"
                 "and is large (-1), It will be fast, but maybe shown visible glitches.");
 
-        ImGuiUtils::Dropdown("Selection Method", &mpaSelectionMethod);
-        ImGuiUtils::HelpMarker("Set the selection method of MPA. The first target PA is always the front element.");
         FnExplore::regenerateApprox(app);
         ImGuiUtils::EndSettings();
     }

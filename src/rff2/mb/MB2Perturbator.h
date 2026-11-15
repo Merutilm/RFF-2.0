@@ -131,9 +131,10 @@ namespace merutilm::rff2 {
             currDistance2 = static_cast<complex<double>>(z).norm_sqr();
         }
 
-        static bool tryRebase(const complex<Num> &z, complex<Num> &dz, itt::ref &refIteration,
+        static bool tryRebase(ReferenceView<Num> &view, const complex<Num> &z, complex<Num> &dz, itt::ref &refIteration,
                               const itt::ref maxRefIteration) {
             if (refIteration == maxRefIteration || z.max() < dz.max()) {
+                view.reset();
                 refIteration = 0;
                 dz = z;
                 return true;
@@ -143,9 +144,7 @@ namespace merutilm::rff2 {
 
         static void perturbationStep(ReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc,
                               itt::ptb &iteration, itt::ref &refIteration) {
-            if (view.currentOriginalIndex() != refIteration) {
-                view.setIndex(refIteration);
-            }
+            assert(view.currentOriginalIndex() == refIteration);
             dz = (view.get() * 2 + dz) * dz + dc;
             view.next();
 
@@ -184,6 +183,7 @@ namespace merutilm::rff2 {
             if (checkInteriorBasic(referenceView.get() + dc0)) {
                 return isAbs ? 1 : static_cast<double>(maxIteration);
             }
+            referenceView.reset();
 
             // generate initial iteration and dz
             complex<Num> dz;
@@ -206,7 +206,7 @@ namespace merutilm::rff2 {
                 assert(refIteration < maxRefIteration);
                 perturbationStep(referenceView, dz, dc0, iteration, refIteration);
                 const complex<Num> z = referenceView.get() + dz;
-                if (tryRebase(z, dz, refIteration, maxRefIteration) &&
+                if (tryRebase(referenceView, z, dz, refIteration, maxRefIteration) &&
                     checkInteriorAndApply(dz, dcMax0, interiorDetectRadius, pdz, pdzIndex)) {
                     return static_cast<double>(isAbs ? absIteration : maxIteration);
                 }

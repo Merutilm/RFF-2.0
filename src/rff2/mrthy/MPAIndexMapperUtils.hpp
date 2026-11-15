@@ -34,7 +34,7 @@ namespace merutilm::rff2 {
         }
 
         template<IndexMappingMode MODE, typename Ret>
-        static Ret iterationToTableIndexMapper(const MPAInfo &mpaPeriod, const itt::ref iteration) {
+        static Ret iterationToTableIndexMapper(const MPAInfo &mpaInfo, const itt::ref iteration) {
             //
             // get index <=> Inverse calculation of index compression
             // First approach : check the remainder == 1
@@ -44,7 +44,7 @@ namespace merutilm::rff2 {
             // 3 1 1  2  1  1  2  3  1  1  2
 
 
-            const auto &tablePeriod = mpaPeriod.tablePeriods;
+            const auto &tablePeriod = mpaInfo.tablePeriods;
 
             if (iteration == 0) {
                 return invalidValueSentinel<MODE, Ret>();
@@ -70,10 +70,10 @@ namespace merutilm::rff2 {
                 levels += maxSkip == period && remainder == 1;
 
                 if constexpr (MODE == IndexMappingMode::PULLED || MODE == IndexMappingMode::PULLED_LEVELS) {
-                    const itt::ref count = mpaPeriod.skippableIterationCounts[i - 1];
+                    const itt::ref count = mpaInfo.skippableIterationCounts[i - 1];
                     index += quotient * count;
                 } else if constexpr (MODE == IndexMappingMode::FLATTEN || MODE == IndexMappingMode::FLATTEN_LEVELS) {
-                    const itt::ref count = mpaPeriod.tableElementCounts[i - 1];
+                    const itt::ref count = mpaInfo.tableElementCounts[i - 1];
                     index += quotient * count + (maxSkip == period);
                 }
             }
@@ -100,12 +100,12 @@ namespace merutilm::rff2 {
                 throw vkh::exception_invalid_state("invalid mapping mode");
         }
 
-        static size_t iterationToNearestFlattenTableIndex(const MPAInfo &mpaPeriod, const itt::ref iteration) {
+        static size_t iterationToNearestFlattenTableIndex(const MPAInfo &mpaInfo, const itt::ref iteration) {
 
             MPAIndexMapper mapper = invalidValueSentinel<IndexMappingMode::FLATTEN_LEVELS, MPAIndexMapper>();
             itt::ref iterationDecrement = 0;
             for (; mapper.mapped == UINT64_MAX; ++iterationDecrement) {
-                mapper = iterationToFlattenTableIndexMapper(mpaPeriod, iteration - iterationDecrement);
+                mapper = iterationToFlattenTableIndexMapper(mpaInfo, iteration - iterationDecrement);
                 // TODO can this be optimized?
                 // Even though the number of loops is less than 2 * MinSkipReference, optimization may still be
                 // possible.
@@ -113,24 +113,24 @@ namespace merutilm::rff2 {
             return iterationDecrement > 1 ? mapper.mapped + mapper.generatedLevels : mapper.mapped;
         }
 
-        static MPAIndexMapper iterationToFlattenTableIndexMapper(const MPAInfo &mpaPeriod, const itt::ref iteration) {
-            return iterationToTableIndexMapper<IndexMappingMode::FLATTEN_LEVELS, MPAIndexMapper>(mpaPeriod, iteration);
+        static MPAIndexMapper iterationToFlattenTableIndexMapper(const MPAInfo &mpaInfo, const itt::ref iteration) {
+            return iterationToTableIndexMapper<IndexMappingMode::FLATTEN_LEVELS, MPAIndexMapper>(mpaInfo, iteration);
         }
 
-        static MPAIndexMapper iterationToPulledTableIndexMapper(const MPAInfo &mpaPeriod, const itt::ref iteration) {
-            return iterationToTableIndexMapper<IndexMappingMode::PULLED_LEVELS, MPAIndexMapper>(mpaPeriod, iteration);
+        static MPAIndexMapper iterationToPulledTableIndexMapper(const MPAInfo &mpaInfo, const itt::ref iteration) {
+            return iterationToTableIndexMapper<IndexMappingMode::PULLED_LEVELS, MPAIndexMapper>(mpaInfo, iteration);
         }
 
-        static size_t iterationToFlattenTableIndex(const MPAInfo &mpaPeriod, const itt::ref iteration) {
-            return iterationToTableIndexMapper<IndexMappingMode::FLATTEN, size_t>(mpaPeriod, iteration);
+        static size_t iterationToFlattenTableIndex(const MPAInfo &mpaInfo, const itt::ref iteration) {
+            return iterationToTableIndexMapper<IndexMappingMode::FLATTEN, size_t>(mpaInfo, iteration);
         }
 
-        static itt::ref iterationToPulledTableIndex(const MPAInfo &mpaPeriod, const itt::ref iteration) {
-            return iterationToTableIndexMapper<IndexMappingMode::PULLED, itt::ref>(mpaPeriod, iteration);
+        static itt::ref iterationToPulledTableIndex(const MPAInfo &mpaInfo, const itt::ref iteration) {
+            return iterationToTableIndexMapper<IndexMappingMode::PULLED, itt::ref>(mpaInfo, iteration);
         }
 
-        static size_t iterationToGeneratedLevels(const MPAInfo &mpaPeriod, const itt::ref iteration) {
-            return iterationToTableIndexMapper<IndexMappingMode::LEVELS, size_t>(mpaPeriod, iteration);
+        static size_t iterationToGeneratedLevels(const MPAInfo &mpaInfo, const itt::ref iteration) {
+            return iterationToTableIndexMapper<IndexMappingMode::LEVELS, size_t>(mpaInfo, iteration);
         }
     };
 } // namespace merutilm::rff2

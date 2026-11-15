@@ -17,10 +17,6 @@
 #define ST_SMOOTH 2
 #define ST_SMOOTH_SQUARED 3
 
-// MPA Selection Method
-#define MSM_LOWEST 0
-#define MSM_HIGHEST 1
-
 // Decimalize Iteration Method
 #define DIM_NONE 0
 #define DIM_LINEAR 1

@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "FrtDecimalizeIterationMethod.h"
-#include "FrtMPASelectionMethod.h"
 #include "PerturbationMainIterator.hpp"
 #include "ShdIterationColoringMethod.hpp"
 #include "ShdPalSingleIterationColoringMethod.h"
@@ -27,13 +26,6 @@ namespace merutilm::rff2 {
                     SQUARE_ROOT,
                     LOG,
                     LOG_LOG
-                };
-            }
-            if constexpr (std::is_same_v<E, FrtMPASelectionMethod>) {
-                using enum FrtMPASelectionMethod;
-                return {
-                    LOWEST,
-                    HIGHEST
                 };
             }
             if constexpr (std::is_same_v<E, ShdIterationColoringMethod>) {
@@ -81,14 +73,6 @@ namespace merutilm::rff2 {
                     case SQUARE_ROOT: return "Square root";
                     case LOG: return "Log";
                     case LOG_LOG: return "LogLog";
-                    default: break;
-                }
-            }
-            if constexpr (std::is_same_v<E, FrtMPASelectionMethod>) {
-                switch (value) {
-                    using enum FrtMPASelectionMethod;
-                    case LOWEST: return "Lowest";
-                    case HIGHEST: return "Highest";
                     default: break;
                 }
             }
