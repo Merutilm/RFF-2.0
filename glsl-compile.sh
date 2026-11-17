@@ -28,7 +28,7 @@ lenInclude=${#fileIncludes[@]}
 for ((file=0; file<lenInclude; file++)); do
     target="${fileIncludes[$file]}"
     name=$(basename "$target")
-    cache="$dirCache/include/$name"
+    cache="$dirCache/include/$name.cache"
 
     if ! test -f "$cache" || [ "$(diff "$cache" "$target" | wc -l)" -gt 0 ]; then
         printf "\033[33m# Include %s changed. Invalidating caches...\033[0m\n" "$name"
@@ -41,7 +41,7 @@ done
 for ((file=0; file<len; file++)); do
     target="${files[$file]}"
     name=$(basename "$target")
-    cache="$dirCache/src/$name"
+    cache="$dirCache/src/$name.cache"
     compiled="$dirOut/$name$ext"
     if test -f "$cache" && [ "$(diff "$cache" "$target" | wc -l)" -eq 0 ]; then
         printf "\033[33m# [%d/%d] %s Already Compiled. Skipping...\033[0m\n" "$((file+1))" "$len" "$name"
@@ -68,5 +68,5 @@ printf "Total %d\n" "$len"
 mkdir -p "$dirCache/include"
 mkdir -p "$dirCache/src"
 
-for file in "$dirInclude"/*; do cp "$file" "$dirCache/include/$(basename "$file")"; done
-for file in "$dirIn"/*; do cp "$file" "$dirCache/src/$(basename "$file")"; done
+for file in "$dirInclude"/*; do cp "$file" "$dirCache/include/$(basename "$file").cache"; done
+for file in "$dirIn"/*; do cp "$file" "$dirCache/src/$(basename "$file").cache"; done

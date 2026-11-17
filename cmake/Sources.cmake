@@ -60,5 +60,4 @@ add_executable(
         ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/CPCInterpolateIsolated.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/mb/MB2Locator.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/io/RFFShaderBinary.cpp
-        #        ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/video/H264VideoEncoder.cpp
 )

@@ -3,12 +3,25 @@
 #ifndef NDEBUG
 
 static void counter(const std::filesystem::path &path, uint32_t *cnt) {
+    std::string str = path.string();
+    const std::vector arrs = {
+        ".cpp",
+        ".hpp",
+        ".h",
+        ".glsl",
+        ".comp",
+        ".vert",
+        ".frag",
+        ".geom",
+        ".tess"
+    };
+
     if (std::filesystem::is_directory(path)) {
         for (std::filesystem::directory_iterator it(path); it != std::filesystem::directory_iterator(); ++it) {
             auto child = it->path();
             counter(child, cnt);
         }
-    } else if (path.string().ends_with(".cpp") || path.string().ends_with(".hpp")) {
+    } else if (std::ranges::any_of(arrs, [&](auto &v) {return str.ends_with(v);})) {
 
         std::ifstream ifs(path);
         std::string v;
@@ -20,25 +33,13 @@ static void counter(const std::filesystem::path &path, uint32_t *cnt) {
 
 static void count() {
     uint32_t cnt = 0;
+    counter(std::filesystem::path("../shaders/include"), &cnt);
+    counter(std::filesystem::path("../shaders/src"), &cnt);
     counter(std::filesystem::path("../src"), &cnt);
     counter(std::filesystem::path("../include"), &cnt);
     std::cout << cnt << std::endl;
 }
 
-static void testCode() {
-    using namespace merutilm::rff2;
-    using namespace merutilm::vkh;
-
-    // fixed_point_decimal z("-4", -37);
-    // z.try_realloc_inc(123, true);
-    // std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> temps;
-    // z.one();
-    // std::cout << z << std::endl;
-    // z.set_exp2div64(-4, true);
-    // std::cout << z << std::endl;
-    // z.set_exp2div64(-4, true);
-    // std::cout << z << std::endl;
-}
 #endif
 
 int main() {
@@ -46,7 +47,6 @@ int main() {
     using namespace merutilm::vkh;
 
 #ifndef NDEBUG
-    testCode();
     count();
 #endif
     Application::start<RFF2>({.version = VK_API_VERSION_1_3,

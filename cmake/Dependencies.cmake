@@ -10,7 +10,7 @@ if (WIN32)
 endif ()
 
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/vulkan_helper)
+add_subdirectory(${CMAKE_SOURCE_DIR}/extern/vulkan-helper/src/vulkan-helper)
 
 target_link_libraries(RFF PRIVATE
         # Vulkan Helper
@@ -50,6 +50,7 @@ if (WIN32)
 elseif (APPLE)
     target_link_libraries(RFF PRIVATE "-framework Cocoa")
     # TODO non compilable
+    message(FATAL_ERROR "selected platform is not supported")
 elseif (UNIX)
 
     macro(find_static_library OUT_VAR LIB_NAME)
