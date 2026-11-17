@@ -4,3 +4,6 @@
 [submodule "extern/vulkan-helper"]
 	path = extern/vulkan-helper
 	url = git@github.com:merutilm/vulkan-helper.git
+[submodule "extern/stb"]
+	path = extern/stb
+	url = git@github.com:nothings/stb

@@ -8,6 +8,7 @@ endif()
 
 add_executable(
         RFF
+        ${CMAKE_SOURCE_DIR}/extern/stb/deprecated/stb_image.c
         ${CMAKE_SOURCE_DIR}/extern/imgui/misc/cpp/imgui_stdlib.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/app/Main.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/io/RFFDynamicMapBinary.cpp
@@ -35,7 +36,6 @@ add_executable(
         ${CMAKE_SOURCE_DIR}/src/rff2/io/RFFStaticMapBinary.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/io/RFFLocationBinary.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/io/KFRColorLoader.cpp
-        ${CMAKE_SOURCE_DIR}/extern/stb_image.c
         ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCIterationPalette.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/app/RFF2.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCStripe.cpp

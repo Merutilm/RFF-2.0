@@ -16,7 +16,6 @@ RULES.md
 /cmake/src
 
 export
-extern
 publish.sh
 
 /bin
