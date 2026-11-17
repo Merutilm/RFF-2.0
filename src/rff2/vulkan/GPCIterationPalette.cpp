@@ -9,8 +9,8 @@
 #include "../util/Utilities.h"
 #include "GPCSmoothZoom.hpp"
 #include "desc/SharedDescriptorTemplate.hpp"
-#include "vulkan_helper/util/BufferImageContextUtils.hpp"
-#include "vulkan_helper/util/DescriptorUpdater.hpp"
+#include "vulkan-helper/util/BufferImageContextUtils.hpp"
+#include "vulkan-helper/util/DescriptorUpdater.hpp"
 
 namespace merutilm::rff2 {
     vkh::PipelineSpecialization GPCIterationPalette::createSpecializationInfo() {

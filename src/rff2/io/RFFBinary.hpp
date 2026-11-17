@@ -8,7 +8,7 @@
 #include <fstream>
 #include <concepts>
 
-#include "vulkan_helper/base/vkh.hpp"
+#include "vulkan-helper/base/vkh.hpp"
 
 namespace merutilm::rff2 {
 

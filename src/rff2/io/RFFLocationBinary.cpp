@@ -8,7 +8,7 @@
 
 #include "../app/IOUtilities.h"
 #include "../constants/FileConstants.hpp"
-#include "vulkan_helper/base/logger.hpp"
+#include "vulkan-helper/base/logger.hpp"
 
 namespace merutilm::rff2 {
     inline const RFFLocationBinary RFFLocationBinary::DEFAULT = RFFLocationBinary(0, "", "", 0);

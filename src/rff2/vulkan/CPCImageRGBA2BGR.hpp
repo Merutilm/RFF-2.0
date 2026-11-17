@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "vulkan_helper/engine/configurator/ComputePipelineConfigurator.hpp"
+#include "vulkan-helper/engine/configurator/ComputePipelineConfigurator.hpp"
 
 namespace merutilm::rff2{
     struct CPCImageRGBA2BGR final : public vkh::ComputePipelineConfigurator {

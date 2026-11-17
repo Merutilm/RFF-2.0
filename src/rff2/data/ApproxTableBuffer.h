@@ -7,7 +7,7 @@
 #include "../mrthy/MPAIndexMapper.hpp"
 #include "../mrthy/PA.h"
 #include "CachedPodVector.hpp"
-#include "vulkan_helper/base/vkh.hpp"
+#include "vulkan-helper/base/vkh.hpp"
 
 namespace merutilm::rff2 {
 

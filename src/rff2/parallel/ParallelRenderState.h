@@ -7,7 +7,7 @@
 #include <mutex>
 #include <thread>
 
-#include "vulkan_helper/base/logger.hpp"
+#include "vulkan-helper/base/logger.hpp"
 
 namespace merutilm::rff2 {
     class ParallelRenderState final {

@@ -5,7 +5,7 @@
 #pragma once
 #include "GPCResample.hpp"
 #include "GPCSmoothZoom.hpp"
-#include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
+#include "vulkan-helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
     class RenderGraphPresentPrepareImgui final : public vkh::RenderPassGraphGenerator {

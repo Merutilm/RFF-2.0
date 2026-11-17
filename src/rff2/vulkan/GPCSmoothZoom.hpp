@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
+#include "vulkan-helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
     class GPCSmoothZoom : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {

@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include <vulkan_helper/util/RenderContextUtils.hpp>
+#include <vulkan-helper/util/RenderContextUtils.hpp>
 #include "../util/RendererUtils.hpp"
 #include "../vulkan/CPCBoxBlur.hpp"
 #include "../vulkan/CPCCombine2Map.hpp"
@@ -15,9 +15,9 @@
 #include "../vulkan/RenderGraphPresent.hpp"
 #include "../vulkan/RenderGraphStatic2Image.hpp"
 #include "../vulkan/desc/SharedDescriptorStorage.hpp"
-#include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
-#include "vulkan_helper/engine/graphics/Renderer.hpp"
-#include "vulkan_helper/util/BarrierUtils.hpp"
+#include "vulkan-helper/engine/executor/RenderPassFullscreenRecorder.hpp"
+#include "vulkan-helper/engine/graphics/Renderer.hpp"
+#include "vulkan-helper/util/BarrierUtils.hpp"
 
 namespace merutilm::rff2 {
     struct VideoWindowRenderer final : public vkh::Renderer {

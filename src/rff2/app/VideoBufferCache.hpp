@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include "vulkan_helper/engine/context/BufferContext.hpp"
-#include "vulkan_helper/handle/CoreHandler.hpp"
+#include "vulkan-helper/engine/context/BufferContext.hpp"
+#include "vulkan-helper/handle/CoreHandler.hpp"
 #include "opencv2/core/mat.hpp"
 
 namespace merutilm::rff2 {

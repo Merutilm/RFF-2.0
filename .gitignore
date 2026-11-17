@@ -16,6 +16,7 @@ RULES.md
 /cmake/src
 
 export
+extern
 publish.sh
 
 /bin
@@ -46,7 +47,6 @@ publish.sh
 *.app
 
 # Others
-/apply_vkh.sh
 /update.sh
 /shaders/cache
 *.zip

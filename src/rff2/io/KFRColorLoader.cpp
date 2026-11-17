@@ -7,7 +7,7 @@
 #include "../app/IOUtilities.h"
 #include "../constants/Constants.hpp"
 #include "../util/Utilities.h"
-#include "vulkan_helper/base/logger.hpp"
+#include "vulkan-helper/base/logger.hpp"
 
 namespace merutilm::rff2 {
     std::vector<glm::vec4> KFRColorLoader::loadPaletteSettings() {

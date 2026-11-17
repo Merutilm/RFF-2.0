@@ -6,7 +6,7 @@
 #include "GPCBloom.hpp"
 #include "GPCNoiseReduction.hpp"
 #include "SharedImageContextIndices.hpp"
-#include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
+#include "vulkan-helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 
 namespace merutilm::rff2 {

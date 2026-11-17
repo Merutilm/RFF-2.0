@@ -7,8 +7,8 @@
 #include "GPC3DFractal.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include "desc/SharedDescriptorTemplate.hpp"
-#include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
-#include "vulkan_helper/engine/wrapped/Vertex.hpp"
+#include "vulkan-helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
+#include "vulkan-helper/engine/wrapped/Vertex.hpp"
 
 namespace merutilm::rff2 {
 

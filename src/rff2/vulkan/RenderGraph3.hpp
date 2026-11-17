@@ -7,7 +7,7 @@
 #include "GPCFog.hpp"
 #include "../util/RendererUtils.hpp"
 #include "SharedImageContextIndices.hpp"
-#include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
+#include "vulkan-helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
     class RenderGraph3 final : public vkh::RenderPassGraphGenerator {

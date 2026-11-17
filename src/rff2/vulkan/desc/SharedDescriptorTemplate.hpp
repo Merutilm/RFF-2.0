@@ -7,8 +7,8 @@
 #include "../../data/ComputeShaderBatchStagingData.hpp"
 
 #include "../../mrthy/PA.h"
-#include "vulkan_helper/engine/manage/DescriptorManager.hpp"
-#include "vulkan_helper/engine/wrapped/DescriptorTemplate.hpp"
+#include "vulkan-helper/engine/manage/DescriptorManager.hpp"
+#include "vulkan-helper/engine/wrapped/DescriptorTemplate.hpp"
 
 namespace merutilm::rff2::SharedDescriptorTemplate {
     struct DescCamera3D final : public vkh::DescriptorTemplate {

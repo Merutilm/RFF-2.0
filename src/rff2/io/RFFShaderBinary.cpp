@@ -10,7 +10,7 @@
 #include "../preset/shader/palette/ShdPalettePresets.hpp"
 #include "../preset/shader/stripe/ShdStripePresets.hpp"
 #include "../preset/shader/surface/ShdSurfacePresets.hpp"
-#include "vulkan_helper/base/vkh.hpp"
+#include "vulkan-helper/base/vkh.hpp"
 
 namespace merutilm::rff2 {
 

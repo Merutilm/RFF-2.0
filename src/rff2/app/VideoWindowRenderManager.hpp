@@ -8,7 +8,7 @@
 #include "../settings/Settings.h"
 #include "VideoBufferCache.hpp"
 #include "VideoWindowRenderer.hpp"
-#include "vulkan_helper/handle/EngineHandler.hpp"
+#include "vulkan-helper/handle/EngineHandler.hpp"
 
 namespace merutilm::rff2 {
     class VideoWindowRenderManager final : vkh::EngineHandler {

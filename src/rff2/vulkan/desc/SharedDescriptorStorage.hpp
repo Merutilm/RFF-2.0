@@ -5,11 +5,11 @@
 #pragma once
 #include "SharedDescriptorManager.hpp"
 #include "SharedDescriptorTemplate.hpp"
-#include "vulkan_helper/engine/Engine.hpp"
-#include "vulkan_helper/engine/repo/WindowLocalDescriptorRepo.hpp"
-#include "vulkan_helper/engine/wrapped/DescriptorTemplate.hpp"
-#include "vulkan_helper/handle/Handler.hpp"
-#include "vulkan_helper/util/DescriptorUpdater.hpp"
+#include "vulkan-helper/engine/Engine.hpp"
+#include "vulkan-helper/engine/repo/WindowLocalDescriptorRepo.hpp"
+#include "vulkan-helper/engine/wrapped/DescriptorTemplate.hpp"
+#include "vulkan-helper/handle/Handler.hpp"
+#include "vulkan-helper/util/DescriptorUpdater.hpp"
 namespace merutilm::rff2 {
 
     struct SharedDescriptorStorage : vkh::Handler {

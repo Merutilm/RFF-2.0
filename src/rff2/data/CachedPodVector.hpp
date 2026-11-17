@@ -4,8 +4,8 @@
 
 #pragma once
 #include <type_traits>
-#include <vulkan_helper/core/Core.hpp>
-#include <vulkan_helper/engine/context/BufferContext.hpp>
+#include <vulkan-helper/core/Core.hpp>
+#include <vulkan-helper/engine/context/BufferContext.hpp>
 #include "../util/Utilities.h"
 
 namespace merutilm::rff2 {

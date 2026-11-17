@@ -8,7 +8,7 @@
 #include "../settings/FractalSettings.h"
 #include "../settings/RenderSettings.h"
 #include "desc/SharedDescriptorTemplate.hpp"
-#include "vulkan_helper/engine/configurator/ComputePipelineConfigurator.hpp"
+#include "vulkan-helper/engine/configurator/ComputePipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
 

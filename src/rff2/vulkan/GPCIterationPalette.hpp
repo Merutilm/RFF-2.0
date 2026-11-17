@@ -6,7 +6,7 @@
 
 #include "../settings/PerturbationMainIterator.hpp"
 #include "../settings/ShdPaletteSettings.h"
-#include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
+#include "vulkan-helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
     struct GPCIterationPalette final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {

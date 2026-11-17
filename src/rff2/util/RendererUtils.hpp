@@ -6,9 +6,9 @@
 #include <vulkan/vulkan.h>
 
 #include "../constants/Constants.hpp"
-#include "vulkan_helper/engine/descriptor/Descriptor.hpp"
-#include "vulkan_helper/engine/wrapped/RenderPassAttachmentReference.hpp"
-#include "vulkan_helper/engine/wrapped/Subpassdependency.hpp"
+#include "vulkan-helper/engine/descriptor/Descriptor.hpp"
+#include "vulkan-helper/engine/wrapped/RenderPassAttachmentReference.hpp"
+#include "vulkan-helper/engine/wrapped/Subpassdependency.hpp"
 namespace merutilm::rff2 {
     struct RendererUtils {
 

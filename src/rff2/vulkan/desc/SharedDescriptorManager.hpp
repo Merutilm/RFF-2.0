@@ -7,9 +7,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "../../settings/ShdFractal3DSettings.hpp"
 #include "SharedDescriptorTemplate.hpp"
-#include "vulkan_helper/engine/wrapped/DescriptorTemplateManager.hpp"
-#include "vulkan_helper/util/BufferImageContextUtils.hpp"
-#include "vulkan_helper/util/DescriptorUpdater.hpp"
+#include "vulkan-helper/engine/wrapped/DescriptorTemplateManager.hpp"
+#include "vulkan-helper/util/BufferImageContextUtils.hpp"
+#include "vulkan-helper/util/DescriptorUpdater.hpp"
 
 namespace merutilm::rff2::SharedDescriptorManager {
 #ifdef USE_EXPERIMENTAL_3D

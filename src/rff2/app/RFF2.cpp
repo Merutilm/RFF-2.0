@@ -37,10 +37,10 @@
 #include "imgui.h"
 #include "nfd.hpp"
 #include "opencv2/opencv.hpp"
-#include "vulkan_helper/engine/executor/ScopedNewCommandBufferExecutor.hpp"
-#include "vulkan_helper/engine/window/PlatformWindow.hpp"
-#include "vulkan_helper/util/BarrierUtils.hpp"
-#include "vulkan_helper/util/BufferImageContextUtils.hpp"
+#include "vulkan-helper/engine/executor/ScopedNewCommandBufferExecutor.hpp"
+#include "vulkan-helper/engine/window/PlatformWindow.hpp"
+#include "vulkan-helper/util/BarrierUtils.hpp"
+#include "vulkan-helper/util/BufferImageContextUtils.hpp"
 
 
 namespace merutilm::rff2 {

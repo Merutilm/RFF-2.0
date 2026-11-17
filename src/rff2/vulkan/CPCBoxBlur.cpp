@@ -5,8 +5,8 @@
 #include "CPCBoxBlur.hpp"
 
 #include "SharedImageContextIndices.hpp"
-#include <vulkan_helper/engine/executor/ScopedCommandBufferExecutor.hpp>
-#include "vulkan_helper/util/BarrierUtils.hpp"
+#include <vulkan-helper/engine/executor/ScopedCommandBufferExecutor.hpp>
+#include "vulkan-helper/util/BarrierUtils.hpp"
 
 namespace merutilm::rff2 {
     void CPCBoxBlur::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {

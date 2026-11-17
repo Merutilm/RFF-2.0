@@ -5,7 +5,7 @@
 #pragma once
 #include "GPCStaticImage2Map.hpp"
 #include "SharedImageContextIndices.hpp"
-#include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
+#include "vulkan-helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
     class RenderGraphStatic2Image final : public vkh::RenderPassGraphGenerator {

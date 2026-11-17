@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
+#include "vulkan-helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 #include "../settings/ShdFogSettings.h"
 
 namespace merutilm::rff2 {

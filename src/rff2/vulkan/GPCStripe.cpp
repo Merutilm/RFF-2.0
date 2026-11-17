@@ -7,8 +7,8 @@
 #include "../settings/ShdStripeSettings.h"
 #include "SharedImageContextIndices.hpp"
 #include "desc/SharedDescriptorTemplate.hpp"
-#include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
-#include "vulkan_helper/util/DescriptorUpdater.hpp"
+#include "vulkan-helper/engine/repo/GlobalSamplerRepo.hpp"
+#include "vulkan-helper/util/DescriptorUpdater.hpp"
 
 
 namespace merutilm::rff2 {

@@ -7,7 +7,7 @@
 #include "GPCColor.hpp"
 #include "GPCFractalSurface.hpp"
 #include "SharedImageContextIndices.hpp"
-#include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
+#include "vulkan-helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
     class RenderGraph2 final : public vkh::RenderPassGraphGenerator {

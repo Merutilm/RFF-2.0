@@ -21,8 +21,8 @@
 #include "VideoKeyframeProgressInfo.hpp"
 #include "VideoProgressInfo.hpp"
 #include "ZoomAnimationInfo.hpp"
-#include "vulkan_helper/Application.hpp"
-#include "vulkan_helper/engine/executor/ScopedCommandBufferExecutor.hpp"
+#include "vulkan-helper/Application.hpp"
+#include "vulkan-helper/engine/executor/ScopedCommandBufferExecutor.hpp"
 
 namespace merutilm::rff2 {
     class RFF2 final : public vkh::Application {

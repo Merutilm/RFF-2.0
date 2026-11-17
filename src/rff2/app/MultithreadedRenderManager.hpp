@@ -5,9 +5,9 @@
 #pragma once
 #include <memory>
 
-#include "vulkan_helper/engine/cmd/CommandBuffer.hpp"
-#include "vulkan_helper/engine/sync/Fence.hpp"
-#include "vulkan_helper/handle/WindowContextHandler.hpp"
+#include "vulkan-helper/engine/cmd/CommandBuffer.hpp"
+#include "vulkan-helper/engine/sync/Fence.hpp"
+#include "vulkan-helper/handle/WindowContextHandler.hpp"
 namespace merutilm::rff2 {
 
     struct MultithreadedRenderManager final : vkh::WindowContextHandler{

@@ -6,7 +6,7 @@
 
 #include "SharedImageContextIndices.hpp"
 #include "desc/SharedDescriptorTemplate.hpp"
-#include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
+#include "vulkan-helper/engine/repo/GlobalSamplerRepo.hpp"
 
 namespace merutilm::rff2 {
     void GPCFractalSurface::updateQueue(vkh::DescriptorUpdateQueue &queue, const uint32_t frameIndex) {

@@ -16,10 +16,10 @@
 #include "../vulkan/RenderGraphDownsampleForBlur.hpp"
 #include "../vulkan/RenderGraphPresentPrepareImgui.hpp"
 #include "ZoomAnimationInfo.hpp"
-#include "vulkan_helper/engine/executor/RenderPassFullscreenRecorder.hpp"
-#include "vulkan_helper/engine/internal/RendererImGui.hpp"
-#include "vulkan_helper/util/BarrierUtils.hpp"
-#include "vulkan_helper/util/RenderContextUtils.hpp"
+#include "vulkan-helper/engine/executor/RenderPassFullscreenRecorder.hpp"
+#include "vulkan-helper/engine/internal/RendererImGui.hpp"
+#include "vulkan-helper/util/BarrierUtils.hpp"
+#include "vulkan-helper/util/RenderContextUtils.hpp"
 
 namespace merutilm::rff2 {
     struct RFF2Renderer final : public vkh::RendererImGui {

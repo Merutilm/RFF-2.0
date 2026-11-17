@@ -4,7 +4,7 @@
 
 #pragma once
 #include "../settings/ShdSurfaceSettings.h"
-#include "vulkan_helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
+#include "vulkan-helper/engine/configurator/GeneralPostProcessGraphicsPipelineConfigurator.hpp"
 
 namespace merutilm::rff2 {
     struct GPCFractalSurface final : public vkh::GeneralPostProcessGraphicsPipelineConfigurator {

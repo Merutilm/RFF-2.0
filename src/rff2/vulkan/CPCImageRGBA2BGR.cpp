@@ -5,7 +5,7 @@
 #include "CPCImageRGBA2BGR.hpp"
 
 #include "SharedImageContextIndices.hpp"
-#include "vulkan_helper/engine/repo/GlobalSamplerRepo.hpp"
+#include "vulkan-helper/engine/repo/GlobalSamplerRepo.hpp"
 
 
 namespace merutilm::rff2 {

@@ -14,14 +14,18 @@ add_subdirectory(${CMAKE_SOURCE_DIR}/extern/vulkan-helper/src/vulkan-helper)
 
 target_link_libraries(RFF PRIVATE
         # Vulkan Helper
-        vulkan_helper
+        vulkan-helper
 )
 
 target_include_directories(RFF PRIVATE
         # extern sources
         ${CMAKE_SOURCE_DIR}/extern
+        # extern sources
+        ${CMAKE_SOURCE_DIR}/extern/imgui
         # clang include dirs
         ${CMAKE_SOURCE_DIR}/include
+        # vulkan-helper include dirs
+        ${CMAKE_SOURCE_DIR}/extern/vulkan-helper/include
 )
 if (WIN32)
     target_link_libraries(

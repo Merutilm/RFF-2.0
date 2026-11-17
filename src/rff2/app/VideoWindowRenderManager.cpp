@@ -6,8 +6,8 @@
 
 #include "../vulkan/RenderGraphPresentPrepareImgui.hpp"
 #include "opencv2/imgproc.hpp"
-#include "vulkan_helper/engine/executor/ScopedCommandBufferExecutor.hpp"
-#include "vulkan_helper/util/BufferImageContextUtils.hpp"
+#include "vulkan-helper/engine/executor/ScopedCommandBufferExecutor.hpp"
+#include "vulkan-helper/util/BufferImageContextUtils.hpp"
 
 namespace merutilm::rff2 {
     VideoWindowRenderManager::VideoWindowRenderManager(vkh::Engine &engine, vkh::WindowContext &wc, const VkExtent2D &videoExtent,

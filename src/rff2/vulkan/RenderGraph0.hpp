@@ -8,7 +8,7 @@
 #include "GPCIterationPalette.hpp"
 #include "GPCStripe.hpp"
 #include "SharedImageContextIndices.hpp"
-#include "vulkan_helper/engine/graphics/RenderPassGraphGenerator.hpp"
+#include "vulkan-helper/engine/graphics/RenderPassGraphGenerator.hpp"
 
 namespace merutilm::rff2 {
     class RenderGraph0 final : public vkh::RenderPassGraphGenerator {

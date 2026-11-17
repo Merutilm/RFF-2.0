@@ -5,7 +5,7 @@
 #pragma once
 #ifdef USE_EXPERIMENTAL_3D
 #include "../settings/ShdFractal3DSettings.hpp"
-#include "vulkan_helper/engine/configurator/GeneralGraphicsPipelineConfigurator.hpp"
+#include "vulkan-helper/engine/configurator/GeneralGraphicsPipelineConfigurator.hpp"
 namespace merutilm::rff2 {
 
     struct GPC3DFractal : vkh::GeneralGraphicsPipelineConfigurator {
