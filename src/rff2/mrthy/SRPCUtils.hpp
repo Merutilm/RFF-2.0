@@ -38,12 +38,12 @@ namespace merutilm::rff2::SRPCUtils {
      * @param units The Compression units
      * @param index To rebasing index
      * @param stackTrace points compressor units' stack trace
-     * @param behindCompressionUnitsTrace points how many compressors behind given index
+     * @param startedUnitCountPtr points how many compressors behind given index
      * @return The rebased index.
      */
     template<typename Index>
     static Index rebase(const std::vector<SRPCUnit<Index>> &units, Index index,
-                        std::vector<SRPCSegment<Index>> *stackTrace, size_t *behindCompressionUnitsTrace);
+                        std::vector<SRPCSegment<Index>> *stackTrace, size_t *startedUnitCountPtr);
 
     /**
      * Completes the compressed array by pulling subsequent elements into the void in the array made by the rebasing
@@ -75,13 +75,13 @@ namespace merutilm::rff2::SRPCUtils {
      * @param units The Compression units
      * @param index the index you want
      * @param stackTrace compressor units' stack trace
-     * @param behindCompressionUnitsTrace points how many compressors behind given index
+     * @param startedUnitCountPtr points how many compressors behind given index
      * @return Finally compressed index
      */
     template<typename Index>
     static size_t compress(const std::vector<SRPCUnit<Index>> &units, Index index,
                            std::vector<SRPCSegment<Index>> *stackTrace = nullptr,
-                           size_t *behindCompressionUnitsTrace = nullptr);
+                           size_t *startedUnitCountPtr = nullptr);
 
 
     // DEFINITION OF ArrayCompressorUtils
@@ -95,10 +95,10 @@ namespace merutilm::rff2::SRPCUtils {
 
     template<typename Index>
     Index rebase(const std::vector<SRPCUnit<Index>> &units, const Index index,
-                 std::vector<SRPCSegment<Index>> *stackTrace, size_t *behindCompressionUnitsTrace) {
+                 std::vector<SRPCSegment<Index>> *stackTrace, size_t *startedUnitCountPtr) {
         if (units.empty() || index < units.front().start || index > units.back().end) {
-            if (behindCompressionUnitsTrace)
-                *behindCompressionUnitsTrace = units.empty() || index < units.front().start ? 0 : units.size();
+            if (startedUnitCountPtr)
+                *startedUnitCountPtr = units.empty() || index < units.front().start ? 0 : units.size();
             return index;
         }
 
@@ -121,8 +121,8 @@ namespace merutilm::rff2::SRPCUtils {
         Index rebased = index;
         for (size_t i = units.size(); i > 0; --i) {
             auto &unit = units[i - 1];
-            if (unit.end < index && behindCompressionUnitsTrace && *behindCompressionUnitsTrace == UINT64_MAX) {
-                *behindCompressionUnitsTrace = i;
+            if (startedUnitCountPtr && unit.start <= index && *startedUnitCountPtr == UINT64_MAX) {
+                *startedUnitCountPtr = i;
             }
             if (unit.start <= rebased && rebased <= unit.end) {
                 if (stackTrace) {
@@ -130,27 +130,26 @@ namespace merutilm::rff2::SRPCUtils {
                     Index processed = rebased - unit.start;
                     if (!stackTrace->empty()) {
                         auto &parent = stackTrace->back();
-                        parent.nextChildSegmentCompressionUnitIndex = i;
+                        parent.nextChildUnitIndex = i;
                         parent.remained += rebased - unit.start;
                         range = std::min(range, parent.remained);
                     }
                     Index remained = range - processed;
-                    stackTrace->push_back(SRPCSegment<Index>{.processingCompressionUnitIndex = i - 1,
-                                                             .remained = remained,
+                    stackTrace->push_back(SRPCSegment<Index>{.remained = remained,
                                                              .maxCompressionSize = range,
                                                              .referenceIndexToRecover = unit.recoverIndex,
-                                                             .nextChildSegmentCompressionUnitIndex = 0});
+                                                             .nextChildUnitIndex = 0});
                 }
                 rebased -= unit.start - 1;
             } else if (rebased > unit.end) {
                 if (stackTrace && !stackTrace->empty())
-                    stackTrace->back().nextChildSegmentCompressionUnitIndex = i;
+                    stackTrace->back().nextChildUnitIndex = i;
                 break;
             }
         }
 
-        if (behindCompressionUnitsTrace && *behindCompressionUnitsTrace == UINT64_MAX)
-            *behindCompressionUnitsTrace = 0;
+        if (startedUnitCountPtr && *startedUnitCountPtr == UINT64_MAX)
+            *startedUnitCountPtr = 0;
 
         return rebased;
     }
@@ -221,10 +220,10 @@ namespace merutilm::rff2::SRPCUtils {
 
     template<typename Index>
     size_t compress(const std::vector<SRPCUnit<Index>> &units, const Index index,
-                    std::vector<SRPCSegment<Index>> *stackTrace, size_t *behindCompressionUnitsTrace) {
-        if (behindCompressionUnitsTrace)
-            *behindCompressionUnitsTrace = UINT64_MAX;
-        const Index rebased = rebase(units, index, stackTrace, behindCompressionUnitsTrace);
+                    std::vector<SRPCSegment<Index>> *stackTrace, size_t *startedUnitCountPtr) {
+        if (startedUnitCountPtr)
+            *startedUnitCountPtr = UINT64_MAX;
+        const Index rebased = rebase(units, index, stackTrace, startedUnitCountPtr);
         return pull(units, rebased);
     }
 } // namespace merutilm::rff2::SRPCUtils

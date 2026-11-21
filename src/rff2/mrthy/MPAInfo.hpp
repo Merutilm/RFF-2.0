@@ -7,6 +7,8 @@
 
 #include "../calc/iteration_types.hpp"
 #include "../settings/FrtMPASettings.h"
+#include "SRPCUnit.hpp"
+
 
 namespace merutilm::rff2 {
     struct MPAInfo {
@@ -23,15 +25,26 @@ namespace merutilm::rff2 {
         // the total count of elements within current and lower level period
         std::vector<itt::ref> tableElementCounts;
 
+        // pulled mpa : fill only valid elements from the sparse mpa vector
+        // pulled mpa compressor : distinct the elements from "pulled mpa"
+        PulledMPACompressor pulledMPACompressor;
+
+        std::vector<itt::ref> compressedSkippableIterationCounts;
+        std::vector<size_t> compressionUnitCounts;
 
         MPAInfo() = default;
 
-        explicit MPAInfo(const std::vector<itt::ref> &referencePeriod, const FrtMPASettings &mpaSettings);
+        explicit MPAInfo(const std::vector<itt::ref> &referencePeriod, const ReferenceCompressor &referenceCompressor, const FrtMPASettings &mpaSettings);
 
     private:
         void generateCountInfos();
 
         void generateTablePeriod(const std::vector<itt::ref> &referencePeriod, const FrtMPASettings &mpaSettings);
 
+        void generatePulledMPACompressor(const ReferenceCompressor &referenceCompressor);
+
+        void generateCompressionInfo();
+
+        void printDebugInfo();
     };
 }

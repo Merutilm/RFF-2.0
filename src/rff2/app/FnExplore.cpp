@@ -111,7 +111,7 @@ namespace merutilm::rff2 {
         if (!settings.fractal.reference.reuse && ImGui::Button("Locate Centered Reference", ImVec2(-FLT_MIN, 0))) {
             ParallelRenderState &state = app.getState();
 
-            state.createThread([&app, &data, &settings] {
+            state.createThread([&app, data, &settings] {
                 const double startTime = app.rootWindowContext->getWindow()->getTime();
 
                 MB2Locator locator(app.getState(), *data, settings.explore.locator,

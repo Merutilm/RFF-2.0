@@ -16,7 +16,7 @@ namespace merutilm::rff2 {
         SRPCData<Index, Data> result;
         size_t refIndex = 1;
         SRPCUnit<Index> currentBuildingUnit{};
-        std::vector<SRPCSegment<Index> > segmentStack{};
+        std::vector<SRPCSegment<Index>> segmentStack{};
 
         std::vector<Data> tempBuffer{};
         bool minCompressSizeReached = false;
@@ -24,8 +24,8 @@ namespace merutilm::rff2 {
         Approx approx;
 
     public:
-        explicit SRPCProcessor(const uint32_t minCompressSize, size_t initialResultCapacity,
-                               Approx approx) : minCompressSize(minCompressSize), approx(std::move(approx)) {
+        explicit SRPCProcessor(const uint32_t minCompressSize, size_t initialResultCapacity, Approx approx) :
+            minCompressSize(minCompressSize), approx(std::move(approx)) {
             tempBuffer.reserve(minCompressSize);
             result.compressedArray.reserve(initialResultCapacity);
         }
@@ -82,11 +82,10 @@ namespace merutilm::rff2 {
                 const auto maxCompressionSize = result.uncompressedSize - 1;
                 // pushing root segment
                 segmentStack.push_back({
-                    .processingCompressionUnitIndex = result.compressor.size(),
-                    .remained = maxCompressionSize,
-                    .maxCompressionSize = maxCompressionSize,
-                    .referenceIndexToRecover = refIndex,
-                    .nextChildSegmentCompressionUnitIndex = 0,
+                        .remained = maxCompressionSize,
+                        .maxCompressionSize = maxCompressionSize,
+                        .referenceIndexToRecover = refIndex,
+                        .nextChildUnitIndex = 0,
                 });
                 currentBuildingUnit.start = result.uncompressedSize;
             }
@@ -109,40 +108,25 @@ namespace merutilm::rff2 {
 
             if (topPtr->remained == 0) {
                 // if 'remained' is zero, pop and do recover
-                SRPCSegment popped = *topPtr;
-                assert(popped.nextChildSegmentCompressionUnitIndex <= result.compressor.size());
-                while (!segmentStack.empty() && topPtr->remained == 0) {
-                    popped = *topPtr;
-                    segmentStack.pop_back();
-                    if (segmentStack.empty()) {
-                        // if root segment is deleted, add compressor unit
-                        topPtr = nullptr;
-                        currentBuildingUnit.end = result.uncompressedSize;
-                        addCompressorIfEnough(); // containing current index
-                        minCompressSizeReached = false;
-                    } else {
-                        assert(segmentStack.back().remained >= popped.maxCompressionSize);
-                        segmentStack.back().remained -= popped.maxCompressionSize;
-                        topPtr = &segmentStack.back();
-                    }
+                SRPCCursor<Index>::popEndedSegments(topPtr, segmentStack, result.compressor, refIndex);
+                if (segmentStack.empty()) {
+                    // if root segment is deleted, add compressor unit
+                    topPtr = nullptr;
+                    currentBuildingUnit.end = result.uncompressedSize;
+                    addCompressorIfEnough(); // containing current index
+                    minCompressSizeReached = false;
                 }
-
-                // recover reference index.
-                refIndex = popped.referenceIndexToRecover;
             }
-            if (topPtr && topPtr->nextChildSegmentCompressionUnitIndex < result.compressor.size()) {
-                const auto &unit = result.compressor[topPtr->nextChildSegmentCompressionUnitIndex];
+            if (topPtr && topPtr->nextChildUnitIndex < result.compressor.size()) {
+                const auto &unit = result.compressor[topPtr->nextChildUnitIndex];
                 if (topPtr->remained > 0 && unit.start - 1 == topPtr->maxCompressionSize - topPtr->remained) {
                     const auto maxCompressionSize = std::min(unit.range(), topPtr->remained);
                     // pushing child segment (referencing area may also be deleted by other compressor unit)
-                    segmentStack.push_back(
-                        {
-                            .processingCompressionUnitIndex = topPtr->nextChildSegmentCompressionUnitIndex++,
-                            .remained = maxCompressionSize,
-                            .maxCompressionSize = maxCompressionSize,
-                            .referenceIndexToRecover = refIndex,
-                            .nextChildSegmentCompressionUnitIndex = 0
-                        });
+                    ++topPtr->nextChildUnitIndex;
+                    segmentStack.push_back({.remained = maxCompressionSize,
+                                            .maxCompressionSize = maxCompressionSize,
+                                            .referenceIndexToRecover = refIndex,
+                                            .nextChildUnitIndex = 0});
                     topPtr = &segmentStack[segmentStack.size() - 2];
                     // if vector resizes, top pointer may be a dangling pointer
                     refIndex = 1;

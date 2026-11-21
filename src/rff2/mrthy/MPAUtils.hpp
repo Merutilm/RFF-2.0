@@ -14,10 +14,7 @@ namespace merutilm::rff2::MPAUtils {
     [[nodiscard]] static std::vector<uint64_t> uGenerateCurrentPASkips(const std::vector<itt::ref> &tablePeriod,
                                                                        const std::vector<uint64_t> &itCount);
 
-    [[nodiscard]] static PulledMPACompressor
-    generatePulledMPACompressor(const MPAInfo &info, const ReferenceCompressor &referenceCompressor);
-
-    [[nodiscard]] static MPAIndexMapper cGetFlattenIndexMapperFromPulledIndex(const MPAData &data, itt::ref pulled, size_t levels);
+    [[nodiscard]] static MPAIndexMapper cGetFlattenIndexMapperFromCompressedPulledIndex(const MPAData &data, itt::ref compressedPulled, size_t levels);
 
     [[nodiscard]] static MPAIndexMapper uGetFlattenIndexMapper(const MPAData &data, itt::ref iteration);
 
@@ -48,34 +45,9 @@ namespace merutilm::rff2::MPAUtils {
     }
 
 
-    PulledMPACompressor generatePulledMPACompressor(const MPAInfo &info,
-                                                    const ReferenceCompressor &referenceCompressor) {
-        PulledMPACompressor compressor;
-        auto &tablePeriod = info.tablePeriods;
-        auto &skippableIterationCounts = info.skippableIterationCounts;
-        auto &isArtificial = info.isArtificial;
 
-        for (const auto &unit: referenceCompressor) {
-            const itt::ref start = unit.start;
-            const itt::ref length = unit.range();
-            const size_t index = ArrayUtils::binarySearch(tablePeriod, length + 1);
-
-            // Check if the reference compressor is same as period.
-            // However, The Computer doesn't know whether the compressor's length came from skipping to the periodic
-            // point, or being cut off in the middle. So, Do check tableIndex too.
-
-            if (const auto [pulledIndex, _] = MPAIndexMapperUtils::iterationToPulledTableIndexMapper(info, start);
-                index != UINT64_MAX && pulledIndex != UINT64_MAX && !isArtificial[index]) {
-                const itt::ref skippableIterationCount = skippableIterationCounts[index];
-                compressor.emplace_back(pulledIndex + 1, pulledIndex + skippableIterationCount - 1);
-            }
-        }
-        return compressor;
-    }
-
-    MPAIndexMapper cGetFlattenIndexMapperFromPulledIndex(const MPAData &data, const itt::ref pulled, const size_t levels) {
-        const size_t comp = SRPCUtils::compress(data.compressor, pulled);
-        return MPAIndexMapper{.mapped = data.buffer->flattenIndexMapper.interpret<MPAIndexMapper>()[comp].mapped,
+    MPAIndexMapper cGetFlattenIndexMapperFromCompressedPulledIndex(const MPAData &data, const itt::ref compressedPulled, const size_t levels) {
+        return MPAIndexMapper{.mapped = data.buffer->flattenIndexMapper.interpret<MPAIndexMapper>()[compressedPulled].mapped,
                               .generatedLevels = levels};
     }
 
@@ -88,7 +60,7 @@ namespace merutilm::rff2::MPAUtils {
         if (pulled == UINT64_MAX) {
             return MPAIndexMapper{.mapped = UINT64_MAX, .generatedLevels = 0};
         }
-        return cGetFlattenIndexMapperFromPulledIndex(data, pulled, levels);
+        return cGetFlattenIndexMapperFromCompressedPulledIndex(data, SRPCUtils::compress(data.info.pulledMPACompressor, pulled), levels);
     }
 
     template<Number Num>

@@ -3,7 +3,9 @@
 //
 
 #pragma once
+#include "MPAIndexMapper.hpp"
 #include "MPAInfo.hpp"
+#include <vulkan-helper/base/vkh.hpp>
 namespace merutilm::rff2 {
     struct MPAIndexMapperUtils {
 

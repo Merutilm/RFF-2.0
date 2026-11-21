@@ -17,7 +17,7 @@
 - This program uses `Fast-period-guessing`*(a.k.a. FPG)* which I developed. It automatically generates the `longest period` of the selected location.
 This value is unmodifiable.
 
-- This program uses an `Multi-level Periodic Approximation` algorithm which I developed.
+- This program uses an `Multi-Periodic Approximation` algorithm which I developed.
 It is derived from `BLA` but completely replaces traditional `BLA`, achieving speedups of more than 2 times. \
 To put it simply, it skips to the `Periodic point` directly.
 

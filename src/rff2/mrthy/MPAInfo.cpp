@@ -3,18 +3,22 @@
 //
 
 #include "MPAInfo.hpp"
-
 #include <algorithm>
-#include <memory>
 
+#include "../util/ArrayUtils.hpp"
+#include "MPAIndexMapperUtils.hpp"
+#include "SRPCUnit.hpp"
 
 
 namespace merutilm::rff2 {
-    MPAInfo::MPAInfo(const std::vector<itt::ref> &referencePeriod,
-                                                   const FrtMPASettings &mpaSettings) {
+    MPAInfo::MPAInfo(const std::vector<itt::ref> &referencePeriod, const ReferenceCompressor &referenceCompressor,
+                     const FrtMPASettings &mpaSettings) {
 
         generateTablePeriod(referencePeriod, mpaSettings);
         generateCountInfos();
+        generatePulledMPACompressor(referenceCompressor);
+        generateCompressionInfo();
+        printDebugInfo();
     }
 
 
@@ -50,15 +54,15 @@ namespace merutilm::rff2 {
         tableElementCounts[0] = 1;
         skippableIterationCounts[0] = 1;
 
-        for (int i = 1; i < size; ++i) {
+        for (size_t i = 1; i < size; ++i) {
             itt::ref tableElement = 0;
             itt::ref skippableIterationCount = 0;
             itt::ref remainder = tablePeriods[i];
-            for (int j = i - 1; j >= 0; --j) {
-                const itt::ref groupAmount = remainder / tablePeriods[j];
-                remainder %= tablePeriods[j];
-                tableElement += groupAmount * tableElementCounts[j]; // lower level pa
-                skippableIterationCount += groupAmount * skippableIterationCounts[j];
+            for (size_t j = i; j > 0; --j) {
+                const itt::ref groupAmount = remainder / tablePeriods[j - 1];
+                remainder %= tablePeriods[j - 1];
+                tableElement += groupAmount * tableElementCounts[j - 1]; // lower level pa
+                skippableIterationCount += groupAmount * skippableIterationCounts[j - 1];
             }
             tableElementCounts[i] = tableElement + 1; // current level pa
             skippableIterationCounts[i] = skippableIterationCount;
@@ -128,6 +132,69 @@ namespace merutilm::rff2 {
                 currentRefPeriod = p;
             }
         }
+    }
+
+    void MPAInfo::generatePulledMPACompressor(const ReferenceCompressor &referenceCompressor) {
+        size_t compressed = 0;
+        for (const auto &unit: referenceCompressor) {
+            const itt::ref start = unit.start;
+            const itt::ref length = unit.range();
+            const size_t index = ArrayUtils::binarySearch(tablePeriods, length + 1);
+
+            // Check if the reference compressor is same as period.
+            // However, The Computer doesn't know whether the compressor's length came from skipping to the periodic
+            // point, or being cut off in the middle. So, Do check tableIndex too.
+
+            if (const auto [pulledIndex, _] = MPAIndexMapperUtils::iterationToPulledTableIndexMapper(*this, start);
+                index != UINT64_MAX && pulledIndex != UINT64_MAX && !isArtificial[index]) {
+                const itt::ref skippableIterationCount = skippableIterationCounts[index];
+                compressed += skippableIterationCount - 1;
+                auto end = pulledIndex + skippableIterationCount - 1;
+                pulledMPACompressor.emplace_back(pulledIndex + 1, end, end - compressed + 1);
+            }
+        }
+    }
+
+
+    void MPAInfo::generateCompressionInfo() {
+        const size_t size = tablePeriods.size();
+        compressedSkippableIterationCounts = std::vector<itt::ref>(size, 0);
+        compressedSkippableIterationCounts[0] = 1;
+        compressionUnitCounts = std::vector<size_t>(size, 0);
+
+        for (size_t i = 1; i < size; ++i) {
+            const itt::ref sic = skippableIterationCounts[i];
+            itt::ref actualSic = sic;
+            for (size_t j = 0; j < pulledMPACompressor.size() && sic > pulledMPACompressor[j].start; ++j) {
+                const auto &comp = pulledMPACompressor[j];
+                const size_t level = ArrayUtils::binarySearch(skippableIterationCounts, comp.range() + 1);
+                assert(level != UINT64_MAX && level < i);
+                actualSic -= skippableIterationCounts[level] - 1;
+                ++compressionUnitCounts[i];
+            }
+            compressedSkippableIterationCounts[i] = actualSic;
+        }
+    }
+    void MPAInfo::printDebugInfo() {
+#ifndef NDEBUG
+        std::cout << "======================= MPA GENERATION ===========================\n";
+        for (int i = 0; i < tablePeriods.size(); ++i) {
+            std::cout << "Period " << tablePeriods[i] << " Info"
+                      << "\n\tSkippable Count : " << skippableIterationCounts[i]
+                      << "\n\tTable Element Count : " << tableElementCounts[i]
+                      << "\n\tArtificial : " << (isArtificial[i] ? "yes" : "no")
+                      << "\n\tCompressed Skippable Iterations : " << compressedSkippableIterationCounts[i] << "\n\n";
+        }
+
+        std::cout << "=================== Pulled MPA Compressor Info ===================\n";
+        for (int i = 0; i < pulledMPACompressor.size(); ++i) {
+            std::cout << "- Compressor " << i << "\n\tCompressed Area : " << pulledMPACompressor[i].start << "-"
+                      << pulledMPACompressor[i].end << "\n\tReferencing Area : 1-" << pulledMPACompressor[i].range()
+                      << "\n\tSRPC Recovering to : " << pulledMPACompressor[i].recoverIndex << "\n\n";
+        }
+        std::cout << std::flush;
+
+#endif
     }
 
 } // namespace merutilm::rff2

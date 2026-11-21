@@ -178,7 +178,8 @@ namespace merutilm::rff2 {
 
             // basic interior detection
             ReferenceView<Num> referenceView = reference.makeReferenceView();
-            MPAView<Num> mpaView = table.makeMPAView();
+            std::optional<MPAView<Num>> mpaView = std::nullopt;
+            if (table.data.buffer) mpaView.emplace(table.makeMPAView());
             referenceView.next();
             if (checkInteriorBasic(referenceView.get() + dc0)) {
                 return isAbs ? 1 : static_cast<double>(maxIteration);
@@ -214,7 +215,7 @@ namespace merutilm::rff2 {
                 dz = dz.try_normalized_value();
 
                 updateDistance(z, prevDistance2, currDistance2);
-                applyMPApproximation(referenceView, mpaView, dz, dc0, iteration, refIteration);
+                if (mpaView) applyMPApproximation(referenceView, *mpaView, dz, dc0, iteration, refIteration);
 
                 if ((absIteration - 1) % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
                     state.interruptRequested())

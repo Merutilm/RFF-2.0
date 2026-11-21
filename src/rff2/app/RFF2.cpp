@@ -184,14 +184,17 @@ namespace merutilm::rff2 {
         return Settings{
                 .file = {.autoSaveBackup = true},
                 .fractal =
-                        FractalSettings{.general = {.bailout = 2.1f, .logZoom = 2, .threads = 15},
+                        FractalSettings{.general = {.bailout = 2.1f, .logZoom = 2, .threads = 1},
                                         .reference =
                                                 {
                                                         .center = fixed_point_complex("-0.85", "0",
                                                                                       Perturbator::logZoomToExp10(2)),
                                                         .useParallelRefCalculation = false,
                                                         .sync = ClcSyncPresets::Fast().genRefSync(),
-                                                        .compression = ClcCompressPresets::None().genRefComp(),
+                                                        .compression = {
+                                                            .minCompressSize = 1000,
+                                                            .compressionThresholdPower = 6
+                                                        },
                                                         .reuse = false,
                                                         .useFixedPrecision = false,
                                                         .partitionSize = 512,

@@ -52,7 +52,7 @@ namespace merutilm::rff2 {
 
         void fitBufferSize() const;
 
-        std::span<PA<Num>> getMutableMPAFromMapper(const MPAIndexMapper flattenIndexMapper);
+        std::span<PA<Num>> getMutableMPAFromMapper(MPAIndexMapper flattenIndexMapper);
 
 
         bool cTryJumpTableGeneration(std::vector<itt::ref> &itCount, std::vector<itt::ref> &itCountLim,
@@ -148,8 +148,7 @@ namespace merutilm::rff2 {
         }
         data.buffer = &buffer;
         data.mpaSettings = mpaSettings;
-        data.info = MPAInfo(referencePeriod, mpaSettings);
-        data.compressor = MPAUtils::generatePulledMPACompressor(data.info, reference.getCompressor());
+        data.info = MPAInfo(referencePeriod, reference.getCompressor(), mpaSettings);
         return true;
     }
 
@@ -164,15 +163,15 @@ namespace merutilm::rff2 {
         itt::ref tableLen = data.info.tableElementCounts.back();
         itt::ref mapperLen = 0;
 
-        if (data.compressor.empty()) {
+        if (data.info.pulledMPACompressor.empty()) {
             mapperLen = longestPeriod + 1;
         } else {
             const auto pulledTableIndex =
                     MPAIndexMapperUtils::iterationToPulledTableIndex(data.info, longestPeriod + 1);
-            const auto compressedIndex = SRPCUtils::compress(data.compressor, pulledTableIndex);
+            const auto compressedIndex = SRPCUtils::compress(data.info.pulledMPACompressor, pulledTableIndex);
             mapperLen = compressedIndex;
 
-            for (const auto &compressor: data.compressor) {
+            for (const auto &compressor: data.info.pulledMPACompressor) {
                 const itt::ref i = ArrayUtils::binarySearch(data.info.skippableIterationCounts, compressor.range() + 1);
                 RFF_ASSERT(i != UINT64_MAX);
                 tableLen -= data.info.tableElementCounts[i] - (i + 1);
@@ -205,10 +204,10 @@ namespace merutilm::rff2 {
                                                 std::vector<bool> &generationAvailable, itt::ref &pulledTableIndex,
                                                 size_t &flattenTableIndex, itt::ref &iteration) {
 
-        if (data.compressor.empty())
+        if (data.info.pulledMPACompressor.empty())
             return false;
 
-        const PulledMPACompressionUnit *containedTool = SRPCUtils::find(data.compressor, pulledTableIndex + 1);
+        const PulledMPACompressionUnit *containedTool = SRPCUtils::find(data.info.pulledMPACompressor, pulledTableIndex + 1);
         if (containedTool == nullptr || containedTool->start != pulledTableIndex + 1) {
             return false;
         }
@@ -458,7 +457,7 @@ namespace merutilm::rff2 {
         bool jumped = false;
         if (levels > 0) {
 
-            const size_t compIndex = SRPCUtils::compress(data.compressor, pulledTableIndex);
+            const size_t compIndex = SRPCUtils::compress(data.info.pulledMPACompressor, pulledTableIndex);
             RFF_ASSERT(data.buffer->flattenIndexMapper.sizeUsed > compIndex);
             data.buffer->flattenIndexMapper.interpret<MPAIndexMapper>()[compIndex] = {.mapped = flattenTableIndex,
                                                                                     .generatedLevels = levels};
@@ -496,7 +495,7 @@ namespace merutilm::rff2 {
         // iteration starts from 1, the first value is garbage
         data.buffer->flattenIndexMapper.interpret<MPAIndexMapper>()[0] = {};
 
-        if (data.compressor.empty()) {
+        if (data.info.pulledMPACompressor.empty()) {
             uGenerateTable(state, reference, dcMax, std::forward<FnCreatingTable>(fnCreatingTable));
         } else {
             cGenerateTable(state, reference, dcMax, std::forward<FnCreatingTable>(fnCreatingTable));
