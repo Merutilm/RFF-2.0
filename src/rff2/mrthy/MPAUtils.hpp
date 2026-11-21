@@ -7,6 +7,9 @@
 #include <vector>
 
 #include "../calc/iteration_types.hpp"
+#include "MPAData.hpp"
+#include "MPAIndexMapperUtils.hpp"
+#include "SRPCUtils.hpp"
 namespace merutilm::rff2::MPAUtils {
 
     static constexpr int PERTURBATION_REQ = 2;

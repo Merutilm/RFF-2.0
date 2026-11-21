@@ -52,6 +52,8 @@ namespace merutilm::rff2 {
 
         void jumpPulledTableIndex(size_t level);
 
+        void jumpReference(ReferenceView<Num> &referenceView, itt::ref skip);
+
         void measureLevelCount(size_t startLevel);
     };
 
@@ -226,7 +228,7 @@ namespace merutilm::rff2 {
                     break;
                 }
             }
-            referenceView.jump(pa->skip);
+            jumpReference(referenceView, pa->skip);
             return pa;
         }
 
@@ -266,7 +268,15 @@ namespace merutilm::rff2 {
             originalIndex = data.info.skippableIterationCounts[level];
             refIndex = data.info.compressedSkippableIterationCounts[level];
             startedUnitCount = data.info.compressionUnitCounts[level];
-        }else jump(data.info.skippableIterationCounts[level]);
+        } else
+            jump(data.info.skippableIterationCounts[level]);
+    }
+    template<Number Num>
+    void MPAView<Num>::jumpReference(ReferenceView<Num> &referenceView, itt::ref skip) {
+        if (skip == data.info.tablePeriods.back() - MPAUtils::PERTURBATION_REQ) {
+            referenceView.endpoint();
+        } else
+            referenceView.jump(skip);
     }
 
     template<Number Num>

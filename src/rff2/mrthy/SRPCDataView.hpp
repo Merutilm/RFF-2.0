@@ -9,6 +9,7 @@ namespace merutilm::rff2 {
 
     template<typename Index, typename Data>
     class SRPCDataView : public SRPCCursor<Index> {
+    protected:
         const SRPCData<Index, Data> &data;
 
     public:

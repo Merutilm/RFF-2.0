@@ -142,9 +142,13 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        static void perturbationStep(ReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc,
-                              itt::ptb &iteration, itt::ref &refIteration) {
+        void perturbationStep(ReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc,
+                              itt::ptb &iteration, itt::ref &refIteration) const {
+#ifndef NDEBUG
             assert(view.currentOriginalIndex() == refIteration);
+            auto compRef = SRPCUtils::compress(reference.getCompressor(), refIteration);
+            assert(compRef == view.currentRefIndex());
+#endif
             dz = (view.get() * 2 + dz) * dz + dc;
             view.next();
 
