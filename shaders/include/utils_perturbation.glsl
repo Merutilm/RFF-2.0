@@ -1,4 +1,3 @@
-
 #include <utils_complex.glsl>
 
 #ifndef UTILS_PERTURBATION_INCLUDE
@@ -17,29 +16,9 @@ uint compress(uint64_t ref_iteration) {
 
 
 float apply_decimalize(float ratio) {
-    switch (render_meta.decimalize_iteration_method) {
-        case DIM_NONE: {
-                           ratio = 0;
-                           break;
-                       }
-        case DIM_LINEAR: {
-                           break;
-                       }
-        case DIM_SQUARE_ROOT: {
-                           ratio = sqrt(ratio);
-                           break;
-                       }
-        case DIM_LOG: {
-                           ratio = log(ratio + 1) / LN2;
-                           break;
-                       }
-        case DIM_LOGLOG: {
-                           ratio = log(log(ratio + 1) / LN2 + 1) / LN2;
-                           break;
-                       }
-        default: break;
-    }
-    return ratio;
+    if(render_meta.smooth_iteration == 0) return 0;
+    float p = render_meta.bailout;
+    return log(p * ratio + 1) / log(p + 1);
 }
 
 float get_exterior_double_value_iteration_ratio(float prev_distance, float curr_distance) {

@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "FrtDecimalizeIterationMethod.h"
+#include "FrtDecimalizeIterationMethodUtil.h"
 #include "PerturbationMainIterator.hpp"
 #include "ShdIterationColoringMethod.hpp"
 #include "ShdPalSingleIterationColoringMethod.h"
@@ -17,17 +17,6 @@ namespace merutilm::rff2 {
     struct Selectable {
         template<typename E> requires std::is_enum_v<E>
         static std::vector<E> values() {
-
-            if constexpr (std::is_same_v<E, FrtDecimalizeIterationMethod>) {
-                using enum FrtDecimalizeIterationMethod;
-                return {
-                    NONE,
-                    LINEAR,
-                    SQUARE_ROOT,
-                    LOG,
-                    LOG_LOG
-                };
-            }
             if constexpr (std::is_same_v<E, ShdIterationColoringMethod>) {
                 using enum ShdIterationColoringMethod;
                 return {
@@ -65,17 +54,6 @@ namespace merutilm::rff2 {
 
         template<typename E> requires std::is_enum_v<E>
         static const char * toString(const E &value) {
-            if constexpr (std::is_same_v<E, FrtDecimalizeIterationMethod>) {
-                switch (value) {
-                    using enum FrtDecimalizeIterationMethod;
-                    case NONE: return "None";
-                    case LINEAR: return "Linear";
-                    case SQUARE_ROOT: return "Square root";
-                    case LOG: return "Log";
-                    case LOG_LOG: return "LogLog";
-                    default: break;
-                }
-            }
             if constexpr (std::is_same_v<E, ShdIterationColoringMethod>) {
                 switch (value) {
                     using enum ShdIterationColoringMethod;

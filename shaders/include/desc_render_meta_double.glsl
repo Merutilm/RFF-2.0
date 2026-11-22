@@ -20,7 +20,7 @@ layout (std430, set = DESC_RENDER_META, binding = 0) readonly buffer RenderMeta 
     float log_zoom;
     float bailout;
     float clarity_multiplier;
-    uint decimalize_iteration_method;
+    uint smooth_iteration;
     dvec2 offset;
     dvec2 orbit[];
 } render_meta;

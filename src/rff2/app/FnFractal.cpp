@@ -188,8 +188,8 @@ namespace merutilm::rff2 {
                                "if the distance is smaller than \"10^-value\", this pixel is set to interior and "
                                "all subsequent iterations are skipped. Set 0 to disable it.");
 
-        ImGuiUtils::Dropdown("Decimalize Iteration", &calc.perturb.decimalizeIterationMethod);
-        ImGuiUtils::HelpMarker("Sets the decimalization method of iterations.");
+        ImGui::Checkbox("Smooth Iteration", &calc.perturb.smoothIteration);
+        ImGuiUtils::HelpMarker("Sets smooth iterations.");
         ImGuiUtils::EndSettings();
     }
 #ifdef RFF_USE_SA

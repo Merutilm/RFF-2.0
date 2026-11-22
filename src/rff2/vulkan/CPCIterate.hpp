@@ -24,7 +24,7 @@ namespace merutilm::rff2 {
         static constexpr uint32_t TARGET_RM_LOG_ZOOM = 2;
         static constexpr uint32_t TARGET_RM_BAILOUT = 3;
         static constexpr uint32_t TARGET_RM_CLARITY_MULTIPLIER = 4;
-        static constexpr uint32_t TARGET_RM_DECIMALIZE_ITERATION_METHOD = 5;
+        static constexpr uint32_t TARGET_RM_SMOOTH_ITERATION = 5;
         static constexpr uint32_t TARGET_RM_OFFSET = 6;
         static constexpr uint32_t TARGET_RM_ORBIT = 7;
 
@@ -140,8 +140,7 @@ namespace merutilm::rff2 {
         rmSSBOHost.template set<float>(TARGET_RM_LOG_ZOOM, frt.general.logZoom);
         rmSSBOHost.template set<float>(TARGET_RM_BAILOUT, frt.general.bailout);
         rmSSBOHost.template set<float>(TARGET_RM_CLARITY_MULTIPLIER, render.display.clarityMultiplier);
-        rmSSBOHost.template set<uint32_t>(TARGET_RM_DECIMALIZE_ITERATION_METHOD,
-                                          static_cast<uint32_t>(frt.perturb.decimalizeIterationMethod));
+        rmSSBOHost.template set<uint32_t>(TARGET_RM_SMOOTH_ITERATION, frt.perturb.smoothIteration);
         rmSSBOHost.template set<complex<Num>>(TARGET_RM_OFFSET, static_cast<complex<Num>>(offset));
         rmSSBOHost.template resizeArray<complex<Num>>(TARGET_RM_ORBIT, longestPeriod + 1);
         rmSSBOHost.template set<complex<Num>>(TARGET_RM_ORBIT, reference.data());
@@ -227,7 +226,7 @@ namespace merutilm::rff2 {
         homRm.template reserve<float>(TARGET_RM_LOG_ZOOM);
         homRm.template reserve<float>(TARGET_RM_BAILOUT);
         homRm.template reserve<float>(TARGET_RM_CLARITY_MULTIPLIER);
-        homRm.template reserve<uint32_t>(TARGET_RM_DECIMALIZE_ITERATION_METHOD);
+        homRm.template reserve<uint32_t>(TARGET_RM_SMOOTH_ITERATION);
         homRm.template reserve<complex<Num>>(TARGET_RM_OFFSET);
         homRm.template reserveArray<complex<Num>>(TARGET_RM_ORBIT, 0);
 

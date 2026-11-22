@@ -99,8 +99,8 @@ namespace merutilm::rff2 {
 
             return false;
         }
-        void applyMPApproximation(ReferenceView<Num> &referenceView, MPAView<Num> &mpaView, complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
-                                  itt::ref &refIteration) const {
+        void applyMPApproximation(ReferenceView<Num> &referenceView, MPAView<Num> &mpaView, complex<Num> &dz,
+                                  const complex<Num> &dc, itt::ptb &iteration, itt::ref &refIteration) const {
             if (const PA<Num> *paPtr = mpaView.lookup(referenceView, refIteration, dz); paPtr != nullptr) {
                 const PA<Num> &pa = *paPtr;
 
@@ -113,7 +113,7 @@ namespace merutilm::rff2 {
         void applySeriesApproximation(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
                                       itt::ref &refIteration) const {
 #ifdef RFF_USE_SA
-            const complex dcSa = {dex{dc.re}, dex{dc.im}};
+            const complex dcSa = {dex{dc.re}, dex { dc.im }};
             complex dcSaM = dcSa;
             complex dzSa = complex<dex>::ZERO;
 
@@ -144,8 +144,8 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        void perturbationStep(ReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc,
-                              itt::ptb &iteration, itt::ref &refIteration) const {
+        void perturbationStep(ReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
+                              itt::ref &refIteration) const {
 #ifndef NDEBUG
             assert(view.currentOriginalIndex() == refIteration);
             auto compRef = SRPCUtils::compress(reference.getCompressor(), refIteration);
@@ -191,7 +191,8 @@ namespace merutilm::rff2 {
             // basic interior detection
             ReferenceView<Num> referenceView = reference.makeReferenceView();
             std::optional<MPAView<Num>> mpaView = std::nullopt;
-            if (table.buffer) mpaView.emplace(table.makeMPAView());
+            if (table.buffer)
+                mpaView.emplace(table.makeMPAView());
             referenceView.next();
             if (checkInteriorBasic(referenceView.get() + dc0)) {
                 return isAbs ? 1 : static_cast<double>(maxIteration);
@@ -227,7 +228,8 @@ namespace merutilm::rff2 {
                 dz = dz.try_normalized_value();
 
                 updateDistance(z, prevDistance2, currDistance2);
-                if (mpaView) applyMPApproximation(referenceView, *mpaView, dz, dc0, iteration, refIteration);
+                if (mpaView)
+                    applyMPApproximation(referenceView, *mpaView, dz, dc0, iteration, refIteration);
 
                 if ((absIteration - 1) % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
                     state.interruptRequested())
@@ -243,10 +245,11 @@ namespace merutilm::rff2 {
 
             const double prevDistance = std::sqrt(prevDistance2);
             const double currDistance = std::sqrt(currDistance2);
-
-            return static_cast<double>(iteration) +
-                   FrtDecimalizeIterationMethodUtil::getExteriorDoubleValueIterationRatio(
-                           prevDistance, currDistance, ptbSettings.decimalizeIterationMethod, generalSettings.bailout);
+            const double inc = ptbSettings.smoothIteration
+                                       ? FrtDecimalizeIterationMethodUtil::getExteriorDoubleValueIterationRatio(
+                                                 prevDistance, currDistance, generalSettings.bailout)
+                                       : 0;
+            return static_cast<double>(iteration) + inc;
         }
 
         void checkInteriorAndApplyBatch(
@@ -442,7 +445,7 @@ namespace merutilm::rff2 {
             //
             //
             //     *chunk.data[i].value += FrtDecimalizeIterationMethodUtil::getExteriorDoubleValueIterationRatio(
-            //             prevDistance[i], currDistance[i], ptbSettings.decimalizeIterationMethod,
+            //             prevDistance[i], currDistance[i], ptbSettings.decimalizeIterationCurvature,
             //             generalSettings.bailout);
             //
             //     finished[i] = true;

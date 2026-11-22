@@ -17,13 +17,6 @@
 #define ST_SMOOTH 2
 #define ST_SMOOTH_SQUARED 3
 
-// Decimalize Iteration Method
-#define DIM_NONE 0
-#define DIM_LINEAR 1
-#define DIM_SQUARE_ROOT 2
-#define DIM_LOG 3
-#define DIM_LOGLOG 4
-
 // Perturbation Main Iterator
 #define PMI_CPU 0
 #define PMI_GPU 1

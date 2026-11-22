@@ -19,7 +19,7 @@ layout (std430, set = DESC_RENDER_META, binding = 0) readonly buffer FexRenderMe
     float log_zoom;
     float bailout;
     float clarity_multiplier;
-    uint decimalize_iteration_method;
+    uint smooth_iteration;
     FexComplex offset;
     FexComplex orbit[];
 } render_meta;
