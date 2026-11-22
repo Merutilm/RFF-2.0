@@ -5,7 +5,6 @@
 #pragma once
 
 #include "../calc/complex.hpp"
-#include "../mb/MB2Reference.h"
 #include "PA.h"
 
 namespace merutilm::rff2 {
@@ -24,7 +23,7 @@ namespace merutilm::rff2 {
         complex<Num> bn = complex<Num>::ZERO;
         Num radius = rff_math::try_normalized_value(Num(DBL_MAX));
 
-        explicit PAGenerator(const MB2Reference<Num> &reference, float epsilon, Num dcMax, itt::ref start);
+        explicit PAGenerator(const ReferenceData<Num> &reference, float epsilon, Num dcMax, itt::ref start);
 
         void reuse(itt::ref start);
 
@@ -54,7 +53,7 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    PAGenerator<Num>::PAGenerator(const MB2Reference<Num> &reference, const float epsilon, Num dcMax,
+    PAGenerator<Num>::PAGenerator(const ReferenceData<Num> &reference, const float epsilon, Num dcMax,
                                   const itt::ref start) :
         start(start), epsilon(epsilon), view(reference.makeReferenceView()), dcMax(dcMax) {}
 

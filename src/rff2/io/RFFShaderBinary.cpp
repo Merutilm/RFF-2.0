@@ -15,7 +15,7 @@
 namespace merutilm::rff2 {
 
     const RFFShaderBinary RFFShaderBinary::DEFAULT =
-            RFFShaderBinary{ShaderSettings{.palette = ShdPalettePresets::Classic1().genPalette(),
+            RFFShaderBinary{ShaderSettings{.palette = ShdPalettePresets::LongRandom64().genPalette(),
                                            .stripe = ShdStripePresets::Disabled().genStripe(),
                                            .surface = ShdSurfacePresets::Disabled().genSurface(),
                                            .color = ShdColorPresets::Disabled().genColor(),

@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "../mrthy/MPAIndexMapper.hpp"
-#include "../mrthy/PA.h"
+#include "../algorithm/MPAIndexMapper.hpp"
 #include "CachedPodVector.hpp"
 #include "vulkan-helper/base/vkh.hpp"
 

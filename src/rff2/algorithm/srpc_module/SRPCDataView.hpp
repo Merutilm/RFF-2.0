@@ -7,13 +7,13 @@
 #include "SRPCData.hpp"
 namespace merutilm::rff2 {
 
-    template<typename Index, typename Data>
+    template<typename Index, typename Element>
     class SRPCDataView : public SRPCCursor<Index> {
     protected:
-        const SRPCData<Index, Data> &data;
+        const SRPCData<Index, Element> &data;
 
     public:
-        explicit SRPCDataView(const SRPCData<Index, Data> &data) : SRPCCursor<Index>(data.compressor), data(data) {
+        explicit SRPCDataView(const SRPCData<Index, Element> &data) : SRPCCursor<Index>(data.compressor), data(data) {
         }
 
 
@@ -22,10 +22,10 @@ namespace merutilm::rff2 {
         }
 
         // Time complexity O(1)
-        [[nodiscard]] const Data &get() const { return data.compressedArray[SRPCCursor<Index>::refIndex]; }
+        [[nodiscard]] const Element &get() const { return data.compressedArray[SRPCCursor<Index>::refIndex]; }
 
         // Time complexity O(log N)
-        [[nodiscard]] const Data &get(Index i) const {
+        [[nodiscard]] const Element &get(Index i) const {
             return data.compressedArray[SRPCCursor<Index>::calcRefIndexFast(i)];
         }
     };

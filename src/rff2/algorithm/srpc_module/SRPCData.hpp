@@ -7,10 +7,11 @@
 
 #include "SRPCUnit.hpp"
 namespace merutilm::rff2 {
-    template<typename Index, typename Data>
+    template<typename Index, typename Element>
     struct SRPCData {
         Index uncompressedSize = 0;
-        std::vector<Data> compressedArray{};
+        std::vector<Element> compressedArray{};
         std::vector<SRPCUnit<Index>> compressor{};
+
     };
 }

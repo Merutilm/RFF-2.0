@@ -16,10 +16,10 @@ namespace merutilm::rff2 {
         currCenter(data.fractalSettings.reference.center),
         checkpoints(data.getReference()->checkpoints), fnLocatingMB2W(std::move(fnLocatingMB2W)) {}
 
-    fixed_point_complex MB2Locator::calcCenterOffset(const MB2ReferenceBase &reference) {
+    fixed_point_complex MB2Locator::calcCenterOffset(const ReferenceDataBase &reference) {
 
 
-        const int64_t exp10 = Perturbator::logZoomToExp10(reference.logZoom);
+        const int64_t exp10 = Perturbator::logZoomToExp10(reference.generalSettings.logZoom);
         std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> temps =
                 fixed_point_complex::create_temps(exp10);
         fixed_point_complex off(0.0, 0.0, exp10);
@@ -337,8 +337,8 @@ namespace merutilm::rff2 {
 
     std::optional<MB2LocateResult> MB2Locator::locate() {
 
-        const int64_t refExp10 = Perturbator::logZoomToExp10(reference.logZoom);
-        double aimLogZoom = reference.logZoom * 2;
+        const int64_t refExp10 = Perturbator::logZoomToExp10(reference.generalSettings.logZoom);
+        double aimLogZoom = reference.generalSettings.logZoom * 2;
         int64_t aimExp10 = refExp10 * 2;
 
         // copy checkpoints

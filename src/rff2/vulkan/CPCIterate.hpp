@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include "../mrthy/MPAIndexMapper.hpp"
-#include "../mrthy/PA.h"
+#include "../algorithm/MPAIndexMapper.hpp"
+#include "../algorithm/PA.h"
 #include "../settings/FractalSettings.h"
 #include "../settings/RenderSettings.h"
 #include "desc/SharedDescriptorTemplate.hpp"

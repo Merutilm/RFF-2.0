@@ -13,7 +13,7 @@ add_executable(
         ${CMAKE_SOURCE_DIR}/src/rff2/app/Main.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/io/RFFDynamicMapBinary.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/parallel/ParallelRenderState.cpp
-        ${CMAKE_SOURCE_DIR}/src/rff2/mrthy/MPAInfo.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/algorithm/MPAInfo.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/app/FnFile.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/app/FnFractal.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/app/FnRender.cpp
@@ -58,6 +58,6 @@ add_executable(
         ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCSmoothZoom.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/GPCResample.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/vulkan/CPCInterpolateIsolated.cpp
-        ${CMAKE_SOURCE_DIR}/src/rff2/mb/MB2Locator.cpp
+        ${CMAKE_SOURCE_DIR}/src/rff2/algorithm/MB2Locator.cpp
         ${CMAKE_SOURCE_DIR}/src/rff2/io/RFFShaderBinary.cpp
 )

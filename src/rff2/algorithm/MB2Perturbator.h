@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "../mrthy/MPATable.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtPerturbSettings.hpp"
 #include "../settings/FrtSASettings.hpp"
+#include "MB2MPAGenerator.hpp"
 #include "Perturbator.h"
 #include "SeriesApproximationData.hpp"
 
@@ -49,13 +49,13 @@ namespace merutilm::rff2 {
     struct MB2Perturbator final : MB2PerturbatorBase {
 
         static constexpr uint32_t PERIODIC_POINT_HISTORY_LENGTH = 8;
-        const MB2Reference<Num> &reference;
-        const MPATable<Num> &table;
+        const ReferenceData<Num> &reference;
+        const MPAData<Num> &table;
 
         explicit MB2Perturbator(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
                                 const FrtSASettings &saSettings, const FrtPerturbSettings &ptbSettings,
                                 const SeriesApproximationData &seriesApproximationData,
-                                const MB2Reference<Num> &reference, const MPATable<Num> &table) :
+                                const ReferenceData<Num> &reference, const MPAData<Num> &table) :
             MB2PerturbatorBase(state, dcMax, generalSettings, saSettings, ptbSettings, seriesApproximationData),
             reference(reference), table(table) {}
 
@@ -112,6 +112,7 @@ namespace merutilm::rff2 {
 
         void applySeriesApproximation(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
                                       itt::ref &refIteration) const {
+#ifdef RFF_USE_SA
             const complex dcSa = {dex{dc.re}, dex{dc.im}};
             complex dcSaM = dcSa;
             complex dzSa = complex<dex>::ZERO;
@@ -124,6 +125,7 @@ namespace merutilm::rff2 {
             iteration = seriesApproximationData.skippedIterations;
             refIteration = seriesApproximationData.skippedIterations;
             dz = {Num(dzSa.re), Num(dzSa.im)};
+#endif
         }
 
         static void updateDistance(const complex<Num> &z, double &prevDistance2, double &currDistance2) {
@@ -158,6 +160,7 @@ namespace merutilm::rff2 {
 
         void calcInitialIteration(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
                                   itt::ref &refIteration) const {
+#ifdef RFF_USE_SA
             if (saSettings.use) {
                 applySeriesApproximation(dz, dc, iteration, refIteration);
             } else {
@@ -165,6 +168,11 @@ namespace merutilm::rff2 {
                 iteration = 0;
                 refIteration = 0;
             }
+#else
+            dz = complex<Num>::ZERO;
+            iteration = 0;
+            refIteration = 0;
+#endif
         }
         [[nodiscard]] double iterate(const complex<dex> &dc) const noexcept override {
             if (state.interruptRequested())
@@ -183,7 +191,7 @@ namespace merutilm::rff2 {
             // basic interior detection
             ReferenceView<Num> referenceView = reference.makeReferenceView();
             std::optional<MPAView<Num>> mpaView = std::nullopt;
-            if (table.data.buffer) mpaView.emplace(table.makeMPAView());
+            if (table.buffer) mpaView.emplace(table.makeMPAView());
             referenceView.next();
             if (checkInteriorBasic(referenceView.get() + dc0)) {
                 return isAbs ? 1 : static_cast<double>(maxIteration);

@@ -5,8 +5,8 @@
 #pragma once
 #include <vector>
 
-#include "SRPCSegment.hpp"
 #include "SRPCUnit.hpp"
+#include "SRPCSegment.hpp"
 
 /**
  * <b>Array compressor Utilities</b><br/>
@@ -83,6 +83,10 @@ namespace merutilm::rff2::SRPCUtils {
                            std::vector<SRPCSegment<Index>> *stackTrace = nullptr,
                            size_t *startedUnitCountPtr = nullptr);
 
+    template<typename Index>
+    void popEndedSegments(SRPCSegment<Index> *&topPtr,
+                                             std::vector<SRPCSegment<Index>> &currentIndexSegmentStack,
+                                             Index &refIndex);
 
     // DEFINITION OF ArrayCompressorUtils
     // DEFINITION OF ArrayCompressorUtils
@@ -226,4 +230,31 @@ namespace merutilm::rff2::SRPCUtils {
         const Index rebased = rebase(units, index, stackTrace, startedUnitCountPtr);
         return pull(units, rebased);
     }
+
+    template<typename Index>
+    void popEndedSegments(SRPCSegment<Index> *&topPtr,
+                                             std::vector<SRPCSegment<Index>> &currentIndexSegmentStack,
+                                             Index &refIndex) {
+        if (topPtr->remained > 0)
+            return;
+
+        // if 'remained' is zero, pop and do recover
+
+        while (!currentIndexSegmentStack.empty() && topPtr->remained == 0) {
+            refIndex = topPtr->referenceIndexToRecover;
+            Index maxCompressionSize = topPtr->maxCompressionSize;
+            currentIndexSegmentStack.pop_back();
+            if (!currentIndexSegmentStack.empty()) {
+                assert(currentIndexSegmentStack.back().remained >= maxCompressionSize);
+                currentIndexSegmentStack.back().remained -= maxCompressionSize;
+                topPtr = &currentIndexSegmentStack.back();
+            }
+        }
+
+        if (currentIndexSegmentStack.empty()) {
+            topPtr = nullptr;
+        }
+        // recover reference index
+    }
+
 } // namespace merutilm::rff2::SRPCUtils

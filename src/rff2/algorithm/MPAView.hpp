@@ -5,13 +5,16 @@
 #pragma once
 #include "../calc/iteration_types.hpp"
 #include "MPAUtils.hpp"
-#include "SRPCCursor.hpp"
+#include "PA.h"
+#include "srpc_module/SRPCCursor.hpp"
+#include "ReferenceView.hpp"
+#include "../data/MPAData.hpp"
 namespace merutilm::rff2 {
 
 
     template<Number Num>
     class MPAView : public SRPCCursor<itt::ref> {
-        const MPAData &data;
+        const MPAData<Num> &data;
         size_t nextExpectedRefIteration = 0;
         size_t levelCount = 0;
         size_t pulledTableSize;
@@ -20,7 +23,7 @@ namespace merutilm::rff2 {
         std::vector<uint64_t> itCountLim;
 
     public:
-        explicit MPAView(const MPAData &data);
+        explicit MPAView(const MPAData<Num> &data);
 
         void reset() {
             SRPCCursor::reset();
@@ -58,7 +61,7 @@ namespace merutilm::rff2 {
     };
 
     template<Number Num>
-    MPAView<Num>::MPAView(const MPAData &data) : SRPCCursor(data.info.pulledMPACompressor), data(data) {
+    MPAView<Num>::MPAView(const MPAData<Num> &data) : SRPCCursor(data.info.pulledMPACompressor), data(data) {
         pulledTableSize =
                 MPAIndexMapperUtils::iterationToPulledTableIndex(data.info, data.info.tablePeriods.back() + 1);
         reset();
@@ -305,6 +308,11 @@ namespace merutilm::rff2 {
             nextExpectedRefIteration += itCountLim[0];
             measureLevelCount(0);
         }
+    }
+
+    template<Number Num>
+    MPAView<Num> MPAData<Num>::makeMPAView() const {
+        return MPAView<Num>(*this);
     }
 
 } // namespace merutilm::rff2

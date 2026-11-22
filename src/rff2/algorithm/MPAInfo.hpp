@@ -7,7 +7,7 @@
 
 #include "../calc/iteration_types.hpp"
 #include "../settings/FrtMPASettings.h"
-#include "SRPCUnit.hpp"
+#include "srpc_module/SRPCUnit.hpp"
 
 
 namespace merutilm::rff2 {

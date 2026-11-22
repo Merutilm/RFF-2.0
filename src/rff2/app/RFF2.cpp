@@ -6,9 +6,9 @@
 
 #include <ranges>
 
+#include "../algorithm/MB2Locator.hpp"
 #include "../io/RFFLocationBinary.hpp"
 #include "../io/RFFShaderBinary.hpp"
-#include "../mb/MB2Locator.hpp"
 #include "../parallel/ParallelArrayDispatcher.h"
 #include "../preset/calc/approx/ClcApproxPresets.hpp"
 #include "../preset/calc/compress/ClcCompressPresets.hpp"
@@ -213,7 +213,7 @@ namespace merutilm::rff2 {
                                                     .absoluteIterationMode = false}},
                 .render = {.display = RndDisplayPresets::Low().genDisplay(),
                            .computeShader = RndComputePresets::None().genComputeShader()},
-                .shader = {.palette = ShdPalettePresets::Classic1().genPalette(),
+                .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .surface = ShdSurfacePresets::Disabled().genSurface(),
                            .color = ShdColorPresets::Disabled().genColor(),
@@ -257,7 +257,7 @@ namespace merutilm::rff2 {
                                                     .absoluteIterationMode = false}},
                 .render = {.display = RndDisplayPresets::High().genDisplay(),
                            .computeShader = RndComputePresets::None().genComputeShader()},
-                .shader = {.palette = ShdPalettePresets::Classic1().genPalette(),
+                .shader = {.palette = ShdPalettePresets::LongRandom64().genPalette(),
                            .stripe = ShdStripePresets::Disabled().genStripe(),
                            .surface = ShdSurfacePresets::Disabled().genSurface(),
                            .color = ShdColorPresets::Disabled().genColor(),
@@ -620,7 +620,9 @@ namespace merutilm::rff2 {
             if (ImGuiUtils::BeginTabItem("Fractal")) {
                 FnFractal::reference(*this);
                 FnFractal::iterations(*this);
+#ifdef RFF_USE_SA
                 FnFractal::sa(*this);
+#endif
                 FnFractal::mpa(*this);
                 FnFractal::automaticIterations(*this);
                 FnFractal::absoluteIterationMode(*this);
@@ -999,7 +1001,7 @@ namespace merutilm::rff2 {
 
         // sync settings
 
-        const MB2ReferenceBase &reference = *renderData->getReference();
+        const ReferenceDataBase &reference = *renderData->getReference();
         const size_t refLength = reference.length();
         const size_t mpaLen = approxTableCache ? approxTableCache->mpaTable.sizeUsed : 0;
         setStatusMessage(Constants::Status::PERIOD_STATUS,

@@ -35,7 +35,7 @@ namespace merutilm::rff2 {
         static constexpr uint32_t EXP10_HISTORY_LENGTH = 10;
 
         const ParallelRenderState &state;
-        const MB2ReferenceBase &reference;
+        const ReferenceDataBase &reference;
         const ExpLocatorSettings locSettings;
         const uint32_t threads;
         fixed_point_complex prevCenter;
@@ -53,7 +53,7 @@ namespace merutilm::rff2 {
 
         std::optional<MB2LocateResult> locate();
 
-        static fixed_point_complex calcCenterOffset(const MB2ReferenceBase &reference);
+        static fixed_point_complex calcCenterOffset(const ReferenceDataBase &reference);
 
     private:
 

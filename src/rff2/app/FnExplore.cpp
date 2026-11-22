@@ -10,7 +10,7 @@
 #include "../util/ImGuiUtils.hpp"
 #include "../util/Utilities.h"
 
-#include "../mb/MB2Locator.hpp"
+#include "../algorithm/MB2Locator.hpp"
 
 namespace merutilm::rff2 {
 
@@ -60,7 +60,7 @@ namespace merutilm::rff2 {
             ImGui::BeginDisabled();
         if (!frt.reference.reuse && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
             assert(renderData->getReference());
-            const int64_t exp10 = Perturbator::getExp10WithSettings(frt.reference, renderData->getReference()->logZoom);
+            const int64_t exp10 = Perturbator::getExp10WithSettings(frt.reference, renderData->getReference()->generalSettings.logZoom);
             const fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
             fixed_point_complex center = frt.reference.center.create_variant(exp10);
             fixed_point_complex::add(center, center, off);
@@ -85,7 +85,7 @@ namespace merutilm::rff2 {
             assert(renderData->getReference());
             const double startTime = app.rootWindowContext->getWindow()->getTime();
             frt.reference.center = renderData->getReference()->center;
-            frt.general.logZoom = renderData->getReference()->logZoom;
+            frt.general.logZoom = renderData->getReference()->generalSettings.logZoom;
 
             if (renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
                                       app.getSettings().fractal.perturb, frt.reference.center,

@@ -4,7 +4,7 @@
 
 #include "FnFractal.hpp"
 
-#include "../mb/Perturbator.h"
+#include "../algorithm/Perturbator.h"
 #include "../util/ImGuiUtils.hpp"
 #include "../util/Utilities.h"
 #include "FnExplore.hpp"
@@ -192,6 +192,7 @@ namespace merutilm::rff2 {
         ImGuiUtils::HelpMarker("Sets the decimalization method of iterations.");
         ImGuiUtils::EndSettings();
     }
+#ifdef RFF_USE_SA
     void FnFractal::sa(RFF2 &app) {
 
         ImGuiUtils::BeginSettings("Series Approximation");
@@ -226,6 +227,7 @@ namespace merutilm::rff2 {
             ImGui::EndDisabled();
         ImGuiUtils::EndSettings();
     }
+#endif
     void FnFractal::mpa(RFF2 &app) {
 
         ImGuiUtils::BeginSettings("MP-Approximation");

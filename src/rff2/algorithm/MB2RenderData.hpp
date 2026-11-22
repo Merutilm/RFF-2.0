@@ -5,9 +5,10 @@
 #pragma once
 #include <utility>
 #include "../app/FnListeners.hpp"
+#include "../data/ReferenceData.hpp"
 #include "../settings/FractalSettings.h"
 #include "MB2Perturbator.h"
-#include "MB2Reference.h"
+#include "MB2ReferenceGenerator.hpp"
 #include "RFFResult.hpp"
 #include "SeriesApproximationData.hpp"
 namespace merutilm::rff2 {
@@ -25,7 +26,7 @@ namespace merutilm::rff2 {
 
         virtual ~MB2RenderDataBase() = default;
 
-        [[nodiscard]] virtual MB2ReferenceBase *getReference() const = 0;
+        [[nodiscard]] virtual ReferenceDataBase *getReference() const = 0;
         [[nodiscard]] virtual MB2PerturbatorBase *getPerturbator() const = 0;
 
         virtual RFFResult regenerateApprox(FnListeners::FnSeriesApproxW &&fnSeriesApprox,
@@ -38,9 +39,8 @@ namespace merutilm::rff2 {
     template<Number Num>
     struct MB2RenderData final : MB2RenderDataBase {
 
-
-        std::unique_ptr<MB2Reference<Num>> reference;
-        std::unique_ptr<MPATable<Num>> table;
+        std::unique_ptr<ReferenceData<Num>> reference;
+        std::unique_ptr<MPAData<Num>> table;
         std::unique_ptr<SeriesApproximationData> seriesApproxData;
         std::unique_ptr<MB2Perturbator<Num>> perturbator;
 
@@ -56,7 +56,7 @@ namespace merutilm::rff2 {
         RFFResult regenerateApprox(FnListeners::FnSeriesApproxW &&fnSeriesApprox,
                                    FnListeners::FnCreatingTableW &&fnCreatingTable) override;
 
-        [[nodiscard]] MB2ReferenceBase *getReference() const override { return reference.get(); }
+        [[nodiscard]] ReferenceDataBase *getReference() const override { return reference.get(); }
 
         [[nodiscard]] MB2Perturbator<Num> *getPerturbator() const override { return perturbator.get(); }
 
@@ -73,17 +73,20 @@ namespace merutilm::rff2 {
     template<Number Num>
     template<FnListeners::FnRefCalc FnRefCalc, FnListeners::FnSeriesApprox FnSeriesApprox,
              FnListeners::FnCreatingTable FnCreatingTable>
-    RFFResult MB2RenderData<Num>::createRenderData(ParallelRenderState &state, const FractalSettings &frt, bool computeShaderUsed,
-                               ApproxTableBuffer &buffer, dex dcMax, int64_t exp10, uint64_t refInitialCapacity,
+    RFFResult MB2RenderData<Num>::createRenderData(ParallelRenderState &state, const FractalSettings &frt, const bool computeShaderUsed,
+                               ApproxTableBuffer &buffer, const dex dcMax, const int64_t exp10, const uint64_t refInitialCapacity,
                                FnRefCalc &&fnRefCalc, FnSeriesApprox &&fnSeriesApprox,
                                FnCreatingTable &&fnCreatingTable, std::unique_ptr<MB2RenderDataBase> &result) {
         result = std::make_unique<MB2RenderData>(state, frt, computeShaderUsed, buffer);
         MB2RenderData &instance = dynamic_cast<MB2RenderData &>(*result);
-        const RFFResult r = MB2Reference<Num>::generateReference(state, frt.general, frt.reference, exp10, refInitialCapacity,
-                                                               dcMax, std::move(fnRefCalc), instance.reference);
-        if (r != RFFResult::SUCCESS) return r;
+        MB2ReferenceGenerator<Num, FnRefCalc> generator(state, frt.general, frt.reference, exp10, refInitialCapacity,
+                                                               dcMax, std::move(fnRefCalc));
 
+        if (const RFFResult r = generator.generate(); r != RFFResult::SUCCESS) return r;
+
+        instance.reference = std::move(generator).extract();
         instance.applyAutoMaxIteration();
+
         return instance.regenerateApprox(std::move(fnSeriesApprox), std::move(fnCreatingTable));
     }
 
@@ -98,12 +101,17 @@ namespace merutilm::rff2 {
             return r;
         }
 
-
-        table = std::make_unique<MPATable<Num>>(state, *reference, buffer, fractalSettings.general, fractalSettings.mpa,
+        MB2MPAGenerator generator(state, *reference, buffer, fractalSettings.general, fractalSettings.mpa,
                                                 computeShaderUsed, Num(reference->dcMax), std::move(fnCreatingTable));
+        generator.generate();
+        table = std::make_unique<MPAData<Num>>(std::move(generator).extract());
+        complex<dex> off = perturbator ? perturbator->off : complex<dex>::ZERO;
+        dex dcMax = perturbator ? perturbator->dcMax : reference->dcMax;
         perturbator = std::make_unique<MB2Perturbator<Num>>(
                 state, reference->dcMax, fractalSettings.general, fractalSettings.sa, fractalSettings.perturb,
-                *seriesApproxData, *reference, dynamic_cast<MPATable<Num> &>(*table));
+                *seriesApproxData, *reference, dynamic_cast<MPAData<Num> &>(*table));
+        perturbator->off = off;
+        perturbator->dcMax = dcMax;
         return state.interruptRequested() ? RFFResult::TERMINATED : RFFResult::SUCCESS;
     }
 
@@ -111,6 +119,7 @@ namespace merutilm::rff2 {
     template<Number Num>
     template<FnListeners::FnSeriesApprox FnSeriesApprox>
     RFFResult MB2RenderData<Num>::generateSeriesApproxTerms(const dex dcMax, FnSeriesApprox &&fnSeriesApprox) {
+#ifdef RFF_USE_SA
         if (!fractalSettings.sa.use)
             return RFFResult::SUCCESS;
 
@@ -178,6 +187,9 @@ namespace merutilm::rff2 {
 
         seriesApproxData->skippedIterations = skip;
         return RFFResult::SUCCESS;
+#else
+        return RFFResult::SUCCESS;
+#endif
     }
 
 

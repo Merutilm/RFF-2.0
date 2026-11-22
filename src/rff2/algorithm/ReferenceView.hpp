@@ -6,7 +6,9 @@
 #include "../calc/complex.hpp"
 #include "../calc/iteration_types.hpp"
 #include "MPAUtils.hpp"
-#include "SRPCDataView.hpp"
+#include "srpc_module/SRPCDataView.hpp"
+#include "../data/ReferenceData.hpp"
+
 namespace merutilm::rff2 {
 
     template<Number Num>
@@ -26,14 +28,18 @@ namespace merutilm::rff2 {
             if (!Cursor::compressor.empty()) {
                 const auto &back = Cursor::compressor.back();
                 if (back.end >= Cursor::originalIndex) {
-                    // This operation is performed only when the compressor has been deleted from the end of the reference array;
-                    // compressors processed after rebasing are part of the entire array,
-                    // so they are inexpensive.
+                    // This operation is performed only when the compressor has been deleted from the end of the
+                    // reference array; compressors processed after rebasing are part of the entire array, so they are
+                    // inexpensive.
                     View::setIndex(Cursor::originalIndex);
                 }
             }
         }
-
     };
+
+    template<Number Num>
+    ReferenceView<Num> ReferenceData<Num>::makeReferenceView() const {
+        return ReferenceView<Num>(static_cast<const SRPCData<itt::ref, complex<Num>> &>(*this));
+    }
 
 } // namespace merutilm::rff2

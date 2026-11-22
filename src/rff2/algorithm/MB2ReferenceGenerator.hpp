@@ -6,14 +6,13 @@
 #include "../app/FnListeners.hpp"
 #include "../calc/templates.hpp"
 #include "../constants/FractalConstants.hpp"
-#include "../mrthy/ComplexApproximator.hpp"
-#include "../mrthy/SRPCProcessor.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtReferenceSettings.hpp"
-#include "MB2ReferenceGenerationResult.hpp"
+#include "ComplexApproximator.hpp"
 #include "RFFResult.hpp"
 #include "ReferenceCheckpoint.hpp"
+#include "srpc_module/SRPCProcessor.hpp"
 
 namespace merutilm::rff2 {
 
@@ -37,7 +36,7 @@ namespace merutilm::rff2 {
         const ParallelRenderState &state;
         const FrtGeneralSettings &generalSettings;
         const FrtReferenceSettings &refSettings;
-        const fixed_point_complex cOrig;
+        fixed_point_complex cOrig;
         const int32_t exp10;
         const size_t refInitialCapacity;
         const dex dcMax;
@@ -60,13 +59,18 @@ namespace merutilm::rff2 {
         complex<Num> fpgBn = complex<Num>::ZERO;
         std::vector<itt::ref> periodArray = std::vector<itt::ref>();
 
+        // result
+        std::unique_ptr<ReferenceData<Num>> result;
+
     public:
         explicit MB2ReferenceGenerator(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                                        const FrtReferenceSettings &refSettings, int32_t exp10,
                                        size_t refInitialCapacity, dex dcMax, FnRefCalc &&fnRefCalc);
 
 
-        RFFResult generate(MB2ReferenceGenerationResult<Num> &result);
+        RFFResult generate();
+
+        std::unique_ptr<ReferenceData<Num>> extract() &&;
 
     private:
         void syncReference();
@@ -230,7 +234,7 @@ namespace merutilm::rff2 {
         }
     }
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
-    RFFResult MB2ReferenceGenerator<Num, FnRefCalc>::generate(MB2ReferenceGenerationResult<Num> &result) {
+    RFFResult MB2ReferenceGenerator<Num, FnRefCalc>::generate() {
         if (state.interruptRequested()) {
             return RFFResult::TERMINATED;
         }
@@ -246,8 +250,8 @@ namespace merutilm::rff2 {
 
         const double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
 
-        SRPCProcessor<itt::ref, complex<Num>, ComplexApproximator<Num>> processor(minCompressSize, refInitialCapacity,
-                                                                     ComplexApproximator<Num>(compressionThreshold));
+        SRPCProcessor<itt::ref, complex<Num>, ComplexApproximator<Num>> processor(
+                minCompressSize, refInitialCapacity, ComplexApproximator<Num>(compressionThreshold));
         processor.put(complex<Num>::ZERO);
 
 
@@ -277,11 +281,14 @@ namespace merutilm::rff2 {
         periodArray.push_back(refIteration);
         checkpoints.emplace_back(z, refIteration, static_cast<complex<dex>>(fzgAnPartition));
 
-        result = MB2ReferenceGenerationResult<Num>{.center = std::move(cOrig),
-                                                 .generatedPeriods = std::move(periodArray),
-                                                 .fpgBn = std::move(fpgBn),
-                                                 .checkpoints = std::move(checkpoints),
-                                                 .srpcData = std::move(processor).finish()};
+        result = std::make_unique<ReferenceData<Num>>(
+                std::move(processor).finish(), generalSettings, refSettings, std::move(cOrig),
+                std::move(periodArray), std::move(checkpoints), static_cast<complex<dex>>(fpgBn), dcMax);
         return RFFResult::SUCCESS;
+    }
+
+    template<Number Num, FnListeners::FnRefCalc FnRefCalc>
+    std::unique_ptr<ReferenceData<Num>> MB2ReferenceGenerator<Num, FnRefCalc>::extract() && {
+        return std::move(result);
     }
 } // namespace merutilm::rff2

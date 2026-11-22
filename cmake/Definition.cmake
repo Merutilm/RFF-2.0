@@ -1,4 +1,5 @@
 RFF_DEFINITION_FLAG(SAFE_EXP_OPERATOR "Better Quality, Slower Speed (Safety checking)" OFF)
 RFF_DEFINITION_FLAG(USE_EXPERIMENTAL_3D "Use Experimental 3D Fractal Feature" OFF)
 RFF_DEFINITION_FLAG(RFF_NO_ASSUME "Disable compiler assume hints" OFF)
+RFF_DEFINITION_FLAG(RFF_USE_SA "Use Series Approximation" OFF)
 RFF_DEFINITION(RFF_SIMD_CHUNK_SIZE "SIMD Chunk Size" 16)

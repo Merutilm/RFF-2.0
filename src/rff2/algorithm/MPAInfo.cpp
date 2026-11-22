@@ -7,7 +7,7 @@
 
 #include "../util/ArrayUtils.hpp"
 #include "MPAIndexMapperUtils.hpp"
-#include "SRPCUnit.hpp"
+#include "srpc_module/SRPCUnit.hpp"
 
 
 namespace merutilm::rff2 {
