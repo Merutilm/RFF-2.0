@@ -5,13 +5,13 @@
 #pragma once
 #include <cmath>
 
+#include "../constants/FractalConstants.hpp"
+
 namespace merutilm::rff2::FrtDecimalizeIterationMethodUtil {
 
-    inline double applyDecimalize(const double bailout, const double ratio) {
-        return log1p(bailout * ratio) / log1p(bailout);
-    }
 
-    inline double getExteriorDoubleValueIterationRatio(const double prevIterDistance, const double currIterDistance, const double bailout) {
+    inline double getExteriorDoubleValueIterationRatio(const double prevIterDistance, const double currIterDistance,
+                                                       const double bailout) {
         // prevIterDistance = p
         // currIterDistance = c
         // bailout = b
@@ -25,6 +25,9 @@ namespace merutilm::rff2::FrtDecimalizeIterationMethodUtil {
         if (prevIterDistance == currIterDistance) {
             return 0.0;
         }
-        return applyDecimalize(bailout, (bailout - prevIterDistance) / (currIterDistance - prevIterDistance));
+        return bailout >= Constants::Fractal::BAILOUT_THRESHOLD_ITERATION_SMOOTHING_METHOD
+                       ? 1 - log(log(currIterDistance) / std::numbers::ln2) / std::numbers::ln2
+                       : log1p(bailout * (bailout - prevIterDistance) / (currIterDistance - prevIterDistance)) /
+                                 log1p(bailout);
     }
 } // namespace merutilm::rff2::FrtDecimalizeIterationMethodUtil
