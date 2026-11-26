@@ -53,12 +53,8 @@ namespace merutilm::rff2 {
 
         std::optional<MB2LocateResult> locate();
 
-        static fixed_point_complex calcCenterOffset(const ReferenceDataBase &reference);
-
     private:
 
-        static void calcCenterOffset(fixed_point_complex &result, const fixed_point_complex &z,
-                                     const fixed_point_complex &bn, std::array<fixed_point_decimal, 6> &temps);
 
         PartitionStatus processPartition(uint32_t partitionIndex, int64_t dcCurrExp10, int64_t aimExp10,
                                          ThreadTempCache &cache);

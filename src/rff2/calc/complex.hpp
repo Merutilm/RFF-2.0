@@ -25,38 +25,64 @@ namespace merutilm::rff2 {
 
 
         template<Number N2>
-        friend complex &operator*=(complex &a, const N2 b) { return a = a * b; }
+        friend complex &operator*=(complex &a, const N2 b) {
+            return a = a * b;
+        }
 
         friend complex &operator*=(complex &a, const complex b) { return a = a * b; }
 
         template<Number N2>
-        friend complex operator*(const complex a, const N2 b) { return complex{a.re * b, a.im * b}; }
+        friend complex operator*(const complex a, const N2 b) {
+            return complex{a.re * b, a.im * b};
+        }
 
         template<Number N2>
-        friend complex operator*(const N2 a, const complex b) { return complex{a * b.re, a * b.im}; }
+        friend complex operator*(const N2 a, const complex b) {
+            return complex{a * b.re, a * b.im};
+        }
 
         friend complex operator+(const complex a, const complex b) { return complex{a.re + b.re, a.im + b.im}; }
 
         friend complex &operator+=(complex &a, const complex b) { return a = a + b; }
 
         template<Number N2>
-        friend complex operator+(const N2 a, const complex b) { return complex{.re = a + b.re, .im = b.im}; }
+        friend complex operator+(const N2 a, const complex b) {
+            return complex{.re = a + b.re, .im = b.im};
+        }
 
         template<Number N2>
-        friend complex operator+(const complex a, const N2 b) { return complex{.re = a.re + b, .im = a.im}; }
+        friend complex operator+(const complex a, const N2 b) {
+            return complex{.re = a.re + b, .im = a.im};
+        }
+        friend complex operator-(const complex a) {
+            return complex{.re = -a.re, .im = -a.im};
+        }
 
-        friend complex operator-(const complex a, const complex b) { return complex{.re = a.re - b.re, .im = a.im - b.im}; }
+        friend complex operator-(const complex a, const complex b) {
+            return complex{.re = a.re - b.re, .im = a.im - b.im};
+        }
 
         friend complex &operator-=(complex &a, const complex b) { return a = a - b; }
 
         template<Number N2>
-        friend complex operator-(const complex a, const N2 b) { return complex{.re = a.re - b, .im = a.im}; }
+        friend complex operator-(const complex a, const N2 b) {
+            return complex{.re = a.re - b, .im = a.im};
+        }
 
         template<Number N2>
-        friend complex operator-(const N2 a, const complex b) { return complex{.re = a - b.re, .im = -b.im}; }
+        friend complex operator-(const N2 a, const complex b) {
+            return complex{.re = a - b.re, .im = -b.im};
+        }
 
         template<Number N2>
-        friend complex operator/(const complex a, const N2 b) { return complex{.re = a.re / b, .im = a.im / b}; }
+        friend complex operator/(const complex a, const N2 b) {
+            return complex{.re = a.re / b, .im = a.im / b};
+        }
+
+        friend complex operator/(const complex a, const complex b) {
+            auto m = b.re * b.re + b.im * b.im;
+            return complex{.re = (a.re * b.re + a.im * b.im) / m, .im = (a.im * b.re - a.re * b.im) / m};
+        }
 
         friend bool operator==(const complex &a, const complex &b) = default;
 
@@ -75,15 +101,13 @@ namespace merutilm::rff2 {
             if constexpr (rff_math::is_exponent<Num>) {
                 return re.to_string() + " | " + im.to_string() + "i";
             } else if constexpr (std::is_same_v<Num, double>) {
-                return std::format("{:.15e}", re) + " | " + std::format("{:.15e}",im) + "i";
+                return std::format("{:.15e}", re) + " | " + std::format("{:.15e}", im) + "i";
             } else {
                 static_assert(std::is_same_v<Num, float>);
-                return std::format("{:.6e}", re) + " | " + std::format("{:.6e}",im) + "i";
+                return std::format("{:.6e}", re) + " | " + std::format("{:.6e}", im) + "i";
             }
         }
-        friend std::ostream &operator<<(std::ostream &out, const complex &obj) {
-            return out << obj.to_string();
-        }
+        friend std::ostream &operator<<(std::ostream &out, const complex &obj) { return out << obj.to_string(); }
     };
     template<Number Num>
     constexpr complex<Num> complex<Num>::ZERO = {.re = Num(0), .im = Num(0)};

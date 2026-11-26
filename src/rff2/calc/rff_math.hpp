@@ -10,8 +10,8 @@
 #include "exponent.hpp"
 #include "templates.hpp"
 
-namespace merutilm::rff2::rff_math {
 
+namespace merutilm::rff2::rff_math {
 
     template<typename Tp>
     concept is_prim = Number<Tp> && (std::is_same_v<Tp, double> || std::is_same_v<Tp, float>);
@@ -52,35 +52,59 @@ namespace merutilm::rff2::rff_math {
     }
 
 
-
     inline dex exp(const double v) {
 
-        //e^v
-        //exp2 = v / ln2
-        //mantissa = decimal value of exp2
+        // e^v
+        // exp2 = v / ln2
+        // mantissa = decimal value of exp2
         const double raw_exp2 = v / std::numbers::ln2;
         const auto exp2 = static_cast<int>(raw_exp2);
         return dex{exp2, std::exp2(raw_exp2 - exp2)};
     }
 
+
+
     inline dex exp10(const double v) {
-        //10 ^ v
-        //2 ^ (v * log2(10))
-        //exp2 = v * log2(10)
-        //mantissa = decimal value of exp2
+        // 10 ^ v
+        // 2 ^ (v * log2(10))
+        // exp2 = v * log2(10)
+        // mantissa = decimal value of exp2
         const double raw_exp2 = v * std::numbers::ln10 / std::numbers::ln2;
         const auto exp2 = static_cast<int>(raw_exp2);
         return dex{exp2, std::exp2(raw_exp2 - exp2)};
     }
+    template<Number Num>
+        Num sin(const Num v) {
+        Num v2 = std::sin(static_cast<double>(v));
+        if (is_zero(v2)) return v;
+        return Num(v2);
+    }
 
+    template<Number Num>
+    Num cos(const Num v) {
+        Num v2 = std::cos(static_cast<double>(v));
+        if (is_zero(v2)) return v;
+        return Num(v2);
+    }
 
     template<Number Num>
     Num sqrt(const Num v) {
         if constexpr (is_prim<Num>) {
-            return std::log(v);
+            return std::sqrt(v);
         } else {
             static_assert(is_exponent<Num>);
             return Num::sqrt(v);
+        }
+    }
+
+    template<Number Num>
+    double atan2(const Num y, const Num x) {
+        if constexpr (is_prim<Num>) {
+            return std::atan2(y, x);
+        } else {
+            static_assert(is_exponent<Num>);
+            auto max = std::max(x, y);
+            return std::atan2(static_cast<double>(y / max), static_cast<double>(x / max));
         }
     }
 
@@ -136,7 +160,8 @@ namespace merutilm::rff2::rff_math {
             static_assert(is_exponent<Num>);
             const auto bits = std::bit_cast<uint64_t>(static_cast<double>(v.mantissa));
             const auto rawExp = static_cast<int64_t>((bits >> 52u) & 0x07ffu);
-            return static_cast<int64_t>(static_cast<double>(rawExp - 1023 + v.exp2) / std::numbers::ln10 * std::numbers::ln2);
+            return static_cast<int64_t>(static_cast<double>(rawExp - 1023 + v.exp2) / std::numbers::ln10 *
+                                        std::numbers::ln2);
         }
     }
 

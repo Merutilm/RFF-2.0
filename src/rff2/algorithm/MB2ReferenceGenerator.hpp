@@ -12,6 +12,7 @@
 #include "ComplexApproximator.hpp"
 #include "RFFResult.hpp"
 #include "ReferenceCheckpoint.hpp"
+#include "ReferenceNucleusEstimation.hpp"
 #include "srpc_module/SRPCProcessor.hpp"
 
 namespace merutilm::rff2 {
@@ -233,6 +234,7 @@ namespace merutilm::rff2 {
             }
         }
     }
+
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
     RFFResult MB2ReferenceGenerator<Num, FnRefCalc>::generate() {
         if (state.interruptRequested()) {
@@ -278,14 +280,18 @@ namespace merutilm::rff2 {
             processor.put(z0);
         }
 
+
         periodArray.push_back(refIteration);
         checkpoints.emplace_back(z, refIteration, static_cast<complex<dex>>(fzgAnPartition));
 
-        result = std::make_unique<ReferenceData<Num>>(
-                std::move(processor).finish(), generalSettings, refSettings, std::move(cOrig),
-                std::move(periodArray), std::move(checkpoints), static_cast<complex<dex>>(fpgBn), dcMax);
+        ReferenceNucleusEstimation guess(z, cOrig, static_cast<complex<dex>>(fzgAn), static_cast<complex<dex>>(fpgBn), exp10, temps);
+
+        result = std::make_unique<ReferenceData<Num>>(std::move(processor).finish(), generalSettings, refSettings,
+                                                      std::move(cOrig), std::move(guess), std::move(periodArray),
+                                                      std::move(checkpoints), static_cast<complex<dex>>(fpgBn), dcMax);
         return RFFResult::SUCCESS;
     }
+
 
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
     std::unique_ptr<ReferenceData<Num>> MB2ReferenceGenerator<Num, FnRefCalc>::extract() && {

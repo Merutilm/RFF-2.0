@@ -177,22 +177,22 @@ namespace merutilm::rff2 {
     }
     void MPAInfo::printDebugInfo() {
 #ifndef NDEBUG
-        std::cout << "======================= MPA GENERATION ===========================\n";
-        for (int i = 0; i < tablePeriods.size(); ++i) {
-            std::cout << "Period " << tablePeriods[i] << " Info"
-                      << "\n\tSkippable Count : " << skippableIterationCounts[i]
-                      << "\n\tTable Element Count : " << tableElementCounts[i]
-                      << "\n\tArtificial : " << (isArtificial[i] ? "yes" : "no")
-                      << "\n\tCompressed Skippable Iterations : " << compressedSkippableIterationCounts[i] << "\n\n";
-        }
-
-        std::cout << "=================== Pulled MPA Compressor Info ===================\n";
-        for (int i = 0; i < pulledMPACompressor.size(); ++i) {
-            std::cout << "- Compressor " << i << "\n\tCompressed Area : " << pulledMPACompressor[i].start << "-"
-                      << pulledMPACompressor[i].end << "\n\tReferencing Area : 1-" << pulledMPACompressor[i].range()
-                      << "\n\tSRPC Recovering to : " << pulledMPACompressor[i].recoverIndex << "\n\n";
-        }
-        std::cout << std::flush;
+        // std::cout << "======================= MPA GENERATION ===========================\n";
+        // for (int i = 0; i < tablePeriods.size(); ++i) {
+        //     std::cout << "Period " << tablePeriods[i] << " Info"
+        //               << "\n\tSkippable Count : " << skippableIterationCounts[i]
+        //               << "\n\tTable Element Count : " << tableElementCounts[i]
+        //               << "\n\tArtificial : " << (isArtificial[i] ? "yes" : "no")
+        //               << "\n\tCompressed Skippable Iterations : " << compressedSkippableIterationCounts[i] << "\n\n";
+        // }
+        //
+        // std::cout << "=================== Pulled MPA Compressor Info ===================\n";
+        // for (int i = 0; i < pulledMPACompressor.size(); ++i) {
+        //     std::cout << "- Compressor " << i << "\n\tCompressed Area : " << pulledMPACompressor[i].start << "-"
+        //               << pulledMPACompressor[i].end << "\n\tReferencing Area : 1-" << pulledMPACompressor[i].range()
+        //               << "\n\tSRPC Recovering to : " << pulledMPACompressor[i].recoverIndex << "\n\n";
+        // }
+        // std::cout << std::flush;
 
 #endif
     }

@@ -62,7 +62,25 @@ namespace merutilm::rff2 {
         ~MB2Perturbator() override = default;
 
 
-        [[nodiscard]] bool checkInteriorBasic(const complex<Num> &c) const {
+        void transform(const complex<dex> &dc, const dex multiplier) {
+
+        }
+
+        bool innerCardioidTest(const complex<Num> &dc) const {
+            // fast calculation of period-n bulb
+            const auto cOff = static_cast<complex<dex>>(dc) - static_cast<complex<dex>>(reference.estimates.mbNucleusOff);
+            const auto cOffSqr = cOff.norm_sqr();
+            const auto s = reference.estimates.mbScale * 4;
+            const auto rot = reference.estimates.mbRotation;
+            const auto cos = rff_math::cos(rot);
+            const auto sin = rff_math::sin(rot);
+
+            const auto rad2 = s * s * cOffSqr;
+            const auto t2 = s * (cOff.re * cos - cOff.im * sin);
+            return rad2 * rad2 < 6 * rad2 + 8 * t2 + 3;
+        }
+
+        [[nodiscard]] bool checkInteriorBasic(const complex<Num> &c, const complex<Num> &dc) const {
             if (rff_math::is_zero(c.im) && c.re < Num(0.25) && c.re >= Num(-2))
                 return true;
 
@@ -70,8 +88,9 @@ namespace merutilm::rff2 {
             const auto ci = static_cast<double>(c.im);
 
             // fast calculation of main bulb
-            if (const auto crm025 = cr - 0.25;
-                crm025 * crm025 + ci * ci < 0.5 * (-crm025 + std::sqrt(crm025 * crm025 + ci * ci)))
+            const auto crm025 = cr - 0.25;
+            const auto crm025rs = crm025 * crm025 + ci * ci;
+            if (crm025rs < 0.5 * (std::sqrt(crm025rs) - crm025))
                 return true;
 
             if (const auto crp100 = cr + 1; crp100 * crp100 + ci * ci < 0.0625)
@@ -194,7 +213,7 @@ namespace merutilm::rff2 {
             if (table.buffer)
                 mpaView.emplace(table.makeMPAView());
             referenceView.next();
-            if (checkInteriorBasic(referenceView.get() + dc0)) {
+            if (checkInteriorBasic(referenceView.get() + dc0, dc0)) {
                 return isAbs ? 1 : static_cast<double>(maxIteration);
             }
             referenceView.reset();

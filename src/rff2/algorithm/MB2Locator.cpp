@@ -16,24 +16,6 @@ namespace merutilm::rff2 {
         currCenter(data.fractalSettings.reference.center),
         checkpoints(data.getReference()->checkpoints), fnLocatingMB2W(std::move(fnLocatingMB2W)) {}
 
-    fixed_point_complex MB2Locator::calcCenterOffset(const ReferenceDataBase &reference) {
-
-
-        const int64_t exp10 = Perturbator::logZoomToExp10(reference.generalSettings.logZoom);
-        std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> temps =
-                fixed_point_complex::create_temps(exp10);
-        fixed_point_complex off(0.0, 0.0, exp10);
-        calcCenterOffset(off, reference.checkpoints.back().z.create_variant(exp10),
-                         fixed_point_complex(reference.fpgBn, exp10), temps);
-        return off;
-    }
-
-    void MB2Locator::calcCenterOffset(fixed_point_complex &result, const fixed_point_complex &z,
-                                      const fixed_point_complex &bn,
-                                      std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> &temps) {
-        fixed_point_complex::div(result, z, bn, temps);
-        result.neg();
-    }
 
     PartitionStatus MB2Locator::processPartition(const uint32_t partitionIndex, const int64_t dcCurrExp10,
                                                  const int64_t aimExp10, ThreadTempCache &cache) {
@@ -157,7 +139,7 @@ namespace merutilm::rff2 {
                                      const fixed_point_complex &u) {
         prevCenter = currCenter;
         fixed_point_complex::add(temp, t, checkpoints.back().z);
-        calcCenterOffset(dc, temp, u, threadTempCaches[0].temps);
+        ReferenceUtils::calcCenterOffset(dc, temp, u, threadTempCaches[0].temps);
         fixed_point_complex::add(currCenter, currCenter, dc);
     }
 
@@ -370,7 +352,7 @@ namespace merutilm::rff2 {
 
         fixed_point_complex dc(0.0, 0.0, refExp10);
 
-        calcCenterOffset(dc, checkpoints.back().z.create_variant(refExp10),
+        ReferenceUtils::calcCenterOffset(dc, checkpoints.back().z.create_variant(refExp10),
                          fixed_point_complex(reference.fpgBn, refExp10), threadTempCaches[0].temps);
         fixed_point_complex::add(currCenter, currCenter, dc);
 

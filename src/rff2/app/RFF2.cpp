@@ -919,8 +919,7 @@ namespace merutilm::rff2 {
         if (!renderData || !renderData->getReference())
             return;
 
-        const fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
-        auto offDex = static_cast<complex<dex>>(off);
+        auto offDex = static_cast<complex<dex>>(renderData->getReference()->estimates.mbNucleusOff);
         if (renderData->getPerturbator()) {
             offDex -= renderData->getPerturbator()->off;
         }

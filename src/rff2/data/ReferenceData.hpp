@@ -4,6 +4,7 @@
 
 #pragma once
 #include "../algorithm/ReferenceCheckpoint.hpp"
+#include "../algorithm/ReferenceNucleusEstimation.hpp"
 #include "../algorithm/srpc_module/SRPCData.hpp"
 #include "../algorithm/srpc_module/SRPCDataView.hpp"
 #include "../calc/complex.hpp"
@@ -18,7 +19,8 @@ namespace merutilm::rff2 {
     struct ReferenceDataBase {
         FrtGeneralSettings generalSettings;
         FrtReferenceSettings refSettings;
-        fixed_point_complex center;
+        fixed_point_complex c;
+        ReferenceNucleusEstimation estimates;
         std::vector<itt::ref> generatedPeriods;
         std::vector<ReferenceCheckpoint> checkpoints;
         complex<dex> fpgBn;
@@ -27,12 +29,13 @@ namespace merutilm::rff2 {
         ReferenceDataBase() = default;
 
         explicit ReferenceDataBase(FrtGeneralSettings generalSettings, FrtReferenceSettings refSettings,
-                                   fixed_point_complex &&center, std::vector<itt::ref> &&generatedPeriods,
+                                   fixed_point_complex &&c, ReferenceNucleusEstimation &&guess,
+                                   std::vector<itt::ref> &&generatedPeriods,
                                    std::vector<ReferenceCheckpoint> &&checkpoints, complex<dex> &&fpgBn,
                                    const dex dcMax) :
-            generalSettings(std::move(generalSettings)), refSettings(std::move(refSettings)), center(std::move(center)),
-            generatedPeriods(std::move(generatedPeriods)), checkpoints(std::move(checkpoints)), fpgBn(std::move(fpgBn)),
-            dcMax(dcMax) {}
+            generalSettings(std::move(generalSettings)), refSettings(std::move(refSettings)), c(std::move(c)),
+            estimates(std::move(guess)), generatedPeriods(std::move(generatedPeriods)),
+            checkpoints(std::move(checkpoints)), fpgBn(std::move(fpgBn)), dcMax(dcMax) {}
 
         virtual ~ReferenceDataBase() = default;
 
@@ -44,12 +47,13 @@ namespace merutilm::rff2 {
     struct ReferenceData : SRPCData<itt::ref, complex<Num>>, ReferenceDataBase {
 
         explicit ReferenceData(SRPCData<itt::ref, complex<Num>> &&data, FrtGeneralSettings generalSettings,
-                               FrtReferenceSettings refSettings, fixed_point_complex &&center,
-                               std::vector<itt::ref> &&generatedPeriods, std::vector<ReferenceCheckpoint> &&checkpoints,
-                               complex<dex> &&fpgBn, const dex dcMax) :
+                               FrtReferenceSettings refSettings, fixed_point_complex &&c,
+                               ReferenceNucleusEstimation &&guess, std::vector<itt::ref> &&generatedPeriods,
+                               std::vector<ReferenceCheckpoint> &&checkpoints, complex<dex> &&fpgBn, const dex dcMax) :
             SRPCData<itt::ref, complex<Num>>(std::move(data)),
-            ReferenceDataBase(std::move(generalSettings), std::move(refSettings), std::move(center),
-                              std::move(generatedPeriods), std::move(checkpoints), std::move(fpgBn), dcMax) {}
+            ReferenceDataBase(std::move(generalSettings), std::move(refSettings), std::move(c),
+                              std::move(guess), std::move(generatedPeriods), std::move(checkpoints),
+                              std::move(fpgBn), dcMax) {}
 
         [[nodiscard]] ReferenceView<Num> makeReferenceView() const;
 

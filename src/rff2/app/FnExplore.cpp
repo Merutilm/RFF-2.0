@@ -60,11 +60,7 @@ namespace merutilm::rff2 {
             ImGui::BeginDisabled();
         if (!frt.reference.reuse && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
             assert(renderData->getReference());
-            const int64_t exp10 = Perturbator::getExp10WithSettings(frt.reference, renderData->getReference()->generalSettings.logZoom);
-            const fixed_point_complex off = MB2Locator::calcCenterOffset(*renderData->getReference());
-            fixed_point_complex center = frt.reference.center.create_variant(exp10);
-            fixed_point_complex::add(center, center, off);
-            frt.reference.center = std::move(center);
+            frt.reference.center = renderData->getReference()->estimates.mbNucleus;
             app.getRequests().requestRecompute();
         }
         if (disable)
@@ -84,7 +80,7 @@ namespace merutilm::rff2 {
         if (frt.reference.reuse && ImGui::Button("Go to Original Reference", ImVec2(-FLT_MIN, 0))) {
             assert(renderData->getReference());
             const double startTime = app.rootWindowContext->getWindow()->getTime();
-            frt.reference.center = renderData->getReference()->center;
+            frt.reference.center = renderData->getReference()->c;
             frt.general.logZoom = renderData->getReference()->generalSettings.logZoom;
 
             if (renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,

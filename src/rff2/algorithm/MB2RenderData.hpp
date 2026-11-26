@@ -205,7 +205,7 @@ namespace merutilm::rff2 {
 
         const int64_t exp10 = Perturbator::getExp10WithSettings(reference->refSettings, logZoom);
         fixed_point_complex center = newCenter.create_variant(exp10);
-        const fixed_point_complex refCenter = reference->center.create_variant(exp10);
+        const fixed_point_complex refCenter = reference->c.create_variant(exp10);
         fixed_point_complex::sub(center, center, refCenter);
 
         const dex distance = static_cast<complex<dex>>(center).norm();
