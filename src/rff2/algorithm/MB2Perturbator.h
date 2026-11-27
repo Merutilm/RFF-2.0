@@ -34,7 +34,7 @@ namespace merutilm::rff2 {
 
         ~MB2PerturbatorBase() override = default;
 
-        [[nodiscard]] virtual double iterate(const complex<dex> &dc) const noexcept = 0;
+        [[nodiscard]] virtual double iterate(complex<dex> dc) const noexcept = 0;
 
         virtual void iterateBatch(SIMDChunk<double> &chunk,
                                   std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> &dcs) const noexcept = 0;
@@ -160,17 +160,22 @@ namespace merutilm::rff2 {
             iteration = 0;
             refIteration = 0;
         }
-        [[nodiscard]] double iterate(const complex<dex> &dc) const noexcept override {
+        [[nodiscard]] double iterate(complex<dex> dc) const noexcept override {
             double iteration = 0;
             const bool isAbs = ptbSettings.absoluteIterationMode;
-
+            //TODO transform dc
+            for (size_t i = 0; i < table.hnreList.size() - 1; ++i) {
+                dc *= table.hnreList[i].targetHNRE->transform;
+            }
             //TODO remove assert
             assert(table.hnreList.size() == 1);
-            for (const HNREMPAData<Num> &data : table.hnreList) {
+            for (size_t i = table.hnreList.size(); i > 0; --i) {
+                const HNREMPAData<Num> &data = table.hnreList[i - 1];
                 if (!isAbs) iteration *= data.targetHNRE->longestPeriod();
                 complex<Num> dz;
                 iteration += iterateHNRE(dz, data, dc);
                 //TODO transform dz
+                dc = static_cast<complex<dex>>(dz) / data.targetHNRE->transform;
             }
             return iteration;
         }

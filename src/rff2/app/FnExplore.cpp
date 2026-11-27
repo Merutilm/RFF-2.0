@@ -8,8 +8,6 @@
 
 #include <cassert>
 #include "../util/ImGuiUtils.hpp"
-#include "../util/Utilities.h"
-
 #include "../algorithm/MB2Locator.hpp"
 
 namespace merutilm::rff2 {
@@ -79,10 +77,8 @@ namespace merutilm::rff2 {
             ImGui::BeginDisabled();
         if (frt.reference.reuse && ImGui::Button("Go to Original Reference", ImVec2(-FLT_MIN, 0))) {
             assert(renderData->getReference());
-            const double startTime = app.rootWindowContext->getWindow()->getTime();
             frt.reference.center = renderData->getReference()->c;
             frt.general.logZoom = renderData->getReference()->generalSettings.logZoom;
-
             if (renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
                                       app.getSettings().fractal.perturb, frt.reference.center) == RFFResult::SUCCESS) {
                 app.getRequests().requestRecompute();

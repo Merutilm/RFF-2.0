@@ -348,8 +348,8 @@ namespace merutilm::rff2 {
             t.set_exp10(refExp10);
         }
 
-        fixed_point_complex dc(0.0, 0.0, refExp10);
-
+        fixed_point_complex dc = reference.highestHNREData().mbNucleusOff;
+        dc.set_exp10(refExp10);
         dex dcd = static_cast<complex<dex>>(dc).max();
         complex<dex> mbScale = complex<dex>::ONE;
 

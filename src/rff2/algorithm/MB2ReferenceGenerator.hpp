@@ -13,7 +13,6 @@
 #include "ComplexApproximator.hpp"
 #include "RFFResult.hpp"
 #include "ReferenceCheckpoint.hpp"
-#include "ReferenceDerivatives.hpp"
 #include "srpc_module/SRPCProcessor.hpp"
 
 namespace merutilm::rff2 {
@@ -40,7 +39,7 @@ namespace merutilm::rff2 {
         const FrtReferenceSettings &refSettings;
         fixed_point_complex cOrig;
         const int32_t exp10;
-        const size_t refInitialCapacity;
+        const size_t highestHNRERefInitialCapacity;
 
         // if empty: no HNRE, using full orbit calculation
         std::vector<HNREReferenceData<Num>> hnreList;
@@ -60,7 +59,21 @@ namespace merutilm::rff2 {
         fixed_point_complex c = cOrig;
         complex<Num> z0 = complex<Num>::ZERO;
         complex<Num> c0 = static_cast<complex<Num>>(c);
-        ReferenceDerivatives<Num> derivatives;
+
+        complex<Num> fzgAn = complex<Num>::ONE;
+        complex<Num> fpgBn = complex<Num>::ZERO;
+        fixed_point_complex fzgAnArb;
+        complex<Num> fzgAnPartition = complex<Num>::ONE;
+        dex dcMax;
+
+
+        void resetPartitionAn() { fzgAnPartition = complex<Num>::ONE; }
+
+        void tryOverwriteApproximatedDerivatives() {
+            if (requestedHNREPeriods.empty())
+                return;
+            fzgAnArb = fixed_point_complex(fzgAn.re, fzgAn.im, exp10);
+        }
 
         Num radius2;
         std::vector<itt::ref> periodArray = std::vector<itt::ref>();
@@ -71,8 +84,8 @@ namespace merutilm::rff2 {
     public:
         explicit MB2ReferenceGenerator(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                                        const FrtReferenceSettings &refSettings, int32_t exp10,
-                                       size_t refInitialCapacity, dex dcMax, std::vector<itt::ref> requestedHNREPeriods,
-                                       FnRefCalc &&fnRefCalc);
+                                       size_t highestHNRERefInitialCapacity, dex dcMax,
+                                       std::vector<itt::ref> requestedHNREPeriods, FnRefCalc &&fnRefCalc);
 
 
         RFFResult generate();
@@ -80,7 +93,12 @@ namespace merutilm::rff2 {
         std::unique_ptr<ReferenceData<Num>> extract() &&;
 
     private:
-        bool tryUpdateDerivatives() { return derivatives.tryUpdate(z, z0, radius2, refIteration, temps); }
+
+        [[nodiscard]] RFFResult generateHNRE(itt::ref periodMultiplier, size_t initialCapacity);
+
+        void resetAnBn();
+
+        bool tryUpdateDerivatives();
 
         void syncReference();
 
@@ -95,16 +113,14 @@ namespace merutilm::rff2 {
         void stepOnceOptimal(int32_t &prevExp2div64, SpecialCenterType specialCenterType);
     };
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
-    MB2ReferenceGenerator<Num, FnRefCalc>::MB2ReferenceGenerator(const ParallelRenderState &state,
-                                                                 const FrtGeneralSettings &generalSettings,
-                                                                 const FrtReferenceSettings &refSettings,
-                                                                 const int32_t exp10, const size_t refInitialCapacity,
-                                                                 dex dcMax, std::vector<itt::ref> requestedHNREPeriods,
-                                                                 FnRefCalc &&fnRefCalc) :
+    MB2ReferenceGenerator<Num, FnRefCalc>::MB2ReferenceGenerator(
+            const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
+            const FrtReferenceSettings &refSettings, const int32_t exp10, const size_t highestHNRERefInitialCapacity,
+            const dex dcMax, std::vector<itt::ref> requestedHNREPeriods, FnRefCalc &&fnRefCalc) :
         state(state), generalSettings(generalSettings), refSettings(refSettings),
-        cOrig(refSettings.center.create_variant(exp10)), exp10(exp10), refInitialCapacity(refInitialCapacity),
-        requestedHNREPeriods(std::move(requestedHNREPeriods)), fnRefCalc(std::move(fnRefCalc)),
-        derivatives(Num(dcMax), false) {}
+        cOrig(refSettings.center.create_variant(exp10)), exp10(exp10),
+        highestHNRERefInitialCapacity(highestHNRERefInitialCapacity), requestedHNREPeriods(std::move(requestedHNREPeriods)),
+        fnRefCalc(std::move(fnRefCalc)), dcMax(dcMax) {}
 
 
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
@@ -127,13 +143,13 @@ namespace merutilm::rff2 {
     }
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
     void MB2ReferenceGenerator<Num, FnRefCalc>::updatePrecision(int32_t &prevExp2div64) {
-        const int32_t currentExp10 =
-                std::min(-1, exp10 + static_cast<int>(rff_math::log10_approx(derivatives.fzgAn.max())));
+        const int32_t currentExp10 = std::min(-1, exp10 + static_cast<int>(rff_math::log10_approx(fzgAn.max())));
         const int32_t exp2div64 = fixed_point_decimal::exp10_to_exp2div64(currentExp10);
         if (prevExp2div64 != exp2div64) {
             z.set_exp10(currentExp10);
             c = cOrig;
             c.set_exp10(currentExp10);
+             if (!requestedHNREPeriods.empty()) fzgAnArb.set_exp10(currentExp10);
             for (auto &temp: temps) {
                 temp.set_exp10(currentExp10, false);
             }
@@ -224,13 +240,25 @@ namespace merutilm::rff2 {
         }
     }
 
-
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
     RFFResult MB2ReferenceGenerator<Num, FnRefCalc>::generate() {
+        itt::ref periodMultiplier = 1;
+        for (const itt::ref hnrePeriod : requestedHNREPeriods) {
+            if (RFFResult result; (result = generateHNRE(periodMultiplier, hnrePeriod)) != RFFResult::SUCCESS) {
+                return result;
+            }
+            periodMultiplier *= hnrePeriod;
+        }
+        return generateHNRE(periodMultiplier, highestHNRERefInitialCapacity);
+    }
+
+
+    template<Number Num, FnListeners::FnRefCalc FnRefCalc>
+    RFFResult MB2ReferenceGenerator<Num, FnRefCalc>::generateHNRE(itt::ref periodMultiplier, size_t initialCapacity) {
         if (state.interruptRequested()) {
             return RFFResult::TERMINATED;
         }
-
+        resetAnBn();
         checkpoints.clear();
         checkpoints.reserve(generalSettings.threads + 1);
         z.zero();
@@ -245,7 +273,7 @@ namespace merutilm::rff2 {
         const double compressionThreshold = compressionThresholdPower <= 0 ? 0 : pow(10, -compressionThresholdPower);
 
         SRPCProcessor<itt::ref, complex<Num>, ComplexApproximator<Num>> processor(
-                minCompressSize, refInitialCapacity, ComplexApproximator<Num>(compressionThreshold));
+                minCompressSize, initialCapacity, ComplexApproximator<Num>(compressionThreshold));
         processor.put(complex<Num>::ZERO);
 
 
@@ -263,21 +291,21 @@ namespace merutilm::rff2 {
             tryAppendPeriodCandidate(minZRadius, radius2);
 
             if (refIteration % refSettings.partitionSize == 0) {
-                checkpoints.emplace_back(z, refIteration, static_cast<complex<dex>>(derivatives.fzgAnPartition));
-                derivatives.resetPartition();
+                checkpoints.emplace_back(z, refIteration, static_cast<complex<dex>>(fzgAnPartition));
+                resetPartitionAn();
             }
-            fnRefCalc(refIteration);
+            fnRefCalc(periodMultiplier * refIteration);
             stepOnceOptimal(prevExp2div64, specialCenterType);
             processor.put(z0);
         }
 
 
         periodArray.push_back(refIteration);
-        checkpoints.emplace_back(z, refIteration, static_cast<complex<dex>>(derivatives.fzgAnPartition));
-        derivatives.tryOverwriteApproximateDerivatives(exp10);
+        checkpoints.emplace_back(z, refIteration, static_cast<complex<dex>>(fzgAnPartition));
+        tryOverwriteApproximatedDerivatives();
+        hnreList.emplace_back(std::move(processor).finish(), z, cOrig, fzgAnArb,
+                              static_cast<complex<dex>>(fpgBn), exp10, temps, std::move(periodArray));
 
-        hnreList.emplace_back(std::move(processor).finish(), z, cOrig, derivatives.fzgAnArb,
-                              static_cast<complex<dex>>(derivatives.fpgBn), exp10, temps, std::move(periodArray));
 
         return RFFResult::SUCCESS;
     }
@@ -287,8 +315,37 @@ namespace merutilm::rff2 {
     std::unique_ptr<ReferenceData<Num>> MB2ReferenceGenerator<Num, FnRefCalc>::extract() && {
         result = std::make_unique<ReferenceData<Num>>(generalSettings, refSettings, std::move(cOrig),
                                                       std::move(hnreList), std::move(checkpoints),
-                                                      dex(derivatives.dcMax));
+                                                      dcMax);
 
         return std::move(result);
+    }
+    template<Number Num, FnListeners::FnRefCalc FnRefCalc>
+    void MB2ReferenceGenerator<Num, FnRefCalc>::resetAnBn() {
+        fzgAn = complex<Num>::ONE;
+        fpgBn = complex<Num>::ZERO;
+        resetPartitionAn();
+    }
+
+    template<Number Num, FnListeners::FnRefCalc FnRefCalc>
+    bool MB2ReferenceGenerator<Num, FnRefCalc>::tryUpdateDerivatives() {
+        radius2 = z0.norm_sqr();
+        complex<Num> fpgBnTemp = fpgBn * z0 * Num(2) + Num(1);
+        Num fpgRadius = fpgBnTemp.max() * Num(dcMax);
+
+        if (refIteration > 0 && fpgRadius > radius2) {
+            return false;
+        }
+        if (refIteration > 0) {
+            if (!requestedHNREPeriods.empty()) {
+                fixed_point_complex::mul(fzgAnArb, fzgAnArb, z, temps);
+                fixed_point_complex::dbl(fzgAnArb, fzgAnArb);
+            }
+
+            fzgAn = (fzgAn * z0 * Num(2)).try_normalized_value();
+            fzgAnPartition = (fzgAnPartition * z0 * Num(2)).try_normalized_value();
+        }
+
+        fpgBn = fpgBnTemp.try_normalized_value();
+        return true;
     }
 } // namespace merutilm::rff2
