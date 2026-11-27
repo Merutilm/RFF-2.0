@@ -28,8 +28,7 @@ namespace merutilm::rff2 {
     public:
         MB2PerturbatorBase(ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                            const FrtPerturbSettings &ptbSettings) :
-            state(state), generalSettings(generalSettings),
-            ptbSettings(ptbSettings) {}
+            state(state), generalSettings(generalSettings), ptbSettings(ptbSettings) {}
 
         ~MB2PerturbatorBase() override = default;
 
@@ -123,8 +122,8 @@ namespace merutilm::rff2 {
             currDistance2 = static_cast<complex<double>>(z).norm_sqr();
         }
 
-        static bool tryRebase(HNREReferenceView<Num> &view, const complex<Num> &z, complex<Num> &dz, itt::ref &refIteration,
-                              const itt::ref maxRefIteration) {
+        static bool tryRebase(HNREReferenceView<Num> &view, const complex<Num> &z, complex<Num> &dz,
+                              itt::ref &refIteration, const itt::ref maxRefIteration) {
             if (refIteration == maxRefIteration || z.max() < dz.max()) {
                 view.reset();
                 refIteration = 0;
@@ -134,8 +133,8 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        static void perturbationStep(HNREReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
-                              itt::ref &refIteration) {
+        static void perturbationStep(HNREReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc,
+                                     itt::ptb &iteration, itt::ref &refIteration) {
             dz = (view.get() * 2 + dz) * dz + dc;
             view.next();
 
@@ -153,10 +152,15 @@ namespace merutilm::rff2 {
             for (size_t i = table.hnreList.size(); i > 0; --i) {
                 const HNREMPAData<Num> &data = table.hnreList[i - 1];
 
-                if (!isAbs) iteration *= data.targetHNRE->longestPeriod();
-                if (iteration >= ptbSettings.maxIteration) return isAbs ? iteration : ptbSettings.maxIteration;
+                if (!isAbs)
+                    iteration *= data.targetHNRE->longestPeriod();
+                if (iteration >= ptbSettings.maxIteration)
+                    return isAbs ? iteration : ptbSettings.maxIteration;
 
-                iteration += iterateHNRE(dz, data, dc, i == 1 ? ptbSettings.maxIteration : data.targetHNRE->longestPeriod() * ptbSettings.autoIterationMultiplier);
+                itt::ptb maxIteration = i == 1 ? ptbSettings.maxIteration
+                                               : data.targetHNRE->longestPeriod() * ptbSettings.autoIterationMultiplier;
+                iteration += iterateHNRE(dz, data, dc, maxIteration, i > 1);
+
                 if (i > 1) {
                     dz /= static_cast<complex<Num>>(table.hnreList[i - 2].targetHNRE->dzTransform);
                     dc /= table.hnreList[i - 2].targetHNRE->dcTransform;
@@ -164,11 +168,16 @@ namespace merutilm::rff2 {
             }
             return iteration;
         }
-        [[nodiscard]] double iterateHNRE(complex<Num> &dz, const HNREMPAData<Num> &data, const complex<dex> &dc, const itt::ptb maxIteration) const noexcept{
+
+        [[nodiscard]] double iterateHNRE(complex<Num> &dz, const HNREMPAData<Num> &data, const complex<dex> &dc,
+                                         const itt::ptb maxIteration, bool smallDzRequired) const noexcept {
             if (state.interruptRequested())
                 return 0.0;
 
             // field reference
+            complex<Num> smallZStore = dz;
+            itt::ptb smallDzIterationStore = 0;
+
             const auto dc0 = static_cast<complex<Num>>(dc + off);
             const Num scale = data.targetHNRE->scale;
             const bool isAbs = ptbSettings.absoluteIterationMode;
@@ -205,6 +214,7 @@ namespace merutilm::rff2 {
 
                 assert(refIteration < maxRefIteration);
                 perturbationStep(referenceView, dz, dc0, iteration, refIteration);
+
                 const complex<Num> z = referenceView.get() + dz;
                 if (tryRebase(referenceView, z, dz, refIteration, maxRefIteration) &&
                     checkInteriorAndApply(dz, scale, interiorDetectRadius, pdz, pdzIndex)) {
@@ -214,6 +224,11 @@ namespace merutilm::rff2 {
                 dz = dz.try_normalized_value();
 
                 updateDistance(z, prevDistance2, currDistance2);
+                if (currDistance2 < 1e-3) {
+                    smallZStore = z;
+                    smallDzIterationStore = iteration;
+                }
+
                 if (mpaView)
                     applyMPApproximation(referenceView, *mpaView, dz, dc0, iteration, refIteration);
 
@@ -229,13 +244,19 @@ namespace merutilm::rff2 {
             if (iteration >= maxIteration)
                 return static_cast<double>(maxIteration);
 
-            const double prevDistance = std::sqrt(prevDistance2);
-            const double currDistance = std::sqrt(currDistance2);
-            const double inc = ptbSettings.smoothIteration
-                                       ? FrtDecimalizeIterationMethodUtil::getExteriorDoubleValueIterationRatio(
-                                                 prevDistance, currDistance, generalSettings.bailout)
-                                       : 0;
-            return static_cast<double>(iteration) + inc;
+            if (smallDzRequired) {
+                dz = smallZStore;
+                return smallDzIterationStore;
+            }else {
+                const double prevDistance = std::sqrt(prevDistance2);
+                const double currDistance = std::sqrt(currDistance2);
+                const double inc = ptbSettings.smoothIteration
+                                           ? FrtDecimalizeIterationMethodUtil::getExteriorDoubleValueIterationRatio(
+                                                     prevDistance, currDistance, generalSettings.bailout)
+                                           : 0;
+                return static_cast<double>(iteration) + inc;
+            }
+
         }
 
         // void checkInteriorAndApplyBatch(
