@@ -151,7 +151,7 @@ namespace merutilm::rff2::rff_math {
 
 
     template<Number Num>
-    int64_t log10Approx(const Num v) {
+    int64_t log10_approx(const Num v) {
         if constexpr (is_prim<Num>) {
             const auto bits = std::bit_cast<uint64_t>(static_cast<double>(v));
             const auto rawExp = static_cast<int64_t>((bits >> 52u) & 0x07ffu);

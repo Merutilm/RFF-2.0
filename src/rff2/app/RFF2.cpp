@@ -919,7 +919,7 @@ namespace merutilm::rff2 {
         if (!renderData || !renderData->getReference())
             return;
 
-        auto offDex = static_cast<complex<dex>>(renderData->getReference()->estimates.mbNucleusOff);
+        auto offDex = static_cast<complex<dex>>(renderData->getReference()->hnreInfo.mbNucleusOff);
         if (renderData->getPerturbator()) {
             offDex -= renderData->getPerturbator()->off;
         }

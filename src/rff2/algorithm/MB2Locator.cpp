@@ -174,7 +174,7 @@ namespace merutilm::rff2 {
         fpgBn = static_cast<complex<dex>>(ut.back());
     }
 
-    int64_t MB2Locator::getCutDigitCount(const complex<dex> &an) { return rff_math::log10Approx(an.max()); }
+    int64_t MB2Locator::getCutDigitCount(const complex<dex> &an) { return rff_math::log10_approx(an.max()); }
     void MB2Locator::prepareApproxAmplitudes() {
         complex<dex> an = complex<dex>::ONE;
         for (uint32_t i = 0; i < static_cast<uint32_t>(blockResults.size()); ++i) {
@@ -370,7 +370,7 @@ namespace merutilm::rff2 {
 
         do {
 
-            const int64_t dcCurrExp10 = dcd.is_zero() ? aimExp10 : rff_math::log10Approx(dcd);
+            const int64_t dcCurrExp10 = dcd.is_zero() ? aimExp10 : rff_math::log10_approx(dcd);
             if (!checkAndUpdateHistory(exp10History, dcCurrExp10, locSettings.burst)) {
                 return std::nullopt;
             }

@@ -80,10 +80,15 @@ namespace merutilm::rff2 {
         static void sub(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
 
         void zero();
+
         void one();
+
         [[nodiscard]] int32_t sgn() const;
+
         [[nodiscard]] int32_t compare_abs(uint64_t value) const;
+
         [[nodiscard]] int32_t compare(int64_t value) const;
+
         void set(int64_t value, bool make_decimal_zero);
 
         /**
@@ -113,6 +118,14 @@ namespace merutilm::rff2 {
          * @param rhs right operand
          */
         static void div(fixed_point_decimal &result, const fixed_point_decimal &lhs, const fixed_point_decimal &rhs);
+
+        /**
+         * Fast-division.
+         * [CAUTION] in-place operation is not supported.
+         * @param result the reference of result.
+         * @param v operand
+         */
+        static void sqrt(fixed_point_decimal& result, const fixed_point_decimal &v);
 
         void limbs_lshift(int64_t limb_shift);
 
@@ -677,6 +690,23 @@ namespace merutilm::rff2 {
             result.size = -result.size;
     }
 
+    inline void fixed_point_decimal::sqrt(fixed_point_decimal &result, const fixed_point_decimal &v) {
+        RFF_ASSERT(&result != &v);
+        RFF_ASSERT(result.exp2div64 == v.exp2div64);
+        if (v.size == 0) {
+            result.zero();
+            return;
+        }
+        const int64_t shift = -v.exp2div64;
+
+        result.try_realloc_inc(v.size * 2 + shift,false);
+        mpn_copyi(result.data + v.size + shift, v.data, v.size);
+        mpn_zero(result.data + v.size, shift);
+        mpn_sqrtrem(result.data, nullptr, result.data + v.size, v.size + shift);
+        int64_t result_size = (v.size + shift + 1) / 2;
+        result.size = result_size - (result.data[result_size - 1] == 0);
+    }
+
 
     inline void fixed_point_decimal::limbs_lshift(const int64_t limb_shift) {
         if (size == 0) {
@@ -788,6 +818,7 @@ namespace merutilm::rff2 {
         const int64_t new_exp2div64 = exp10_to_exp2div64(exp10);
         set_exp2div64(new_exp2div64, preserveValue);
     }
+
 
     inline void fixed_point_decimal::set_exp2div64(const int64_t new_exp2div64, const bool preserveValue) {
         RFF_ASSERT(new_exp2div64 < 0);

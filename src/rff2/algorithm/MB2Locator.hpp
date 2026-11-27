@@ -25,7 +25,7 @@ namespace merutilm::rff2 {
         fixed_point_complex z;
         fixed_point_complex zExpected;
         fixed_point_complex c;
-        std::array<fixed_point_decimal, fixed_point_complex::TEMPS_COUNT> temps;
+        std::array<fixed_point_decimal, fixed_point_util::TEMPS_COUNT> temps;
     };
 
     enum class PartitionStatus : uint8_t { SUCCESS, INTERRUPTED, ERROR_BURST_Z_ESCAPED };

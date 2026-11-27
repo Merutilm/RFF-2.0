@@ -60,7 +60,7 @@ namespace merutilm::rff2 {
             ImGui::BeginDisabled();
         if (!frt.reference.reuse && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
             assert(renderData->getReference());
-            frt.reference.center = renderData->getReference()->estimates.mbNucleus;
+            frt.reference.center = renderData->getReference()->hnreInfo.mbNucleus;
             app.getRequests().requestRecompute();
         }
         if (disable)

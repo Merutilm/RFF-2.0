@@ -63,15 +63,15 @@ namespace merutilm::rff2 {
 
 
         void transform(const complex<dex> &dc, const dex multiplier) {
-
+            //TODO
         }
 
         bool innerCardioidTest(const complex<Num> &dc) const {
             // fast calculation of period-n bulb
-            const auto cOff = static_cast<complex<dex>>(dc) - static_cast<complex<dex>>(reference.estimates.mbNucleusOff);
+            const auto cOff = static_cast<complex<dex>>(dc) - static_cast<complex<dex>>(reference.hnreInfo.mbNucleusOff);
             const auto cOffSqr = cOff.norm_sqr();
-            const auto s = reference.estimates.mbScale * 4;
-            const auto rot = reference.estimates.mbRotation;
+            const auto s = reference.hnreInfo.mbScale * 4;
+            const auto rot = reference.hnreInfo.mbRotation;
             const auto cos = rff_math::cos(rot);
             const auto sin = rff_math::sin(rot);
 
