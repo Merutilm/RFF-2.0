@@ -187,8 +187,6 @@ the extension of `info` file is `.rfsm`.
 - The installer and some shaders have been rewritten based on `AI-generated code`. 
 This accounts for approximately `0.5%` of the total source code.
 
-- Trigonometric function of fixed-point decimal was developed by `Claude Sonnet 5.5`.
-
 - The new algorithm: `STMS` for `Locate Minibrot` was developed by `GPT-6 Astra`. 
 
 ## Known Issues & Problems

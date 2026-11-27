@@ -146,7 +146,7 @@ namespace merutilm::rff2 {
             data.targetHNRE = &hnreData;
 
             if (const int minSkip = mpaSettings.minSkipReference; longestPeriod <= minSkip) {
-                mpaData->hnreList.emplace_back();
+                mpaData->hnreList.emplace_back(std::move(data));
             } else {
                 data.buffer = &buffer;
                 data.info = MPAInfo(referencePeriod, hnreData.getCompressor(), mpaSettings);
@@ -171,6 +171,8 @@ namespace merutilm::rff2 {
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
     void MB2MPAGenerator<Num, FnCreatingTable>::calcBufferSize(HNREMPAData<Num> &data, size_t &tableLen,
                                                                size_t &mapperLen) const {
+        if (!data.buffer) return;
+
         const itt::ref longestPeriod = data.info.tablePeriods.back();
 
         tableLen = data.info.tableElementCounts.back();
@@ -205,8 +207,8 @@ namespace merutilm::rff2 {
         size_t totalTableLen = 0;
         size_t totalMapperLen = 0;
         for (HNREMPAData<Num> &data: mpaData->hnreList) {
-            size_t tableLen;
-            size_t mapperLen;
+            size_t tableLen = 0;
+            size_t mapperLen = 0;
             calcBufferSize(data, tableLen, mapperLen);
             data.tableOffset = totalTableLen;
             data.mapperOffset = totalMapperLen;

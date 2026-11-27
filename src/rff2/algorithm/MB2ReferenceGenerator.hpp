@@ -233,6 +233,7 @@ namespace merutilm::rff2 {
 
         checkpoints.clear();
         checkpoints.reserve(generalSettings.threads + 1);
+        z.zero();
         z.try_realloc_inc(-z.real.exp2div64 * 2 + 2);
 
         auto bailoutSqr = Num(generalSettings.bailout * generalSettings.bailout);
