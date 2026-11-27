@@ -6,7 +6,7 @@
 #include <atomic>
 
 #include "../algorithm/MB2Perturbator.h"
-#include "../algorithm/MB2RenderData.hpp"
+#include "../data/MB2RenderData.hpp"
 #include "../data/ReferenceData.hpp"
 #include "../io/RFFDynamicMapBinary.hpp"
 #include "../parallel/BackgroundThreads.h"
@@ -178,7 +178,7 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] RFFDynamicMapBinary generateMap() const {
             return {renderData->fractalSettings.general.logZoom,
-                    renderData->getReference()->longestPeriod(),
+                    renderData->getReference()->calcPeriod(),
                     renderData->fractalSettings.perturb.maxIteration,
                     renderer->visibleIterationBufferData->getData(),
                     renderer->visibleIterationBufferData->getWidth(),
@@ -212,7 +212,6 @@ namespace merutilm::rff2 {
 
 
         auto getFnFindingMBCenter(double startTime);
-        auto getFnSeriesApprox(double startTime);
         auto getFnCreatingTable(double startTime);
         auto getFnRefCalc(double startTime);
 
@@ -254,8 +253,8 @@ namespace merutilm::rff2 {
         target->setMPAIgnore(s.render.computeShader.completelyIgnoreMpa);
         target->setBatchSize(Constants::Render::COMPUTE_SHADER_INIT_BATCH_SIZE);
         target->clearWriteBuffer(commandPool);
-        target->setMeta(s.fractal, s.render, dynamic_cast<ReferenceData<Num> *>(renderData->getReference())->getCompressedArray(),
-                        renderData->getReference()->longestPeriod(),
+        target->setMeta(s.fractal, s.render, dynamic_cast<ReferenceData<Num> *>(renderData->getReference())->hnreList.back().getCompressedArray(),
+                        renderData->getReference()->calcPeriod(),
                         static_cast<complex<Num>>(renderData->getPerturbator()->off),
                         static_cast<uint64_t>(s.fractal.perturb.maxIteration), tableData, mapperData, commandPool);
 
@@ -446,19 +445,7 @@ namespace merutilm::rff2 {
             }
         };
     }
-    inline auto RFF2::getFnSeriesApprox(double startTime) {
-        return [this, startTime](const float i) {
-            static double time = rootWindowContext->getWindow()->getTime();
-            const double elapsed = rootWindowContext->getWindow()->getTime() - time;
-            if (elapsed > Constants::Status::UI_REFRESH_INTERVAL) {
-                time = rootWindowContext->getWindow()->getTime();
-                setStatusMessage(Constants::Status::RENDER_STATUS,
-                                 std::format("Series-Approximation : {:.3f}%", i * 100));
-                setStatusMessage(Constants::Status::TIME_STATUS,
-                                 std::format("Time : {}", Utilities::formatTime(time - startTime)));
-            }
-        };
-    }
+
     inline auto RFF2::getFnCreatingTable(double startTime) {
         return [this, startTime](const float i) {
             static double time = rootWindowContext->getWindow()->getTime();

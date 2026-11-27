@@ -4,9 +4,9 @@
 // Re-Implemented by Merutilm on 2026-09-13
 
 #pragma once
+#include "../data/MB2RenderData.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/ExpLocatorSettings.hpp"
-#include "MB2RenderData.hpp"
 
 namespace merutilm::rff2 {
     struct MB2LocateResult {

@@ -2,26 +2,18 @@
 // Created by Merutilm on 11/15/26.
 //
 #pragma once
-#include "../algorithm/MPAInfo.hpp"
+#include "../settings/FrtMPASettings.h"
 #include "../calc/templates.hpp"
-#include "ApproxTableBuffer.h"
+#include "HNREMPAData.hpp"
 namespace merutilm::rff2 {
 
-    template<Number Num>
-    class MPAView;
 
     template<Number Num>
     struct MPAData {
-        // buffer
-        ApproxTableBuffer *buffer = nullptr;
-
         // settings
         FrtMPASettings mpaSettings{};
 
         // important data to generate
-        MPAInfo info;
-
-        [[nodiscard]] MPAView<Num> makeMPAView() const;
-
+        std::vector<HNREMPAData<Num>> hnreList;
     };
-}
+} // namespace merutilm::rff2

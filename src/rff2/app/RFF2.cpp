@@ -129,25 +129,21 @@ namespace merutilm::rff2 {
         if (computeShader) {
             if (logZoomTest > Constants::Fractal::COMPUTESHADER_ZOOM_THRESHOLD) {
                 return FexMB2RenderData::createRenderData(state, frt, computeShader, *approxTableCache, dcMax, exp10,
-                                                          refInitialCapacity, getFnRefCalc(startTime),
-                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime),
+                                                          refInitialCapacity, getFnRefCalc(startTime), getFnCreatingTable(startTime),
                                                           renderData);
             } else {
                 return FloatMB2RenderData::createRenderData(state, frt, computeShader, *approxTableCache, dcMax, exp10,
-                                                            refInitialCapacity, getFnRefCalc(startTime),
-                                                            getFnSeriesApprox(startTime), getFnCreatingTable(startTime),
+                                                            refInitialCapacity, getFnRefCalc(startTime), getFnCreatingTable(startTime),
                                                             renderData);
             }
         } else {
             if (logZoomTest > Constants::Fractal::MULTITHREAD_ZOOM_THRESHOLD) {
                 return DexMB2RenderData::createRenderData(state, frt, computeShader, *approxTableCache, dcMax, exp10,
-                                                          refInitialCapacity, getFnRefCalc(startTime),
-                                                          getFnSeriesApprox(startTime), getFnCreatingTable(startTime),
+                                                          refInitialCapacity, getFnRefCalc(startTime),getFnCreatingTable(startTime),
                                                           renderData);
             } else {
                 return DoubleMB2RenderData::createRenderData(state, frt, computeShader, *approxTableCache, dcMax, exp10,
                                                              refInitialCapacity, getFnRefCalc(startTime),
-                                                             getFnSeriesApprox(startTime),
                                                              getFnCreatingTable(startTime), renderData);
             }
         }
@@ -200,10 +196,6 @@ namespace merutilm::rff2 {
                                                         .partitionSize = 512,
                                                         .fixedPrecisionNeg = 1,
                                                 },
-                                        .sa = {.use = false,
-                                               .appliedTermsCount = 8,
-                                               .validatedTermsCount = 1,
-                                               .epsilonPower = -5},
                                         .mpa = ClcApproxPresets::UltraFast().genMPA(),
                                         .perturb = {.maxIteration = 300,
                                                     .smoothIteration = true,
@@ -244,10 +236,6 @@ namespace merutilm::rff2 {
                                                         .partitionSize = 512,
                                                         .fixedPrecisionNeg = 1,
                                                 },
-                                        .sa = {.use = false,
-                                               .appliedTermsCount = 8,
-                                               .validatedTermsCount = 1,
-                                               .epsilonPower = -5},
                                         .mpa = ClcApproxPresets::UltraFast().genMPA(),
                                         .perturb = {.maxIteration = 300,
                                                     .smoothIteration = true,
@@ -884,10 +872,8 @@ namespace merutilm::rff2 {
                             break;
                         }
 
-                        renderData->fractalSettings.sa = s.fractal.sa;
                         renderData->fractalSettings.mpa = s.fractal.mpa;
-
-                        if (renderData->regenerateApprox(getFnSeriesApprox(start), getFnCreatingTable(start)) !=
+                        if (renderData->regenerateApprox(getFnCreatingTable(start)) !=
                             RFFResult::SUCCESS) {
                             vkh::logger::log_err("Do not request \"recreate Approximation\" for incomplete reference!");
                             success = false;
@@ -919,7 +905,7 @@ namespace merutilm::rff2 {
         if (!renderData || !renderData->getReference())
             return;
 
-        auto offDex = static_cast<complex<dex>>(renderData->getReference()->hnreInfo.mbNucleusOff);
+        auto offDex = static_cast<complex<dex>>(renderData->getReference()->highestHNREData().mbNucleusOff);
         if (renderData->getPerturbator()) {
             offDex -= renderData->getPerturbator()->off;
         }
@@ -970,7 +956,7 @@ namespace merutilm::rff2 {
 
         static size_t capacity = 0;
         if (renderData && renderData->getReference()) {
-            capacity = renderData->getReference()->length();
+            capacity = renderData->getReference()->calcTotalLength();
         }
 
 
@@ -983,8 +969,7 @@ namespace merutilm::rff2 {
             if (!renderData || !renderData->getReference()) {
                 return RFFResult::ERROR_NULL;
             }
-            if (const RFFResult r = renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center,
-                                                          getFnSeriesApprox(startTime));
+            if (const RFFResult r = renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center);
                 r != RFFResult::SUCCESS) {
                 return r;
             }
@@ -1001,10 +986,10 @@ namespace merutilm::rff2 {
         // sync settings
 
         const ReferenceDataBase &reference = *renderData->getReference();
-        const size_t refLength = reference.length();
+        const size_t refLength = reference.calcTotalLength();
         const size_t mpaLen = approxTableCache ? approxTableCache->mpaTable.sizeUsed : 0;
         setStatusMessage(Constants::Status::PERIOD_STATUS,
-                         std::format("Period : {}", Utilities::formatThousands(reference.longestPeriod())));
+                         std::format("Period : {}", Utilities::formatThousands(reference.calcPeriod())));
         setTooltipMessage(Constants::Status::PERIOD_STATUS,
                           std::format("Reference Size : {}\nMP-Approx Size : {}", Utilities::formatThousands(refLength),
                                       Utilities::formatThousands(mpaLen)));
@@ -1125,7 +1110,7 @@ namespace merutilm::rff2 {
 
         const auto floatDat = dynamic_cast<FloatMB2RenderData *>(renderData.get());
         const auto fexDat = dynamic_cast<FexMB2RenderData *>(renderData.get());
-        if ((floatDat || fexDat) && s.render.computeShader.use) {
+        if ((floatDat || fexDat) && s.render.computeShader.use && renderData->getReference() && renderData->getReference()->hnreCount() == 1) {
             renderer->rg0->iterationPalette->setPerturbationMainIterator(PerturbationMainIterator::GPU);
             if (floatDat) {
                 fillIterationComputeShader<float, fex>(startTime, s);

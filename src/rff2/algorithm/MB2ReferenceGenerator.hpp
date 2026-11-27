@@ -6,11 +6,11 @@
 #include "../app/FnListeners.hpp"
 #include "../calc/templates.hpp"
 #include "../constants/FractalConstants.hpp"
+#include "../data/HNREReferenceData.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtReferenceSettings.hpp"
 #include "ComplexApproximator.hpp"
-#include "HNREInfo.hpp"
 #include "RFFResult.hpp"
 #include "ReferenceCheckpoint.hpp"
 #include "ReferenceDerivatives.hpp"
@@ -41,6 +41,11 @@ namespace merutilm::rff2 {
         fixed_point_complex cOrig;
         const int32_t exp10;
         const size_t refInitialCapacity;
+
+        // if empty: no HNRE, using full orbit calculation
+        std::vector<HNREReferenceData<Num>> hnreList;
+        std::vector<itt::ref> requestedHNREPeriods;
+
         FnRefCalc fnRefCalc;
         Num refSyncRadius2 = Num(pow(10.0, -refSettings.sync.referenceSynchronizationRadiusPower * 2));
 
@@ -66,7 +71,8 @@ namespace merutilm::rff2 {
     public:
         explicit MB2ReferenceGenerator(const ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                                        const FrtReferenceSettings &refSettings, int32_t exp10,
-                                       size_t refInitialCapacity, dex dcMax, FnRefCalc &&fnRefCalc);
+                                       size_t refInitialCapacity, dex dcMax, std::vector<itt::ref> requestedHNREPeriods,
+                                       FnRefCalc &&fnRefCalc);
 
 
         RFFResult generate();
@@ -74,11 +80,7 @@ namespace merutilm::rff2 {
         std::unique_ptr<ReferenceData<Num>> extract() &&;
 
     private:
-
-        bool tryUpdateDerivatives()
-        {
-            return derivatives.tryUpdate(z, z0, radius2, refIteration, temps);
-        }
+        bool tryUpdateDerivatives() { return derivatives.tryUpdate(z, z0, radius2, refIteration, temps); }
 
         void syncReference();
 
@@ -97,12 +99,12 @@ namespace merutilm::rff2 {
                                                                  const FrtGeneralSettings &generalSettings,
                                                                  const FrtReferenceSettings &refSettings,
                                                                  const int32_t exp10, const size_t refInitialCapacity,
-                                                                 dex dcMax, FnRefCalc &&fnRefCalc) :
+                                                                 dex dcMax, std::vector<itt::ref> requestedHNREPeriods,
+                                                                 FnRefCalc &&fnRefCalc) :
         state(state), generalSettings(generalSettings), refSettings(refSettings),
         cOrig(refSettings.center.create_variant(exp10)), exp10(exp10), refInitialCapacity(refInitialCapacity),
-        fnRefCalc(std::move(fnRefCalc)), derivatives(Num(dcMax), false) {}
-
-
+        requestedHNREPeriods(std::move(requestedHNREPeriods)), fnRefCalc(std::move(fnRefCalc)),
+        derivatives(Num(dcMax), false) {}
 
 
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
@@ -229,6 +231,7 @@ namespace merutilm::rff2 {
             return RFFResult::TERMINATED;
         }
 
+        checkpoints.clear();
         checkpoints.reserve(generalSettings.threads + 1);
         z.try_realloc_inc(-z.real.exp2div64 * 2 + 2);
 
@@ -247,12 +250,10 @@ namespace merutilm::rff2 {
 
         int32_t prevExp2div64 = 0;
 
-        auto fn = std::forward<FnRefCalc>(fnRefCalc);
         const SpecialCenterType specialCenterType = resolveSpecialCenterType();
 
 
-        for (refIteration = 0; tryUpdateDerivatives() && z0.norm_sqr() < bailoutSqr;
-             ++refIteration) {
+        for (refIteration = 0; tryUpdateDerivatives() && z0.norm_sqr() < bailoutSqr; ++refIteration) {
             if (refIteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
                 state.interruptRequested()) {
                 return RFFResult::TERMINATED;
@@ -260,10 +261,11 @@ namespace merutilm::rff2 {
 
             tryAppendPeriodCandidate(minZRadius, radius2);
 
-            if (refIteration % refSettings.partitionSize == 0)
-                derivatives.placeCheckpoint(z, checkpoints, refIteration);
-
-            fn(refIteration);
+            if (refIteration % refSettings.partitionSize == 0) {
+                checkpoints.emplace_back(z, refIteration, static_cast<complex<dex>>(derivatives.fzgAnPartition));
+                derivatives.resetPartition();
+            }
+            fnRefCalc(refIteration);
             stepOnceOptimal(prevExp2div64, specialCenterType);
             processor.put(z0);
         }
@@ -273,18 +275,19 @@ namespace merutilm::rff2 {
         checkpoints.emplace_back(z, refIteration, static_cast<complex<dex>>(derivatives.fzgAnPartition));
         derivatives.tryOverwriteApproximateDerivatives(exp10);
 
-        HNREInfo hnreInfo(z, cOrig, derivatives.fzgAnArb, static_cast<complex<dex>>(derivatives.fpgBn),
-                                         exp10, temps);
+        hnreList.emplace_back(std::move(processor).finish(), z, cOrig, derivatives.fzgAnArb,
+                              static_cast<complex<dex>>(derivatives.fpgBn), exp10, temps, std::move(periodArray));
 
-        result = std::make_unique<ReferenceData<Num>>(std::move(processor).finish(), generalSettings, refSettings,
-                                                      std::move(cOrig), std::move(hnreInfo), std::move(periodArray),
-                                                      std::move(checkpoints), static_cast<complex<dex>>(derivatives.fpgBn), dex(derivatives.dcMax));
         return RFFResult::SUCCESS;
     }
 
 
     template<Number Num, FnListeners::FnRefCalc FnRefCalc>
     std::unique_ptr<ReferenceData<Num>> MB2ReferenceGenerator<Num, FnRefCalc>::extract() && {
+        result = std::make_unique<ReferenceData<Num>>(generalSettings, refSettings, std::move(cOrig),
+                                                      std::move(hnreList), std::move(checkpoints),
+                                                      dex(derivatives.dcMax));
+
         return std::move(result);
     }
 } // namespace merutilm::rff2

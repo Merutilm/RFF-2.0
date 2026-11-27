@@ -16,9 +16,9 @@
 #include "../data/ReferenceData.hpp"
 #include "../parallel/ParallelRenderState.h"
 #include "../util/ArrayUtils.hpp"
+#include "HNREMPAView.hpp"
 #include "MPAIndexMapperUtils.hpp"
 #include "MPAInfo.hpp"
-#include "MPAView.hpp"
 #include "PAGenerator.h"
 #include "RFFResult.hpp"
 #include "srpc_module/SRPCUnit.hpp"
@@ -56,7 +56,6 @@ namespace merutilm::rff2 {
     };
 
 
-
     // MP-Approximation table.
     // prefix c: For compressed table.
     // prefix u: For uncompressed table. Arithmetic overflowing is not permitted.
@@ -67,6 +66,7 @@ namespace merutilm::rff2 {
         const ParallelRenderState &state;
         const ReferenceData<Num> &reference;
         ApproxTableBuffer &buffer;
+
         const FrtGeneralSettings &generalSettings;
         const FrtMPASettings &mpaSettings;
         const bool computeShaderUsed;
@@ -75,7 +75,8 @@ namespace merutilm::rff2 {
 
 
         // result
-        MPAData<Num> data;
+        std::unique_ptr<MPAData<Num>> mpaData;
+
     public:
         explicit MB2MPAGenerator(const ParallelRenderState &state, const ReferenceData<Num> &reference,
                                  ApproxTableBuffer &buffer, const FrtGeneralSettings &generalSettings,
@@ -87,46 +88,46 @@ namespace merutilm::rff2 {
 
         RFFResult generate();
 
-        MPAData<Num> extract() &&;
+        std::unique_ptr<MPAData<Num>> extract() &&;
 
     private:
-        [[nodiscard]] bool tryInit();
+        void calcBufferSize(HNREMPAData<Num> &data, size_t &tableLen, size_t &mapperLen) const;
 
         void fitBufferSize() const;
 
-        std::span<PA<Num>> getMutableMPAFromMapper(MPAIndexMapper flattenIndexMapper);
+        std::span<PA<Num>> getMutableMPAFromMapper(HNREMPAData<Num> &data, MPAIndexMapper flattenIndexMapper);
 
-        RFFResult generateTable();
+        RFFResult generateTable(HNREMPAData<Num> &data);
 
-        [[nodiscard]] UProcessor<Num> uInitProcessor(uint64_t startIteration, double epsilon) const;
+        [[nodiscard]] UProcessor<Num> uInitProcessor(HNREMPAData<Num> &data, uint64_t startIteration,
+                                                     double epsilon) const;
 
-        void uVerifyPA(UProcessor<Num> &up);
+        void uVerifyPA(HNREMPAData<Num> &data, UProcessor<Num> &up);
 
-        void uRefreshCounter(UProcessor<Num> &up);
+        void uRefreshCounter(HNREMPAData<Num> &data, UProcessor<Num> &up);
 
-        void uStepOnce(UProcessor<Num> &up);
+        void uStepOnce(HNREMPAData<Num> &data, UProcessor<Num> &up);
 
-        void uConfigurePartialPA(UProcessor<Num> &up);
+        void uConfigurePartialPA(HNREMPAData<Num> &data, UProcessor<Num> &up);
 
-        void uGluePartialPA(std::vector<UProcessor<Num>> &ups);
+        void uGluePartialPA(HNREMPAData<Num> &data, std::vector<UProcessor<Num>> &ups);
 
-        RFFResult uGenerateTable();
+        RFFResult uGenerateTable(HNREMPAData<Num> &data);
 
-        [[nodiscard]] CProcessor<Num> cInitProcessor(double epsilon);
+        [[nodiscard]] CProcessor<Num> cInitProcessor(HNREMPAData<Num> &data, double epsilon);
 
-        bool cTryJumpTableGeneration(CProcessor<Num> &cp);
+        bool cTryJumpTableGeneration(HNREMPAData<Num> &data, CProcessor<Num> &cp);
 
-        void cVerifyPA(CProcessor<Num> &cp);
+        void cVerifyPA(HNREMPAData<Num> &data, CProcessor<Num> &cp);
 
-        void cRefreshCounter(CProcessor<Num> &cp);
+        void cRefreshCounter(HNREMPAData<Num> &data, CProcessor<Num> &cp);
 
-        void cStepOnce(CProcessor<Num> &cp);
+        void cStepOnce(HNREMPAData<Num> &data, CProcessor<Num> &cp);
 
-        RFFResult cGenerateTable();
-
+        RFFResult cGenerateTable(HNREMPAData<Num> &data);
 
 #ifndef NDEBUG
-        void checkZero();
+        void checkZero(HNREMPAData<Num> &data);
 #endif
     };
 
@@ -135,42 +136,45 @@ namespace merutilm::rff2 {
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
     RFFResult MB2MPAGenerator<Num, FnCreatingTable>::generate() {
-        if (tryInit()) {
-            return generateTable();
+        mpaData = std::make_unique<MPAData<Num>>();
+        mpaData->mpaSettings = mpaSettings;
+        for (const HNREReferenceData<Num> &hnreData: reference.hnreList) {
+            const auto &referencePeriod = hnreData.generatedPeriods;
+            const itt::ref longestPeriod = hnreData.longestPeriod();
+
+            HNREMPAData<Num> data;
+            data.targetHNRE = &hnreData;
+
+            if (const int minSkip = mpaSettings.minSkipReference; longestPeriod <= minSkip) {
+                mpaData->hnreList.emplace_back();
+            } else {
+                data.buffer = &buffer;
+                data.info = MPAInfo(referencePeriod, hnreData.getCompressor(), mpaSettings);
+                mpaData->hnreList.emplace_back(std::move(data));
+            }
+        }
+
+        fitBufferSize();
+
+        for (auto &hnreData: mpaData->hnreList) {
+            if (RFFResult result; hnreData.buffer && (result = generateTable(hnreData)) != RFFResult::SUCCESS)
+                return result;
         }
         return RFFResult::SUCCESS;
     }
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    MPAData<Num> MB2MPAGenerator<Num, FnCreatingTable>::extract() && {
-        return std::move(data);
+    std::unique_ptr<MPAData<Num>> MB2MPAGenerator<Num, FnCreatingTable>::extract() && {
+        return std::move(mpaData);
     }
 
-
-    //[re] init mpa periods and compressors
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    bool MB2MPAGenerator<Num, FnCreatingTable>::tryInit() {
-        const auto &referencePeriod = reference.generatedPeriods;
-        const itt::ref longestPeriod = reference.longestPeriod();
-
-        if (const int minSkip = mpaSettings.minSkipReference; longestPeriod <= minSkip) {
-            return false;
-        }
-        data.buffer = &buffer;
-        data.mpaSettings = mpaSettings;
-        data.info = MPAInfo(referencePeriod, reference.getCompressor(), mpaSettings);
-        return true;
-    }
-
-
-    template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    void MB2MPAGenerator<Num, FnCreatingTable>::fitBufferSize() const {
-
-
+    void MB2MPAGenerator<Num, FnCreatingTable>::calcBufferSize(HNREMPAData<Num> &data, size_t &tableLen,
+                                                               size_t &mapperLen) const {
         const itt::ref longestPeriod = data.info.tablePeriods.back();
 
-        itt::ref tableLen = data.info.tableElementCounts.back();
-        itt::ref mapperLen = 0;
+        tableLen = data.info.tableElementCounts.back();
+        mapperLen = 0;
 
         if (data.info.pulledMPACompressor.empty()) {
             mapperLen = longestPeriod + 1;
@@ -194,22 +198,41 @@ namespace merutilm::rff2 {
         if (static_cast<itt::ref>(static_cast<size_t>(mapperLen)) != mapperLen) {
             throw vkh::exception_invalid_state("mapper buffer overflow");
         }
+    }
 
-        data.buffer->template resize<PA<Num>>(static_cast<size_t>(tableLen), static_cast<size_t>(mapperLen), computeShaderUsed);
+    template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
+    void MB2MPAGenerator<Num, FnCreatingTable>::fitBufferSize() const {
+        size_t totalTableLen = 0;
+        size_t totalMapperLen = 0;
+        for (HNREMPAData<Num> &data: mpaData->hnreList) {
+            size_t tableLen;
+            size_t mapperLen;
+            calcBufferSize(data, tableLen, mapperLen);
+            data.tableOffset = totalTableLen;
+            data.mapperOffset = totalMapperLen;
+            data.tableSize = tableLen;
+            data.mapperSize = mapperLen;
+            totalTableLen += tableLen;
+            totalMapperLen += mapperLen;
+        }
+
+        buffer.resize<PA<Num>>(static_cast<size_t>(totalTableLen), static_cast<size_t>(totalMapperLen),
+                               computeShaderUsed);
     }
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
     std::span<PA<Num>>
-    MB2MPAGenerator<Num, FnCreatingTable>::getMutableMPAFromMapper(const MPAIndexMapper flattenIndexMapper) {
+    MB2MPAGenerator<Num, FnCreatingTable>::getMutableMPAFromMapper(HNREMPAData<Num> &data,
+                                                                   const MPAIndexMapper flattenIndexMapper) {
         const size_t levels = data.info.tablePeriods.size();
+        size_t mapped = flattenIndexMapper.mapped;
         size_t size = flattenIndexMapper.generatedLevels;
-        MPAUtils::debugCheckMPAFromMapper(data.buffer->mpaTable.sizeUsed, flattenIndexMapper.mapped, levels, size);
-        PA<Num> *start = data.buffer->mpaTable.template interpret<PA<Num>>() + flattenIndexMapper.mapped;
-        return std::span<PA<Num>>(start, size);
+        MPAUtils::debugCheckMPAFromMapper(data.tableSize, mapped, levels, size);
+        return data.interpretPA(mapped, size);
     }
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    bool MB2MPAGenerator<Num, FnCreatingTable>::cTryJumpTableGeneration(CProcessor<Num> &cp) {
+    bool MB2MPAGenerator<Num, FnCreatingTable>::cTryJumpTableGeneration(HNREMPAData<Num> &data, CProcessor<Num> &cp) {
 
         if (data.info.pulledMPACompressor.empty())
             return false;
@@ -227,7 +250,7 @@ namespace merutilm::rff2 {
         // count itself and periodic point, +2
 
         const size_t generatedLevels = MPAIndexMapperUtils::iterationToGeneratedLevels(data.info, cp.iteration);
-        const auto mainReferenceMPA = getMutableMPAFromMapper({0, generatedLevels});
+        const auto mainReferenceMPA = getMutableMPAFromMapper(data, {0, generatedLevels});
 
         if (level >= mainReferenceMPA.size() || level + 1 > generatedLevels) {
             throw vkh::exception_invalid_state(
@@ -238,7 +261,7 @@ namespace merutilm::rff2 {
         const PA<Num> &mainReferencePA = mainReferenceMPA[level];
         const itt::ref skip = mainReferencePA.skip;
 
-        auto mpa = getMutableMPAFromMapper({.mapped = cp.flattenTableIndex, .generatedLevels = generatedLevels});
+        auto mpa = getMutableMPAFromMapper(data, {.mapped = cp.flattenTableIndex, .generatedLevels = generatedLevels});
 
 
         for (uint32_t i = level + 1; i < levels; ++i) {
@@ -275,7 +298,7 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    void MB2MPAGenerator<Num, FnCreatingTable>::uVerifyPA(UProcessor<Num> &up) {
+    void MB2MPAGenerator<Num, FnCreatingTable>::uVerifyPA(HNREMPAData<Num> &data, UProcessor<Num> &up) {
 
         // reset current and lower level count when it reached limit
         // table period is exponential
@@ -301,14 +324,13 @@ namespace merutilm::rff2 {
                     up.partialPA[level].first.emplace(up.currentPA[level]);
                     up.isPartial[level] = false;
                 } else {
-                    const MPAIndexMapper flattenIndexMapper =
-                            data.buffer->flattenIndexMapper.template interpret<MPAIndexMapper>()[up.currentPA[level].start];
+                    const MPAIndexMapper flattenIndexMapper = data.interpretMapper(up.currentPA[level].start);
 #ifndef NDEBUG
                     if (level >= flattenIndexMapper.generatedLevels) {
                         throw std::invalid_argument("invalid level provided");
                     }
 #endif
-                    auto pa = getMutableMPAFromMapper(flattenIndexMapper);
+                    auto pa = getMutableMPAFromMapper(data, flattenIndexMapper);
                     pa[level] = up.currentPA[level].build();
                 }
 
@@ -326,7 +348,7 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    void MB2MPAGenerator<Num, FnCreatingTable>::cVerifyPA(CProcessor<Num> &cp) {
+    void MB2MPAGenerator<Num, FnCreatingTable>::cVerifyPA(HNREMPAData<Num> &data, CProcessor<Num> &cp) {
 
         // reset current and lower level count when it reached limit
         // table period is exponential
@@ -343,7 +365,7 @@ namespace merutilm::rff2 {
                 const MPAIndexMapper flattenIndexMapper =
                         MPAUtils::cGetFlattenIndexMapper(data, cp.currentPA[level].start);
 
-                auto pa = getMutableMPAFromMapper(flattenIndexMapper);
+                auto pa = getMutableMPAFromMapper(data, flattenIndexMapper);
 #ifndef NDEBUG
                 if (level >= flattenIndexMapper.generatedLevels) {
                     throw std::invalid_argument("invalid level provided");
@@ -364,7 +386,7 @@ namespace merutilm::rff2 {
 
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    void MB2MPAGenerator<Num, FnCreatingTable>::cRefreshCounter(CProcessor<Num> &cp) {
+    void MB2MPAGenerator<Num, FnCreatingTable>::cRefreshCounter(HNREMPAData<Num> &data, CProcessor<Num> &cp) {
 
 
         // reset current and lower level count when it reached limit
@@ -390,7 +412,7 @@ namespace merutilm::rff2 {
 
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    void MB2MPAGenerator<Num, FnCreatingTable>::uRefreshCounter(UProcessor<Num> &up) {
+    void MB2MPAGenerator<Num, FnCreatingTable>::uRefreshCounter(HNREMPAData<Num> &data, UProcessor<Num> &up) {
 
 
         // reset current and lower level count when it reached limit
@@ -418,23 +440,24 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    void MB2MPAGenerator<Num, FnCreatingTable>::uStepOnce(UProcessor<Num> &up) {
+    void MB2MPAGenerator<Num, FnCreatingTable>::uStepOnce(HNREMPAData<Num> &data, UProcessor<Num> &up) {
         uint64_t levels = 0;
         const auto &tablePeriods = data.info.tablePeriods;
-        while (levels < tablePeriods.size() && up.itCount[levels] == 0 && up.itCountLim[levels] == tablePeriods[levels]) {
+        while (levels < tablePeriods.size() && up.itCount[levels] == 0 &&
+               up.itCountLim[levels] == tablePeriods[levels]) {
             ++levels;
         }
 
 
         if (levels > 0) {
-            MPAUtils::debugCheckMPAFromMapper(data.buffer->mpaTable.sizeUsed, up.flattenTableIndex, tablePeriods.size(),
+            MPAUtils::debugCheckMPAFromMapper(buffer.mpaTable.sizeUsed, up.flattenTableIndex, tablePeriods.size(),
                                               levels);
-            RFF_ASSERT(data.buffer->flattenIndexMapper.sizeUsed > up.iteration);
-            data.buffer->flattenIndexMapper.template interpret<MPAIndexMapper>()[up.iteration] = {up.flattenTableIndex, levels};
+            RFF_ASSERT(data.mapperSize > up.iteration);
+            data.interpretMapper(up.iteration) = {up.flattenTableIndex, levels};
             up.flattenTableIndex += levels;
         } else {
-            RFF_ASSERT(data.buffer->flattenIndexMapper.sizeUsed > up.iteration);
-            data.buffer->flattenIndexMapper.template interpret<MPAIndexMapper>()[up.iteration] = {UINT64_MAX, 0};
+            RFF_ASSERT(data.mapperSize > up.iteration);
+            data.interpretMapper(up.iteration) = {UINT64_MAX, 0};
         }
         up.currentPA[0].step();
         ++up.currentPASkips[0];
@@ -444,10 +467,11 @@ namespace merutilm::rff2 {
 
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    void MB2MPAGenerator<Num, FnCreatingTable>::cStepOnce(CProcessor<Num> &cp) {
+    void MB2MPAGenerator<Num, FnCreatingTable>::cStepOnce(HNREMPAData<Num> &data, CProcessor<Num> &cp) {
         size_t levels = 0;
         const auto &tablePeriods = data.info.tablePeriods;
-        while (levels < tablePeriods.size() && cp.itCount[levels] == 0 && cp.itCountLim[levels] == tablePeriods[levels]) {
+        while (levels < tablePeriods.size() && cp.itCount[levels] == 0 &&
+               cp.itCountLim[levels] == tablePeriods[levels]) {
             ++levels;
         }
 
@@ -455,11 +479,10 @@ namespace merutilm::rff2 {
         if (levels > 0) {
 
             const size_t compIndex = SRPCUtils::compress(data.info.pulledMPACompressor, cp.pulledTableIndex);
-            RFF_ASSERT(data.buffer->flattenIndexMapper.sizeUsed > compIndex);
-            data.buffer->flattenIndexMapper.template interpret<MPAIndexMapper>()[compIndex] = {.mapped = cp.flattenTableIndex,
-                                                                                      .generatedLevels = levels};
+            RFF_ASSERT(buffer.flattenIndexMapper.sizeUsed > compIndex);
+            data.interpretMapper(compIndex) = {.mapped = cp.flattenTableIndex, .generatedLevels = levels};
 
-            jumped = cTryJumpTableGeneration(cp);
+            jumped = cTryJumpTableGeneration(data, cp);
         }
 
         if (!jumped) {
@@ -475,21 +498,20 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    RFFResult MB2MPAGenerator<Num, FnCreatingTable>::generateTable() {
+    RFFResult MB2MPAGenerator<Num, FnCreatingTable>::generateTable(HNREMPAData<Num> &data) {
 
-        fitBufferSize();
         // iteration starts from 1, the first value is garbage
-        data.buffer->flattenIndexMapper.template interpret<MPAIndexMapper>()[0] = {};
+        data.interpretMapper(0) = {};
 
         if (data.info.pulledMPACompressor.empty()) {
-            return uGenerateTable();
+            return uGenerateTable(data);
         } else {
-            return cGenerateTable();
+            return cGenerateTable(data);
         }
     }
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    CProcessor<Num> MB2MPAGenerator<Num, FnCreatingTable>::cInitProcessor(double epsilon) {
+    CProcessor<Num> MB2MPAGenerator<Num, FnCreatingTable>::cInitProcessor(HNREMPAData<Num> &data, double epsilon) {
         CProcessor<Num> cp;
         // input vector must be empty.
         const auto &tablePeriods = data.info.tablePeriods;
@@ -498,7 +520,7 @@ namespace merutilm::rff2 {
         cp.itCountLim = tablePeriods;
         cp.generationAvailable.resize(levels, true);
 
-        cp.currentPA = std::vector(levels, PAGenerator<Num>(reference, epsilon, dcMax, 1));
+        cp.currentPA = std::vector(levels, PAGenerator<Num>(*data.targetHNRE, epsilon, dcMax, 1));
 
         cp.iteration = 1;
         cp.pulledTableIndex = 0;
@@ -509,7 +531,9 @@ namespace merutilm::rff2 {
 
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    UProcessor<Num> MB2MPAGenerator<Num, FnCreatingTable>::uInitProcessor(const uint64_t startIteration, double epsilon) const {
+    UProcessor<Num> MB2MPAGenerator<Num, FnCreatingTable>::uInitProcessor(HNREMPAData<Num> &data,
+                                                                          const uint64_t startIteration,
+                                                                          double epsilon) const {
         UProcessor<Num> up;
 
         const auto &tablePeriods = data.info.tablePeriods;
@@ -551,39 +575,40 @@ namespace merutilm::rff2 {
         }
 
         up.flattenTableIndex = MPAIndexMapperUtils::iterationToNearestFlattenTableIndex(data.info, startIteration);
-        up.currentPA = std::vector(levels, PAGenerator<Num>(reference, epsilon, dcMax, startIteration));
+        up.currentPA = std::vector(levels, PAGenerator<Num>(*data.targetHNRE, epsilon, dcMax, startIteration));
         up.iteration = startIteration;
 
         return up;
     }
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    RFFResult MB2MPAGenerator<Num, FnCreatingTable>::cGenerateTable() {
+    RFFResult MB2MPAGenerator<Num, FnCreatingTable>::cGenerateTable(HNREMPAData<Num> &data) {
 
         const auto &tablePeriods = data.info.tablePeriods;
         const itt::ref longestPeriod = tablePeriods.back();
-        const auto epsilonPower = data.mpaSettings.epsilonPower;
+        const auto epsilonPower = mpaSettings.epsilonPower;
         const float epsilon = std::pow(10.f, epsilonPower);
-        CProcessor<Num> cp = cInitProcessor(epsilon);
+        CProcessor<Num> cp = cInitProcessor(data, epsilon);
 
         while (cp.iteration <= longestPeriod) {
-            if (cp.iteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 && state.interruptRequested()) {
+            if (cp.iteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0 &&
+                state.interruptRequested()) {
                 return RFFResult::TERMINATED;
             }
 
             fnCreatingTable(static_cast<double>(cp.iteration) / static_cast<double>(longestPeriod));
-            cStepOnce(cp);
-            cVerifyPA(cp);
-            cRefreshCounter(cp);
+            cStepOnce(data, cp);
+            cVerifyPA(data, cp);
+            cRefreshCounter(data, cp);
         }
 #ifndef NDEBUG
-        checkZero();
+        checkZero(data);
 #endif
         return RFFResult::SUCCESS;
     }
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    void MB2MPAGenerator<Num, FnCreatingTable>::uConfigurePartialPA(UProcessor<Num> &up) {
+    void MB2MPAGenerator<Num, FnCreatingTable>::uConfigurePartialPA(HNREMPAData<Num> &data, UProcessor<Num> &up) {
         const auto &tablePeriods = data.info.tablePeriods;
         const size_t levels = tablePeriods.size();
 
@@ -614,7 +639,8 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    void MB2MPAGenerator<Num, FnCreatingTable>::uGluePartialPA(std::vector<UProcessor<Num>> &ups) {
+    void MB2MPAGenerator<Num, FnCreatingTable>::uGluePartialPA(HNREMPAData<Num> &data,
+                                                               std::vector<UProcessor<Num>> &ups) {
 
         const auto &tablePeriods = data.info.tablePeriods;
         const size_t levels = tablePeriods.size();
@@ -643,23 +669,22 @@ namespace merutilm::rff2 {
                         const size_t flattenIndex =
                                 MPAIndexMapperUtils::iterationToFlattenTableIndex(data.info, preservingPA->start) + i;
 #ifndef NDEBUG
-                        if (flattenIndex == UINT64_MAX ||
-                            data.buffer->mpaTable.template interpret<PA<Num>>()[flattenIndex].skip != 0)
+                        if (flattenIndex == UINT64_MAX || data.interpretPA(flattenIndex).skip != 0)
                             throw vkh::exception_invalid_state("already assigned or flatten index cannot be found");
 #endif
                         preservingPA.reset();
-                        data.buffer->mpaTable.template interpret<PA<Num>>()[flattenIndex] = pa;
+                        data.interpretPA(flattenIndex) = pa;
                     }
                 }
             }
         }
     }
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    RFFResult MB2MPAGenerator<Num, FnCreatingTable>::uGenerateTable() {
+    RFFResult MB2MPAGenerator<Num, FnCreatingTable>::uGenerateTable(HNREMPAData<Num> &data) {
 
         const auto &tablePeriods = data.info.tablePeriods;
         const uint64_t longestPeriod = static_cast<uint64_t>(tablePeriods.back());
-        const auto epsilonPower = data.mpaSettings.epsilonPower;
+        const auto epsilonPower = mpaSettings.epsilonPower;
         const float epsilon = std::pow(10.f, epsilonPower);
         const uint32_t threadCount = generalSettings.threads;
 
@@ -669,39 +694,36 @@ namespace merutilm::rff2 {
         std::vector<std::unique_ptr<std::jthread>> threads(threadCount);
 
 
-
         for (size_t i = 0; i < threadCount; ++i) {
+            threads[i] = std::make_unique<std::jthread>(
+                    [this, &data, i, itInterval, longestPeriod, epsilon, &ups, threadCount] {
+                        const itt::ref startIteration = itInterval * i + 1;
+                        ups[i] = uInitProcessor(data, startIteration, epsilon);
 
-
-            threads[i] = std::make_unique<std::jthread>([this, i, itInterval,
-                                                         longestPeriod, epsilon, &ups, threadCount] {
-                const itt::ref startIteration = itInterval * i + 1;
-                ups[i] = uInitProcessor(startIteration, epsilon);
-
-                if (startIteration > longestPeriod || state.interruptRequested()) {
-                    return;
-                }
-
-                UProcessor<Num> &up = ups[i];
-
-                while (up.iteration <= std::min(startIteration + itInterval - 1, longestPeriod)) {
-                    if (up.iteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0) {
-                        if (state.interruptRequested())
+                        if (startIteration > longestPeriod || state.interruptRequested()) {
                             return;
-
-                        if (i == 0) {
-                            fnCreatingTable(std::min(1.0, static_cast<double>(up.iteration) * threadCount /
-                                                                  static_cast<double>(longestPeriod)));
                         }
-                    }
 
-                    uStepOnce(up);
-                    uVerifyPA(up);
-                    uRefreshCounter(up);
-                }
+                        UProcessor<Num> &up = ups[i];
 
-                uConfigurePartialPA(up);
-            });
+                        while (up.iteration <= std::min(startIteration + itInterval - 1, longestPeriod)) {
+                            if (up.iteration % Constants::Fractal::HOTPATH_INTERRUPT_CHECK_INTERVAL == 0) {
+                                if (state.interruptRequested())
+                                    return;
+
+                                if (i == 0) {
+                                    fnCreatingTable(std::min(1.0, static_cast<double>(up.iteration) * threadCount /
+                                                                          static_cast<double>(longestPeriod)));
+                                }
+                            }
+
+                            uStepOnce(data, up);
+                            uVerifyPA(data, up);
+                            uRefreshCounter(data, up);
+                        }
+
+                        uConfigurePartialPA(data, up);
+                    });
         }
 
         for (const auto &thread: threads) {
@@ -712,19 +734,19 @@ namespace merutilm::rff2 {
         if (state.interruptRequested())
             return RFFResult::TERMINATED;
 
-        uGluePartialPA(ups);
+        uGluePartialPA(data, ups);
 
 #ifndef NDEBUG
-        checkZero();
+        checkZero(data);
 #endif
         return RFFResult::SUCCESS;
     }
 
 #ifndef NDEBUG
     template<Number Num, FnListeners::FnCreatingTable FnCreatingTable>
-    void MB2MPAGenerator<Num, FnCreatingTable>::checkZero() {
-        for (size_t i = 0; i < data.buffer->mpaTable.sizeUsed; ++i) {
-            auto &pa = data.buffer->mpaTable.template interpret<PA<Num>>()[i];
+    void MB2MPAGenerator<Num, FnCreatingTable>::checkZero(HNREMPAData<Num> &data) {
+        for (size_t i = 0; i < data.tableSize; ++i) {
+            auto &pa = data.interpretPA(i);
             if (state.interruptRequested())
                 return;
             if (pa.skip == 0) {

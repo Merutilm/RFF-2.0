@@ -12,7 +12,6 @@ namespace merutilm::rff2 {
 
     struct ApproxTableBuffer {
 
-
         /**
          * flatten index table
          */

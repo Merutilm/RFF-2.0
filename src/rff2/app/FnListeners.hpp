@@ -13,10 +13,6 @@ namespace merutilm::rff2::FnListeners {
     template<typename F>
     concept FnRefCalc = std::is_convertible_v<F, FnRefCalcW>;
 
-    using FnSeriesApproxW = std::function<void(float)>;
-    template<typename F>
-    concept FnSeriesApprox = std::is_convertible_v<F, FnSeriesApproxW>;
-
     using FnCreatingTableW = std::function<void(float)>;
     template<typename F>
     concept FnCreatingTable = std::is_convertible_v<F, FnCreatingTableW>;

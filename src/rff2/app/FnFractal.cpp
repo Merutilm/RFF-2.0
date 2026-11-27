@@ -192,42 +192,7 @@ namespace merutilm::rff2 {
         ImGuiUtils::HelpMarker("Sets smooth iterations.");
         ImGuiUtils::EndSettings();
     }
-#ifdef RFF_USE_SA
-    void FnFractal::sa(RFF2 &app) {
 
-        ImGuiUtils::BeginSettings("Series Approximation");
-
-        auto &[use, appliedTermsCount, validatedTermsCount, epsilonPower] = app.getSettings().fractal.sa;
-        ImGui::Checkbox("Use", &use);
-
-        if (!use)
-            ImGui::BeginDisabled();
-
-        if (ImGui::InputScalar("Applied Terms", ImGuiDataType_U16, &appliedTermsCount)) {
-            appliedTermsCount = std::clamp(appliedTermsCount, static_cast<uint16_t>(1), static_cast<uint16_t>(1024));
-        }
-        ImGuiUtils::HelpMarker("Set the number of terms to approximate the orbit in the first iteration.");
-
-
-        if (ImGui::InputScalar("Validated Terms Count", ImGuiDataType_U16, &validatedTermsCount)) {
-            validatedTermsCount =
-                    std::clamp(validatedTermsCount, static_cast<uint16_t>(1), static_cast<uint16_t>(1024));
-        }
-        ImGuiUtils::HelpMarker(
-                "Set the number of terms for the escape condition when generating the series approximation.");
-
-        ImGui::InputFloat("Precision Level", &epsilonPower);
-        ImGuiUtils::HelpMarker("Useful for glitch reduction. if this value is small,\n"
-                               "The fractal will be rendered glitch-less but slow,\n"
-                               "and is large, It will be fast, but maybe shown visible glitches.");
-
-        FnExplore::regenerateApprox(app);
-
-        if (!use)
-            ImGui::EndDisabled();
-        ImGuiUtils::EndSettings();
-    }
-#endif
     void FnFractal::mpa(RFF2 &app) {
 
         ImGuiUtils::BeginSettings("MP-Approximation");

@@ -14,7 +14,7 @@ namespace merutilm::rff2 {
                            const ExpLocatorSettings &locSettings, FnListeners::FnLocatingMB2W &&fnLocatingMB2W) :
         state(state), reference(*data.getReference()), locSettings(locSettings), threads(data.fractalSettings.general.threads),
         currCenter(data.fractalSettings.reference.center),
-        checkpoints(data.getReference()->checkpoints), fnLocatingMB2W(std::move(fnLocatingMB2W)) {}
+        checkpoints(data.getReference()->highestHNRECheckpoints), fnLocatingMB2W(std::move(fnLocatingMB2W)) {}
 
 
     PartitionStatus MB2Locator::processPartition(const uint32_t partitionIndex, const int64_t dcCurrExp10,
@@ -323,7 +323,7 @@ namespace merutilm::rff2 {
         double aimLogZoom = reference.generalSettings.logZoom * 2;
         int64_t aimExp10 = refExp10 * 2;
 
-        // copy checkpoints
+        // copy highestHNRECheckpoints
         blockResults.resize(checkpoints.size() - 1, BlockResult{
                                                             .residual = fixed_point_complex(0.0, 0.0, refExp10),
                                                             .fzgAn = complex<dex>::ONE,
@@ -343,18 +343,12 @@ namespace merutilm::rff2 {
         std::vector tt(checkpoints.size(), fixed_point_complex{0.0, 0.0, refExp10});
         std::vector ut(checkpoints.size(), fixed_point_complex{0.0, 0.0, refExp10});
 
-        currCenter.set_exp10(refExp10);
         temp.set_exp10(refExp10);
         for (auto &t: threadTempCaches[0].temps) {
             t.set_exp10(refExp10);
         }
 
-
         fixed_point_complex dc(0.0, 0.0, refExp10);
-
-        ReferenceUtils::calcCenterOffset(dc, checkpoints.back().z.create_variant(refExp10),
-                         fixed_point_complex(reference.fpgBn, refExp10), threadTempCaches[0].temps);
-        fixed_point_complex::add(currCenter, currCenter, dc);
 
         dex dcd = static_cast<complex<dex>>(dc).max();
         complex<dex> mbScale = complex<dex>::ONE;
@@ -365,6 +359,10 @@ namespace merutilm::rff2 {
             vkh::logger::log_err("Center could not be found");
             return std::nullopt;
         }
+
+        currCenter = reference.highestHNREData().mbNucleus;
+        currCenter.set_exp10(refExp10);
+
 
         reserveExp10(dc, tt, ut, aimExp10);
 

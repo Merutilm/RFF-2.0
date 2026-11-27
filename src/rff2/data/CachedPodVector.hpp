@@ -128,11 +128,16 @@ namespace merutilm::rff2 {
             sizeUsed = newSize;
         }
 
+        template<typename Pod>
+            requires std::is_trivially_copyable_v<Pod>
+        Pod &interpret(const size_t offset) {
+            return *(reinterpret_cast<Pod *>(raw) + offset);
+        }
 
         template<typename Pod>
             requires std::is_trivially_copyable_v<Pod>
-        Pod *interpret() {
-            return reinterpret_cast<Pod *>(raw);
+        std::span<Pod> interpret(const size_t offset, size_t len) {
+            return std::span(reinterpret_cast<Pod *>(raw) + offset, len);
         }
     };
 } // namespace merutilm::rff2

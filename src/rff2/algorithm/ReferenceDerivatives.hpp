@@ -30,9 +30,7 @@ namespace merutilm::rff2 {
             fzgAnArb.set_exp10(exp10);
         }
 
-        void placeCheckpoint(fixed_point_complex &z, std::vector<ReferenceCheckpoint> &checkpoints,
-                             const itt::ref refIteration) {
-            checkpoints.emplace_back(z, refIteration, static_cast<complex<dex>>(fzgAnPartition));
+        void resetPartition() {
             fzgAnPartition = complex<Num>::ONE;
         }
 

@@ -7,10 +7,8 @@
 #include "../parallel/ParallelRenderState.h"
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtPerturbSettings.hpp"
-#include "../settings/FrtSASettings.hpp"
 #include "MB2MPAGenerator.hpp"
 #include "Perturbator.h"
-#include "SeriesApproximationData.hpp"
 
 #include "../parallel/SIMDChunk.hpp"
 #include "../parallel/SIMDChunkData.hpp"
@@ -26,16 +24,13 @@ namespace merutilm::rff2 {
 
     protected:
         const FrtGeneralSettings &generalSettings;
-        const FrtSASettings &saSettings;
         const FrtPerturbSettings &ptbSettings;
-        const SeriesApproximationData &seriesApproximationData;
 
     public:
         MB2PerturbatorBase(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
-                           const FrtSASettings &saSettings, const FrtPerturbSettings &ptbSettings,
-                           const SeriesApproximationData &seriesApproximationData) :
-            state(state), dcMax(dcMax), generalSettings(generalSettings), saSettings(saSettings),
-            ptbSettings(ptbSettings), seriesApproximationData(seriesApproximationData) {}
+                           const FrtPerturbSettings &ptbSettings) :
+            state(state), dcMax(dcMax), generalSettings(generalSettings),
+            ptbSettings(ptbSettings) {}
 
         ~MB2PerturbatorBase() override = default;
 
@@ -53,25 +48,24 @@ namespace merutilm::rff2 {
         const MPAData<Num> &table;
 
         explicit MB2Perturbator(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
-                                const FrtSASettings &saSettings, const FrtPerturbSettings &ptbSettings,
-                                const SeriesApproximationData &seriesApproximationData,
-                                const ReferenceData<Num> &reference, const MPAData<Num> &table) :
-            MB2PerturbatorBase(state, dcMax, generalSettings, saSettings, ptbSettings, seriesApproximationData),
-            reference(reference), table(table) {}
+                                const FrtPerturbSettings &ptbSettings, const ReferenceData<Num> &reference,
+                                const MPAData<Num> &table) :
+            MB2PerturbatorBase(state, dcMax, generalSettings, ptbSettings), reference(reference), table(table) {}
 
         ~MB2Perturbator() override = default;
 
 
         void transform(const complex<dex> &dc, const dex multiplier) {
-            //TODO
+            // TODO
         }
 
         bool innerCardioidTest(const complex<Num> &dc) const {
             // fast calculation of period-n bulb
-            const auto cOff = static_cast<complex<dex>>(dc) - static_cast<complex<dex>>(reference.hnreInfo.mbNucleusOff);
+            const auto cOff =
+                    static_cast<complex<dex>>(dc) - static_cast<complex<dex>>(reference.hnreList.mbNucleusOff);
             const auto cOffSqr = cOff.norm_sqr();
-            const auto s = reference.hnreInfo.mbScale * 4;
-            const auto rot = reference.hnreInfo.mbRotation;
+            const auto s = reference.hnreList.mbScale * 4;
+            const auto rot = reference.hnreList.mbRotation;
             const auto cos = rff_math::cos(rot);
             const auto sin = rff_math::sin(rot);
 
@@ -118,7 +112,7 @@ namespace merutilm::rff2 {
 
             return false;
         }
-        void applyMPApproximation(ReferenceView<Num> &referenceView, MPAView<Num> &mpaView, complex<Num> &dz,
+        void applyMPApproximation(HNREReferenceView<Num> &referenceView, HNREMPAView<Num> &mpaView, complex<Num> &dz,
                                   const complex<Num> &dc, itt::ptb &iteration, itt::ref &refIteration) const {
             if (const PA<Num> *paPtr = mpaView.lookup(referenceView, refIteration, dz); paPtr != nullptr) {
                 const PA<Num> &pa = *paPtr;
@@ -129,30 +123,13 @@ namespace merutilm::rff2 {
             }
         }
 
-        void applySeriesApproximation(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
-                                      itt::ref &refIteration) const {
-#ifdef RFF_USE_SA
-            const complex dcSa = {dex{dc.re}, dex { dc.im }};
-            complex dcSaM = dcSa;
-            complex dzSa = complex<dex>::ZERO;
-
-            for (const auto term: seriesApproximationData.terms) {
-                dzSa = (dzSa + term * dcSaM).try_normalized_value();
-                dcSaM = (dcSaM * dcSa).try_normalized_value();
-            }
-
-            iteration = seriesApproximationData.skippedIterations;
-            refIteration = seriesApproximationData.skippedIterations;
-            dz = {Num(dzSa.re), Num(dzSa.im)};
-#endif
-        }
 
         static void updateDistance(const complex<Num> &z, double &prevDistance2, double &currDistance2) {
             prevDistance2 = currDistance2;
             currDistance2 = static_cast<complex<double>>(z).norm_sqr();
         }
 
-        static bool tryRebase(ReferenceView<Num> &view, const complex<Num> &z, complex<Num> &dz, itt::ref &refIteration,
+        static bool tryRebase(HNREReferenceView<Num> &view, const complex<Num> &z, complex<Num> &dz, itt::ref &refIteration,
                               const itt::ref maxRefIteration) {
             if (refIteration == maxRefIteration || z.max() < dz.max()) {
                 view.reset();
@@ -163,13 +140,13 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        void perturbationStep(ReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
+        void perturbationStep(HNREReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
                               itt::ref &refIteration) const {
-#ifndef NDEBUG
-            assert(view.currentOriginalIndex() == refIteration);
-            auto compRef = SRPCUtils::compress(reference.getCompressor(), refIteration);
-            assert(compRef == view.currentRefIndex());
-#endif
+// #ifndef NDEBUG
+//             assert(view.currentOriginalIndex() == refIteration);
+//             auto compRef = SRPCUtils::compress(view.getCompressor(), refIteration);
+//             assert(compRef == view.currentRefIndex());
+// #endif
             dz = (view.get() * 2 + dz) * dz + dc;
             view.next();
 
@@ -177,23 +154,28 @@ namespace merutilm::rff2 {
             ++refIteration;
         }
 
-        void calcInitialIteration(complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
+        void calcInitialIteration(complex<Num> &dz, itt::ptb &iteration,
                                   itt::ref &refIteration) const {
-#ifdef RFF_USE_SA
-            if (saSettings.use) {
-                applySeriesApproximation(dz, dc, iteration, refIteration);
-            } else {
-                dz = complex<Num>::ZERO;
-                iteration = 0;
-                refIteration = 0;
-            }
-#else
             dz = complex<Num>::ZERO;
             iteration = 0;
             refIteration = 0;
-#endif
         }
         [[nodiscard]] double iterate(const complex<dex> &dc) const noexcept override {
+            double iteration = 0;
+            const bool isAbs = ptbSettings.absoluteIterationMode;
+
+            //TODO remove assert
+            assert(table.hnreList.size() == 1);
+            for (const HNREMPAData<Num> &data : table.hnreList) {
+                if (!isAbs) iteration *= data.targetHNRE->longestPeriod();
+                complex<Num> dz;
+                iteration += iterateHNRE(dz, data, dc);
+                //TODO transform dz
+            }
+            return iteration;
+        }
+        [[nodiscard]] double iterateHNRE(complex<Num> &resultDz, const HNREMPAData<Num> &data, const complex<dex> &dc) const noexcept{
+            //TODO modify Dz
             if (state.interruptRequested())
                 return 0.0;
 
@@ -202,16 +184,16 @@ namespace merutilm::rff2 {
             const Num dcMax0 = Num(dcMax);
             const bool isAbs = ptbSettings.absoluteIterationMode;
             const itt::ptb maxIteration = ptbSettings.maxIteration;
-            const itt::ref maxRefIteration = reference.longestPeriod();
+            const itt::ref maxRefIteration = data.targetHNRE->longestPeriod();
             const float interiorDetectRadius =
                     ptbSettings.interiorDetectRadiusPower == 0 ? 0 : pow(10, -ptbSettings.interiorDetectRadiusPower);
             const double bailout2 = generalSettings.bailout * generalSettings.bailout;
 
             // basic interior detection
-            ReferenceView<Num> referenceView = reference.makeReferenceView();
-            std::optional<MPAView<Num>> mpaView = std::nullopt;
-            if (table.buffer)
-                mpaView.emplace(table.makeMPAView());
+            HNREReferenceView<Num> referenceView = data.targetHNRE->makeReferenceView();
+            std::optional<HNREMPAView<Num>> mpaView = std::nullopt;
+            if (data.buffer)
+                mpaView.emplace(data.makeMPAView());
             referenceView.next();
             if (checkInteriorBasic(referenceView.get() + dc0, dc0)) {
                 return isAbs ? 1 : static_cast<double>(maxIteration);
@@ -222,7 +204,7 @@ namespace merutilm::rff2 {
             complex<Num> dz;
             itt::ptb iteration;
             itt::ref refIteration;
-            calcInitialIteration(dz, dc0, iteration, refIteration);
+            calcInitialIteration(dz, iteration, refIteration);
 
             // init local variables
             std::array<complex<Num>, PERIODIC_POINT_HISTORY_LENGTH> pdz = {};
@@ -310,35 +292,12 @@ namespace merutilm::rff2 {
             // std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> dz;
             // SRPCCursor<itt::ref, complex<Num>> cursor = reference.makeReferenceView();
             //
-            // if (saSettings.use) {
-            //     std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> dcSa;
-            //     std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> dcSaM;
-            //     std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> dzSa;
-            //     for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-            //         dcSa[i] = {.re = dex{dcs0[i].re}, .im = dex{dcs0[i].im}};
-            //         dcSaM[i] = dcSa[i];
-            //         dzSa[i] = complex<dex>::ZERO;
-            //     }
-            //
-            //     for (const auto term: seriesApproximationData.terms) {
-            //         for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-            //             dzSa[i] = (dzSa[i] + term * dcSaM[i]).try_normalized_value();
-            //             dcSaM[i] = (dcSaM[i] * dcSa[i]).try_normalized_value();
-            //         }
-            //     }
-            //
-            //     for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-            //         iteration[i] = seriesApproximationData.skippedIterations;
-            //         refIteration[i] = seriesApproximationData.skippedIterations;
-            //         dz[i] = {Num(dzSa[i].re), Num(dzSa[i].im)};
-            //     }
-            // } else {
-            //     for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
-            //         iteration[i] = 0;
-            //         refIteration[i] = 0;
-            //         dz[i] = complex<Num>::ZERO;
-            //     }
+            // for (uint32_t i = 0; i < RFF_SIMD_CHUNK_SIZE; ++i) {
+            //     iteration[i] = 0;
+            //     refIteration[i] = 0;
+            //     dz[i] = complex<Num>::ZERO;
             // }
+            //
             // const itt::ref maxRefIteration = reference.longestPeriod();
             // const float interiorDetectRadius =
             //         ptbSettings.interiorDetectRadiusPower == 0 ? 0 : pow(10, -ptbSettings.interiorDetectRadiusPower);

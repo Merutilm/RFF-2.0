@@ -60,7 +60,7 @@ namespace merutilm::rff2 {
             ImGui::BeginDisabled();
         if (!frt.reference.reuse && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
             assert(renderData->getReference());
-            frt.reference.center = renderData->getReference()->hnreInfo.mbNucleus;
+            frt.reference.center = renderData->getReference()->highestHNREData().mbNucleus;
             app.getRequests().requestRecompute();
         }
         if (disable)
@@ -84,8 +84,7 @@ namespace merutilm::rff2 {
             frt.general.logZoom = renderData->getReference()->generalSettings.logZoom;
 
             if (renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
-                                      app.getSettings().fractal.perturb, frt.reference.center,
-                                      app.getFnSeriesApprox(startTime)) == RFFResult::SUCCESS) {
+                                      app.getSettings().fractal.perturb, frt.reference.center) == RFFResult::SUCCESS) {
                 app.getRequests().requestRecompute();
             } else {
                 vkh::logger::log_err("Please do not try to use incomplete Reference.");
@@ -122,8 +121,8 @@ namespace merutilm::rff2 {
                 const dex dcMax = app.calcDcMax(frt.general.logZoom, settings.render.display.clarityMultiplier);
                 const int64_t refExp10 = Perturbator::getExp10WithSettings(frt.reference, frt.general.logZoom);
                 if (app.createAppropriateRenderData(settings.render.computeShader.use, frt.general.logZoom, startTime,
-                                                    frt, dcMax, refExp10,
-                                                    data->getReference()->length()) == RFFResult::SUCCESS) {
+                                                    frt, dcMax, refExp10, //TODO change calcTotalLength to matching period
+                                                    data->getReference()->calcTotalLength()) == RFFResult::SUCCESS) {
 
                     settings.fractal.reference.reuse = true;
                     app.getRequests().requestRecompute();

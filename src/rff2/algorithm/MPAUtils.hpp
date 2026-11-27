@@ -16,17 +16,17 @@ namespace merutilm::rff2::MPAUtils {
     static constexpr int PERTURBATION_REQ = 2;
 
     template<Number Num>
-    [[nodiscard]] static MPAIndexMapper cGetFlattenIndexMapperFromCompressedPulledIndex(const MPAData<Num> &data, itt::ref compressedPulled, size_t levels);
+    [[nodiscard]] static MPAIndexMapper cGetFlattenIndexMapperFromCompressedPulledIndex(const HNREMPAData<Num> &data, itt::ref compressedPulled);
 
     template<Number Num>
-    [[nodiscard]] static MPAIndexMapper uGetFlattenIndexMapper(const MPAData<Num> &data, itt::ref iteration);
+    [[nodiscard]] static MPAIndexMapper uGetFlattenIndexMapper(const HNREMPAData<Num> &data, itt::ref iteration);
 
     template<Number Num>
-    [[nodiscard]] static MPAIndexMapper cGetFlattenIndexMapper(const MPAData<Num> &data, itt::ref iteration);
+    [[nodiscard]] static MPAIndexMapper cGetFlattenIndexMapper(const HNREMPAData<Num> &data, itt::ref iteration);
 
 
     template<Number Num>
-    [[nodiscard]] static std::span<const PA<Num>> getMPAFromMapper(const MPAData<Num> &data,
+    [[nodiscard]] static std::span<const PA<Num>> getMPAFromMapper(const HNREMPAData<Num> &data,
                                                                    MPAIndexMapper flattenIndexMapper);
 
     static void debugCheckMPAFromMapper(size_t totalSize, size_t mapped, size_t levels, size_t generatedLevels);
@@ -38,33 +38,32 @@ namespace merutilm::rff2::MPAUtils {
 
 
     template<Number Num>
-    MPAIndexMapper cGetFlattenIndexMapperFromCompressedPulledIndex(const MPAData<Num> &data, const itt::ref compressedPulled, const size_t levels) {
-        return MPAIndexMapper{.mapped = data.buffer->flattenIndexMapper.template interpret<MPAIndexMapper>()[compressedPulled].mapped,
-                              .generatedLevels = levels};
+    MPAIndexMapper cGetFlattenIndexMapperFromCompressedPulledIndex(const HNREMPAData<Num> &data, const itt::ref compressedPulled) {
+        return data.interpretMapper(compressedPulled);
     }
 
     template<Number Num>
-    MPAIndexMapper uGetFlattenIndexMapper(const MPAData<Num> &data, const itt::ref iteration) {
-        return data.buffer->flattenIndexMapper.template interpret<MPAIndexMapper>()[static_cast<size_t>(iteration)];
+    MPAIndexMapper uGetFlattenIndexMapper(const HNREMPAData<Num> &data, const itt::ref iteration) {
+        return data.interpretMapper(static_cast<size_t>(iteration));
     }
 
     template<Number Num>
-    MPAIndexMapper cGetFlattenIndexMapper(const MPAData<Num> &data, const itt::ref iteration) {
-        const auto [pulled, levels] = MPAIndexMapperUtils::iterationToPulledTableIndexMapper(data.info, iteration);
+    MPAIndexMapper cGetFlattenIndexMapper(const HNREMPAData<Num> &data, const itt::ref iteration) {
+        const itt::ref pulled = MPAIndexMapperUtils::iterationToPulledTableIndex(data.info, iteration);
         if (pulled == UINT64_MAX) {
             return MPAIndexMapper{.mapped = UINT64_MAX, .generatedLevels = 0};
         }
-        return cGetFlattenIndexMapperFromCompressedPulledIndex(data, SRPCUtils::compress(data.info.pulledMPACompressor, pulled), levels);
+        return cGetFlattenIndexMapperFromCompressedPulledIndex(data, SRPCUtils::compress(data.info.pulledMPACompressor, pulled));
     }
 
     template<Number Num>
-    std::span<const PA<Num>> getMPAFromMapper(const MPAData<Num> &data, const MPAIndexMapper flattenIndexMapper) {
+    std::span<const PA<Num>> getMPAFromMapper(const HNREMPAData<Num> &data, const MPAIndexMapper flattenIndexMapper) {
 
         const size_t levels = data.info.tablePeriods.size();
+        size_t mapped = flattenIndexMapper.mapped;
         size_t size = flattenIndexMapper.generatedLevels;
-        debugCheckMPAFromMapper(data.buffer->mpaTable.sizeUsed, flattenIndexMapper.mapped, levels, size);
-        PA<Num> *start = data.buffer->mpaTable.template interpret<PA<Num>>() + flattenIndexMapper.mapped;
-        return std::span<const PA<Num>>(start, size);
+        debugCheckMPAFromMapper(data.tableSize, mapped, levels, size);
+        return data.interpretPA(mapped, size);
     }
 
 

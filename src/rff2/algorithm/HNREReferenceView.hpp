@@ -5,14 +5,14 @@
 #pragma once
 #include "../calc/complex.hpp"
 #include "../calc/iteration_types.hpp"
+#include "../data/HNREReferenceData.hpp"
 #include "MPAUtils.hpp"
 #include "srpc_module/SRPCDataView.hpp"
-#include "../data/ReferenceData.hpp"
 
 namespace merutilm::rff2 {
 
     template<Number Num>
-    class ReferenceView : public SRPCDataView<itt::ref, complex<Num>> {
+    class HNREReferenceView : public SRPCDataView<itt::ref, complex<Num>> {
     public:
         using SRPCDataView<itt::ref, complex<Num>>::SRPCDataView;
 
@@ -38,8 +38,8 @@ namespace merutilm::rff2 {
     };
 
     template<Number Num>
-    ReferenceView<Num> ReferenceData<Num>::makeReferenceView() const {
-        return ReferenceView<Num>(static_cast<const SRPCData<itt::ref, complex<Num>> &>(*this));
+    HNREReferenceView<Num> HNREReferenceData<Num>::makeReferenceView() const {
+        return HNREReferenceView<Num>(static_cast<const SRPCData<itt::ref, complex<Num>> &>(*this));
     }
 
 } // namespace merutilm::rff2
