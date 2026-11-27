@@ -83,8 +83,6 @@ namespace merutilm::rff2 {
 
         void moveCursor(int px, int py) const;
 
-        [[nodiscard]] static dex getDivisor(double logZoom);
-
         [[nodiscard]] uint16_t calcIterationBufferWidth(const Settings &s) const;
 
         [[nodiscard]] uint16_t calcIterationBufferHeight(const Settings &s) const;

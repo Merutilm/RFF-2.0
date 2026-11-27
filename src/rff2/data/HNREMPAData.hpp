@@ -26,19 +26,21 @@ namespace merutilm::rff2 {
         size_t mapperSize = 0;
 
         PA<Num> &interpretPA(const size_t index) const {
+            assert(index < tableSize);
             return buffer->mpaTable.interpret<PA<Num>>(tableOffset + index);
         }
 
         MPAIndexMapper &interpretMapper(const size_t index) const {
+            assert(index < mapperSize);
             return buffer->flattenIndexMapper.interpret<MPAIndexMapper>(mapperOffset + index);
         }
 
         std::span<PA<Num>> interpretPA(const size_t index, const size_t len) const {
-            assert(len < tableSize);
+            assert(index + len <= tableSize);
             return buffer->mpaTable.interpret<PA<Num>>(tableOffset + index, len);
         }
         std::span<MPAIndexMapper> interpretMapper(const size_t index, const size_t len) const {
-            assert(len < mapperSize);
+            assert(index + len <= mapperSize);
             return buffer->flattenIndexMapper.interpret<MPAIndexMapper>(mapperOffset + index, len);
         }
 

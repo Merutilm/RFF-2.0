@@ -348,19 +348,19 @@ namespace merutilm::rff2 {
             t.set_exp10(refExp10);
         }
 
-        fixed_point_complex dc = reference.highestHNREData().mbNucleusOff;
+        fixed_point_complex dc = reference.hnreHighestData().mbNucleusOff;
         dc.set_exp10(refExp10);
         dex dcd = static_cast<complex<dex>>(dc).max();
         complex<dex> mbScale = complex<dex>::ONE;
 
         std::array<int64_t, EXP10_HISTORY_LENGTH> exp10History{};
 
-        if (reference.dcMax < dcd) {
+        if (reference.hnreHighestTransformedScale() < dcd) {
             vkh::logger::log_err("Center could not be found");
             return std::nullopt;
         }
 
-        currCenter = reference.highestHNREData().mbNucleus;
+        currCenter = reference.hnreHighestData().mbNucleus;
         currCenter.set_exp10(refExp10);
 
 

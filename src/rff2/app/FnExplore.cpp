@@ -58,7 +58,7 @@ namespace merutilm::rff2 {
             ImGui::BeginDisabled();
         if (!frt.reference.reuse && ImGui::Button("Move To Center", ImVec2(-FLT_MIN, 0))) {
             assert(renderData->getReference());
-            frt.reference.center = renderData->getReference()->highestHNREData().mbNucleus;
+            frt.reference.center = renderData->getReference()->hnreHighestData().mbNucleus;
             app.getRequests().requestRecompute();
         }
         if (disable)
@@ -79,7 +79,7 @@ namespace merutilm::rff2 {
             assert(renderData->getReference());
             frt.reference.center = renderData->getReference()->c;
             frt.general.logZoom = renderData->getReference()->generalSettings.logZoom;
-            if (renderData->translate(frt.general.logZoom, renderData->getReference()->dcMax,
+            if (renderData->translate(frt.general.logZoom,
                                       app.getSettings().fractal.perturb, frt.reference.center) == RFFResult::SUCCESS) {
                 app.getRequests().requestRecompute();
             } else {

@@ -84,6 +84,10 @@ namespace merutilm::rff2 {
             return complex{.re = (a.re * b.re + a.im * b.im) / m, .im = (a.im * b.re - a.re * b.im) / m};
         }
 
+        friend complex operator/=(complex &a, const complex b) {
+            return a = a / b;
+        }
+
         friend bool operator==(const complex &a, const complex &b) = default;
 
         [[nodiscard]] Num norm_sqr() const { return re * re + im * im; }

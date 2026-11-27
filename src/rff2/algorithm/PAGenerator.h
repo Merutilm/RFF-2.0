@@ -23,7 +23,7 @@ namespace merutilm::rff2 {
         complex<Num> bn = complex<Num>::ZERO;
         Num radius = rff_math::try_normalized_value(Num(DBL_MAX));
 
-        explicit PAGenerator(const HNREReferenceData<Num> &hnreReference, float epsilon, Num dcMax, itt::ref start);
+        explicit PAGenerator(const HNREReferenceData<Num> &hnreReference, float epsilon, Num scale, itt::ref start);
 
         void reuse(itt::ref start);
 
@@ -53,9 +53,9 @@ namespace merutilm::rff2 {
     }
 
     template<Number Num>
-    PAGenerator<Num>::PAGenerator(const HNREReferenceData<Num> &hnreReference, const float epsilon, Num dcMax,
+    PAGenerator<Num>::PAGenerator(const HNREReferenceData<Num> &hnreReference, const float epsilon, Num scale,
                                   const itt::ref start) :
-        start(start), epsilon(epsilon), view(hnreReference.makeReferenceView()), dcMax(dcMax) {}
+        start(start), epsilon(epsilon), view(hnreReference.makeReferenceView()), dcMax(scale) {}
 
     template<Number Num>
     void PAGenerator<Num>::merge(const PAGenerator &target) {

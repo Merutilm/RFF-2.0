@@ -31,7 +31,7 @@ namespace merutilm::rff2 {
 
         virtual RFFResult regenerateApprox(FnListeners::FnCreatingTableW &&fnCreatingTable) = 0;
 
-        virtual RFFResult translate(double logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
+        virtual RFFResult translate(double logZoom, const FrtPerturbSettings &ptbSettings,
                                const fixed_point_complex &newCenter) = 0;
     };
 
@@ -57,7 +57,7 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] MB2Perturbator<Num> *getPerturbator() const override { return perturbator.get(); }
 
-        [[nodiscard]] RFFResult translate(double logZoom, dex dcMax, const FrtPerturbSettings &ptbSettings,
+        [[nodiscard]] RFFResult translate(double logZoom, const FrtPerturbSettings &ptbSettings,
                        const fixed_point_complex &newCenter) override;
 
         void applyAutoMaxIteration();
@@ -74,7 +74,7 @@ namespace merutilm::rff2 {
         result = std::make_unique<MB2RenderData>(state, frt, computeShaderUsed, buffer);
         MB2RenderData &instance = dynamic_cast<MB2RenderData &>(*result);
         MB2ReferenceGenerator<Num, FnRefCalc> generator(state, frt.general, frt.reference, exp10, refInitialCapacity,
-                                                               dcMax, {}, std::move(fnRefCalc));
+                                                               dcMax, std::vector<itt::ref>{5374}, std::move(fnRefCalc));
 
         if (const RFFResult r = generator.generate(); r != RFFResult::SUCCESS) return r;
 
@@ -89,22 +89,20 @@ namespace merutilm::rff2 {
         if (!reference) return RFFResult::ERROR_NULL;
 
         MB2MPAGenerator generator(state, *reference, buffer, fractalSettings.general, fractalSettings.mpa,
-                                                computeShaderUsed, Num(reference->dcMax), std::move(fnCreatingTable));
+                                                computeShaderUsed, std::move(fnCreatingTable));
         generator.generate();
         table = std::move(generator).extract();
         complex<dex> off = perturbator ? perturbator->off : complex<dex>::ZERO;
-        dex dcMax = perturbator ? perturbator->dcMax : reference->dcMax;
         perturbator = std::make_unique<MB2Perturbator<Num>>(
-                state, reference->dcMax, fractalSettings.general, fractalSettings.perturb,
+                state, fractalSettings.general, fractalSettings.perturb,
                 *reference, dynamic_cast<MPAData<Num> &>(*table));
         perturbator->off = off;
-        perturbator->dcMax = dcMax;
         return state.interruptRequested() ? RFFResult::TERMINATED : RFFResult::SUCCESS;
     }
 
 
     template<Number Num>
-    RFFResult MB2RenderData<Num>::translate(const double logZoom, const dex dcMax, const FrtPerturbSettings &ptbSettings,
+    RFFResult MB2RenderData<Num>::translate(const double logZoom, const FrtPerturbSettings &ptbSettings,
                                        const fixed_point_complex &newCenter) {
         if (!reference || !perturbator || !table) {
             // try to use incomplete reference
@@ -117,11 +115,7 @@ namespace merutilm::rff2 {
         const fixed_point_complex refCenter = reference->c.create_variant(exp10);
         fixed_point_complex::sub(center, center, refCenter);
 
-        const dex distance = static_cast<complex<dex>>(center).norm();
-
         perturbator->off = {static_cast<dex>(center.get_real()), static_cast<dex>(center.get_imag())};
-        perturbator->dcMax = dcMax + distance;
-
         fractalSettings.perturb = ptbSettings;
         fractalSettings.general.logZoom = logZoom;
 

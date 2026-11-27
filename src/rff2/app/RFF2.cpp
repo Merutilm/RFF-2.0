@@ -200,7 +200,7 @@ namespace merutilm::rff2 {
                                         .perturb = {.maxIteration = 300,
                                                     .smoothIteration = true,
                                                     .autoMaxIteration = true,
-                                                    .interiorDetectRadiusPower = 7,
+                                                    .interiorDetectRadiusPower = 9,
                                                     .autoIterationMultiplier = 100,
                                                     .absoluteIterationMode = false}},
                 .render = {.display = RndDisplayPresets::Low().genDisplay(),
@@ -240,7 +240,7 @@ namespace merutilm::rff2 {
                                         .perturb = {.maxIteration = 300,
                                                     .smoothIteration = true,
                                                     .autoMaxIteration = true,
-                                                    .interiorDetectRadiusPower = 7,
+                                                    .interiorDetectRadiusPower = 9,
                                                     .autoIterationMultiplier = 100,
                                                     .absoluteIterationMode = false}},
                 .render = {.display = RndDisplayPresets::High().genDisplay(),
@@ -271,12 +271,12 @@ namespace merutilm::rff2 {
                                         const int py) const {
         const double bufOffX = static_cast<double>(px) - static_cast<double>(getIterationBufferWidth()) / 2.0;
         const double bufOffY = static_cast<double>(py) - static_cast<double>(getIterationBufferHeight()) / 2.0;
-        return complex{.re = dex(bufOffX), .im = dex(bufOffY)} / getDivisor(logZoom) / dex(clarityMultiplier);
+        return complex{.re = dex(bufOffX), .im = dex(bufOffY)} / rff_math::exp10(logZoom) / dex(clarityMultiplier);
     }
 
     std::array<int, 2> RFF2::iterationBufferConversion(const double logZoom, const float clarityMultiplier,
                                                        const complex<dex> &offset) const {
-        const auto [re, im] = static_cast<complex<double>>(offset * dex(clarityMultiplier) * getDivisor(logZoom));
+        const auto [re, im] = static_cast<complex<double>>(offset * dex(clarityMultiplier) * rff_math::exp10(logZoom));
 
         const auto px = static_cast<int>((re < 0 ? std::round(re) : std::ceil(re)) + getIterationBufferWidth() / 2.0);
         const auto py = static_cast<int>((im < 0 ? std::round(im) : std::ceil(im)) + getIterationBufferHeight() / 2.0);
@@ -289,9 +289,6 @@ namespace merutilm::rff2 {
         glfwSetCursorPos(rootWindowContext->getWindow()->getWindow(), mx,
                          rootWindowContext->getSwapchain().getSwapchainExtent().height - my);
     }
-
-    dex RFF2::getDivisor(const double logZoom) { return rff_math::exp10(logZoom); }
-
 
     uint16_t RFF2::calcIterationBufferWidth(const Settings &s) const {
         const float multiplier = s.render.display.clarityMultiplier;
@@ -352,8 +349,9 @@ namespace merutilm::rff2 {
 
                         fixed_point_complex &center = settings.fractal.reference.center;
                         center.set_exp10(exp10);
-                        const fixed_point_complex add(dex(static_cast<double>(dx) / m) / getDivisor(logZoom),
-                                                      dex(static_cast<double>(dy) / m) / getDivisor(logZoom), exp10);
+                        dex zoom = rff_math::exp10(logZoom);
+                        const fixed_point_complex add(dex(static_cast<double>(dx) / m) / zoom,
+                                                      dex(static_cast<double>(dy) / m) / zoom, exp10);
                         fixed_point_complex::add(center, center, add);
                     }
                 });
@@ -905,7 +903,7 @@ namespace merutilm::rff2 {
         if (!renderData || !renderData->getReference())
             return;
 
-        auto offDex = static_cast<complex<dex>>(renderData->getReference()->highestHNREData().mbNucleusOff);
+        auto offDex = static_cast<complex<dex>>(renderData->getReference()->hnreHighestData().mbNucleusOff);
         if (renderData->getPerturbator()) {
             offDex -= renderData->getPerturbator()->off;
         }
@@ -969,7 +967,7 @@ namespace merutilm::rff2 {
             if (!renderData || !renderData->getReference()) {
                 return RFFResult::ERROR_NULL;
             }
-            if (const RFFResult r = renderData->translate(frt.general.logZoom, dcMax, frt.perturb, frt.reference.center);
+            if (const RFFResult r = renderData->translate(frt.general.logZoom, frt.perturb, frt.reference.center);
                 r != RFFResult::SUCCESS) {
                 return r;
             }

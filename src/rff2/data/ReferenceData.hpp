@@ -5,7 +5,6 @@
 #pragma once
 #include "../algorithm/ReferenceCheckpoint.hpp"
 #include "../algorithm/srpc_module/SRPCDataView.hpp"
-#include "../calc/complex.hpp"
 #include "../calc/iteration_types.hpp"
 #include "../settings/FrtGeneralSettings.hpp"
 #include "../settings/FrtReferenceSettings.hpp"
@@ -22,41 +21,41 @@ namespace merutilm::rff2 {
 
         std::vector<ReferenceCheckpoint> highestHNRECheckpoints;
 
-        dex dcMax;
-
         ReferenceDataBase() = default;
 
         explicit ReferenceDataBase(FrtGeneralSettings generalSettings, FrtReferenceSettings refSettings,
                                    fixed_point_complex &&c,
-                                   std::vector<ReferenceCheckpoint> &&highestHNRECheckpoints, const dex dcMax) :
+                                   std::vector<ReferenceCheckpoint> &&highestHNRECheckpoints) :
             generalSettings(std::move(generalSettings)), refSettings(std::move(refSettings)), c(std::move(c)),
-        highestHNRECheckpoints(std::move(highestHNRECheckpoints)), dcMax(dcMax) {}
+        highestHNRECheckpoints(std::move(highestHNRECheckpoints)) {}
 
         virtual ~ReferenceDataBase() = default;
 
         [[nodiscard]] virtual itt::ref calcPeriod() const = 0;
 
-        [[nodiscard]] virtual const HNREDataBase &highestHNREData() const = 0;
+        [[nodiscard]] virtual const HNREDataBase &hnreHighestData() const = 0;
 
         [[nodiscard]] virtual size_t calcTotalLength() const = 0;
 
         [[nodiscard]] virtual size_t hnreCount() const = 0;
+
+        [[nodiscard]] virtual dex hnreHighestTransformedScale() const = 0;
     };
 
     template<Number Num>
     struct ReferenceData : ReferenceDataBase {
         std::vector<HNREReferenceData<Num>> hnreList;
 
-        explicit ReferenceData(FrtGeneralSettings generalSettings,
-                               FrtReferenceSettings refSettings, fixed_point_complex &&c, std::vector<HNREReferenceData<Num>> &&hnreList,
-                               std::vector<ReferenceCheckpoint> &&highestHNRECheckpoints, const dex dcMax) :
+        explicit ReferenceData(FrtGeneralSettings generalSettings, FrtReferenceSettings refSettings,
+                               fixed_point_complex &&c, std::vector<HNREReferenceData<Num>> &&hnreList,
+                               std::vector<ReferenceCheckpoint> &&highestHNRECheckpoints) :
             ReferenceDataBase(std::move(generalSettings), std::move(refSettings), std::move(c),
-                              std::move(highestHNRECheckpoints), dcMax),
+                              std::move(highestHNRECheckpoints)),
             hnreList(std::move(hnreList)) {}
 
         [[nodiscard]] size_t calcTotalLength() const override {
             size_t length = 0;
-            for (auto &hnreData : hnreList) {
+            for (auto &hnreData: hnreList) {
                 length += hnreData.getCompressedArray().size();
             }
             return length;
@@ -64,20 +63,19 @@ namespace merutilm::rff2 {
 
         [[nodiscard]] itt::ref calcPeriod() const override {
             itt::ref period = 1;
-            for (auto &hnreData : hnreList) {
+            for (auto &hnreData: hnreList) {
                 period *= hnreData.generatedPeriods.back();
             }
             return period;
         }
 
-        [[nodiscard]] const HNREDataBase &highestHNREData() const override {
-            return hnreList.back();
-        }
+        [[nodiscard]] const HNREDataBase &hnreHighestData() const override { return hnreList.back(); }
 
-        [[nodiscard]] size_t hnreCount() const override {
-            return hnreList.size();
-        }
+        [[nodiscard]] size_t hnreCount() const override { return hnreList.size(); }
 
+        [[nodiscard]] dex hnreHighestTransformedScale() const override {
+            return dex(hnreList.back().scale);
+        }
     };
 
 } // namespace merutilm::rff2

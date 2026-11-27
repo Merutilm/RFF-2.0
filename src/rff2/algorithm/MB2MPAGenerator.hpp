@@ -70,7 +70,6 @@ namespace merutilm::rff2 {
         const FrtGeneralSettings &generalSettings;
         const FrtMPASettings &mpaSettings;
         const bool computeShaderUsed;
-        Num dcMax;
         FnCreatingTable fnCreatingTable;
 
 
@@ -80,10 +79,10 @@ namespace merutilm::rff2 {
     public:
         explicit MB2MPAGenerator(const ParallelRenderState &state, const ReferenceData<Num> &reference,
                                  ApproxTableBuffer &buffer, const FrtGeneralSettings &generalSettings,
-                                 const FrtMPASettings &mpaSettings, bool computeShaderUsed, Num dcMax,
+                                 const FrtMPASettings &mpaSettings, const bool computeShaderUsed,
                                  FnCreatingTable &&fnCreatingTable) :
             state(state), reference(reference), buffer(buffer), generalSettings(generalSettings),
-            mpaSettings(mpaSettings), computeShaderUsed(computeShaderUsed), dcMax(dcMax),
+            mpaSettings(mpaSettings), computeShaderUsed(computeShaderUsed),
             fnCreatingTable(std::move(fnCreatingTable)) {}
 
         RFFResult generate();
@@ -522,7 +521,7 @@ namespace merutilm::rff2 {
         cp.itCountLim = tablePeriods;
         cp.generationAvailable.resize(levels, true);
 
-        cp.currentPA = std::vector(levels, PAGenerator<Num>(*data.targetHNRE, epsilon, dcMax, 1));
+        cp.currentPA = std::vector(levels, PAGenerator<Num>(*data.targetHNRE, epsilon, data.targetHNRE->scale, 1));
 
         cp.iteration = 1;
         cp.pulledTableIndex = 0;
@@ -577,7 +576,7 @@ namespace merutilm::rff2 {
         }
 
         up.flattenTableIndex = MPAIndexMapperUtils::iterationToNearestFlattenTableIndex(data.info, startIteration);
-        up.currentPA = std::vector(levels, PAGenerator<Num>(*data.targetHNRE, epsilon, dcMax, startIteration));
+        up.currentPA = std::vector(levels, PAGenerator<Num>(*data.targetHNRE, epsilon, data.targetHNRE->scale, startIteration));
         up.iteration = startIteration;
 
         return up;

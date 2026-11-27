@@ -19,7 +19,6 @@ namespace merutilm::rff2 {
     struct MB2PerturbatorBase : Perturbator {
 
         ParallelRenderState &state;
-        dex dcMax;
         complex<dex> off = complex<dex>::ZERO;
 
     protected:
@@ -27,9 +26,9 @@ namespace merutilm::rff2 {
         const FrtPerturbSettings &ptbSettings;
 
     public:
-        MB2PerturbatorBase(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
+        MB2PerturbatorBase(ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                            const FrtPerturbSettings &ptbSettings) :
-            state(state), dcMax(dcMax), generalSettings(generalSettings),
+            state(state), generalSettings(generalSettings),
             ptbSettings(ptbSettings) {}
 
         ~MB2PerturbatorBase() override = default;
@@ -47,24 +46,19 @@ namespace merutilm::rff2 {
         const ReferenceData<Num> &reference;
         const MPAData<Num> &table;
 
-        explicit MB2Perturbator(ParallelRenderState &state, const dex dcMax, const FrtGeneralSettings &generalSettings,
+        explicit MB2Perturbator(ParallelRenderState &state, const FrtGeneralSettings &generalSettings,
                                 const FrtPerturbSettings &ptbSettings, const ReferenceData<Num> &reference,
                                 const MPAData<Num> &table) :
-            MB2PerturbatorBase(state, dcMax, generalSettings, ptbSettings), reference(reference), table(table) {}
+            MB2PerturbatorBase(state, generalSettings, ptbSettings), reference(reference), table(table) {}
 
         ~MB2Perturbator() override = default;
-
-
-        void transform(const complex<dex> &dc, const dex multiplier) {
-            // TODO
-        }
 
         bool innerCardioidTest(const complex<Num> &dc) const {
             // fast calculation of period-n bulb
             const auto cOff =
                     static_cast<complex<dex>>(dc) - static_cast<complex<dex>>(reference.hnreList.mbNucleusOff);
             const auto cOffSqr = cOff.norm_sqr();
-            const auto s = reference.hnreList.mbScale * 4;
+            const auto s = reference.hnreList.scale * 4;
             const auto rot = reference.hnreList.mbRotation;
             const auto cos = rff_math::cos(rot);
             const auto sin = rff_math::sin(rot);
@@ -94,14 +88,14 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        bool checkInteriorAndApply(const complex<Num> &dz, const Num dcMax, const float interiorDetectRadius,
+        bool checkInteriorAndApply(const complex<Num> &dz, const Num scale, const float interiorDetectRadius,
                                    std::array<complex<Num>, PERIODIC_POINT_HISTORY_LENGTH> &pdz, int &pdzIndex) const {
             if (interiorDetectRadius == 0)
                 return false;
 
             for (const complex<Num> &pdz0: pdz) {
                 Num rad = (pdz0 - dz).max();
-                if (rad * rad < dcMax * interiorDetectRadius) {
+                if (rad * rad < scale * interiorDetectRadius) {
                     return true;
                 }
             }
@@ -140,13 +134,8 @@ namespace merutilm::rff2 {
             return false;
         }
 
-        void perturbationStep(HNREReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
-                              itt::ref &refIteration) const {
-// #ifndef NDEBUG
-//             assert(view.currentOriginalIndex() == refIteration);
-//             auto compRef = SRPCUtils::compress(view.getCompressor(), refIteration);
-//             assert(compRef == view.currentRefIndex());
-// #endif
+        static void perturbationStep(HNREReferenceView<Num> &view, complex<Num> &dz, const complex<Num> &dc, itt::ptb &iteration,
+                              itt::ref &refIteration) {
             dz = (view.get() * 2 + dz) * dz + dc;
             view.next();
 
@@ -154,41 +143,35 @@ namespace merutilm::rff2 {
             ++refIteration;
         }
 
-        void calcInitialIteration(complex<Num> &dz, itt::ptb &iteration,
-                                  itt::ref &refIteration) const {
-            dz = complex<Num>::ZERO;
-            iteration = 0;
-            refIteration = 0;
-        }
         [[nodiscard]] double iterate(complex<dex> dc) const noexcept override {
             double iteration = 0;
             const bool isAbs = ptbSettings.absoluteIterationMode;
-            //TODO transform dc
             for (size_t i = 0; i < table.hnreList.size() - 1; ++i) {
-                dc *= table.hnreList[i].targetHNRE->transform;
+                dc *= table.hnreList[i].targetHNRE->dcTransform;
             }
-            //TODO remove assert
-            assert(table.hnreList.size() == 1);
+            complex<Num> dz = complex<Num>::ZERO;
             for (size_t i = table.hnreList.size(); i > 0; --i) {
                 const HNREMPAData<Num> &data = table.hnreList[i - 1];
+
                 if (!isAbs) iteration *= data.targetHNRE->longestPeriod();
-                complex<Num> dz;
-                iteration += iterateHNRE(dz, data, dc);
-                //TODO transform dz
-                dc = static_cast<complex<dex>>(dz) / data.targetHNRE->transform;
+                if (iteration >= ptbSettings.maxIteration) return isAbs ? iteration : ptbSettings.maxIteration;
+
+                iteration += iterateHNRE(dz, data, dc, i == 1 ? ptbSettings.maxIteration : data.targetHNRE->longestPeriod() * ptbSettings.autoIterationMultiplier);
+                if (i > 1) {
+                    dz /= static_cast<complex<Num>>(table.hnreList[i - 2].targetHNRE->dzTransform);
+                    dc /= table.hnreList[i - 2].targetHNRE->dcTransform;
+                }
             }
             return iteration;
         }
-        [[nodiscard]] double iterateHNRE(complex<Num> &resultDz, const HNREMPAData<Num> &data, const complex<dex> &dc) const noexcept{
-            //TODO modify Dz
+        [[nodiscard]] double iterateHNRE(complex<Num> &dz, const HNREMPAData<Num> &data, const complex<dex> &dc, const itt::ptb maxIteration) const noexcept{
             if (state.interruptRequested())
                 return 0.0;
 
             // field reference
             const auto dc0 = static_cast<complex<Num>>(dc + off);
-            const Num dcMax0 = Num(dcMax);
+            const Num scale = data.targetHNRE->scale;
             const bool isAbs = ptbSettings.absoluteIterationMode;
-            const itt::ptb maxIteration = ptbSettings.maxIteration;
             const itt::ref maxRefIteration = data.targetHNRE->longestPeriod();
             const float interiorDetectRadius =
                     ptbSettings.interiorDetectRadiusPower == 0 ? 0 : pow(10, -ptbSettings.interiorDetectRadiusPower);
@@ -206,10 +189,8 @@ namespace merutilm::rff2 {
             referenceView.reset();
 
             // generate initial iteration and dz
-            complex<Num> dz;
-            itt::ptb iteration;
-            itt::ref refIteration;
-            calcInitialIteration(dz, iteration, refIteration);
+            itt::ptb iteration = 0;
+            itt::ref refIteration = 0;
 
             // init local variables
             std::array<complex<Num>, PERIODIC_POINT_HISTORY_LENGTH> pdz = {};
@@ -219,7 +200,6 @@ namespace merutilm::rff2 {
 
             // predefined variables (uninitialized)
             itt::ptb absIteration;
-
             // start!!
             for (absIteration = 0; currDistance2 <= bailout2 && iteration < maxIteration; ++absIteration) {
 
@@ -227,7 +207,7 @@ namespace merutilm::rff2 {
                 perturbationStep(referenceView, dz, dc0, iteration, refIteration);
                 const complex<Num> z = referenceView.get() + dz;
                 if (tryRebase(referenceView, z, dz, refIteration, maxRefIteration) &&
-                    checkInteriorAndApply(dz, dcMax0, interiorDetectRadius, pdz, pdzIndex)) {
+                    checkInteriorAndApply(dz, scale, interiorDetectRadius, pdz, pdzIndex)) {
                     return static_cast<double>(isAbs ? absIteration : maxIteration);
                 }
 
@@ -258,29 +238,29 @@ namespace merutilm::rff2 {
             return static_cast<double>(iteration) + inc;
         }
 
-        void checkInteriorAndApplyBatch(
-                const SIMDChunk<double> &chunk, std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> &dz,
-                const float interiorDetectRadius, const bool isAbs, const itt::ptb maxIteration,
-                std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finished, const Num &dcMax0,
-                const std::array<itt::ptb, RFF_SIMD_CHUNK_SIZE> &absIteration,
-                std::array<std::array<complex<Num>, PERIODIC_POINT_HISTORY_LENGTH>, RFF_SIMD_CHUNK_SIZE> &pdz,
-                std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &pdzIndex, uint32_t i) const noexcept {
-            if (finished[i])
-                return;
-
-            if (interiorDetectRadius != 0) {
-                for (const complex<Num> &pdz0: pdz[i]) {
-                    if ((pdz0 - dz[i]).norm_sqr() < dcMax0 * interiorDetectRadius) {
-                        *chunk.data[i].value = isAbs ? absIteration[i] : static_cast<double>(maxIteration);
-                        finished[i] = true;
-                    }
-                }
-
-                pdz[i][pdzIndex[i]++] = dz[i];
-                if (pdzIndex[i] == pdz[i].size())
-                    pdzIndex[i] = 0;
-            }
-        }
+        // void checkInteriorAndApplyBatch(
+        //         const SIMDChunk<double> &chunk, std::array<complex<Num>, RFF_SIMD_CHUNK_SIZE> &dz,
+        //         const float interiorDetectRadius, const bool isAbs, const itt::ptb maxIteration,
+        //         std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &finished, const Num &scale0,
+        //         const std::array<itt::ptb, RFF_SIMD_CHUNK_SIZE> &absIteration,
+        //         std::array<std::array<complex<Num>, PERIODIC_POINT_HISTORY_LENGTH>, RFF_SIMD_CHUNK_SIZE> &pdz,
+        //         std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> &pdzIndex, uint32_t i) const noexcept {
+        //     if (finished[i])
+        //         return;
+        //
+        //     if (interiorDetectRadius != 0) {
+        //         for (const complex<Num> &pdz0: pdz[i]) {
+        //             if ((pdz0 - dz[i]).norm_sqr() < scale0 * interiorDetectRadius) {
+        //                 *chunk.data[i].value = isAbs ? absIteration[i] : static_cast<double>(maxIteration);
+        //                 finished[i] = true;
+        //             }
+        //         }
+        //
+        //         pdz[i][pdzIndex[i]++] = dz[i];
+        //         if (pdzIndex[i] == pdz[i].size())
+        //             pdzIndex[i] = 0;
+        //     }
+        // }
 
         void iterateBatch(SIMDChunk<double> &chunk,
                           std::array<complex<dex>, RFF_SIMD_CHUNK_SIZE> &dcs) const noexcept override {
@@ -310,7 +290,7 @@ namespace merutilm::rff2 {
             // const itt::ptb maxIteration = ptbSettings.maxIteration;
             // const double bailout2 = generalSettings.bailout * generalSettings.bailout;
             //
-            // auto dcMax0 = Num(dcMax);
+            // auto scale0 = Num(scale);
             //
             // std::array<uint8_t, RFF_SIMD_CHUNK_SIZE> finished;
             // std::array<itt::ptb, RFF_SIMD_CHUNK_SIZE> absIteration;
