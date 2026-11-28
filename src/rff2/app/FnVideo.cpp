@@ -137,7 +137,7 @@ namespace merutilm::rff2 {
 
                         RFFBinary::exportFile(
                                 RFFLocationBinary(settings.fractal.general.logZoom, center.real.to_string(),
-                                                  center.imag.to_string(), settings.fractal.perturb.maxIteration),
+                                                  center.imag.to_string(), settings.fractal.perturb.maxIteration, settings.fractal.reference.hnrePeriodRequests),
                                 IOUtilities::generateFilename(dir, Constants::File::EXT_LOCATION, nullptr).string());
                         logZoom -= increment;
                         nextFrame = true;

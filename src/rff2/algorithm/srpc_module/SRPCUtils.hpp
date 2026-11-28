@@ -86,7 +86,7 @@ namespace merutilm::rff2::SRPCUtils {
     template<typename Index>
     void popEndedSegments(SRPCSegment<Index> *&topPtr,
                                              std::vector<SRPCSegment<Index>> &currentIndexSegmentStack,
-                                             Index &refIndex);
+                                             size_t &refIndex);
 
     // DEFINITION OF ArrayCompressorUtils
     // DEFINITION OF ArrayCompressorUtils
@@ -234,7 +234,7 @@ namespace merutilm::rff2::SRPCUtils {
     template<typename Index>
     void popEndedSegments(SRPCSegment<Index> *&topPtr,
                                              std::vector<SRPCSegment<Index>> &currentIndexSegmentStack,
-                                             Index &refIndex) {
+                                             size_t &refIndex) {
         if (topPtr->remained > 0)
             return;
 

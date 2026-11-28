@@ -17,5 +17,6 @@ namespace merutilm::rff2 {
         bool useFixedPrecision{};
         uint32_t partitionSize;
         int64_t fixedPrecisionNeg{};
+        std::vector<itt::ref> hnrePeriodRequests;
     };
 }

@@ -31,8 +31,8 @@ namespace merutilm::rff2 {
     template<Number Num>
     struct UProcessor {
 
-        std::vector<itt::ref> itCount;
-        std::vector<itt::ref> itCountLim;
+        std::vector<uint64_t> itCount;
+        std::vector<uint64_t> itCountLim;
         std::vector<PAGenerator<Num>> currentPA;
         std::vector<uint64_t> currentPASkips;
         std::vector<bool> generationAvailable;
@@ -142,7 +142,7 @@ namespace merutilm::rff2 {
             const itt::ref longestPeriod = hnreData.longestPeriod();
 
             HNREMPAData<Num> data;
-            data.targetHNRE = &hnreData;
+            data.hnreTarget = &hnreData;
 
             if (const int minSkip = mpaSettings.minSkipReference; longestPeriod <= minSkip) {
                 mpaData->hnreList.emplace_back(std::move(data));
@@ -434,7 +434,7 @@ namespace merutilm::rff2 {
 
         while (level > 0) {
             --level;
-            up.itCountLim[level] = std::min(tablePeriods[level], up.itCountLim[level + 1] - up.itCount[level + 1]);
+            up.itCountLim[level] = std::min(static_cast<uint64_t>(tablePeriods[level]), up.itCountLim[level + 1] - up.itCount[level + 1]);
             up.itCount[level] = 0;
             up.generationAvailable[level] = up.itCountLim[level] == tablePeriods[level];
         }
@@ -521,7 +521,7 @@ namespace merutilm::rff2 {
         cp.itCountLim = tablePeriods;
         cp.generationAvailable.resize(levels, true);
 
-        cp.currentPA = std::vector(levels, PAGenerator<Num>(*data.targetHNRE, epsilon, data.targetHNRE->scale, 1));
+        cp.currentPA = std::vector(levels, PAGenerator<Num>(*data.hnreTarget, epsilon, data.hnreTarget->scale, 1));
 
         cp.iteration = 1;
         cp.pulledTableIndex = 0;
@@ -576,7 +576,7 @@ namespace merutilm::rff2 {
         }
 
         up.flattenTableIndex = MPAIndexMapperUtils::iterationToNearestFlattenTableIndex(data.info, startIteration);
-        up.currentPA = std::vector(levels, PAGenerator<Num>(*data.targetHNRE, epsilon, data.targetHNRE->scale, startIteration));
+        up.currentPA = std::vector(levels, PAGenerator<Num>(*data.hnreTarget, epsilon, data.hnreTarget->scale, startIteration));
         up.iteration = startIteration;
 
         return up;
@@ -698,7 +698,7 @@ namespace merutilm::rff2 {
         for (size_t i = 0; i < threadCount; ++i) {
             threads[i] = std::make_unique<std::jthread>(
                     [this, &data, i, itInterval, longestPeriod, epsilon, &ups, threadCount] {
-                        const itt::ref startIteration = itInterval * i + 1;
+                        const uint64_t startIteration = itInterval * i + 1;
                         ups[i] = uInitProcessor(data, startIteration, epsilon);
 
                         if (startIteration > longestPeriod || state.interruptRequested()) {

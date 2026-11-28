@@ -18,8 +18,8 @@ namespace merutilm::rff2 {
         size_t nextExpectedRefIteration = 0;
         size_t pulledTableSize;
 
-        std::vector<uint64_t> itCount;
-        std::vector<uint64_t> itCountLim;
+        std::vector<itt::ref> itCount;
+        std::vector<itt::ref> itCountLim;
 
     public:
         explicit HNREMPAView(const HNREMPAData<Num> &data);

@@ -14,5 +14,6 @@ namespace merutilm::rff2 {
 
         static void automaticIterations(RFF2 &app);
         static void absoluteIterationMode(RFF2 &app);
+        static void hnre(RFF2 &app);
     };
 } // namespace merutilm::rff2

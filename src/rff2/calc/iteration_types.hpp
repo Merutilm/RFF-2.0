@@ -11,7 +11,7 @@
 
 namespace merutilm::rff2::itt {
     using uint128_t = __uint128_t;
-    using ref = uint64_t;
+    using ref = uint128_t;
     using ptb = uint128_t;
 
 

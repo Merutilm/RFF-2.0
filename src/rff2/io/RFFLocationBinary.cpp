@@ -8,14 +8,14 @@
 
 #include "../app/IOUtilities.h"
 #include "../constants/FileConstants.hpp"
-#include "vulkan-helper/base/logger.hpp"
 
 namespace merutilm::rff2 {
-    inline const RFFLocationBinary RFFLocationBinary::DEFAULT = RFFLocationBinary(0, "", "", 0);
+    inline const RFFLocationBinary RFFLocationBinary::DEFAULT = RFFLocationBinary(0, "", "", 0, {});
 
     RFFLocationBinary::RFFLocationBinary(const double logZoom, std::string real, std::string imag,
-                                         const itt::ptb maxIteration) :
-        logZoom(logZoom), real(std::move(real)), imag(std::move(imag)), maxIteration(maxIteration) {
+                                         const itt::ptb maxIteration, std::vector<itt::ref> hnrePeriodRequests) :
+        logZoom(logZoom), real(std::move(real)), imag(std::move(imag)), maxIteration(maxIteration),
+        hnrePeriodRequests(std::move(hnrePeriodRequests)) {
         static_assert(RFFBinaryRequirements<RFFLocationBinary>);
     }
 
@@ -36,7 +36,7 @@ namespace merutilm::rff2 {
             uint64_t max64;
             IOUtilities::readAndDecode(in, &max64);
             max = static_cast<itt::ptb>(max64);
-        }else {
+        } else {
             uint64_t mSize = 0;
             IOUtilities::readAndDecode(in, &mSize);
             std::vector<std::byte> mRaw(mSize);
@@ -57,7 +57,15 @@ namespace merutilm::rff2 {
         std::string r = re.data();
         std::string i = im.data();
 
-        return RFFLocationBinary{lz, std::move(r), std::move(i), max};
+        std::vector<itt::ref> hnrePeriodRequests;
+        if (version < 6) {
+            IOUtilities::readAndDecode(in, &len);
+            hnrePeriodRequests.resize(len);
+            IOUtilities::readAndDecode(in, &hnrePeriodRequests);
+        }
+
+
+        return RFFLocationBinary{lz, std::move(r), std::move(i), max, std::move(hnrePeriodRequests)};
     }
 
 
@@ -77,6 +85,9 @@ namespace merutilm::rff2 {
         len = imag.length();
         IOUtilities::encodeAndWrite(out, len);
         IOUtilities::encodeAndWrite(out, imag.data(), imag.length());
+        len = hnrePeriodRequests.size();
+        IOUtilities::encodeAndWrite(out, len);
+        IOUtilities::encodeAndWrite(out, hnrePeriodRequests);
     }
 
 

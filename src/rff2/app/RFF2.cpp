@@ -606,12 +606,11 @@ namespace merutilm::rff2 {
             if (ImGuiUtils::BeginTabItem("Fractal")) {
                 FnFractal::reference(*this);
                 FnFractal::iterations(*this);
-#ifdef RFF_USE_SA
-                FnFractal::sa(*this);
-#endif
                 FnFractal::mpa(*this);
                 FnFractal::automaticIterations(*this);
                 FnFractal::absoluteIterationMode(*this);
+                FnFractal::hnre(*this);
+
                 ImGuiUtils::EndTabItem();
             }
             if (ImGuiUtils::BeginTabItem("Render")) {
@@ -785,7 +784,7 @@ namespace merutilm::rff2 {
         const auto frt = settings.fractal; // clone the settings
         const auto &center = frt.reference.center;
         RFFBinary::exportFile(RFFLocationBinary(frt.general.logZoom, center.real.to_string(), center.imag.to_string(),
-                                                frt.perturb.maxIteration),
+                                                frt.perturb.maxIteration, frt.reference.hnrePeriodRequests),
                               path);
     }
 

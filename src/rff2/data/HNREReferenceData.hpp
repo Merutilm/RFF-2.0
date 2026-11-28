@@ -22,8 +22,12 @@ namespace merutilm::rff2 {
 
         HNREDataBase() = default;
 
+        virtual ~HNREDataBase() = default;
+
         explicit HNREDataBase(std::vector<itt::ref> &&generatedPeriods) :
             generatedPeriods(std::move(generatedPeriods)) {}
+
+        virtual itt::ref longestPeriod() const = 0;
     };
 
     // HNRE (Hierarchical Nested Reference Estimation) Info
@@ -70,7 +74,7 @@ namespace merutilm::rff2 {
             return SRPCData<itt::ref, complex<Num>>::compressor;
         }
 
-        [[nodiscard]] itt::ref longestPeriod() const { return generatedPeriods.back(); }
+        [[nodiscard]] itt::ref longestPeriod() const override { return generatedPeriods.back(); }
 
 
         [[nodiscard]] HNREReferenceView<Num> makeReferenceView() const;

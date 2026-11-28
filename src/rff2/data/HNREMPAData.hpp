@@ -15,7 +15,7 @@ namespace merutilm::rff2 {
 
     template<Number Num>
     struct HNREMPAData {
-        const HNREReferenceData<Num> *targetHNRE = nullptr;
+        const HNREReferenceData<Num> *hnreTarget = nullptr;
         ApproxTableBuffer *buffer = nullptr;
         MPAInfo info;
 

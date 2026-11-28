@@ -146,31 +146,31 @@ namespace merutilm::rff2 {
             double iteration = 0;
             const bool isAbs = ptbSettings.absoluteIterationMode;
             for (size_t i = 0; i < table.hnreList.size() - 1; ++i) {
-                dc *= table.hnreList[i].targetHNRE->dcTransform;
+                dc *= table.hnreList[i].hnreTarget->dcTransform;
             }
             complex<Num> dz = complex<Num>::ZERO;
             for (size_t i = table.hnreList.size(); i > 0; --i) {
                 const HNREMPAData<Num> &data = table.hnreList[i - 1];
 
                 if (!isAbs)
-                    iteration *= data.targetHNRE->longestPeriod();
+                    iteration *= data.hnreTarget->longestPeriod();
                 if (iteration >= ptbSettings.maxIteration)
                     return isAbs ? iteration : ptbSettings.maxIteration;
 
                 itt::ptb maxIteration = i == 1 ? ptbSettings.maxIteration
-                                               : data.targetHNRE->longestPeriod() * ptbSettings.autoIterationMultiplier;
-                iteration += iterateHNRE(dz, data, dc, maxIteration, i > 1);
+                                               : data.hnreTarget->longestPeriod() * ptbSettings.autoIterationMultiplier;
+                iteration += hnreIterate(dz, data, dc, maxIteration, i > 1);
 
                 if (i > 1) {
-                    dz /= static_cast<complex<Num>>(table.hnreList[i - 2].targetHNRE->dzTransform);
-                    dc /= table.hnreList[i - 2].targetHNRE->dcTransform;
+                    dz /= static_cast<complex<Num>>(table.hnreList[i - 2].hnreTarget->dzTransform);
+                    dc /= table.hnreList[i - 2].hnreTarget->dcTransform;
                 }
             }
             return iteration;
         }
 
-        [[nodiscard]] double iterateHNRE(complex<Num> &dz, const HNREMPAData<Num> &data, const complex<dex> &dc,
-                                         const itt::ptb maxIteration, bool smallDzRequired) const noexcept {
+        [[nodiscard]] double hnreIterate(complex<Num> &dz, const HNREMPAData<Num> &data, const complex<dex> &dc,
+                                         const itt::ptb maxIteration, const bool smallDzRequired) const noexcept {
             if (state.interruptRequested())
                 return 0.0;
 
@@ -179,15 +179,15 @@ namespace merutilm::rff2 {
             itt::ptb smallDzIterationStore = 0;
 
             const auto dc0 = static_cast<complex<Num>>(dc + off);
-            const Num scale = data.targetHNRE->scale;
+            const Num scale = data.hnreTarget->scale;
             const bool isAbs = ptbSettings.absoluteIterationMode;
-            const itt::ref maxRefIteration = data.targetHNRE->longestPeriod();
+            const itt::ref maxRefIteration = data.hnreTarget->longestPeriod();
             const float interiorDetectRadius =
                     ptbSettings.interiorDetectRadiusPower == 0 ? 0 : pow(10, -ptbSettings.interiorDetectRadiusPower);
             const double bailout2 = generalSettings.bailout * generalSettings.bailout;
 
             // basic interior detection
-            HNREReferenceView<Num> referenceView = data.targetHNRE->makeReferenceView();
+            HNREReferenceView<Num> referenceView = data.hnreTarget->makeReferenceView();
             std::optional<HNREMPAView<Num>> mpaView = std::nullopt;
             if (data.buffer)
                 mpaView.emplace(data.makeMPAView());
@@ -224,7 +224,7 @@ namespace merutilm::rff2 {
                 dz = dz.try_normalized_value();
 
                 updateDistance(z, prevDistance2, currDistance2);
-                if (currDistance2 < 1e-3) {
+                if (currDistance2 < Constants::Fractal::HNRE_Z_RADIUS) {
                     smallZStore = z;
                     smallDzIterationStore = iteration;
                 }

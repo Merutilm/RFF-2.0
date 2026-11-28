@@ -17,4 +17,6 @@ namespace merutilm::rff2::Constants::Fractal {
     constexpr int64_t EXP10_ADDITION = 15;
     constexpr float BAILOUT_THRESHOLD_ITERATION_SMOOTHING_METHOD = 64;
     constexpr size_t MAX_PALETTE_LEN = 1000000;
+    constexpr double HNRE_Z_RADIUS = 0.1;
+    constexpr double HNRE_MIN_PERIOD = 10000;
 } // namespace merutilm::rff2::Constants::Fractal

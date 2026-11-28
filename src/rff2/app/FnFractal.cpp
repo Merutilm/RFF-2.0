@@ -6,7 +6,6 @@
 
 #include "../algorithm/Perturbator.h"
 #include "../util/ImGuiUtils.hpp"
-#include "../util/Utilities.h"
 #include "FnExplore.hpp"
 #include "RFF2.hpp"
 #include "imgui.h"
@@ -103,11 +102,11 @@ namespace merutilm::rff2 {
             ImGui::InputScalar("Fixed Precision", ImGuiDataType_S64, &frt.reference.fixedPrecisionNeg)) {
             frt.reference.fixedPrecisionNeg = std::max(static_cast<int64_t>(1), frt.reference.fixedPrecisionNeg);
         }
-        if (ImGui::InputScalar("Reference Partition Size", ImGuiDataType_U32,
-                          &frt.reference.partitionSize)) {
+        if (ImGui::InputScalar("Reference Partition Size", ImGuiDataType_U32, &frt.reference.partitionSize)) {
             frt.reference.partitionSize = std::max(frt.reference.partitionSize, static_cast<uint32_t>(128));
         }
-        ImGuiUtils::HelpMarker("the interval between checkpoints, stored with arbitrary precision, used to find a nucleus that matches the current period.");
+        ImGuiUtils::HelpMarker("the interval between checkpoints, stored with arbitrary precision, used to find a "
+                               "nucleus that matches the current period.");
         ImGui::InputScalar("Minimum Reference Compressor Unit's Size", ImGuiDataType_U32,
                            &frt.reference.compression.minCompressSize);
         ImGuiUtils::HelpMarker(
@@ -196,8 +195,7 @@ namespace merutilm::rff2 {
     void FnFractal::mpa(RFF2 &app) {
 
         ImGuiUtils::BeginSettings("MP-Approximation");
-        auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower] =
-                app.getSettings().fractal.mpa;
+        auto &[minSkipReference, maxMultiplierBetweenLevel, epsilonPower] = app.getSettings().fractal.mpa;
 
         if (ImGui::InputScalar("Min Skip Reference", ImGuiDataType_U16, &minSkipReference)) {
             minSkipReference = std::max(minSkipReference, static_cast<uint16_t>(4));
@@ -231,6 +229,46 @@ namespace merutilm::rff2 {
     }
     void FnFractal::absoluteIterationMode(RFF2 &app) {
         ImGui::Checkbox("Absolute Iteration Mode", &app.getSettings().fractal.perturb.absoluteIterationMode);
+    }
+    void FnFractal::hnre(RFF2 &app) {
+        ImGuiUtils::BeginSettings("HNRE");
+        auto &hnreRequests = app.getSettings().fractal.reference.hnrePeriodRequests;
+        itt::ref lastPeriod = app.getCurrentRenderData() && app.getCurrentRenderData()->getReference()
+                                      ? app.getCurrentRenderData()->getReference()->hnreHighestData().longestPeriod()
+                                      : 1;
+
+        bool addCheck = (lastPeriod > Constants::Fractal::HNRE_MIN_PERIOD);
+        if (!addCheck) {
+            ImGui::BeginDisabled();
+        }
+
+        if (ImGui::Button("Push", ImVec2(-FLT_MIN, 0))) {
+            hnreRequests.emplace_back(lastPeriod);
+        }
+        if (!addCheck) {
+            ImGui::EndDisabled();
+        }
+
+
+        ImGuiUtils::BeginSmoothScrollableChild("##TxtList", ImVec2(-FLT_MIN, Constants::UI::LIST_HEIGHT));
+
+        const int end = std::min(Constants::UI::LIST_ELEMENTS_PER_PAGE, static_cast<int>(hnreRequests.size()));
+
+        if (ImGui::BeginTable("##TxtTable", 4)) {
+            for (int i = 0; i < end; ++i) {
+                ImGui::TableNextColumn();
+                ImGui::PushID(i);
+                std::string formatThousand = Utilities::formatThousands(hnreRequests[i]);
+                ImGui::Text("%s", formatThousand.data());
+                ImGui::SameLine();
+
+                ImGui::PopID();
+            }
+            ImGui::EndTable();
+        }
+
+        ImGui::EndChild();
+        ImGuiUtils::EndSettings();
     }
 
 

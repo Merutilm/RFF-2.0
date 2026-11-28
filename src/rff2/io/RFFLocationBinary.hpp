@@ -16,10 +16,11 @@ namespace merutilm::rff2 {
         std::string real;
         std::string imag;
         itt::ptb maxIteration;
+        std::vector<itt::ref> hnrePeriodRequests;
 
         static const RFFLocationBinary DEFAULT;
 
-        explicit RFFLocationBinary(double logZoom, std::string real, std::string imag, itt::ptb maxIteration);
+        explicit RFFLocationBinary(double logZoom, std::string real, std::string imag, itt::ptb maxIteration, std::vector<itt::ref> hnrePeriodRequests);
 
         [[nodiscard]] static RFFLocationBinary read(std::ifstream &in);
 

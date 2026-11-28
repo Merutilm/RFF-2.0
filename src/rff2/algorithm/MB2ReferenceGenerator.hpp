@@ -44,7 +44,7 @@ namespace merutilm::rff2 {
 
         // if empty: no HNRE, using full orbit calculation
         std::vector<HNREReferenceData<Num>> hnreList;
-        std::vector<itt::ref> requestedHNREPeriods;
+        std::vector<itt::ref> hnrePeriodRequests;
 
         FnRefCalc fnRefCalc;
         Num refSyncRadius2 = Num(pow(10.0, -refSettings.sync.referenceSynchronizationRadiusPower * 2));
@@ -71,7 +71,7 @@ namespace merutilm::rff2 {
         void resetPartitionAn() { fzgAnPartition = complex<Num>::ONE; }
 
         void tryOverwriteApproximatedDerivatives() {
-            if (!requestedHNREPeriods.empty())
+            if (!hnrePeriodRequests.empty())
                 return;
             fzgAnArb = fixed_point_complex(fzgAn.re, fzgAn.im, exp10);
         }
@@ -119,7 +119,7 @@ namespace merutilm::rff2 {
             const FrtReferenceSettings &refSettings, const int32_t exp10, const size_t highestHNRERefInitialCapacity,
             const dex dcMax, std::vector<itt::ref> requestedHNREPeriods, FnRefCalc &&fnRefCalc) :
         state(state), generalSettings(generalSettings), refSettings(refSettings), exp10(exp10),
-        highestHNRERefInitialCapacity(highestHNRERefInitialCapacity), requestedHNREPeriods(std::move(requestedHNREPeriods)),
+        highestHNRERefInitialCapacity(highestHNRERefInitialCapacity), hnrePeriodRequests(std::move(requestedHNREPeriods)),
         fnRefCalc(std::move(fnRefCalc)), transformedDcMax(dcMax) {}
 
 
@@ -149,7 +149,7 @@ namespace merutilm::rff2 {
             z.set_exp10(currentExp10);
             c = cTrans;
             c.set_exp10(currentExp10);
-             if (!requestedHNREPeriods.empty()) fzgAnArb.set_exp10(currentExp10);
+             if (!hnrePeriodRequests.empty()) fzgAnArb.set_exp10(currentExp10);
             for (auto &temp: temps) {
                 temp.set_exp10(currentExp10, false);
             }
@@ -245,7 +245,7 @@ namespace merutilm::rff2 {
         itt::ref periodMultiplier = 1;
         cOrig = refSettings.center.create_variant(exp10);
         cTrans = cOrig;
-        for (const itt::ref hnrePeriod : requestedHNREPeriods) {
+        for (const itt::ref hnrePeriod : hnrePeriodRequests) {
             if (RFFResult result; (result = generateHNRE(periodMultiplier, hnrePeriod, hnrePeriod)) != RFFResult::SUCCESS) {
                 return result;
             }
@@ -347,7 +347,7 @@ namespace merutilm::rff2 {
             return false;
         }
         if (refIteration > 0) {
-            if (!requestedHNREPeriods.empty()) {
+            if (!hnrePeriodRequests.empty()) {
                 fixed_point_complex::mul(fzgAnArb, fzgAnArb, z, temps);
                 fixed_point_complex::dbl(fzgAnArb, fzgAnArb);
             }

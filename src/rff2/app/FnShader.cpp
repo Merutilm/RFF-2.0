@@ -4,7 +4,6 @@
 
 #include "FnShader.hpp"
 #include "../util/ImGuiUtils.hpp"
-#include "../util/Utilities.h"
 #include "imgui.h"
 
 #include "../io/KFRColorLoader.hpp"
@@ -46,7 +45,7 @@ namespace merutilm::rff2 {
 
             if (ImGui::Button("Add", ImVec2(-FLT_MIN, 0))) {
                 colors.emplace_back(1, 1, 1, 1);
-                page = (static_cast<int>(colors.size()) - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE;
+                page = (static_cast<int>(colors.size()) - 1) / Constants::UI::LIST_ELEMENTS_PER_PAGE;
                 selectRequest = static_cast<int>(colors.size()) - 1;
                 app.getRequests().requestShader();
             }
@@ -89,7 +88,7 @@ namespace merutilm::rff2 {
             ImGui::EndTable();
         }
 
-        const int pageCount = (static_cast<int>(colors.size()) - 1) / Constants::UI::PALETTE_COLORS_PER_PAGE + 1;
+        const int pageCount = (static_cast<int>(colors.size()) - 1) / Constants::UI::LIST_ELEMENTS_PER_PAGE + 1;
 
         if (ImGui::ArrowButton("##prev", ImGuiDir_Left)) {
             if (ImGui::GetIO().KeyCtrl) {
@@ -122,10 +121,10 @@ namespace merutilm::rff2 {
 
         ImGui::Separator();
 
-        ImGuiUtils::BeginSmoothScrollableChild("##ColorList", ImVec2(-FLT_MIN, Constants::UI::PALETTE_LIST_HEIGHT));
+        ImGuiUtils::BeginSmoothScrollableChild("##ColorList", ImVec2(-FLT_MIN, Constants::UI::LIST_HEIGHT));
 
-        const int begin = page * Constants::UI::PALETTE_COLORS_PER_PAGE;
-        const int end = std::min(begin + Constants::UI::PALETTE_COLORS_PER_PAGE, static_cast<int>(colors.size()));
+        const int begin = page * Constants::UI::LIST_ELEMENTS_PER_PAGE;
+        const int end = std::min(begin + Constants::UI::LIST_ELEMENTS_PER_PAGE, static_cast<int>(colors.size()));
 
         if (selectRequest >= 0) {
             selected = -1;

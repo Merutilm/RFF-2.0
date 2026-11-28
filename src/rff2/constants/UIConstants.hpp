@@ -6,7 +6,7 @@
 #include "imgui.h"
 
 namespace merutilm::rff2::Constants::UI {
-    constexpr int PALETTE_COLORS_PER_PAGE = 100;
+    constexpr int LIST_ELEMENTS_PER_PAGE = 100;
     constexpr float UNLIMITED_MAX_DRAG = 1e12f;
     constexpr float UNLIMITED_DRAG_SPEED = 1e8f;
     constexpr float UNLIMITED_MIN_DRAG_ANIM = 0.1f;
@@ -17,7 +17,7 @@ namespace merutilm::rff2::Constants::UI {
     constexpr float SMOOTH_SCROLL_SENSITIVITY = 150;
     constexpr float SMOOTH_SCROLL_SPEED = 30;
 
-    constexpr int PALETTE_LIST_HEIGHT = 300;
+    constexpr int LIST_HEIGHT = 300;
     constexpr auto SELECTED_COLOR_HIGHLIGHT = IM_COL32(255, 255, 0, 255);
     constexpr float SELECTED_COLOR_THICKNESS = 2.0f;
 

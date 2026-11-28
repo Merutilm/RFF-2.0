@@ -74,7 +74,7 @@ namespace merutilm::rff2 {
         result = std::make_unique<MB2RenderData>(state, frt, computeShaderUsed, buffer);
         MB2RenderData &instance = dynamic_cast<MB2RenderData &>(*result);
         MB2ReferenceGenerator<Num, FnRefCalc> generator(state, frt.general, frt.reference, exp10, refInitialCapacity,
-                                                               dcMax, std::vector<itt::ref>{5374}, std::move(fnRefCalc));
+                                                               dcMax, frt.reference.hnrePeriodRequests, std::move(fnRefCalc));
 
         if (const RFFResult r = generator.generate(); r != RFFResult::SUCCESS) return r;
 
